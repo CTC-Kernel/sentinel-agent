@@ -10,6 +10,7 @@ import { useIncidentsData } from '../hooks/incidents/useIncidentsData';
 
 import { PageHeader } from '../components/ui/PageHeader';
 import { Siren, Plus, ShieldAlert, BrainCircuit, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
+import { Download } from 'lucide-react';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Skeleton, CardSkeleton } from '../components/ui/Skeleton';
@@ -27,6 +28,7 @@ import { canEditResource, hasPermission, canDeleteResource } from '../utils/perm
 import { IncidentImportModal } from '../components/incidents/IncidentImportModal';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { ImportService } from '../services/ImportService';
+import { CsvParser } from '../utils/csvUtils'; // Import CsvParser
 import { SecurityEvent } from '../services/integrationService';
 
 import { SEO } from '../components/SEO';
@@ -133,6 +135,20 @@ export const Incidents: React.FC = () => {
         await importIncidents(text);
         setCsvImportOpen(false);
     }, [importIncidents]);
+
+    const handleExportCSV = React.useCallback(() => {
+        const csvHeaders = ['Title', 'Description', 'Status', 'Severity', 'Category', 'Date', 'Reporter'];
+        const data = incidents.map(inc => ({
+            'Title': inc.title,
+            'Description': inc.description || '',
+            'Status': inc.status,
+            'Severity': inc.severity,
+            'Category': inc.category || '',
+            'Date': new Date(inc.dateReported).toLocaleDateString(),
+            'Reporter': inc.reporter || ''
+        }));
+        CsvParser.downloadCSV(csvHeaders, data, `incidents_export_${new Date().toISOString().split('T')[0]}.csv`);
+    }, [incidents]);
 
     const handleSimulateAttack = useCallback(async () => {
         setIsSubmitting(true);
@@ -452,101 +468,117 @@ export const Incidents: React.FC = () => {
                 viewMode={viewMode}
                 onViewModeChange={handleViewModeChange}
                 actions={
-                    canEdit && (
-                        <>
-                            <div className="hidden md:block w-40 mr-2">
-                                <CustomSelect
-                                    value={statusFilter}
-                                    onChange={handleStatusFilterChange}
-                                    options={[
-                                        { value: '', label: t('incidents.allStatuses') },
-                                        { value: 'Nouveau', label: 'Nouveau' },
-                                        { value: 'Analyse', label: 'Analyse' },
-                                        { value: 'Contenu', label: 'Contenu' },
-                                        { value: 'Résolu', label: 'Résolu' },
-                                        { value: 'Fermé', label: 'Fermé' }
-                                    ]}
-                                    placeholder="Statut"
-                                />
-                            </div>
-                            <div className="hidden md:block w-40 mr-4">
-                                <CustomSelect
-                                    value={severityFilter}
-                                    onChange={handleSeverityFilterChange}
-                                    options={[
-                                        { value: '', label: t('incidents.allSeverities') },
-                                        { value: Criticality.CRITICAL, label: 'Critique' },
-                                        { value: Criticality.HIGH, label: 'Élevé' },
-                                        { value: Criticality.MEDIUM, label: 'Moyen' },
-                                        { value: Criticality.LOW, label: 'Faible' }
-                                    ]}
-                                    placeholder="Sévérité"
-                                />
-                            </div>
-                            <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
+                    <>
+                        <div className="hidden md:block w-40 mr-2">
+                            <CustomSelect
+                                value={statusFilter}
+                                onChange={handleStatusFilterChange}
+                                options={[
+                                    { value: '', label: t('incidents.allStatuses') },
+                                    { value: 'Nouveau', label: 'Nouveau' },
+                                    { value: 'Analyse', label: 'Analyse' },
+                                    { value: 'Contenu', label: 'Contenu' },
+                                    { value: 'Résolu', label: 'Résolu' },
+                                    { value: 'Fermé', label: 'Fermé' }
+                                ]}
+                                placeholder="Statut"
+                            />
+                        </div>
+                        <div className="hidden md:block w-40 mr-4">
+                            <CustomSelect
+                                value={severityFilter}
+                                onChange={handleSeverityFilterChange}
+                                options={[
+                                    { value: '', label: t('incidents.allSeverities') },
+                                    { value: Criticality.CRITICAL, label: 'Critique' },
+                                    { value: Criticality.HIGH, label: 'Élevé' },
+                                    { value: Criticality.MEDIUM, label: 'Moyen' },
+                                    { value: Criticality.LOW, label: 'Faible' }
+                                ]}
+                                placeholder="Sévérité"
+                            />
+                        </div>
+                        <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
 
-                            <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                    <MoreVertical className="h-5 w-5" />
-                                </Menu.Button>
-                                <Transition
-                                    as={React.Fragment}
-                                    enter="transition ease-out duration-100"
-                                    enterFrom="transform opacity-0 scale-95"
-                                    enterTo="transform opacity-100 scale-100"
-                                    leave="transition ease-in duration-75"
-                                    leaveFrom="transform opacity-100 scale-100"
-                                    leaveTo="transform opacity-0 scale-95"
-                                >
-                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                        <div className="p-1">
-                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                {t('incidents.tools')}
-                                            </div>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button
-                                                        aria-label={t('incidents.importSiem')}
-                                                        onClick={handleOpenImport}
-                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                    >
-                                                        <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-
-                                                        {t('incidents.importSiem')}
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button
-                                                        onClick={() => setCsvImportOpen(true)}
-                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                    >
-                                                        <MoreVertical className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                        {t('common.importCsv')}
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button
-                                                        aria-label={t('incidents.simulateAttack')}
-                                                        onClick={handleSimulateAttack}
-                                                        className={`${active ? 'bg-red-500 text-white' : 'text-red-600 dark:text-red-400'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                    >
-                                                        <Siren className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-red-500'}`} />
-                                                        {t('incidents.simulateAttack')}
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
+                        <Menu as="div" className="relative inline-block text-left">
+                            <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                <MoreVertical className="h-5 w-5" />
+                            </Menu.Button>
+                            <Transition
+                                as={React.Fragment}
+                                enter="transition ease-out duration-100"
+                                enterFrom="transform opacity-0 scale-95"
+                                enterTo="transform opacity-100 scale-100"
+                                leave="transition ease-in duration-75"
+                                leaveFrom="transform opacity-100 scale-100"
+                                leaveTo="transform opacity-0 scale-95"
+                            >
+                                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                    <div className="p-1">
+                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            {t('incidents.tools')}
                                         </div>
-                                    </Menu.Items>
-                                </Transition>
-                            </Menu>
+                                        {canEdit && (
+                                            <>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            aria-label={t('incidents.importSiem')}
+                                                            onClick={handleOpenImport}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                            {t('incidents.importSiem')}
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            aria-label={t('incidents.simulateAttack')}
+                                                            onClick={handleSimulateAttack}
+                                                            className={`${active ? 'bg-red-500 text-white' : 'text-red-600 dark:text-red-400'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            <Siren className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-red-500'}`} />
+                                                            {t('incidents.simulateAttack')}
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            </>
+                                        )}
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={() => setCsvImportOpen(true)}
+                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                >
+                                                    <MoreVertical className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                    {t('common.importCsv')}
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    aria-label={t('common.exportCsv')}
+                                                    onClick={handleExportCSV}
+                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                >
+                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                    {t('common.exportCsv')}
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                    </div>
+                                </Menu.Items>
+                            </Transition>
+                        </Menu>
 
+                        {canEdit && (
                             <CustomTooltip content={t('incidents.declare')}>
                                 <button
                                     aria-label={t('incidents.declare')}
@@ -557,8 +589,8 @@ export const Incidents: React.FC = () => {
                                     <span className="hidden sm:inline">{t('incidents.declare')}</span>
                                 </button>
                             </CustomTooltip>
-                        </>
-                    )
+                        )}
+                    </>
                 }
             />
 

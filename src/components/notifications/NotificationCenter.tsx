@@ -52,7 +52,7 @@ export const NotificationCenter: React.FC = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
                         transition={{ duration: 0.1 }}
-                        className="absolute right-0 mt-2 w-96 max-h-[80vh] bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] border border-white/20 dark:border-white/10 overflow-hidden z-50 flex flex-col origin-top-right ring-1 ring-white/20 dark:ring-white/5"
+                        className="absolute right-0 mt-2 w-96 max-h-[80vh] bg-white dark:bg-slate-950 rounded-xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] border border-white/20 dark:border-white/10 overflow-hidden z-50 flex flex-col origin-top-right ring-1 ring-white/20 dark:ring-white/5"
                     >
                         {/* Header */}
                         <div className="p-4 border-b border-slate-200/50 dark:border-white/10 flex items-center justify-between bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 shrink-0">

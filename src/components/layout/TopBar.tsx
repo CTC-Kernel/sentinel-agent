@@ -125,7 +125,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     <div className="hidden sm:block">
                         <PlanIndicator />
                     </div>
-                    
+
                     {isSuperAdmin && (
                         <Link
                             to="/admin_management"
@@ -164,7 +164,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{user?.displayName}</span>
                                 <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
                             </div>
-                            <img 
+                            <img
                                 alt="Profile"
                                 src={getDefaultAvatarUrl()}
                                 className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
@@ -177,7 +177,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-64 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/20 dark:ring-white/5">
+                            <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-950 border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/20 dark:ring-white/5">
                                 <div className="p-4 bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 border-b border-slate-200/50 dark:border-white/10">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>

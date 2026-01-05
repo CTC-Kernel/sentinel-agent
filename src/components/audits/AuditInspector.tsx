@@ -42,7 +42,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
         handleAddFinding, handleDeleteFinding,
         generateChecklist, handleChecklistAnswer,
         validateAudit, generateAuditReport, handleExportPack,
-        handleEvidenceUploadForFinding,
+        handleEvidenceUploadForFinding, updateAuditDetails,
         isGeneratingReport, isValidating
     } = useAuditDetails(audit, controls, documents, refreshAudits);
 
@@ -114,14 +114,16 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                 <div className="p-6">
                     <AuditForm
                         existingAudit={audit}
-                        onSubmit={async () => { }} // Read-only, empty handler
+                        onSubmit={async (data) => {
+                            await updateAuditDetails(data);
+                        }}
                         onCancel={onClose}
                         assets={assets}
                         risks={risks}
                         controls={controls}
                         projects={projects}
                         usersList={usersList}
-                        readOnly={true}
+                        readOnly={!canEdit}
                     />
                 </div>
             )}
