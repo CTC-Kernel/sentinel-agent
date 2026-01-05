@@ -39,6 +39,7 @@ export class SecureStorage {
     /**
      * Store sensitive data securely
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static setSecureItem(key: string, value: any): void {
         try {
             const keyWithPrefix = this.PREFIX + key;

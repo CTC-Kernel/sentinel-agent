@@ -9,6 +9,8 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, AI
 import { ErrorLogger } from '../services/errorLogger';
 import { VoxelMesh } from './voxel/VoxelMesh';
 import { ModelLibraryProvider } from '../context/ModelLibraryContext';
+import { EffectComposer, Bloom, Vignette, Noise } from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing';
 
 // Helper for CSS Variables
 const resolveHslCssVar = (cssVarName: string, fallbackHsl: string) => {
@@ -706,9 +708,10 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           <Suspense fallback={null}>
             <ModelLibraryProvider>
               <color attach="background" args={[new Color('#020617')]} />
-              <ambientLight intensity={0.55} />
-              <pointLight position={[12, 18, 18]} intensity={1.2} color="#93c5fd" />
-              <pointLight position={[-14, -12, -8]} intensity={0.7} color="#4ecdc4" />
+              <ambientLight intensity={0.4} />
+              <pointLight position={[15, 20, 15]} intensity={1.5} color="#60a5fa" />
+              <pointLight position={[-15, -10, -10]} intensity={1.0} color="#2dd4bf" />
+              <spotLight position={[0, 40, 0]} intensity={0.8} angle={Math.PI / 6} penumbra={1} color="#e879f9" />
 
               <OrbitControls ref={controlsRef} makeDefault enablePan enableZoom enableDamping autoRotate={autoRotate} autoRotateSpeed={0.35} minDistance={4} maxDistance={55} zoomSpeed={0.6} dampingFactor={0.05} />
 
@@ -760,6 +763,12 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
               <FocusController target={selectedNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} focusOnCardRef={focusOnCardRef} overlayOffset={overlayOffset} />
               <PresentationManager presentationMode={presentationMode} voxelNodes={voxelNodes} onNodeSelect={handleNodeClick} />
+
+              <EffectComposer enableNormalPass={false}>
+                <Bloom luminanceThreshold={1.0} mipmapBlur intensity={1.2} radius={0.6} levels={8} />
+                <Vignette offset={0.2} darkness={0.6} blendFunction={BlendFunction.NORMAL} />
+                <Noise opacity={0.025} blendFunction={BlendFunction.OVERLAY} />
+              </EffectComposer>
             </ModelLibraryProvider>
           </Suspense>
         </VoxelErrorBoundary>

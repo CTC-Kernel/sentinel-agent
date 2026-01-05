@@ -174,6 +174,7 @@ export const AssetService = {
                 const s = await getDocs(q);
                 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                 return s.docs.map(d => ({ id: d.id, ...d.data() } as any));
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 // Fallback to client-side filtering if index is missing
                 if (error.code === 'failed-precondition') {

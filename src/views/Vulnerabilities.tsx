@@ -288,6 +288,8 @@ export const Vulnerabilities: React.FC = () => {
                     <VulnerabilityKanban
                         vulnerabilities={filteredVulnerabilities}
                         onSelect={setSelectedVulnerability}
+                        onDelete={initiateDelete}
+                        loading={loading}
                     />
                 ) : (
                     <VulnerabilityList
@@ -296,6 +298,8 @@ export const Vulnerabilities: React.FC = () => {
                         onSelect={setSelectedVulnerability}
                         onDelete={initiateDelete}
                         loading={loading}
+                        onImportClick={handleImportClick}
+                        onCreateClick={handleCreateClick}
                     />
                 )}
             </motion.div>

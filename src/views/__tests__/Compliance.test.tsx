@@ -25,7 +25,7 @@ vi.mock('../../store', () => {
         customRoles: [],
         user: { organizationId: 'test-org', role: 'rssi', uid: 'test-user' }
     }));
-    
+
     const useStore = vi.fn(() => ({
         user: mockGetState().user,
         addToast: vi.fn(),
@@ -44,9 +44,10 @@ vi.mock('../../store', () => {
             return translations[key] || key;
         }
     }));
-    
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useStore as any).getState = mockGetState;
-    
+
     return { useStore };
 });
 

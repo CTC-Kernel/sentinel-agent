@@ -150,23 +150,7 @@ export const VoxelView: React.FC = () => {
     return () => document.body.classList.remove('voxel-fullscreen');
   }, [isFullscreen]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver(() => {
-      window.dispatchEvent(new Event('resize'));
-    });
-    observer.observe(containerRef.current);
 
-    // Force a resize event after a short delay to account for animation settlement
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 400);
-
-    return () => {
-      observer.disconnect();
-      clearTimeout(timer);
-    };
-  }, []);
 
   const detailRoutes: Record<LayerType, string> = {
     asset: '/assets',
@@ -617,9 +601,6 @@ export const VoxelView: React.FC = () => {
 
   const handleFullscreenToggle = () => {
     setIsFullscreen(prev => !prev);
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 150);
   };
 
   const handleResetView = () => {
@@ -630,7 +611,6 @@ export const VoxelView: React.FC = () => {
     setHeatmapEnabled(true);
     setXRayEnabled(false);
     setAutoRotateEnabled(true);
-    setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
   };
 
   const handleNodeClick = (node: VoxelNode | null) => {
@@ -648,10 +628,6 @@ export const VoxelView: React.FC = () => {
 
   const handleRefresh = () => {
     refresh();
-    // Force a resize event after refresh
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 400);
   };
 
   const handleAIAnalysis = async () => {
@@ -711,12 +687,12 @@ export const VoxelView: React.FC = () => {
           { label: 'CTC Engine' }
         ]}
         icon={
-                    <img 
-                        src="/images/operations.png" 
-                        alt="OPÉRATIONS" 
-                        className="w-full h-full object-contain"
-                    />
-                }
+          <img
+            src="/images/operations.png"
+            alt="OPÉRATIONS"
+            className="w-full h-full object-contain"
+          />
+        }
         actions={
           <div className="flex flex-wrap items-center gap-3 min-w-0">
             {/* Counters */}
@@ -866,7 +842,7 @@ export const VoxelView: React.FC = () => {
         </aside>
 
         {/* Unified Command Bar (Dock) */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 p-1.5 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all hover:scale-[1.02] hover:bg-slate-900/90">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 p-2 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md shadow-glass-lg transition-all hover:bg-black/50">
           <button
             aria-label="Guide du module"
             onClick={() => setShowGuide(true)}

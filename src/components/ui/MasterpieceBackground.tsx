@@ -16,13 +16,10 @@ export const MasterpieceBackground: React.FC<MasterpieceBackgroundProps> = ({
             {/* Base Background Color - Deep Space in Dark Mode */}
             <div className="absolute inset-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-500" />
 
-            {/* High-Tech Grid Pattern - subtle structure */}
-            <div className="absolute inset-0 bg-grid-slate-900/[0.04] dark:bg-grid-white/[0.02] [mask-image:linear-gradient(to_bottom,white,transparent)]" />
-
-            {/* Ambient Aurora/Orb Effects - Living Breath */}
-            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-brand-500/10 dark:bg-brand-500/20 rounded-full blur-[120px] animate-blob mix-blend-multiply dark:mix-blend-screen" />
-            <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 dark:bg-indigo-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen" />
-            <div className="absolute bottom-[-10%] left-[20%] w-[35%] h-[35%] bg-blue-400/10 dark:bg-cyan-500/10 rounded-full blur-[100px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen" />
+            {/* Ambient Aurora/Orb Effects - Living Breath - INVERTED (Blue on Right, Clear on Left) - ENHANCED */}
+            <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-600/20 dark:bg-blue-600/25 rounded-full blur-[120px] animate-blob animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
+            <div className="absolute top-[40%] right-[10%] w-[40%] h-[40%] bg-indigo-500/20 dark:bg-indigo-500/20 rounded-full blur-[120px] animate-blob animation-delay-2000 animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
+            <div className="absolute bottom-[-10%] right-[20%] w-[35%] h-[35%] bg-sky-500/20 dark:bg-sky-500/20 rounded-full blur-[100px] animate-blob animation-delay-4000 animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />
 
             {/* Command Center Interaction Lines (Subtler) */}
             <div className="absolute inset-0 bg-transparent dark:bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none mix-blend-multiply dark:mix-blend-normal" />
