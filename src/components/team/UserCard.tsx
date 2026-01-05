@@ -50,14 +50,14 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
             )}
 
             <div className="relative mb-4 mt-2">
-                <img 
-                    src={getDefaultAvatarUrl()} 
-                    alt={user.displayName} 
-                    loading="lazy" 
-                    className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`} 
+                <img
+                    src={getDefaultAvatarUrl(user.role)}
+                    alt={user.displayName}
+                    loading="lazy"
+                    className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`}
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = getDefaultAvatarUrl();
+                        target.src = getDefaultAvatarUrl(user.role);
                     }}
                 />
                 <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">

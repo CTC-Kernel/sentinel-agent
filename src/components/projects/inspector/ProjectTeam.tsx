@@ -20,7 +20,7 @@ export const ProjectTeam: React.FC<ProjectTeamProps> = ({ project, usersList }) 
                         <div key={member.uid} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
                             <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-lg border-2 border-white dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform overflow-hidden">
                                 <img
-                                    src={getUserAvatarUrl(member.photoURL)}
+                                    src={getUserAvatarUrl(member.photoURL, member.role)}
                                     alt={member.displayName}
                                     className="h-full w-full rounded-full object-cover"
                                 />

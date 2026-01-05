@@ -1,62 +1,109 @@
 
-> sentinel-grc@2.0.0 lint
-> eslint .
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/assets/AssetList.tsx
+   54:49  error    Compilation Skipped: Existing memoization could not be preserved
 
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `users`, but the source dependencies were [canEdit, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user, t]. Inferred different dependency than source.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useComplianceData.ts
-  27:13  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/assets/AssetList.tsx:54:49
+   52 |     const canDelete = canDeleteResource(user, 'Asset');
+   53 |
+>  54 |     const columns = useMemo<ColumnDef<Asset>[]>(() => [
+      |                                                 ^^^^^^^
+>  55 |         { header: t('common.name'), accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  56 |         { header: t('common.type'), accessorKey: 'type' },
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 133 |         }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 134 |     ], [canEdit, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user, t]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  135 |
+  136 |     if (viewMode === 'list') {
+  137 |         return (  react-hooks/preserve-manual-memoization
+  134:8   warning  React Hook useMemo has a missing dependency: 'users'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useFirestore.ts
-  109:45  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                    react-hooks/rules-of-hooks
-  110:51  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                    react-hooks/rules-of-hooks
-  111:47  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                    react-hooks/rules-of-hooks
-  112:49  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                    react-hooks/rules-of-hooks
-  114:25  error  React Hook "useQueryClient" is called conditionally. React Hooks must be called in the exact same order in every component render                                                              react-hooks/rules-of-hooks
-  116:28  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                     react-hooks/rules-of-hooks
-  123:28  error  React Hook "useRef" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                      react-hooks/rules-of-hooks
-  124:5   error  React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                   react-hooks/rules-of-hooks
-  140:9   error  React Hook "useQuery" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
-  161:5   error  React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?    react-hooks/rules-of-hooks
-  218:17  error  React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
-  233:20  error  React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
-  247:20  error  React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
-  262:21  error  React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditsList.tsx
+   38:49  error    Compilation Skipped: Existing memoization could not be preserved
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/usePrivacy.ts
-  96:8  warning  React Hook useCallback has a missing dependency: 'user'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `users`, but the source dependencies were [canEdit, canDelete, onEdit, onDelete, onOpen, onSelect, selectedIds, audits]. Inferred different dependency than source.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useTeamManagement.ts
-   24:33  error    A `require()` style import is forbidden                                                                               @typescript-eslint/no-require-imports
-   80:8   warning  React Hook useCallback has a missing dependency: 'MockDataService'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-   98:8   warning  React Hook useCallback has a missing dependency: 'MockDataService'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-  267:40  warning  Unexpected any. Specify a different type                                                                              @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditsList.tsx:38:49
+   36 | }) => {
+   37 |
+>  38 |     const columns = useMemo<ColumnDef<Audit>[]>(() => [
+      |                                                 ^^^^^^^
+>  39 |         {
+      | ^^^^^^^^^
+>  40 |             id: 'select',
+      …
+      | ^^^^^^^^^
+> 169 |         }
+      | ^^^^^^^^^
+> 170 |     ], [canEdit, canDelete, onEdit, onDelete, onOpen, onSelect, selectedIds, audits]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  171 |
+  172 |     return (
+  173 |         <DataTable  react-hooks/preserve-manual-memoization
+  170:8   warning  React Hook useMemo has a missing dependency: 'users'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/ThreatFeedService.ts
-  112:22  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/DirectionDashboardView.tsx
+  22:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/documentService.ts
-  208:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/DashboardStats.tsx
+  24:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/incidentService.ts
-  82:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/incidents/IncidentDashboard.tsx
+   94:52  error    Compilation Skipped: Existing memoization could not be preserved
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/mockDataService.ts
-  251:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `users`, but the source dependencies were [canDelete, onDelete]. Inferred different dependency than source.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/projectService.ts
-  246:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/incidents/IncidentDashboard.tsx:94:52
+   92 |
+   93 |     // Metrics for Summary Card
+>  94 |     const columns = useMemo<ColumnDef<Incident>[]>(() => [
+      |                                                    ^^^^^^^
+>  95 |         {
+      | ^^^^^^^^^
+>  96 |             accessorKey: 'title',
+      …
+      | ^^^^^^^^^
+> 184 |         }
+      | ^^^^^^^^^
+> 185 |     ], [canDelete, onDelete]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  186 |
+  187 |     const totalIncidents = incidents.length;
+  188 |     const openIncidents = incidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;  react-hooks/preserve-manual-memoization
+  185:8   warning  React Hook useMemo has a missing dependency: 'users'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Assets.tsx
-  210:11  warning  The 'assetGuidelines' object makes the dependencies of useCallback Hook (at line 274) change on every render. To fix this, wrap the initialization of 'assetGuidelines' in its own useMemo() Hook  react-hooks/exhaustive-deps
-  231:36  warning  Unexpected any. Specify a different type                                                                                                                                                           @typescript-eslint/no-explicit-any
-  235:90  warning  Unexpected any. Specify a different type                                                                                                                                                           @typescript-eslint/no-explicit-any
-  236:59  warning  Unexpected any. Specify a different type                                                                                                                                                           @typescript-eslint/no-explicit-any
-  237:65  warning  Unexpected any. Specify a different type                                                                                                                                                           @typescript-eslint/no-explicit-any
-  238:85  warning  Unexpected any. Specify a different type                                                                                                                                                           @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/risks/list/RiskColumns.tsx
+   35:26  error    Compilation Skipped: Existing memoization could not be preserved
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/e2e/dashboard.spec.ts
-  31:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `users`, but the source dependencies were [canEdit, assets, onEdit, onDelete, deletingIds, getOwnerName]. Inferred different dependency than source.
 
-✖ 32 problems (15 errors, 17 warnings)
-  0 errors and 1 warning potentially fixable with the `--fix` option.
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/risks/list/RiskColumns.tsx:35:26
+   33 |     }, [users]);
+   34 |
+>  35 |     return React.useMemo(() => [
+      |                          ^^^^^^^
+>  36 |         {
+      | ^^^^^^^^^
+>  37 |             header: 'Menace',
+      …
+> 155 |             ),
+      | ^^^^^^^^^
+> 156 |         },
+      | ^^^^^^^^^
+> 157 |     ], [canEdit, assets, onEdit, onDelete, deletingIds, getOwnerName]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  158 | };
+  159 |  react-hooks/preserve-manual-memoization
+  157:8   warning  React Hook React.useMemo has a missing dependency: 'users'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/PdfService.ts
+  340:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 12 problems (4 errors, 8 warnings)
 

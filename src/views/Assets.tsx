@@ -494,6 +494,7 @@ const Assets: React.FC = () => {
                             isGeneratingLabels={false}
                             activeFiltersQuery={activeFilters.query}
                             onBulkDelete={bulkDeleteAssets}
+                            users={usersList}
                         />
                     </div>
 

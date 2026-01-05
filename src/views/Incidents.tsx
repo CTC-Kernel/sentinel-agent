@@ -619,6 +619,7 @@ export const Incidents: React.FC = () => {
                         loading={loading}
                         onDelete={initiateDelete}
                         onBulkDelete={handleBulkDelete}
+                        users={effectiveUsers}
                     />
                 )}
             </motion.div>

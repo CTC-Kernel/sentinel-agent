@@ -6,6 +6,7 @@ import { Badge } from '../../ui/Badge';
 import { Button } from '../../ui/button';
 import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
 import { getRiskLevel, getSLAStatus } from '../../../utils/riskUtils';
+import { getUserAvatarUrl } from '../../../utils/avatarUtils';
 
 interface UseRiskColumnsProps {
     canEdit: boolean;
@@ -35,17 +36,32 @@ export const useRiskColumns = ({
         {
             header: 'Menace',
             accessorKey: 'threat',
-            cell: ({ row }) => (
-                <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300">
-                        <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
+            cell: ({ row }) => {
+                const ownerUser = users.find(u => u.uid === row.original.owner);
+                return (
+                    <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300 overflow-hidden">
+                            {ownerUser ? (
+                                <img
+                                    src={getUserAvatarUrl(ownerUser.photoURL, ownerUser.role)}
+                                    alt={getOwnerName(row.original.owner)}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = getUserAvatarUrl(null, ownerUser.role);
+                                    }}
+                                />
+                            ) : (
+                                <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
+                            )}
+                        </div>
+                        <div>
+                            <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
+                            <div className="text-xs text-slate-600 font-medium">{getOwnerName(row.original.owner)}</div>
+                        </div>
                     </div>
-                    <div>
-                        <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
-                        <div className="text-xs text-slate-600 font-medium">{getOwnerName(row.original.owner)}</div>
-                    </div>
-                </div>
-            ),
+                );
+            },
         },
         {
             header: 'Vulnérabilité',
@@ -138,5 +154,5 @@ export const useRiskColumns = ({
                 </div>
             ),
         },
-    ], [canEdit, assets, onEdit, onDelete, deletingIds, getOwnerName]);
+    ], [canEdit, assets, onEdit, onDelete, deletingIds, getOwnerName, users]);
 };

@@ -25,7 +25,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.8 }}
-                className="absolute inset-0 bg-white/60 dark:bg-slate-950/60 backdrop-blur-3xl z-0"
+                className="absolute inset-0 bg-slate-50 dark:bg-slate-950 z-0"
             />
 
             {/* Floating Orbs (Aurora effect) */}

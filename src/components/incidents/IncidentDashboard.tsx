@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Trash2, CalendarDays, Siren, ShieldAlert } from '../ui/Icons';
-import { Incident, Criticality } from '../../types';
+import { Incident, Criticality, UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { EmptyState } from '../ui/EmptyState';
 import { CardSkeleton } from '../ui/Skeleton';
@@ -10,6 +10,7 @@ import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { IncidentSummaryCard } from './dashboard/IncidentSummaryCard';
 import { IncidentCharts } from './dashboard/IncidentCharts';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 interface IncidentDashboardProps {
     incidents: Incident[];
@@ -20,6 +21,7 @@ interface IncidentDashboardProps {
     onBulkDelete?: (ids: string[]) => void;
     viewMode: 'list' | 'grid';
     filter: string;
+    users?: UserProfile[];
 }
 
 const getSeverityColor = (s: Criticality) => {
@@ -42,7 +44,7 @@ const getStatusColor = (s: string) => {
     }
 };
 
-export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, onBulkDelete, viewMode, filter }) => {
+export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, onBulkDelete, viewMode, filter, users }) => {
     const { user } = useStore();
     const canDelete = !!user && hasPermission(user, 'Incident', 'delete');
 
@@ -130,11 +132,26 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         {
             accessorKey: 'reporter',
             header: 'Reporter',
-            cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-slate-400 font-medium">
-                    {row.original.reporter}
-                </span>
-            )
+            cell: ({ row }) => {
+                const reporterName = row.original.reporter;
+                const reporterUser = users?.find(u => u.displayName === reporterName || u.email === reporterName);
+                return (
+                    <div className="flex items-center gap-2">
+                        <img
+                            src={getUserAvatarUrl(reporterUser?.photoURL, reporterUser?.role)}
+                            alt={reporterName}
+                            className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = getUserAvatarUrl(null, reporterUser?.role);
+                            }}
+                        />
+                        <span className="text-slate-600 dark:text-slate-400 font-medium">
+                            {reporterName}
+                        </span>
+                    </div>
+                );
+            }
         },
         {
             accessorKey: 'category',
@@ -165,7 +182,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 </div>
             )
         }
-    ], [canDelete, onDelete]);
+    ], [canDelete, onDelete, users]);
 
     const totalIncidents = incidents.length;
     const openIncidents = incidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;
@@ -272,7 +289,20 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 <div className="flex items-center justify-between pt-5 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
                                     <div className="flex items-center text-xs font-medium text-slate-500">
                                         <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                                        {new Date(inc.dateReported).toLocaleDateString()} • {inc.reporter}
+                                        <span>{new Date(inc.dateReported).toLocaleDateString()}</span>
+                                        <span className="mx-2">•</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <img
+                                                src={getUserAvatarUrl(users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.photoURL, users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.role)}
+                                                alt={inc.reporter}
+                                                className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === inc.reporter || u.email === inc.reporter)?.role);
+                                                }}
+                                            />
+                                            <span>{inc.reporter}</span>
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {inc.category && (

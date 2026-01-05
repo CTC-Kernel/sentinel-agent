@@ -337,7 +337,7 @@ export class PdfService {
             },
             columnStyles: columnStyles,
             margin: { top: 35, bottom: 30, left: 14, right: 14 },
-            didDrawPage: (_data: any) => {
+            didDrawPage: (_data: unknown) => {
                 // Add header on every page of the table (except if it's the cover page, but autoTable runs on its own pages)
                 this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
 

@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { DataTable } from '../ui/DataTable';
-import { Audit } from '../../types';
+import { Audit, UserProfile } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, CalendarDays, ClipboardCheck, AlertOctagon } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { EmptyState } from '../ui/EmptyState';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 interface AuditsListProps {
     audits: Audit[];
@@ -16,6 +17,7 @@ interface AuditsListProps {
     canDelete: boolean;
     selectedIds?: string[];
     onSelect?: (ids: string[]) => void;
+    users?: UserProfile[];
 }
 
 // Helper function moved outside component to be stable
@@ -30,7 +32,7 @@ const getStatusColor = (s: string) => {
 };
 
 export const AuditsList: React.FC<AuditsListProps> = ({
-    audits, isLoading, onEdit, onDelete, onOpen, canEdit, canDelete, selectedIds = [], onSelect
+    audits, isLoading, onEdit, onDelete, onOpen, canEdit, canDelete, selectedIds = [], onSelect, users
 }) => {
 
     const columns = useMemo<ColumnDef<Audit>[]>(() => [
@@ -95,7 +97,27 @@ export const AuditsList: React.FC<AuditsListProps> = ({
         {
             accessorKey: 'auditor',
             header: 'Auditeur',
-            cell: ({ row }) => row.original.auditor || <span className="text-slate-400 italic">Non assigné</span>
+            cell: ({ row }) => {
+                const auditorName = row.original.auditor;
+                if (!auditorName) return <span className="text-slate-400 italic">Non assigné</span>;
+
+                const auditorUser = users?.find(u => u.displayName === auditorName || u.email === auditorName);
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <img
+                            src={getUserAvatarUrl(auditorUser?.photoURL, auditorUser?.role)}
+                            alt={auditorName}
+                            className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = getUserAvatarUrl(null, auditorUser?.role);
+                            }}
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-300">{auditorName}</span>
+                    </div>
+                );
+            }
         },
         {
             accessorKey: 'status',
@@ -145,7 +167,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                 </div>
             )
         }
-    ], [canEdit, canDelete, onEdit, onDelete, onOpen, onSelect, selectedIds, audits]);
+    ], [canEdit, canDelete, onEdit, onDelete, onOpen, onSelect, selectedIds, audits, users]);
 
     return (
         <DataTable

@@ -125,6 +125,7 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                                 viewMode={viewMode as 'grid' | 'list'}
                                 onOpenInspector={onSetSelectedProcess}
                                 onNewProcess={onOpenProcessModal}
+                                users={users}
                             />
                         )}
                     </div>

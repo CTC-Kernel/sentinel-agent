@@ -4,12 +4,13 @@ import { Project, UserProfile } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Edit, Trash2, CheckSquare } from '../ui/Icons';
 import { canDeleteResource } from '../../utils/permissions';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 interface ProjectCardProps {
     project: Project;
     canEdit: boolean;
     user: UserProfile | null;
-    usersList?: UserProfile[];
+    usersList?: UserProfile[]; // Made optional to avoid immediate break
     onEdit: (project: Project) => void;
     onDelete: (id: string, name: string) => void;
     onClick: (project: Project) => void;
@@ -114,9 +115,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                         <>
                             {displayMembers.map(m => (
                                 <ProjectCardTooltip key={m.uid} content={m.displayName || m.email}>
-                                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300 cursor-help">
-                                        {m.displayName ? m.displayName.charAt(0) : '?'}
-                                    </div>
+                                    <img
+                                        src={getUserAvatarUrl(m.photoURL, m.role)}
+                                        alt={m.displayName || 'Membre'}
+                                        className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 object-cover bg-slate-100 dark:bg-slate-800"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = getUserAvatarUrl(null, m.role);
+                                        }}
+                                    />
                                 </ProjectCardTooltip>
                             ))}
                             {remaining > 0 && (

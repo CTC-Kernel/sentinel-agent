@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { Edit2, Trash2, Loader2, Activity, Server, Zap, History, HeartPulse } from 'lucide-react';
 import { Button } from '../ui/button';
-import { BusinessProcess, Asset, Supplier, Risk, BcpDrill } from '../../types';
+import { BusinessProcess, Asset, Supplier, Risk, BcpDrill, UserProfile } from '../../types';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
 import { TimelineView } from '../shared/TimelineView';
@@ -20,10 +21,11 @@ interface ProcessInspectorProps {
     suppliers: Supplier[];
     risks: Risk[];
     drills: BcpDrill[];
+    users?: UserProfile[];
 }
 
 export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
-    process, isOpen, onClose, onEdit, onDelete, assets, suppliers, risks, drills
+    process, isOpen, onClose, onEdit, onDelete, assets, suppliers, risks, drills, users
 }) => {
     const { t } = useStore();
     // Note: 'any' cast used for setInspectorTab to avoid strict generic matching issues with the layout component,
@@ -46,6 +48,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
     const linkedAssets = assets.filter(a => process.supportingAssetIds?.includes(a.id));
     const linkedSuppliers = suppliers.filter(s => process.supplierIds?.includes(s.id));
     const linkedRisks = risks.filter(r => process.relatedRiskIds?.includes(r.id));
+    const ownerUser = users?.find(u => u.displayName === process.owner || u.email === process.owner);
 
     const handleClose = () => {
         setInspectorTab('details');
@@ -64,7 +67,25 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
             isOpen={isOpen}
             onClose={handleClose}
             title={process.name}
-            subtitle={`${t('common.managedBy')} ${process.owner}`}
+            subtitle={
+                <div className="flex items-center gap-2">
+                    <span className="text-slate-500">{t('common.managedBy')}</span>
+                    <div className="flex items-center gap-2">
+                        <img
+                            src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
+                            alt={process.owner}
+                            className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = getUserAvatarUrl(null, ownerUser?.role);
+                            }}
+                        />
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                            {process.owner}
+                        </span>
+                    </div>
+                </div>
+            }
             icon={HeartPulse}
             statusBadge={
                 <Badge

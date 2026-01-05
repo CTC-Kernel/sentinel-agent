@@ -348,6 +348,7 @@ export const Audits: React.FC = () => {
                                 canDelete={canDelete}
                                 selectedIds={selectedAudits}
                                 onSelect={setSelectedAudits}
+                                users={usersList}
                             />
                         </div>
                     </motion.div>

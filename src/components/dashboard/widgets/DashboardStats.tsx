@@ -12,6 +12,8 @@ import { DashboardService } from '../../../services/dashboardService';
 import { useStore } from '../../../store';
 import { TechCorner } from '../../ui/TechCorner';
 
+import { Risk, Incident } from '../../../types';
+
 interface StatsOverviewProps {
     stats: {
         activeIncidents: number;
@@ -21,8 +23,8 @@ interface StatsOverviewProps {
         assetValue: number;
         compliance: number;
     };
-    topRisks?: any[]; // Using any[] temporarily to avoid circular deps if types usually imported from types.ts
-    incidents?: any[];
+    topRisks?: Risk[];
+    incidents?: Incident[];
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
@@ -91,12 +93,24 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
 
             if (saved) {
                 console.log('[DashboardStats] Found saved summary, timestamp:', saved.generatedAt);
+
+                // Drift detection: Check if compliance has changed significantly (> 10%)
+                const lastCompliance = saved.metricsSnapshot?.compliance;
+                const currentCompliance = stats.compliance;
+
+                if (lastCompliance !== undefined && Math.abs(lastCompliance - currentCompliance) > 10) {
+                    console.log('[DashboardStats] Data drift detected (Compliance changed > 10%). Forcing refresh...');
+                    generateSummary();
+                    return;
+                }
+
                 setSummary(saved.summary);
 
                 // Update LocalStorage
                 localStorage.setItem(`dashboard_summary_${user.organizationId}`, JSON.stringify({
                     summary: saved.summary,
-                    generatedAt: saved.generatedAt
+                    generatedAt: saved.generatedAt,
+                    metricsSnapshot: saved.metricsSnapshot
                 }));
 
                 checkAutoRefresh(saved.generatedAt);
@@ -139,7 +153,7 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
                 healthScore,
                 generatedAt: new Date().toISOString(),
                 topRisks: topRisks?.slice(0, 5).map(r => ({
-                    title: r.threat || r.name || "Risque inconnu",
+                    title: r.threat || "Risque inconnu",
                     score: r.score,
                     strategy: r.treatment?.strategy || "Non défini"
                 })),
@@ -152,13 +166,19 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
             setSummary(result);
             const now = new Date().toISOString();
 
+            // Snapshot current critical metrics for drift detection
+            const metricsSnapshot = {
+                compliance: stats.compliance
+            };
+
             // Save to Firestore
-            await DashboardService.saveExecutiveSummary(user.organizationId, result, now);
+            await DashboardService.saveExecutiveSummary(user.organizationId, result, now, metricsSnapshot);
 
             // Save to LocalStorage
             localStorage.setItem(`dashboard_summary_${user.organizationId}`, JSON.stringify({
                 summary: result,
-                generatedAt: now
+                generatedAt: now,
+                metricsSnapshot
             }));
 
         } catch (error) {

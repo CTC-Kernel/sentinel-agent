@@ -26,6 +26,7 @@ import {
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, RefreshCw, Shield, Network, BrainCircuit, MessageSquare } from 'lucide-react';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 interface AssetInspectorProps {
     isOpen: boolean;
@@ -107,7 +108,26 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             title={selectedAsset ? selectedAsset.name : "Nouvel Actif"}
-            subtitle={selectedAsset ? "Détails et configuration de l'actif" : "Ajouter un nouvel actif à l'inventaire"}
+            subtitle={
+                selectedAsset ? (
+                    <div className="flex items-center gap-2 mt-1">
+                        <span>{selectedAsset.type}</span>
+                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                        <div className="flex items-center gap-1.5">
+                            <img
+                                src={getUserAvatarUrl(users?.find(u => u.displayName === selectedAsset.owner || u.email === selectedAsset.owner)?.photoURL, users?.find(u => u.displayName === selectedAsset.owner || u.email === selectedAsset.owner)?.role)}
+                                alt={selectedAsset.owner}
+                                className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === selectedAsset.owner || u.email === selectedAsset.owner)?.role);
+                                }}
+                            />
+                            <span>{selectedAsset.owner}</span>
+                        </div>
+                    </div>
+                ) : "Ajouter un nouvel actif à l'inventaire"
+            }
             icon={selectedAsset ? Server : Plus}
             statusBadge={selectedAsset ? (
                 <div className="flex gap-2 items-center">

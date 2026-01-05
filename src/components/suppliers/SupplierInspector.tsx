@@ -10,6 +10,7 @@ import {
 } from '../ui/Icons';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { CommentSection } from '../collaboration/CommentSection';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import type { SubmitHandler } from 'react-hook-form';
@@ -58,12 +59,35 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
         await onUpdate(data);
     };
 
+    const contactUser = users?.find(u =>
+        (supplier.contactName && u.displayName === supplier.contactName) ||
+        (supplier.contactEmail && u.email === supplier.contactEmail)
+    );
+
     return (
         <InspectorLayout
             isOpen={true}
             onClose={onClose}
             title={supplier.name}
-            subtitle="Détails du fournisseur"
+            subtitle={
+                <div className="flex items-center gap-2">
+                    <span className="text-slate-500">Contact principal:</span>
+                    <div className="flex items-center gap-2">
+                        <img
+                            src={getUserAvatarUrl(contactUser?.photoURL, contactUser?.role)}
+                            alt={supplier.contactName || 'Inconnu'}
+                            className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = getUserAvatarUrl(null, contactUser?.role || 'user');
+                            }}
+                        />
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                            {supplier.contactName || 'Non assigné'}
+                        </span>
+                    </div>
+                </div>
+            }
             width="max-w-6xl"
             actions={
                 <div className="flex items-center gap-2">
