@@ -19,6 +19,24 @@
             ]
         },
         {
+            "collectionGroup": "system_logs",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "resourceType",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "timestamp",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "notifications",
             "queryScope": "COLLECTION",
             "fields": [

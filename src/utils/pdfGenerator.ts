@@ -1,11 +1,15 @@
-import { PdfService } from '../services/PdfService';
+
 import { BusinessProcess, BcpDrill } from '../types';
 
 /**
  * Generate a Business Continuity Plan (BCP) Report
  * Fixed: Proper layout positioning to prevent element overlap
  */
-export const generateContinuityReport = (processes: BusinessProcess[], drills: BcpDrill[]) => {
+/**
+ * Generate a Business Continuity Plan (BCP) Report
+ * Fixed: Proper layout positioning to prevent element overlap
+ */
+export const generateContinuityReport = async (processes: BusinessProcess[], drills: BcpDrill[]) => {
     // 1. Calculate Metrics
     const totalProcesses = processes.length;
     const criticalProcesses = processes.filter(p => p.priority === 'Critique').length;
@@ -25,6 +29,8 @@ L'organisation a identifié ${totalProcesses} processus métier critiques. Parmi
 Résilience Opérationnelle :
 Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${drills.length} tests ont été réalisés pour valider les procédures de secours.
     `.trim();
+
+    const { PdfService } = await import('../services/PdfService');
 
     PdfService.generateExecutiveReport(
         {
