@@ -337,7 +337,10 @@ export class PdfService {
             },
             columnStyles: columnStyles,
             margin: { top: 35, bottom: 30, left: 14, right: 14 },
-            didDrawPage: () => {
+            didDrawPage: (_data: any) => {
+                // Add header on every page of the table (except if it's the cover page, but autoTable runs on its own pages)
+                this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
+
                 if (options.watermark) {
                     this.addWatermark(doc);
                 }
@@ -693,8 +696,7 @@ export class PdfService {
             // Reset to top margin
             const newY = 35;
             this.addHeader(doc, options.title, options.subtitle, options);
-            if (options.watermark) this.addWatermark(doc);
-            this.addFooter(doc, options.footerText);
+            // DO NOT add watermark or footer here, they are added globally at the end of generation
             return newY;
         }
         return currentY;
