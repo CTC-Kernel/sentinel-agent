@@ -66,7 +66,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 ${error
                                     ? 'border border-red-500 bg-red-50/50 dark:bg-red-900/10 text-destructive'
                                     : open
-                                        ? 'border border-brand-500 ring-2 ring-brand-500/20 bg-white/90 dark:bg-slate-900/90 shadow-lg shadow-brand-500/10'
+                                        ? 'border border-brand-500 bg-white/90 dark:bg-slate-900/90 shadow-lg shadow-brand-500/10'
                                         : 'glass-input'
                                 }
                             `}>
