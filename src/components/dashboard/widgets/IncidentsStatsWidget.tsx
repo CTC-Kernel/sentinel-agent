@@ -21,7 +21,7 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
 
     const stats = useMemo(() => {
         const total = incidents.length;
-        const openCount = incidents.filter(i => i.status !== 'Fermé' && i.status !== 'Résolu').length;
+        const openCount = incidents.filter(i => i.status !== 'Fermé').length;
         const criticalCount = incidents.filter(i => i.severity === Criticality.CRITICAL).length;
 
         let totalResolutionHours = 0;

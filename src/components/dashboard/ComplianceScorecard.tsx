@@ -21,14 +21,16 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
 
     const stats = controls.length > 0 ? domains.map(domain => {
         const domainControls = controls.filter(c => c.code.startsWith(domain.id) || c.code.startsWith(`A.${domain.id}`));
-        const implemented = domainControls.filter(c => c.status === 'Implémenté').length;
-        const total = domainControls.length;
+        const applicableControls = domainControls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable');
+        const implemented = applicableControls.filter(c => c.status === 'Implémenté').length;
+        const total = applicableControls.length;
         const score = total > 0 ? Math.round((implemented / total) * 100) : 0;
         return { ...domain, score, total, implemented };
     }) : [];
 
+    const applicableTotal = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable');
     const totalScore = Math.round(
-        (controls.filter(c => c.status === 'Implémenté').length / (controls.length || 1)) * 100
+        (applicableTotal.filter(c => c.status === 'Implémenté').length / (applicableTotal.length || 1)) * 100
     );
 
     return (

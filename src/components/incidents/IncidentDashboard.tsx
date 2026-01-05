@@ -185,7 +185,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     ], [canDelete, onDelete, users]);
 
     const totalIncidents = incidents.length;
-    const openIncidents = incidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;
+    const openIncidents = incidents.filter(i => i.status !== 'Fermé').length;
     const criticalIncidents = incidents.filter(i => i.severity === Criticality.CRITICAL && (i.status !== 'Résolu' && i.status !== 'Fermé')).length;
     const resolutionRate = totalIncidents > 0
         ? Math.round(((totalIncidents - openIncidents) / totalIncidents) * 100)

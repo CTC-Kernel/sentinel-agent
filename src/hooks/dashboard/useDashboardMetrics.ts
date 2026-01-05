@@ -52,7 +52,7 @@ export const useDashboardMetrics = ({
     }, [historyStats, userOrgId]);
 
     // Top Risks
-    const topRisks = useMemo(() => [...allRisks].sort((a, b) => b.score - a.score).slice(0, 5), [allRisks]);
+    const topRisks = useMemo(() => [...allRisks].filter(r => r.score >= 10).sort((a, b) => b.score - a.score).slice(0, 5), [allRisks]);
 
     // Stats and Radar Logic
     const { stats, radarData, complianceScore } = useMemo(() => {

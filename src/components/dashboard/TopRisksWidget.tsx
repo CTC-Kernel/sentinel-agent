@@ -8,8 +8,11 @@ interface TopRisksWidgetProps {
 }
 
 export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigate }) => {
-    // Sort by score desc and take top 5
-    const topRisks = [...risks].sort((a, b) => b.score - a.score).slice(0, 5);
+    // Sort by score desc and take top 5, but ONLY high/critical risks (>= 10)
+    const topRisks = [...risks]
+        .filter(r => r.score >= 10)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
 
     return (
         <div className="glass-panel p-6 rounded-[2.5rem] h-full">
@@ -35,7 +38,10 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                         <div key={risk.id} className="group p-4 bg-card/40 hover:bg-card border border-border/60 rounded-2xl transition-all cursor-pointer">
                             <div className="flex justify-between items-start mb-2">
                                 <h4 className="text-sm font-bold text-foreground line-clamp-1">{risk.threat}</h4>
-                                <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 text-xs font-bold">
+                                <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-red-100 text-red-600 dark:bg-red-900/30' :
+                                        risk.score >= 10 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' :
+                                            'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30'
+                                    }`}>
                                     {risk.score}
                                 </span>
                             </div>

@@ -18,29 +18,39 @@
 }
 
 :root {
-  /* Shadcn UI Variables */
+  /* Shadcn UI Variables - Refined for Premium Light Mode */
   --background: 210 40% 98%;
+  /* Keeping slightly cool, but can be tweaked to 0 0% 99% for cleaner white */
   --foreground: 222.2 84% 4.9%;
+
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
+
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
+
+  /* Primary - Vivid Apple Blue */
   --primary: 221.2 83.2% 53.3%;
-  /* A more vibrant, Apple-like blue */
   --primary-foreground: 210 40% 98%;
+
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
+
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
+
   --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
+
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
+
+  /* Softer Borders for Light Mode */
+  --border: 214.3 31.8% 90%;
+  --input: 214.3 31.8% 90%;
+
   --ring: 221.2 83.2% 53.3%;
   --radius: 0.75rem;
-  /* Slightly larger radius for modern feel */
 
   /* Premium Color Palette - Semantic Variables */
   /* Primary Brand Colors - Blue refined */
@@ -77,10 +87,15 @@
   --info-text: #0284c7;
   --info-border: #bae6fd;
 
-  /* Glassmorphism - Premium - Refined (Light Mode) */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  /* Glassmorphism - Premium - Refined (Light Mode) - CRYSTALLINE */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  /* More transparent */
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  /* Subtle edge definition */
 }
 
 .dark {
@@ -472,16 +487,29 @@ body {
 }
 
 /* Premium Shadows */
+/* Premium Shadows - Refined for Light Mode Depth */
 .shadow-apple {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 12px 24px -4px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 1px 2px -1px rgba(0, 0, 0, 0.05),
+    /* Tiny detail shadow */
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    /* Soft ambient shadow */
+    0 8px 24px -4px rgba(0, 0, 0, 0.05);
+  /* Deep diffusion shadow */
 }
 
 .hover\:shadow-apple:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 2px 4px -2px rgba(0, 0, 0, 0.05),
+    0 12px 24px -4px rgba(0, 0, 0, 0.1),
+    0 24px 48px -12px rgba(0, 0, 0, 0.06);
 }
 
 .hover\:shadow-apple-xl:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 30px 40px -10px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 12px 24px -12px rgba(0, 0, 0, 0.08);
+  /* Dramatic lift */
 }
 
 @keyframes slideInRight {

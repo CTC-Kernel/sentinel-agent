@@ -143,8 +143,8 @@ vi.mock('../../components/continuity/ContinuityCrisis', () => ({
 vi.mock('../../components/continuity/ProcessFormModal', () => ({
     ProcessFormModal: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="process-form-modal" /> : null
 }));
-vi.mock('../../components/continuity/DrillModal', () => ({
-    DrillModal: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="drill-modal" /> : null
+vi.mock('../../components/continuity/inspector/DrillInspector', () => ({
+    DrillInspector: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="drill-inspector" /> : null
 }));
 vi.mock('../../components/continuity/ProcessInspector', () => ({
     ProcessInspector: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="process-inspector" /> : null

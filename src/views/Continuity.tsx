@@ -17,7 +17,7 @@ import { useCallback } from 'react';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
 import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
 import { ProcessInspector } from '../components/continuity/ProcessInspector';
-import { DrillModal } from '../components/continuity/DrillModal';
+import { DrillInspector } from '../components/continuity/inspector/DrillInspector';
 import { generateContinuityReport } from '../utils/pdfGenerator';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -317,7 +317,7 @@ export const Continuity: React.FC = () => {
                 />
             )}
 
-            <DrillModal
+            <DrillInspector
                 isOpen={isDrillModalOpen}
                 onClose={handleCloseDrillModal}
                 onSubmit={handleCreateDrill}
