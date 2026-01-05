@@ -17,7 +17,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message: _external
             { text: ">ACCÈS AUTORISÉ.", delay: 1800 },
         ];
 
-        let timeouts: NodeJS.Timeout[] = [];
+        const timeouts: NodeJS.Timeout[] = [];
 
         sequence.forEach(({ text, delay }) => {
             const timeout = setTimeout(() => {

@@ -109,7 +109,7 @@ export const useTeamManagement = () => {
         fetchRoles();
     }, [fetchUsers, fetchRoles]);
 
-    const inviteUser = async (data: UserFormData, silent = false) => {
+    const inviteUser = useCallback(async (data: UserFormData, silent = false) => {
         if (!user?.organizationId) return false;
 
         if (demoMode) {
@@ -161,7 +161,8 @@ export const useTeamManagement = () => {
             }
             return false;
         }
-    };
+        return false;
+    }, [user, demoMode, addToast, t, fetchUsers, users.length]);
 
     const updateUser = async (uid: string, data: Partial<UserFormData>, isPending: boolean) => {
         if (isPending) return;

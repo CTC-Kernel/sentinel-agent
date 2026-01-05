@@ -14,12 +14,15 @@ export const FunctionsService = {
         try {
             const deleteFn = httpsCallable(functions, 'deleteResource');
             const result = await deleteFn({ collectionName, docId });
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
             return (result.data as any).success === true;
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Check for known "failed-precondition" from backend (dependency block)
-            if (error.code === 'failed-precondition' || error.message?.includes('Impossible de supprimer')) {
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+            if ((error as any).code === 'failed-precondition' || (error as any).message?.includes('Impossible de supprimer')) {
                 // Propagate the specific message for UI display
-                throw new Error(error.message || "Suppression bloquée par des dépendances.");
+                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                throw new Error((error as any).message || "Suppression bloquée par des dépendances.");
             }
 
             ErrorLogger.error(error, 'FunctionsService.deleteResource');
