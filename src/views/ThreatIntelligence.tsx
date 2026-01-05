@@ -110,19 +110,20 @@ export const ThreatIntelligence: React.FC = () => {
             'United Kingdom': [-3.4359, 55.3781], 'Japan': [138.2529, 36.2048], 'Canada': [-106.3468, 56.1304]
         };
 
-        // Removed random base initialization. Map is now strictly driven by explicit threat data.
-
         threats.forEach(t => {
             const country = t.country || 'Unknown';
-            if (country === 'Unknown') return;
+            if (country === 'Unknown' && !t.coordinates) return; // Skip only if both unknown country AND no coordinates
 
             if (!countryCounts[country]) countryCounts[country] = { value: 0, markers: [] };
 
             // Criticality weight
             countryCounts[country].value += (t.severity === 'Critical' ? 3 : t.severity === 'High' ? 2 : 1);
 
-            if (countryCoords[country]) {
-                countryCounts[country].markers.push({ coordinates: countryCoords[country], name: t.title });
+            // Use specific threat coordinates if available, otherwise fallback to country centroid
+            const coords = t.coordinates || countryCoords[country];
+
+            if (coords) {
+                countryCounts[country].markers.push({ coordinates: coords, name: t.title });
             }
         });
 
