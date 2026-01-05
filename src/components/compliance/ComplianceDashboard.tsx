@@ -116,7 +116,16 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                         <div className="flex gap-4">
                             <Button onClick={onSeedData} variant="default" className="gap-2">
                                 <RefreshCw className="w-4 h-4" />
-                                Initialiser ISO 27001 (Standard)
+                                Initialiser {currentFramework === 'ISO27001' ? 'ISO 27001 (Sécurité SI)' :
+                                          currentFramework === 'ISO22301' ? 'ISO 22301 (Continuité)' :
+                                          currentFramework === 'NIS2' ? 'NIS 2 (Cyber UE)' :
+                                          currentFramework === 'DORA' ? 'DORA (Résilience Fin.)' :
+                                          currentFramework === 'GDPR' ? 'RGPD (Données Personnelles)' :
+                                          currentFramework === 'SOC2' ? 'SOC 2 (Trust Services)' :
+                                          currentFramework === 'HDS' ? 'HDS (Données de Santé)' :
+                                          currentFramework === 'PCI_DSS' ? 'PCI DSS (Paiement)' :
+                                          currentFramework === 'NIST_CSF' ? 'NIST CSF' :
+                                          currentFramework} (Standard)
                             </Button>
                         </div>
                     )}
