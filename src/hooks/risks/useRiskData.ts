@@ -8,7 +8,17 @@ import { Risk, Asset, Control, BusinessProcess as Process, Supplier, Incident, A
 export const useRiskData = () => {
     const { user } = useAuth();
     const { demoMode } = useStore();
-    const [mockData, setMockData] = React.useState<any>({ risks: [], assets: [], controls: [], processes: [], suppliers: [], incidents: [], audits: [], projects: [], users: [] });
+    const [mockData, setMockData] = React.useState<{
+        risks: Risk[];
+        assets: Asset[];
+        controls: Control[];
+        processes: Process[];
+        suppliers: Supplier[];
+        incidents: Incident[];
+        audits: Audit[];
+        projects: Project[];
+        users: UserProfile[];
+    }>({ risks: [], assets: [], controls: [], processes: [], suppliers: [], incidents: [], audits: [], projects: [], users: [] });
     const [mockLoading, setMockLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -16,15 +26,15 @@ export const useRiskData = () => {
             setMockLoading(true);
             import('../../services/mockDataService').then(({ MockDataService }) => {
                 setMockData({
-                    risks: MockDataService.getCollection('risks'),
-                    assets: MockDataService.getCollection('assets'),
-                    controls: MockDataService.getCollection('controls'),
-                    processes: MockDataService.getCollection('business_processes'),
-                    suppliers: MockDataService.getCollection('suppliers'),
-                    incidents: MockDataService.getCollection('incidents'),
-                    audits: MockDataService.getCollection('audits'),
-                    projects: MockDataService.getCollection('projects'),
-                    users: MockDataService.getCollection('users')
+                    risks: MockDataService.getCollection('risks') as Risk[],
+                    assets: MockDataService.getCollection('assets') as Asset[],
+                    controls: MockDataService.getCollection('controls') as Control[],
+                    processes: MockDataService.getCollection('business_processes') as Process[],
+                    suppliers: MockDataService.getCollection('suppliers') as Supplier[],
+                    incidents: MockDataService.getCollection('incidents') as Incident[],
+                    audits: MockDataService.getCollection('audits') as Audit[],
+                    projects: MockDataService.getCollection('projects') as Project[],
+                    users: MockDataService.getCollection('users') as unknown as UserProfile[]
                 });
                 setMockLoading(false);
             });

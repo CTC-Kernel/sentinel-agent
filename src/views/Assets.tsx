@@ -126,7 +126,7 @@ const Assets: React.FC = () => {
         }
         setSelectedAsset(asset || null);
         setInspectorOpen(true);
-    }, [reachedAssetLimit, assets.length, limits.maxAssets, t, filteredAssets]);
+    }, [reachedAssetLimit, assets.length, limits.maxAssets, t]);
 
     const handleCreateNew = React.useCallback(() => handleOpenInspector(undefined), [handleOpenInspector]);
 
@@ -209,7 +209,7 @@ const Assets: React.FC = () => {
         } finally {
             setIsAnalyzing(false);
         }
-    }, [filteredAssets.length, t]);
+    }, [filteredAssets, t]);
 
     const handleGenerateLabel = React.useCallback(async (asset: Asset) => {
         const { PdfService } = await import('../services/PdfService');

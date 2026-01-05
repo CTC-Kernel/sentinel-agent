@@ -2,6 +2,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
+import { useAuth } from '../../hooks/useAuth';
+import { canEditResource } from '../../utils/permissions';
+import { toast } from 'sonner';
 import { Asset, UserProfile, Supplier, BusinessProcess } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
 import { usePlanLimits } from '../usePlanLimits';
@@ -11,7 +14,8 @@ import { AssetService } from '../../services/assetService';
 // import { MockDataService } from '../../services/mockDataService'; // Dynamic import used
 
 export function useAssets() {
-    const { user, demoMode } = useStore();
+    const { demoMode, t } = useStore();
+    const { user } = useAuth();
     const { limits } = usePlanLimits();
     const [isSubmitting, setIsSubmitting] = useState(false);
     // Harden demoMode
@@ -108,6 +112,11 @@ export function useAssets() {
     const createAsset = async (data: AssetFormData, preSelectedProjectId?: string | null): Promise<{ success: boolean; id?: string; error?: unknown }> => {
         if (!user?.organizationId) return { success: false, error: 'No organization ID' };
 
+        if (!canEditResource(user as UserProfile, 'Asset')) {
+            toast.error(t('common.accessDenied'));
+            return { success: false, error: 'PERMISSION_DENIED' };
+        }
+
         // Logical Check (moved from UI)
         if (assets.length >= limits.maxAssets) {
             return { success: false, error: 'LIMIT_REACHED' };
@@ -129,6 +138,12 @@ export function useAssets() {
 
     const updateAsset = async (id: string, data: AssetFormData): Promise<{ success: boolean; error?: unknown }> => {
         if (!user?.organizationId) return { success: false, error: 'No organization ID' };
+
+        if (!canEditResource(user as UserProfile, 'Asset')) {
+            toast.error(t('common.accessDenied'));
+            return { success: false, error: 'PERMISSION_DENIED' };
+        }
+
         setIsSubmitting(true);
         try {
             await AssetService.update(id, data, user);
@@ -149,6 +164,11 @@ export function useAssets() {
     const deleteAsset = async (id: string, name: string): Promise<{ success: boolean; error?: unknown }> => {
         if (!user?.organizationId) return { success: false, error: 'No organization ID' };
 
+        if (!canEditResource(user as UserProfile, 'Asset')) {
+            toast.error(t('common.accessDenied'));
+            return { success: false, error: 'PERMISSION_DENIED' };
+        }
+
         // Note: Dependency Check should be handled by UI before calling this if seeking confirmation
         try {
             await AssetService.delete(id, name, user);
@@ -161,6 +181,11 @@ export function useAssets() {
 
     const bulkDeleteAssets = async (ids: string[]): Promise<{ success: boolean; count: number; error?: unknown }> => {
         if (!user?.organizationId) return { success: false, count: 0, error: 'No organization ID' };
+
+        if (!canEditResource(user as UserProfile, 'Asset')) {
+            toast.error(t('common.accessDenied'));
+            return { success: false, count: 0, error: 'PERMISSION_DENIED' };
+        }
 
         try {
             // Note: Service handles individual deletions which might fail if dependencies exist

@@ -6,7 +6,13 @@ import { Incident, Asset, Risk, UserProfile, BusinessProcess } from '../../types
 
 export const useIncidentsData = (organizationId?: string) => {
     const { demoMode } = useStore();
-    const [mockData, setMockData] = React.useState<any>({ incidents: [], assets: [], risks: [], users: [], processes: [] });
+    const [mockData, setMockData] = React.useState<{
+        incidents: Incident[];
+        assets: Asset[];
+        risks: Risk[];
+        users: UserProfile[];
+        processes: BusinessProcess[];
+    }>({ incidents: [], assets: [], risks: [], users: [], processes: [] });
     const [mockLoading, setMockLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -14,11 +20,11 @@ export const useIncidentsData = (organizationId?: string) => {
             setMockLoading(true);
             import('../../services/mockDataService').then(({ MockDataService }) => {
                 setMockData({
-                    incidents: MockDataService.getCollection('incidents'),
-                    assets: MockDataService.getCollection('assets'),
-                    risks: MockDataService.getCollection('risks'),
-                    users: MockDataService.getCollection('users'),
-                    processes: MockDataService.getCollection('business_processes')
+                    incidents: MockDataService.getCollection('incidents') as Incident[],
+                    assets: MockDataService.getCollection('assets') as Asset[],
+                    risks: MockDataService.getCollection('risks') as Risk[],
+                    users: MockDataService.getCollection('users') as unknown as UserProfile[],
+                    processes: MockDataService.getCollection('business_processes') as BusinessProcess[]
                 });
                 setMockLoading(false);
             });

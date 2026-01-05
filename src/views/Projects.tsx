@@ -103,12 +103,15 @@ export const Projects: React.FC = () => {
                 });
             }
         } else if (deepLinkAction === 'create' && !creationMode) {
-            setCreationMode(true);
-            // Consume action immediately
-            setSearchParams(params => {
-                params.delete('action');
-                return params;
-            }, { replace: true });
+            // Fix: Wrap in setTimeout to avoid "setState synchronously within an effect" warning
+            setTimeout(() => {
+                setCreationMode(true);
+                // Consume action immediately
+                setSearchParams(params => {
+                    params.delete('action');
+                    return params;
+                }, { replace: true });
+            }, 0);
         }
     }, [loading, deepLinkProjectId, deepLinkAction, projects, creationMode, setSearchParams]);
 

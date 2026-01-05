@@ -17,11 +17,11 @@ interface UseDashboardInsightsProps {
 }
 
 // Helper to safely handle Firestore Timestamps or strings
-const safeDate = (date: any): string => {
+const safeDate = (date: unknown): string => {
     if (!date) return new Date().toISOString();
     if (typeof date === 'string') return date;
     // Handle Firestore Timestamp
-    if (date && typeof date.toDate === 'function') {
+    if (apiIsTimestamp(date)) {
         return date.toDate().toISOString();
     }
     // Handle standard Date object
@@ -30,11 +30,16 @@ const safeDate = (date: any): string => {
     }
     // Last resort
     try {
-        return new Date(date).toISOString();
-    } catch (e) {
+        return new Date(date as string | number | Date).toISOString();
+    } catch {
         return new Date().toISOString();
     }
 };
+
+// Helper to check for Timestamp-like object
+function apiIsTimestamp(x: unknown): x is { toDate: () => Date } {
+    return typeof x === 'object' && x !== null && 'toDate' in x && typeof (x as any).toDate === 'function';
+}
 
 export const useDashboardInsights = ({
     controls,
