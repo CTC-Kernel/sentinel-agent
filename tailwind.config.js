@@ -163,6 +163,15 @@ export default {
         sm: "calc(var(--radius) - 4px)",
         '4xl': '2rem', // 32px - For large cards
         '5xl': '2.5rem', // 40px - For very large containers
+        // Standardized design system values
+        'xs': '0.375rem',  // 6px
+        'sm': '0.5rem',    // 8px
+        'base': '0.75rem', // 12px
+        'md': '1rem',      // 16px
+        'lg': '1.25rem',   // 20px
+        'xl': '1.5rem',    // 24px
+        '2xl': '1.5rem',   // 24px (cards)
+        '3xl': '2rem',     // 32px (modals)
       },
       boxShadow: {
         'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.04)',
