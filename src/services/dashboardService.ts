@@ -1,4 +1,4 @@
-import { collection, query, where, getCountFromServer, getDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getCountFromServer, getDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 
@@ -89,7 +89,6 @@ export class DashboardService {
      */
     static async saveExecutiveSummary(organizationId: string, summary: string, generatedAt: string): Promise<void> {
         try {
-            const { setDoc } = await import('firebase/firestore');
             await setDoc(doc(db, 'dashboard_summaries', organizationId), {
                 summary,
                 generatedAt,
