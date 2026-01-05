@@ -34,7 +34,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
         const onSchedule = progressRate >= expectedProgress * 0.9; // 90% threshold
 
         // Count critical risks
-        const criticalRisks = relatedRisks.filter(r => r.score >= 15).length;
+        const criticalRisks = relatedRisks.filter(r => r.score >= 10).length;
 
         // Calculate health score
         let healthScore = 100;
@@ -154,10 +154,10 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                         <span className="font-medium">{projectHealth.onSchedule ? 'Planning OK' : 'Retard Planning'}</span>
                     </div>
 
-                    {relatedRisks.filter(r => r.score >= 15).length > 0 && (
+                    {relatedRisks.filter(r => r.score >= 10).length > 0 && (
                         <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-800/30">
                             <AlertTriangle className="h-4 w-4 shrink-0" />
-                            <span className="font-medium">{relatedRisks.filter(r => r.score >= 15).length} Risques Critiques</span>
+                            <span className="font-medium">{relatedRisks.filter(r => r.score >= 10).length} Risques Critiques</span>
                         </div>
                     )}
                 </div>

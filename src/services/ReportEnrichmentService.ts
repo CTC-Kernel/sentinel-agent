@@ -55,9 +55,9 @@ export class ReportEnrichmentService {
             const prob = Number(r.probability) || 0;
             const imp = Number(r.impact) || 0;
             const level = prob * imp;
-            if (level >= 20) critical++;
-            else if (level >= 15) high++;
-            else if (level >= 9) medium++;
+            if (level >= 15) critical++;
+            else if (level >= 10) high++;
+            else if (level >= 5) medium++;
             else low++;
 
             if (r.treatment?.status === 'Terminé' || r.treatment?.status === 'Planifié' || r.treatment?.status === 'En cours') {

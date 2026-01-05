@@ -19,7 +19,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
     // Calculate metrics
     const totalSuppliers = suppliers.length;
     const criticalSuppliers = suppliers.filter(s => s.criticality === Criticality.CRITICAL || s.criticality === Criticality.HIGH).length;
-    const avgScore = totalSuppliers > 0 ? Math.round(suppliers.reduce((acc, s) => acc + (s.securityScore || 0), 0) / totalSuppliers) : 0;
+    const scoredSuppliers = suppliers.filter(s => (s.securityScore || 0) > 0);
+    const avgScore = scoredSuppliers.length > 0 ? Math.round(scoredSuppliers.reduce((acc, s) => acc + (s.securityScore || 0), 0) / scoredSuppliers.length) : 0;
     const expiredContracts = suppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < new Date()).length;
     const compliantSuppliers = suppliers.filter(s => (s.securityScore || 0) >= 80).length;
 

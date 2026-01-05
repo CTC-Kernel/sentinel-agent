@@ -15,7 +15,7 @@ interface RiskDashboardProps {
 export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
     // Calculate metrics
     const totalRisks = risks.length;
-    const criticalRisks = risks.filter(r => r.score >= 15).length;
+    const criticalRisks = risks.filter(r => r.score >= 10).length;
     const risksAboveAppetite = risks.filter(r => (r.residualScore || r.score) > RISK_ACCEPTANCE_THRESHOLD).length;
 
     const avgScore = risks.length > 0 ? risks.reduce((sum, r) => sum + r.score, 0) / risks.length : 0;
@@ -120,7 +120,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {risks
-                                .filter(r => r.score >= 15)
+                                .filter(r => r.score >= 10)
                                 .sort((a, b) => b.score - a.score)
                                 .slice(0, 6)
                                 .map((risk, index) => (

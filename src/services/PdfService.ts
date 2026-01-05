@@ -1079,15 +1079,6 @@ export class PdfService {
         const cellSize = gridHeight / 5;
         const gridWidth = cellSize * 5;
 
-        // Risk severity color gradient (row 0 = probability 1, row 4 = probability 5)
-        const gridColors = [
-            ['#dcfce7', '#d1fae5', '#fef9c3', '#fed7aa', '#fecaca'], // Low probability
-            ['#d1fae5', '#fef9c3', '#fed7aa', '#fecaca', '#fca5a5'],
-            ['#fef9c3', '#fed7aa', '#fecaca', '#fca5a5', '#f87171'],
-            ['#fed7aa', '#fecaca', '#fca5a5', '#f87171', '#ef4444'],
-            ['#fecaca', '#fca5a5', '#f87171', '#ef4444', '#dc2626']  // High probability
-        ];
-
         // === TITLE SECTION ===
         doc.setFontSize(12);
         doc.setTextColor(this.BRAND_SECONDARY);
@@ -1096,7 +1087,8 @@ export class PdfService {
 
         // Risk density KPI (inline with title)
         const totalRisks = risks.length;
-        const highRiskCount = risks.filter(r => r.probability >= 4 && r.impact >= 4).length;
+        // Standardized 'Critical' definition (High + Critical): Score >= 10
+        const highRiskCount = risks.filter(r => (r.probability * r.impact) >= 10).length;
         const riskDensity = totalRisks > 0 ? ((highRiskCount / totalRisks) * 100).toFixed(0) : '0';
 
         doc.setFontSize(9);
@@ -1131,7 +1123,14 @@ export class PdfService {
                 const count = cellRisks.length;
 
                 // Cell background with color gradient
-                doc.setFillColor(gridColors[row][col]);
+                // Cell background with color gradient based on standardized scores
+                const score = prob * imp;
+                let cellColor = '#dcfce7'; // Default Green (Low < 5)
+                if (score >= 15) cellColor = '#ef4444'; // Red (Critical)
+                else if (score >= 10) cellColor = '#f97316'; // Orange (High)
+                else if (score >= 5) cellColor = '#eab308'; // Yellow (Medium)
+
+                doc.setFillColor(cellColor);
                 doc.setDrawColor('#FFFFFF');
                 doc.setLineWidth(0.8);
                 doc.rect(cellX, cellY, cellSize, cellSize, 'FD');
