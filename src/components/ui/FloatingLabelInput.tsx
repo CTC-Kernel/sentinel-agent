@@ -31,7 +31,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                 relative flex items-center w-full rounded-2xl transition-all duration-300 group
                 ${error
                     ? 'border border-red-500 bg-red-50/50 dark:bg-red-900/10'
-                    : 'glass-input shadow-sm group-focus-within:ring-2 group-focus-within:ring-brand-500/20 group-focus-within:border-brand-500/50 group-focus-within:shadow-glow'
+                    : 'glass-input shadow-sm group-focus-within:border-brand-500/50 group-focus-within:shadow-glow'
                 }
             `}>
                 {Icon && (
