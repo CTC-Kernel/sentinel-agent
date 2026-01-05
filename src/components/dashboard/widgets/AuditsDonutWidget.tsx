@@ -50,7 +50,7 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
 
     if (loading) {
         return (
-            <div className="h-full flex items-center justify-center min-h-[300px]">
+            <div className="h-full flex items-center justify-center min-h-[300px] max-h-96 overflow-hidden">
                 <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
             </div>
         );
@@ -58,9 +58,9 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
 
     if (data.length === 0) {
         return (
-            <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm">
-                <h3 className="text-lg font-bold mb-4">{t('dashboard.auditsStatus')}</h3>
-                <div className="flex-1 flex items-center justify-center">
+        <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm max-h-96 overflow-hidden">
+                <h3 className="text-lg font-bold mb-4 flex-shrink-0">{t('dashboard.auditsStatus')}</h3>
+                <div className="flex-1 flex items-center justify-center min-h-[220px] max-h-[280px] overflow-hidden">
                     <EmptyChartState
                         message={t('dashboard.noAuditsData')}
                         description="Créez votre premier audit pour visualiser la répartition."
@@ -74,9 +74,9 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
     }
 
     return (
-        <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm">
-            <h3 className="text-lg font-bold mb-4">{t('dashboard.auditsStatus')}</h3>
-            <div className="flex-1 min-h-[220px]">
+        <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm max-h-96 overflow-hidden">
+            <h3 className="text-lg font-bold mb-4 flex-shrink-0">{t('dashboard.auditsStatus')}</h3>
+            <div className="flex-1 min-h-[220px] max-h-[280px] overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <defs>
