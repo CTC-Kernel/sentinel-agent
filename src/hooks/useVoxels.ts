@@ -5,13 +5,14 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, Control } from '../typ
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 
-// Helper to convert Firestore Timestamps to ISO strings
+// Optimized Helper to convert Firestore Timestamps to ISO strings
+// Moved outside component to prevent recreation
 const convertTimestamps = (obj: unknown): unknown => {
     if (!obj || typeof obj !== 'object') return obj;
 
     // Handle Firestore Timestamp
     const timestampObj = obj as { seconds?: number; nanoseconds?: number };
-    if (timestampObj.seconds !== undefined && timestampObj.nanoseconds !== undefined) {
+    if (typeof timestampObj.seconds === 'number') {
         return new Date(timestampObj.seconds * 1000).toISOString();
     }
 
@@ -21,25 +22,40 @@ const convertTimestamps = (obj: unknown): unknown => {
     }
 
     // Handle objects recursively
-    const converted: Record<string, unknown> = {};
-    for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            converted[key] = convertTimestamps((obj as Record<string, unknown>)[key]);
+    // We only traverse plain objects
+    if (obj.constructor === Object) {
+        const converted: Record<string, unknown> = {};
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                converted[key] = convertTimestamps((obj as Record<string, unknown>)[key]);
+            }
         }
+        return converted;
     }
-    return converted;
+
+    return obj;
 };
 
 export const useVoxels = () => {
     const { user } = useStore();
     const [loading, setLoading] = useState(true);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [audits, setAudits] = useState<Audit[]>([]);
-    const [incidents, setIncidents] = useState<Incident[]>([]);
-    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-    const [controls, setControls] = useState<Control[]>([]);
+    const [data, setData] = useState<{
+        assets: Asset[];
+        risks: Risk[];
+        projects: Project[];
+        audits: Audit[];
+        incidents: Incident[];
+        suppliers: Supplier[];
+        controls: Control[];
+    }>({
+        assets: [],
+        risks: [],
+        projects: [],
+        audits: [],
+        incidents: [],
+        suppliers: [],
+        controls: []
+    });
 
     const fetchData = useCallback(async () => {
         if (!user?.organizationId) {
@@ -69,16 +85,21 @@ export const useVoxels = () => {
                 getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId)))
             ]);
 
-            setAssets(assetsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Asset[]);
-            setRisks(risksSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Risk[]);
-            setProjects(projectsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Project[]);
-            setAudits(auditsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Audit[]);
-            setIncidents(incidentsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Incident[]);
-            setSuppliers(suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[]);
-            setControls(controlsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Control[]);
+            // Batch update to prevent multiple re-renders
+            setData({
+                assets: assetsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Asset[],
+                risks: risksSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Risk[],
+                projects: projectsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Project[],
+                audits: auditsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Audit[],
+                incidents: incidentsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Incident[],
+                suppliers: suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[],
+                controls: controlsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Control[]
+            });
 
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useVoxels.fetchData', 'FETCH_FAILED');
+            // Reset to empty on error to avoid stale state issues, or keep previous state? 
+            // Better to keep previous state but log error in this context.
         } finally {
             setLoading(false);
         }
@@ -88,19 +109,13 @@ export const useVoxels = () => {
         fetchData();
     }, [fetchData]);
 
-    const refresh = () => {
+    const refresh = useCallback(() => {
         fetchData();
-    };
+    }, [fetchData]);
 
     return {
         loading,
-        assets,
-        risks,
-        projects,
-        audits,
-        incidents,
-        suppliers,
-        controls,
+        ...data,
         refresh
     };
 };

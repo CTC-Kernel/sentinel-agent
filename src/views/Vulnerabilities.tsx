@@ -17,7 +17,7 @@ import { Button } from '../components/ui/button';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
 import { ErrorLogger } from '../services/errorLogger';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Drawer } from '../components/ui/Drawer';
 import { VulnerabilityForm } from '../components/vulnerabilities/VulnerabilityForm';
 import { VulnerabilityList } from '../components/vulnerabilities/VulnerabilityList';
@@ -69,6 +69,29 @@ export const Vulnerabilities: React.FC = () => {
     }, [vulnerabilities, filter]);
 
     const loading = loadingData;
+
+    // URL Params for Deep Linking
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkVulnId = searchParams.get('id');
+
+    useEffect(() => {
+        if (!loading && deepLinkVulnId && vulnerabilities.length > 0) {
+            const vuln = vulnerabilities.find(v => v.id === deepLinkVulnId);
+            if (vuln && selectedVulnerability?.id !== vuln.id) {
+                setSelectedVulnerability(vuln);
+            }
+        }
+    }, [loading, deepLinkVulnId, vulnerabilities, selectedVulnerability, setSelectedVulnerability]);
+
+    // Cleanup Effect
+    useEffect(() => {
+        if (!selectedVulnerability && deepLinkVulnId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedVulnerability, deepLinkVulnId, setSearchParams]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string };

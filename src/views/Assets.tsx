@@ -55,8 +55,9 @@ const Assets: React.FC = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // URL Params for Deep Linking
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkAssetId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -64,16 +65,30 @@ const Assets: React.FC = () => {
 
     // Deep Linking Effect
     React.useEffect(() => {
-        if (!loading && deepLinkAssetId && assets.length > 0) {
+        if (loading) return;
+
+        if (deepLinkAssetId && assets.length > 0) {
             const asset = assets.find(a => a.id === deepLinkAssetId);
             if (asset) {
                 setSelectedAsset(asset);
                 setInspectorOpen(true);
             }
-            // Optional: Clean URL after opening? Or keep it to allow sharing?
-            // Keep it for "Masterpiece" feel (refresh stays on item).
+        } else if (deepLinkAction === 'create') {
+            setSelectedAsset(null);
+            setInspectorOpen(true);
         }
-    }, [loading, deepLinkAssetId, assets]);
+    }, [loading, deepLinkAssetId, assets, deepLinkAction]);
+
+    // Cleanup Effect
+    React.useEffect(() => {
+        if (!inspectorOpen && (deepLinkAssetId || deepLinkAction)) {
+            setSearchParams(params => {
+                params.delete('id');
+                params.delete('action');
+                return params;
+            }, { replace: true });
+        }
+    }, [inspectorOpen, deepLinkAssetId, deepLinkAction, setSearchParams]);
 
     // Filtering Logic
     const deferredQuery = useDeferredValue(activeFilters.query);

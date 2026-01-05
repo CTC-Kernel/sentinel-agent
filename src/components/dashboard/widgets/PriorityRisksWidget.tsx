@@ -34,8 +34,8 @@ export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = ({ topRis
                     {loading ? [1, 2].map(i => <Skeleton key={`skeleton-${i}`} className="h-16 w-full rounded-2xl" />) : displayRisks.map(risk => (
                         <div
                             key={risk.id}
-                            onClick={() => navigate('/risks')}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/risks'); } }}
+                            onClick={() => navigate(`/risks?id=${risk.id}`)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/risks?id=${risk.id}`); } }}
                             role="button"
                             tabIndex={0}
                             aria-label={`Voir le risque: ${risk.threat}`}

@@ -154,7 +154,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
         {
             id: 'policy',
             label: t('dashboard.stepPolicy'),
-            path: '/documents/libraries',
+            path: '/documents',
             isCompleted: status.hasPolicies
         },
         {

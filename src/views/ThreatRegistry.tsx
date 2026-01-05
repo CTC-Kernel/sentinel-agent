@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -57,6 +58,46 @@ export const ThreatRegistry: React.FC = () => {
             strategy: 'Atténuer'
         }
     });
+
+    // URL Params for Deep Linking
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkThreatId = searchParams.get('id');
+
+    React.useEffect(() => {
+        if (!loading && deepLinkThreatId && threats.length > 0) {
+            const threat = threats.find(t => t.id === deepLinkThreatId);
+            if (threat) {
+                // Determine if we need to open it (avoid loop if already open)
+                if (!selectedThreat || selectedThreat.id !== threat.id) {
+                    setSelectedThreat(threat);
+                    reset({
+                        name: threat.name,
+                        description: threat.description,
+                        framework: threat.framework,
+                        field: threat.field,
+                        threat: threat.threat,
+                        vulnerability: threat.vulnerability,
+                        scenario: threat.scenario,
+                        probability: threat.probability,
+                        impact: threat.impact,
+                        strategy: threat.strategy
+                    });
+                    setIsEditing(true);
+                    setShowModal(true);
+                }
+            }
+        }
+    }, [loading, deepLinkThreatId, threats, selectedThreat, setSelectedThreat, reset, setIsEditing, setShowModal]);
+
+    // Cleanup Effect
+    React.useEffect(() => {
+        if (!showModal && deepLinkThreatId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [showModal, deepLinkThreatId, setSearchParams]);
 
     // Confirm Modal State
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({

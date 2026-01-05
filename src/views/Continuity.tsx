@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { motion } from 'framer-motion';
 import {
@@ -87,6 +88,29 @@ export const Continuity: React.FC = () => {
     } = useContinuityData(user?.organizationId);
 
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+
+    // URL Params for Deep Linking
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkProcessId = searchParams.get('id');
+
+    React.useEffect(() => {
+        if (!loadingData && deepLinkProcessId && processes.length > 0) {
+            const process = processes.find(p => p.id === deepLinkProcessId);
+            if (process && selectedProcess?.id !== process.id) {
+                setSelectedProcess(process);
+            }
+        }
+    }, [loadingData, deepLinkProcessId, processes, selectedProcess, setSelectedProcess]);
+
+    // Cleanup Effect
+    React.useEffect(() => {
+        if (!selectedProcess && deepLinkProcessId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedProcess, deepLinkProcessId, setSearchParams]);
 
     // Derived Logic
     const filteredProcesses = useMemo(() => {
