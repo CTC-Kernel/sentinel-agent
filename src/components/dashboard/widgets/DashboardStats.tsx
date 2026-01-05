@@ -58,19 +58,60 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
         return 'text-red-500';
     };
 
+    // Initial load and LocalStorage cache
+    React.useEffect(() => {
+        if (user?.organizationId) {
+            // 1. Try LocalStorage first for instant load
+            const localKey = `dashboard_summary_${user.organizationId}`;
+            const cached = localStorage.getItem(localKey);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    // Optional: Check if cache is too old? For now, just show it.
+                    if (!summary) setSummary(parsed.summary);
+                } catch (e) {
+                    console.error('Error parsing local summary', e);
+                }
+            }
+
+            // 2. Fetch from Firestore (Source of Truth)
+            if (stats && !loading) {
+                getExecutiveSummary();
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.organizationId, stats, loading]);
+
     const getExecutiveSummary = async () => {
         if (!user?.organizationId) return;
-        const saved = await DashboardService.getExecutiveSummary(user.organizationId);
-        if (saved) {
-            setSummary(saved.summary);
-            checkAutoRefresh(saved.generatedAt);
-        } else {
-            // Only generate if we have meaningful stats
-            if (stats && stats.compliance > 0) {
-                generateSummary();
+
+        try {
+            console.log('[DashboardStats] Fetching saved summary...');
+            const saved = await DashboardService.getExecutiveSummary(user.organizationId);
+
+            if (saved) {
+                console.log('[DashboardStats] Found saved summary, timestamp:', saved.generatedAt);
+                setSummary(saved.summary);
+
+                // Update LocalStorage
+                localStorage.setItem(`dashboard_summary_${user.organizationId}`, JSON.stringify({
+                    summary: saved.summary,
+                    generatedAt: saved.generatedAt
+                }));
+
+                checkAutoRefresh(saved.generatedAt);
             } else {
-                setSummary("Analyse en attente des données de conformité...");
+                console.log('[DashboardStats] No saved summary found.');
+                // Only generate if we have meaningful stats
+                if (stats && stats.compliance > 0) {
+                    console.log('[DashboardStats] Stats available, generating new summary...');
+                    generateSummary();
+                } else {
+                    setSummary("Analyse en attente des données de conformité...");
+                }
             }
+        } catch (error) {
+            console.error('[DashboardStats] Error fetching summary:', error);
         }
     }
 
@@ -109,7 +150,16 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
                 }))
             });
             setSummary(result);
-            await DashboardService.saveExecutiveSummary(user.organizationId, result, new Date().toISOString());
+            const now = new Date().toISOString();
+
+            // Save to Firestore
+            await DashboardService.saveExecutiveSummary(user.organizationId, result, now);
+
+            // Save to LocalStorage
+            localStorage.setItem(`dashboard_summary_${user.organizationId}`, JSON.stringify({
+                summary: result,
+                generatedAt: now
+            }));
 
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'DashboardStats.generateSummary');
@@ -122,14 +172,6 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
         e.stopPropagation();
         generateSummary();
     };
-
-    // Initial load
-    React.useEffect(() => {
-        if (user?.organizationId && stats && !loading) {
-            getExecutiveSummary();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.organizationId, stats, loading]);
 
     if (loading) {
         return <Skeleton className="h-24 w-full rounded-2xl" />;
@@ -321,7 +363,7 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
                             <p className="text-sm text-slate-400 italic">
                                 {isGenerating
                                     ? "Analyse de la posture de sécurité en cours..."
-                                    : "Génération de l'analyse quotidienne..."}
+                                    : "Chargement de l'analyse..."}
                             </p>
                         </div>
                     )}
@@ -330,4 +372,3 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
         </motion.div>
     );
 };
-

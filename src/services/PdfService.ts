@@ -337,7 +337,10 @@ export class PdfService {
             },
             columnStyles: columnStyles,
             margin: { top: 35, bottom: 30, left: 14, right: 14 },
-            didDrawPage: () => {
+            didDrawPage: (_data: any) => {
+                // Add header on every page of the table (except if it's the cover page, but autoTable runs on its own pages)
+                this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
+
                 if (options.watermark) {
                     this.addWatermark(doc);
                 }
@@ -378,6 +381,9 @@ export class PdfService {
         return doc;
     }
 
+    /**
+     * Generate a generic Executive Report with Premium Cover Page
+     */
     /**
      * Generate a generic Executive Report with Premium Cover Page
      */
@@ -436,6 +442,9 @@ export class PdfService {
 
             // --- METRICS ROW ---
             if (options.metrics && options.metrics.length > 0) {
+                // Check if we need a new page for metrics (approx 35mm needed)
+                currentY = this.checkAndAddPage(doc, 35, currentY, options);
+
                 const cardWidth = 45;
                 const cardGap = 10;
                 let cardX = 19;
@@ -450,6 +459,9 @@ export class PdfService {
 
             // --- STATS CHART ---
             if (options.stats && options.stats.length > 0) {
+                // Check if we need a new page for stats (approx 70mm needed)
+                currentY = this.checkAndAddPage(doc, 70, currentY, options);
+
                 doc.setFontSize(14);
                 doc.setTextColor(this.BRAND_SECONDARY);
                 doc.setFont('helvetica', 'bold');
@@ -665,6 +677,28 @@ export class PdfService {
             currentY += lineHeight;
         }
 
+        return currentY;
+    }
+
+    /**
+     * Helper to check if new page is needed and add it
+     */
+    static checkAndAddPage(
+        doc: jsPDF,
+        heightNeeded: number,
+        currentY: number,
+        options: ReportOptions,
+        bottomMargin: number = 30
+    ): number {
+        const pageHeight = doc.internal.pageSize.height;
+        if (currentY + heightNeeded > pageHeight - bottomMargin) {
+            doc.addPage();
+            // Reset to top margin
+            const newY = 35;
+            this.addHeader(doc, options.title, options.subtitle, options);
+            // DO NOT add watermark or footer here, they are added globally at the end of generation
+            return newY;
+        }
         return currentY;
     }
 
@@ -1148,6 +1182,7 @@ export class PdfService {
         }
     ): number {
         let currentY = y;
+        const pageHeight = doc.internal.pageSize.height;
 
         // Executive Header
         doc.setFillColor(this.BRAND_PRIMARY);
@@ -1184,6 +1219,12 @@ export class PdfService {
         let cardX = x;
 
         data.keyMetrics.forEach((metric, index) => {
+            // Check if card fits
+            if (currentY + cardHeight > pageHeight - 30) {
+                doc.addPage();
+                currentY = 35;
+            }
+
             // Card background
             doc.setFillColor(255, 255, 255);
             doc.setDrawColor(this.BORDER_COLOR);
@@ -1223,6 +1264,12 @@ export class PdfService {
         }
 
         // Strategic Insights
+        // Check new page
+        if (currentY + 20 > pageHeight - 30) {
+            doc.addPage();
+            currentY = 35;
+        }
+
         doc.setFontSize(12);
         doc.setTextColor(this.BRAND_SECONDARY);
         doc.setFont('helvetica', 'bold');
@@ -1235,8 +1282,15 @@ export class PdfService {
 
         data.strategicInsights.forEach((insight) => {
             const bulletText = `• ${insight}`;
+            // addSafeText logic inline since this method is static but addSafeText is static too... 
+            // but here we just need simple split and check
             const lines = doc.splitTextToSize(bulletText, width - 20);
+
             lines.forEach((line: string) => {
+                if (currentY + 6 > pageHeight - 30) {
+                    doc.addPage();
+                    currentY = 35;
+                }
                 doc.text(line, x + 10, currentY);
                 currentY += 6;
             });
@@ -1529,10 +1583,12 @@ export class PdfService {
             currentY += 10;
 
             // Draw Heatmap centered
+            currentY = this.checkAndAddPage(doc, 110, currentY, options);
             this.drawRiskMatrix(doc, (pageWidth - 100) / 2, currentY, 100, 100, risks);
             currentY += 110;
 
             // 2. Top Critical Risks Table
+            currentY = this.checkAndAddPage(doc, 40, currentY, options); // Check for header + some rows
             doc.setFontSize(14);
             doc.setTextColor(this.BRAND_SECONDARY);
             doc.setFont('helvetica', 'bold');
@@ -1561,6 +1617,7 @@ export class PdfService {
             currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 20;
 
             // 3. Recommendations
+            currentY = this.checkAndAddPage(doc, 20, currentY, options); // Check for header
             doc.setFontSize(14);
             doc.setTextColor(this.BRAND_SECONDARY);
             doc.setFont('helvetica', 'bold');
@@ -1571,9 +1628,22 @@ export class PdfService {
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'normal');
 
+            // Use addSafeText for each recommendation to handle wrapping and page breaks
+            const pageHeight = doc.internal.pageSize.height;
             analysis.recommendations.forEach((rec, i) => {
-                doc.text(`${i + 1}. ${rec}`, 14, currentY);
-                currentY += 7;
+                const text = `${i + 1}. ${rec}`;
+                currentY = this.addSafeText(
+                    doc,
+                    text,
+                    14,
+                    currentY,
+                    pageWidth - 28,
+                    7, // line height
+                    pageHeight,
+                    30, // bottom margin
+                    options
+                );
+                currentY += 3; // Extra spacing between items
             });
         });
     }
@@ -1634,6 +1704,9 @@ export class PdfService {
 
             // 2. Recommendations Section
             if (metrics.major_findings > 0) {
+                // Check if we need a new page for recommendations
+                currentY = this.checkAndAddPage(doc, 30, currentY, options);
+
                 doc.setFontSize(14);
                 doc.setTextColor(this.BRAND_SECONDARY);
                 doc.setFont('helvetica', 'bold');
@@ -1643,9 +1716,27 @@ export class PdfService {
                 doc.setFontSize(10);
                 doc.setTextColor(this.TEXT_PRIMARY);
                 doc.setFont('helvetica', 'normal');
-                doc.text("• Initier immédiatement les plans d'actions pour les non-conformités majeures.", 14, currentY);
-                currentY += 7;
-                doc.text("• Revoir les preuves fournies pour les points partiellement conformes.", 14, currentY);
+
+                const recommendations = [
+                    "• Initier immédiatement les plans d'actions pour les non-conformités majeures.",
+                    "• Revoir les preuves fournies pour les points partiellement conformes."
+                ];
+
+                const pageHeight = doc.internal.pageSize.height;
+                recommendations.forEach(rec => {
+                    currentY = this.addSafeText(
+                        doc,
+                        rec,
+                        14,
+                        currentY,
+                        doc.internal.pageSize.width - 28,
+                        7,
+                        pageHeight,
+                        30,
+                        options
+                    );
+                    currentY += 2;
+                });
             }
         });
     }
