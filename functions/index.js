@@ -3687,14 +3687,21 @@ exports.fetchThreatFeed = onCall(async (request) => {
     }
 
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
         const response = await fetch(url, {
+            signal: controller.signal,
             headers: {
                 'Accept': 'application/json, text/plain, */*',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent': 'Sentinel-GRC/1.0 ThreatFeed Proxy'
             }
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
+            logger.warn(`Threat feed HTTP error: ${response.status} ${response.statusText} for URL: ${url}`);
             throw new HttpsError('internal', `HTTP ${response.status}: ${response.statusText}`);
         }
 
@@ -3707,8 +3714,21 @@ exports.fetchThreatFeed = onCall(async (request) => {
             return { data: text };
         }
     } catch (error) {
-        logger.error('Error fetching threat feed:', error);
-        throw new HttpsError('internal', 'Failed to fetch threat feed.');
+        logger.error('Error fetching threat feed:', {
+            error: error.message,
+            stack: error.stack,
+            url: url,
+            code: error.code
+        });
+        
+        // More specific error messages
+        if (error.name === 'AbortError') {
+            throw new HttpsError('deadline-exceeded', 'Request timeout after 10 seconds.');
+        } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+            throw new HttpsError('unavailable', 'External service unavailable.');
+        } else {
+            throw new HttpsError('internal', 'Failed to fetch threat feed: ' + error.message);
+        }
     }
 });
 
