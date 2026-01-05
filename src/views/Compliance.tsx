@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
 import { Framework } from '../types';
@@ -82,18 +82,20 @@ export const Compliance: React.FC = () => {
     const deepLinkControlId = searchParams.get('id');
 
     // Handlers
-    const handleSelectControl = (control: import('../types').Control) => {
+    const handleSelectControl = useCallback((control: import('../types').Control) => {
         setSelectedControlId(control.id);
         setCreationMode(null);
         setIsDrawerOpen(true);
-    };
+    }, []);
 
     // Deep Link Effect
     useEffect(() => {
         if (!loading && deepLinkControlId && frameworkControls.length > 0) {
             const control = frameworkControls.find((c: import('../types').Control) => c.id === deepLinkControlId);
             if (control) {
-                handleSelectControl(control);
+                flushSync(() => {
+                    handleSelectControl(control);
+                });
             }
         }
     }, [loading, deepLinkControlId, frameworkControls, handleSelectControl]);
