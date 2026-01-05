@@ -63,6 +63,7 @@ export const Dashboard: React.FC = () => {
         publishedDocs,
         pendingReviews,
         myIncidents,
+        activeIncidents,
         activeIncidentsCount,
         openAuditsCount,
         organizationName: fetchedOrgName,
@@ -230,6 +231,7 @@ export const Dashboard: React.FC = () => {
                                     topRisks={topRisks}
                                     recentActivity={recentActivity}
                                     radarData={radarData}
+                                    incidents={activeIncidents}
                                 />
                             );
                         }
@@ -245,6 +247,7 @@ export const Dashboard: React.FC = () => {
                                     historyData={historyData}
                                     healthIssues={healthIssues}
                                     topRisks={topRisks}
+                                    incidents={activeIncidents}
                                 />
                             );
                         }
@@ -310,6 +313,7 @@ export const DashboardWithQuickActions: React.FC = () => {
         publishedDocs,
         pendingReviews,
         myIncidents,
+        activeIncidents,
         activeIncidentsCount,
         openAuditsCount,
         organizationName: fetchedOrgName,
@@ -487,6 +491,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                                         topRisks={topRisks}
                                         recentActivity={recentActivity}
                                         radarData={radarData}
+                                        incidents={activeIncidents}
                                     />
                                 );
                             }
@@ -502,6 +507,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                                         historyData={historyData}
                                         healthIssues={healthIssues}
                                         topRisks={topRisks}
+                                        incidents={activeIncidents}
                                     />
                                 );
                             }

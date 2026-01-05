@@ -33,6 +33,7 @@ interface AdminDashboardViewProps {
     radarData: unknown[];
     isEditing?: boolean;
     onLayoutUpdate?: (layout: WidgetLayout[]) => void;
+    incidents?: unknown[];
 }
 
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => {
