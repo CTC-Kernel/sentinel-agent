@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AssetFormData } from '../schemas/assetSchema';
-import { Criticality } from '../types';
+import { Criticality, Project, Supplier, Document, UserProfile } from '../types';
 
 // Schema for Risk Import
 const importedRiskSchema = z.object({
@@ -326,7 +326,7 @@ export class ImportService {
     /**
      * Export Documents to CSV
      */
-    static exportDocuments(documents: Record<string, unknown>[]) {
+    static exportDocuments(documents: Document[]) {
         const objectRows = documents.map(doc => ({
             "Titre": doc.title,
             "Type": doc.type,
@@ -372,7 +372,7 @@ export class ImportService {
     /**
      * Export Suppliers to CSV
      */
-    static exportSuppliers(suppliers: Record<string, unknown>[]) {
+    static exportSuppliers(suppliers: Supplier[]) {
         const objectRows = suppliers.map(s => ({
             "Nom": s.name,
             "Catégorie": s.category,
@@ -388,7 +388,7 @@ export class ImportService {
     /**
      * Export DORA Register to CSV
      */
-    static exportDORARegister(suppliers: Record<string, unknown>[]) {
+    static exportDORARegister(suppliers: Supplier[]) {
         const objectRows = suppliers.filter(s => s.isICTProvider).map(s => ({
             "Nom Fournisseur": s.name,
             "Type Service": s.serviceType || 'N/A',
@@ -449,7 +449,7 @@ export class ImportService {
     /**
      * Export Projects to CSV
      */
-    static exportProjects(projects: Record<string, unknown>[], filename: string) {
+    static exportProjects(projects: Project[], filename: string) {
         const objectRows = projects.map(p => ({
             "Nom": p.name,
             "Statut": p.status,
@@ -478,7 +478,7 @@ export class ImportService {
     /**
      * Export Users to CSV
      */
-    static exportUsers(users: Record<string, unknown>[]) {
+    static exportUsers(users: UserProfile[]) {
         const objectRows = users.map(user => ({
             "UID": user.uid,
             "Email": user.email || '',

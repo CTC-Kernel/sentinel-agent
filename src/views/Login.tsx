@@ -24,7 +24,7 @@ const GoogleIcon = () => (
     </svg>
 );
 
-export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) => {
+export const Login: React.FC<{ skipBoot?: boolean }> = () => {
     const [isLogin, setIsLogin] = useState(true);
     const { t } = useStore();
 

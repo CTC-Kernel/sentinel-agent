@@ -210,7 +210,11 @@ export const aiService = {
 
         const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC (Gouvernance, Risque, Conformité).
             Ton rôle est d'aider les utilisateurs à gérer leur sécurité, comprendre les normes (ISO 27001, RGPD) et rédiger des documents.
-            Sois professionnel, concis et précis. Réponds toujours en Français.${context ? `\n\nContexte actuel de l'application :\n${JSON.stringify(context)}` : ''}`;
+            Sois professionnel, concis et précis. Réponds toujours en Français.
+            Utilise le formatage Markdown pour structurer tes réponses :
+            - Utilise # pour les grands titres.
+            - Utilise **gras** pour les points importants.
+            - Utilise des listes (-) pour énumérer.${context ? `\n\nContexte actuel de l'application :\n${JSON.stringify(context)}` : ''}`;
 
         try {
             return await runChatSafe(systemPrompt, message, FAST_MODEL);
@@ -246,6 +250,7 @@ export const aiService = {
                 5. Conformité et Sanctions
 
                 Le ton doit être formel et adapté à une entreprise certifiée ISO 27001.
+                Utilise le formatage Markdown (# pour les titres, ** pour le gras).
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
@@ -314,7 +319,12 @@ export const aiService = {
                 - Mention key risks identified.
                 - Conclude with a general recommendation.
                 
-                Do not use markdown formatting (bold, italic) as this will be put in a PDF. Just plain text with paragraphs.
+                - Conclude with a general recommendation.
+                
+                Use Markdown formatting to structure the response:
+                - Use # for main sections.
+                - Use **bold** for key metrics and emphasis.
+                - Use lists (-) for readability.
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
@@ -368,7 +378,12 @@ export const aiService = {
                 - Highlight the progress of risk treatment (Accepted vs Mitigated).
                 - Mention the most critical risks being addressed.
                 
-                Do not use markdown formatting. Just plain text.
+                - Mention the most critical risks being addressed.
+                
+                Use Markdown formatting to structure the response:
+                - Use # for main sections.
+                - Use **bold** for key metrics and emphasis.
+                - Use lists (-) for readability.
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
@@ -395,7 +410,10 @@ export const aiService = {
                 - Provide a strategic recommendation for the board.
                 
                 Tone: Professional, Strategic, Concise.
-                Do not use markdown formatting. Just plain text with paragraphs.
+                Use Markdown formatting to structure the response:
+                - Use # for main sections.
+                - Use **bold** for key metrics and emphasis.
+                - Use lists (-) for risks and recommendations.
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
@@ -422,7 +440,13 @@ export const aiService = {
                 - Summarize recent drill results and readiness.
                 
                 Tone: Professional, Reassuring, Strategic.
-                Do not use markdown formatting. Just plain text with paragraphs.
+                - Summarize recent drill results and readiness.
+                
+                Tone: Professional, Reassuring, Strategic.
+                Use Markdown formatting to structure the response:
+                - Use # for main sections.
+                - Use **bold** for key metrics and emphasis.
+                - Use lists (-) for readability.
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);

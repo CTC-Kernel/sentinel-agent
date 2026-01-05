@@ -160,7 +160,7 @@ const Team: React.FC = () => {
 
     const exportCSV = React.useCallback(() => {
         ImportService.exportUsers(
-            users as unknown as Record<string, unknown>[]
+            users
         );
     }, [users]);
 
