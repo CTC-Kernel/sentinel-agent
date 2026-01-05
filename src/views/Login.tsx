@@ -87,49 +87,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
         }
     };
 
-    // Boot Sequence State
-    const [bootSequence, setBootSequence] = useState<string[]>([]);
-    const [isBooting, setIsBooting] = useState(!skipBoot);
 
-    useEffect(() => {
-        if (skipBoot) return;
-
-        const sequence = [
-            "INITIALISATION DU NOYAU SENTINEL v2.0...",
-            "CHARGEMENT DES MODULES DE SÉCURITÉ...",
-            "ÉTABLISSEMENT DE LA LIAISON SÉCURISÉE...",
-            "ACCÈS AUTORISÉ."
-        ];
-
-        let currentIndex = 0;
-        const interval = setInterval(() => {
-            if (currentIndex >= sequence.length) {
-                clearInterval(interval);
-                setTimeout(() => setIsBooting(false), 800);
-                return;
-            }
-            setBootSequence(prev => [...prev, sequence[currentIndex]]);
-            currentIndex++;
-        }, 600);
-
-        return () => clearInterval(interval);
-    }, [skipBoot]);
-
-    if (isBooting) {
-        return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-950 dark:text-emerald-500 font-mono flex items-center justify-center p-8 transition-colors duration-500">
-                <div className="w-full max-w-lg">
-                    {bootSequence.map((line, i) => (
-                        <div key={`msg-${i}`} className="mb-2 animate-fade-in font-bold">
-                            <span className="opacity-50 mr-2">{`>`}</span>
-                            {line}
-                        </div>
-                    ))}
-                    <div className="animate-pulse">_</div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <AuroraBackground className="min-h-screen py-4 sm:py-0 px-4 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 bg-opacity-100 dark:bg-opacity-100 relative font-sans selection:bg-brand-500 selection:text-white overflow-hidden">
