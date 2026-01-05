@@ -316,7 +316,7 @@ export const GeminiAssistant: React.FC = () => {
                         <input value={input} onChange={(e) => setInput(e.target.value)}
                             ref={inputRef}
                             type="text"
-                            aria-label="Message à Gemini"
+                            aria-label="Message à IA Sentinel"
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
