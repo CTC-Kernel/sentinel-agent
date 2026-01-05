@@ -92,28 +92,34 @@ export const Continuity: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkProcessId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     React.useEffect(() => {
-        if (!loadingData && deepLinkProcessId && processes.length > 0) {
+        if (loadingData) return;
+
+        if (deepLinkProcessId && processes.length > 0) {
             const process = processes.find(p => p.id === deepLinkProcessId);
             if (process && selectedProcess?.id !== process.id) {
                 setSelectedProcess(process);
             }
+        } else if (deepLinkAction === 'create' && !isProcessModalOpen) {
+            setIsProcessModalOpen(true);
         }
-    }, [loadingData, deepLinkProcessId, processes, selectedProcess, setSelectedProcess]);
+    }, [loadingData, deepLinkProcessId, deepLinkAction, processes, selectedProcess, setSelectedProcess, isProcessModalOpen]);
 
     // Cleanup Effect
     React.useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loadingData) return;
 
-        if (!selectedProcess && deepLinkProcessId) {
+        if (!selectedProcess && !isProcessModalOpen && (deepLinkProcessId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
+                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedProcess, deepLinkProcessId, setSearchParams, loadingData]);
+    }, [selectedProcess, isProcessModalOpen, deepLinkProcessId, deepLinkAction, setSearchParams, loadingData]);
 
     // Derived Logic
     const filteredProcesses = useMemo(() => {

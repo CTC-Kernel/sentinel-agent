@@ -16,6 +16,26 @@ interface UseDashboardInsightsProps {
     complianceScore: number;
 }
 
+// Helper to safely handle Firestore Timestamps or strings
+const safeDate = (date: any): string => {
+    if (!date) return new Date().toISOString();
+    if (typeof date === 'string') return date;
+    // Handle Firestore Timestamp
+    if (date && typeof date.toDate === 'function') {
+        return date.toDate().toISOString();
+    }
+    // Handle standard Date object
+    if (date instanceof Date) {
+        return date.toISOString();
+    }
+    // Last resort
+    try {
+        return new Date(date).toISOString();
+    } catch (e) {
+        return new Date().toISOString();
+    }
+};
+
 export const useDashboardInsights = ({
     controls,
     myDocs,
@@ -79,33 +99,87 @@ export const useDashboardInsights = ({
 
         // Audits
         myAudits.forEach(a => {
-            myItems.push({ id: a.id, type: 'audit', title: a.name, date: a.dateScheduled, status: a.status, link: '/audits' });
+            myItems.push({
+                id: a.id,
+                type: 'audit',
+                title: a.name,
+                date: safeDate(a.dateScheduled),
+                status: a.status,
+                link: `/audits?id=${a.id}`
+            });
         });
 
         // Incidents
         myIncidents.forEach(i => {
-            myItems.push({ id: i.id, type: 'incident', title: i.title, date: i.dateReported, status: i.status, link: '/incidents' });
+            myItems.push({
+                id: i.id,
+                type: 'incident',
+                title: i.title,
+                date: safeDate(i.dateReported),
+                status: i.status,
+                link: `/incidents?id=${i.id}`
+            });
         });
 
         // Risks
         const myRisks = allRisks.filter(r => r.ownerId === user.uid && r.status !== 'Fermé');
         myRisks.forEach(r => {
-            myItems.push({ id: r.id, type: 'risk', title: r.threat, date: r.updatedAt || new Date().toISOString(), status: r.status, link: '/risks' });
+            myItems.push({
+                id: r.id,
+                type: 'risk',
+                title: r.threat,
+                date: safeDate(r.updatedAt || r.createdAt),
+                status: r.status,
+                link: `/risks?id=${r.id}`
+            });
         });
 
         const next30Days = new Date(); next30Days.setDate(next30Days.getDate() + 30);
-        myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < next30Days).forEach(d => {
-            myItems.push({ id: d.id, type: 'document', title: d.title, date: d.nextReviewDate!, status: t('dashboard.statusReview'), link: '/documents' });
+
+        myDocs.filter(d => d.nextReviewDate && new Date(safeDate(d.nextReviewDate)) < next30Days).forEach(d => {
+            myItems.push({
+                id: d.id,
+                type: 'document',
+                title: d.title,
+                date: safeDate(d.nextReviewDate),
+                status: t('dashboard.statusReview'),
+                link: `/documents?id=${d.id}`
+            });
         });
-        myDocs.filter(d => d.expirationDate && new Date(d.expirationDate) < next30Days).forEach(d => {
-            myItems.push({ id: d.id, type: 'document', title: `Evidence: ${d.title}`, date: d.expirationDate!, status: 'Expire', link: '/documents' });
+
+        myDocs.filter(d => d.expirationDate && new Date(safeDate(d.expirationDate)) < next30Days).forEach(d => {
+            myItems.push({
+                id: d.id,
+                type: 'document',
+                title: `Evidence: ${d.title}`,
+                date: safeDate(d.expirationDate),
+                status: 'Expire',
+                link: `/documents?id=${d.id}`
+            });
         });
+
         publishedDocs.filter(d => !d.readBy?.includes(user.uid)).forEach(d => {
-            myItems.push({ id: d.id, type: 'policy', title: d.title, date: new Date().toISOString(), status: t('dashboard.statusToRead'), link: '/documents' });
+            myItems.push({
+                id: d.id,
+                type: 'policy',
+                title: d.title,
+                date: new Date().toISOString(),
+                status: t('dashboard.statusToRead'),
+                link: `/documents?id=${d.id}`
+            });
         });
+
         myProjects.forEach(p => {
-            myItems.push({ id: p.id, type: 'project', title: p.name, date: p.dueDate, status: `${p.progress}%`, link: '/projects' });
+            myItems.push({
+                id: p.id,
+                type: 'project',
+                title: p.name,
+                date: safeDate(p.dueDate),
+                status: `${p.progress}%`,
+                link: `/projects?id=${p.id}`
+            });
         });
+
         myItems.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         return myItems;
     }, [user, myAudits, myDocs, publishedDocs, myProjects, myIncidents, allRisks, t]);

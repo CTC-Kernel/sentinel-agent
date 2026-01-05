@@ -89,31 +89,37 @@ export const Projects: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkProjectId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     // Deep Linking Effect
     useEffect(() => {
-        if (!loading && deepLinkProjectId && projects.length > 0) {
+        if (loading) return;
+
+        if (deepLinkProjectId && projects.length > 0) {
             const project = projects.find(p => p.id === deepLinkProjectId);
             if (project) {
                 flushSync(() => {
                     setSelectedProject(project);
                 });
             }
+        } else if (deepLinkAction === 'create' && !creationMode) {
+            setCreationMode(true);
         }
-    }, [loading, deepLinkProjectId, projects]);
+    }, [loading, deepLinkProjectId, deepLinkAction, projects, creationMode]);
 
     // Cleanup URL param when closing inspector
     useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!selectedProject && deepLinkProjectId) {
+        if (!selectedProject && !creationMode && (deepLinkProjectId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
+                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedProject, deepLinkProjectId, setSearchParams, loading]);
+    }, [selectedProject, creationMode, deepLinkProjectId, deepLinkAction, setSearchParams, loading]);
 
     // Filter Logic
     const filteredProjects = useMemo(() => projects.filter(p =>

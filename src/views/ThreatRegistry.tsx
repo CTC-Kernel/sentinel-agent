@@ -62,9 +62,12 @@ export const ThreatRegistry: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkThreatId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     React.useEffect(() => {
-        if (!loading && deepLinkThreatId && threats.length > 0) {
+        if (loading) return;
+
+        if (deepLinkThreatId && threats.length > 0) {
             const threat = threats.find(t => t.id === deepLinkThreatId);
             if (threat) {
                 // Determine if we need to open it (avoid loop if already open)
@@ -86,21 +89,26 @@ export const ThreatRegistry: React.FC = () => {
                     setShowModal(true);
                 }
             }
+        } else if (deepLinkAction === 'create' && !showModal) {
+            reset();
+            setIsEditing(false);
+            setShowModal(true);
         }
-    }, [loading, deepLinkThreatId, threats, selectedThreat, setSelectedThreat, reset, setIsEditing, setShowModal]);
+    }, [loading, deepLinkThreatId, deepLinkAction, threats, selectedThreat, setSelectedThreat, reset, setIsEditing, setShowModal, showModal, isEditing]);
 
     // Cleanup Effect
     React.useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!showModal && deepLinkThreatId) {
+        if (!showModal && (deepLinkThreatId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
+                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [showModal, deepLinkThreatId, setSearchParams, loading]);
+    }, [showModal, deepLinkThreatId, deepLinkAction, setSearchParams, loading]);
 
     // Confirm Modal State
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({

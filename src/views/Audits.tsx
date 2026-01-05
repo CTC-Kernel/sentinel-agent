@@ -62,29 +62,36 @@ export const Audits: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkAuditId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     // Deep Linking Effect
     React.useEffect(() => {
-        if (!loading && deepLinkAuditId && audits.length > 0) {
+        if (loading) return;
+
+        if (deepLinkAuditId && audits.length > 0) {
             const audit = audits.find(a => a.id === deepLinkAuditId);
             if (audit) {
                 setSelectedAudit(audit);
             }
+        } else if (deepLinkAction === 'create' && !creationMode) {
+            setEditingAudit(null);
+            setCreationMode(true);
         }
-    }, [loading, deepLinkAuditId, audits]);
+    }, [loading, deepLinkAuditId, deepLinkAction, audits, creationMode]);
 
     // Cleanup Effect
     React.useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!selectedAudit && deepLinkAuditId) {
+        if (!selectedAudit && !creationMode && (deepLinkAuditId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
+                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedAudit, deepLinkAuditId, setSearchParams, loading]);
+    }, [selectedAudit, creationMode, deepLinkAuditId, deepLinkAction, setSearchParams, loading]);
 
     const tabs = [
         { id: 'overview', label: t('audits.dashboard'), icon: LayoutDashboard },
