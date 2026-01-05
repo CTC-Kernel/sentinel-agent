@@ -1,5 +1,5 @@
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 
 import { useStore } from '../store';
@@ -95,7 +95,9 @@ export const Projects: React.FC = () => {
         if (!loading && deepLinkProjectId && projects.length > 0) {
             const project = projects.find(p => p.id === deepLinkProjectId);
             if (project) {
-                setSelectedProject(project);
+                flushSync(() => {
+                    setSelectedProject(project);
+                });
             }
         }
     }, [loading, deepLinkProjectId, projects]);

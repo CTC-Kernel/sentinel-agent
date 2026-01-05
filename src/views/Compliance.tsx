@@ -81,6 +81,13 @@ export const Compliance: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkControlId = searchParams.get('id');
 
+    // Handlers
+    const handleSelectControl = (control: import('../types').Control) => {
+        setSelectedControlId(control.id);
+        setCreationMode(null);
+        setIsDrawerOpen(true);
+    };
+
     // Deep Link Effect
     useEffect(() => {
         if (!loading && deepLinkControlId && frameworkControls.length > 0) {
@@ -89,7 +96,7 @@ export const Compliance: React.FC = () => {
                 handleSelectControl(control);
             }
         }
-    }, [loading, deepLinkControlId, frameworkControls]); // Don't include handleSelectControl to avoid loops if unstable
+    }, [loading, deepLinkControlId, frameworkControls, handleSelectControl]);
 
     // Cleanup Effect
     useEffect(() => {
@@ -125,13 +132,6 @@ export const Compliance: React.FC = () => {
             return matchesSearch && matchesStatus && matchesEvidence;
         });
     }, [frameworkControls, filter, statusFilter, showMissingEvidence]); // Depend on frameworkControls
-
-    // Handlers
-    const handleSelectControl = (control: import('../types').Control) => {
-        setSelectedControlId(control.id);
-        setCreationMode(null);
-        setIsDrawerOpen(true);
-    };
 
     const handleCreateClick = (type: 'risk' | 'project' | 'audit') => {
         if (!canEdit) {

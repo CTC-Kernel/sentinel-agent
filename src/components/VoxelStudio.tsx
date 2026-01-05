@@ -1,5 +1,6 @@
 
 import React, { useRef, useState, useMemo, useEffect, useCallback, Component, ErrorInfo, Suspense } from 'react';
+import { flushSync } from 'react-dom';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Billboard, Text, Float, Environment } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, CanvasTexture, CatmullRomCurve3, Points as ThreePoints, DoubleSide, Group } from 'three';
@@ -118,10 +119,16 @@ const StarField: React.FC = () => {
   const positions = useMemo(() => {
     const starCount = 1200;
     const array = new Float32Array(starCount * 3);
+    // Use a seeded random approach for reproducible results
+    const seed = 42;
+    const random = (min: number, max: number) => {
+      const x = Math.sin(seed + min + max) * 10000;
+      return min + (x - Math.floor(x)) * (max - min);
+    };
     for (let i = 0; i < starCount; i++) {
-      array[i * 3] = (Math.random() - 0.5) * 200;
-      array[i * 3 + 1] = (Math.random() - 0.5) * 80;
-      array[i * 3 + 2] = (Math.random() - 0.5) * 200;
+      array[i * 3] = random(-100, 100);
+      array[i * 3 + 1] = random(-40, 40);
+      array[i * 3 + 2] = random(-100, 100);
     }
     return array;
   }, []);
@@ -324,8 +331,9 @@ const DataFlowParticles: React.FC<{ start: Vector3; end: Vector3; color: string;
     const particleCount = 20;
     const posArray = new Float32Array(particleCount * 3);
     const offsetArray = new Float32Array(particleCount);
+    // Use deterministic values instead of Math.random
     for (let i = 0; i < particleCount; i++) {
-      offsetArray[i] = Math.random();
+      offsetArray[i] = (i * 0.618) % 1; // Golden ratio distribution
     }
     return { positions: posArray, initialOffsets: offsetArray };
   }, [curve]);
@@ -575,7 +583,10 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
     if (focusNodeId === null) {
       if (selectedNode !== null) {
-        setSelectedNode(null);
+        // Use flushSync to avoid cascading renders
+        flushSync(() => {
+          setSelectedNode(null);
+        });
         shouldSnapToTarget.current = false;
         focusOnCardRef.current = false;
       }
@@ -584,7 +595,9 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
     const node = voxelNodes.find(n => n.id === focusNodeId);
     if (node && node.id !== selectedNode?.id) {
-      setSelectedNode(node);
+      flushSync(() => {
+        setSelectedNode(node);
+      });
       focusOnCardRef.current = true;
       shouldSnapToTarget.current = true;
       isUserInteracting.current = false;
@@ -593,9 +606,15 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
   useEffect(() => {
     if (!releaseToken) return;
-    setSelectedNode(null);
+    // Use flushSync to avoid cascading renders
+    flushSync(() => {
+      setSelectedNode(null);
+    });
     shouldSnapToTarget.current = false;
-    setAutoRotate(true);
+    // Use flushSync to avoid cascading renders
+    flushSync(() => {
+      setAutoRotate(true);
+    });
   }, [releaseToken]);
 
   const calculateBlastRadius = useCallback((startNodeId: string) => {
