@@ -57,7 +57,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
         } else if (isOpen && !initialData) {
             // Reset if opening new
             setValue('title', '');
-            setValue('type', undefined as any);
+            setValue('type', undefined as unknown as StrategyFormData['type']);
             setValue('rto', '');
             setValue('rpo', '');
             setValue('description', '');

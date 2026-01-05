@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 const STORAGE_KEY = 'sentinel_ai_summary';
 
@@ -8,8 +8,6 @@ interface StoredSummary {
 }
 
 export const useAIAnalysisPersistence = () => {
-    const [storedSummary, setStoredSummary] = useState<string | null>(null);
-
     const getToday7AM = () => {
         const now = new Date();
         const sevenAM = new Date(now);
@@ -17,7 +15,7 @@ export const useAIAnalysisPersistence = () => {
         return sevenAM.getTime();
     };
 
-    useEffect(() => {
+    const [storedSummary, setStoredSummary] = useState<string | null>(() => {
         try {
             const item = localStorage.getItem(STORAGE_KEY);
             if (item) {
@@ -26,13 +24,14 @@ export const useAIAnalysisPersistence = () => {
 
                 // Valid if created after today's 7 AM
                 if (parsed.timestamp > sevenAM) {
-                    setStoredSummary(parsed.content);
+                    return parsed.content;
                 }
             }
         } catch (error) {
             console.error('Error reading AI summary from storage:', error);
         }
-    }, []);
+        return null;
+    });
 
     const saveSummary = useCallback((content: string) => {
         try {

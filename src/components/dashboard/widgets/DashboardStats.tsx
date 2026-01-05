@@ -67,13 +67,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 saveSummary(response);
             }
         });
-    }, [loading, complianceScore, activeIncidentsCount, stats.financialRisk, storedSummary]);
+    }, [loading, complianceScore, activeIncidentsCount, stats.financialRisk, storedSummary, activeIncidents, generateContent, saveSummary, topRisks]);
 
     const handleManualRefresh = () => {
         clearSummary(); // Clear storage to force regeneration
         setAiSummary(null); // Clear local state to show loading/trigger effect
     };
-
 
 
     const navigate = useNavigate();
@@ -130,15 +129,15 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
-                                        strong: ({ node, ...props }) => <span className="font-bold text-slate-800 dark:text-white" {...props} />,
-                                        ul: ({ node, ...props }) => <ul className="space-y-1 my-2 list-none pl-0" {...props} />,
-                                        li: ({ node, ...props }) => (
+                                        strong: ({ ...props }) => <span className="font-bold text-slate-800 dark:text-white" {...props} />,
+                                        ul: ({ ...props }) => <ul className="space-y-1 my-2 list-none pl-0" {...props} />,
+                                        li: ({ ...props }) => (
                                             <li className="flex items-start gap-2 text-sm pl-1" {...props}>
                                                 <span className="mt-1.5 w-1 h-1 rounded-full bg-brand-500 shrink-0" />
                                                 <span className="flex-1">{props.children}</span>
                                             </li>
                                         ),
-                                        p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />
+                                        p: ({ ...props }) => <p className="mb-2 last:mb-0" {...props} />
                                     }}
                                 >
                                     {aiSummary}

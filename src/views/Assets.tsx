@@ -122,7 +122,7 @@ const Assets: React.FC = () => {
         }
         setSelectedAsset(asset || null);
         setInspectorOpen(true);
-    }, [reachedAssetLimit, assets.length, limits.maxAssets, t]);
+    }, [reachedAssetLimit, assets.length, limits.maxAssets, t, filteredAssets]);
 
     const handleCreateNew = React.useCallback(() => handleOpenInspector(undefined), [handleOpenInspector]);
 
