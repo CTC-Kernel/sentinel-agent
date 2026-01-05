@@ -149,6 +149,9 @@ export const Documents: React.FC = () => {
 
     // Cleanup Effect
     React.useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
         if (!selectedDocument && !showCreateModal && (deepLinkDocId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
@@ -156,7 +159,7 @@ export const Documents: React.FC = () => {
                 return params;
             }, { replace: true });
         }
-    }, [selectedDocument, showCreateModal, deepLinkDocId, deepLinkAction, setSearchParams]);
+    }, [selectedDocument, showCreateModal, deepLinkDocId, deepLinkAction, setSearchParams, loading]);
 
     // Handle Voxel/Link Navigation (Legacy/State based)
     React.useEffect(() => {

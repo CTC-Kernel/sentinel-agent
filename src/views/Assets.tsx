@@ -81,6 +81,9 @@ const Assets: React.FC = () => {
 
     // Cleanup Effect
     React.useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
         if (!inspectorOpen && (deepLinkAssetId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
@@ -88,7 +91,7 @@ const Assets: React.FC = () => {
                 return params;
             }, { replace: true });
         }
-    }, [inspectorOpen, deepLinkAssetId, deepLinkAction, setSearchParams]);
+    }, [inspectorOpen, deepLinkAssetId, deepLinkAction, setSearchParams, loading]);
 
     // Filtering Logic
     const deferredQuery = useDeferredValue(activeFilters.query);

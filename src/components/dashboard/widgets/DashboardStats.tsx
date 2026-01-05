@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAIGemini } from '../../../hooks/useAIGemini';
 import { useAIAnalysisPersistence } from '../../../hooks/dashboard/useAIAnalysisPersistence';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardStatsProps {
     stats: {
@@ -73,9 +74,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
         setAiSummary(null); // Clear local state to show loading/trigger effect
     };
 
-    const navigate = (path: string) => {
-        window.location.hash = path;
-    };
+
+
+    const navigate = useNavigate();
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

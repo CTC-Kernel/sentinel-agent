@@ -192,6 +192,9 @@ export const Incidents: React.FC = () => {
 
     // Cleanup Effect
     useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
         if (!selectedIncident && !creationMode && (deepLinkIncidentId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
@@ -199,7 +202,7 @@ export const Incidents: React.FC = () => {
                 return params;
             }, { replace: true });
         }
-    }, [selectedIncident, creationMode, deepLinkIncidentId, deepLinkAction, setSearchParams]);
+    }, [selectedIncident, creationMode, deepLinkIncidentId, deepLinkAction, setSearchParams, loading]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
