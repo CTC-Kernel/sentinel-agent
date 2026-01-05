@@ -22,21 +22,6 @@ export const useDashboardMetrics = ({
     myProjectsLength,
     userOrgId
 }: MetricInputs) => {
-    // Debug logging
-    useMemo(() => {
-        if (process.env.NODE_ENV === 'development') {
-            // Log sample data for debugging
-            console.log('Dashboard Metrics Debug:', {
-                controlsCount: controls.length,
-                risksCount: allRisks.length,
-                assetsCount: allAssets.length,
-                incidentsCount: activeIncidentsCount,
-                auditsCount: openAuditsCount,
-                projectsCount: myProjectsLength,
-                orgId: userOrgId
-            });
-        }
-    }, [controls, allRisks, allAssets, activeIncidentsCount, openAuditsCount, myProjectsLength, userOrgId]);
 
     // History Data Mapping
     const historyData = useMemo(() => {
@@ -105,10 +90,10 @@ export const useDashboardMetrics = ({
                     }
                 } else {
                     // For risks without specific assets, estimate based on risk score and average asset value
-                    const avgAssetValue = allAssets.length > 0 
+                    const avgAssetValue = allAssets.length > 0
                         ? allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0) / allAssets.length
                         : 10000; // Default estimate if no assets exist
-                    
+
                     // Scale exposure based on risk severity (score 10-20 maps to 10-100% of avg asset value)
                     const exposurePercentage = Math.min(1, (risk.score - 9) / 10); // 10->10%, 20->100%
                     financialExposure += Math.round(avgAssetValue * exposurePercentage);
@@ -119,19 +104,6 @@ export const useDashboardMetrics = ({
         // Updated critical risks calculation to be more inclusive
         const criticalRisksCount = allRisks.filter(r => r.score >= 10).length; // Changed from 15 to 10
 
-        // Debug financial exposure calculation
-        if (process.env.NODE_ENV === 'development') {
-            console.log('Financial Exposure Debug:', {
-                criticalRisksCount,
-                risksWithAssets: allRisks.filter(r => r.score >= 10 && r.assetId).length,
-                risksWithoutAssets: allRisks.filter(r => r.score >= 10 && !r.assetId).length,
-                avgAssetValue: allAssets.length > 0 
-                    ? allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0) / allAssets.length
-                    : 0,
-                financialExposure,
-                totalAssetValue
-            });
-        }
 
         return {
             stats: {

@@ -43,18 +43,6 @@ export const useLayoutData = () => {
     { enabled: !!user?.organizationId }
   );
 
-  
-  if (loadingNotifications || loadingDocuments || loadingRisks || loadingIncidents || loadingAssets || loadingProjects) {
-    const loadingStates = [
-      ['notifications', loadingNotifications],
-      ['documents', loadingDocuments],
-      ['risks', loadingRisks],
-      ['incidents', loadingIncidents],
-      ['assets', loadingAssets],
-      ['projects', loadingProjects]
-    ];
-    console.log('Loading states:', loadingStates.filter(([, v]) => v === true).map(([k]) => k).join(', '));
-  }
 
   return {
     notifications: notifications || [],

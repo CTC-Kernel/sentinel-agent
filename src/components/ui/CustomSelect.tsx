@@ -63,6 +63,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                             <ListboxButton className={`
                                 relative w-full cursor-pointer rounded-2xl py-3.5 pl-4 pr-10 text-left 
                                 transition-all duration-300 outline-none min-h-[50px]
+                                focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
                                 ${error
                                     ? 'border border-red-500 bg-red-50/50 dark:bg-red-900/10 text-destructive'
                                     : open

@@ -12,7 +12,7 @@ import { AssetFormData, assetSchema } from '../schemas/assetSchema';
 import { logAction } from './logger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
-import { UserProfile } from '../types';
+import { UserProfile, Risk, Incident, Project, Audit, Document, Control, SystemLog } from '../types';
 import { FunctionsService } from './FunctionsService';
 
 export const AssetService = {
@@ -153,8 +153,7 @@ export const AssetService = {
 
         // We filter client side for the name to be safe
         const snap = await getDocs(simpleQ);
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as any))
+        const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog))
             .filter(l => l.details && l.details.includes(assetName));
 
         return { logs };
@@ -167,36 +166,35 @@ export const AssetService = {
         const { getDocs, query, where } = await import('firebase/firestore');
 
         // Helper to fetch - Use simpler queries to avoid index requirements
-        const fetchRel = async (col: string, field: string) => {
+        const fetchRel = async <T>(col: string, field: string): Promise<T[]> => {
             try {
                 // Try composite query first (more efficient)
                 const q = query(collection(db, col), where('organizationId', '==', organizationId), where(field, 'array-contains', assetId));
                 const s = await getDocs(q);
-                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                return s.docs.map(d => ({ id: d.id, ...d.data() } as any));
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (error: any) {
+                return s.docs.map(d => ({ id: d.id, ...d.data() } as T));
+            } catch (error: unknown) {
                 // Fallback to client-side filtering if index is missing
-                if (error.code === 'failed-precondition') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if ((error as any).code === 'failed-precondition') {
                     console.warn(`Index manquant pour ${col}, utilisation du fallback côté client`);
                     const fallbackQ = query(collection(db, col), where('organizationId', '==', organizationId));
                     const fallbackSnap = await getDocs(fallbackQ);
                     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
                     return fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() } as any))
-                        .filter(doc => doc[field] && Array.isArray(doc[field]) && doc[field].includes(assetId));
+                        .filter(doc => doc[field] && Array.isArray(doc[field]) && doc[field].includes(assetId)) as T[];
                 }
                 throw error;
             }
         };
 
         const [risks, incidents, projects, audits, documents, controls] = await Promise.all([
-            fetchRel('risks', 'affectedAssetIds'),
-            fetchRel('incidents', 'affectedAssetIds'),
-            fetchRel('projects', 'relatedAssetIds'),
+            fetchRel<Risk>('risks', 'affectedAssetIds'),
+            fetchRel<Incident>('incidents', 'affectedAssetIds'),
+            fetchRel<Project>('projects', 'relatedAssetIds'),
             // Audits might link via scope or assets array
-            fetchRel('audits', 'scope'), // Check if scope is correct or if it's assetIds
-            fetchRel('documents', 'relatedAssetIds'),
-            fetchRel('controls', 'linkedAssetIds')
+            fetchRel<Audit>('audits', 'scope'), // Check if scope is correct or if it's assetIds
+            fetchRel<Document>('documents', 'relatedAssetIds'),
+            fetchRel<Control>('controls', 'linkedAssetIds')
         ]);
 
         return {
