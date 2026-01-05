@@ -19,14 +19,15 @@ interface DirectionDashboardViewProps {
     historyData: HistoryData;
     healthIssues: HealthIssueList;
     topRisks: RiskList;
+    incidents?: any[];
 }
 
 export const DirectionDashboardView: React.FC<DirectionDashboardViewProps> = ({
-    stats, loading, navigate, t, theme, historyData, healthIssues, topRisks
+    stats, loading, navigate, t, theme, historyData, healthIssues, topRisks, incidents
 }) => {
     return (
         <>
-            <DashboardStats stats={stats} loading={loading} navigate={navigate} t={t} />
+            <DashboardStats stats={stats} loading={loading} navigate={navigate} t={t} topRisks={topRisks} incidents={incidents} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
                 <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />

@@ -21,12 +21,14 @@ interface StatsOverviewProps {
         assetValue: number;
         compliance: number;
     };
+    topRisks?: any[]; // Using any[] temporarily to avoid circular deps if types usually imported from types.ts
+    incidents?: any[];
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
 }
 
-export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, navigate, t }) => {
+export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks = [], incidents = [], loading, navigate, t }) => {
     const [summary, setSummary] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const { user } = useStore();
@@ -94,7 +96,17 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
             const result = await aiService.generateExecutiveDashboardSummary({
                 metrics: stats,
                 healthScore,
-                generatedAt: new Date().toISOString()
+                generatedAt: new Date().toISOString(),
+                topRisks: topRisks?.slice(0, 5).map(r => ({
+                    title: r.threat || r.name || "Risque inconnu",
+                    score: r.score,
+                    strategy: r.treatment?.strategy || "Non défini"
+                })),
+                activeIncidents: incidents?.slice(0, 3).map(i => ({
+                    title: i.title,
+                    severity: i.severity,
+                    status: i.status
+                }))
             });
             setSummary(result);
             await DashboardService.saveExecutiveSummary(user.organizationId, result, new Date().toISOString());

@@ -19,6 +19,7 @@ export interface DashboardData {
     publishedDocs: Document[];
     pendingReviews: Document[];
     myIncidents: Incident[];
+    activeIncidents: Incident[];
     activeIncidentsCount: number;
     openAuditsCount: number;
     organizationName: string;
@@ -167,6 +168,11 @@ export const useDashboardData = (): DashboardData => {
         [allDocuments, user?.uid, demoMode]
     );
 
+    const activeIncidents = useMemo(() =>
+        allIncidents.filter(i => i.status !== 'Résolu'),
+        [allIncidents]
+    );
+
     const loading = demoMode ? mockData.loading : (manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || myIncidentsLoading);
 
     const fetchCounts = useCallback(async () => {
@@ -259,6 +265,7 @@ export const useDashboardData = (): DashboardData => {
         publishedDocs,
         pendingReviews,
         myIncidents,
+        activeIncidents,
         activeIncidentsCount,
         openAuditsCount,
         organizationName,
