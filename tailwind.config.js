@@ -202,7 +202,8 @@ export default {
         "blur-in": "blur-in 0.6s ease-out forwards",
         aurora: "aurora 60s linear infinite",
         spotlight: "spotlight 2s ease .75s 1 forwards",
-        blob: "blob 7s infinite",
+        blob: "blob 10s infinite",
+        "pulse-gentle": "pulse-gentle 6s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       transitionTimingFunction: {
         'custom-ease': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
@@ -264,9 +265,13 @@ export default {
         },
         blob: {
           "0%": { transform: "translate(0px, 0px) scale(1)" },
-          "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+          "33%": { transform: "translate(50px, -50px) scale(1.1)" },
           "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
           "100%": { transform: "translate(0px, 0px) scale(1)" },
+        },
+        "pulse-gentle": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.6" },
         },
       }
     },
