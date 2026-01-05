@@ -541,6 +541,11 @@ service cloud.firestore {
       allow delete: if false;
     }
     
+    // Dashboard Summaries
+    match /dashboard_summaries/{orgId} {
+      allow read, write: if belongsToOrganization(orgId);
+    }
+
     // Stats History
     match /stats_history/{statId} {
       allow read: if canRead(resource.data.organizationId);
