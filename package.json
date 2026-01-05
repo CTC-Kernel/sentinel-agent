@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "dev": "vite",
-    "build": "NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/generate-version.js && NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/generate-sitemap.js && NODE_OPTIONS=\"--max-old-space-size=4096\" vite build",
+    "build": "NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/generate-version.js && NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/generate-sitemap.js && NODE_OPTIONS=\"--max-old-space-size=4096\" vite build --config vite.config.optimized.ts",
+    "build:dev": "NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/generate-version.js && NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/generate-sitemap.js && NODE_OPTIONS=\"--max-old-space-size=4096\" vite build",
+    "build:analyze": "npm run build && npx vite-bundle-analyzer dist/stats.html",
     "lint": "eslint .",
     "test": "vitest run",
     "test:ui": "vitest --ui",
