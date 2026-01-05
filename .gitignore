@@ -40,6 +40,17 @@ xcuserdata/
 *.xcscmblueprint
 *.xccheckout
 
-# Environment
+# Environment - NEVER commit these files
+.env
+.env.*
 .env.local
 .env.production
+.env.staging
+.env.development
+*.secrets
+apphosting.yaml
+
+# Functions environment
+functions/.env
+functions/.env.*
+functions/*.secrets
