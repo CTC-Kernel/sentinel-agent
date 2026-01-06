@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { integrationService } from '../integrationService';
 import { db } from '../../firebase';
+import { ErrorLogger } from '../errorLogger';
 import { getDocs, addDoc, updateDoc, deleteDoc, collection, doc } from 'firebase/firestore';
 
 // Mock Firebase
@@ -104,9 +105,8 @@ describe('IntegrationService', () => {
         });
 
         it('should warn and return if no orgId provided', async () => {
-            const spy = vi.spyOn(console, 'warn').mockImplementation(() => { });
             await integrationService.syncProvider('aws', undefined);
-            expect(spy).toHaveBeenCalledWith("IntegrationService.syncProvider called without organizationId");
+            expect(ErrorLogger.warn).toHaveBeenCalledWith("IntegrationService.syncProvider called without organizationId", "integrationService.syncProvider");
             expect(updateDoc).not.toHaveBeenCalled();
         });
     });

@@ -17,17 +17,17 @@ const mockTranslations: Record<string, string> = {
     'dashboard.loading': 'Chargement...'
 };
 
-const mockUser = {
-    uid: 'test-user',
-    organizationId: 'test-org',
-    role: 'admin' as const,
-    displayName: 'Test User',
-    email: 'test@example.com'
-};
+
 
 vi.mock('../../store', () => ({
     useStore: vi.fn().mockReturnValue({
-        user: mockUser,
+        user: {
+            uid: 'test-user',
+            organizationId: 'test-org',
+            role: 'admin' as const,
+            displayName: 'Test User',
+            email: 'test@example.com'
+        },
         theme: 'light',
         addToast: vi.fn(),
         t: vi.fn((k: string) => mockTranslations[k] || k)
