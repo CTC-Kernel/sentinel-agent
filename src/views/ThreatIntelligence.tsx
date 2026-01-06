@@ -31,7 +31,7 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
 
 export const ThreatIntelligence: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, demoMode } = useStore();
     // hasPermission check: View accessible to all, but actions are restricted in backend or sub-components.
 
     // UI State
@@ -71,16 +71,28 @@ export const ThreatIntelligence: React.FC = () => {
     React.useEffect(() => {
         if (!threatsLoading && threats.length === 0 && !initialLoadRef.current) {
             initialLoadRef.current = true;
-            // Silent background fetch to populate module
-            ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo')
-                .then(stats => {
-                    if (stats.threats > 0) logAction(user, 'AUTO_SEED_LIVE', 'ThreatIntelligence', `Initialized with ${stats.threats} live threats`);
-                })
-                .catch(e => {
-                    ErrorLogger.warn(e instanceof Error ? e.message : String(e), 'ThreatIntelligence.seedLiveThreats.autoSeed');
-                });
+            // Force mock data seeding if in demo mode and no data available
+            if (demoMode) {
+                ThreatFeedService.useSimulation = true;
+                ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo')
+                    .then(stats => {
+                        if (stats.threats > 0) logAction(user, 'AUTO_SEED_MOCK', 'ThreatIntelligence', `Initialized with ${stats.threats} mock threats`);
+                    })
+                    .catch(e => {
+                        ErrorLogger.warn(e instanceof Error ? e.message : String(e), 'ThreatIntelligence.seedSimulatedData.autoSeed');
+                    });
+            } else {
+                // Silent background fetch to populate module
+                ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo')
+                    .then(stats => {
+                        if (stats.threats > 0) logAction(user, 'AUTO_SEED_LIVE', 'ThreatIntelligence', `Initialized with ${stats.threats} live threats`);
+                    })
+                    .catch(e => {
+                        ErrorLogger.warn(e instanceof Error ? e.message : String(e), 'ThreatIntelligence.seedLiveThreats.autoSeed');
+                    });
+            }
         }
-    }, [threatsLoading, threats.length, user]);
+    }, [threatsLoading, threats.length, user, demoMode]);
 
     const handleRefreshLiveFeed = React.useCallback(async () => {
         if (isSeeding) return;
