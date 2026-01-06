@@ -26,7 +26,11 @@ export const projectSchema = z.object({
     framework: z.enum(['ISO27001', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL', 'ISO22301']).optional(),
     status: z.enum(['Planifié', 'En cours', 'Terminé', 'Suspendu']).default('Planifié'),
     startDate: z.string().optional(),
-    dueDate: z.string().min(1, i18n.t('validation.required')),
+    dueDate: z.string().optional().refine((val) => {
+        if (!val) return true; // Optionnel
+        // Validation basique de format date si fourni
+        return /^\d{4}-\d{2}-\d{2}$/.test(val);
+    }, { message: "Format de date invalide (AAAA-MM-JJ)" }),
     relatedRiskIds: z.array(z.string()).optional().default([]),
     relatedControlIds: z.array(z.string()).optional().default([]),
     relatedAssetIds: z.array(z.string()).optional().default([]),
