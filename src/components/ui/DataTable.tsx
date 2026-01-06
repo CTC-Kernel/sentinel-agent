@@ -7,7 +7,7 @@ import {
     getFilteredRowModel,
     flexRender,
     ColumnDef,
-    SortingState,
+    SortingState
 } from '@tanstack/react-table';
 import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight, Trash2 } from './Icons';
 import { Button } from './button';

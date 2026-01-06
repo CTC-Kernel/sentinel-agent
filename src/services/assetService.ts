@@ -176,7 +176,7 @@ export const AssetService = {
                 // Fallback to client-side filtering if index is missing
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 if ((error as any).code === 'failed-precondition') {
-                    console.warn(`Index manquant pour ${col}, utilisation du fallback côté client`);
+                    ErrorLogger.warn(`Index manquant pour ${col}, utilisation du fallback côté client`, 'assetService.getCollection');
                     const fallbackQ = query(collection(db, col), where('organizationId', '==', organizationId));
                     const fallbackSnap = await getDocs(fallbackQ);
                     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */

@@ -51,6 +51,15 @@ export const AssetList = React.memo<AssetListProps>(({
     const { t } = useStore();
     const canDelete = canDeleteResource(user, 'Asset');
 
+    const filteredAssets = useMemo(() => {
+        if (!activeFiltersQuery) return assets;
+        return assets.filter(asset => 
+            asset.name.toLowerCase().includes(activeFiltersQuery.toLowerCase()) ||
+            asset.type.toLowerCase().includes(activeFiltersQuery.toLowerCase()) ||
+            asset.owner?.toLowerCase().includes(activeFiltersQuery.toLowerCase())
+        );
+    }, [assets, activeFiltersQuery]);
+
     const columns = useMemo<ColumnDef<Asset>[]>(() => [
         { header: t('common.name'), accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
         { header: t('common.type'), accessorKey: 'type' },
@@ -167,14 +176,27 @@ export const AssetList = React.memo<AssetListProps>(({
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {loading ? (
                 <div className="col-span-full"><CardSkeleton count={6} /></div>
-            ) : assets.length === 0 ? (
+            ) : filteredAssets.length === 0 ? (
                 <div className="col-span-full">
                     <EmptyState
                         icon={Server}
                         title={t('assets.emptyTitle')}
                         description={activeFiltersQuery ? t('assets.emptyDescSearch') : t('assets.emptyDesc')}
                         actionLabel={activeFiltersQuery || !canEdit ? undefined : t('assets.createAsset')}
-                        onAction={activeFiltersQuery || !canEdit ? undefined : () => onEdit({} as Asset)} // hack to trigger create
+                        onAction={activeFiltersQuery || !canEdit ? undefined : () => onEdit({
+                            id: '',
+                            name: '',
+                            type: 'Matériel',
+                            lifecycleStatus: 'Opérationnel',
+                            organizationId: user?.organizationId || '',
+                            owner: user?.uid || '',
+                            confidentiality: 'Moyen',
+                            integrity: 'Moyen', 
+                            availability: 'Moyen',
+                            location: '',
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        } as unknown as Asset)}
                     />
                 </div>
             ) : (

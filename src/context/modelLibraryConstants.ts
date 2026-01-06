@@ -1,5 +1,6 @@
 import { Group } from 'three';
 import { VoxelNode } from '../types';
+import { ErrorLogger } from '../services/errorLogger';
 
 export interface ModelLibrary {
     asset: Group;
@@ -34,7 +35,9 @@ export const loadSafe = async (url: string): Promise<Group> => {
         const object = loader.parse(text);
         return object;
     } catch (error) {
-        console.warn(`Failed to load 3D model from ${url}:`, error);
+        ErrorLogger.warn(`Failed to load 3D model from ${url}`, 'modelLibraryConstants.loadSafe', {
+            metadata: { error }
+        });
         // Return a fallback empty group to prevent crashes
         return new Group();
     }

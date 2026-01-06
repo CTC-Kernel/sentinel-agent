@@ -17,12 +17,14 @@ interface TaskFormModalProps {
     existingTask?: ProjectTask;
     availableTasks?: ProjectTask[]; // For dependencies
     availableUsers?: UserProfile[]; // For assignee selection
+    onCancel?: () => void; // Add optional onCancel
 }
 
 export const TaskFormModal: React.FC<TaskFormModalProps> = ({
     isOpen,
     onClose,
     onSubmit,
+    onCancel,
     existingTask,
     availableTasks = [],
     availableUsers = []
@@ -323,8 +325,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                         <button
                             type="button"
-                            onClick={onClose}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            onClick={onClose || onCancel}
+                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                             Annuler
                         </button>

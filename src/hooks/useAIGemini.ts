@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { aiService } from '../services/aiService';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const useAIGemini = () => {
     const [loading, setLoading] = useState(false);
@@ -12,8 +13,7 @@ export const useAIGemini = () => {
             const response = await aiService.generateText(prompt);
             return response;
         } catch (err) {
-            console.error("AI Generation Error:", err);
-            setError(err instanceof Error ? err : new Error('Unknown error'));
+            ErrorLogger.error(err instanceof Error ? err : new Error('Unknown error'), 'useAIGemini.generateText');
             return null;
         } finally {
             setLoading(false);

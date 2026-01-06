@@ -8,12 +8,31 @@ import { MemoryRouter } from 'react-router-dom';
 // Mocks
 // ---------------------------------------------------------------------
 
+const mockUser = {
+    uid: 'test-user',
+    organizationId: 'test-org',
+    role: 'admin' as const,
+    displayName: 'Test User',
+    email: 'test@example.com'
+};
+
+const mockTranslations: Record<string, string> = {
+    'dashboard.title': 'Tableau de bord',
+    'dashboard.overview': 'Vue d\'ensemble',
+    'dashboard.myProjects': 'Mes projets',
+    'dashboard.recentActivity': 'Activité récente',
+    'dashboard.noData': 'Aucune donnée disponible',
+    'dashboard.loading': 'Chargement...'
+};
+
+const t = (key: string): string => mockTranslations[key] || key;
+
 vi.mock('../../store', () => ({
     useStore: vi.fn().mockReturnValue({
-        user: { uid: 'test-user', organizationId: 'test-org', role: 'admin' },
+        user: mockUser,
         theme: 'light',
         addToast: vi.fn(),
-        t: (k: string) => k
+        t: vi.fn((k: string) => mockTranslations[k] || k)
     }),
 }));
 
@@ -31,13 +50,15 @@ vi.mock('../../hooks/dashboard/useDashboardData', () => ({
         publishedDocs: [],
         pendingReviews: [],
         myIncidents: [],
+        activeIncidents: [],
         activeIncidentsCount: 0,
         openAuditsCount: 0,
-        organizationName: 'Test Org',
-        organizationLogo: null,
+        organizationName: 'Test Organization',
+        organizationLogo: undefined,
         loading: false,
-        error: null
-    })
+        error: null,
+        refreshCounts: vi.fn().mockResolvedValue(undefined)
+    }),
 }));
 
 vi.mock('../../hooks/dashboard/useDashboardMetrics', () => ({

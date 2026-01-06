@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { ErrorLogger } from '../../services/errorLogger';
 
 const STORAGE_KEY = 'sentinel_ai_summary';
 
@@ -42,7 +43,7 @@ export const useAIAnalysisPersistence = () => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             setStoredSummary(content);
         } catch (error) {
-            console.error('Error saving AI summary to storage:', error);
+            ErrorLogger.error(error, 'useAIAnalysisPersistence.saveSummary');
         }
     }, []);
 
@@ -51,7 +52,7 @@ export const useAIAnalysisPersistence = () => {
             localStorage.removeItem(STORAGE_KEY);
             setStoredSummary(null);
         } catch (error) {
-            console.error('Error clearing AI summary:', error);
+            ErrorLogger.error(error, 'useAIAnalysisPersistence.clearSummary');
         }
     }, []);
 

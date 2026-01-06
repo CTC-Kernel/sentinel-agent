@@ -95,6 +95,7 @@ export interface Comment {
     updatedAt?: string;
     parentId?: string;
     mentions?: string[]; // User IDs mentioned
+    readBy?: string[]; // Users who have read this comment
 }
 
 export interface UserGroup {
