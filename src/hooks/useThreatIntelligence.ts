@@ -39,6 +39,12 @@ export const useThreatIntelligence = () => {
                     threats: MockDataService.getCollection('threats') as Threat[],
                     relationships: [] // Mock relationships if needed
                 });
+            }).catch(() => {
+                // Fallback: ensure we always have data even if mock service fails
+                setMockData({
+                    threats: [],
+                    relationships: []
+                });
             });
         }
     }, [demoMode, mockData]);

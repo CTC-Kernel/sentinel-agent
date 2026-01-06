@@ -252,14 +252,18 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
           camera.position.lerp(desiredPos.current, 0.04);
           if (camera.position.distanceTo(desiredPos.current) < 0.05) shouldSnapRef.current = false;
         }
-        controls.target.lerp(focusVec.current, 0.08);
+        if (controls.target) {
+          controls.target.lerp(focusVec.current, 0.08);
+        }
       }
     } else if (isResetting.current) {
       if (userInteractingRef.current) {
         isResetting.current = false;
       } else {
         camera.position.lerp(defaultPos.current, 0.03);
-        controls.target.lerp(defaultTarget.current, 0.05);
+        if (controls.target) {
+          controls.target.lerp(defaultTarget.current, 0.05);
+        }
         if (camera.position.distanceTo(defaultPos.current) < 0.5) isResetting.current = false;
       }
     }
