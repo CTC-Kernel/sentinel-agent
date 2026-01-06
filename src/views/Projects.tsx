@@ -89,18 +89,31 @@ export const Projects: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkProjectId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     // Deep Linking Effect
     useEffect(() => {
-        if (!loading && deepLinkProjectId && projects.length > 0) {
+        if (loading) return;
+
+        if (deepLinkProjectId && projects.length > 0) {
             const project = projects.find(p => p.id === deepLinkProjectId);
             if (project) {
                 flushSync(() => {
                     setSelectedProject(project);
                 });
             }
+        } else if (deepLinkAction === 'create' && !creationMode) {
+            // Fix: Wrap in setTimeout to avoid "setState synchronously within an effect" warning
+            setTimeout(() => {
+                setCreationMode(true);
+                // Consume action immediately
+                setSearchParams(params => {
+                    params.delete('action');
+                    return params;
+                }, { replace: true });
+            }, 0);
         }
-    }, [loading, deepLinkProjectId, projects]);
+    }, [loading, deepLinkProjectId, deepLinkAction, projects, creationMode, setSearchParams]);
 
     // Cleanup URL param when closing inspector
     useEffect(() => {

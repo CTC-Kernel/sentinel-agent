@@ -37,8 +37,8 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
     };
 
     return createPortal(
-        <div 
-            className="fixed right-6 top-24 z-[9999] !important" 
+        <div
+            className="fixed right-6 top-24 z-[9999] !important"
             data-tour="quick-actions"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -54,7 +54,7 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
                     />
                 )}
             </AnimatePresence>
-            
+
             <AnimatePresence>
                 {isVisible && (
                     <motion.div
@@ -67,48 +67,48 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
                         {/* Dock Background Glow */}
                         <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-[2rem] blur-xl opacity-50 -z-10" />
 
-                <DockItem
-                    icon={Settings3D}
-                    label={t('dashboard.voxel3d')}
-                    onClick={() => navigate('/ctc-engine')}
-                    color="purple"
-                    delay={0}
-                />
+                        <DockItem
+                            icon={Settings3D}
+                            label={t('dashboard.voxel3d')}
+                            onClick={() => navigate('/ctc-engine')}
+                            color="purple"
+                            delay={0}
+                        />
 
-                <DockItem
-                    icon={Siren}
-                    label={t('dashboard.incidents')}
-                    onClick={() => navigate('/incidents')}
-                    color="red"
-                    badge={stats?.activeIncidents}
-                    delay={0.1}
-                />
+                        <DockItem
+                            icon={Siren}
+                            label={t('dashboard.incidents')}
+                            onClick={() => navigate('/incidents?action=create')}
+                            color="red"
+                            badge={stats?.activeIncidents}
+                            delay={0.1}
+                        />
 
-                <DockItem
-                    icon={ShieldAlert}
-                    label={t('dashboard.risks')}
-                    onClick={() => navigate('/risks')}
-                    color="orange"
-                    badge={stats?.highRisks}
-                    delay={0.2}
-                />
+                        <DockItem
+                            icon={ShieldAlert}
+                            label={t('dashboard.risks')}
+                            onClick={() => navigate('/risks?action=create')}
+                            color="orange"
+                            badge={stats?.highRisks}
+                            delay={0.2}
+                        />
 
-                <DockItem
-                    icon={Server}
-                    label={t('dashboard.assets')}
-                    onClick={() => navigate('/assets')}
-                    color="blue"
-                    badge={stats?.assets}
-                    delay={0.3}
-                />
+                        <DockItem
+                            icon={Server}
+                            label={t('dashboard.assets')}
+                            onClick={() => navigate('/assets?action=create')}
+                            color="blue"
+                            badge={stats?.assets}
+                            delay={0.3}
+                        />
 
-                <DockItem
-                    icon={User}
-                    label={t('dashboard.team')}
-                    onClick={() => navigate('/team')}
-                    color="emerald"
-                    delay={0.4}
-                />
+                        <DockItem
+                            icon={User}
+                            label={t('dashboard.team')}
+                            onClick={() => navigate('/team')}
+                            color="emerald"
+                            delay={0.4}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>

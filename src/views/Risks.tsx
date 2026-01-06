@@ -169,6 +169,11 @@ export const Risks: React.FC = () => {
         if (deepLinkAction === 'create' && !creationMode) {
             setInitialFormData(undefined);
             setCreationMode(true);
+            // Consume the param immediately to prevent race conditions
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
 
         // 3. Open Creation Modal (Pre-filled Asset)
@@ -177,23 +182,27 @@ export const Risks: React.FC = () => {
                 assetId: deepLinkAssetId
             });
             setCreationMode(true);
-        }
-    }, [loading, deepLinkRiskId, deepLinkAction, deepLinkAssetId, risks, creationMode, selectedRisk]);
-
-    // Cleanup Effect
-    React.useEffect(() => {
-        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
-        if (loading) return;
-
-        if (!selectedRisk && !creationMode && (deepLinkRiskId || deepLinkAction || deepLinkAssetId)) {
+            // Consume the param immediately
             setSearchParams(params => {
-                params.delete('id');
-                params.delete('action');
                 params.delete('createForAsset');
                 return params;
             }, { replace: true });
         }
-    }, [selectedRisk, creationMode, deepLinkRiskId, deepLinkAction, deepLinkAssetId, setSearchParams, loading]);
+    }, [loading, deepLinkRiskId, deepLinkAction, deepLinkAssetId, risks, creationMode, selectedRisk, setSearchParams]);
+
+    // Cleanup Effect (Only for ID)
+    React.useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
+        // Only cleanup ID if not found/selected
+        if (!selectedRisk && deepLinkRiskId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedRisk, deepLinkRiskId, setSearchParams, loading]);
 
     // Handle navigation from AssetInspector (Legacy State Support)
     React.useEffect(() => {
