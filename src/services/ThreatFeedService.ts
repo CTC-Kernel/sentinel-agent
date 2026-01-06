@@ -87,9 +87,8 @@ export class ThreatFeedService {
         // List of proxy services to try in order
         const proxies = [
             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`,
-            (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+            // Removed flaky proxies (codetabs, thingproxy) to reduce console spam
+            // (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}` 
         ];
 
         // Si hors ligne, ne pas tenter de fetch
