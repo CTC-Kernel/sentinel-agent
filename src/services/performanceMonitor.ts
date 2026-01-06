@@ -69,24 +69,27 @@ class PerformanceMonitor {
             case 'largest-contentful-paint':
                 this.metrics.lcp = entry.startTime;
                 break;
-            case 'first-input':
-                const fidEntry = entry as any;
+            case 'first-input': {
+                const fidEntry = entry as PerformanceEventTiming;
                 if (fidEntry.processingStart && fidEntry.startTime) {
                     this.metrics.fid = fidEntry.processingStart - fidEntry.startTime;
                 }
                 break;
-            case 'layout-shift':
-                const clsEntry = entry as any;
+            }
+            case 'layout-shift': {
+                const clsEntry = entry as PerformanceEntry & { value: number };
                 if (clsEntry.value) {
                     this.metrics.cls = Math.max(this.metrics.cls || 0, clsEntry.value);
                 }
                 break;
-            case 'navigation':
-                const navEntry = entry as any;
+            }
+            case 'navigation': {
+                const navEntry = entry as PerformanceNavigationTiming;
                 if (navEntry.loadEventEnd) {
                     this.metrics.ttfb = navEntry.loadEventEnd - navEntry.fetchStart;
                 }
                 break;
+            }
         }
     }
     

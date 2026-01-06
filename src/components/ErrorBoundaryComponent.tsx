@@ -27,8 +27,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         this.setState({ error, errorInfo });
         
         // Log error to monitoring service
-        if (typeof window !== 'undefined' && (window as any).errorLogger) {
-            (window as any).errorLogger.error(error, 'ErrorBoundary.componentDidCatch', {
+        if (typeof window !== 'undefined' && (window as unknown as { errorLogger?: { error: (error: Error, context: string, metadata?: Record<string, unknown>) => void } }).errorLogger) {
+            (window as unknown as { errorLogger: { error: (error: Error, context: string, metadata?: Record<string, unknown>) => void } }).errorLogger.error(error, 'ErrorBoundary.componentDidCatch', {
                 metadata: {
                     componentStack: errorInfo.componentStack,
                     errorBoundary: true,
@@ -43,8 +43,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         }
         
         // Send error to analytics
-        if (typeof window !== 'undefined' && (window as any).usageAnalytics) {
-            (window as any).usageAnalytics.trackError('react_error_boundary', error.message, {
+        if (typeof window !== 'undefined' && (window as unknown as { usageAnalytics?: { trackError: (type: string, message: string, metadata?: Record<string, unknown>) => void } }).usageAnalytics) {
+            (window as unknown as { usageAnalytics: { trackError: (type: string, message: string, metadata?: Record<string, unknown>) => void } }).usageAnalytics.trackError('react_error_boundary', error.message, {
                 componentStack: errorInfo.componentStack,
                 errorBoundary: true
             });

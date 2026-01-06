@@ -7,7 +7,7 @@ interface UsageEvent {
     action: string;
     label?: string;
     value?: number;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     timestamp: number;
     sessionId: string;
     userId?: string;
@@ -85,14 +85,14 @@ class UsageAnalytics {
         });
     }
     
-    public trackFeatureUse(feature: string, action: string, value?: number, metadata?: Record<string, any>): void {
+    public trackFeatureUse(feature: string, action: string, value?: number, metadata?: Record<string, unknown>): void {
         const key = `${feature}_${action}`;
         this.metrics.featureUsage[key] = (this.metrics.featureUsage[key] || 0) + (value || 1);
         
         this.trackEvent('feature_use', feature, action, value ? `Count: ${value}` : undefined, value, metadata);
     }
     
-    public trackError(error: string, message?: string, metadata?: Record<string, any>): void {
+    public trackError(error: string, message?: string, metadata?: Record<string, unknown>): void {
         this.metrics.errorCount++;
         this.metrics.performanceScore = Math.max(0, this.metrics.performanceScore - 5);
         
@@ -124,7 +124,7 @@ class UsageAnalytics {
         this.trackEvent('user_action', category, action, label, value);
     }
     
-    private trackEvent(type: UsageEvent['type'], category: string, action: string, label?: string, value?: number, metadata?: Record<string, any>): void {
+    private trackEvent(type: UsageEvent['type'], category: string, action: string, label?: string, value?: number, metadata?: Record<string, unknown>): void {
         const event: UsageEvent = {
             type,
             category,

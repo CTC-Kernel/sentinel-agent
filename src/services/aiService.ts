@@ -527,7 +527,7 @@ export const aiService = {
 
 // --- Helpers ---
 // Cache pour les appels AI fréquents
-const aiCache = new Map<string, { data: any; timestamp: number }>();
+const aiCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
@@ -540,7 +540,7 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         ErrorLogger.info('Using cached AI response', 'aiService.generateContentSafe', {
             metadata: { cacheKey, age: now - cached.timestamp }
         });
-        return cached.data;
+        return cached.data as string;
     }
 
     // [DEBUG] Log caller for generateContentSafe

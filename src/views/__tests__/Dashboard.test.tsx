@@ -25,7 +25,6 @@ const mockTranslations: Record<string, string> = {
     'dashboard.loading': 'Chargement...'
 };
 
-const t = (key: string): string => mockTranslations[key] || key;
 
 vi.mock('../../store', () => ({
     useStore: vi.fn().mockReturnValue({
