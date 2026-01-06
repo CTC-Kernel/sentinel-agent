@@ -134,7 +134,24 @@ const NotificationContainer: React.FC = () => {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+    <div
+      className="fixed top-4 right-4 z-50 space-y-2 max-w-sm"
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+      aria-atomic="false"
+    >
+      {/* Screen reader announcement for new notifications */}
+      <div className="sr-only" aria-live="assertive" aria-atomic="true">
+        {notifications.length > 0 && notifications[0] && !notifications[0].read && (
+          <span>
+            {notifications[0].type === 'error' ? 'Erreur: ' : ''}
+            {notifications[0].type === 'warning' ? 'Attention: ' : ''}
+            {notifications[0].type === 'success' ? 'Succès: ' : ''}
+            {notifications[0].title}. {notifications[0].message || ''}
+          </span>
+        )}
+      </div>
       <AnimatePresence mode="wait">
         {notifications.map((notification) => (
           <motion.div
@@ -170,8 +187,9 @@ const NotificationContainer: React.FC = () => {
             <button
               onClick={() => removeNotification(notification.id)}
               className="flex-shrink-0 p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded transition-colors"
+              aria-label={`Fermer la notification: ${notification.title}`}
             >
-              <X className="w-4 h-4 opacity-60" />
+              <X className="w-4 h-4 opacity-60" aria-hidden="true" />
             </button>
           </motion.div>
         ))}

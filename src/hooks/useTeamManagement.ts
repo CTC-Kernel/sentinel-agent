@@ -35,7 +35,6 @@ export const useTeamManagement = () => {
                 // Simulate structure matching Promise.allSettled logic roughly or just set state
                 setUsers([...mockUsers, ...mockInvites] as unknown as UserProfile[]);
                 setJoinRequests(mockRequests as JoinRequest[]);
-                setJoinRequests(mockRequests as JoinRequest[]);
                 setLoading(false);
             }).catch(_err => {
                 setLoading(false);
