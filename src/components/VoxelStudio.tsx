@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useMemo, useEffect, useCallback, Component, ErrorInfo, Suspense } from 'react';
-import { flushSync } from 'react-dom';
+import { startTransition } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Billboard, Text, Float, Environment } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, CanvasTexture, CatmullRomCurve3, Points as ThreePoints, DoubleSide, Group } from 'three';
@@ -586,8 +586,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
     if (focusNodeId === null) {
       if (selectedNode !== null) {
-        // Use flushSync to avoid cascading renders
-        flushSync(() => {
+        // Use startTransition to avoid cascading renders
+        startTransition(() => {
           setSelectedNode(null);
         });
         shouldSnapToTarget.current = false;
@@ -598,7 +598,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
     const node = voxelNodes.find(n => n.id === focusNodeId);
     if (node && node.id !== selectedNode?.id) {
-      flushSync(() => {
+      startTransition(() => {
         setSelectedNode(node);
       });
       focusOnCardRef.current = true;
@@ -609,13 +609,13 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
 
   useEffect(() => {
     if (!releaseToken) return;
-    // Use flushSync to avoid cascading renders
-    flushSync(() => {
+    // Use startTransition to avoid cascading renders
+    startTransition(() => {
       setSelectedNode(null);
     });
     shouldSnapToTarget.current = false;
-    // Use flushSync to avoid cascading renders
-    flushSync(() => {
+    // Use startTransition to avoid cascading renders
+    startTransition(() => {
       setAutoRotate(true);
     });
   }, [releaseToken]);

@@ -27,7 +27,8 @@ vi.mock('firebase/firestore', () => ({
 // Mock ErrorLogger
 vi.mock('../errorLogger', () => ({
     ErrorLogger: {
-        error: vi.fn()
+        error: vi.fn(),
+        warn: vi.fn()
     }
 }));
 

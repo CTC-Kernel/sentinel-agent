@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -138,26 +138,34 @@ describe('Compliance View', () => {
     });
 
     it('renders without crashing', () => {
-        renderWithProviders(<Compliance />);
+        act(() => {
+            renderWithProviders(<Compliance />);
+        });
         expect(screen.getByText('Conformité')).toBeInTheDocument();
     });
 
     it('displays framework selector', () => {
-        renderWithProviders(<Compliance />);
+        act(() => {
+            renderWithProviders(<Compliance />);
+        });
         expect(screen.getByText('ISO 27001 (Sécurité SI)')).toBeInTheDocument();
         expect(screen.getByText('ISO 22301 (Continuité)')).toBeInTheDocument();
         expect(screen.getByText('NIS 2 (Cyber UE)')).toBeInTheDocument();
     });
 
     it('displays navigation tabs', () => {
-        renderWithProviders(<Compliance />);
+        act(() => {
+            renderWithProviders(<Compliance />);
+        });
         expect(screen.getByText('Vue d\'ensemble')).toBeInTheDocument();
         expect(screen.getByText('Contrôles')).toBeInTheDocument();
         expect(screen.getByText('SoA')).toBeInTheDocument();
     });
 
     it('displays dashboard when no controls', () => {
-        renderWithProviders(<Compliance />);
+        act(() => {
+            renderWithProviders(<Compliance />);
+        });
         expect(screen.getByTestId('compliance-dashboard')).toBeInTheDocument();
     });
 });
