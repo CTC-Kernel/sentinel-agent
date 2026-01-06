@@ -175,9 +175,12 @@ try {
   if (isMessagingSupported()) {
     messaging = getMessaging(app);
   }
-} catch {
+} catch (error) {
   // Silence 'messaging/unsupported-browser' errors in preview/dev environments
-  // console.debug('Firebase Messaging initialization skipped.');
+  // Log only in debug mode to help with troubleshooting
+  if (import.meta.env.DEV) {
+    ErrorLogger.warn('Firebase Messaging initialization skipped - browser may not support push notifications', 'firebase.messaging', { metadata: { error } });
+  }
 }
 
 export { messaging };
