@@ -255,7 +255,8 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             if (blockedCount > 0) {
                 // Show first error as example
-                toast.error(`Certains risques n'ont pas pu être supprimés (${blockedCount}). Exemple: ${errors[0] || 'Dépendances existantes'}`);
+                const firstError = errors.length > 0 ? errors[0] : 'Dépendances existantes';
+                toast.error(`Certains risques n'ont pas pu être supprimés (${blockedCount}). Exemple: ${firstError}`);
             }
 
         } catch (error) {

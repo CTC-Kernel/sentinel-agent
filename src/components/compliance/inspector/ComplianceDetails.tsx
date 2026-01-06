@@ -27,15 +27,21 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
 
     // Local state for justification text area
     const [justification, setJustification] = useState(control.justification || '');
+    const [isSaving, setIsSaving] = useState(false);
 
     // Helper to handle justification update from AI or Textarea
     const handleJustificationChange = (text: string) => {
         setJustification(text);
     };
 
-    const saveJustification = () => {
-        if (justification !== control.justification) {
-            updateJustification(control, justification);
+    const saveJustification = async () => {
+        if (justification !== control.justification && !isSaving && !updating) {
+            setIsSaving(true);
+            try {
+                await updateJustification(control, justification);
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
@@ -101,11 +107,12 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Justification / Politique</h3>
                 {canEdit ? (
                     <textarea
-                        className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-y"
+                        className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-y disabled:opacity-50"
                         placeholder="Décrivez comment ce contrôle est implémenté..."
                         value={justification}
                         onChange={(e) => setJustification(e.target.value)}
                         onBlur={saveJustification}
+                        disabled={!canEdit || updating || isSaving}
                     />
                 ) : (
                     <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">

@@ -268,6 +268,11 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
         return true;
     }
 
+    // COMPLIANCE FIX: Allow RSSI and Project Managers to edit controls
+    if (resource === 'Control' && ['rssi', 'project_manager'].includes(user.role || '')) {
+        return true;
+    }
+
     // AUDIT FIX: Centralized Permission Logic
     // Previously, Auditors had hardcoded exceptions here.
     // Now, we rely strictly on the ROLE_PERMISSIONS matrix or hasPermission function.

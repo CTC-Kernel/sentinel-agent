@@ -14,6 +14,7 @@ import { cn } from '../../utils/cn';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { toast } from 'sonner';
 
 interface DiscussionPanelProps {
     collectionName: string;
@@ -137,7 +138,10 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
             totalReplies,
             uniqueUsers,
             myComments,
-            unreadCount: 0 // TODO: Implement read tracking
+            unreadCount: comments.filter(c => 
+                !c.readBy?.includes(user?.uid || '') && 
+                c.userId !== user?.uid
+            ).length
         };
     }, [comments, user]);
 
@@ -176,8 +180,11 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
 
             // Send notification if enabled
             if (notificationsEnabled && mentions.length > 0) {
-                // TODO: Implement notification service
-                }
+                // Use toast notification for now - notificationService needs to be implemented
+                mentions.forEach(mention => {
+                    toast.info(`@${mention} a été mentionné dans la discussion`);
+                });
+            }
 
             reset();
             setReplyTo(null);

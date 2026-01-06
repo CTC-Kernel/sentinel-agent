@@ -6,8 +6,8 @@ import { logAction } from '../services/logger';
 import { toast } from 'sonner';
 import { controlSchema } from '../schemas/controlSchema';
 import { z } from 'zod';
-
 import { sanitizeData } from '../utils/dataSanitizer';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const useComplianceActions = (user: UserProfile | null) => {
     const [updating, setUpdating] = useState(false);
@@ -15,9 +15,26 @@ export const useComplianceActions = (user: UserProfile | null) => {
     const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string) => {
         setUpdating(true);
         try {
-            // Validate updates against schema (partial)
-            // Note: We use .partial() because updates might not contain all required fields
-            controlSchema.partial().parse(updates);
+            // Validate updates against schema (partial) - more permissive
+            // Only validate if we have actual updates to validate
+            if (Object.keys(updates).length > 0) {
+                const partialSchema = controlSchema.partial();
+                const result = partialSchema.safeParse(updates);
+                if (!result.success) {
+                    // Log validation errors for debugging
+                    ErrorLogger.warn('Control validation failed', 'useComplianceActions.updateControl', {
+                        metadata: { 
+                            controlId,
+                            updates,
+                            errors: result.error.issues
+                        }
+                    });
+                    // Return first validation error or generic message
+                    const firstError = result.error.issues[0]?.message || "Erreur de validation";
+                    toast.error(firstError);
+                    return false;
+                }
+            }
 
             const ref = doc(db, 'controls', controlId);
             await updateDoc(ref, sanitizeData({
@@ -31,9 +48,16 @@ export const useComplianceActions = (user: UserProfile | null) => {
             if (_error instanceof z.ZodError) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const zodError = _error as any;
-                toast.error(zodError.errors[0].message);
+                if (zodError.errors && zodError.errors.length > 0) {
+                    toast.error(zodError.errors[0].message);
+                } else {
+                    toast.error("Erreur de validation");
+                }
             } else {
                 toast.error("Erreur lors de la mise à jour");
+                ErrorLogger.error(_error, 'useComplianceActions.updateControl', {
+                    metadata: { controlId, updates }
+                });
             }
             return false;
         } finally {

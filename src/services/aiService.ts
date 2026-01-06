@@ -35,6 +35,7 @@ interface GraphData {
     controls: Control[];
 }
 
+
 export const aiService = {
     /**
      * Initialize or update conversation history
@@ -525,15 +526,31 @@ export const aiService = {
 };
 
 // --- Helpers ---
+// Cache pour les appels AI fréquents
+const aiCache = new Map<string, { data: unknown; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
+    const cacheKey = `${modelName}:${prompt.substring(0, 100)}`; // Utiliser les 100 premiers caractères comme clé
+    const cached = aiCache.get(cacheKey);
+    const now = Date.now();
+    
+    // Vérifier le cache
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+        ErrorLogger.info('Using cached AI response', 'aiService.generateContentSafe', {
+            metadata: { cacheKey, age: now - cached.timestamp }
+        });
+        return cached.data as string;
+    }
+
     // [DEBUG] Log caller for generateContentSafe
 
     // Prevent loops: Rate limit client-side (1 second debounce)
-    const now = Date.now();
-    if (lastGenCall && (now - lastGenCall < 2000)) {
+    const lastCallTimestamp = Date.now();
+    if (lastGenCall && (lastCallTimestamp - lastGenCall < 2000)) {
         return ""; // Return empty string or handle gracefully
     }
-    lastGenCall = now;
+    lastGenCall = lastCallTimestamp;
 
     try {
         const functions = getFunctions();
@@ -544,6 +561,8 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         const result = await callGeminiGenerateContent({ prompt, modelName });
         const text = result.data?.text;
         if (typeof text === 'string' && text.trim().length > 0) {
+            // Stocker la réponse dans le cache
+            aiCache.set(cacheKey, { data: text, timestamp: now });
             return text;
         }
     } catch (_error: unknown) {

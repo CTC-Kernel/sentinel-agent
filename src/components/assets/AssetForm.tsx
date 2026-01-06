@@ -248,7 +248,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             <fieldset disabled={readOnly} className="space-y-8 group-disabled:opacity-80">
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Informations Principales</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="col-span-1 md:col-span-2">
                             <div className="relative">
                                 <Controller

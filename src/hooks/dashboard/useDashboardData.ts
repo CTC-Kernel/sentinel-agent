@@ -137,41 +137,53 @@ export const useDashboardData = (): DashboardData => {
     const allDocuments = demoMode ? mockData.documents : allDocumentsData;
     const allIncidents = demoMode ? mockData.incidents : allIncidentsData;
 
-    // Filter in memory to avoid complex chained where() clauses
-    const myProjects = useMemo(() =>
-        allProjects.filter(p => (p.manager === user?.displayName || demoMode) && p.status === 'En cours'),
-        [allProjects, user?.displayName, demoMode]
-    );
+    // Optimized filtering with useMemo and early returns
+    const myProjects = useMemo(() => {
+        if (!allProjects.length) return [];
+        return allProjects.filter(p => {
+            const managerName = user?.displayName || (demoMode ? 'Demo User' : '');
+            return p.manager === managerName && p.status === 'En cours';
+        });
+    }, [allProjects, user?.displayName, demoMode]);
 
-    const myAudits = useMemo(() =>
-        allAudits.filter(a => (a.auditor === user?.displayName || demoMode) && ['Planifié', 'En cours'].includes(a.status)),
-        [allAudits, user?.displayName, demoMode]
-    );
+    const myAudits = useMemo(() => {
+        if (!allAudits.length) return [];
+        return allAudits.filter(a => {
+            const auditorName = user?.displayName || (demoMode ? 'Demo User' : '');
+            return a.auditor === auditorName && ['Planifié', 'En cours'].includes(a.status);
+        });
+    }, [allAudits, user?.displayName, demoMode]);
 
-    const myDocs = useMemo(() =>
-        allDocuments.filter(d => (d.owner === user?.email || demoMode)),
-        [allDocuments, user?.email, demoMode]
-    );
+    const myDocs = useMemo(() => {
+        if (!allDocuments.length) return [];
+        return allDocuments.filter(d => d.owner === (user?.email || (demoMode ? 'demo@sentinel-grc.com' : '')));
+    }, [allDocuments, user?.email, demoMode]);
 
-    const publishedDocs = useMemo(() =>
-        allDocuments.filter(d => d.status === 'Publié'),
-        [allDocuments]
-    );
+    const publishedDocs = useMemo(() => {
+        if (!allDocuments.length) return [];
+        return allDocuments.filter(d => d.status === 'Publié');
+    }, [allDocuments]);
 
-    const myIncidents = useMemo(() =>
-        allIncidents.filter(i => (i.reporter === user?.displayName || demoMode) && i.status !== 'Fermé'),
-        [allIncidents, user?.displayName, demoMode]
-    );
+    const myIncidents = useMemo(() => {
+        if (!allIncidents.length) return [];
+        return allIncidents.filter(i => {
+            const reporterName = user?.displayName || (demoMode ? 'Demo User' : '');
+            return i.reporter === reporterName && i.status !== 'Fermé';
+        });
+    }, [allIncidents, user?.displayName, demoMode]);
 
-    const pendingReviews = useMemo(() =>
-        allDocuments.filter(d => d.status === 'En revue' && (d.reviewers?.includes(user?.uid || '') || demoMode)),
-        [allDocuments, user?.uid, demoMode]
-    );
+    const pendingReviews = useMemo(() => {
+        if (!allDocuments.length) return [];
+        return allDocuments.filter(d => {
+            const isReviewer = d.reviewers?.includes(user?.uid || '') || demoMode;
+            return d.status === 'En revue' && isReviewer;
+        });
+    }, [allDocuments, user?.uid, demoMode]);
 
-    const activeIncidents = useMemo(() =>
-        allIncidents.filter(i => i.status !== 'Fermé'),
-        [allIncidents]
-    );
+    const activeIncidents = useMemo(() => {
+        if (!allIncidents.length) return [];
+        return allIncidents.filter(i => i.status !== 'Fermé');
+    }, [allIncidents]);
 
     const loading = demoMode ? mockData.loading : (manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || myIncidentsLoading);
 

@@ -10,6 +10,7 @@ import { AssetFormData } from '../../schemas/assetSchema';
 import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
 import { AssetService } from '../../services/assetService';
+import { ErrorLogger } from '../../services/errorLogger';
 // Import Mock Service only once
 // import { MockDataService } from '../../services/mockDataService'; // Dynamic import used
 
@@ -42,7 +43,7 @@ export function useAssets() {
                     setMockSuppliers(m.MockDataService.getCollection('suppliers') as unknown as Supplier[]);
                     setMockProcesses(m.MockDataService.getCollection('business_processes') as unknown as BusinessProcess[]);
                 } catch (err) {
-                    console.error("Failed to load mock data", err);
+                    ErrorLogger.error(err as Error, 'useAssets.loadMockData');
                 } finally {
                     if (mounted) setMockLoading(false);
                 }

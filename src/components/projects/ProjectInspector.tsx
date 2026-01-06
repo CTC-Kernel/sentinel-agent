@@ -16,6 +16,8 @@ import { ProjectTasks } from './inspector/ProjectTasks';
 import { ProjectDependencies } from './inspector/ProjectDependencies';
 import { ProjectTeam } from './inspector/ProjectTeam';
 import { ErrorLogger } from '../../services/errorLogger';
+import { TaskFormModal } from './TaskFormModal';
+import { Drawer } from '../ui/Drawer';
 
 import './gantt.css';
 // Form validation: useForm with required fields
@@ -60,6 +62,10 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 
     // Local Data - use hook for milestones
     const { milestones: projectMilestones } = useProjectMilestones(project?.id);
+    
+    // Task editing state
+    const [editingTask, setEditingTask] = useState<ProjectTask | null>(null);
+    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
     // Derived Lists
     const linkedRisks = useMemo(() => risks.filter(r => project?.relatedRiskIds?.includes(r.id)), [risks, project?.relatedRiskIds]);
@@ -70,6 +76,32 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     // UI Handlers
     const handleTabChange = React.useCallback((id: string) => {
         setInspectorTab(id as InspectorTabId);
+    }, []);
+
+    const handleTaskClick = React.useCallback((task: ProjectTask) => {
+        setEditingTask(task);
+        setIsTaskModalOpen(true);
+    }, []);
+
+    const handleTaskUpdate = React.useCallback(async (updatedTask: ProjectTask) => {
+        if (!project) return;
+        
+        try {
+            const updatedTasks = project.tasks?.map(t => 
+                t.id === updatedTask.id ? updatedTask : t
+            ) || [];
+            
+            await updateTasks(project, updatedTasks);
+            setEditingTask(null);
+            setIsTaskModalOpen(false);
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'ProjectInspector.handleTaskUpdate');
+        }
+    }, [project, updateTasks]);
+
+    const handleTaskModalClose = React.useCallback(() => {
+        setEditingTask(null);
+        setIsTaskModalOpen(false);
     }, []);
 
     const handleDuplicateClick = React.useCallback(() => {
@@ -88,12 +120,6 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     const handleMilestoneUpdate = React.useCallback(() => {
         // Hook handles updates automatically
     }, []);
-
-    const handleGanttTaskUpdate = React.useCallback(async (task: ProjectTask, start: Date, end: Date) => {
-        if (!project) return;
-        const newTasks = project.tasks?.map(t => t.id === task.id ? { ...t, startDate: start.toISOString(), dueDate: end.toISOString() } : t) || [];
-        await updateTasks(project, newTasks);
-    }, [updateTasks, project]);
 
     if (!project) return null;
 
@@ -200,19 +226,30 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                 viewMode={ganttViewMode}
                                 onViewModeChange={setGanttViewMode}
                                 users={usersList}
-                                onTaskClick={(t) => {
-                                    // Hack: We don't have direct access to task modal here anymore for GANTT edits
-                                    // If GANTT needs to edit tasks, we might need to lift state back up or expose a handler in ProjectTasks
-                                    // For now, let's keep Gantt is view-mostly for now or address in next iteration.
-                                    ErrorLogger.info('Task clicked in Gantt', 'ProjectInspector', { metadata: { taskId: t.id } });
-                                    // To fully support Gantt edits, we'd need to lift `editingTask` state up to `ProjectInspector`
-                                    // or replicate the modal in `ProjectInspector` just for Gantt.
-                                    // Given complexity, let's assume Gantt is view-mostly for now or address in next iteration.
-                                }}
-                                onTaskUpdate={handleGanttTaskUpdate}
+                                onTaskClick={handleTaskClick}
+                                onTaskUpdate={handleTaskUpdate}
                             />
                         </div>
                     )}
+
+                    {/* Task Modal */}
+                    <Drawer
+                        isOpen={isTaskModalOpen}
+                        onClose={handleTaskModalClose}
+                        title={editingTask ? `Modifier la tâche: ${editingTask.title}` : 'Nouvelle tâche'}
+                        width="max-w-2xl"
+                    >
+                        {editingTask && (
+                            <TaskFormModal
+                                isOpen={true}
+                                existingTask={editingTask}
+                                availableUsers={usersList}
+                                onSubmit={(taskData) => handleTaskUpdate({ ...editingTask, ...taskData })}
+                                onCancel={handleTaskModalClose}
+                                onClose={handleTaskModalClose}
+                            />
+                        )}
+                    </Drawer>
 
                     {/* Milestones */}
                     {inspectorTab === 'milestones' && (
