@@ -58,7 +58,7 @@ export async function setupMockAuth(page: Page) {
 export async function waitForOverlaysToClose(page: Page) {
     // Wait for any overlays to disappear
     await page.waitForTimeout(2000);
-    
+
     // Check for and close any remaining overlays
     try {
         const driverPopovers = await page.locator('.driver-popover').all();
@@ -71,14 +71,14 @@ export async function waitForOverlaysToClose(page: Page) {
     } catch (e) {
         // Ignore errors
     }
-    
+
     // Wait for overlays to be hidden
     try {
         await page.waitForSelector('.driver-popover', { state: 'hidden', timeout: 5000 });
     } catch (e) {
         // Continue even if overlays don't hide
     }
-    
+
     try {
         await page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 3000 });
     } catch (e) {
@@ -88,12 +88,12 @@ export async function waitForOverlaysToClose(page: Page) {
 
 export async function setupOverlayHandlers(page: Page) {
     // Handle common overlays that might interfere with tests
-    
+
     // More aggressive overlay handling
     page.on('load', async () => {
         // Wait a bit for overlays to appear
         await page.waitForTimeout(1000);
-        
+
         // Try to close any Driver.js overlays
         try {
             const driverPopovers = await page.locator('.driver-popover').all();
@@ -106,7 +106,7 @@ export async function setupOverlayHandlers(page: Page) {
         } catch (e) {
             // Ignore errors
         }
-        
+
         // Try to close any overlay dialogs
         try {
             const overlays = await page.locator('[role="dialog"], .modal, .overlay').all();
@@ -120,22 +120,30 @@ export async function setupOverlayHandlers(page: Page) {
             // Ignore errors
         }
     });
-    
+
     await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
         await overlay.click({ force: true });
     });
-    
+
     await page.addLocatorHandler(page.locator('.driver-popover'), async (overlay) => {
         await overlay.click({ force: true });
     });
-    
+
     await page.addLocatorHandler(page.locator('.driver-overlay'), async (overlay) => {
         await overlay.click({ force: true });
     });
-    
+
     await page.addLocatorHandler(page.locator('#headlessui-portal-root'), async () => {
         await page.keyboard.press('Escape');
         await page.waitForTimeout(500);
+    });
+
+    // Capture browser console logs
+    page.on('console', msg => {
+        const text = msg.text();
+        if (msg.type() === 'error' || text.includes('TestAuthGuard') || text.includes('BackupRestore') || text.includes('AppInner') || text.includes('useDocumentsData')) {
+            console.log(`BROWSER MSG: ${msg.type()} - ${text}`);
+        }
     });
 }
 
@@ -146,20 +154,20 @@ export async function setupFirestoreMocks(page: Page) {
         (window as any).driver = undefined;
         (window as any).driverjs = undefined;
         (window as any).tourDisabled = true;
-        
+
         // Prevent tour initialization
         const originalQuerySelector = document.querySelector;
-        (document as any).querySelector = function(selector: string) {
+        (document as any).querySelector = function (selector: string) {
             if (selector.includes('driver') || selector.includes('tour')) {
                 return null;
             }
             return originalQuerySelector.call(this, selector);
         };
     });
-    
+
     // Setup comprehensive overlay handlers
     await setupOverlayHandlers(page);
-    
+
     // Intercept Firestore Aggregation Queries (Counts)
     await page.route('**/documents:runAggregationQuery*', async route => {
         const json = {
