@@ -32,7 +32,9 @@ export const useComplianceData = (currentFramework?: Framework) => {
         const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
 
         if (isDemo) {
+            console.log('useComplianceData: Entering demo mode');
             import('../services/mockDataService').then(module => {
+                console.log('useComplianceData: MockDataService loaded. Controls count:', module.MockDataService.getCollection('controls').length);
                 setControls(module.MockDataService.getCollection('controls') as unknown as Control[]);
                 setRisks(module.MockDataService.getCollection('risks') as unknown as Risk[]);
                 setDocuments(module.MockDataService.getCollection('documents') as unknown as Document[]);
@@ -42,7 +44,8 @@ export const useComplianceData = (currentFramework?: Framework) => {
                 setProjects(module.MockDataService.getCollection('projects') as unknown as Project[]);
                 setFindings([]);
                 setLoading(false);
-            }).catch(_err => {
+            }).catch(err => {
+                console.error('useComplianceData: Failed to load mock data', err);
                 setLoading(false);
             });
             return;

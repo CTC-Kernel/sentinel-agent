@@ -107,13 +107,13 @@ export const useRiskData = () => {
 
     return {
         risks,
-        assets: demoMode ? mockData.assets : assets,
-        controls: demoMode ? mockData.controls : controls,
-        rawProcesses: demoMode ? mockData.processes : rawProcesses,
-        suppliers: demoMode ? mockData.suppliers : suppliers,
-        incidents: demoMode ? mockData.incidents : incidents,
-        audits: demoMode ? mockData.audits : audits,
-        projects: demoMode ? mockData.projects : projects,
+        assets: (demoMode ? mockData.assets : assets) as Asset[],
+        controls: (demoMode ? mockData.controls : controls) as Control[],
+        rawProcesses: (demoMode ? mockData.processes : rawProcesses) as Process[],
+        suppliers: (demoMode ? mockData.suppliers : suppliers) as Supplier[],
+        incidents: (demoMode ? mockData.incidents : incidents) as Incident[],
+        audits: (demoMode ? mockData.audits : audits) as Audit[],
+        projects: (demoMode ? mockData.projects : projects) as Project[],
         usersList: effectiveUsers,
         loading,
         refreshRisks: () => { }

@@ -78,8 +78,8 @@ export const useIncidentsData = (organizationId?: string) => {
         sortedIncidents,
         assets,
         risks,
-        usersList: demoMode ? mockData.users : usersList,
-        rawProcesses: demoMode ? mockData.processes : rawProcesses,
+        usersList: (demoMode ? mockData.users : usersList) as UserProfile[],
+        rawProcesses: (demoMode ? mockData.processes : rawProcesses) as BusinessProcess[],
         loading
     };
 };
