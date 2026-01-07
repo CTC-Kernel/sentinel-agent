@@ -62,16 +62,27 @@ export const Audits: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkAuditId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     // Deep Linking Effect
     React.useEffect(() => {
-        if (!loading && deepLinkAuditId && audits.length > 0) {
+        if (loading) return;
+
+        if (deepLinkAuditId && audits.length > 0) {
             const audit = audits.find(a => a.id === deepLinkAuditId);
             if (audit) {
                 setSelectedAudit(audit);
             }
+        } else if (deepLinkAction === 'create' && !creationMode) {
+            setEditingAudit(null);
+            setCreationMode(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkAuditId, audits]);
+    }, [loading, deepLinkAuditId, deepLinkAction, audits, creationMode, setSearchParams]);
 
     // Cleanup Effect
     React.useEffect(() => {

@@ -35,6 +35,7 @@ interface AdminDashboardViewProps {
     isEditing?: boolean;
     onLayoutUpdate?: (layout: WidgetLayout[]) => void;
     incidents?: unknown[];
+    complianceScore?: number;
 }
 
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => {

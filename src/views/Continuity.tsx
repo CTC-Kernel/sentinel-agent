@@ -92,15 +92,25 @@ export const Continuity: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkProcessId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     React.useEffect(() => {
-        if (!loadingData && deepLinkProcessId && processes.length > 0) {
+        if (loadingData) return;
+
+        if (deepLinkProcessId && processes.length > 0) {
             const process = processes.find(p => p.id === deepLinkProcessId);
             if (process && selectedProcess?.id !== process.id) {
                 setSelectedProcess(process);
             }
+        } else if (deepLinkAction === 'create' && !isProcessModalOpen) {
+            setIsProcessModalOpen(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loadingData, deepLinkProcessId, processes, selectedProcess, setSelectedProcess]);
+    }, [loadingData, deepLinkProcessId, deepLinkAction, processes, selectedProcess, setSelectedProcess, isProcessModalOpen, setSearchParams]);
 
     // Cleanup Effect
     React.useEffect(() => {

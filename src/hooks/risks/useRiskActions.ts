@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useStore } from '../../store';
 import { db } from '../../firebase';
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../../hooks/useAuth';
@@ -17,6 +18,7 @@ import { canEditResource } from '../../utils/permissions';
 import { UserProfile } from '../../types';
 
 export const useRiskActions = (onRefresh: () => void) => {
+    const { t } = useStore();
     const { user } = useAuth();
     const [submitting, setSubmitting] = useState(false);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -26,7 +28,7 @@ export const useRiskActions = (onRefresh: () => void) => {
     const createRisk = async (data: Partial<Risk>) => {
         if (!user?.organizationId) return false;
         if (!canEditResource(user as UserProfile, 'Risk')) {
-            toast.error("Permission refusée");
+            toast.error(t('common.accessDenied'));
             return false;
         }
 
@@ -35,7 +37,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             // Validation Zod
             const validationResult = riskSchema.safeParse(data);
             if (!validationResult.success) {
-                const errorMessage = validationResult.error.issues[0]?.message || 'Données invalides';
+                const errorMessage = validationResult.error.issues[0]?.message || t('common.invalidData');
                 toast.error(errorMessage);
                 ErrorLogger.warn('Risk validation failed', 'useRiskActions.createRisk', {
                     metadata: { issues: validationResult.error.issues }
@@ -62,7 +64,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             });
 
             await addDoc(collection(db, 'risks'), riskData);
-            toast.success('Risque créé avec succès');
+            toast.success(t('common.riskCreated'));
             onRefresh();
             if (user) {
                 logAction(user, 'CREATE_RISK', 'Risk', 'Risque créé');
@@ -107,7 +109,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                 );
             }
 
-            toast.success('Risque mis à jour');
+            toast.success(t('common.riskUpdated'));
             onRefresh();
             return true;
         } catch (error) {
@@ -141,7 +143,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                 logAction(user, 'DELETE_RISK', 'Risk', `Suppression risque: ${name || id}`);
             }
 
-            toast.success('Risque supprimé');
+            toast.success(t('common.riskDeleted'));
             onRefresh();
             return true;
         } catch (error) {
@@ -194,7 +196,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                     link.click();
                     document.body.removeChild(link);
 
-                    toast.success('Export CSV téléchargé');
+                    toast.success(t('common.exportSuccess'));
                     resolve();
                 } else {
                     // PDF Not implemented yet
@@ -203,7 +205,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                 }
             } catch (error) {
                 ErrorLogger.handleErrorWithToast(error, 'useRiskActions.exportRisks', 'UNKNOWN_ERROR');
-                toast.error("Erreur lors de l'export");
+                toast.error(t('common.exportError'));
                 reject(error);
             }
         });
@@ -247,7 +249,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                 if (user) {
                     await logAction(user, 'DELETE_RISK', 'Risk', `Suppression multiple: ${successCount} risques`);
                 }
-                toast.success(`${successCount} risques supprimés` + (blockedCount > 0 ? ` (${blockedCount} bloqués)` : ''));
+                toast.success(t('common.risksDeleted', { count: successCount }) + (blockedCount > 0 ? ` (${blockedCount} bloqués)` : ''));
                 onRefresh();
             }
 
@@ -259,7 +261,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.bulkDeleteRisks', 'DELETE_FAILED');
-            toast.error('Erreur suppression multiple');
+            toast.error(t('common.bulkDeleteError'));
         } finally {
             setSubmitting(false);
         }
@@ -290,12 +292,12 @@ export const useRiskActions = (onRefresh: () => void) => {
                 importedCount++;
             }
 
-            toast.success(`${importedCount} risques importés avec succès`);
+            toast.success(t('common.importSuccess', { count: importedCount }));
             onRefresh();
             return true;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.importRisks', 'UNKNOWN_ERROR');
-            toast.error("Erreur critique lors de l'import");
+            toast.error(t('common.importError') || "Erreur critique lors de l'import");
             return false;
         } finally {
             setSubmitting(false);

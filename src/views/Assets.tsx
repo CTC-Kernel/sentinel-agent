@@ -76,22 +76,26 @@ const Assets: React.FC = () => {
         } else if (deepLinkAction === 'create') {
             setSelectedAsset(null);
             setInspectorOpen(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkAssetId, assets, deepLinkAction]);
+    }, [loading, deepLinkAssetId, assets, deepLinkAction, setSearchParams]);
 
     // Cleanup Effect
     React.useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!inspectorOpen && (deepLinkAssetId || deepLinkAction)) {
+        if (!inspectorOpen && deepLinkAssetId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [inspectorOpen, deepLinkAssetId, deepLinkAction, setSearchParams, loading]);
+    }, [inspectorOpen, deepLinkAssetId, setSearchParams, loading]);
 
     // Filtering Logic
     const deferredQuery = useDeferredValue(activeFilters.query);

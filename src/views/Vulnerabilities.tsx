@@ -73,15 +73,25 @@ export const Vulnerabilities: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkVulnId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     useEffect(() => {
-        if (!loading && deepLinkVulnId && vulnerabilities.length > 0) {
+        if (loading) return;
+
+        if (deepLinkVulnId && vulnerabilities.length > 0) {
             const vuln = vulnerabilities.find(v => v.id === deepLinkVulnId);
             if (vuln && selectedVulnerability?.id !== vuln.id) {
                 setSelectedVulnerability(vuln);
             }
+        } else if (deepLinkAction === 'create' && !creationMode) {
+            setCreationMode(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkVulnId, vulnerabilities, selectedVulnerability, setSelectedVulnerability]);
+    }, [loading, deepLinkVulnId, deepLinkAction, vulnerabilities, selectedVulnerability, setSelectedVulnerability, creationMode, setSearchParams]);
 
     // Cleanup Effect
     useEffect(() => {

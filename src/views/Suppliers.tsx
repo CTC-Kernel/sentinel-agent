@@ -95,15 +95,25 @@ export const Suppliers: React.FC = () => {
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkSupplierId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     useEffect(() => {
-        if (!loadingSuppliers && deepLinkSupplierId && suppliersRaw && suppliersRaw.length > 0) {
+        if (loadingSuppliers) return;
+
+        if (deepLinkSupplierId && suppliersRaw && suppliersRaw.length > 0) {
             const supplier = suppliersRaw.find(s => s.id === deepLinkSupplierId);
             if (supplier && selectedSupplier?.id !== supplier.id) {
                 setSelectedSupplier(supplier);
             }
+        } else if (deepLinkAction === 'create' && !creationMode) {
+            setCreationMode(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loadingSuppliers, deepLinkSupplierId, suppliersRaw, selectedSupplier, setSelectedSupplier]);
+    }, [loadingSuppliers, deepLinkSupplierId, deepLinkAction, suppliersRaw, selectedSupplier, setSelectedSupplier, creationMode, setSearchParams]);
 
     // Cleanup Effect
     useEffect(() => {

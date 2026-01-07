@@ -2,16 +2,92 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Assets from '../Assets';
-import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
+import { AuthProvider } from '../../contexts/AuthContext';
+
+// Mock AuthContext to provide context value for useAuth hook
+vi.mock('../../contexts/AuthContextDefinition', () => ({
+    AuthContext: React.createContext({
+        user: { organizationId: 'test-org', role: 'admin' },
+        firebaseUser: null,
+        loading: false,
+        error: null,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signOut: vi.fn(),
+        resetPassword: vi.fn(),
+        updateProfile: vi.fn(),
+    }),
+}));
+
+// Mock AuthProvider to avoid Zustand complexity
+vi.mock('../../contexts/AuthContext', () => ({
+    AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 
 // Mock dependencies
+
+// Create a mock store instance
+const mockStoreInstance = {
+    user: { organizationId: 'test-org', role: 'admin' },
+    addToast: vi.fn(),
+    demoMode: false,
+    t: (k: string) => k,
+    getState: () => ({
+        user: { organizationId: 'test-org', role: 'admin' },
+        addToast: vi.fn(),
+        demoMode: false,
+        t: (k: string) => k,
+    })
+};
+
 vi.mock('../../store', () => ({
-    useStore: vi.fn(),
+    useStore: vi.fn(() => mockStoreInstance),
+}));
+
+// Mock Zustand store to return our mock instance
+vi.mock('zustand', () => ({
+    create: vi.fn(() => mockStoreInstance),
 }));
 
 vi.mock('../../hooks/useFirestore', () => ({
     useFirestoreCollection: vi.fn(),
+}));
+
+// Mock Firebase
+vi.mock('firebase/auth', () => ({
+    getAuth: vi.fn(),
+    onIdTokenChanged: vi.fn(),
+    signOut: vi.fn(),
+    signInWithPopup: vi.fn(),
+    OAuthProvider: vi.fn(),
+}));
+
+vi.mock('firebase/firestore', () => ({
+    doc: vi.fn(),
+    onSnapshot: vi.fn(),
+    setDoc: vi.fn(),
+    serverTimestamp: vi.fn(),
+    enableNetwork: vi.fn(),
+    disableNetwork: vi.fn(),
+    updateDoc: vi.fn(),
+    where: vi.fn(),
+    collection: vi.fn(),
+    addDoc: vi.fn(),
+    writeBatch: vi.fn(),
+    limit: vi.fn(),
+}));
+
+vi.mock('firebase/functions', () => ({
+    getFunctions: vi.fn(),
+    httpsCallable: vi.fn(),
+}));
+
+vi.mock('../../firebase', () => ({
+    auth: {},
+    db: {},
+    isAppCheckFailed: false,
+    analytics: {},
 }));
 
 vi.mock('../../components/ui/Icons', () => ({
@@ -92,13 +168,6 @@ vi.mock('../../components/assets/AssetDashboard', () => ({
 describe('Assets View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(useStore).mockReturnValue({
-            user: { organizationId: 'test-org', role: 'admin' },
-            addToast: vi.fn(),
-            demoMode: false,
-            t: (k: string) => k, // Mock translation function
-            // populate required props or cast to unknown
-        } as unknown as ReturnType<typeof useStore>);
 
         vi.mocked(useFirestoreCollection).mockReturnValue({
             data: [],
@@ -112,7 +181,11 @@ describe('Assets View', () => {
     });
 
     it('renders the assets inventory title', () => {
-        const { getByText } = render(<Assets />);
+        const { getByText } = render(
+            <AuthProvider>
+                <Assets />
+            </AuthProvider>
+        );
         expect(getByText(/assets.title/i)).toBeInTheDocument();
     });
 
@@ -126,7 +199,11 @@ describe('Assets View', () => {
             update: vi.fn(),
             remove: vi.fn()
         });
-        render(<Assets />);
+        render(
+            <AuthProvider>
+                <Assets />
+            </AuthProvider>
+        );
         expect(screen.getByText(/Aucun actif trouvé/i)).toBeInTheDocument();
     });
 
@@ -156,7 +233,11 @@ describe('Assets View', () => {
             remove: vi.fn()
         });
 
-        render(<Assets />);
+        render(
+            <AuthProvider>
+                <Assets />
+            </AuthProvider>
+        );
         expect(screen.getByText('Test Laptop')).toBeInTheDocument();
     });
 });

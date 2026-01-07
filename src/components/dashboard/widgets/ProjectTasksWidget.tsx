@@ -94,8 +94,9 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
                             key={project.id}
                             className="group flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                             onClick={() => {
-                                if (navigate) navigate('/projects');
-                                else routerNavigate(`/projects?id=${project.id}`);
+                                const path = `/projects?id=${project.id}`;
+                                if (navigate) navigate(path);
+                                else routerNavigate(path);
                             }}
                         >
                             <div className="flex-1 min-w-0">

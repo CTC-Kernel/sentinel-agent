@@ -519,6 +519,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                                         recentActivity={recentActivity}
                                         radarData={radarData}
                                         incidents={activeIncidents}
+                                        complianceScore={complianceScore}
                                     />
                                 );
                             }
