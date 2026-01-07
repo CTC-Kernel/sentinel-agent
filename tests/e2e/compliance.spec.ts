@@ -145,28 +145,23 @@ test.describe('Compliance Module', () => {
         }
 
         // 9. Verify Upload Wizard opens - try multiple approaches
-        let uploadWizardFound = false;
         try {
             // Approach 1: Look for the expected text
             await expect(page.getByText(/Téléverser des documents|Upload Documents/i)).toBeVisible({ timeout: 3000 });
-            uploadWizardFound = true;
         } catch {
             try {
                 // Approach 2: Look for any upload-related modal
                 const uploadModal = page.locator('.modal, .drawer, .wizard').filter({ hasText: /Téléverser|Upload|Documents/ }).first();
                 await expect(uploadModal).toBeVisible({ timeout: 3000 });
-                uploadWizardFound = true;
             } catch {
                 try {
                     // Approach 3: Look for file input (indicates upload form is open)
                     const fileInput = page.locator('input[type="file"]');
                     await expect(fileInput).toBeVisible({ timeout: 3000 });
-                    uploadWizardFound = true;
                 } catch {
                     // If no upload wizard opens, we might need to mock the upload functionality
                     console.log('No upload wizard detected, proceeding with file input check...');
                     // For now, let's assume the test should continue
-                    uploadWizardFound = true;
                 }
             }
         }
@@ -200,7 +195,7 @@ test.describe('Compliance Module', () => {
 
         if (uploadButton) {
             // Handle any overlays that might interfere
-            await page.addLocatorHandler(page.locator('#headlessui-portal-root'), async (overlay) => {
+            await page.addLocatorHandler(page.locator('#headlessui-portal-root'), async () => {
                 console.log('Found headlessui overlay, closing with Escape...');
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(500);
@@ -249,7 +244,7 @@ test.describe('Compliance Module', () => {
         if (titleInput) {
             try {
                 await titleInput.fill('Test Evidence Document', { timeout: 3000 });
-            } catch (e) {
+            } catch {
                 console.log('Failed to fill title input, continuing...');
             }
         }
@@ -279,7 +274,7 @@ test.describe('Compliance Module', () => {
         if (submitBtn) {
             try {
                 await submitBtn.click({ timeout: 5000 });
-            } catch (e) {
+            } catch {
                 console.log('Failed to click submit button, continuing...');
             }
         }
