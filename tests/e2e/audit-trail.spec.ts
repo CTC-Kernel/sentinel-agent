@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupMockAuth, setupFirestoreMocks } from './utils';
+import { setupMockAuth, setupFirestoreMocks, waitForOverlaysToClose } from './utils';
 
 test.describe('Audit Trail Module', () => {
     test.setTimeout(90000);
@@ -15,6 +15,9 @@ test.describe('Audit Trail Module', () => {
     });
 
     test('should track all user actions in audit trail', async ({ page }) => {
+        // Wait for overlays to close
+        await waitForOverlaysToClose(page);
+        
         // Navigate to audit trail
         // Already navigated in beforeEach
         await expect(page.getByText(/Journal d'audit|Audit Trail/i)).toBeVisible({ timeout: 15000 });
@@ -34,6 +37,9 @@ test.describe('Audit Trail Module', () => {
     });
 
     test('should log asset creation and modification', async ({ page }) => {
+        // Wait for overlays to close
+        await waitForOverlaysToClose(page);
+        
         // Go to assets and create a test asset
         await page.goto('/#/assets');
         await expect(page.getByText(/Actifs|Assets/i).first()).toBeVisible({ timeout: 15000 });
@@ -63,6 +69,9 @@ test.describe('Audit Trail Module', () => {
     });
 
     test('should display comprehensive audit information', async ({ page }) => {
+        // Wait for overlays to close
+        await waitForOverlaysToClose(page);
+        
         // Already on page
         await expect(page.getByText(/Journal d'audit|Audit Trail/i)).toBeVisible({ timeout: 15000 });
 
@@ -83,6 +92,9 @@ test.describe('Audit Trail Module', () => {
     });
 
     test('should allow filtering and searching audit logs', async ({ page }) => {
+        // Wait for overlays to close
+        await waitForOverlaysToClose(page);
+        
         // Already on page
         await expect(page.getByText(/Journal d'audit|Audit Trail/i)).toBeVisible({ timeout: 15000 });
 
@@ -117,6 +129,9 @@ test.describe('Audit Trail Module', () => {
     });
 
     test('should export audit trail data', async ({ page }) => {
+        // Wait for overlays to close
+        await waitForOverlaysToClose(page);
+        
         // Already on page
         await expect(page.getByText(/Journal d'audit|Audit Trail/i)).toBeVisible({ timeout: 15000 });
 

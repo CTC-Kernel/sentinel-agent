@@ -1,16 +1,20 @@
 import { test, expect } from '@playwright/test';
+import { setupMockAuth, setupFirestoreMocks, waitForOverlaysToClose } from './utils';
 
 test.describe('ISO 27001 Integration Module', () => {
     test.setTimeout(90000);
 
     test.beforeEach(async ({ page }) => {
+        await setupMockAuth(page);
+        await setupFirestoreMocks(page);
+        
         await page.goto('/');
-        await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
-            await overlay.click({ force: true });
-        });
     });
 
     test('should display ISO 27001 controls mapping', async ({ page }) => {
+        // Wait for overlays to close
+        await waitForOverlaysToClose(page);
+        
         await page.goto('/#/compliance');
         await expect(page.getByText(/Conformité|Compliance/i)).toBeVisible({ timeout: 15000 });
 
