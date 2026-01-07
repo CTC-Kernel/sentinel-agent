@@ -13,6 +13,9 @@ test.describe('Documents Module', () => {
     });
 
     test('should display documents dashboard and KPIs', async ({ page }) => {
+        page.on('console', msg => console.log(`BROWSER MSG: ${msg.type()} - ${msg.text()}`));
+        page.on('pageerror', err => console.log(`BROWSER ERROR: ${err.message}`));
+
         await page.goto('/#/documents');
 
         // Check Page Header

@@ -63,7 +63,11 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/threat-intelligence" element={<AnimatedPage><ThreatIntelligence /></AnimatedPage>} />
                 <Route path="/reports" element={<AnimatedPage><Reports /></AnimatedPage>} />
                 <Route path="/compliance" element={<AnimatedPage><Compliance /></AnimatedPage>} />
-                <Route path="/documents" element={<AnimatedPage><Documents /></AnimatedPage>} />
+                <Route path="/documents" element={
+                    <RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user']}>
+                        <AnimatedPage><Documents /></AnimatedPage>
+                    </RoleGuardComponent>
+                } />
                 <Route path="/audits" element={<AnimatedPage><Audits /></AnimatedPage>} />
                 <Route path="/team" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
