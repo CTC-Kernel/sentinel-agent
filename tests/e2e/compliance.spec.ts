@@ -21,12 +21,23 @@ test.describe('Compliance Module', () => {
         await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 30000 });
         await expect(page.getByText(/Conformité|Compliance/i).first()).toBeVisible();
 
+        // Debug: Log all network requests to verify mocks
+        page.on('request', request => console.log('>>', request.method(), request.url()));
+        page.on('console', msg => console.log('BROWSER MSG:', msg.type(), msg.text()));
+
+        page.on('request', request => console.log('>>', request.method(), request.url()));
+
         // 2. Open a Control
-        // First expand the domain. Use a robust selector for the domain header.
-        // Domain headers clearly display "Progression", so we filter by that.
-        const firstDomainHeader = page.locator('.glass-panel').filter({ hasText: 'Progression' }).first();
-        await firstDomainHeader.waitFor({ state: 'visible' });
-        await firstDomainHeader.click();
+        // First expand the domain. Use test-id if available or more specific text.
+        // First expand the domain. Use robust test-id.
+        const domainHeader = page.getByTestId('domain-header-A.5');
+        await expect(domainHeader).toBeVisible();
+        console.log('Domain header visible, dispatching click...');
+        await domainHeader.dispatchEvent('click');
+
+        // Wait for animation
+        await page.waitForTimeout(2000);
+        console.log('Clicked domain header, waiting for controls...');
 
         // Then click the first control row
         const firstControl = page.getByTestId(/control-row-.+/).first();
