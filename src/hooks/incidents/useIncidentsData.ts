@@ -2,6 +2,10 @@ import React, { useMemo } from 'react';
 import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
+import { useAuth } from '../useAuth'; // Added useAuth to match pattern in other hooks if needed, though useIncidentsData currently takes organizationId as arg? 
+// Actually, looking at the code, it takes organizationId as argument. 
+// Let's stick to the structure seen in the file but cleaned up.
+
 import { Incident, Asset, Risk, UserProfile, BusinessProcess } from '../../types';
 
 export const useIncidentsData = (organizationId?: string) => {
@@ -71,10 +75,6 @@ export const useIncidentsData = (organizationId?: string) => {
         const source = (demoMode ? mockData.risks : rawRisks) as Risk[];
         return [...source].sort((a: Risk, b: Risk) => a.threat.localeCompare(b.threat));
     }, [rawRisks, demoMode, mockData.risks]);
-
-    // FIX: Ensure usersList is never empty if logged in logic is handled in view or here?
-    // Let's just return the raw list and let the view handle "effectiveUsers" or handle it here if we pass user.
-    // For now, keeping it simple.
 
     const loading = demoMode ? mockLoading : (loadingIncidents || loadingAssets || loadingRisks || loadingUsers || loadingProcesses);
 
