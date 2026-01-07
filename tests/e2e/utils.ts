@@ -29,7 +29,7 @@ export async function setupMockAuth(page: Page) {
         (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__ = true;
         (window as unknown as { __BYPASS_AUTH__: boolean }).__BYPASS_AUTH__ = true;
 
-        // window.localStorage.setItem('demoMode', 'true'); // DISABLED to allow network mocks
+        window.localStorage.setItem('demoMode', 'true');
         window.localStorage.setItem('tour-seen', 'true');
         window.localStorage.setItem('E2E_TEST_USER', JSON.stringify({
             uid: "e2e-user-123",
