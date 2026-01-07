@@ -1,49 +1,209 @@
+⬢  emulators: firebase-tools will drop support for Java version < 21 soon in firebase-tools@15. Please install a JDK at version 21 or above to get a compatible runtime.
+i  emulators: Starting emulators: auth, functions, firestore, hosting, storage, extensions
+⚠  hosting: Hosting Emulator unable to start on port 5000, starting on 5002 instead.
+⚠  emulators: It seems that you are running multiple instances of the emulator suite for project sentinel-grc-a8701. This may result in unexpected behavior.
+⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, database, pubsub, dataconnect
+⚠  functions: Application Default Credentials detected. Non-emulated services will access production using these credentials. Be careful!
+i  firestore: Firestore Emulator logging to firestore-debug.log
+✔  firestore: Firestore Emulator UI websocket is running on 9150.
+i  hosting[sentinel-grc-a8701]: Serving hosting files from: dist
+✔  hosting[sentinel-grc-a8701]: Local server: http://127.0.0.1:5002
+i  functions: Watching "/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/functions" for Cloud Functions...
+⚠  functions: Your requested "node" version "22" doesn't match your global version "23". Using node@23 from host.
+i  functions: Loaded environment variables from .env, .env.sentinel-grc-a8701.
+Serving at port 8218
 
-Running 10 tests using 5 workers
+⚠  functions: Application Default Credentials detected. Non-emulated services will access production using these credentials. Be careful!
+✔  functions: Loaded functions definitions from source: logAuthAttempt, beforeUserSignedIn, getSsoSettings, updateSsoSettings, scheduledBackup, scheduledNotificationChecks, onNotificationCreated, onJoinRequestCreated, onJoinRequestUpdated, auditRisks, auditControls, auditDocuments, auditSuppliers, auditUsers, auditIncidents, generateAuditShareLink, getSharedAuditData, portal_submitFinding, portal_updateStatus, revokeAuditShare, inviteCertifier, createCertifierOrganization, acceptPartnership, getCertifierDashboard, assignAuditToPartner, deleteResource, setUserClaims, refreshUserToken, healMe, verifySuperAdmin, grantSuperAdmin, switchOrganization, createOrganization, createCheckoutSession, createPortalSession, callGeminiGenerateContent, stripeWebhook, processMailQueue, retryFailedEmails, sendEmail, logEvent, exportAuditLogs, scheduleEmail, approveJoinRequest, rejectJoinRequest, deleteOrganization, api, transferOwnership, requestPasswordReset, saveUserApiKeys, scanAssetWithShodan, checkBreachWithHIBP, checkUrlReputationWithSafeBrowsing, callGeminiChat, checkScheduledNotifications, migrateUserKeys, submitKioskAsset, onUserDeleted, connectIntegration, fetchEvidence, fetchThreatFeed, fetchRssFeed, auditAssets, onOrganizationDeleted, fetchExternalSecurityEvents, searchCompany, validateVat.
+✔  functions[us-central1-logAuthAttempt]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/logAuthAttempt).
+✔  functions[us-central1-beforeUserSignedIn]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/beforeUserSignedIn).
+✔  functions[us-central1-getSsoSettings]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/getSsoSettings).
+✔  functions[us-central1-updateSsoSettings]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/updateSsoSettings).
+i  functions[us-central1-scheduledBackup]: function ignored because the pubsub emulator does not exist or is not running.
+i  functions[us-central1-scheduledNotificationChecks]: function ignored because the pubsub emulator does not exist or is not running.
+✔  functions[us-central1-onNotificationCreated]: firestore function initialized.
+✔  functions[us-central1-onJoinRequestCreated]: firestore function initialized.
+✔  functions[us-central1-onJoinRequestUpdated]: firestore function initialized.
+✔  functions[us-central1-auditRisks]: firestore function initialized.
+✔  functions[us-central1-auditControls]: firestore function initialized.
+✔  functions[us-central1-auditDocuments]: firestore function initialized.
+✔  functions[us-central1-auditSuppliers]: firestore function initialized.
+✔  functions[us-central1-auditUsers]: firestore function initialized.
+✔  functions[us-central1-auditIncidents]: firestore function initialized.
+✔  functions[us-central1-generateAuditShareLink]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/generateAuditShareLink).
+✔  functions[us-central1-getSharedAuditData]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/getSharedAuditData).
+✔  functions[us-central1-portal_submitFinding]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/portal_submitFinding).
+✔  functions[us-central1-portal_updateStatus]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/portal_updateStatus).
+✔  functions[us-central1-revokeAuditShare]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/revokeAuditShare).
+✔  functions[us-central1-inviteCertifier]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/inviteCertifier).
+✔  functions[us-central1-createCertifierOrganization]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/createCertifierOrganization).
+✔  functions[us-central1-acceptPartnership]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/acceptPartnership).
+✔  functions[us-central1-getCertifierDashboard]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/getCertifierDashboard).
+✔  functions[us-central1-assignAuditToPartner]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/assignAuditToPartner).
+✔  functions[us-central1-deleteResource]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/deleteResource).
+✔  functions[us-central1-setUserClaims]: firestore function initialized.
+✔  functions[us-central1-refreshUserToken]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/refreshUserToken).
+✔  functions[us-central1-healMe]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/healMe).
+✔  functions[us-central1-verifySuperAdmin]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/verifySuperAdmin).
+✔  functions[us-central1-grantSuperAdmin]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/grantSuperAdmin).
+✔  functions[us-central1-switchOrganization]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/switchOrganization).
+✔  functions[us-central1-createOrganization]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/createOrganization).
+✔  functions[us-central1-createCheckoutSession]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/createCheckoutSession).
+✔  functions[us-central1-createPortalSession]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/createPortalSession).
+✔  functions[us-central1-callGeminiGenerateContent]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/callGeminiGenerateContent).
+✔  functions[us-central1-stripeWebhook]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/stripeWebhook).
+✔  functions[us-central1-processMailQueue]: firestore function initialized.
+i  functions[us-central1-retryFailedEmails]: function ignored because the pubsub emulator does not exist or is not running.
+✔  functions[us-central1-sendEmail]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/sendEmail).
+✔  functions[us-central1-logEvent]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/logEvent).
+✔  functions[us-central1-exportAuditLogs]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/exportAuditLogs).
+✔  functions[us-central1-scheduleEmail]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/scheduleEmail).
+✔  functions[us-central1-approveJoinRequest]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/approveJoinRequest).
+✔  functions[us-central1-rejectJoinRequest]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/rejectJoinRequest).
+✔  functions[us-central1-deleteOrganization]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/deleteOrganization).
+✔  functions[us-central1-api]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/api).
+✔  functions[us-central1-transferOwnership]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/transferOwnership).
+✔  functions[us-central1-requestPasswordReset]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/requestPasswordReset).
+✔  functions[us-central1-saveUserApiKeys]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/saveUserApiKeys).
+✔  functions[us-central1-scanAssetWithShodan]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/scanAssetWithShodan).
+✔  functions[us-central1-checkBreachWithHIBP]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/checkBreachWithHIBP).
+✔  functions[us-central1-checkUrlReputationWithSafeBrowsing]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/checkUrlReputationWithSafeBrowsing).
+✔  functions[us-central1-callGeminiChat]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/callGeminiChat).
+i  functions[us-central1-checkScheduledNotifications]: function ignored because the pubsub emulator does not exist or is not running.
+✔  functions[us-central1-migrateUserKeys]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/migrateUserKeys).
+✔  functions[us-central1-submitKioskAsset]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/submitKioskAsset).
+✔  functions[us-central1-onUserDeleted]: auth function initialized.
+✔  functions[us-central1-connectIntegration]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/connectIntegration).
+✔  functions[us-central1-fetchEvidence]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/fetchEvidence).
+✔  functions[us-central1-fetchThreatFeed]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/fetchThreatFeed).
+✔  functions[us-central1-fetchRssFeed]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/fetchRssFeed).
+✔  functions[us-central1-auditAssets]: firestore function initialized.
+✔  functions[us-central1-onOrganizationDeleted]: firestore function initialized.
+✔  functions[us-central1-fetchExternalSecurityEvents]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/fetchExternalSecurityEvents).
+✔  functions[us-central1-searchCompany]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/searchCompany).
+✔  functions[us-central1-validateVat]: http function initialized (http://127.0.0.1:5001/sentinel-grc-a8701/us-central1/validateVat).
+i  Running script: npx playwright test tests/e2e/dashboard.spec.ts
 
-[1A[2K[1/10] [setup] › tests/e2e/auth.setup.ts:5:1 › authenticate
-[1A[2K[2m[WebServer] [22m
+Running 3 tests using 2 workers
 
-[1A[2K[2m[WebServer] [22m[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
-[2m[WebServer] [22m[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+[1A[2K[1/3] [setup] › tests/e2e/auth.setup.ts:76:1 › authenticate
+[1A[2K[setup] › tests/e2e/auth.setup.ts:76:1 › authenticate
+[Setup] Emulator seeded successfully
 
-[1A[2K[setup] › tests/e2e/auth.setup.ts:5:1 › authenticate
-Auth failed. UI Errors found: [
-  [32m"Erreur d'authentification."[39m,
-  [32m'OU VIA EMAIL'[39m,
-  [32m'EMAIL'[39m,
-  [32m'MOT DE PASSE'[39m
-]
+i  functions: Loaded environment variables from .env, .env.sentinel-grc-a8701.
+[1A[2KBROWSER LOG: [vite] connecting...
 
-[1A[2KCurrent URL: http://localhost:8080/login#/login
+[1A[2KBROWSER LOG: [vite] connected.
 
-[1A[2K  1) [setup] › tests/e2e/auth.setup.ts:5:1 › authenticate ──────────────────────────────────────────
+[1A[2KBROWSER LOG: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 
-    Error: [2mexpect([22m[31mpage[39m[2m).not.[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+[1A[2KBROWSER LOG: i18next: languageChanged en-US
 
-    Expected pattern: not [32m/login/[39m
-    Received string: [31m"http://localhost:8080/[7mlogin[27m#/login"[39m
-    Timeout: 10000ms
+[1A[2KBROWSER LOG: i18next: initialized {debug: true, initAsync: true, ns: Array(1), defaultNS: Array(1), fallbackLng: Array(1)}
 
+[1A[2KBROWSER LOG: App Check debug token: ******REMOVED******. You will need to add it to your app's App Check settings in the Firebase console for it to work.
+
+i  functions: Beginning execution of "us-central1-setUserClaims"
+>  {"severity":"INFO","message":"User e2e-user-123 is owner of org org_default - Enforcing ADMIN role"}
+>  {"severity":"INFO","message":"Custom claims set for user e2e-user-123: org=org_default, role=admin"}
+i  functions: Finished "us-central1-setUserClaims" in 167.602959ms
+i  functions: Loaded environment variables from .env, .env.sentinel-grc-a8701.
+i  functions: Beginning execution of "us-central1-auditUsers"
+>  {"severity":"INFO","message":"Audit logged: CREATE on users/e2e-user-123 for Org org_default by system@sentinel-grc.com"}
+i  functions: Finished "us-central1-auditUsers" in 101.956541ms
+i  functions: Loaded environment variables from .env, .env.sentinel-grc-a8701.
+i  functions: Loaded environment variables from .env, .env.sentinel-grc-a8701.
+i  functions: Beginning execution of "us-central1-setUserClaims"
+>  {"severity":"INFO","message":"User e2e-user-123 is owner of org org_default - Enforcing ADMIN role"}
+>  {"severity":"INFO","message":"Custom claims set for user e2e-user-123: org=org_default, role=admin"}
+i  functions: Finished "us-central1-setUserClaims" in 25.98375ms
+i  functions: Beginning execution of "us-central1-auditUsers"
+>  {"severity":"INFO","message":"Audit logged: UPDATE on users/e2e-user-123 for Org org_default by system@sentinel-grc.com"}
+i  functions: Finished "us-central1-auditUsers" in 12.281542ms
+i  functions: Beginning execution of "us-central1-logAuthAttempt"
+i  functions: Finished "us-central1-logAuthAttempt" in 1.930792ms
+i  functions: Beginning execution of "us-central1-logAuthAttempt"
+i  functions: Finished "us-central1-logAuthAttempt" in 0.874583ms
+[1A[2K[2/3] [chromium] › tests/e2e/dashboard.spec.ts:23:5 › Dashboard Module › should display dashboard widgets after loading
+[1A[2K[3/3] [chromium] › tests/e2e/dashboard.spec.ts:38:5 › Dashboard Module › should navigate via quick actions
+[1A[2K[chromium] › tests/e2e/dashboard.spec.ts:23:5 › Dashboard Module › should display dashboard widgets after loading
+Current URL before test: http://localhost:8080/
+
+i  functions: Beginning execution of "us-central1-setUserClaims"
+>  {"severity":"INFO","message":"User e2e-user-123 is owner of org org_default - Enforcing ADMIN role"}
+>  {"severity":"INFO","message":"Custom claims set for user e2e-user-123: org=org_default, role=admin"}
+i  functions: Finished "us-central1-setUserClaims" in 104.674042ms
+i  functions: Beginning execution of "us-central1-auditUsers"
+>  {"severity":"INFO","message":"Audit logged: UPDATE on users/e2e-user-123 for Org org_default by system@sentinel-grc.com"}
+i  functions: Finished "us-central1-auditUsers" in 36.782125ms
+i  functions: Beginning execution of "us-central1-setUserClaims"
+>  {"severity":"INFO","message":"User e2e-user-123 is owner of org org_default - Enforcing ADMIN role"}
+>  {"severity":"INFO","message":"Custom claims set for user e2e-user-123: org=org_default, role=admin"}
+i  functions: Finished "us-central1-setUserClaims" in 28.268584ms
+i  functions: Beginning execution of "us-central1-auditUsers"
+>  {"severity":"INFO","message":"Audit logged: UPDATE on users/e2e-user-123 for Org org_default by system@sentinel-grc.com"}
+i  functions: Finished "us-central1-auditUsers" in 47.559625ms
+[1A[2K  1) [chromium] › tests/e2e/dashboard.spec.ts:38:5 › Dashboard Module › should navigate via quick actions 
+
+    [31mTest timeout of 90000ms exceeded.[39m
+
+    Error: locator.dispatchEvent: Test timeout of 90000ms exceeded.
     Call log:
-    [2m  - Expect "not toHaveURL" with timeout 10000ms[22m
-    [2m    14 × unexpected value "http://localhost:8080/login#/login"[22m
+    [2m  - waiting for locator('[data-tour="quick-actions"]')[22m
 
 
-      30 |         // Wait for navigation away from login
-      31 |         // We accepted /, /onboarding, or /verify-email
-    > 32 |         await expect(page).not.toHaveURL(/login/, { timeout: 10000 });
-         |                                ^
-      33 |     } catch (e) {
-      34 |         // Check for error message on UI
-      35 |         const errorMsg = await page.getByText(/Erreur|Identifiants|email|mot de passe/i).allInnerTexts();
-        at /Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/e2e/auth.setup.ts:32:32
+      39 |         // Quick Actions are hidden by default, hover to reveal
+      40 |         const container = page.locator('[data-tour="quick-actions"]');
+    > 41 |         await container.dispatchEvent('mouseenter');
+         |                         ^
+      42 |         // await container.hover({ force: true });
+      43 |         await page.waitForTimeout(2000);
+      44 |
+        at /Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/e2e/dashboard.spec.ts:41:25
 
-    Error Context: test-results/auth.setup.ts-authenticate-setup/error-context.md
+    Error Context: test-results/dashboard-Dashboard-Module-should-navigate-via-quick-actions-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-Dashboard-Module-should-navigate-via-quick-actions-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-Dashboard-Module-should-navigate-via-quick-actions-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
 
 
-[1A[2K  1 failed
-    [setup] › tests/e2e/auth.setup.ts:5:1 › authenticate ───────────────────────────────────────────
-  9 did not run
+[1A[2K  2) [chromium] › tests/e2e/dashboard.spec.ts:23:5 › Dashboard Module › should display dashboard widgets after loading 
 
-[36m  Serving HTML report at http://localhost:55186. Press Ctrl+C to quit.[39m
+    [31mTest timeout of 90000ms exceeded.[39m
+
+    Error: locator.dispatchEvent: Test timeout of 90000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('[data-tour="quick-actions"]')[22m
+
+
+      28 |         // Quick Actions are hidden by default, hover to reveal (force hover as container might be animating/small)
+      29 |         const container = page.locator('[data-tour="quick-actions"]');
+    > 30 |         await container.dispatchEvent('mouseenter');
+         |                         ^
+      31 |         // await container.hover({ force: true });
+      32 |         await page.waitForTimeout(2000);
+      33 |
+        at /Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/e2e/dashboard.spec.ts:30:25
+
+    Error Context: test-results/dashboard-Dashboard-Module-f98ce-board-widgets-after-loading-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-Dashboard-Module-f98ce-board-widgets-after-loading-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-Dashboard-Module-f98ce-board-widgets-after-loading-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  2 failed
+    [chromium] › tests/e2e/dashboard.spec.ts:23:5 › Dashboard Module › should display dashboard widgets after loading 
+    [chromium] › tests/e2e/dashboard.spec.ts:38:5 › Dashboard Module › should navigate via quick actions 
+  1 passed (1.6m)
+
+[36m  Serving HTML report at http://localhost:65169. Press Ctrl+C to quit.[39m
