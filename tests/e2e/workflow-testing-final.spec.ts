@@ -2,6 +2,38 @@ import { test } from '@playwright/test';
 import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Complete Workflow Testing - Simplified', () => {
+
+    // Shared Interfaces for Evaluation
+    interface FieldData {
+        name: string | null;
+        value?: string;
+        placeholder?: string;
+        required?: boolean;
+        options?: { value: string; text: string | null }[];
+        selected?: string;
+    }
+
+    interface TabData {
+        text: string | null | undefined;
+        active: boolean;
+        href?: string | null;
+    }
+
+    interface ControlData {
+        id: string | null;
+        title: string | null | undefined;
+        status: string | null | undefined;
+        hasActions: boolean;
+    }
+
+    interface UserData {
+        name: string | null | undefined;
+        email: string | null | undefined;
+        role: string | null | undefined;
+        status: string | null | undefined;
+        hasActions: boolean;
+    }
+
     test.setTimeout(120000);
 
     test.beforeEach(async ({ page, context }) => {
@@ -40,7 +72,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
             // Test form fields systematically
             const formAnalysis = await page.evaluate(() => {
                 const results = {
-                    fields: [] as any[],
+                    fields: [] as { name: string | null; type: string | null; placeholder: string; required: boolean; value: string; isVisible: boolean }[],
                     hasValidation: false,
                     hasSubmit: false
                 };
@@ -194,13 +226,19 @@ test.describe('Complete Workflow Testing - Simplified', () => {
             await page.waitForTimeout(2000);
 
             // Test risk-specific fields
-            const riskFields = await page.evaluate(() => {
+            const riskFields = await page.evaluate((): {
+                title: FieldData | null;
+                description: FieldData | null;
+                probability: FieldData | null;
+                impact: FieldData | null;
+                category: FieldData | null;
+            } => {
                 const fields = {
-                    title: null as any,
-                    description: null as any,
-                    probability: null as any,
-                    impact: null as any,
-                    category: null as any
+                    title: null as FieldData | null,
+                    description: null as FieldData | null,
+                    probability: null as FieldData | null,
+                    impact: null as FieldData | null,
+                    category: null as FieldData | null
                 };
 
                 // Find risk-specific fields
@@ -229,28 +267,28 @@ test.describe('Complete Workflow Testing - Simplified', () => {
                 }
 
                 if (probSelect) {
-                    const options = probSelect.querySelectorAll('option');
+                    const options = probSelect.getElementsByTagName('option');
                     fields.probability = {
                         name: probSelect.getAttribute('name'),
-                        options: Array.from(options).map(opt => ({ value: opt.value, text: opt.textContent })),
+                        options: Array.from(options).map((opt: HTMLOptionElement) => ({ value: opt.value, text: opt.textContent })),
                         selected: (probSelect as HTMLSelectElement).value
                     };
                 }
 
                 if (impactSelect) {
-                    const options = impactSelect.querySelectorAll('option');
+                    const options = impactSelect.getElementsByTagName('option');
                     fields.impact = {
                         name: impactSelect.getAttribute('name'),
-                        options: Array.from(options).map(opt => ({ value: opt.value, text: opt.textContent })),
+                        options: Array.from(options).map((opt: HTMLOptionElement) => ({ value: opt.value, text: opt.textContent })),
                         selected: (impactSelect as HTMLSelectElement).value
                     };
                 }
 
                 if (categorySelect) {
-                    const options = categorySelect.querySelectorAll('option');
+                    const options = categorySelect.getElementsByTagName('option');
                     fields.category = {
                         name: categorySelect.getAttribute('name'),
-                        options: Array.from(options).map(opt => ({ value: opt.value, text: opt.textContent })),
+                        options: Array.from(options).map((opt: HTMLOptionElement) => ({ value: opt.value, text: opt.textContent })),
                         selected: (categorySelect as HTMLSelectElement).value
                     };
                 }
@@ -261,12 +299,12 @@ test.describe('Complete Workflow Testing - Simplified', () => {
             console.log('📊 Risk Form Analysis:');
             console.log(`  Title: ${riskFields.title ? 'Found' : 'Not found'}`);
             console.log(`  Description: ${riskFields.description ? 'Found' : 'Not found'}`);
-            console.log(`  Probability: ${riskFields.probability ? riskFields.probability.options.length + ' options' : 'Not found'}`);
-            console.log(`  Impact: ${riskFields.impact ? riskFields.impact.options.length + ' options' : 'Not found'}`);
-            console.log(`  Category: ${riskFields.category ? riskFields.category.options.length + ' options' : 'Not found'}`);
+            console.log(`  Probability: ${riskFields.probability?.options ? riskFields.probability.options.length + ' options' : 'Not found'}`);
+            console.log(`  Impact: ${riskFields.impact ? (riskFields.impact.options?.length || 0) + ' options' : 'Not found'}`);
+            console.log(`  Category: ${riskFields.category ? (riskFields.category.options?.length || 0) + ' options' : 'Not found'}`);
 
             // Test risk matrix fields
-            if (riskFields.probability && riskFields.impact) {
+            if (riskFields.probability?.name && riskFields.impact?.name) {
                 console.log('\n🎯 Testing risk matrix fields...');
 
                 const probSelect = page.locator(`select[name="${riskFields.probability.name}"]`).first();
@@ -290,7 +328,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
             }
 
             // Test description field
-            if (riskFields.description) {
+            if (riskFields.description?.name) {
                 console.log('\n📝 Testing description field...');
 
                 const descTextarea = page.locator(`textarea[name="${riskFields.description.name}"]`).first();
@@ -305,7 +343,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
             }
 
             // Test category selection
-            if (riskFields.category) {
+            if (riskFields.category?.name) {
                 console.log('\n🏷️ Testing category selection...');
 
                 const categorySelect = page.locator(`select[name="${riskFields.category.name}"]`).first();
@@ -334,7 +372,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         await page.waitForTimeout(1000);
 
         // Test tabs
-        const tabs = await page.evaluate(() => {
+        const tabs = await page.evaluate((): TabData[] => {
             const tabElements = document.querySelectorAll('[role="tab"], button[role="tab"], .tab');
             return Array.from(tabElements).map(tab => ({
                 text: tab.textContent?.trim(),
@@ -349,7 +387,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
 
         // Test tab switching
         for (const tab of tabs.slice(0, 2)) {
-            if (!tab.active) {
+            if (!tab.active && tab.text) {
                 console.log(`\n🔄 Clicking tab: "${tab.text}"`);
 
                 const tabElement = page.locator('button, [role="tab"]').filter({ hasText: tab.text }).first();
@@ -363,7 +401,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         }
 
         // Test controls list
-        const controlsList = await page.evaluate(() => {
+        const controlsList = await page.evaluate((): ControlData[] => {
             const controls = document.querySelectorAll('[data-testid*="control"], .control-item, [class*="control"]');
             return Array.from(controls).map(control => ({
                 id: control.getAttribute('data-id') || control.getAttribute('id'),
@@ -390,7 +428,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         await page.waitForTimeout(1000);
 
         // Test user list
-        const userList = await page.evaluate(() => {
+        const userList = await page.evaluate((): UserData[] => {
             const users = document.querySelectorAll('[data-testid*="user"], .user-item, [class*="user-card"]');
             return Array.from(users).map(user => ({
                 name: user.querySelector('.name, h3, h4')?.textContent?.trim(),
@@ -418,7 +456,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         await page.waitForTimeout(1000);
 
         // Test settings tabs
-        const settingsTabs = await page.evaluate(() => {
+        const settingsTabs = await page.evaluate((): TabData[] => {
             const tabs = document.querySelectorAll('[role="tab"], button[role="tab"], .tab, .settings-nav button');
             return Array.from(tabs).map(tab => ({
                 text: tab.textContent?.trim(),
@@ -432,12 +470,19 @@ test.describe('Complete Workflow Testing - Simplified', () => {
             console.log(`  ${index + 1}. "${tab.text}" - Active: ${tab.active}`);
         });
 
+        interface SettingsFieldsData {
+            textInputs: { name: string | null; type: string | null; placeholder: string; required: boolean; value: string }[];
+            selects: { name: string | null; options: { value: string; text: string | null }[]; selected: string }[];
+            toggles: { name: string | null; type: string | null; checked: boolean; label: string | null }[];
+            textareas: { name: string | null; placeholder: string; required: boolean; value: string }[];
+        }
+
         // Test form fields in active tab
-        const activeTabFields = await page.evaluate(() => {
+        const activeTabFields = await page.evaluate((): SettingsFieldsData => {
             const activeTab = document.querySelector('[role="tab"].active, [aria-selected="true"], .tab.active');
             const activeContent = activeTab ? document.querySelector(activeTab.getAttribute('data-target') || activeTab.getAttribute('href') || '') : document.body;
 
-            if (!activeContent) return { fields: [], selects: [], toggles: [] };
+            if (!activeContent) return { textInputs: [], selects: [], toggles: [], textareas: [] };
 
             const fields = {
                 inputs: activeContent.querySelectorAll('input[type="text"], input[type="email"], input[type="url"], input[type="number"]'),

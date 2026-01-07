@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test, Page } from '@playwright/test';
 import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Deep Form Inspector Tests', () => {
@@ -74,14 +74,14 @@ test.describe('Deep Form Inspector Tests', () => {
                                         // Go back
                                         await page.goBack();
                                         await page.waitForTimeout(2000);
-                                    } catch (e: any) {
-                                        console.log(`    ⚠️ Could not click button: ${e.message}`);
+                                    } catch (e) {
+                                        if (e instanceof Error) console.log(`    ⚠️ Could not click button: ${e.message}`);
                                     }
                                 }
                             }
                         }
-                    } catch (e: any) {
-                        console.log(`    ⚠️ Could not get button text: ${e.message}`);
+                    } catch (e) {
+                        if (e instanceof Error) console.log(`    ⚠️ Could not get button text: ${e.message}`);
                     }
                 }
             }
@@ -97,7 +97,7 @@ test.describe('Deep Form Inspector Tests', () => {
         }
     });
 
-    async function inspectFormElements(page: any) {
+    async function inspectFormElements(page: Page) {
         console.log(`    🔍 Inspecting form elements...`);
 
         // Find all form inputs
@@ -224,14 +224,14 @@ test.describe('Deep Form Inspector Tests', () => {
                     }
 
                     break;
-                } catch (e: any) {
-                    console.log(`⚠️ Error testing form: ${e.message}`);
+                } catch (e) {
+                    if (e instanceof Error) console.log(`⚠️ Error testing form: ${e.message}`);
                 }
             }
         }
     });
 
-    async function testFormFieldInteractions(page: string | any) {
+    async function testFormFieldInteractions(page: Page) {
         console.log('  🧪 Testing field interactions...');
 
         // Test text inputs
@@ -249,8 +249,8 @@ test.describe('Deep Form Inspector Tests', () => {
 
                 // Clear it
                 await input.clear();
-            } catch (e: any) {
-                console.log(`    ⚠️ Could not interact with input ${inputName}: ${e.message}`);
+            } catch (e) {
+                if (e instanceof Error) console.log(`    ⚠️ Could not interact with input ${inputName}: ${e.message}`);
             }
         }
 
@@ -272,7 +272,7 @@ test.describe('Deep Form Inspector Tests', () => {
                     await select.selectOption(await secondOption.getAttribute('value'));
                     console.log(`    ✅ Select ${selectName}: selected option`);
                 }
-            } catch (e) {
+            } catch {
                 console.log(`    ⚠️ Could not interact with select ${selectName}`);
             }
         }
@@ -292,7 +292,9 @@ test.describe('Deep Form Inspector Tests', () => {
 
                 await textarea.clear();
             } catch (e) {
-                console.log(`    ⚠️ Could not interact with textarea ${textareaName}`);
+                if (e instanceof Error) {
+                    console.log(`    ⚠️ Could not interact with textarea ${textareaName}`);
+                }
             }
         }
 
@@ -310,7 +312,7 @@ test.describe('Deep Form Inspector Tests', () => {
                 console.log(`    ✅ Checkbox ${checkboxName}: ${isChecked}`);
 
                 await checkbox.uncheck();
-            } catch (e) {
+            } catch {
                 console.log(`    ⚠️ Could not interact with checkbox ${checkboxName}`);
             }
         }
@@ -323,7 +325,7 @@ test.describe('Deep Form Inspector Tests', () => {
             try {
                 await radios.first().check();
                 console.log(`    ✅ Radio button selected`);
-            } catch (e) {
+            } catch {
                 console.log(`    ⚠️ Could not interact with radio buttons`);
             }
         }

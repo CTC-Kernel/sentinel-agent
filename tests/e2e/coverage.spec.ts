@@ -22,8 +22,8 @@ test.describe('GRC Platform Coverage Tests', () => {
 
         // Mock the auth system
         await page.addInitScript(() => {
-            (window as any).__VITE_MODE__ = 'test';
-            (window as any).__VITE_USE_EMULATORS__ = 'true';
+            (window as unknown as { __VITE_MODE__: string }).__VITE_MODE__ = 'test';
+            (window as unknown as { __VITE_USE_EMULATORS__: string }).__VITE_USE_EMULATORS__ = 'true';
 
             localStorage.setItem('sentinel_cookie_consent', 'true');
             localStorage.setItem('demoMode', 'false');
@@ -102,6 +102,23 @@ test.describe('GRC Platform Coverage Tests', () => {
         ];
 
         for (const module of modules) {
+            console.log(`Testing ${module.name}...`);
+            await page.goto(module.path);
+            await page.waitForLoadState('domcontentloaded');
+            await expect(page.locator('body')).toBeVisible();
+            await page.waitForTimeout(500);
+            console.log(`✅ ${module.name} accessible`);
+        }
+    });
+
+    test('should access Portal Ecosystem routes', async ({ page }) => {
+        // Portal routes are public or certifier-gated.
+        const publicModules = [
+            { path: '/#/portal/login', name: 'Certifier Login' },
+            { path: '/#/portal/register', name: 'Certifier Register' }
+        ];
+
+        for (const module of publicModules) {
             console.log(`Testing ${module.name}...`);
             await page.goto(module.path);
             await page.waitForLoadState('domcontentloaded');
