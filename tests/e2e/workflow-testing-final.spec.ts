@@ -22,15 +22,18 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         console.log('🔄 Testing complete asset creation workflow...');
 
         await page.goto('/#/assets');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await page.waitForLoadState('domcontentloaded');
+        // Wait for main content or specifically the button
+        await page.waitForSelector('button', { timeout: 10000 }).catch(() => { });
+        await page.waitForTimeout(1000);
 
         // Find and click create button
         const createButton = page.locator('button').filter({
             hasText: /ajouter|créer|nouveau|add|create/i
         }).first();
 
-        if (await createButton.isVisible({ timeout: 5000 })) {
+        // Ensure we wait for it to be visible
+        if (await createButton.isVisible({ timeout: 10000 })) {
             await createButton.click();
             await page.waitForTimeout(2000);
 
@@ -178,8 +181,9 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         console.log('⚠️ Testing complete risk assessment workflow...');
 
         await page.goto('/#/risks');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForSelector('button', { timeout: 10000 }).catch(() => { });
+        await page.waitForTimeout(1000);
 
         const createRiskButton = page.locator('button').filter({
             hasText: /ajouter|créer|nouveau|add|create/i
@@ -325,8 +329,9 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         console.log('🛡️ Testing complete compliance workflow...');
 
         await page.goto('/#/compliance');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForSelector('main', { timeout: 10000 }).catch(() => { });
+        await page.waitForTimeout(1000);
 
         // Test tabs
         const tabs = await page.evaluate(() => {
@@ -380,8 +385,9 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         console.log('👥 Testing complete user management workflow...');
 
         await page.goto('/#/team');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForSelector('main', { timeout: 10000 }).catch(() => { });
+        await page.waitForTimeout(1000);
 
         // Test user list
         const userList = await page.evaluate(() => {
@@ -407,8 +413,9 @@ test.describe('Complete Workflow Testing - Simplified', () => {
         console.log('⚙️ Testing complete settings workflow...');
 
         await page.goto('/#/settings');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForSelector('main', { timeout: 10000 }).catch(() => { });
+        await page.waitForTimeout(1000);
 
         // Test settings tabs
         const settingsTabs = await page.evaluate(() => {
