@@ -84,6 +84,7 @@ export const Compliance: React.FC = () => {
 
     // Handlers
     const handleSelectControl = useCallback((control: import('../types').Control) => {
+        console.log('[Debug] Compliance: handleSelectControl called for', control.id);
         setSelectedControlId(control.id);
         setCreationMode(null);
         setIsDrawerOpen(true);
@@ -91,8 +92,10 @@ export const Compliance: React.FC = () => {
 
     // Deep Link Effect
     useEffect(() => {
+        console.log('[Debug] DeepLink Effect:', { loading, deepLinkControlId, controlsCount: frameworkControls.length });
         if (!loading && deepLinkControlId && frameworkControls.length > 0) {
             const control = frameworkControls.find((c: import('../types').Control) => c.id === deepLinkControlId);
+            console.log('[Debug] DeepLink Control found:', control?.id);
             if (control) {
                 flushSync(() => {
                     handleSelectControl(control);

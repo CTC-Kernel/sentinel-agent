@@ -215,6 +215,17 @@ export class BackupService {
   static async listBackups(organizationId: string): Promise<BackupMetadata[]> {
     if (!organizationId) return [];
 
+    // Check for demo mode (using localStorage for robust test support)
+    const isDemo = typeof window !== 'undefined' &&
+      (window.localStorage.getItem('demoMode') === 'true' ||
+        (window as any).__TEST_MODE__ === true);
+
+    if (isDemo) {
+      // Dynamic import to avoid cycles if necessary, but static is fine here as MockDataService is simple
+      const { MockDataService } = await import('./mockDataService');
+      return MockDataService.getCollection('backups') as unknown as BackupMetadata[];
+    }
+
     try {
       const snapshot = await getDocs(
         query(collection(db, this.BACKUP_COLLECTION), where('organizationId', '==', organizationId))

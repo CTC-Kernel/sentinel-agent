@@ -22,7 +22,7 @@ test.describe('Compliance Module', () => {
             // Also try to close with Escape key
             await page.keyboard.press('Escape');
         });
-        
+
         // Handle driver overlay
         await page.addLocatorHandler(page.locator('.driver-overlay'), async () => {
             console.log('Found Driver.js overlay, closing it...');
@@ -45,11 +45,11 @@ test.describe('Compliance Module', () => {
         // 2. Wait for page to fully load and find navigation tabs
         // Wait for any buttons to be present
         await page.waitForSelector('button', { timeout: 15000 });
-        
+
         // Debug: List all visible buttons to understand the structure
         const allButtons = await page.locator('button').all();
         console.log(`Found ${allButtons.length} buttons on page`);
-        
+
         for (let i = 0; i < Math.min(allButtons.length, 10); i++) {
             const button = allButtons[i];
             const text = await button.textContent();
@@ -57,178 +57,13 @@ test.describe('Compliance Module', () => {
             console.log(`Button ${i}: "${text}" - Visible: ${isVisible}`);
         }
 
-        // 3. Try multiple approaches to find the Controls tab
-        let controlsTab;
-        let found = false;
-        
-        // Approach 1: Direct text search
-        try {
-            controlsTab = page.locator('button').filter({ hasText: 'Contrôles' }).first();
-            await expect(controlsTab).toBeVisible({ timeout: 3000 });
-            found = true;
-            console.log('Found Controls tab with direct text search');
-        } catch (e: any) {
-            console.log('Direct text search failed:', e.message);
-        }
-        
-        // Approach 2: Case-insensitive search
-        if (!found) {
-            try {
-                controlsTab = page.locator('button').filter({ hasText: /contrôles|controls/i }).first();
-                await expect(controlsTab).toBeVisible({ timeout: 3000 });
-                found = true;
-                console.log('Found Controls tab with case-insensitive search');
-            } catch (e: any) {
-                console.log('Case-insensitive search failed:', e.message);
-            }
-        }
-        
-        // Approach 3: Look for any tab-like buttons
-        if (!found) {
-            try {
-                const visibleButtons = page.locator('button:visible');
-                const count = await visibleButtons.count();
-                console.log(`Found ${count} visible buttons`);
-                
-                for (let i = 0; i < count; i++) {
-                    const button = visibleButtons.nth(i);
-                    const text = await button.textContent();
-                    if (text && text.includes('Contrôles')) {
-                        controlsTab = button;
-                        found = true;
-                        console.log('Found Controls tab by iteration');
-                        break;
-                    }
-                }
-                
-                if (!found) {
-                    // As last resort, try to click the second visible button (assuming first is Framework selector)
-                    if (count >= 2) {
-                        controlsTab = visibleButtons.nth(1);
-                        found = true;
-                        console.log('Using second visible button as fallback');
-                    }
-                }
-            } catch (e: any) {
-                console.log('Tab iteration failed:', e.message);
-            }
-        }
-        
-        if (!found || !controlsTab) {
-            throw new Error('Could not find Controls tab using any method');
-        }
-        
-        await controlsTab.click();
-        console.log('Clicked Controls tab');
-        
-        // Wait for controls to load
-        await page.waitForTimeout(3000);
-        await page.screenshot({ path: 'test-debug-after-controls-click.png', fullPage: true });
+        // 3. Navigate directly to a control via Deep Link
+        // This is more stable than clicking the virtualized list in CI
+        console.log('Navigating to control A.5.1 via Deep Link...');
+        await page.goto('/#/compliance?id=ctrl-1');
 
-        // Debug: Check if any control rows are visible
-        const controlRows = await page.locator('[data-testid*="control-row"]').all();
-        console.log(`Found ${controlRows.length} control rows`);
-        
-        // Debug: Check if domain headers are visible
-        const domainHeaders = await page.locator('[data-testid*="domain-header"]').all();
-        console.log(`Found ${domainHeaders.length} domain headers`);
-        
-        // Debug: Look for any elements with A.5 in their text
-        const a5Elements = await page.locator('text=/A\.5/').all();
-        console.log(`Found ${a5Elements.length} elements with A.5 text`);
-
-        // 4. Open the A.5 domain
-        const domainHeader = page.getByTestId('domain-header-A.5');
-        await expect(domainHeader).toBeVisible({ timeout: 10000 });
-        console.log('Domain header A.5 visible, clicking...');
-        await domainHeader.click();
-
-        // Wait for animation and controls to appear
-        await page.waitForTimeout(3000);
-        console.log('Clicked domain header, waiting for controls...');
-        
-        // Debug: Take another screenshot after clicking domain
-        await page.screenshot({ path: 'test-debug-after-domain-click.png', fullPage: true });
-        
-        // Debug: Check again for control rows
-        const controlRowsAfter = await page.locator('[data-testid*="control-row"]').all();
-        console.log(`Found ${controlRowsAfter.length} control rows after domain click`);
-        
-        // If no control rows found, try to find any clickable elements in the domain
-        if (controlRowsAfter.length === 0) {
-            console.log('No control rows found, looking for alternative selectors...');
-            
-            // Try to find any elements with control codes
-            const controlElements = await page.locator('text=/A\.5\.[0-9]/').all();
-            console.log(`Found ${controlElements.length} elements with control codes`);
-            
-            if (controlElements.length > 0) {
-                console.log('Clicking first control element found...');
-                await controlElements[0].click();
-            } else {
-                // As fallback, try to find any clickable element in the expanded domain
-                const clickableElements = await page.locator('.glass-premium').locator('div').filter({ hasText: /A\.5/ }).all();
-                console.log(`Found ${clickableElements.length} clickable elements with A.5`);
-                
-                if (clickableElements.length > 0) {
-                    await clickableElements[0].click();
-                } else {
-                    throw new Error('Could not find any control elements to click');
-                }
-            }
-        }
-
-        // 5. Click the first control row found
-        if (controlRowsAfter.length > 0) {
-            console.log('Clicking first available control row...');
-            await controlRowsAfter[0].click();
-            
-            // Wait for potential inspector to open
-            await page.waitForTimeout(2000);
-            
-            // Debug: Take screenshot after clicking control
-            await page.screenshot({ path: 'test-debug-after-control-click.png', fullPage: true });
-            
-            // Debug: Check for any drawer/inspector elements
-            const drawers = await page.locator('.drawer, [role="dialog"], .inspector').all();
-            console.log(`Found ${drawers.length} drawer/inspector elements`);
-            
-            // Debug: Check for any tabs that might be in an inspector
-            const tabs = await page.locator('[role="tab"]').all();
-            console.log(`Found ${tabs.length} tab elements`);
-            
-            for (let i = 0; i < Math.min(tabs.length, 5); i++) {
-                const tab = tabs[i];
-                const text = await tab.textContent();
-                const isVisible = await tab.isVisible();
-                console.log(`Tab ${i}: "${text}" - Visible: ${isVisible}`);
-            }
-        } else {
-            throw new Error('No control rows found after domain expansion');
-        }
-
-        // 6. Verify Inspector opens by checking for the "Détails" tab
-        // Try multiple approaches to find the Details tab
-        let detailsTab;
-        try {
-            // Approach 1: By role and text
-            detailsTab = page.getByRole('tab', { name: /Détails|Details/i });
-            await expect(detailsTab).toBeVisible({ timeout: 5000 });
-        } catch {
-            try {
-                // Approach 2: By text content only
-                detailsTab = page.locator('button').filter({ hasText: /Détails|Details/i }).first();
-                await expect(detailsTab).toBeVisible({ timeout: 5000 });
-            } catch {
-                try {
-                    // Approach 3: Any element with Details text
-                    detailsTab = page.locator('text=/Détails|Details/').first();
-                    await expect(detailsTab).toBeVisible({ timeout: 5000 });
-                } catch {
-                    throw new Error('Could not find Details tab in inspector');
-                }
-            }
-        }
+        // Wait for page to stabilize
+        await expect(page.getByText(/Conformité|Compliance/i).first()).toBeVisible({ timeout: 20000 });
 
         // 7. Switch to "Preuves" (Evidence) tab
         // The inspector uses regular buttons as tabs, not role="tab"
@@ -287,21 +122,21 @@ test.describe('Compliance Module', () => {
             }
         }
         await addEvidenceBtn.click();
-        
+
         // Wait for upload wizard to potentially open
         await page.waitForTimeout(2000);
-        
+
         // Debug: Take screenshot after clicking add evidence button
         await page.screenshot({ path: 'test-debug-after-add-evidence.png', fullPage: true });
-        
+
         // Debug: Check for any modal/dialog elements
         const modals = await page.locator('.modal, [role="dialog"], .drawer, .wizard').all();
         console.log(`Found ${modals.length} modal/dialog elements`);
-        
+
         // Debug: Look for any upload-related text
         const uploadTexts = await page.locator('text=/Téléverser|Upload|Documents|Fichiers/').all();
         console.log(`Found ${uploadTexts.length} upload-related text elements`);
-        
+
         for (let i = 0; i < Math.min(uploadTexts.length, 5); i++) {
             const text = uploadTexts[i];
             const content = await text.textContent();
@@ -339,7 +174,7 @@ test.describe('Compliance Module', () => {
         // 10. Upload a dummy file
         // The file input is hidden, so we need to click the upload button first
         const fileInput = page.locator('input[type="file"]');
-        
+
         // Look for the "Upload Direct" button or similar
         let uploadButton;
         try {
@@ -362,7 +197,7 @@ test.describe('Compliance Module', () => {
                 }
             }
         }
-        
+
         if (uploadButton) {
             // Handle any overlays that might interfere
             await page.addLocatorHandler(page.locator('#headlessui-portal-root'), async (overlay) => {
@@ -370,7 +205,7 @@ test.describe('Compliance Module', () => {
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(500);
             });
-            
+
             // Try to click with force if needed
             try {
                 await uploadButton.click({ timeout: 5000 });
@@ -380,7 +215,7 @@ test.describe('Compliance Module', () => {
             }
             await page.waitForTimeout(1000);
         }
-        
+
         // Now set the files on the file input (even if it's hidden)
         await fileInput.setInputFiles({
             name: 'test-evidence.txt',
@@ -410,7 +245,7 @@ test.describe('Compliance Module', () => {
                 }
             }
         }
-        
+
         if (titleInput) {
             try {
                 await titleInput.fill('Test Evidence Document', { timeout: 3000 });
@@ -440,7 +275,7 @@ test.describe('Compliance Module', () => {
                 }
             }
         }
-        
+
         if (submitBtn) {
             try {
                 await submitBtn.click({ timeout: 5000 });

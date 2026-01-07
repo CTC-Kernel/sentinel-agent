@@ -38,6 +38,9 @@ import { OnboardingService } from '../services/onboardingService';
 export const Documents: React.FC = () => {
     const { user, t } = useStore();
     const location = useLocation();
+
+    // DEBUG LOG
+    console.log('[Documents] Rendering Documents Page. User:', user?.email, 'Org:', user?.organizationId);
     const canCreate = canEditResource(user, 'Document');
 
     // Start module tour

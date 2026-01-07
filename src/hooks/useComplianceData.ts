@@ -30,7 +30,16 @@ export const useComplianceData = (currentFramework?: Framework) => {
 
         setLoading(true);
 
-        const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
+        // Robustly check for demo mode from multiple sources
+        const storedDemo = typeof window !== 'undefined' ? window.localStorage.getItem('demoMode') : 'false';
+        const isDemo = demoMode || storedDemo === 'true';
+
+        console.log('[Debug] useComplianceData:', {
+            demoModeStore: demoMode,
+            demoModeLocal: storedDemo,
+            isDemo,
+            orgId: user.organizationId
+        });
 
         if (isDemo) {
             console.log('useComplianceData: Entering demo mode (static)');

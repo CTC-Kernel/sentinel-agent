@@ -317,7 +317,7 @@ export const MockDataService = {
                 return [
                     {
                         id: 'doc-1',
-                        name: 'Politique de Sécurité (PSSI).pdf',
+                        title: 'Politique de Sécurité (PSSI).pdf',
                         type: 'policy',
                         status: 'Publié',
                         organizationId: 'org_default',
@@ -330,7 +330,7 @@ export const MockDataService = {
                     },
                     {
                         id: 'doc-2',
-                        name: 'Plan de Continuité (PCA).pdf',
+                        title: 'Plan de Continuité (PCA).pdf',
                         type: 'procedure',
                         status: 'En revue',
                         organizationId: 'org_default',
@@ -344,7 +344,7 @@ export const MockDataService = {
                     },
                     {
                         id: 'doc-3',
-                        name: 'Charte Informatique.pdf',
+                        title: 'Charte Informatique.pdf',
                         type: 'policy',
                         status: 'Publié',
                         organizationId: 'org_default',
@@ -617,6 +617,53 @@ export const MockDataService = {
                         indicators: [],
                         organizationId: 'org_default',
                         tags: ['Zero-Day', 'Microsoft']
+                    }
+                ];
+            case 'backups':
+                return [
+                    {
+                        id: 'backup-1',
+                        organizationId: 'org_default',
+                        createdAt: new Date(now.getTime() - oneDay).toISOString(),
+                        createdBy: 'demo@sentinel.com',
+                        config: {
+                            includeDocuments: true,
+                            includeAssets: true,
+                            includeRisks: true,
+                            includeControls: true,
+                            includeAudits: true,
+                            includeProjects: true,
+                            includeSuppliers: true,
+                            includeIncidents: true,
+                            includeUsers: true,
+                            includeComments: true
+                        },
+                        size: 1024 * 1024 * 5, // 5MB
+                        collections: ['documents', 'assets', 'risks'],
+                        status: 'completed',
+                        downloadUrl: 'https://example.com/backup.json'
+                    },
+                    {
+                        id: 'backup-2',
+                        organizationId: 'org_default',
+                        createdAt: new Date(now.getTime() - oneWeek).toISOString(),
+                        createdBy: 'admin@sentinel.com',
+                        config: {
+                            includeDocuments: true,
+                            includeAssets: true,
+                            includeRisks: true,
+                            includeControls: true,
+                            includeAudits: true,
+                            includeProjects: true,
+                            includeSuppliers: true,
+                            includeIncidents: true,
+                            includeUsers: true,
+                            includeComments: true
+                        },
+                        size: 1024 * 1024 * 12, // 12MB
+                        collections: ['documents', 'assets', 'risks', 'incidents'],
+                        status: 'completed',
+                        downloadUrl: 'https://example.com/backup2.json'
                     }
                 ];
             default:

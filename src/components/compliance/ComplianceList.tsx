@@ -140,7 +140,10 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                             <div
                                                 key={control.id}
                                                 data-testid={`control-row-${control.code}`}
-                                                onClick={() => onSelectControl(control)}
+                                                onClick={() => {
+                                                    console.log('[Debug] ComplianceList: Clicked', control.id);
+                                                    onSelectControl(control);
+                                                }}
                                                 className={`group relative p-4 rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md ${isActive
                                                     ? 'bg-brand-50/50 border-brand-200 dark:bg-brand-900/20 dark:border-brand-800'
                                                     : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-brand-200 dark:hover:border-brand-700/50'

@@ -18,10 +18,22 @@ export const useSystemHealth = () => {
         const fetchMetrics = async () => {
             if (!user?.organizationId) return;
             try {
-                // Fetch real user count filtered by Org
-                const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
-                const snapshot = await getCountFromServer(q);
-                setUserCount(snapshot.data().count);
+                // Check for demo mode
+                const isDemo = typeof window !== 'undefined' &&
+                    (window.localStorage.getItem('demoMode') === 'true' ||
+                        (window as any).__TEST_MODE__ === true);
+
+                if (isDemo) {
+                    const { MockDataService } = await import('../services/mockDataService');
+                    // Use length of users collection as meaningful mock
+                    const users = MockDataService.getCollection('users');
+                    setUserCount(users.length);
+                } else {
+                    // Fetch real user count filtered by Org
+                    const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
+                    const snapshot = await getCountFromServer(q);
+                    setUserCount(snapshot.data().count);
+                }
             } catch (error) {
                 // Log silently as this is a dashboard widget
                 ErrorLogger.error(error as Error, 'useSystemHealth.fetchMetrics');
