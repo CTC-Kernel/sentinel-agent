@@ -140,13 +140,21 @@ export async function setupOverlayHandlers(page: Page) {
 }
 
 export async function setupFirestoreMocks(page: Page) {
-    // Block Driver.js and other tour libraries
-    await page.route('**/driver*', async route => {
-        await route.abort();
-    });
-    
-    await page.route('**/*driver*.js', async route => {
-        await route.abort();
+    // Disable tours and overlays by injecting JavaScript early
+    await page.addInitScript(() => {
+        // Disable Driver.js and other tour libraries
+        (window as any).driver = undefined;
+        (window as any).driverjs = undefined;
+        (window as any).tourDisabled = true;
+        
+        // Prevent tour initialization
+        const originalQuerySelector = document.querySelector;
+        (document as any).querySelector = function(selector: string) {
+            if (selector.includes('driver') || selector.includes('tour')) {
+                return null;
+            }
+            return originalQuerySelector.call(this, selector);
+        };
     });
     
     // Setup comprehensive overlay handlers
