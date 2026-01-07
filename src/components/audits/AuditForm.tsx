@@ -64,6 +64,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
 
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<AuditFormData>({
         resolver: zodResolver(auditSchema),
+        mode: 'onBlur',
         shouldUnregister: true,
         defaultValues: {
             // ...
