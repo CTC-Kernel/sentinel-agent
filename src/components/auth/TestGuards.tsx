@@ -19,7 +19,7 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
                 if (user.uid && user.email) {
                     isAuthorized = true;
                 }
-            } catch (e) {
+            } catch {
                 // Invalid mock user format
             }
         }
@@ -54,7 +54,7 @@ export const TestRoleGuard: React.FC<{
                 if (user.role && (!allowedRoles.length || allowedRoles.includes(user.role))) {
                     isAuthorized = true;
                 }
-            } catch (e) {
+            } catch {
                 // Invalid mock user format
             }
         }

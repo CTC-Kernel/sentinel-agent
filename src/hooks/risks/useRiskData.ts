@@ -8,7 +8,7 @@ import { Risk, Asset, Control, BusinessProcess as Process, Supplier, Incident, A
 export const useRiskData = () => {
     const { user } = useAuth();
     const { demoMode } = useStore();
-    const [mockData, setMockData] = React.useState<any>({ risks: [], assets: [], controls: [], processes: [], suppliers: [], incidents: [], audits: [], projects: [], users: [] });
+    const [mockData, setMockData] = React.useState<Record<string, unknown[]>>({ risks: [], assets: [], controls: [], processes: [], suppliers: [], incidents: [], audits: [], projects: [], users: [] });
     const [mockLoading, setMockLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -38,7 +38,7 @@ export const useRiskData = () => {
     );
 
     const risks = React.useMemo(() => {
-        const source = demoMode ? mockData.risks : (rawRisks || []);
+        const source = (demoMode ? mockData.risks : (rawRisks || [])) as Risk[];
         return source.map((r: Risk) => ({
             ...r,
             probability: Number(r.probability) as Risk['probability'],

@@ -6,7 +6,7 @@ import { Incident, Asset, Risk, UserProfile, BusinessProcess } from '../../types
 
 export const useIncidentsData = (organizationId?: string) => {
     const { demoMode } = useStore();
-    const [mockData, setMockData] = React.useState<any>({ incidents: [], assets: [], risks: [], users: [], processes: [] });
+    const [mockData, setMockData] = React.useState<Record<string, unknown[]>>({ incidents: [], assets: [], risks: [], users: [], processes: [] });
     const [mockLoading, setMockLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -58,17 +58,17 @@ export const useIncidentsData = (organizationId?: string) => {
 
     // Derived Data
     const sortedIncidents = useMemo(() => {
-        const source = demoMode ? mockData.incidents : rawIncidents;
+        const source = (demoMode ? mockData.incidents : rawIncidents) as Incident[];
         return [...source].sort((a: Incident, b: Incident) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime());
     }, [rawIncidents, demoMode, mockData.incidents]);
 
     const assets = useMemo(() => {
-        const source = demoMode ? mockData.assets : rawAssets;
+        const source = (demoMode ? mockData.assets : rawAssets) as Asset[];
         return [...source].sort((a: Asset, b: Asset) => a.name.localeCompare(b.name));
     }, [rawAssets, demoMode, mockData.assets]);
 
     const risks = useMemo(() => {
-        const source = demoMode ? mockData.risks : rawRisks;
+        const source = (demoMode ? mockData.risks : rawRisks) as Risk[];
         return [...source].sort((a: Risk, b: Risk) => a.threat.localeCompare(b.threat));
     }, [rawRisks, demoMode, mockData.risks]);
 

@@ -24,7 +24,7 @@ export class E2EAuthService {
     if (plain) {
       try {
         return JSON.parse(plain) as UserProfile;
-      } catch (error) {
+      } catch {
         ErrorLogger.warn('Failed to parse plain E2E user', 'E2EAuthService.getE2EUser');
       }
     }
