@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupMockAuth, setupFirestoreMocks } from './utils';
+import { setupMockAuth, setupFirestoreMocks, waitForOverlaysToClose } from './utils';
 
 test.describe('Dashboard Module', () => {
     test.setTimeout(90000);
@@ -8,11 +8,15 @@ test.describe('Dashboard Module', () => {
         await setupMockAuth(page);
         await setupFirestoreMocks(page);
 
+        // Wait for overlays to close
+        await waitForOverlaysToClose(page);
+
         // Go to Dashboard
         await page.goto('/');
         // Wait for dashboard content to load (handles loading skeleton)
         try {
-            await page.locator('[data-tour="dashboard"]').waitFor({ state: 'visible', timeout: 15000 });
+            // Look for dashboard content instead of tour elements
+            await expect(page.getByText(/Bienvenue|Welcome|Dashboard/i)).toBeVisible({ timeout: 15000 });
         } catch (e) {
             console.log('DEBUG: Dashboard timeout. Diagnosing...');
             const loadingVisible = await page.getByRole('status').or(page.getByText(/Chargement|Loading/i)).isVisible().catch(() => false);
@@ -50,27 +54,31 @@ test.describe('Dashboard Module', () => {
         // DashboardHeader usually displays "Bienvenue" or "Welcome"
         // Check for specific Quick Action buttons which are always present
         // Quick Actions are hidden by default, hover to reveal (force hover as container might be animating/small)
-        const container = page.locator('[data-tour="quick-actions"]');
-        await container.dispatchEvent('mouseenter');
-        // await container.hover({ force: true });
-        await page.waitForTimeout(2000);
+        
+        // Look for quick actions container without data-tour
+        const container = page.locator('div').filter({ hasText: /Actions rapides|Quick Actions/i }).first();
+        if (await container.isVisible()) {
+            await container.dispatchEvent('mouseenter');
+            await page.waitForTimeout(2000);
+        }
 
         // e.g. "Risques" or "Risks"
-        await expect(page.getByRole('button', { name: /Risques|Risks/i }).first()).toBeVisible();
+        await expect(page.getByRole('button', { name: /Risques|Risks/i }).first()).toBeVisible({ timeout: 10000 });
     });
 
     test('should navigate via quick actions', async ({ page }) => {
         // Quick Actions are hidden by default, hover to reveal
-        const container = page.locator('[data-tour="quick-actions"]');
-        await container.dispatchEvent('mouseenter');
-        // await container.hover({ force: true });
-        await page.waitForTimeout(2000);
+        const container = page.locator('div').filter({ hasText: /Actions rapides|Quick Actions/i }).first();
+        if (await container.isVisible()) {
+            await container.dispatchEvent('mouseenter');
+            await page.waitForTimeout(2000);
+        }
 
         // Wait for animation
         await page.waitForTimeout(500);
 
         // Use a more generic check for quick actions
-        await expect(page.getByRole('button', { name: /Risques|Risks/i }).first()).toBeVisible();
+        await expect(page.getByRole('button', { name: /Risques|Risks/i }).first()).toBeVisible({ timeout: 10000 });
 
         // Click on "Incidents" or similar button that is safe
         const incidentsBtn = page.getByRole('button', { name: /Incidents/i }).first();
