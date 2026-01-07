@@ -1,14 +1,15 @@
 
 import { test, expect } from '@playwright/test';
+import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Audits Module', () => {
     test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
+        // Ensure localStorage is populated with mock user
+        await setupMockAuth(page);
+        await setupFirestoreMocks(page);
+
         await page.goto('/#/audits');
-
-        // Robust dismissal of modals
-        // Robust dismissal of modals using locator handlers
-
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click({ force: true });
         });
