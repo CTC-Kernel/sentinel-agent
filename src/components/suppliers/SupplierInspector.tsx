@@ -136,6 +136,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                         <SupplierAssessments
                             canEdit={canEdit}
                             onStartAssessment={onStartAssessment}
+                            assessments={[]} // TODO: Connect to real assessment history
                         />
                     )}
                     {inspectorTab === 'history' && (

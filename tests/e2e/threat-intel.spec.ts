@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Threat Intelligence Module', () => {
     test.beforeEach(async ({ page }) => {
+        await setupMockAuth(page);
+        await setupFirestoreMocks(page);
+
         await page.goto('/#/threat-intelligence');
 
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {

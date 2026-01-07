@@ -29,7 +29,14 @@ export const DirectionDashboardView: React.FC<DirectionDashboardViewProps> = ({
 }) => {
     return (
         <>
-            <DashboardStats stats={stats} loading={loading} navigate={navigate} t={t} topRisks={topRisks} incidents={incidents} />
+            <DashboardStats
+                stats={stats}
+                loading={loading}
+                complianceScore={stats.compliance}
+                activeIncidentsCount={incidents?.length || 0}
+                topRisks={topRisks.map(r => ({ name: r.threat, score: r.score }))}
+                activeIncidents={incidents}
+            />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
                 <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />

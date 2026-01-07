@@ -31,7 +31,7 @@ let appCheck: AppCheck | null = null;
 export let isAppCheckFailed = false;
 
 // Initialize App Check with ReCAPTCHA Enterprise
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test') {
   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
   const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN as string | undefined;
 
@@ -111,6 +111,9 @@ export const debugGetAppCheckTokenSnippet = async (): Promise<string | null> => 
 // Use getAuth for immediate instance, which works reliably on Web
 export const auth = getAuth(app);
 
+// Connect to Emulators if requested (e.g. for E2E tests)
+// Connect to Emulators logic moved below initialization of all services
+
 // Configure persistence dynamically to ensure iOS works correctly
 // This avoids static Capacitor imports that break Web, but sets persistence for Native
 (async () => {
@@ -145,6 +148,19 @@ export const db = initializeFirestore(app, {
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 export let analytics: Analytics | null = null;
+
+if (import.meta.env.VITE_USE_EMULATORS === 'true') {
+  const { connectAuthEmulator } = await import('firebase/auth');
+  const { connectFirestoreEmulator } = await import('firebase/firestore');
+  const { connectFunctionsEmulator } = await import('firebase/functions');
+  const { connectStorageEmulator } = await import('firebase/storage');
+
+  console.log('[Firebase] Connecting to Emulators...');
+  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+  connectFirestoreEmulator(db, 'localhost', 8085);
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+  connectStorageEmulator(storage, 'localhost', 9199);
+}
 
 (async () => {
   try {

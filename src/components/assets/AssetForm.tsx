@@ -53,6 +53,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 }) => {
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues, register } = useForm<AssetFormData>({
         resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
+        mode: 'onBlur', // Enable validation on blur for better UX
         shouldUnregister: true, // IMPORTANT: Remove hidden fields from data to avoid validation errors on invisible fields
         defaultValues: {
             name: '',
@@ -88,10 +89,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     });
 
     const onInvalid = (errors: FieldErrors<AssetFormData>) => {
-        const missingFields = Object.keys(errors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        const missingFields = Object.keys(errors).map(field => t(`common.fields.${field}`) || field).join(', ');
+        toast.error(t('common.formInvalid'), {
+            description: t('common.checkFields', { fields: missingFields })
+        });
     };
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const [suggestingField, setSuggestingField] = React.useState<string | null>(null);
 
     useEffect(() => {

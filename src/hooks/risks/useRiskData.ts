@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFirestoreCollection } from '../useFirestore';
-import { where } from 'firebase/firestore';
+import { where } from 'firebase/firestore'; // Added orderBy support if needed, keeping imports clean
 import { useStore } from '../../store';
 import { useAuth } from '../useAuth';
 import { Risk, Asset, Control, BusinessProcess as Process, Supplier, Incident, Audit, Project, UserProfile } from '../../types';
@@ -48,7 +48,7 @@ export const useRiskData = () => {
     );
 
     const risks = React.useMemo(() => {
-        const source = demoMode ? mockData.risks : (rawRisks || []);
+        const source = (demoMode ? mockData.risks : (rawRisks || [])) as Risk[];
         return source.map((r: Risk) => ({
             ...r,
             probability: Number(r.probability) as Risk['probability'],
@@ -117,13 +117,13 @@ export const useRiskData = () => {
 
     return {
         risks,
-        assets: demoMode ? mockData.assets : assets,
-        controls: demoMode ? mockData.controls : controls,
-        rawProcesses: demoMode ? mockData.processes : rawProcesses,
-        suppliers: demoMode ? mockData.suppliers : suppliers,
-        incidents: demoMode ? mockData.incidents : incidents,
-        audits: demoMode ? mockData.audits : audits,
-        projects: demoMode ? mockData.projects : projects,
+        assets: (demoMode ? mockData.assets : assets) as Asset[],
+        controls: (demoMode ? mockData.controls : controls) as Control[],
+        rawProcesses: (demoMode ? mockData.processes : rawProcesses) as Process[],
+        suppliers: (demoMode ? mockData.suppliers : suppliers) as Supplier[],
+        incidents: (demoMode ? mockData.incidents : incidents) as Incident[],
+        audits: (demoMode ? mockData.audits : audits) as Audit[],
+        projects: (demoMode ? mockData.projects : projects) as Project[],
         usersList: effectiveUsers,
         loading,
         refreshRisks: () => { }

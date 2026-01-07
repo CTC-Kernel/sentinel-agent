@@ -1,9 +1,12 @@
-
 import { test, expect } from '@playwright/test';
+import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Incidents Module', () => {
     test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
+        await setupMockAuth(page);
+        await setupFirestoreMocks(page);
+
         await page.goto('/#/incidents');
 
         // Robust dismissal of modals

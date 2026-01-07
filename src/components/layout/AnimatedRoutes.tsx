@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedPage } from './AnimatedPage';
 import { RoleGuard } from '../auth/RoleGuard';
+import { TestRoleGuard } from '../auth/TestGuards';
 
 // Lazy Imports (Copied from App.tsx)
 const DashboardWithQuickActions = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.DashboardWithQuickActions })));
@@ -43,6 +44,8 @@ import { NotFound } from '../../views/NotFound';
 
 export const AnimatedRoutes: React.FC = () => {
     const location = useLocation();
+    const isTestMode = import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true';
+    const RoleGuardComponent = isTestMode ? TestRoleGuard : RoleGuard;
 
     return (
         <AnimatePresence mode="wait">
@@ -60,17 +63,21 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/threat-intelligence" element={<AnimatedPage><ThreatIntelligence /></AnimatedPage>} />
                 <Route path="/reports" element={<AnimatedPage><Reports /></AnimatedPage>} />
                 <Route path="/compliance" element={<AnimatedPage><Compliance /></AnimatedPage>} />
-                <Route path="/documents" element={<AnimatedPage><Documents /></AnimatedPage>} />
+                <Route path="/documents" element={
+                    <RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user']}>
+                        <AnimatedPage><Documents /></AnimatedPage>
+                    </RoleGuardComponent>
+                } />
                 <Route path="/audits" element={<AnimatedPage><Audits /></AnimatedPage>} />
                 <Route path="/team" element={
-                    <RoleGuard allowedRoles={['admin', 'rssi']}>
+                    <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
                         <AnimatedPage><Team /></AnimatedPage>
-                    </RoleGuard>
+                    </RoleGuardComponent>
                 } />
                 <Route path="/settings" element={
-                    <RoleGuard allowedRoles={['admin', 'rssi']}>
+                    <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
                         <AnimatedPage><Settings /></AnimatedPage>
-                    </RoleGuard>
+                    </RoleGuardComponent>
                 } />
                 <Route path="/suppliers" element={<AnimatedPage><Suppliers /></AnimatedPage>} />
                 <Route path="/privacy" element={<AnimatedPage><Privacy /></AnimatedPage>} />
@@ -84,27 +91,27 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/calendar" element={<AnimatedPage><CalendarView /></AnimatedPage>} />
                 <Route path="/pricing" element={<AnimatedPage><Pricing /></AnimatedPage>} />
                 <Route path="/system-health" element={
-                    <RoleGuard allowedRoles={['admin']}>
+                    <RoleGuardComponent allowedRoles={['admin']}>
                         <AnimatedPage><SystemHealth /></AnimatedPage>
-                    </RoleGuard>
+                    </RoleGuardComponent>
                 } />
 
                 {/* Restricted Routes */}
                 <Route path="/backup" element={
-                    <RoleGuard allowedRoles={['admin', 'rssi']}>
+                    <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
                         <AnimatedPage><BackupRestore /></AnimatedPage>
-                    </RoleGuard>
+                    </RoleGuardComponent>
                 } />
                 <Route path="/admin_management" element={
                     // AdminDashboard handles its own super-admin check, but we add basic role check too
-                    <RoleGuard allowedRoles={['admin']}>
+                    <RoleGuardComponent allowedRoles={['admin']}>
                         <AnimatedPage><AdminDashboard /></AnimatedPage>
-                    </RoleGuard>
+                    </RoleGuardComponent>
                 } />
                 <Route path="/integrations" element={
-                    <RoleGuard allowedRoles={['admin', 'rssi']}>
+                    <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
                         <AnimatedPage><Integrations /></AnimatedPage>
-                    </RoleGuard>
+                    </RoleGuardComponent>
                 } />
 
                 <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />

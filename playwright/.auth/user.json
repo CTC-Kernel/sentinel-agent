@@ -1,21 +1,31 @@
 {
   "cookies": [
     {
-      "name": "_ga",
-      "value": "GA1.1.773205192.1767322981",
+      "name": "auth_state",
+      "value": "mock_authenticated",
       "domain": "localhost",
       "path": "/",
-      "expires": 1801882981.252625,
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.2044885621.1767776135",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1802336135.195724,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "_ga_2MLLGDZ6GP",
-      "value": "GS2.1.s1767322981$o1$g0$t1767322981$j60$l0$h0",
+      "value": "GS2.1.s1767776135$o1$g0$t1767776135$j60$l0$h0",
       "domain": "localhost",
       "path": "/",
-      "expires": 1801882981.256734,
+      "expires": 1802336135.395676,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -35,15 +45,11 @@
         },
         {
           "name": "demoMode",
-          "value": "true"
-        },
-        {
-          "name": "tour-seen",
-          "value": "true"
+          "value": "false"
         },
         {
           "name": "E2E_TEST_USER",
-          "value": "{\"uid\":\"e2e-user-123\",\"email\":\"e2e@sentinel.com\",\"displayName\":\"E2E Sentinel\",\"emailVerified\":true,\"photoURL\":null,\"organizationId\":\"org_default\",\"role\":\"admin\",\"onboardingCompleted\":true}"
+          "value": "{\"uid\":\"e2e-user-123\",\"email\":\"e2e@sentinel.com\",\"displayName\":\"E2E Test User\",\"photoURL\":null,\"emailVerified\":true,\"organizationId\":\"org_default\",\"role\":\"admin\",\"permissions\":[\"read\",\"write\",\"delete\",\"admin\"],\"customClaims\":{\"organizationId\":\"org_default\",\"role\":\"admin\"}}"
         },
         {
           "name": "onboarding_completed",
@@ -51,19 +57,23 @@
         },
         {
           "name": "app_logs",
-          "value": "[{\"type\":\"warning\",\"timestamp\":\"2026-01-02T03:03:00.794Z\",\"context\":\"appConfig.ts\",\"message\":\"VITE_APP_BASE_URL is not defined. APP_BASE_URL will be empty and email links may be relative only.\"},{\"type\":\"warning\",\"timestamp\":\"2026-01-02T03:03:01.523Z\",\"context\":\"appConfig.ts\",\"message\":\"VITE_APP_BASE_URL is not defined. APP_BASE_URL will be empty and email links may be relative only.\"},{\"type\":\"info\",\"timestamp\":\"2026-01-02T03:03:01.704Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2026-01-02T03:03:01.704Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"},{\"type\":\"info\",\"timestamp\":\"2026-01-02T03:03:01.705Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2026-01-02T03:03:01.705Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"}]"
+          "value": "[{\"type\":\"info\",\"timestamp\":\"2026-01-07T08:55:33.941Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2026-01-07T08:55:33.941Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"},{\"type\":\"info\",\"timestamp\":\"2026-01-07T08:55:33.943Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2026-01-07T08:55:33.943Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"},{\"type\":\"info\",\"timestamp\":\"2026-01-07T08:55:33.947Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2026-01-07T08:55:33.947Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"}]"
         },
         {
-          "name": "onboarding_dismissed",
-          "value": "true"
+          "name": "auth_token",
+          "value": "mock-jwt-token"
         },
         {
-          "name": "tour-dismissed",
-          "value": "true"
+          "name": "auth_refresh_token",
+          "value": "mock-refresh-token"
         },
         {
-          "name": "language",
-          "value": "fr"
+          "name": "debug_app_check",
+          "value": "false"
+        },
+        {
+          "name": "auth_user",
+          "value": "{\"uid\":\"e2e-user-123\",\"email\":\"e2e@sentinel.com\",\"displayName\":\"E2E Test User\",\"photoURL\":null,\"emailVerified\":true,\"organizationId\":\"org_default\",\"role\":\"admin\",\"permissions\":[\"read\",\"write\",\"delete\",\"admin\"],\"customClaims\":{\"organizationId\":\"org_default\",\"role\":\"admin\"}}"
         }
       ]
     },
@@ -71,8 +81,40 @@
       "origin": "https://www.google.com",
       "localStorage": [
         {
+          "name": "sentinel_cookie_consent",
+          "value": "true"
+        },
+        {
+          "name": "demoMode",
+          "value": "false"
+        },
+        {
+          "name": "E2E_TEST_USER",
+          "value": "{\"uid\":\"e2e-user-123\",\"email\":\"e2e@sentinel.com\",\"displayName\":\"E2E Test User\",\"photoURL\":null,\"emailVerified\":true,\"organizationId\":\"org_default\",\"role\":\"admin\",\"permissions\":[\"read\",\"write\",\"delete\",\"admin\"],\"customClaims\":{\"organizationId\":\"org_default\",\"role\":\"admin\"}}"
+        },
+        {
+          "name": "onboarding_completed",
+          "value": "true"
+        },
+        {
+          "name": "auth_refresh_token",
+          "value": "mock-refresh-token"
+        },
+        {
+          "name": "auth_token",
+          "value": "mock-jwt-token"
+        },
+        {
           "name": "rc::a",
-          "value": "bHI4YnJnNjFyZDV0"
+          "value": "MXFyNTFwbzkwcjdiMw=="
+        },
+        {
+          "name": "debug_app_check",
+          "value": "false"
+        },
+        {
+          "name": "auth_user",
+          "value": "{\"uid\":\"e2e-user-123\",\"email\":\"e2e@sentinel.com\",\"displayName\":\"E2E Test User\",\"photoURL\":null,\"emailVerified\":true,\"organizationId\":\"org_default\",\"role\":\"admin\",\"permissions\":[\"read\",\"write\",\"delete\",\"admin\"],\"customClaims\":{\"organizationId\":\"org_default\",\"role\":\"admin\"}}"
         }
       ]
     }

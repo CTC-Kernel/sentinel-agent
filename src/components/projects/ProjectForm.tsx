@@ -70,6 +70,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<ProjectFormData>({
         // @ts-expect-error - Resolver type mismatch with RHF version
         resolver: zodResolver(projectSchema),
+        mode: 'onBlur',
         defaultValues: {
             name: initialData?.name || '',
             description: initialData?.description || '',

@@ -64,23 +64,19 @@ export const useIncidentsData = (organizationId?: string) => {
 
     // Derived Data
     const sortedIncidents = useMemo(() => {
-        const source = demoMode ? mockData.incidents : rawIncidents;
+        const source = (demoMode ? mockData.incidents : rawIncidents) as Incident[];
         return [...source].sort((a: Incident, b: Incident) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime());
     }, [rawIncidents, demoMode, mockData.incidents]);
 
     const assets = useMemo(() => {
-        const source = demoMode ? mockData.assets : rawAssets;
+        const source = (demoMode ? mockData.assets : rawAssets) as Asset[];
         return [...source].sort((a: Asset, b: Asset) => a.name.localeCompare(b.name));
     }, [rawAssets, demoMode, mockData.assets]);
 
     const risks = useMemo(() => {
-        const source = demoMode ? mockData.risks : rawRisks;
+        const source = (demoMode ? mockData.risks : rawRisks) as Risk[];
         return [...source].sort((a: Risk, b: Risk) => a.threat.localeCompare(b.threat));
     }, [rawRisks, demoMode, mockData.risks]);
-
-    // FIX: Ensure usersList is never empty if logged in logic is handled in view or here?
-    // Let's just return the raw list and let the view handle "effectiveUsers" or handle it here if we pass user.
-    // For now, keeping it simple.
 
     const loading = demoMode ? mockLoading : (loadingIncidents || loadingAssets || loadingRisks || loadingUsers || loadingProcesses);
 
@@ -88,8 +84,8 @@ export const useIncidentsData = (organizationId?: string) => {
         sortedIncidents,
         assets,
         risks,
-        usersList: demoMode ? mockData.users : usersList,
-        rawProcesses: demoMode ? mockData.processes : rawProcesses,
+        usersList: (demoMode ? mockData.users : usersList) as UserProfile[],
+        rawProcesses: (demoMode ? mockData.processes : rawProcesses) as BusinessProcess[],
         loading
     };
 };

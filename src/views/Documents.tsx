@@ -38,6 +38,9 @@ import { OnboardingService } from '../services/onboardingService';
 export const Documents: React.FC = () => {
     const { user, t } = useStore();
     const location = useLocation();
+
+    // DEBUG LOG
+    console.log('[Documents] Rendering Documents Page. User:', user?.email, 'Org:', user?.organizationId);
     const canCreate = canEditResource(user, 'Document');
 
     // Start module tour
@@ -188,9 +191,9 @@ export const Documents: React.FC = () => {
     const deferredFilter = useDeferredValue(filter);
     const filteredDocuments = useMemo(() => documents.filter(doc => {
         const needle = (deferredFilter || '').toLowerCase().trim();
-        const matchesSearch = !needle || doc.title.toLowerCase().includes(needle) ||
-            doc.type.toLowerCase().includes(needle) ||
-            doc.owner.toLowerCase().includes(needle);
+        const matchesSearch = !needle || (doc.title || '').toLowerCase().includes(needle) ||
+            (doc.type || '').toLowerCase().includes(needle) ||
+            (doc.owner || '').toLowerCase().includes(needle);
         const matchesFolder = selectedFolderId === null || doc.folderId === selectedFolderId;
         const matchesCategory = categoryFilter === 'all' || doc.type === categoryFilter;
         const matchesDigitalSafe = !isDigitalSafeMode || !!doc.isSecure;

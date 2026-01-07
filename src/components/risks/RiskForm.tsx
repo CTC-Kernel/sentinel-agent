@@ -65,6 +65,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const [activeTab, setActiveTab] = useState('context');
     const { control, handleSubmit, reset, formState: { errors }, setValue, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
+        mode: 'onBlur',
         shouldUnregister: false,
         defaultValues: {
             assetId: initialData?.assetId || '',

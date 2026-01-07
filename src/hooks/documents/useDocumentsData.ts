@@ -4,9 +4,16 @@ import { useFirestoreCollection } from '../useFirestore';
 import { Document, UserProfile, Control, Asset, Audit, DocumentFolder, Risk } from '../../types';
 import { EncryptionService } from '../../services/encryptionService';
 import { useStore } from '../../store';
+import { MockDataService } from '../../services/mockDataService';
 
 export const useDocumentsData = (organizationId?: string) => {
-    const { demoMode } = useStore();
+    const { demoMode: storeDemoMode } = useStore();
+    // Prioritize localStorage and window global for reliability in tests/demo
+    const demoMode = storeDemoMode ||
+        (typeof window !== 'undefined' && (
+            !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
+            (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
+        ));
 
     // Mock Data State
     const [mockData, setMockData] = useState<{
@@ -18,6 +25,11 @@ export const useDocumentsData = (organizationId?: string) => {
         risks: Risk[];
         folders: DocumentFolder[];
     } | null>(null);
+
+    // DEBUG LOG
+    useEffect(() => {
+        console.warn('!!! [useDocumentsData LOG] mockData State:', mockData ? 'LOADED' : 'NULL');
+    }, [mockData]);
 
     // Queries (Disabled in Demo Mode)
     const { data: rawDocuments, loading: loadingDocuments } = useFirestoreCollection<Document>(
@@ -65,7 +77,7 @@ export const useDocumentsData = (organizationId?: string) => {
     // Load Mock Data Effect
     useEffect(() => {
         if (demoMode && !mockData) {
-            import('../../services/mockDataService').then(({ MockDataService }) => {
+            setTimeout(() => {
                 setMockData({
                     documents: MockDataService.getCollection('documents') as Document[],
                     users: MockDataService.getCollection('users') as unknown as UserProfile[],
@@ -73,14 +85,14 @@ export const useDocumentsData = (organizationId?: string) => {
                     assets: MockDataService.getCollection('assets') as Asset[],
                     audits: MockDataService.getCollection('audits') as Audit[],
                     risks: MockDataService.getCollection('risks') as Risk[],
-                    folders: [] // No mock folders yet, or add provided
+                    folders: [] // No mock folders yet
                 });
-            });
+            }, 0);
         }
     }, [demoMode, mockData]);
 
     const effectiveDocuments = useMemo(() => {
-        const source = demoMode && mockData ? mockData.documents : rawDocuments;
+        const source = (demoMode && mockData ? mockData.documents : rawDocuments) || [];
         return [...source]
             .sort((a, b) => a.title.localeCompare(b.title))
             .map(doc => ({
@@ -90,29 +102,29 @@ export const useDocumentsData = (organizationId?: string) => {
     }, [rawDocuments, mockData, demoMode]);
 
     const effectiveControls = useMemo(() => {
-        const source = demoMode && mockData ? mockData.controls : rawControls;
+        const source = (demoMode && mockData ? mockData.controls : rawControls) || [];
         return [...source].sort((a, b) => a.code.localeCompare(b.code));
     }, [rawControls, mockData, demoMode]);
 
     const effectiveFolders = useMemo(() => {
-        const source = demoMode && mockData ? mockData.folders : rawFolders;
+        const source = (demoMode && mockData ? mockData.folders : rawFolders) || [];
         return [...source].sort((a, b) => a.name.localeCompare(b.name));
     }, [rawFolders, mockData, demoMode]);
 
     const effectiveUsers = useMemo(() => {
-        return demoMode && mockData ? mockData.users : usersList;
+        return (demoMode && mockData ? mockData.users : usersList) || [];
     }, [usersList, mockData, demoMode]);
 
     const effectiveAssets = useMemo(() => {
-        return demoMode && mockData ? mockData.assets : rawAssets;
+        return (demoMode && mockData ? mockData.assets : rawAssets) || [];
     }, [rawAssets, mockData, demoMode]);
 
     const effectiveAudits = useMemo(() => {
-        return demoMode && mockData ? mockData.audits : rawAudits;
+        return (demoMode && mockData ? mockData.audits : rawAudits) || [];
     }, [rawAudits, mockData, demoMode]);
 
     const effectiveRisks = useMemo(() => {
-        return demoMode && mockData ? mockData.risks : rawRisks;
+        return (demoMode && mockData ? mockData.risks : rawRisks) || [];
     }, [rawRisks, mockData, demoMode]);
 
 

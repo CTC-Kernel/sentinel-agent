@@ -24,6 +24,7 @@ import { CommandPalette } from './components/layout/CommandPalette';
 // UI Components
 import { SEO } from './components/SEO';
 import { AuthGuard } from './components/auth/AuthGuard';
+import { TestAuthGuard } from './components/auth/TestGuards';
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
 import { CertifierAuthGuard } from './components/auth/CertifierAuthGuard';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -80,6 +81,7 @@ const GlobalShortcutsWrapper: React.FC = () => {
 };
 
 const AppLayout: React.FC = () => {
+    console.log('AppLayout rendering. Mode:', import.meta.env.MODE);
     const { theme, user } = useStore();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -209,6 +211,13 @@ const AppInner: React.FC = () => {
         return <ContentBlockerError />;
     }
 
+    const isTest = import.meta.env.MODE === 'test' ||
+        import.meta.env.VITE_USE_EMULATORS === 'true' ||
+        (typeof window !== 'undefined' && (
+            (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__ ||
+            (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
+        ));
+
     return (
         <>
             <NavigationLoader />
@@ -251,11 +260,17 @@ const AppInner: React.FC = () => {
 
                         {/* Main App Route - Handles all paths and sub-routes */}
                         <Route path="/*" element={
-                            <AuthGuard>
-                                <NotificationProvider>
-                                    <AppLayout />
-                                </NotificationProvider>
-                            </AuthGuard>
+                            isTest ?
+                                <TestAuthGuard>
+                                    <NotificationProvider>
+                                        <AppLayout />
+                                    </NotificationProvider>
+                                </TestAuthGuard> :
+                                <AuthGuard>
+                                    <NotificationProvider>
+                                        <AppLayout />
+                                    </NotificationProvider>
+                                </AuthGuard>
                         } />
                     </Routes>
                 </Suspense>

@@ -26,7 +26,10 @@ export const useAudits = () => {
     // --- Data Fetching ---
 
     // Harden demoMode detection
-    const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
+    const isDemo = demoMode || (typeof window !== 'undefined' && (
+        !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
+        (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
+    ));
 
     // Firestore Data (Disabled in Demo Mode)
     const { data: firestoreAudits, loading: firestoreAuditsLoading, refresh: refreshFirestoreAudits } = useFirestoreCollection<Audit>(

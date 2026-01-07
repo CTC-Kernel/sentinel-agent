@@ -25,7 +25,10 @@ export const useContinuityData = (organizationId?: string) => {
         setLoading(true);
 
         // Harden demoMode detection for E2E tests where store might lag
-        const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
+        const isDemo = demoMode || (typeof window !== 'undefined' && (
+            !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
+            (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
+        ));
 
         if (isDemo) {
             import('../../services/mockDataService').then(module => {

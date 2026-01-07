@@ -9,35 +9,19 @@ export default defineConfig({
     reporter: 'html',
     use: {
         baseURL: 'http://localhost:8080',
-        trace: 'on-first-retry',
+        trace: 'retain-on-failure',
     },
+    // Set environment variables for tests
+    globalSetup: './tests/e2e/global-setup.ts',
+    /* Configure projects for major browsers */
     /* Configure projects for major browsers */
     projects: [
-        // Setup project
-        {
-            name: 'setup',
-            testMatch: /.*\.setup\.ts/,
-        },
-        // Main project
         {
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
-                // Use prepared auth state.
-                storageState: 'playwright/.auth/user.json',
             },
-            dependencies: ['setup'],
         },
-        /*
-        {
-          name: 'firefox',
-          use: { ...devices['Desktop Firefox'] },
-        },
-        {
-          name: 'webkit',
-          use: { ...devices['Desktop Safari'] },
-        },
-        */
     ],
     webServer: {
         command: 'npm run dev',

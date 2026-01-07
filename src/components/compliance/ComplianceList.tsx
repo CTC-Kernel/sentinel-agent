@@ -99,6 +99,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                     <div key={domain.id} className="glass-premium rounded-[2rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div
+                            data-testid={`domain-header-${domain.id}`}
                             onClick={() => toggleDomain(domain.id)}
                             className={`p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
@@ -139,7 +140,10 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                             <div
                                                 key={control.id}
                                                 data-testid={`control-row-${control.code}`}
-                                                onClick={() => onSelectControl(control)}
+                                                onClick={() => {
+                                                    console.log('[Debug] ComplianceList: Clicked', control.id);
+                                                    onSelectControl(control);
+                                                }}
                                                 className={`group relative p-4 rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md ${isActive
                                                     ? 'bg-brand-50/50 border-brand-200 dark:bg-brand-900/20 dark:border-brand-800'
                                                     : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-brand-200 dark:hover:border-brand-700/50'

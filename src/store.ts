@@ -36,20 +36,25 @@ interface AppState {
 
 import i18n from './i18n';
 
+// Helper for safe storage access
+const safeGetItem = (key: string) => {
+  try { return localStorage.getItem(key); } catch { /* ignore */ return null; }
+};
+
 export const useStore = create<AppState>((set) => ({
   user: null,
   organization: null,
   customRoles: [],
-  theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'dark',
+  theme: (safeGetItem('theme') as 'light' | 'dark') || 'dark',
   isLoading: true,
   toasts: [],
 
-  language: (localStorage.getItem('language') as 'fr' | 'en') || 'fr',
+  language: (safeGetItem('language') as 'fr' | 'en') || 'fr',
   setUser: (user) => set({ user }),
   setOrganization: (organization) => set({ organization }),
   setCustomRoles: (customRoles) => set({ customRoles }),
   setTheme: (theme) => set(() => {
-    localStorage.setItem('theme', theme);
+    try { localStorage.setItem('theme', theme); } catch { /* ignore */ }
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -58,7 +63,7 @@ export const useStore = create<AppState>((set) => ({
     return { theme };
   }),
   setLanguage: (lang) => {
-    localStorage.setItem('language', lang);
+    try { localStorage.setItem('language', lang); } catch { /* ignore */ }
     i18n.changeLanguage(lang);
     set({ language: lang });
   },
@@ -67,7 +72,7 @@ export const useStore = create<AppState>((set) => ({
   },
   toggleTheme: () => set((state) => {
     const newTheme = state.theme === 'light' ? 'dark' : 'light';
-    localStorage.setItem('theme', newTheme);
+    try { localStorage.setItem('theme', newTheme); } catch { /* ignore */ }
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -88,7 +93,10 @@ export const useStore = create<AppState>((set) => ({
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
-  demoMode: SecureStorage.getSecureItem('demoMode') === 'true',
+  // Robust demoMode initialization
+  demoMode: (typeof window !== 'undefined' && !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__)) ||
+    SecureStorage.getSecureItem('demoMode') === 'true',
+
   toggleDemoMode: () => set((state) => {
     const next = !state.demoMode;
     if (next) {
