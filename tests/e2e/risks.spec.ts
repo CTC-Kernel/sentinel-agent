@@ -1,10 +1,14 @@
 
 import { test, expect } from '@playwright/test';
+import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Risks Module', () => {
     test.setTimeout(90000);
 
     test.beforeEach(async ({ page }) => {
+        await setupMockAuth(page);
+        await setupFirestoreMocks(page);
+
         // Go to Assets to start the flow
         await page.goto('/#/assets');
 
