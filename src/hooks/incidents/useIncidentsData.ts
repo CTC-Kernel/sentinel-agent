@@ -2,10 +2,6 @@ import React, { useMemo } from 'react';
 import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
-import { useAuth } from '../useAuth'; // Added useAuth to match pattern in other hooks if needed, though useIncidentsData currently takes organizationId as arg? 
-// Actually, looking at the code, it takes organizationId as argument. 
-// Let's stick to the structure seen in the file but cleaned up.
-
 import { Incident, Asset, Risk, UserProfile, BusinessProcess } from '../../types';
 
 export const useIncidentsData = (organizationId?: string) => {
