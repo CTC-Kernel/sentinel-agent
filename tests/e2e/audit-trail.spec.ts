@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { setupMockAuth, setupFirestoreMocks, waitForOverlaysToClose } from './utils';
+import { BASE_URL } from './utils';
 
 test.describe('Audit Trail Module', () => {
     test.setTimeout(90000);
@@ -8,7 +9,7 @@ test.describe('Audit Trail Module', () => {
         await setupMockAuth(page);
         await setupFirestoreMocks(page);
 
-        await page.goto('/#/audit-trail');
+        await page.goto(BASE_URL + '/#/audit-trail');
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click({ force: true });
         });
@@ -41,7 +42,7 @@ test.describe('Audit Trail Module', () => {
         await waitForOverlaysToClose(page);
         
         // Go to assets and create a test asset
-        await page.goto('/#/assets');
+        await page.goto(BASE_URL + '/#/assets');
         await expect(page.getByText(/Actifs|Assets/i).first()).toBeVisible({ timeout: 15000 });
 
         // Click add asset button
@@ -62,7 +63,7 @@ test.describe('Audit Trail Module', () => {
             }
 
             // Navigate to audit trail to verify the action was logged
-            await page.goto('/#/audit-trail');
+            await page.goto(BASE_URL + '/#/audit-trail');
             await expect(page.getByText(/Journal d'audit|Audit Trail/i)).toBeVisible({ timeout: 15000 });
             await page.waitForTimeout(3000);
         }

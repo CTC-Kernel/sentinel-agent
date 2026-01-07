@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { setupMockAuth, setupFirestoreMocks } from './utils';
+import { setupMockAuth, setupFirestoreMocks, waitForOverlaysToClose, dismissTourDialog } from './utils';
+import { BASE_URL } from './utils';
 
 test.describe('Direct Navigation Tests', () => {
     test.setTimeout(60000);
@@ -10,124 +11,87 @@ test.describe('Direct Navigation Tests', () => {
     });
 
     test('should access dashboard directly', async ({ page }) => {
-        await page.goto('/#/');
+        await page.goto(BASE_URL + '/#/');
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
-
-        const currentUrl = page.url();
-        console.log('Dashboard URL:', currentUrl);
+        await waitForOverlaysToClose(page);
+        await dismissTourDialog(page);
 
         // Check if we're not on login page
-        expect(currentUrl).not.toContain('/login');
+        await expect(page).not.toHaveURL(/\/login/);
 
-        // Look for any content
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        // Try to find dashboard-related content
-        const content = page.locator('main, aside, [data-tour], h1, h2');
-        if (await content.count() > 0) {
-            console.log('✅ Found page content');
-        } else {
-            console.log('⚠️ No specific content found, but page loaded');
-        }
-
-        await page.screenshot({ path: 'test-results/dashboard-direct.png' });
+        // Verify the app is loaded - check for any h1 heading
+        await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible({ timeout: 10000 });
     });
 
     test('should access assets directly', async ({ page }) => {
-        await page.goto('/#/assets');
+        await page.goto(BASE_URL + '/#/assets');
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await waitForOverlaysToClose(page);
+        await dismissTourDialog(page);
 
-        const currentUrl = page.url();
-        console.log('Assets URL:', currentUrl);
+        await expect(page).not.toHaveURL(/\/login/);
 
-        expect(currentUrl).not.toContain('/login');
-
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        await page.screenshot({ path: 'test-results/assets-direct.png' });
+        // Verify we're on the assets page
+        await expect(page.getByRole('heading', { name: /Asset Inventory|Inventaire/i, level: 1 })).toBeVisible({ timeout: 15000 });
     });
 
     test('should access risks directly', async ({ page }) => {
-        await page.goto('/#/risks');
+        await page.goto(BASE_URL + '/#/risks');
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await waitForOverlaysToClose(page);
+        await dismissTourDialog(page);
 
-        const currentUrl = page.url();
-        console.log('Risks URL:', currentUrl);
+        await expect(page).not.toHaveURL(/\/login/);
 
-        expect(currentUrl).not.toContain('/login');
-
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        await page.screenshot({ path: 'test-results/risks-direct.png' });
+        // Verify we're on the risks page
+        await expect(page.getByRole('heading', { name: /Risk|Risque/i, level: 1 })).toBeVisible({ timeout: 15000 });
     });
 
     test('should access compliance directly', async ({ page }) => {
-        await page.goto('/#/compliance');
+        await page.goto(BASE_URL + '/#/compliance');
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await waitForOverlaysToClose(page);
+        await dismissTourDialog(page);
 
-        const currentUrl = page.url();
-        console.log('Compliance URL:', currentUrl);
+        await expect(page).not.toHaveURL(/\/login/);
 
-        expect(currentUrl).not.toContain('/login');
-
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        await page.screenshot({ path: 'test-results/compliance-direct.png' });
+        // Verify we're on the compliance page
+        await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible({ timeout: 15000 });
     });
 
     test('should access reports directly', async ({ page }) => {
-        await page.goto('/#/reports');
+        await page.goto(BASE_URL + '/#/reports');
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await waitForOverlaysToClose(page);
+        await dismissTourDialog(page);
 
-        const currentUrl = page.url();
-        console.log('Reports URL:', currentUrl);
+        await expect(page).not.toHaveURL(/\/login/);
 
-        expect(currentUrl).not.toContain('/login');
-
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        await page.screenshot({ path: 'test-results/reports-direct.png' });
+        // Verify we're on the reports page
+        await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible({ timeout: 15000 });
     });
 
     test('should access audit trail directly', async ({ page }) => {
-        await page.goto('/#/audit-trail');
+        await page.goto(BASE_URL + '/#/audit-trail');
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await waitForOverlaysToClose(page);
+        await dismissTourDialog(page);
 
-        const currentUrl = page.url();
-        console.log('Audit trail URL:', currentUrl);
+        await expect(page).not.toHaveURL(/\/login/);
 
-        expect(currentUrl).not.toContain('/login');
-
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        await page.screenshot({ path: 'test-results/audit-trail-direct.png' });
+        // Verify we're on the audit trail page
+        await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible({ timeout: 15000 });
     });
 
     test('should access settings directly', async ({ page }) => {
-        await page.goto('/#/settings');
+        await page.goto(BASE_URL + '/#/settings');
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(3000);
+        await waitForOverlaysToClose(page);
+        await dismissTourDialog(page);
 
-        const currentUrl = page.url();
-        console.log('Settings URL:', currentUrl);
+        await expect(page).not.toHaveURL(/\/login/);
 
-        expect(currentUrl).not.toContain('/login');
-
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        await page.screenshot({ path: 'test-results/settings-direct.png' });
+        // Verify we're on the settings page
+        await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible({ timeout: 15000 });
     });
 });
