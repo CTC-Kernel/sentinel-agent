@@ -99,6 +99,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                     <div key={domain.id} className="glass-premium rounded-[2rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div
+                            data-testid={`domain-header-${domain.id}`}
                             onClick={() => toggleDomain(domain.id)}
                             className={`p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >

@@ -81,6 +81,7 @@ const GlobalShortcutsWrapper: React.FC = () => {
 };
 
 const AppLayout: React.FC = () => {
+    console.log('AppLayout rendering. Mode:', import.meta.env.MODE);
     const { theme, user } = useStore();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -252,7 +253,7 @@ const AppInner: React.FC = () => {
 
                         {/* Main App Route - Handles all paths and sub-routes */}
                         <Route path="/*" element={
-                            import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true' ? 
+                            import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true' ?
                                 <TestAuthGuard>
                                     <NotificationProvider>
                                         <AppLayout />

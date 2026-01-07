@@ -29,7 +29,8 @@ export async function setupMockAuth(page: Page) {
         (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__ = true;
         (window as unknown as { __BYPASS_AUTH__: boolean }).__BYPASS_AUTH__ = true;
 
-        window.localStorage.setItem('demoMode', 'true');
+        // window.localStorage.setItem('demoMode', 'true'); // DISABLED to allow network mocks
+        window.localStorage.setItem('tour-seen', 'true');
         window.localStorage.setItem('E2E_TEST_USER', JSON.stringify({
             uid: "e2e-user-123",
             email: "e2e@sentinel.com",
@@ -71,8 +72,8 @@ export async function setupFirestoreMocks(page: Page) {
         await route.abort();
     });
 
-    // Intercept generic document queries if any use REST directly
-    await page.route('**/documents*', async route => {
+    // Intercept generic document queries (REST API)
+    await page.route('*firestore.googleapis.com*', async route => {
         const resourceType = route.request().resourceType();
         // Only intercept fetch/xhr requests. Scripts/styles/etc should pass through.
         if (resourceType !== 'fetch' && resourceType !== 'xhr') {
@@ -82,6 +83,7 @@ export async function setupFirestoreMocks(page: Page) {
 
         const url = route.request().url();
         const method = route.request().method();
+        console.log(`[Mock] Intercepting ${method} ${url}`);
 
         if (method === 'GET') {
             // Check which collection is being requested
@@ -141,7 +143,32 @@ export async function setupFirestoreMocks(page: Page) {
                 return;
             }
 
-            // Default empty for other collections (users, controls, etc.)
+            if (url.includes('/controls')) {
+                console.log('Intercepted /controls request, returning mock...');
+                await route.fulfill({
+                    json: {
+                        documents: [
+                            {
+                                name: "projects/sentinel-prod/databases/(default)/documents/controls/mock-control-1",
+                                fields: {
+                                    id: { stringValue: "5.1" },
+                                    code: { stringValue: "A.5.1" },
+                                    name: { stringValue: "Policies for information security" },
+                                    description: { stringValue: "Management direction for information security" },
+                                    domain: { stringValue: "A.5" },
+                                    status: { stringValue: "compliant" },
+                                    organizationId: { stringValue: "org_default" }
+                                },
+                                createTime: "2024-01-01T00:00:00Z",
+                                updateTime: "2024-01-01T00:00:00Z"
+                            }
+                        ]
+                    }
+                });
+                return;
+            }
+
+            // Default empty for other collections (users, etc.)
             await route.fulfill({
                 json: { documents: [] }
             });

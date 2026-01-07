@@ -1,10 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useStore } from '../../store';
 
 // Test guard that bypasses authentication in test mode
 export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    // In test mode, always allow access
+    const setUser = useStore(state => state.setUser);
+
+    // In test mode, hydrate user and allow access
     if (import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true') {
+        useEffect(() => {
+            const e2eUser = localStorage.getItem('E2E_TEST_USER');
+            const authUser = localStorage.getItem('auth_user');
+
+            if (e2eUser) {
+                try {
+                    console.log('Hydrating E2E_TEST_USER from localStorage:', e2eUser);
+                    setUser(JSON.parse(e2eUser));
+                } catch (e) {
+                    console.error('Failed to parse E2E_TEST_USER', e);
+                }
+            } else if (authUser) {
+                try {
+                    setUser(JSON.parse(authUser));
+                } catch (e) {
+                    console.error('Failed to parse auth_user', e);
+                }
+            }
+        }, [setUser]);
+
         return <>{children}</>;
     }
 
