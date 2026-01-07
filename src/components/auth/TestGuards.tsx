@@ -11,36 +11,41 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
     // In test mode, hydrate user and allow access
     const isTestMode = import.meta.env.MODE === 'test' ||
         import.meta.env.VITE_USE_EMULATORS === 'true' ||
-        (typeof window !== 'undefined' && (window as any).__TEST_MODE__);
+        (typeof window !== 'undefined' && (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__);
 
     useEffect(() => {
         if (isTestMode) {
             const e2eUser = localStorage.getItem('E2E_TEST_USER');
 
-            if (e2eUser) {
-                try {
-                    setUser(JSON.parse(e2eUser));
-                } catch (e) {
-                    console.error('Failed to parse E2E_TEST_USER', e);
+            // Defers updates to avoid synchronous setState warning
+            const timer = setTimeout(() => {
+                if (e2eUser) {
+                    try {
+                        setUser(JSON.parse(e2eUser));
+                    } catch (e) {
+                        console.error('Failed to parse E2E_TEST_USER', e);
+                    }
+                } else {
+                    // Fallback hardcoded user for robustness
+                    setUser({
+                        uid: "e2e-fallback",
+                        email: "test@sentinel.com",
+                        displayName: "Test Admin",
+                        organizationId: "org_default",
+                        role: "admin",
+                        onboardingCompleted: true,
+                        emailVerified: true
+                    });
                 }
-            } else {
-                // Fallback hardcoded user for robustness
-                setUser({
-                    uid: "e2e-fallback",
-                    email: "test@sentinel.com",
-                    displayName: "Test Admin",
-                    organizationId: "org_default",
-                    role: "admin",
-                    onboardingCompleted: true,
-                    emailVerified: true
-                });
-            }
-            useStore.getState().setLoading(false);
-            setHydrated(true);
+                useStore.getState().setLoading(false);
+                setHydrated(true);
+            }, 0);
+
+            return () => clearTimeout(timer);
         }
 
         // ALWAYS LOG
-        console.log('[TestAuthGuard] isTestMode:', isTestMode, 'Window TEST_MODE:', typeof window !== 'undefined' ? (window as any).__TEST_MODE__ : 'N/A', 'Env:', import.meta.env.MODE);
+        console.log('[TestAuthGuard] isTestMode:', isTestMode, 'Window TEST_MODE:', typeof window !== 'undefined' ? (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__ : 'N/A', 'Env:', import.meta.env.MODE);
 
     }, [setUser, isTestMode]);
 

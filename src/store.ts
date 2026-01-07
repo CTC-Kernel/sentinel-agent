@@ -38,7 +38,7 @@ import i18n from './i18n';
 
 // Helper for safe storage access
 const safeGetItem = (key: string) => {
-  try { return localStorage.getItem(key); } catch { return null; }
+  try { return localStorage.getItem(key); } catch { /* ignore */ return null; }
 };
 
 export const useStore = create<AppState>((set) => ({
@@ -54,7 +54,7 @@ export const useStore = create<AppState>((set) => ({
   setOrganization: (organization) => set({ organization }),
   setCustomRoles: (customRoles) => set({ customRoles }),
   setTheme: (theme) => set(() => {
-    try { localStorage.setItem('theme', theme); } catch { }
+    try { localStorage.setItem('theme', theme); } catch { /* ignore */ }
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -63,7 +63,7 @@ export const useStore = create<AppState>((set) => ({
     return { theme };
   }),
   setLanguage: (lang) => {
-    try { localStorage.setItem('language', lang); } catch { }
+    try { localStorage.setItem('language', lang); } catch { /* ignore */ }
     i18n.changeLanguage(lang);
     set({ language: lang });
   },
@@ -72,7 +72,7 @@ export const useStore = create<AppState>((set) => ({
   },
   toggleTheme: () => set((state) => {
     const newTheme = state.theme === 'light' ? 'dark' : 'light';
-    try { localStorage.setItem('theme', newTheme); } catch { }
+    try { localStorage.setItem('theme', newTheme); } catch { /* ignore */ }
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -94,7 +94,7 @@ export const useStore = create<AppState>((set) => ({
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
   // Robust demoMode initialization
-  demoMode: (typeof window !== 'undefined' && !!((window as any).__TEST_MODE__)) ||
+  demoMode: (typeof window !== 'undefined' && !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__)) ||
     SecureStorage.getSecureItem('demoMode') === 'true',
 
   toggleDemoMode: () => set((state) => {

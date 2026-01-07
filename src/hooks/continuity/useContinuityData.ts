@@ -26,7 +26,7 @@ export const useContinuityData = (organizationId?: string) => {
 
         // Harden demoMode detection for E2E tests where store might lag
         const isDemo = demoMode || (typeof window !== 'undefined' && (
-            !!((window as any).__TEST_MODE__) ||
+            !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
             (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
         ));
 

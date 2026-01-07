@@ -20,7 +20,7 @@ export const useSystemHealth = () => {
             try {
                 // Check for demo mode
                 const isDemo = typeof window !== 'undefined' && (
-                    !!((window as any).__TEST_MODE__) ||
+                    !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
                     (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
                 );
 

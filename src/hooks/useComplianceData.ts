@@ -28,11 +28,12 @@ export const useComplianceData = (currentFramework?: Framework) => {
             return;
         }
 
-        setLoading(true);
+        // Defer loading state update to avoid synchronous render warning
+        setTimeout(() => setLoading(true), 0);
 
         // Robustly check for demo mode from multiple sources
         const storedDemo = typeof window !== 'undefined' ? (() => { try { return localStorage.getItem('demoMode') } catch { return 'false' } })() : 'false';
-        const isDemo = demoMode || storedDemo === 'true' || (typeof window !== 'undefined' && !!((window as any).__TEST_MODE__));
+        const isDemo = demoMode || storedDemo === 'true' || (typeof window !== 'undefined' && !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__));
 
         console.log('[Debug] useComplianceData:', {
             demoModeStore: demoMode,
@@ -43,15 +44,17 @@ export const useComplianceData = (currentFramework?: Framework) => {
 
         if (isDemo) {
             console.log('useComplianceData: Entering demo mode (static)');
-            setControls(MockDataService.getCollection('controls') as unknown as Control[]);
-            setRisks(MockDataService.getCollection('risks') as unknown as Risk[]);
-            setDocuments(MockDataService.getCollection('documents') as unknown as Document[]);
-            setUsersList(MockDataService.getCollection('users') as unknown as UserProfile[]);
-            setAssets(MockDataService.getCollection('assets') as unknown as Asset[]);
-            setSuppliers(MockDataService.getCollection('suppliers') as unknown as Supplier[]);
-            setProjects(MockDataService.getCollection('projects') as unknown as Project[]);
-            setFindings([]);
-            setLoading(false);
+            setTimeout(() => {
+                setControls(MockDataService.getCollection('controls') as unknown as Control[]);
+                setRisks(MockDataService.getCollection('risks') as unknown as Risk[]);
+                setDocuments(MockDataService.getCollection('documents') as unknown as Document[]);
+                setUsersList(MockDataService.getCollection('users') as unknown as UserProfile[]);
+                setAssets(MockDataService.getCollection('assets') as unknown as Asset[]);
+                setSuppliers(MockDataService.getCollection('suppliers') as unknown as Supplier[]);
+                setProjects(MockDataService.getCollection('projects') as unknown as Project[]);
+                setFindings([]);
+                setLoading(false);
+            }, 0);
             return;
         }
 
@@ -90,9 +93,10 @@ export const useComplianceData = (currentFramework?: Framework) => {
         const unsubProj = onSnapshot(projQuery, (s) => setProjects(s.docs.map(d => ({ id: d.id, ...d.data() } as Project))));
 
         // 4. Findings Listener (Simulated for now)
-        setFindings([]);
-
-        setLoading(false);
+        setTimeout(() => {
+            setFindings([]);
+            setLoading(false);
+        }, 0);
 
         return () => {
             unsubControls();

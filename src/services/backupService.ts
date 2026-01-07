@@ -218,7 +218,7 @@ export class BackupService {
     // Check for demo mode (using localStorage for robust test support)
     // Check for demo mode (using localStorage for robust test support)
     const isDemo = typeof window !== 'undefined' && (
-      !!((window as any).__TEST_MODE__) ||
+      !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__) ||
       (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
     );
 

@@ -26,9 +26,14 @@ export async function setupMockAuth(page: Page) {
     // Inject mock auth state directly into localStorage and window object
     await page.addInitScript(() => {
         // Set test shortcuts
-        (window as any).__TEST_MODE__ = true;
-        (window as any).__BYPASS_AUTH__ = true;
-        (window as any).__DISABLE_TOURS__ = true;
+        const win = window as unknown as {
+            __TEST_MODE__: boolean;
+            __BYPASS_AUTH__: boolean;
+            __DISABLE_TOURS__: boolean;
+        };
+        win.__TEST_MODE__ = true;
+        win.__BYPASS_AUTH__ = true;
+        win.__DISABLE_TOURS__ = true;
 
         window.localStorage.setItem('demoMode', 'true');
         window.localStorage.setItem('tour-seen', 'true');
@@ -68,20 +73,20 @@ export async function waitForOverlaysToClose(page: Page) {
                 await page.waitForTimeout(500);
             }
         }
-    } catch (e) {
+    } catch {
         // Ignore errors
     }
 
     // Wait for overlays to be hidden
     try {
         await page.waitForSelector('.driver-popover', { state: 'hidden', timeout: 5000 });
-    } catch (e) {
+    } catch {
         // Continue even if overlays don't hide
     }
 
     try {
         await page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 3000 });
-    } catch (e) {
+    } catch {
         // Continue even if dialogs don't hide
     }
 }
@@ -103,7 +108,7 @@ export async function setupOverlayHandlers(page: Page) {
                     await page.waitForTimeout(500);
                 }
             }
-        } catch (e) {
+        } catch {
             // Ignore errors
         }
 
@@ -116,7 +121,7 @@ export async function setupOverlayHandlers(page: Page) {
                     await page.waitForTimeout(500);
                 }
             }
-        } catch (e) {
+        } catch {
             // Ignore errors
         }
     });
@@ -151,13 +156,18 @@ export async function setupFirestoreMocks(page: Page) {
     // Disable tours and overlays by injecting JavaScript early
     await page.addInitScript(() => {
         // Disable Driver.js and other tour libraries
-        (window as any).driver = undefined;
-        (window as any).driverjs = undefined;
-        (window as any).tourDisabled = true;
+        const win = window as unknown as {
+            driver: unknown;
+            driverjs: unknown;
+            tourDisabled: boolean;
+        };
+        win.driver = undefined;
+        win.driverjs = undefined;
+        win.tourDisabled = true;
 
         // Prevent tour initialization
         const originalQuerySelector = document.querySelector;
-        (document as any).querySelector = function (selector: string) {
+        (document as unknown as { querySelector: typeof originalQuerySelector }).querySelector = function (selector: string) {
             if (selector.includes('driver') || selector.includes('tour')) {
                 return null;
             }
