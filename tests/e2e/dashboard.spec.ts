@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { setupMockAuth, setupFirestoreMocks, waitForOverlaysToClose } from './utils';
+import { BASE_URL } from './utils';
 
 test.describe('Dashboard Module', () => {
     test.setTimeout(90000);
@@ -12,7 +13,7 @@ test.describe('Dashboard Module', () => {
         await waitForOverlaysToClose(page);
 
         // Go to Dashboard
-        await page.goto('/');
+        await page.goto(BASE_URL + '/');
         // Wait for dashboard content to load (handles loading skeleton)
         try {
             // Look for dashboard content instead of tour elements

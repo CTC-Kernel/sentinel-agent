@@ -1,5 +1,6 @@
 import { test } from '@playwright/test';
 import { setupMockAuth, setupFirestoreMocks } from './utils';
+import { BASE_URL } from './utils';
 
 test.describe('Complete Workflow Testing - Simplified', () => {
 
@@ -53,7 +54,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
     test('should test complete asset creation workflow', async ({ page }) => {
         console.log('🔄 Testing complete asset creation workflow...');
 
-        await page.goto('/#/assets');
+        await page.goto(BASE_URL + '/#/assets');
         await page.waitForLoadState('domcontentloaded');
         // Wait for main content or specifically the button
         await page.waitForSelector('button', { timeout: 10000 }).catch(() => { });
@@ -212,7 +213,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
     test('should test complete risk assessment workflow', async ({ page }) => {
         console.log('⚠️ Testing complete risk assessment workflow...');
 
-        await page.goto('/#/risks');
+        await page.goto(BASE_URL + '/#/risks');
         await page.waitForLoadState('domcontentloaded');
         await page.waitForSelector('button', { timeout: 10000 }).catch(() => { });
         await page.waitForTimeout(1000);
@@ -366,7 +367,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
     test('should test complete compliance workflow', async ({ page }) => {
         console.log('🛡️ Testing complete compliance workflow...');
 
-        await page.goto('/#/compliance');
+        await page.goto(BASE_URL + '/#/compliance');
         await page.waitForLoadState('domcontentloaded');
         await page.waitForSelector('main', { timeout: 10000 }).catch(() => { });
         await page.waitForTimeout(1000);
@@ -422,7 +423,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
     test('should test complete user management workflow', async ({ page }) => {
         console.log('👥 Testing complete user management workflow...');
 
-        await page.goto('/#/team');
+        await page.goto(BASE_URL + '/#/team');
         await page.waitForLoadState('domcontentloaded');
         await page.waitForSelector('main', { timeout: 10000 }).catch(() => { });
         await page.waitForTimeout(1000);
@@ -450,7 +451,7 @@ test.describe('Complete Workflow Testing - Simplified', () => {
     test('should test complete settings workflow', async ({ page }) => {
         console.log('⚙️ Testing complete settings workflow...');
 
-        await page.goto('/#/settings');
+        await page.goto(BASE_URL + '/#/settings');
         await page.waitForLoadState('domcontentloaded');
         await page.waitForSelector('main', { timeout: 10000 }).catch(() => { });
         await page.waitForTimeout(1000);
