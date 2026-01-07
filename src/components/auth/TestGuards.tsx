@@ -26,6 +26,7 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
                     console.error('Failed to parse auth_user', e);
                 }
             }
+            useStore.getState().setLoading(false);
         }, [setUser]);
 
         return <>{children}</>;

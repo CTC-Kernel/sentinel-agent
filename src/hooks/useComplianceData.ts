@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useComplianceActions } from './useComplianceActions';
 import { Control, Risk, Finding, Framework, Document, UserProfile, Asset, Supplier, Project } from '../types';
+import { MockDataService } from '../services/mockDataService';
 
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -32,22 +33,16 @@ export const useComplianceData = (currentFramework?: Framework) => {
         const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
 
         if (isDemo) {
-            console.log('useComplianceData: Entering demo mode');
-            import('../services/mockDataService').then(module => {
-                console.log('useComplianceData: MockDataService loaded. Controls count:', module.MockDataService.getCollection('controls').length);
-                setControls(module.MockDataService.getCollection('controls') as unknown as Control[]);
-                setRisks(module.MockDataService.getCollection('risks') as unknown as Risk[]);
-                setDocuments(module.MockDataService.getCollection('documents') as unknown as Document[]);
-                setUsersList(module.MockDataService.getCollection('users') as unknown as UserProfile[]);
-                setAssets(module.MockDataService.getCollection('assets') as unknown as Asset[]);
-                setSuppliers(module.MockDataService.getCollection('suppliers') as unknown as Supplier[]);
-                setProjects(module.MockDataService.getCollection('projects') as unknown as Project[]);
-                setFindings([]);
-                setLoading(false);
-            }).catch(err => {
-                console.error('useComplianceData: Failed to load mock data', err);
-                setLoading(false);
-            });
+            console.log('useComplianceData: Entering demo mode (static)');
+            setControls(MockDataService.getCollection('controls') as unknown as Control[]);
+            setRisks(MockDataService.getCollection('risks') as unknown as Risk[]);
+            setDocuments(MockDataService.getCollection('documents') as unknown as Document[]);
+            setUsersList(MockDataService.getCollection('users') as unknown as UserProfile[]);
+            setAssets(MockDataService.getCollection('assets') as unknown as Asset[]);
+            setSuppliers(MockDataService.getCollection('suppliers') as unknown as Supplier[]);
+            setProjects(MockDataService.getCollection('projects') as unknown as Project[]);
+            setFindings([]);
+            setLoading(false);
             return;
         }
 

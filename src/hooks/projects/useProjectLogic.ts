@@ -15,6 +15,7 @@ import { SubscriptionService } from '../../services/subscriptionService';
 import { canEditResource, canDeleteResource } from '../../utils/permissions';
 import { usePlanLimits } from '../usePlanLimits';
 import { ImportService } from '../../services/ImportService';
+import { MockDataService } from '../../services/mockDataService';
 
 export const useProjectLogic = () => {
     const { user, addToast, organization, demoMode } = useStore();
@@ -42,28 +43,16 @@ export const useProjectLogic = () => {
 
     // Load Mock Data Effect
     useEffect(() => {
-        let isMounted = true;
         if (demoMode && !mockData) {
-            import('../../services/mockDataService')
-                .then(({ MockDataService }) => {
-                    if (!isMounted) return;
-                    setMockData({
-                        projects: MockDataService.getCollection('projects') as Project[],
-                        risks: MockDataService.getCollection('risks') as Risk[],
-                        controls: MockDataService.getCollection('controls') as Control[],
-                        assets: MockDataService.getCollection('assets') as Asset[],
-                        audits: MockDataService.getCollection('audits') as Audit[],
-                        users: MockDataService.getCollection('users') as unknown as UserProfile[]
-                    });
-                })
-                .catch(_err => {
-                    if (!isMounted) return;
-                    setMockData({ projects: [], risks: [], controls: [], assets: [], audits: [], users: [] });
-                });
+            setMockData({
+                projects: MockDataService.getCollection('projects') as Project[],
+                risks: MockDataService.getCollection('risks') as Risk[],
+                controls: MockDataService.getCollection('controls') as Control[],
+                assets: MockDataService.getCollection('assets') as Asset[],
+                audits: MockDataService.getCollection('audits') as Audit[],
+                users: MockDataService.getCollection('users') as unknown as UserProfile[]
+            });
         }
-        return () => {
-            isMounted = false;
-        };
     }, [demoMode, mockData]);
 
     // Derived State

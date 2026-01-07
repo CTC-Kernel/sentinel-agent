@@ -17,6 +17,7 @@ import {
 import { db, auth } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { MockDataService } from '../services/mockDataService';
 
 interface UseFirestoreOptions {
     realtime?: boolean;
@@ -140,16 +141,13 @@ export const useFirestoreCollection = <T = DocumentData>(
     });
 
     // Mock Data Loading (Demo Mode)
+    // Mock Data Loading (Demo Mode)
     useEffect(() => {
         if (demoMode && isEnabled) {
             setRealtimeLoading(true);
-            import('../services/mockDataService').then(module => {
-                const mockData = module.MockDataService.getCollection(collectionName) as (T & { id: string })[];
-                setRealtimeData(mockData);
-                setRealtimeLoading(false);
-            }).catch(_err => {
-                setRealtimeLoading(false);
-            });
+            const mockData = MockDataService.getCollection(collectionName) as (T & { id: string })[];
+            setRealtimeData(mockData);
+            setRealtimeLoading(false);
         }
     }, [demoMode, collectionName, isEnabled]);
 
@@ -297,6 +295,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
     const [realtimeData, setRealtimeData] = useState<T | null>(null);
     const [realtimeLoading, setRealtimeLoading] = useState(!!docId);
     const [realtimeError, setRealtimeError] = useState<Error | null>(null);
+    const { demoMode } = useStore();
 
     const { realtime, logError } = options;
 
@@ -325,9 +324,19 @@ export const useFirestoreDocument = <T extends { id: string }>(
                 throw errorObj;
             }
         },
-        enabled: !!docId && !realtime,
+        enabled: !!docId && !realtime && !demoMode,
         staleTime: 1000 * 60 * 5 // 5 minutes default
     });
+
+    // Mock Data Loading (Demo Mode)
+    useEffect(() => {
+        if (demoMode && docId) {
+            setRealtimeLoading(true);
+            const mockDoc = MockDataService.getDocument(collectionName, docId) as T | null;
+            setRealtimeData(mockDoc);
+            setRealtimeLoading(false);
+        }
+    }, [demoMode, collectionName, docId]);
 
     // Realtime implementation
     useEffect(() => {
@@ -339,7 +348,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
             return;
         }
 
-        if (realtime) {
+        if (realtime && !demoMode) {
             // Avoid synchronous state update warning
             setTimeout(() => setRealtimeLoading(true), 0);
             const docRef = doc(db, collectionName, docId);

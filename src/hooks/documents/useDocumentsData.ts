@@ -4,6 +4,7 @@ import { useFirestoreCollection } from '../useFirestore';
 import { Document, UserProfile, Control, Asset, Audit, DocumentFolder, Risk } from '../../types';
 import { EncryptionService } from '../../services/encryptionService';
 import { useStore } from '../../store';
+import { MockDataService } from '../../services/mockDataService';
 
 export const useDocumentsData = (organizationId?: string) => {
     const { demoMode } = useStore();
@@ -65,16 +66,14 @@ export const useDocumentsData = (organizationId?: string) => {
     // Load Mock Data Effect
     useEffect(() => {
         if (demoMode && !mockData) {
-            import('../../services/mockDataService').then(({ MockDataService }) => {
-                setMockData({
-                    documents: MockDataService.getCollection('documents') as Document[],
-                    users: MockDataService.getCollection('users') as unknown as UserProfile[],
-                    controls: MockDataService.getCollection('controls') as Control[],
-                    assets: MockDataService.getCollection('assets') as Asset[],
-                    audits: MockDataService.getCollection('audits') as Audit[],
-                    risks: MockDataService.getCollection('risks') as Risk[],
-                    folders: [] // No mock folders yet, or add provided
-                });
+            setMockData({
+                documents: MockDataService.getCollection('documents') as Document[],
+                users: MockDataService.getCollection('users') as unknown as UserProfile[],
+                controls: MockDataService.getCollection('controls') as Control[],
+                assets: MockDataService.getCollection('assets') as Asset[],
+                audits: MockDataService.getCollection('audits') as Audit[],
+                risks: MockDataService.getCollection('risks') as Risk[],
+                folders: [] // No mock folders yet
             });
         }
     }, [demoMode, mockData]);

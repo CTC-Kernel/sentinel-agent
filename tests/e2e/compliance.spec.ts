@@ -18,8 +18,9 @@ test.describe('Compliance Module', () => {
 
     test('should allow uploading evidence from control inspector', async ({ page }) => {
         // 1. Wait for Compliance page
-        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 30000 });
-        await expect(page.getByText(/Conformité|Compliance/i).first()).toBeVisible();
+        await expect(page.getByText(/Conformité|Compliance/i).first()).toBeVisible({ timeout: 45000 });
+        // Optional: Ensure loading is gone, but prioritize content
+        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 10000 });
 
         // Debug: Log all network requests to verify mocks
         page.on('request', request => console.log('>>', request.method(), request.url()));

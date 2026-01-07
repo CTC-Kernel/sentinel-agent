@@ -167,7 +167,15 @@ export class SecureStorage {
         try {
             const keyWithPrefix = this.PREFIX + key;
             const encrypted = localStorage.getItem(keyWithPrefix);
-            if (!encrypted) return defaultValue ?? null;
+
+            // Fallback for E2E testing or plain keys
+            if (!encrypted) {
+                if (key === 'demoMode') {
+                    const plain = localStorage.getItem(key);
+                    if (plain) return (plain === 'true') as unknown as T;
+                }
+                return defaultValue ?? null;
+            }
 
             const serialized = this.decrypt(encrypted);
             if (!serialized) return defaultValue ?? null;
