@@ -144,10 +144,12 @@ export const useFirestoreCollection = <T = DocumentData>(
     // Mock Data Loading (Demo Mode)
     useEffect(() => {
         if (demoMode && isEnabled) {
-            setRealtimeLoading(true);
-            const mockData = MockDataService.getCollection(collectionName) as (T & { id: string })[];
-            setRealtimeData(mockData);
-            setRealtimeLoading(false);
+            setTimeout(() => {
+                setRealtimeLoading(true);
+                const mockData = MockDataService.getCollection(collectionName) as (T & { id: string })[];
+                setRealtimeData(mockData);
+                setRealtimeLoading(false);
+            }, 0);
         }
     }, [demoMode, collectionName, isEnabled]);
 
@@ -331,10 +333,12 @@ export const useFirestoreDocument = <T extends { id: string }>(
     // Mock Data Loading (Demo Mode)
     useEffect(() => {
         if (demoMode && docId) {
-            setRealtimeLoading(true);
-            const mockDoc = MockDataService.getDocument(collectionName, docId) as T | null;
-            setRealtimeData(mockDoc);
-            setRealtimeLoading(false);
+            setTimeout(() => {
+                setRealtimeLoading(true);
+                const mockDoc = MockDataService.getDocument(collectionName, docId) as T | null;
+                setRealtimeData(mockDoc);
+                setRealtimeLoading(false);
+            }, 0);
         }
     }, [demoMode, collectionName, docId]);
 
@@ -384,7 +388,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
             );
             return () => unsubscribe();
         }
-    }, [collectionName, docId, realtime, logError]); // db and ErrorLogger are imports, no need in dep array
+    }, [collectionName, docId, realtime, logError, demoMode]); // db and ErrorLogger are imports, no need in dep array
 
     if (realtime) {
         return { data: realtimeData, loading: realtimeLoading, error: realtimeError, refresh: async () => { } };

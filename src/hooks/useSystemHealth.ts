@@ -19,9 +19,10 @@ export const useSystemHealth = () => {
             if (!user?.organizationId) return;
             try {
                 // Check for demo mode
-                const isDemo = typeof window !== 'undefined' &&
-                    (window.localStorage.getItem('demoMode') === 'true' ||
-                        (window as any).__TEST_MODE__ === true);
+                const isDemo = typeof window !== 'undefined' && (
+                    !!((window as any).__TEST_MODE__) ||
+                    (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
+                );
 
                 if (isDemo) {
                     const { MockDataService } = await import('../services/mockDataService');

@@ -77,15 +77,17 @@ export const useDocumentsData = (organizationId?: string) => {
     // Load Mock Data Effect
     useEffect(() => {
         if (demoMode && !mockData) {
-            setMockData({
-                documents: MockDataService.getCollection('documents') as Document[],
-                users: MockDataService.getCollection('users') as unknown as UserProfile[],
-                controls: MockDataService.getCollection('controls') as Control[],
-                assets: MockDataService.getCollection('assets') as Asset[],
-                audits: MockDataService.getCollection('audits') as Audit[],
-                risks: MockDataService.getCollection('risks') as Risk[],
-                folders: [] // No mock folders yet
-            });
+            setTimeout(() => {
+                setMockData({
+                    documents: MockDataService.getCollection('documents') as Document[],
+                    users: MockDataService.getCollection('users') as unknown as UserProfile[],
+                    controls: MockDataService.getCollection('controls') as Control[],
+                    assets: MockDataService.getCollection('assets') as Asset[],
+                    audits: MockDataService.getCollection('audits') as Audit[],
+                    risks: MockDataService.getCollection('risks') as Risk[],
+                    folders: [] // No mock folders yet
+                });
+            }, 0);
         }
     }, [demoMode, mockData]);
 

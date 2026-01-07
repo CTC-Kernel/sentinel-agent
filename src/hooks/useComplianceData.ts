@@ -24,15 +24,15 @@ export const useComplianceData = (currentFramework?: Framework) => {
 
     useEffect(() => {
         if (!user?.organizationId) {
-            setLoading(false);
+            setTimeout(() => setLoading(false), 0);
             return;
         }
 
         setLoading(true);
 
         // Robustly check for demo mode from multiple sources
-        const storedDemo = typeof window !== 'undefined' ? window.localStorage.getItem('demoMode') : 'false';
-        const isDemo = demoMode || storedDemo === 'true';
+        const storedDemo = typeof window !== 'undefined' ? (() => { try { return localStorage.getItem('demoMode') } catch { return 'false' } })() : 'false';
+        const isDemo = demoMode || storedDemo === 'true' || (typeof window !== 'undefined' && !!((window as any).__TEST_MODE__));
 
         console.log('[Debug] useComplianceData:', {
             demoModeStore: demoMode,

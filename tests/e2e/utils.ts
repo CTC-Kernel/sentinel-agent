@@ -339,6 +339,7 @@ export async function setupFirestoreMocks(page: Page) {
                                     type: { stringValue: "Politique" },
                                     status: { stringValue: "Validé" },
                                     organizationId: { stringValue: "org_default" },
+                                    owner: { stringValue: "admin" },
                                     content: { stringValue: "Contenu de test pour la politique de sécurité" }
                                 },
                                 createTime: "2024-01-01T00:00:00Z",
@@ -354,6 +355,7 @@ export async function setupFirestoreMocks(page: Page) {
                                     type: { stringValue: "Procédure" },
                                     status: { stringValue: "Brouillon" },
                                     organizationId: { stringValue: "org_default" },
+                                    owner: { stringValue: "admin" },
                                     content: { stringValue: "Contenu de test pour la procédure de backup" }
                                 },
                                 createTime: "2024-01-01T00:00:00Z",

@@ -216,9 +216,11 @@ export class BackupService {
     if (!organizationId) return [];
 
     // Check for demo mode (using localStorage for robust test support)
-    const isDemo = typeof window !== 'undefined' &&
-      (window.localStorage.getItem('demoMode') === 'true' ||
-        (window as any).__TEST_MODE__ === true);
+    // Check for demo mode (using localStorage for robust test support)
+    const isDemo = typeof window !== 'undefined' && (
+      !!((window as any).__TEST_MODE__) ||
+      (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
+    );
 
     if (isDemo) {
       // Dynamic import to avoid cycles if necessary, but static is fine here as MockDataService is simple
