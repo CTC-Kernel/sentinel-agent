@@ -1746,6 +1746,7 @@ i18n
                         name: "Nom",
                         type: "Type",
                         status: "Statut",
+                        active: "Actif",
                         owner: "Propri\u00e9taire",
                         criticality: "Criticit\u00e9",
                         actions: {

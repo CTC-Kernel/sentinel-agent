@@ -1,21 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Assets Module', () => {
     test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
         // Ensure localStorage is populated before hydration
-        await page.addInitScript(() => {
-            window.localStorage.setItem('demoMode', 'true');
-            window.localStorage.setItem('E2E_TEST_USER', JSON.stringify({
-                uid: "e2e-user-123",
-                email: "e2e@sentinel.com",
-                displayName: "E2E Sentinel",
-                organizationId: "org_default",
-                role: "admin",
-                onboardingCompleted: true,
-                emailVerified: true
-            }));
-        });
+        await setupMockAuth(page);
+        await setupFirestoreMocks(page);
 
         page.on('console', msg => console.log(`[Browser]: ${msg.text()}`));
         page.on('requestfailed', request => console.log(`[Network Error]: ${request.url()} - ${request.failure()?.errorText}`));

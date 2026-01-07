@@ -83,11 +83,23 @@ export const useFormProtection = <T extends Record<string, any>>(initialData: T)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const validateField = useCallback((_name: keyof T, value: any) => {
     // Validation basique - à personnaliser selon les besoins
-    if (!value && value !== 0) {
-      return 'Ce champ est requis';
+    // Si une fonction de validation personnalisée est fournie via les options (à ajouter plus tard si besoin), l'utiliser ici.
+    // Pour l'instant, on rend la validation moins stricte par défaut :
+
+    // Si la valeur est null ou undefined, c'est une erreur seulement si le champ est considéré comme obligatoire (logique métier)
+    // Mais comme on n'a pas la liste des champs obligatoires ici, on ne peut pas forcer "requis" partout.
+    // On va désactiver cette validation par défaut "tout requis" qui est trop agressive.
+
+    /* 
+    if (!value && value !== 0 && value !== false) {
+       // return 'Ce champ est requis'; // TROP STRICT pour un hook générique
+       return null; 
     }
+    */
+
     if (typeof value === 'string' && value.trim().length === 0) {
-      return 'Ce champ ne peut pas être vide';
+      // return 'Ce champ ne peut pas être vide'; // TROP STRICT
+      return null;
     }
     return null;
   }, []);

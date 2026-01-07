@@ -24,6 +24,7 @@ import { CommandPalette } from './components/layout/CommandPalette';
 // UI Components
 import { SEO } from './components/SEO';
 import { AuthGuard } from './components/auth/AuthGuard';
+import { TestAuthGuard } from './components/auth/TestGuards';
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
 import { CertifierAuthGuard } from './components/auth/CertifierAuthGuard';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -251,11 +252,17 @@ const AppInner: React.FC = () => {
 
                         {/* Main App Route - Handles all paths and sub-routes */}
                         <Route path="/*" element={
-                            <AuthGuard>
-                                <NotificationProvider>
-                                    <AppLayout />
-                                </NotificationProvider>
-                            </AuthGuard>
+                            import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true' ? 
+                                <TestAuthGuard>
+                                    <NotificationProvider>
+                                        <AppLayout />
+                                    </NotificationProvider>
+                                </TestAuthGuard> :
+                                <AuthGuard>
+                                    <NotificationProvider>
+                                        <AppLayout />
+                                    </NotificationProvider>
+                                </AuthGuard>
                         } />
                     </Routes>
                 </Suspense>

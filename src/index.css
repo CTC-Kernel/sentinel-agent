@@ -1,12 +1,10 @@
 @import './styles/focus.css';
 @import './styles/calendar.css';
+@import './styles/interactions.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import standardized interaction styles */
-@import './styles/interactions.css';
 
 /* Focus Indicators & Accessibility */
 

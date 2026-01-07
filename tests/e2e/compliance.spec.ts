@@ -1,10 +1,14 @@
 
 import { test, expect } from '@playwright/test';
+import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Compliance Module', () => {
     test.setTimeout(90000);
 
     test.beforeEach(async ({ page }) => {
+        await setupMockAuth(page);
+        await setupFirestoreMocks(page);
+
         await page.goto('/#/compliance');
 
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {

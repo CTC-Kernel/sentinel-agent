@@ -9,14 +9,26 @@ import { ErrorLogger } from './errorLogger';
  */
 export class E2EAuthService {
   private static readonly E2E_USER_KEY = 'E2E_TEST_USER';
-  
+
   static isE2EMode(): boolean {
-    return import.meta.env.DEV && SecureStorage.getSecureItem(this.E2E_USER_KEY) !== null;
+    const plain = localStorage.getItem(this.E2E_USER_KEY);
+    console.log(`E2E Debug: Check. Dev=\${import.meta.env.DEV}, User=\${plain !== null}, Key=\${this.E2E_USER_KEY}, Value=\${plain ? plain.substring(0, 20) : 'null'}`);
+    return import.meta.env.DEV && (plain !== null || SecureStorage.getSecureItem(this.E2E_USER_KEY) !== null);
   }
 
   static getE2EUser(): UserProfile | null {
     if (!this.isE2EMode()) return null;
-    
+
+    // Check plain storage first (used by Playwright)
+    const plain = localStorage.getItem(this.E2E_USER_KEY);
+    if (plain) {
+      try {
+        return JSON.parse(plain) as UserProfile;
+      } catch (error) {
+        ErrorLogger.warn('Failed to parse plain E2E user', 'E2EAuthService.getE2EUser');
+      }
+    }
+
     try {
       const e2eUser = SecureStorage.getSecureItem<UserProfile>(this.E2E_USER_KEY);
       return e2eUser;
@@ -30,10 +42,10 @@ export class E2EAuthService {
     return {
       ...user,
       getIdToken: async () => "mock-token",
-      getIdTokenResult: async () => ({ 
-        claims: { organizationId: user.organizationId || 'org_default' } 
+      getIdTokenResult: async () => ({
+        claims: { organizationId: user.organizationId || 'org_default' }
       }),
-      reload: async () => {},
+      reload: async () => { },
       toJSON: () => user
     } as unknown as User;
   }

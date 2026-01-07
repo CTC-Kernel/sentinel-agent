@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { setupMockAuth, setupFirestoreMocks } from './utils';
 
 test.describe('Team Module', () => {
     test.beforeEach(async ({ page }) => {
+        await setupMockAuth(page);
+        await setupFirestoreMocks(page);
+
         // Go to Team page
         await page.goto('/#/team');
 
@@ -29,14 +33,14 @@ test.describe('Team Module', () => {
         // Wait for the invite button to be visible
         const inviteBtn = page.getByRole('button', { name: /Inviter|Invite/i }).first();
         await expect(inviteBtn).toBeVisible({ timeout: 30000 });
-        
+
         // Click the invite button
         await inviteBtn.click({ timeout: 10000 });
-        
+
         // Wait for the dialog to be visible with a longer timeout
         const dialog = page.getByRole('dialog');
         await expect(dialog).toBeVisible({ timeout: 30000 });
-        
+
         // Check for the invite title in the dialog
         await expect(
             dialog.getByText(/Inviter un membre|Invite Member/i)
