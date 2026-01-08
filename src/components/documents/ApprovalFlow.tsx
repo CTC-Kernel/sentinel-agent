@@ -20,6 +20,9 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
     const [selectedReviewers, setSelectedReviewers] = useState<string[]>([]);
     const [actionView, setActionView] = useState<'none' | 'submit' | 'reject'>('none');
 
+    // Safe array access
+    const safeUsers = users ?? [];
+
     // Timeline sorting
     const history = [...(document.workflowHistory || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -114,7 +117,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                 className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 min-h-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 onChange={(e) => setSelectedReviewers(Array.from(e.target.selectedOptions, option => option.value))}
                             >
-                                {users.filter(u => u.uid !== user?.uid).map(u => (
+                                {safeUsers.filter(u => u.uid !== user?.uid).map(u => (
                                     <option key={u.uid} value={u.uid}>{u.displayName || u.email}</option>
                                 ))}
                             </select>
