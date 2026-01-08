@@ -1,5 +1,7 @@
 import { Page } from '@playwright/test';
 
+export const BASE_URL = 'http://127.0.0.1:8080';
+
 export async function setupMockAuth(page: Page) {
     // Add auth cookies
     await page.context().addCookies([
@@ -39,6 +41,18 @@ export async function setupMockAuth(page: Page) {
         window.localStorage.setItem('tour-seen', 'true');
         window.localStorage.setItem('tours-disabled', 'true');
         window.localStorage.setItem('driver-js-disabled', 'true');
+
+        // Disable ALL tours - comprehensive coverage for all pages
+        const tourKeys = [
+            'dashboard-tour-completed', 'assets-tour-completed', 'risks-tour-completed',
+            'compliance-tour-completed', 'documents-tour-completed', 'reports-tour-completed',
+            'settings-tour-completed', 'team-tour-completed', 'incidents-tour-completed',
+            'audits-tour-completed', 'suppliers-tour-completed', 'vulnerabilities-tour-completed',
+            'privacy-tour-completed', 'threat-intel-tour-completed', 'continuity-tour-completed',
+            'projects-tour-completed', 'system-tour-completed', 'backup-tour-completed'
+        ];
+        tourKeys.forEach(key => window.localStorage.setItem(key, 'true'));
+
         window.localStorage.setItem('E2E_TEST_USER', JSON.stringify({
             uid: "e2e-user-123",
             email: "e2e@sentinel.com",
@@ -62,32 +76,78 @@ export async function setupMockAuth(page: Page) {
 
 export async function waitForOverlaysToClose(page: Page) {
     // Wait for any overlays to disappear
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1000);
 
-    // Check for and close any remaining overlays
+    // Try to close tour dialogs by clicking their close button
     try {
-        const driverPopovers = await page.locator('.driver-popover').all();
-        for (const popover of driverPopovers) {
-            if (await popover.isVisible()) {
-                await popover.click({ force: true });
-                await page.waitForTimeout(500);
+        const closeButtons = await page.locator('dialog button:has-text("Close"), dialog button:has-text("×"), .driver-popover button').all();
+        for (const btn of closeButtons) {
+            if (await btn.isVisible()) {
+                await btn.click({ force: true });
+                await page.waitForTimeout(300);
             }
         }
     } catch {
         // Ignore errors
     }
 
+    // Check for and close any remaining Driver.js overlays
+    try {
+        const driverPopovers = await page.locator('.driver-popover').all();
+        for (const popover of driverPopovers) {
+            if (await popover.isVisible()) {
+                // Try to find and click "Suivant" or close button
+                const nextBtn = popover.locator('button:has-text("Suivant"), button:has-text("Next")');
+                if (await nextBtn.isVisible()) {
+                    // Keep clicking next until we finish the tour
+                    for (let i = 0; i < 10; i++) {
+                        try {
+                            await nextBtn.click({ force: true });
+                            await page.waitForTimeout(300);
+                        } catch {
+                            break;
+                        }
+                    }
+                }
+                await popover.click({ force: true });
+                await page.waitForTimeout(300);
+            }
+        }
+    } catch {
+        // Ignore errors
+    }
+
+    // Press Escape multiple times to close any dialogs
+    for (let i = 0; i < 3; i++) {
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(200);
+    }
+
     // Wait for overlays to be hidden
     try {
-        await page.waitForSelector('.driver-popover', { state: 'hidden', timeout: 5000 });
+        await page.waitForSelector('.driver-popover', { state: 'hidden', timeout: 3000 });
     } catch {
         // Continue even if overlays don't hide
     }
+}
 
+export async function dismissTourDialog(page: Page) {
+    // Specifically target tour dialogs and close them
     try {
-        await page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 3000 });
+        const tourDialog = page.locator('dialog[open], [role="dialog"]').first();
+        if (await tourDialog.isVisible()) {
+            const closeBtn = tourDialog.locator('button:has-text("×"), button:has-text("Close")').first();
+            if (await closeBtn.isVisible()) {
+                await closeBtn.click({ force: true });
+                await page.waitForTimeout(500);
+            } else {
+                // Try pressing Escape
+                await page.keyboard.press('Escape');
+                await page.waitForTimeout(500);
+            }
+        }
     } catch {
-        // Continue even if dialogs don't hide
+        // Ignore
     }
 }
 
