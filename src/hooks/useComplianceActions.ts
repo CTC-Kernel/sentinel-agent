@@ -12,18 +12,18 @@ import { ErrorLogger } from '../services/errorLogger';
 export const useComplianceActions = (user: UserProfile | null) => {
     const [updating, setUpdating] = useState(false);
 
-    const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string) => {
+    const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation = false) => {
         setUpdating(true);
         try {
             // Validate updates against schema (partial) - more permissive
-            // Only validate if we have actual updates to validate
-            if (Object.keys(updates).length > 0) {
+            // Only validate if we have actual updates to validate AND we are not skipping validation
+            if (!skipValidation && Object.keys(updates).length > 0) {
                 const partialSchema = controlSchema.partial();
                 const result = partialSchema.safeParse(updates);
                 if (!result.success) {
                     // Log validation errors for debugging
                     ErrorLogger.warn('Control validation failed', 'useComplianceActions.updateControl', {
-                        metadata: { 
+                        metadata: {
                             controlId,
                             updates,
                             errors: result.error.issues
@@ -81,44 +81,44 @@ export const useComplianceActions = (user: UserProfile | null) => {
 
     // Safe cast via unknown if needed, or rely on Firebase handling
     const handleLinkAsset = async (control: Control, assetId: string) => {
-        const success = await updateControl(control.id, { relatedAssetIds: arrayUnion(assetId) as unknown as string[] }, "Actif lié");
+        const success = await updateControl(control.id, { relatedAssetIds: arrayUnion(assetId) as unknown as string[] }, "Actif lié", true);
         if (success) {
             logAction(user, 'LINK_ASSET', 'control', `Linked asset ${assetId}`, undefined, control.id);
         }
     };
 
     const handleUnlinkAsset = async (control: Control, assetId: string) => {
-        await updateControl(control.id, { relatedAssetIds: arrayRemove(assetId) as unknown as string[] }, "Lien supprimé");
+        await updateControl(control.id, { relatedAssetIds: arrayRemove(assetId) as unknown as string[] }, "Lien supprimé", true);
     };
 
     const handleLinkSupplier = async (control: Control, supplierId: string) => {
-        await updateControl(control.id, { relatedSupplierIds: arrayUnion(supplierId) as unknown as string[] }, "Fournisseur lié");
+        await updateControl(control.id, { relatedSupplierIds: arrayUnion(supplierId) as unknown as string[] }, "Fournisseur lié", true);
     };
 
     const handleUnlinkSupplier = async (control: Control, supplierId: string) => {
-        await updateControl(control.id, { relatedSupplierIds: arrayRemove(supplierId) as unknown as string[] }, "Lien supprimé");
+        await updateControl(control.id, { relatedSupplierIds: arrayRemove(supplierId) as unknown as string[] }, "Lien supprimé", true);
     };
 
     const handleLinkProject = async (control: Control, projectId: string) => {
-        const success = await updateControl(control.id, { relatedProjectIds: arrayUnion(projectId) as unknown as string[] }, "Projet lié");
+        const success = await updateControl(control.id, { relatedProjectIds: arrayUnion(projectId) as unknown as string[] }, "Projet lié", true);
         if (success) {
             logAction(user, 'LINK_PROJECT', 'control', `Linked project ${projectId}`, undefined, control.id);
         }
     };
 
     const handleUnlinkProject = async (control: Control, projectId: string) => {
-        await updateControl(control.id, { relatedProjectIds: arrayRemove(projectId) as unknown as string[] }, "Lien supprimé");
+        await updateControl(control.id, { relatedProjectIds: arrayRemove(projectId) as unknown as string[] }, "Lien supprimé", true);
     };
 
     const handleLinkDocument = async (control: Control, documentId: string) => {
-        const success = await updateControl(control.id, { evidenceIds: arrayUnion(documentId) as unknown as string[] }, "Document lié");
+        const success = await updateControl(control.id, { evidenceIds: arrayUnion(documentId) as unknown as string[] }, "Document lié", true);
         if (success) {
             logAction(user, 'LINK_DOCUMENT', 'control', `Linked document ${documentId}`, undefined, control.id);
         }
     };
 
     const handleUnlinkDocument = async (control: Control, documentId: string) => {
-        await updateControl(control.id, { evidenceIds: arrayRemove(documentId) as unknown as string[] }, "Lien supprimé");
+        await updateControl(control.id, { evidenceIds: arrayRemove(documentId) as unknown as string[] }, "Lien supprimé", true);
     };
 
     const updateJustification = async (control: Control, text: string) => {

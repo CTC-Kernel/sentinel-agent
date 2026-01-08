@@ -646,6 +646,60 @@ class IntegrationService {
             throw error;
         }
     }
+
+    /**
+     * Trigger a generic N8N webhook
+     * @param webhookPath The path segment of the N8N webhook (e.g. "generate-report" or "uuid")
+     * @param payload Data to send to N8N
+     * @param isDemoMode Mode
+     */
+    async triggerN8nWorkflow(webhookPath: string, payload: Record<string, unknown>, isDemoMode: boolean = false): Promise<{ success: boolean; message?: string; data?: unknown }> {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
+            await new Promise(resolve => setTimeout(resolve, 800));
+            console.log(`[Demo] Triggered N8N Webhook: ${webhookPath}`, payload);
+            return { success: true, message: 'Workflow triggered successfully (Demo)' };
+        }
+
+        try {
+            // N8N URL is hardcoded or fetched from config
+            const N8N_BASE_URL = 'https://cyber-threat-consulting.com/n8n/webhook'; // Or /webhook-test for testing
+
+            // Note: Direct calls from Frontend to N8N might fail if CORS is not configured on N8N.
+            // Best practice is to proxy through a Cloud Function if N8N is secure/internal,
+            // but for this implementation we assume N8N allows CORS or we use a proxy function if needed.
+            // For now, we will use a direct fetch, but if that fails due to CORS, we should switch to a Cloud Function proxy.
+
+            // To be safe and secure, we'll actually use a proxy Cloud Function 'triggerAutomation' (to be created)
+            // OR we'll use the existing 'ingestWebhook' pattern in reverse? No.
+
+            // Let's assume we call a Cloud Function wrapper for security (hiding N8N creds/structure)
+            // But since 'triggerAutomation' doesn't exist yet, let's implement a direct call 
+            // and assume the user will configure N8N CORS.
+
+            const url = `${N8N_BASE_URL}/${webhookPath}`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // 'X-N8N-API-KEY': '...' // Typically webhooks don't need auth or use query params
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`N8N Error ${response.status}: ${text}`);
+            }
+
+            const data = await response.json().catch(() => ({}));
+            return { success: true, data };
+        } catch (error) {
+            ErrorLogger.error(error, "IntegrationService.triggerN8nWorkflow");
+            throw error;
+        }
+    }
 }
 
 export const integrationService = new IntegrationService();

@@ -2,8 +2,11 @@ const { onDocumentCreated, onDocumentUpdated, onDocumentWritten, onDocumentDelet
 const { logger } = require("firebase-functions");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { N8NService, n8nWebhookSecret } = require('./services/n8nService');
 
-admin.initializeApp(); // Initialize immediately to avoid "default Firebase app does not exist" errors
+// Initialization
+admin.initializeApp();
+// Initialize immediately to avoid "default Firebase app does not exist" errors
 
 const sgMail = require('@sendgrid/mail');
 // sgMail.setApiKey is now called with secret
@@ -3720,7 +3723,7 @@ exports.fetchThreatFeed = onCall(async (request) => {
             url: url,
             code: error.code
         });
-        
+
         // More specific error messages
         if (error.name === 'AbortError') {
             throw new HttpsError('deadline-exceeded', 'Request timeout after 10 seconds.');
@@ -3968,4 +3971,35 @@ exports.validateVat = onCall(async (request) => {
     // Real implementation would call VIES SOAP/REST service
     // For now, we acknowledge the call but return unavailability if no external service is hooked up.
     throw new HttpsError('unimplemented', 'VIES Validation service not configured.');
+});
+
+/**
+ * N8N Webhook Receiver
+ * Secure endpoint to receive intelligence from N8N.
+ */
+exports.ingestWebhook = onRequest({
+    secrets: [n8nWebhookSecret],
+    cors: true // Allow calls from N8N (or specific origin if known)
+}, async (req, res) => {
+    // 1. Validate Method
+    if (req.method !== 'POST') {
+        res.status(405).send('Method Not Allowed');
+        return;
+    }
+
+    // 2. Validate Secret
+    if (!N8NService.validateSecret(req)) {
+        logger.warn('Unauthorized N8N Webhook Attempt', { ip: req.ip });
+        res.status(401).send('Unauthorized');
+        return;
+    }
+
+    // 3. Process Payload
+    try {
+        const result = await N8NService.processIngest(req.body);
+        res.status(200).json(result);
+    } catch (error) {
+        logger.error('N8N Ingest Error', error);
+        res.status(500).json({ error: error.message });
+    }
 });

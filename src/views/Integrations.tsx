@@ -222,6 +222,22 @@ export const Integrations: React.FC = () => {
                                     {cat.label}
                                 </Button>
                             ))}
+                            {/* N8N Trigger Test Button */}
+                            <Button
+                                variant="ghost"
+                                aria-label="Test N8N"
+                                onClick={() => {
+                                    toast.promise(integrationService.triggerN8nWorkflow('test-connection', { test: true }, demoMode), {
+                                        loading: 'Test de connexion N8N...',
+                                        success: 'Connexion N8N réussie !',
+                                        error: 'Erreur de connexion N8N'
+                                    });
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 text-brand-500 hover:bg-brand-50"
+                            >
+                                <Cloud className="h-3.5 w-3.5 mr-2" />
+                                Test N8N
+                            </Button>
                         </div>
                     </div>
 
