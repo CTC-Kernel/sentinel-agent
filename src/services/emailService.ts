@@ -76,21 +76,40 @@ export const sendEmail = async (
 };
 
 /**
+ * Sanitize HTML to prevent XSS attacks
+ */
+const sanitizeHtml = (html: string): string => {
+  // Remove script tags and event handlers
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/on\w+\s*=\s*[^\s>]+/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/data:/gi, 'data-blocked:');
+};
+
+/**
  * Ouvre une fenêtre pop-up pour montrer à l'utilisateur à quoi ressemble l'email.
  * Utile pour le développement et la démo sans serveur SMTP réel.
  */
 const previewEmailInNewWindow = (payload: EmailPayload) => {
   const win = window.open('', '_blank', 'width=600,height=800');
   if (win) {
+    // Sanitize HTML content to prevent XSS
+    const sanitizedHtml = sanitizeHtml(payload.html);
+    const sanitizedSubject = payload.subject.replace(/[<>"'&]/g, (c) => ({
+      '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '&': '&amp;'
+    }[c] || c));
+
     win.document.write(`
       <html>
         <head>
-          <title>Prévisualisation Email: ${payload.subject}</title>
+          <title>Prévisualisation Email: ${sanitizedSubject}</title>
           <style>body { background-color: #f8fafc; margin: 0; padding: 40px; }</style>
         </head>
         <body>
           <div style="background: white; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border-radius: 16px; overflow: hidden;">
-            ${payload.html}
+            ${sanitizedHtml}
           </div>
           <div style="text-align: center; margin-top: 20px; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 12px;">
             Ceci est une simulation d'envoi. En production, cet email partirait via SendGrid/Mailgun.
