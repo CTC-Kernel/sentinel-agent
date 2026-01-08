@@ -1,5 +1,6 @@
 import { test, Page } from '@playwright/test';
 import { setupMockAuth, setupFirestoreMocks } from './utils';
+import { BASE_URL } from './utils';
 
 test.describe('Deep Form Inspector Tests', () => {
     test.setTimeout(90000);
@@ -26,7 +27,7 @@ test.describe('Deep Form Inspector Tests', () => {
         for (const pageInfo of pages) {
             console.log(`\n=== Inspecting ${pageInfo.name} ===`);
 
-            await page.goto(pageInfo.path);
+            await page.goto(BASE_URL + pageInfo.path);
             await page.waitForLoadState('networkidle');
             await page.waitForTimeout(3000);
 
@@ -194,7 +195,7 @@ test.describe('Deep Form Inspector Tests', () => {
     test('should test form interactions and validation', async ({ page }) => {
         console.log('\n=== Testing Form Interactions ===');
 
-        await page.goto('/#/assets');
+        await page.goto(BASE_URL + '/#/assets');
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(3000);
 
@@ -357,7 +358,7 @@ test.describe('Deep Form Inspector Tests', () => {
                 localStorage.setItem('auth_user', JSON.stringify(mockUser));
             }, role);
 
-            await page.goto('/#/');
+            await page.goto(BASE_URL + '/#/');
             await page.waitForLoadState('networkidle');
             await page.waitForTimeout(2000);
 
@@ -385,7 +386,7 @@ test.describe('Deep Form Inspector Tests', () => {
     test('should test accessibility and form structure', async ({ page }) => {
         console.log('\n=== Testing Accessibility ===');
 
-        await page.goto('/#/assets');
+        await page.goto(BASE_URL + '/#/assets');
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(3000);
 
