@@ -1,358 +1,361 @@
 import { useState } from 'react';
-
 import { useTranslation } from 'react-i18next';
-import { Capacitor } from '@capacitor/core';
-import { useStore } from '../store';
-import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown, type LucideIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Check, X, HelpCircle, Globe, ChevronDown, LayoutDashboard, FolderKanban, FileText, Calendar, Siren, Bug, Box, ShieldAlert, Activity, HeartPulse, Fingerprint, Server, Building, Briefcase, Users, Gauge, Save, Brain, Database, Headset, Info, type LucideIcon } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
-import { staggerContainerVariants } from '../components/ui/animationVariants';
-import { SubscriptionService } from '../services/subscriptionService';
-import { ErrorLogger } from '../services/errorLogger';
-import { PLANS } from '../config/plans';
-import { PlanType } from '../types';
 import { Tooltip } from '../components/ui/Tooltip';
 import { ContactModal } from '../components/ui/ContactModal';
 import { LegalModal } from '../components/ui/LegalModal';
+import { PLANS } from '../config/plans';
 
 const Pricing = () => {
-  const { user, addToast } = useStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(true);
-  const [loading, setLoading] = useState<string | null>(null); // Skeleton: loading state for pricing plans table
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
-  const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('cgv');
+  const [legalTab, setLegalTab] = useState<'privacy' | 'terms' | 'mentions' | 'cgv'>('terms');
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['pilotage', 'operations']); // Default open high-impact categories
 
-  const handleSubscribe = async (planId: PlanType) => {
-    if (!user?.organizationId) {
-      addToast("Vous devez être rattaché à une organisation pour souscrire.", "error");
-      return;
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  interface DetailedFeature {
+    name: string;
+    icon?: LucideIcon;
+    discovery: string | boolean;
+    professional: string | boolean;
+    enterprise: string | boolean;
+    tooltip?: string;
+  }
+
+  interface ProcessedFeatureCategory {
+    id: string;
+    title: string;
+    features: DetailedFeature[];
+  }
+
+  const featureCategories: ProcessedFeatureCategory[] = [
+    {
+      id: 'pilotage',
+      title: t('common.pilotage'),
+      features: [
+        { name: t('common.feat_dashboard'), icon: LayoutDashboard, discovery: t('common.val_simple'), professional: t('common.val_advanced'), enterprise: t('common.val_custom'), tooltip: 'Tableaux de bord dynamiques et personnalisables pour la direction.' },
+        { name: t('common.feat_projects'), icon: FolderKanban, discovery: '1', professional: '10', enterprise: t('common.val_unlimited') },
+        { name: t('common.feat_reports'), icon: FileText, discovery: false, professional: true, enterprise: t('common.val_included') },
+        { name: t('common.feat_calendar'), icon: Calendar, discovery: true, professional: true, enterprise: true },
+      ]
+    },
+    {
+      id: 'operations',
+      title: t('common.operations'),
+      features: [
+        { name: t('common.feat_incidents'), icon: Siren, discovery: t('common.val_simple'), professional: t('common.val_advanced'), enterprise: t('common.val_ai_assisted') || "AI Assisted" },
+        { name: t('common.feat_vulns'), icon: Bug, discovery: false, professional: t('common.val_manual'), enterprise: t('common.val_automated') || "Automated" },
+        { name: t('common.feat_threats'), icon: Globe, discovery: true, professional: true, enterprise: true },
+        { name: t('common.feat_voxel'), icon: Box, discovery: false, professional: true, enterprise: true, tooltip: 'Moteur de visualisation 3D des infrastructures.' },
+      ]
+    },
+    {
+      id: 'governance',
+      title: t('common.governance'),
+      features: [
+        { name: t('common.feat_risks'), icon: ShieldAlert, discovery: t('common.val_simple'), professional: 'ISO 27005', enterprise: 'ISO/EBIOS' },
+        { name: t('common.feat_compliance'), icon: Activity, discovery: false, professional: 'ISO 27001', enterprise: 'Multi-normes' },
+        { name: t('common.feat_audits'), icon: FileText, discovery: false, professional: true, enterprise: t('common.val_portal') || "Portail" },
+        { name: t('common.feat_portal'), discovery: false, professional: false, enterprise: true, tooltip: 'Portail dédié pour vos auditeurs externes.' },
+        { name: t('common.feat_continuity'), icon: HeartPulse, discovery: false, professional: false, enterprise: true },
+        { name: t('common.feat_privacy'), icon: Fingerprint, discovery: false, professional: true, enterprise: true },
+      ]
+    },
+    {
+      id: 'repository',
+      title: t('common.repository'),
+      features: [
+        { name: t('common.feat_assets'), icon: Server, discovery: '50', professional: '250', enterprise: t('common.val_unlimited') },
+        { name: t('common.feat_suppliers'), icon: Building, discovery: '10', professional: '50', enterprise: t('common.val_unlimited') },
+        { name: t('common.feat_documents'), icon: Briefcase, discovery: '1 GB', professional: '10 GB', enterprise: '100 GB' },
+      ]
+    },
+    {
+      id: 'adminSec',
+      title: t('common.adminSec'),
+      features: [
+        { name: t('common.feat_team'), icon: Users, discovery: '3', professional: '10', enterprise: t('common.val_unlimited') },
+        { name: t('common.feat_health'), icon: Gauge, discovery: true, professional: true, enterprise: true },
+        { name: t('common.feat_backup'), icon: Save, discovery: 'Hebdo', professional: 'Quotidien', enterprise: 'Temps réel' },
+        { name: t('common.feat_ai'), icon: Brain, discovery: false, professional: true, enterprise: t('common.val_advanced') },
+        { name: t('common.feat_api'), icon: Database, discovery: false, professional: false, enterprise: true },
+        { name: t('common.feat_support'), icon: Headset, discovery: t('common.val_comm'), professional: t('common.val_prio'), enterprise: t('common.val_dedicated') },
+      ]
     }
-    try {
-      setLoading(planId);
-      await SubscriptionService.startSubscription(user.organizationId, planId, isAnnual ? 'year' : 'month');
-    } catch (error) {
-      ErrorLogger.error(error, 'Pricing.handleSubscribe');
-      addToast("Une erreur est survenue lors de la redirection vers le paiement.", "error");
-    } finally {
-      setLoading(null);
-    }
+  ];
+
+  const handleSelectPlan = (planId: string) => {
+    // Navigate to registration with plan selection
+    navigate(`/register?plan=${planId}&period=${isAnnual ? 'annual' : 'monthly'}`);
+  };
+
+  const renderFeatureValue = (value: string | boolean) => {
+    if (value === true) return <Check className="w-5 h-5 text-emerald-400 mx-auto" />;
+    if (value === false) return <X className="w-5 h-5 text-slate-500 mx-auto opacity-50" />;
+    return <span className="font-medium text-slate-700 dark:text-slate-300 text-sm">{value}</span>;
   };
 
   const faqs = [
-    { q: t('pricing.faqs.q1'), a: t('pricing.faqs.a1') },
-    { q: t('pricing.faqs.q2'), a: t('pricing.faqs.a2') },
-    { q: t('pricing.faqs.q3'), a: t('pricing.faqs.a3') },
-    { q: t('pricing.faqs.q4'), a: t('pricing.faqs.a4') },
-  ];
-
-  const features = [
-    // General Limits
-    { name: t('pricing.featuresList.users'), discovery: '3', professional: '10', enterprise: t('pricing.unlimited'), tooltip: t('pricing.featuresList.users_tooltip') },
-    { name: t('pricing.featuresList.assets'), discovery: '50', professional: '250', enterprise: t('pricing.unlimited'), tooltip: t('pricing.featuresList.assets_tooltip') },
-    { name: t('pricing.featuresList.projects'), discovery: '1', professional: '10', enterprise: t('pricing.unlimited'), tooltip: t('pricing.featuresList.projects_tooltip') },
-    { name: t('pricing.featuresList.storage'), discovery: '1 Go', professional: '10 Go', enterprise: '100 Go', tooltip: t('pricing.featuresList.storage_tooltip') },
-
-    // Risk & Compliance
-    { name: t('pricing.featuresList.iso27005'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.iso27005_tooltip') },
-    { name: t('pricing.featuresList.threats'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.threats_tooltip') },
-    { name: t('pricing.featuresList.riskCalc'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.riskCalc_tooltip') },
-    { name: t('pricing.featuresList.rtp'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.rtp_tooltip') },
-    { name: t('pricing.featuresList.iso27001'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.iso27001_tooltip') },
-
-    // Advanced Features
-    { name: t('pricing.featuresList.ai'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.ai_tooltip') },
-    { name: t('pricing.featuresList.docs'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.docs_tooltip') },
-    { name: t('pricing.featuresList.pdfstd'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.pdfstd_tooltip') },
-    { name: t('pricing.featuresList.pdfwhite'), discovery: false, professional: true, enterprise: true, tooltip: t('pricing.featuresList.pdfwhite_tooltip') },
-    { name: t('pricing.featuresList.templates'), discovery: false, professional: true, enterprise: true, tooltip: t('pricing.featuresList.templates_tooltip') },
-
-    // Enterprise & Support
-    { name: t('pricing.featuresList.support'), discovery: 'Standard', professional: 'Prioritaire', enterprise: 'Dédié 24/7' },
-    { name: t('pricing.featuresList.api'), discovery: false, professional: false, enterprise: true, tooltip: t('pricing.featuresList.api_tooltip') },
-    { name: t('pricing.featuresList.sso'), discovery: false, professional: false, enterprise: true, tooltip: t('pricing.featuresList.sso_tooltip') },
-    { name: t('pricing.featuresList.auditLogs'), discovery: false, professional: false, enterprise: true, tooltip: t('pricing.featuresList.auditLogs_tooltip') },
-    { name: t('pricing.featuresList.onboarding'), discovery: false, professional: false, enterprise: true, tooltip: t('pricing.featuresList.onboarding_tooltip') },
-  ];
-
-  const plans: { id: PlanType; name: string; icon: LucideIcon; popular?: boolean }[] = [
-    { id: 'discovery', name: t('pricing.plans.discovery'), icon: Shield },
-    { id: 'professional', name: t('pricing.plans.professional'), icon: Zap, popular: true },
-    { id: 'enterprise', name: t('pricing.plans.enterprise'), icon: Building2 },
+    { q: t('pricing.faq1_q', "Puis-je changer de plan plus tard ?"), a: t('pricing.faq1_a', "Absolument. Vous pouvez upgrader ou downgrader votre plan à tout moment depuis votre espace d'administration. Le changement sera effectif immédiatement.") },
+    { q: t('pricing.faq2_q', "Quels sont les modes de paiement ?"), a: t('pricing.faq2_a', "Nous acceptons toutes les cartes bancaires majeures (Visa, Mastercard, Amex) ainsi que les prélèvements SEPA pour les plans annuels.") },
+    { q: t('pricing.faq3_q', "Les données sont-elles sécurisées ?"), a: t('pricing.faq3_a', "Oui, la sécurité est notre priorité. Toutes vos données sont chiffrées en transit et au repos. Nous sommes hébergés sur des infrastructures certifiées ISO 27001 et SecNumCloud.") },
   ];
 
   return (
-    <motion.div
-      variants={staggerContainerVariants}
-      initial="initial"
-      animate="visible"
-      className="space-y-10 min-w-0"
-    >
+    <div className="min-h-screen relative font-inter bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pb-20">
       <MasterpieceBackground />
-      <SEO title={t('pricing.title')} description={t('pricing.subtitle')} />
-      {/* Header with Premium Typography */}
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6 min-w-0">
-        <div className="min-w-0">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight leading-tight">
-            {t('pricing.title')}
-          </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400 mt-2 font-medium max-w-xl leading-relaxed">
-            {t('pricing.subtitle')}
-          </p>
-        </div>
+      <SEO title="Tarifs | Sentinel GRC" description="Des solutions flexibles pour sécuriser votre entreprise, de la startup au grand groupe." />
 
-        {/* Apple-style Segmented Control */}
-        <div className="bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-full flex items-center relative shadow-inner border border-slate-200/50 dark:border-white/5 shrink-0">
-          <div
-            className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white dark:bg-slate-600 rounded-full shadow-sm transition-all duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+6px)]' : 'translate-x-0'}`}
-          />
-          <button
-            aria-label={t('pricing.monthly')}
-            onClick={() => setIsAnnual(false)}
-            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 rounded-full ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+      <div className="relative z-10 container mx-auto px-4 pt-32 lg:pt-40">
+        {/* Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400"
           >
-            {t('pricing.monthly')}
-          </button>
-          <button
-            aria-label={t('pricing.annual')}
-            onClick={() => setIsAnnual(true)}
-            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 rounded-full flex items-center gap-2 ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            {t('common.pricingTitle')}
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-lg md:text-xl text-slate-600 dark:text-slate-400 font-medium"
           >
-            {t('pricing.annual')}
-            <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm shadow-emerald-500/20 tracking-wide">
-              {t('pricing.discount')}
-            </span>
-          </button>
-        </div>
-      </div>
+            {t('common.pricingSubtitle')}
+          </motion.p>
 
-      {/* Plans Grid - Refined Glassmorphism */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-        {plans.map(({ id, name, icon: Icon, popular }) => {
-          const plan = PLANS[id];
-          const price = plan.priceMonthly;
-
-          return (
-            <div
-              key={id}
-              className={`relative flex flex-col rounded-[2rem] overflow-hidden transition-all duration-500 group ${popular
-                ? 'bg-white/90 dark:bg-slate-800/90 shadow-2xl shadow-blue-900/10 ring-1 ring-blue-500/20 dark:ring-blue-400/20 scale-[1.02] z-10'
-                : 'bg-white/60 dark:bg-slate-900/60 shadow-xl shadow-slate-200/50 dark:shadow-black/20 ring-1 ring-slate-200/60 dark:ring-white/5 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:shadow-2xl hover:-translate-y-1'
-                } backdrop-blur-xl`}
+          {/* Billing Toggle */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mt-10 inline-flex items-center p-1 rounded-full bg-slate-200/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700"
+          >
+            <button
+              onClick={() => setIsAnnual(false)}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${!isAnnual ? 'bg-white dark:bg-slate-700 shadow-md text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
-              {popular && (
-                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 opacity-80" />
-              )}
+              Mensuel
+            </button>
+            <button
+              onClick={() => setIsAnnual(true)}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${isAnnual ? 'bg-white dark:bg-slate-700 shadow-md text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            >
+              Annuel
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] uppercase tracking-wider font-extrabold">-20%</span>
+            </button>
+          </motion.div>
+        </div>
 
-              <div className="p-8 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-8">
-                  <div className={`p-3.5 rounded-2xl ${popular ? 'bg-blue-50 dark:bg-slate-900 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'}`}>
-                    <Icon className="w-6 h-6" strokeWidth={2} />
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 max-w-7xl mx-auto">
+          {Object.entries(PLANS).map(([key, plan], index) => {
+            const isPopular = plan.highlight;
+            const price = isAnnual ? Math.round(plan.priceYearly / 12) : plan.priceMonthly;
+            return (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 + 0.3 }}
+                className={`relative group p-8 rounded-[2rem] border transition-all duration-500 ${isPopular
+                  ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white border-transparent shadow-2xl scale-105 z-10'
+                  : 'bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                  }`}
+              >
+                {isPopular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg">
+                    Recommandé
                   </div>
-                  {popular && (
-                    <span className="bg-blue-50 dark:bg-slate-900 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-100 dark:border-blue-500/20 uppercase tracking-widest">
-                      {t('pricing.popular')}
-                    </span>
-                  )}
-                </div>
+                )}
 
-                <div className="mb-2">
-                  {/* Heading hierarchy: h2 for pricing plan name (follows h1 page title) */}
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{name}</h2>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">{plan.description}</p>
-                </div>
-
-                <div className="my-8">
+                <div className="mb-8">
+                  <h3 className={`text-xl font-bold mb-2 ${isPopular ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{plan.name}</h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-bold text-slate-900 dark:text-white font-display tracking-tighter">
-                      {price === 0 ? t('pricing.free') : `${price}€`}
+                    <span className={`text-4xl font-black ${isPopular ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                      {price === 0 ? '0€' : `${price}€`}
                     </span>
-                    {price > 0 && <span className="text-slate-600 font-medium text-lg">{t('pricing.htMonth')}</span>}
+                    <span className={`text-sm font-medium ${isPopular ? 'text-slate-300' : 'text-slate-500'}`}>/mois</span>
                   </div>
-                  {isAnnual && price > 0 && (
-                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                      {t('pricing.billedYearly', { price: plan.priceYearly })}
-                    </p>
-                  )}
+                  <p className={`mt-4 text-sm leading-relaxed ${isPopular ? 'text-slate-300' : 'text-slate-500'}`}>
+                    {key === 'DISCOVERY' ? 'Pour découvrir la plateforme et gérer vos premiers risques.' :
+                      key === 'professional' ? 'Pour les équipes structurées qui visent la conformité ISO.' :
+                        'Pour les grandes organisations avec des besoins complexes de gouvernance.'}
+                  </p>
                 </div>
 
-                <div className="space-y-4 mb-8 flex-1">
-                  {plan.featuresList.map((feature, i) => (
-                    <div
-                      key={`${feature.substring(0, 10)}-${i}`}
-                      className="text-sm text-slate-700 dark:text-slate-300 font-medium"
-                    >
-                      <span className="leading-relaxed">{feature}</span>
+                <Button
+                  onClick={() => handleSelectPlan(plan.id)}
+                  className={`w-full h-12 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 ${isPopular
+                    ? 'bg-white text-slate-900 hover:bg-slate-100 hover:scale-[1.02]'
+                    : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-[1.02]'
+                    }`}
+                >
+                  Commencer
+                </Button>
+
+                <div className="mt-8 space-y-4">
+                  {(plan.featuresList || []).slice(0, 5).map((feature, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className={`mt-1 p-0.5 rounded-full ${isPopular ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                        <Check className={`w-3 h-3 ${isPopular ? 'text-white' : 'text-slate-900 dark:text-white'}`} />
+                      </div>
+                      <span className={`text-sm font-medium ${isPopular ? 'text-slate-200' : 'text-slate-600 dark:text-slate-400'}`}>
+                        {feature}
+                      </span>
                     </div>
                   ))}
                 </div>
+              </motion.div>
+            );
+          })}
+        </div>
 
-                {Capacitor.isNativePlatform() ? (
-                  <div className="w-full py-4 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center">
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                      {t('pricing.mobileWarning')}
-                    </p>
-                  </div>
-                ) : (
+        {/* Detailed Comparison Table */}
+        <div className="max-w-7xl mx-auto mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Comparaison Détaillée</h2>
+            <p className="text-slate-500">Tout ce inclus dans chaque plan.</p>
+          </div>
+
+          <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
+            {/* Table Header - Sticky */}
+            <div className="grid grid-cols-4 p-6 border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
+              <div className="col-span-1 p-2 font-bold text-slate-500 uppercase text-xs tracking-wider">Fonctionnalités</div>
+              <div className="col-span-1 p-2 text-center font-bold text-slate-900 dark:text-white">Discovery</div>
+              <div className="col-span-1 p-2 text-center font-bold text-blue-600 dark:text-blue-400">Professional</div>
+              <div className="col-span-1 p-2 text-center font-bold text-slate-900 dark:text-white">Enterprise</div>
+            </div>
+
+            {/* Feature Categories */}
+            <div className="divide-y divide-slate-200 dark:divide-white/5">
+              {featureCategories.map((category) => (
+                <div key={category.id} className="transition-colors hover:bg-slate-50/30 dark:hover:bg-white/5">
                   <button
-                    aria-label={price === 0 ? t('pricing.startFree') : t('pricing.choose')}
-                    onClick={() => handleSubscribe(id)}
-                    disabled={loading !== null}
-                    className={`w-full py-4 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${popular
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5'
-                      : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 hover:shadow-lg hover:-translate-y-0.5'
-                      } ${loading === id ? 'opacity-75 cursor-wait' : ''}`}
+                    onClick={() => toggleCategory(category.id)}
+                    className="w-full flex items-center justify-between p-6 bg-slate-50/50 dark:bg-slate-900/30 font-bold text-left hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
                   >
-                    {loading === id ? (
-                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        {price === 0 ? t('pricing.startFree') : t('pricing.choose')}
-                        <ChevronRight className="w-4 h-4" />
-                      </>
-                    )}
+                    <span className="text-lg text-slate-800 dark:text-slate-200">{category.title}</span>
+                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${expandedCategories.includes(category.id) ? 'rotate-180' : ''}`} />
                   </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
-      {/* Comparison Table - Minimalist */}
-      <div className="glass-premium p-0 rounded-[2.5rem] overflow-hidden min-w-0">
-        <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.compare')}</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.compareDesc')}</p>
-        </div>
-
-        <div className="overflow-x-auto max-w-full">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-white/5">
-                <th className="text-left py-5 px-10 font-bold text-xs text-slate-500 uppercase tracking-widest w-1/3">{t('pricing.features')}</th>
-                <th className="py-5 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">{t('pricing.plans.discovery')}</th>
-                <th className="py-5 px-6 text-center font-bold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest w-1/5 bg-blue-50/30 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">{t('pricing.plans.professional')}</th>
-                <th className="py-5 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">{t('pricing.plans.enterprise')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {features.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center">
-                    <p className="text-slate-600 dark:text-slate-400 font-medium">{t('pricing.noFeatures')}</p>
-                  </td>
-                </tr>
-              ) : (
-                features.map((feature) => (
-                  <tr key={feature.name} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
-                    <td className="py-5 px-10 text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                      {feature.name}
-                      {feature.tooltip && (
-                        <Tooltip content={feature.tooltip}>
-                          <Info className="w-4 h-4 text-slate-500 hover:text-blue-500 transition-colors cursor-help" />
-                        </Tooltip>
-                      )}
-                    </td>
-                    <td className="py-5 px-6 text-center">
-                      {typeof feature.discovery === 'boolean' ? (
-                        feature.discovery ? (
-                          <div className="flex justify-center"><Check className="w-5 h-5 text-slate-900 dark:text-white" strokeWidth={2.5} /></div>
-                        ) : (
-                          <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
-                        )
-                      ) : (
-                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{feature.discovery}</span>
-                      )}
-                    </td>
-                    <td className="py-5 px-6 text-center bg-blue-50/10 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">
-                      {typeof feature.professional === 'boolean' ? (
-                        feature.professional ? (
-                          <div className="flex justify-center"><Check className="w-5 h-5 text-blue-600 dark:text-blue-400" strokeWidth={2.5} /></div>
-                        ) : (
-                          <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
-                        )
-                      ) : (
-                        <span className="text-sm font-bold text-slate-900 dark:text-white">{feature.professional}</span>
-                      )}
-                    </td>
-                    <td className="py-5 px-6 text-center">
-                      {typeof feature.enterprise === 'boolean' ? (
-                        feature.enterprise ? (
-                          <div className="flex justify-center"><Check className="w-5 h-5 text-slate-900 dark:text-white" strokeWidth={2.5} /></div>
-                        ) : (
-                          <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
-                        )
-                      ) : (
-                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{feature.enterprise}</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* FAQ - Clean Accordion */}
-      <div className="glass-premium p-0 rounded-[2.5rem] overflow-hidden">
-        <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
-          <div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.faq')}</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc')}</p>
-          </div>
-          <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-            <HelpCircle className="w-6 h-6 text-slate-500" />
-          </div>
-        </div>
-
-        <div className="divide-y divide-slate-100 dark:divide-white/5">
-          {faqs.map((faq, i) => (
-            <div key={faq.q} className="group">
-              <button
-                aria-label={faq.q}
-                aria-expanded={openFaq === i}
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                className="w-full flex items-center justify-between p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
-              >
-                <span className="font-bold text-slate-800 dark:text-slate-200 text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{faq.q}</span>
-                <ChevronDown
-                  className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-blue-500' : 'group-hover:text-blue-500'}`}
-                />
-              </button>
-              <div
-                className={`grid transition-all duration-300 ease-in-out ${openFaq === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                  }`}
-              >
-                <div className="overflow-hidden">
-                  <div className="px-8 pb-8 pt-0">
-                    <p className="text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                      {faq.a}
-                    </p>
-                  </div>
+                  <AnimatePresence>
+                    {expandedCategories.includes(category.id) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="divide-y divide-slate-100 dark:divide-white/5">
+                          {category.features.map((feature, idx) => (
+                            <div key={idx} className="grid grid-cols-4 p-4 items-center hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                              <div className="col-span-1 flex items-center gap-3 pl-4">
+                                {feature.icon && <feature.icon className="w-4 h-4 text-slate-400" />}
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                  {feature.name}
+                                  {feature.tooltip && (
+                                    <Tooltip content={feature.tooltip}>
+                                      <Info className="w-3.5 h-3.5 text-slate-400 ml-2 inline cursor-help" />
+                                    </Tooltip>
+                                  )}
+                                </span>
+                              </div>
+                              <div className="col-span-1 text-center">{renderFeatureValue(feature.discovery)}</div>
+                              <div className="col-span-1 text-center bg-blue-50/30 dark:bg-blue-900/10 py-2 rounded-lg">{renderFeatureValue(feature.professional)}</div>
+                              <div className="col-span-1 text-center">{renderFeatureValue(feature.enterprise)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
 
-      <div className="text-center pt-8 pb-4">
-        <p className="text-sm text-slate-500 font-medium">
-          {t('pricing.contact.text')}
-          <Button
-            variant="link"
-            onClick={() => setIsContactOpen(true)}
-            className="ml-1 text-slate-900 dark:text-white hover:underline font-bold h-auto p-0"
-          >
-            {t('pricing.contact.link')}
-          </Button>
-        </p>
+        {/* FAQ Section */}
+        <div className="glass-premium p-0 rounded-[2.5rem] overflow-hidden mb-24 max-w-4xl mx-auto">
+          <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.faq', 'FAQ')}</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc', 'Questions fréquentes')}</p>
+            </div>
+            <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+              <HelpCircle className="w-6 h-6 text-slate-500" />
+            </div>
+          </div>
+
+          <div className="divide-y divide-slate-100 dark:divide-white/5">
+            {faqs.map((faq, i) => (
+              <div key={i} className="group">
+                <button
+                  onClick={() => setExpandedCategories(prev => prev.includes(`faq-${i}`) ? prev.filter(c => c !== `faq-${i}`) : [...prev, `faq-${i}`])}
+                  className="w-full flex items-center justify-between p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
+                >
+                  <span className="font-bold text-slate-800 dark:text-slate-200 text-base">{faq.q}</span>
+                  <ChevronDown
+                    className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${expandedCategories.includes(`faq-${i}`) ? 'rotate-180 text-blue-500' : ''}`}
+                  />
+                </button>
+                <AnimatePresence>
+                  {expandedCategories.includes(`faq-${i}`) && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-8 pb-8 pt-0">
+                        <p className="text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                          {faq.a}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer Section */}
+        <div className="text-center pb-8 border-t border-slate-200 dark:border-slate-800 pt-8 mt-12">
+          <p className="text-sm text-slate-500 font-medium mb-4">
+            {t('pricing.contact.text', 'Besoin de plus d\'informations ?')}
+            <Button
+              variant="link"
+              onClick={() => setIsContactOpen(true)}
+              className="ml-1 text-slate-900 dark:text-white hover:underline font-bold h-auto p-0"
+            >
+              {t('pricing.contact.link', 'Contactez-nous')}
+            </Button>
+          </p>
+
+          <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-medium text-slate-500">
+            <Button variant="ghost" size="sm" onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">CGV</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">Confidentialité</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">Mentions Légales</Button>
+          </div>
+        </div>
       </div>
 
       <ContactModal
@@ -361,21 +364,13 @@ const Pricing = () => {
         subject="Demande de devis / Information"
       />
 
-      <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-medium text-slate-500 pb-8">
-        <Button variant="ghost" size="sm" onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">CGV</Button>
-        <Button variant="ghost" size="sm" onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">Confidentialité</Button>
-        <Button variant="ghost" size="sm" onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">Mentions Légales</Button>
-      </div>
-
       <LegalModal
         isOpen={showLegalModal}
         onClose={() => setShowLegalModal(false)}
         initialTab={legalTab}
       />
-    </motion.div>
+    </div>
   );
 };
 
 export default Pricing;
-
-// Headless UI handles FocusTrap and keyboard navigation
