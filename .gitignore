@@ -54,3 +54,7 @@ apphosting.yaml
 functions/.env
 functions/.env.*
 functions/*.secrets
+
+# Test artifacts
+test-results/
+playwright-report/

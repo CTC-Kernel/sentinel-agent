@@ -8,6 +8,8 @@ import {
     validateIncident,
     validateSupplier
 } from '../formValidation';
+import type { Risk, Audit, Document, Incident, Supplier, Project } from '../../types';
+import { Criticality } from '../../types';
 
 describe('formValidation', () => {
     describe('validateAsset', () => {
@@ -120,7 +122,7 @@ describe('formValidation', () => {
 
     describe('validateRisk', () => {
         it('should return no errors for valid risk', () => {
-            const validRisk = {
+            const validRisk: Partial<Risk> = {
                 threat: 'Data Breach',
                 category: 'Security',
                 probability: 3,
@@ -132,7 +134,7 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing threat', () => {
-            const risk = {
+            const risk: Partial<Risk> = {
                 category: 'Security',
                 probability: 3,
                 impact: 4
@@ -143,7 +145,7 @@ describe('formValidation', () => {
         });
 
         it('should return error for empty threat', () => {
-            const risk = {
+            const risk: Partial<Risk> = {
                 threat: '',
                 category: 'Security',
                 probability: 3,
@@ -155,7 +157,7 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing category', () => {
-            const risk = {
+            const risk: Partial<Risk> = {
                 threat: 'Data Breach',
                 probability: 3,
                 impact: 4
@@ -166,62 +168,66 @@ describe('formValidation', () => {
         });
 
         it('should return error for probability below 1', () => {
+            // Use type assertion for invalid boundary test
             const risk = {
                 threat: 'Data Breach',
                 category: 'Security',
                 probability: 0,
                 impact: 4
-            };
+            } as unknown as Partial<Risk>;
 
             const errors = validateRisk(risk);
             expect(errors.some(e => e.field === 'probability')).toBe(true);
         });
 
         it('should return error for probability above 5', () => {
+            // Use type assertion for invalid boundary test
             const risk = {
                 threat: 'Data Breach',
                 category: 'Security',
                 probability: 6,
                 impact: 4
-            };
+            } as unknown as Partial<Risk>;
 
             const errors = validateRisk(risk);
             expect(errors.some(e => e.field === 'probability')).toBe(true);
         });
 
         it('should return error for impact below 1', () => {
+            // Use type assertion for invalid boundary test
             const risk = {
                 threat: 'Data Breach',
                 category: 'Security',
                 probability: 3,
                 impact: 0
-            };
+            } as unknown as Partial<Risk>;
 
             const errors = validateRisk(risk);
             expect(errors.some(e => e.field === 'impact')).toBe(true);
         });
 
         it('should return error for impact above 5', () => {
+            // Use type assertion for invalid boundary test
             const risk = {
                 threat: 'Data Breach',
                 category: 'Security',
                 probability: 3,
                 impact: 6
-            };
+            } as unknown as Partial<Risk>;
 
             const errors = validateRisk(risk);
             expect(errors.some(e => e.field === 'impact')).toBe(true);
         });
 
         it('should accept valid probability and impact at boundaries', () => {
-            const risk1 = {
+            const risk1: Partial<Risk> = {
                 threat: 'Test',
                 category: 'Security',
                 probability: 1,
                 impact: 1
             };
 
-            const risk5 = {
+            const risk5: Partial<Risk> = {
                 threat: 'Test',
                 category: 'Security',
                 probability: 5,
@@ -235,9 +241,9 @@ describe('formValidation', () => {
 
     describe('validateProject', () => {
         it('should return no errors for valid project', () => {
-            const validProject = {
+            const validProject: Partial<Project> = {
                 name: 'ISO 27001 Implementation',
-                status: 'active'
+                status: 'En cours'
             };
 
             const errors = validateProject(validProject);
@@ -245,8 +251,8 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing name', () => {
-            const project = {
-                status: 'active'
+            const project: Partial<Project> = {
+                status: 'En cours'
             };
 
             const errors = validateProject(project);
@@ -254,7 +260,7 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing status', () => {
-            const project = {
+            const project: Partial<Project> = {
                 name: 'Test Project'
             };
 
@@ -265,9 +271,9 @@ describe('formValidation', () => {
 
     describe('validateAudit', () => {
         it('should return no errors for valid audit', () => {
-            const validAudit = {
+            const validAudit: Partial<Audit> = {
                 name: 'Annual Security Audit',
-                type: 'internal',
+                type: 'Interne',
                 dateScheduled: new Date().toISOString(),
                 auditor: 'John Doe'
             };
@@ -277,8 +283,8 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing name', () => {
-            const audit = {
-                type: 'internal',
+            const audit: Partial<Audit> = {
+                type: 'Interne',
                 dateScheduled: new Date().toISOString(),
                 auditor: 'John Doe'
             };
@@ -288,7 +294,7 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing type', () => {
-            const audit = {
+            const audit: Partial<Audit> = {
                 name: 'Annual Audit',
                 dateScheduled: new Date().toISOString(),
                 auditor: 'John Doe'
@@ -299,9 +305,9 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing dateScheduled', () => {
-            const audit = {
+            const audit: Partial<Audit> = {
                 name: 'Annual Audit',
-                type: 'internal',
+                type: 'Interne',
                 auditor: 'John Doe'
             };
 
@@ -310,9 +316,9 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing auditor', () => {
-            const audit = {
+            const audit: Partial<Audit> = {
                 name: 'Annual Audit',
-                type: 'internal',
+                type: 'Interne',
                 dateScheduled: new Date().toISOString()
             };
 
@@ -323,9 +329,9 @@ describe('formValidation', () => {
 
     describe('validateDocument', () => {
         it('should return no errors for valid document', () => {
-            const validDocument = {
+            const validDocument: Partial<Document> = {
                 title: 'Security Policy',
-                type: 'policy'
+                type: 'Politique'
             };
 
             const errors = validateDocument(validDocument);
@@ -333,8 +339,8 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing title', () => {
-            const document = {
-                type: 'policy'
+            const document: Partial<Document> = {
+                type: 'Politique'
             };
 
             const errors = validateDocument(document);
@@ -342,7 +348,7 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing type', () => {
-            const document = {
+            const document: Partial<Document> = {
                 title: 'Security Policy'
             };
 
@@ -354,9 +360,9 @@ describe('formValidation', () => {
             const pastDate = new Date();
             pastDate.setDate(pastDate.getDate() - 10);
 
-            const document = {
+            const document: Partial<Document> = {
                 title: 'Security Policy',
-                type: 'policy',
+                type: 'Politique',
                 nextReviewDate: pastDate.toISOString()
             };
 
@@ -367,11 +373,11 @@ describe('formValidation', () => {
 
     describe('validateIncident', () => {
         it('should return no errors for valid incident', () => {
-            const validIncident = {
+            const validIncident: Partial<Incident> = {
                 title: 'Security Breach',
                 description: 'A security breach occurred',
-                severity: 'high',
-                category: 'Security',
+                severity: Criticality.HIGH,
+                category: 'Fuite de Données',
                 dateReported: new Date().toISOString()
             };
 
@@ -380,10 +386,10 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing title', () => {
-            const incident = {
+            const incident: Partial<Incident> = {
                 description: 'A security breach',
-                severity: 'high',
-                category: 'Security',
+                severity: Criticality.HIGH,
+                category: 'Fuite de Données',
                 dateReported: new Date().toISOString()
             };
 
@@ -392,10 +398,10 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing description', () => {
-            const incident = {
+            const incident: Partial<Incident> = {
                 title: 'Security Breach',
-                severity: 'high',
-                category: 'Security',
+                severity: Criticality.HIGH,
+                category: 'Fuite de Données',
                 dateReported: new Date().toISOString()
             };
 
@@ -404,10 +410,10 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing severity', () => {
-            const incident = {
+            const incident: Partial<Incident> = {
                 title: 'Security Breach',
                 description: 'A security breach',
-                category: 'Security',
+                category: 'Fuite de Données',
                 dateReported: new Date().toISOString()
             };
 
@@ -416,10 +422,10 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing category', () => {
-            const incident = {
+            const incident: Partial<Incident> = {
                 title: 'Security Breach',
                 description: 'A security breach',
-                severity: 'high',
+                severity: Criticality.HIGH,
                 dateReported: new Date().toISOString()
             };
 
@@ -428,11 +434,11 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing dateReported', () => {
-            const incident = {
+            const incident: Partial<Incident> = {
                 title: 'Security Breach',
                 description: 'A security breach',
-                severity: 'high',
-                category: 'Security'
+                severity: Criticality.HIGH,
+                category: 'Fuite de Données'
             };
 
             const errors = validateIncident(incident);
@@ -442,10 +448,10 @@ describe('formValidation', () => {
 
     describe('validateSupplier', () => {
         it('should return no errors for valid supplier', () => {
-            const validSupplier = {
+            const validSupplier: Partial<Supplier> = {
                 name: 'Cloud Provider Inc',
-                category: 'Cloud Services',
-                criticality: 'high'
+                category: 'SaaS',
+                criticality: Criticality.HIGH
             };
 
             const errors = validateSupplier(validSupplier);
@@ -453,9 +459,9 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing name', () => {
-            const supplier = {
-                category: 'Cloud Services',
-                criticality: 'high'
+            const supplier: Partial<Supplier> = {
+                category: 'SaaS',
+                criticality: Criticality.HIGH
             };
 
             const errors = validateSupplier(supplier);
@@ -463,9 +469,9 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing category', () => {
-            const supplier = {
+            const supplier: Partial<Supplier> = {
                 name: 'Cloud Provider Inc',
-                criticality: 'high'
+                criticality: Criticality.HIGH
             };
 
             const errors = validateSupplier(supplier);
@@ -473,9 +479,9 @@ describe('formValidation', () => {
         });
 
         it('should return error for missing criticality', () => {
-            const supplier = {
+            const supplier: Partial<Supplier> = {
                 name: 'Cloud Provider Inc',
-                category: 'Cloud Services'
+                category: 'SaaS'
             };
 
             const errors = validateSupplier(supplier);
@@ -483,10 +489,10 @@ describe('formValidation', () => {
         });
 
         it('should return error for invalid email', () => {
-            const supplier = {
+            const supplier: Partial<Supplier> = {
                 name: 'Cloud Provider Inc',
-                category: 'Cloud Services',
-                criticality: 'high',
+                category: 'SaaS',
+                criticality: Criticality.HIGH,
                 contactEmail: 'invalid-email'
             };
 
@@ -495,10 +501,10 @@ describe('formValidation', () => {
         });
 
         it('should accept valid email', () => {
-            const supplier = {
+            const supplier: Partial<Supplier> = {
                 name: 'Cloud Provider Inc',
-                category: 'Cloud Services',
-                criticality: 'high',
+                category: 'SaaS',
+                criticality: Criticality.HIGH,
                 contactEmail: 'contact@cloudprovider.com'
             };
 

@@ -117,7 +117,7 @@ describe('dataSanitizer', () => {
             const result = sanitizeData(input);
             expect(result.a.b.c.d.value).toBeNull();
             expect(result.a.b.c.d.items[0]).toBeNull();
-            expect(result.a.b.c.d.items[1].nested).toBeNull();
+            expect((result.a.b.c.d.items[1] as { nested: unknown }).nested).toBeNull();
         });
 
         it('should handle empty objects', () => {
