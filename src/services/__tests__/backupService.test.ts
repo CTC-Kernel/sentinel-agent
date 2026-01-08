@@ -101,7 +101,7 @@ describe('BackupService', () => {
         it('should validate backup exists before restore', async () => {
             const { getDoc } = await import('firebase/firestore');
 
-            const backupExists = async (backupId: string): Promise<boolean> => {
+            const backupExists = async (_backupId: string): Promise<boolean> => {
                 const docSnap = await getDoc({} as never);
                 return docSnap.exists();
             };
