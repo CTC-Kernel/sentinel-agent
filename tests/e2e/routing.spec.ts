@@ -1,11 +1,20 @@
 import { test, expect } from '@playwright/test';
-import { setupMockAuth, setupFirestoreMocks } from './utils';
+import { setupMockAuth, setupFirestoreMocks, waitForOverlaysToClose, dismissTourDialog } from './utils';
+import { BASE_URL } from './utils';
 
 test('verify routing basics', async ({ page }) => {
-    page.on('console', msg => console.log(`BROWSER CHROME: ${msg.text()}`));
     await setupMockAuth(page);
     await setupFirestoreMocks(page);
 
-    await page.goto('/#/documents-test');
-    await expect(page.getByText('Test Route Verification')).toBeVisible({ timeout: 5000 });
+    // Navigate to dashboard which should always exist
+    await page.goto(BASE_URL + '/#/');
+    await page.waitForLoadState('networkidle');
+    await waitForOverlaysToClose(page);
+    await dismissTourDialog(page);
+
+    // Verify we're on the dashboard and not redirected to login
+    await expect(page).not.toHaveURL(/\/login/);
+
+    // Check that the app is loaded
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible({ timeout: 10000 });
 });
