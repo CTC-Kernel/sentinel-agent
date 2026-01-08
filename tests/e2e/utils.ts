@@ -153,38 +153,8 @@ export async function dismissTourDialog(page: Page) {
 
 export async function setupOverlayHandlers(page: Page) {
     // Handle common overlays that might interfere with tests
-
-    // More aggressive overlay handling
-    page.on('load', async () => {
-        // Wait a bit for overlays to appear
-        await page.waitForTimeout(1000);
-
-        // Try to close any Driver.js overlays
-        try {
-            const driverPopovers = await page.locator('.driver-popover').all();
-            for (const popover of driverPopovers) {
-                if (await popover.isVisible()) {
-                    await popover.click({ force: true });
-                    await page.waitForTimeout(500);
-                }
-            }
-        } catch {
-            // Ignore errors
-        }
-
-        // Try to close any overlay dialogs
-        try {
-            const overlays = await page.locator('[role="dialog"], .modal, .overlay').all();
-            for (const overlay of overlays) {
-                if (await overlay.isVisible()) {
-                    await page.keyboard.press('Escape');
-                    await page.waitForTimeout(500);
-                }
-            }
-        } catch {
-            // Ignore errors
-        }
-    });
+    // NOTE: We avoid using page.on('load', async () => {...}) with waitForTimeout
+    // because it causes "Test ended" errors when the event handler continues after test completion
 
     await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
         await overlay.click({ force: true });
@@ -200,7 +170,6 @@ export async function setupOverlayHandlers(page: Page) {
 
     await page.addLocatorHandler(page.locator('#headlessui-portal-root'), async () => {
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(500);
     });
 
     // Capture browser console logs
