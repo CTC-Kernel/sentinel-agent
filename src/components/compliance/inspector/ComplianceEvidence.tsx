@@ -26,6 +26,9 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
 }) => {
     const { updating, handleLinkDocument, handleUnlinkDocument, onUploadEvidence } = handlers;
 
+    // Safe array access
+    const safeDocuments = documents ?? [];
+
     return (
         <div className="max-w-3xl mx-auto space-y-6">
             <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
@@ -44,7 +47,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                 </div>
                 <div className="space-y-3">
                     {control.evidenceIds?.map(docId => {
-                        const doc = documents.find(d => d.id === docId);
+                        const doc = safeDocuments.find(d => d.id === docId);
                         if (!doc) return null;
                         return (
                             <div key={docId} className="flex items-center p-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:shadow-md transition-all">
@@ -79,7 +82,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
                             label="Ajouter une preuve existante"
                             value=""
                             onChange={(val) => handleLinkDocument(control, val as string)}
-                            options={documents.filter(d => !control.evidenceIds?.includes(d.id)).map(d => ({ value: d.id, label: d.title }))}
+                            options={safeDocuments.filter(d => !control.evidenceIds?.includes(d.id)).map(d => ({ value: d.id, label: d.title }))}
                             placeholder="Sélectionner un document..."
                             disabled={updating}
                         />

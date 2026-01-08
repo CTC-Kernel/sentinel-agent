@@ -9,9 +9,12 @@ interface MemberSelectorProps {
 }
 
 export const MemberSelector: React.FC<MemberSelectorProps> = React.memo(({ users, selectedMembers, onToggle }) => {
+    // Safe array access
+    const safeUsers = users ?? [];
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto p-1">
-            {users.filter(u => !u.isPending).map(u => {
+            {safeUsers.filter(u => !u.isPending).map(u => {
                 const isSelected = selectedMembers.includes(u.uid);
                 return (
                     <div
