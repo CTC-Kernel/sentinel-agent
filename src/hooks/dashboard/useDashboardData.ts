@@ -29,9 +29,33 @@ export interface DashboardData {
     refreshCounts: () => Promise<void>;
 }
 
-let lastCountsFetchAt = 0;
-let lastCountsOrgId: string | null = null;
-let lastCountsValue: { activeIncidentsCount: number; openAuditsCount: number } | null = null;
+// Cache for counts with organization-specific keys to prevent race conditions
+const countsCache = new Map<string, {
+    timestamp: number;
+    value: { activeIncidentsCount: number; openAuditsCount: number };
+}>();
+const CACHE_TTL = 30000; // 30 seconds cache TTL
+
+const getCachedCounts = (orgId: string): { activeIncidentsCount: number; openAuditsCount: number } | null => {
+    const cached = countsCache.get(orgId);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return cached.value;
+    }
+    return null;
+};
+
+const setCachedCounts = (orgId: string, value: { activeIncidentsCount: number; openAuditsCount: number }) => {
+    countsCache.set(orgId, { timestamp: Date.now(), value });
+    // Clean up old entries to prevent memory leaks
+    if (countsCache.size > 100) {
+        const now = Date.now();
+        for (const [key, entry] of countsCache.entries()) {
+            if (now - entry.timestamp > CACHE_TTL) {
+                countsCache.delete(key);
+            }
+        }
+    }
+};
 
 export const useDashboardData = (): DashboardData => {
     const { user, demoMode } = useStore();
@@ -87,7 +111,6 @@ export const useDashboardData = (): DashboardData => {
                 setOrganizationName('Sentinel Demo Corp');
                 setActiveIncidentsCount(5);
                 setOpenAuditsCount(2);
-                setManualLoading(false);
                 setManualLoading(false);
             }).catch(_err => {
                 if (!isMounted) return;
@@ -198,12 +221,11 @@ export const useDashboardData = (): DashboardData => {
         try {
             const orgId = user.organizationId;
 
-            // Check cache
-            const now = Date.now();
-            const cacheTtlMs = 60 * 1000;
-            if (lastCountsValue && lastCountsOrgId === orgId && now - lastCountsFetchAt < cacheTtlMs) {
-                setActiveIncidentsCount(lastCountsValue.activeIncidentsCount);
-                setOpenAuditsCount(lastCountsValue.openAuditsCount);
+            // Check cache using organization-specific cache
+            const cachedCounts = getCachedCounts(orgId);
+            if (cachedCounts) {
+                setActiveIncidentsCount(cachedCounts.activeIncidentsCount);
+                setOpenAuditsCount(cachedCounts.openAuditsCount);
                 setError(null);
                 setManualLoading(false);
 
@@ -241,9 +263,8 @@ export const useDashboardData = (): DashboardData => {
             // Fetch counts using DashboardService
             const counts = await DashboardService.getDashboardCounts(orgId);
 
-            lastCountsValue = counts;
-            lastCountsOrgId = orgId;
-            lastCountsFetchAt = now;
+            // Update cache with organization-specific key
+            setCachedCounts(orgId, counts);
 
             setActiveIncidentsCount(counts.activeIncidentsCount);
             setOpenAuditsCount(counts.openAuditsCount);
