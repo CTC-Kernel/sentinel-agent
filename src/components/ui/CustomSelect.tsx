@@ -49,10 +49,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         {label && (
                             <ListboxLabel className={`
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10
-                                ${(open || (Array.isArray(value) ? value.length > 0 : !!value))
-                                    ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-950 px-1 rounded text-brand-600 dark:text-brand-400'
-                                    : 'top-3.5 text-sm font-medium text-slate-500 dark:text-slate-400'
-                                }
+                                -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-950 px-1 rounded text-brand-600 dark:text-brand-400
                                 ${error ? '!text-red-500' : ''}
                             `}>
                                 {label} {required && <span className="text-red-500">*</span>}

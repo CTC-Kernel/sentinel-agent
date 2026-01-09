@@ -458,14 +458,14 @@ export const VoxelMesh: React.FC<{
             {/* Label */}
             {labelVisible && (
                 <Text
-                    position={[0, safeSize + 0.8, 0]}
-                    fontSize={0.55}
+                    position={[0, safeSize + 1.2, 0]}
+                    fontSize={0.45}
                     color="white"
                     anchorX="center"
                     anchorY="middle"
-                    outlineWidth={0.08}
+                    outlineWidth={0.06}
                     outlineColor="black"
-                    maxWidth={3.5}
+                    maxWidth={2.8}
                     lineHeight={1.1}
                     font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
                 >
