@@ -29,7 +29,7 @@ vi.mock('@sentry/react', () => ({
   captureException: vi.fn()
 }));
 
-vi.mock('sonner', () => ({
+vi.mock('@/lib/toast', () => ({
   toast: {
     error: vi.fn(),
     warning: vi.fn()

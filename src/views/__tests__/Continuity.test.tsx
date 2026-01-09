@@ -46,7 +46,19 @@ vi.mock('../../store', () => ({
     useStore: vi.fn().mockReturnValue({
         user: { uid: 'test-user', organizationId: 'test-org', role: 'admin' },
         addToast: vi.fn(),
-        t: (k: string) => k
+        t: (k: string) => {
+            // Mock translation keys to actual values
+            const translations: Record<string, string> = {
+                'continuity.title': 'Continuité d\'Activité',
+                'continuity.subtitle': 'Gérez votre plan de continuité',
+                'continuity.tabs.overview': 'Vue d\'ensemble',
+                'continuity.tabs.bia': 'BIA',
+                'continuity.tabs.strategies': 'Stratégies',
+                'continuity.tabs.drills': 'Exercices',
+                'continuity.tabs.crisis': 'Gestion de crise'
+            };
+            return translations[k] || k;
+        }
     }),
 }));
 
@@ -149,6 +161,14 @@ vi.mock('../../components/continuity/inspector/DrillInspector', () => ({
 vi.mock('../../components/continuity/ProcessInspector', () => ({
     ProcessInspector: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="process-inspector" /> : null
 }));
+vi.mock('../../components/continuity/ContinuityContent', () => ({
+    ContinuityContent: ({ activeTab }: { activeTab: string }) => (
+        <div>
+            {activeTab === 'overview' && <div data-testid="continuity-dashboard" />}
+            {activeTab === 'bia' && <div data-testid="continuity-bia" />}
+        </div>
+    )
+}));
 vi.mock('../../utils/pdfGenerator', () => ({
     generateContinuityReport: vi.fn()
 }));
@@ -193,7 +213,7 @@ describe('Continuity View', () => {
             </MemoryRouter>
         );
 
-        expect(screen.getByText('continuity.title')).toBeInTheDocument();
+        expect(screen.getByText('Continuité d\'Activité')).toBeInTheDocument();
         expect(screen.getByTestId('continuity-dashboard')).toBeInTheDocument();
     });
 
@@ -204,7 +224,7 @@ describe('Continuity View', () => {
             </MemoryRouter>
         );
 
-        const biaTab = screen.getByText('continuity.tabs.bia');
+        const biaTab = screen.getByText('BIA');
         fireEvent.click(biaTab);
 
         expect(screen.getByTestId('continuity-bia')).toBeInTheDocument();
