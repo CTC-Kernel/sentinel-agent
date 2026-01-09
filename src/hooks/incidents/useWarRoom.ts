@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { orderBy, limit } from 'firebase/firestore';
+import { orderBy, limit, Timestamp } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
 
@@ -10,7 +10,7 @@ export interface WarRoomMessage {
     sender: string;
     senderId: string;
     role: string;
-    timestamp: any; // Firestore Timestamp
+    timestamp: Timestamp; // Firestore Timestamp
     isSystem: boolean;
 }
 
@@ -36,7 +36,7 @@ export const useWarRoom = (incidentId: string) => {
         return rawMessages.map(msg => ({
             ...msg,
             // Ensure Javascript Date object for UI if it's a Firestore Timestamp
-            timestamp: msg.timestamp?.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp)
+            timestamp: (msg.timestamp as any)?.toDate ? (msg.timestamp as any).toDate() : new Date(msg.timestamp as any)
         }));
     }, [rawMessages]);
 

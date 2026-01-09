@@ -143,7 +143,7 @@ const AppLayout: React.FC = () => {
         runChecks();
         const interval = setInterval(runChecks, 15 * 60 * 1000);
         return () => clearInterval(interval);
-    }, [user?.organizationId]);
+    }, [user, user?.organizationId]);
 
     return (
         <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">

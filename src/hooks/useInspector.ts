@@ -30,7 +30,7 @@ export interface InspectorTab {
 /**
  * Configuration des actions CRUD
  */
-export interface InspectorActions<T, TFormData> {
+export interface InspectorActions<TFormData> {
   onUpdate?: (id: string, data: TFormData) => Promise<boolean | string>;
   onCreate?: (data: TFormData) => Promise<boolean | string>;
   onDelete?: (id: string, name: string) => Promise<void>;
@@ -50,7 +50,7 @@ export interface UseInspectorOptions<T, TFormData> {
   defaultTab?: string;
 
   /** Actions CRUD */
-  actions: InspectorActions<T, TFormData>;
+  actions: InspectorActions<TFormData>;
 
   /** Nom du module (pour le contexte d'erreur) */
   moduleName: string;
@@ -71,7 +71,10 @@ export interface UseInspectorOptions<T, TFormData> {
 /**
  * Retour du hook
  */
-export interface UseInspectorReturn<T> {
+/**
+ * Retour du hook
+ */
+export interface UseInspectorReturn {
   /** Tab actif */
   activeTab: string;
 
@@ -149,7 +152,7 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
   breadcrumbs: customBreadcrumbs,
   onSuccess,
   syncWithUrl = false
-}: UseInspectorOptions<T, TFormData>): UseInspectorReturn<T> {
+}: UseInspectorOptions<T, TFormData>): UseInspectorReturn {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -405,7 +408,7 @@ export function useInspectorReadOnly<T extends { id?: string }>(
     syncWithUrl?: boolean;
     getEntityName?: (entity: T) => string;
   }
-): Pick<UseInspectorReturn<T>, 'activeTab' | 'setActiveTab' | 'breadcrumbs' | 'entityName'> {
+): Pick<UseInspectorReturn, 'activeTab' | 'setActiveTab' | 'breadcrumbs' | 'entityName'> {
   const inspector = useInspector<T, never>({
     entity,
     tabs,

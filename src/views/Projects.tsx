@@ -184,7 +184,7 @@ export const Projects: React.FC = () => {
         } catch {
             addToast(t('projects.toastError'), "error");
         }
-    }, [usersList, user, addToast, t]);
+    }, [usersList, user, addToast, t, createProjectFromTemplateData]);
 
     // Exports
     const handleExportCSV = useCallback(() => {
