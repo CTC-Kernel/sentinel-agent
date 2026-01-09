@@ -691,9 +691,8 @@ export const VoxelView: React.FC = () => {
       <div
         ref={containerRef}
         className={`${isFullscreen
-          ? 'fixed !inset-0 !z-50 bg-slate-900'
-          : 'relative flex-1 min-h-[500px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
-
+          ? 'fixed !inset-0 !z-[99999] bg-slate-900'
+          : 'relative flex-1 h-screen w-full rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto'
           }`}
       >
         {isFullscreen && (
@@ -719,7 +718,7 @@ export const VoxelView: React.FC = () => {
         />
 
         {/* Floating Tool Bar (Right side) */}
-        <div className="absolute top-20 right-6 z-40 flex flex-col gap-3 animate-in fade-in slide-in-from-right-4 duration-500 delay-100">
+        <div className="absolute top-20 right-6 z-[100000] flex flex-col gap-3 animate-in fade-in slide-in-from-right-4 duration-500 delay-100">
           {/* Navigation Arrows */}
           <div className="flex flex-col gap-1 p-1 bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
             <button
@@ -817,7 +816,7 @@ export const VoxelView: React.FC = () => {
 
         {/* Layer Menu Popover */}
         {showLayerMenu && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 w-64 p-2 rounded-2xl bg-slate-900/95 border border-white/10 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-2 fade-in duration-200">
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[100000] w-64 p-2 rounded-2xl bg-slate-900/95 border border-white/10 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-2 fade-in duration-200">
             <div className="px-3 py-2 border-b border-white/10 mb-2 flex items-center justify-between">
               <span className="text-xs font-semibold text-white">Calques actifs</span>
               <span className="text-xs text-white/50">{activeLayers.length}/{layerOptions.length}</span>
@@ -878,7 +877,7 @@ export const VoxelView: React.FC = () => {
 
         {/* AI Insights Panel */}
         {showInsights && aiInsights.length > 0 && (
-          <div className="absolute top-24 left-6 z-50 w-80 max-h-[calc(100%-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
+          <div className="absolute top-24 left-6 z-[100000] w-80 max-h-[calc(100%-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2 text-indigo-400">
                 <BrainCircuit className="h-5 w-5" />
