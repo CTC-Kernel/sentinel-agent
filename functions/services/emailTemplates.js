@@ -113,6 +113,19 @@ const styles = {
 };
 
 /**
+ * Simple HTML Entry Helper
+ */
+const escapeHtml = (text) => {
+  if (!text) return text;
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
+/**
  * Base Email Generator
  */
 const generateEmailHtml = ({ title, content, actionLabel, actionUrl, footerText }) => {
@@ -124,7 +137,7 @@ const generateEmailHtml = ({ title, content, actionLabel, actionUrl, footerText 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
+  <title>${escapeHtml(title)}</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     @media only screen and (max-width: 600px) {
@@ -154,7 +167,7 @@ const generateEmailHtml = ({ title, content, actionLabel, actionUrl, footerText 
         <!-- Body -->
         <tr>
           <td style="${styles.content}" class="content">
-            <h1 style="${styles.title}">${title}</h1>
+            <h1 style="${styles.title}">${escapeHtml(title)}</h1>
             
             <div style="${styles.text}">
               ${content}
@@ -163,12 +176,12 @@ const generateEmailHtml = ({ title, content, actionLabel, actionUrl, footerText 
             ${actionLabel && actionUrl ? `
             <div style="${styles.buttonContainer}">
               <!--[if mso]>
-              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${actionUrl}" style="height:54px;v-text-anchor:middle;width:240px;" arcsize="22%" stroke="f" fillcolor="#2563eb">
+              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(actionUrl)}" style="height:54px;v-text-anchor:middle;width:240px;" arcsize="22%" stroke="f" fillcolor="#2563eb">
                 <w:anchorlock/>
                 <center>
               <![endif]-->
-                  <a href="${actionUrl}" class="button" style="${styles.button}">
-                    ${actionLabel}
+                  <a href="${escapeHtml(actionUrl)}" class="button" style="${styles.button}">
+                    ${escapeHtml(actionLabel)}
                   </a>
               <!--[if mso]>
                 </center>
@@ -187,7 +200,7 @@ const generateEmailHtml = ({ title, content, actionLabel, actionUrl, footerText 
               Tous droits réservés.
             </p>
             <p style="${styles.footerText}" style="margin-top: 12px;">
-              ${footerText || 'Ce message vous a été envoyé automatiquement pour la gestion de votre conformité.'}
+              ${escapeHtml(footerText) || 'Ce message vous a été envoyé automatiquement pour la gestion de votre conformité.'}
             </p>
             <p style="${styles.footerText}" style="margin-top: 12px; font-size: 11px;">
               avenue rosa parks 69009 Lyon • SIRET 91934079400024
@@ -209,7 +222,7 @@ const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) =
   title: "Une nouvelle demande d'accès nécessite votre attention",
   content: `
     <p style="${styles.text}">Bonjour,</p>
-    <p style="${styles.text}"><strong>${requesterName}</strong> (${requesterEmail}) a demandé à rejoindre votre organisation <strong>${orgName}</strong> sur Sentinel GRC.</p>
+    <p style="${styles.text}"><strong>${escapeHtml(requesterName)}</strong> (${escapeHtml(requesterEmail)}) a demandé à rejoindre votre organisation <strong>${escapeHtml(orgName)}</strong> sur Sentinel GRC.</p>
     
     <div style="${styles.highlightBox}">
       <p style="margin: 0; font-size: 14px; color: #64748b; font-weight: 500;">Action requise</p>
@@ -226,8 +239,8 @@ const getJoinRequestEmailHtml = (requesterName, requesterEmail, orgName, link) =
 const getApprovedEmailHtml = (userName, orgName, link) => generateEmailHtml({
   title: "Bienvenue dans l'équipe !",
   content: `
-    <p style="${styles.text}">Bonjour <strong>${userName}</strong>,</p>
-    <p style="${styles.text}">Excellente nouvelle ! Votre demande pour rejoindre l'organisation <strong>${orgName}</strong> a été validée par un administrateur.</p>
+    <p style="${styles.text}">Bonjour <strong>${escapeHtml(userName)}</strong>,</p>
+    <p style="${styles.text}">Excellente nouvelle ! Votre demande pour rejoindre l'organisation <strong>${escapeHtml(orgName)}</strong> a été validée par un administrateur.</p>
     
     <div style="${styles.highlightBox}">
       <p style="margin: 0; font-size: 14px; color: #64748b;">Vous avez désormais accès à tous les outils de conformité et de gouvernance assignés à votre rôle.</p>
@@ -245,8 +258,8 @@ const getApprovedEmailHtml = (userName, orgName, link) => generateEmailHtml({
 const getRejectedEmailHtml = (userName, orgName) => generateEmailHtml({
   title: "Mise à jour de votre demande",
   content: `
-    <p style="${styles.text}">Bonjour ${userName},</p>
-    <p style="${styles.text}">Nous vous informons que votre demande pour rejoindre l'organisation <strong>${orgName}</strong> n'a pas pu être acceptée pour le moment.</p>
+    <p style="${styles.text}">Bonjour ${escapeHtml(userName)},</p>
+    <p style="${styles.text}">Nous vous informons que votre demande pour rejoindre l'organisation <strong>${escapeHtml(orgName)}</strong> n'a pas pu être acceptée pour le moment.</p>
     
     <div style="${styles.alertBox}">
       <p style="margin: 0; font-size: 14px;"><strong>Note de l'administrateur :</strong> L'accès est restreint aux membres confirmés de l'organisation. Si vous pensez qu'il s'agit d'une erreur, veuillez contacter directement votre responsable sécurité.</p>
@@ -260,7 +273,7 @@ const getRejectedEmailHtml = (userName, orgName) => generateEmailHtml({
 const getPasswordResetEmailHtml = (userName, link) => generateEmailHtml({
   title: "Réinitialisez votre mot de passe",
   content: `
-    <p style="${styles.text}">Bonjour ${userName},</p>
+    <p style="${styles.text}">Bonjour ${escapeHtml(userName)},</p>
     <p style="${styles.text}">Nous avons reçu une demande pour réinitialiser le mot de passe de votre compte Sentinel GRC.</p>
     
     <div style="${styles.highlightBox}">
@@ -280,8 +293,8 @@ const getPasswordResetEmailHtml = (userName, link) => generateEmailHtml({
 const getWelcomeEmailHtml = (userName, orgName, link) => generateEmailHtml({
   title: "Bienvenue sur Sentinel GRC",
   content: `
-    <p style="${styles.text}">Bonjour <strong>${userName}</strong>,</p>
-    <p style="${styles.text}">Félicitations pour la création de votre organisation <strong>${orgName}</strong>.</p>
+    <p style="${styles.text}">Bonjour <strong>${escapeHtml(userName)}</strong>,</p>
+    <p style="${styles.text}">Félicitations pour la création de votre organisation <strong>${escapeHtml(orgName)}</strong>.</p>
     <p style="${styles.text}">Sentinel GRC est prêt à orchestrer votre gouvernance. Vous disposez d'un accès administrateur complet pour inviter vos collaborateurs, cartographier vos actifs et piloter votre conformité ISO 27001.</p>
     
     <div style="${styles.highlightBox}">
@@ -309,7 +322,7 @@ module.exports = {
     title: 'Invitation à rejoindre Sentinel GRC',
     content: `
       <p style="${styles.text}">Bonjour,</p>
-      <p style="${styles.text}"><strong>${inviterName}</strong> vous invite à rejoindre l'espace de travail <strong>Sentinel GRC</strong> en tant que <strong>${role}</strong>.</p>
+      <p style="${styles.text}"><strong>${escapeHtml(inviterName)}</strong> vous invite à rejoindre l'espace de travail <strong>Sentinel GRC</strong> en tant que <strong>${escapeHtml(role)}</strong>.</p>
       <div style="${styles.highlightBox}">
         <p style="margin: 0; font-size: 14px; color: #64748b;">En acceptant cette invitation, vous accéderez à une plateforme de pilotage SSI dédiée à la gestion des risques, des contrôles ISO 27001 et des plans d'actions.</p>
       </div>
@@ -325,10 +338,10 @@ module.exports = {
       title: '⚠️ Nouvel Incident de Sécurité',
       content: `
         <div style="${styles.alertBox}; border-color: ${alertColor}; background-color: ${severity === 'Critique' ? '#fef2f2' : severity === 'Élevée' ? '#fff7ed' : '#f0f9ff'}; color: ${alertColor}">
-          <h3 style="margin: 0; font-size: 16px;">Sévérité : ${severity}</h3>
+          <h3 style="margin: 0; font-size: 16px;">Sévérité : ${escapeHtml(severity)}</h3>
         </div>
-        <p style="${styles.text}">Un incident a été déclaré par <strong>${reporter}</strong>.</p>
-        <p style="${styles.text}"><strong>Titre :</strong> ${title}</p>
+        <p style="${styles.text}">Un incident a été déclaré par <strong>${escapeHtml(reporter)}</strong>.</p>
+        <p style="${styles.text}"><strong>Titre :</strong> ${escapeHtml(title)}</p>
         <p style="${styles.text}"><strong>Date :</strong> ${new Date().toLocaleString()}</p>
         <p style="${styles.text}">Une action immédiate ou une analyse peut être requise selon le niveau de criticité.</p>
       `,
@@ -340,8 +353,8 @@ module.exports = {
   getDocumentReviewHtml: (docTitle, ownerName, dueDate, link) => generateEmailHtml({
     title: 'Révision Documentaire Requise',
     content: `
-      <p style="${styles.text}">Bonjour ${ownerName},</p>
-      <p style="${styles.text}">Le document <strong>"${docTitle}"</strong> arrive à échéance de révision.</p>
+      <p style="${styles.text}">Bonjour ${escapeHtml(ownerName)},</p>
+      <p style="${styles.text}">Le document <strong>"${escapeHtml(docTitle)}"</strong> arrive à échéance de révision.</p>
       <div style="${styles.highlightBox}; text-align: center;">
         <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date d'échéance</span>
         <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(dueDate).toLocaleDateString()}</div>
@@ -355,9 +368,9 @@ module.exports = {
   getTaskAssignmentHtml: (taskTitle, projectName, manager, link) => generateEmailHtml({
     title: 'Nouvelle tâche assignée',
     content: `
-      <p style="${styles.text}">Une nouvelle tâche vous a été assignée dans le projet <strong>${projectName}</strong> géré par ${manager}.</p>
+      <p style="${styles.text}">Une nouvelle tâche vous a été assignée dans le projet <strong>${escapeHtml(projectName)}</strong> géré par ${escapeHtml(manager)}.</p>
       <div style="${styles.highlightBox}">
-        <h3 style="margin: 0; font-size: 16px;">${taskTitle}</h3>
+        <h3 style="margin: 0; font-size: 16px;">${escapeHtml(taskTitle)}</h3>
       </div>
     `,
     actionLabel: "Voir la tâche",
@@ -367,10 +380,10 @@ module.exports = {
   getAuditReminderHtml: (auditName, auditorName, scheduledDate, link) => generateEmailHtml({
     title: '📋 Rappel d\'Audit Planifié',
     content: `
-      <p style="${styles.text}">Bonjour ${auditorName},</p>
+      <p style="${styles.text}">Bonjour ${escapeHtml(auditorName)},</p>
       <p style="${styles.text}">Un audit est planifié dans les prochains jours et nécessite votre attention.</p>
       <div style="${styles.highlightBox}">
-        <h3 style="margin: 0 0 8px 0; font-size: 16px;">${auditName}</h3>
+        <h3 style="margin: 0 0 8px 0; font-size: 16px;">${escapeHtml(auditName)}</h3>
         <p style="margin: 0; font-size: 14px;">Date prévue : <strong>${new Date(scheduledDate).toLocaleDateString()}</strong></p>
       </div>
       <p style="${styles.text}">Assurez-vous d'avoir préparé tous les documents et preuves nécessaires pour cet audit.</p>
@@ -382,10 +395,10 @@ module.exports = {
   getRiskTreatmentDueHtml: (riskTitle, dueDate, responsiblePerson, link) => generateEmailHtml({
     title: '⏰ Échéance de Traitement de Risque',
     content: `
-      <p style="${styles.text}">Bonjour ${responsiblePerson},</p>
+      <p style="${styles.text}">Bonjour ${escapeHtml(responsiblePerson)},</p>
       <p style="${styles.text}">Le plan de traitement du risque suivant arrive à échéance :</p>
       <div style="${styles.alertBox}">
-        <h3 style="margin: 0; font-size: 16px;">${riskTitle}</h3>
+        <h3 style="margin: 0; font-size: 16px;">${escapeHtml(riskTitle)}</h3>
         <p style="margin: 8px 0 0 0;">Date limite : <strong>${new Date(dueDate).toLocaleDateString()}</strong></p>
       </div>
       <p style="${styles.text}">Veuillez mettre à jour le statut du traitement ou demander une extension si nécessaire.</p>
@@ -401,8 +414,8 @@ module.exports = {
         <h3 style="margin: 0; font-size: 16px;">Action requise</h3>
       </div>
       <p style="${styles.text}">Un contrôle ISO 27001 nécessite une action immédiate.</p>
-      <p style="${styles.text}"><strong>Contrôle :</strong> ${controlCode} - ${controlName}</p>
-      <p style="${styles.text}; color: #dc2626;"><strong>Problème :</strong> ${issue}</p>
+      <p style="${styles.text}"><strong>Contrôle :</strong> ${escapeHtml(controlCode)} - ${escapeHtml(controlName)}</p>
+      <p style="${styles.text}; color: #dc2626;"><strong>Problème :</strong> ${escapeHtml(issue)}</p>
       <p style="${styles.text}">La conformité ISO 27001 exige une résolution rapide de cette non-conformité.</p>
     `,
     actionLabel: "Voir le contrôle",
@@ -412,8 +425,8 @@ module.exports = {
   getMaintenanceHtml: (assetName, maintenanceDate, ownerName, link) => generateEmailHtml({
     title: '🛠️ Maintenance Planifiée',
     content: `
-      <p style="${styles.text}">Bonjour ${ownerName},</p>
-      <p style="${styles.text}">Une maintenance est prévue prochainement pour l'actif <strong>${assetName}</strong>.</p>
+      <p style="${styles.text}">Bonjour ${escapeHtml(ownerName)},</p>
+      <p style="${styles.text}">Une maintenance est prévue prochainement pour l'actif <strong>${escapeHtml(assetName)}</strong>.</p>
       <div style="${styles.highlightBox}; text-align: center;">
         <span style="font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;">Date de maintenance</span>
         <div style="font-size: 18px; font-weight: 600; color: #0f172a; margin-top: 4px;">${new Date(maintenanceDate).toLocaleDateString()}</div>
@@ -428,7 +441,7 @@ module.exports = {
     title: 'Invitation à collaborer sur un audit',
     content: `
       <p style="${styles.text}">Bonjour,</p>
-      <p style="${styles.text}"><strong>${inviterName}</strong> vous invite à participer à l'audit <strong>"${auditName}"</strong> en tant que <strong>${role}</strong>.</p>
+      <p style="${styles.text}"><strong>${escapeHtml(inviterName)}</strong> vous invite à participer à l'audit <strong>"${escapeHtml(auditName)}"</strong> en tant que <strong>${escapeHtml(role)}</strong>.</p>
       <div style="${styles.highlightBox}">
         <p style="margin: 0; color: #64748b; font-size: 14px;">Vous aurez accès aux constats, aux preuves et à la checklist associée afin de contribuer à l'évaluation et à la conformité ISO 27001.</p>
       </div>
@@ -437,15 +450,14 @@ module.exports = {
     actionUrl: link
   }),
 
-  // Templates added during verification
   getCertifierInvitationHtml: (tenantName, message, link) => generateEmailHtml({
     title: 'Invitation à collaborer',
     content: `
       <p style="${styles.text}">Bonjour,</p>
-      <p style="${styles.text}">L'organisation <strong>${tenantName}</strong> vous invite à rejoindre son écosystème de certification sur Sentinel GRC.</p>
-      ${message ? `<div style="${styles.highlightBox}; font-style: italic;">"${message}"</div>` : ''}
+      <p style="${styles.text}">L'organisation <strong>${escapeHtml(tenantName)}</strong> vous invite à rejoindre son écosystème de certification sur Sentinel GRC.</p>
+      ${message ? `<div style="${styles.highlightBox}; font-style: italic;">"${escapeHtml(message)}"</div>` : ''}
       <p style="${styles.text}">Cliquez sur le lien ci-dessous pour créer votre compte Auditeur/Certifieur.</p>
-      <p style="font-size: 12px; color: #94a3b8; margin-top: 12px;">Si le lien ne fonctionne pas : ${link}</p>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 12px;">Si le lien ne fonctionne pas : ${escapeHtml(link)}</p>
     `,
     actionLabel: "Accepter l'invitation",
     actionUrl: link
@@ -455,7 +467,7 @@ module.exports = {
     title: 'Nouvel Audit Assigné',
     content: `
       <p style="${styles.text}">Bonjour,</p>
-      <p style="${styles.text}">L'organisation <strong>${organizationId}</strong> vous a assigné un audit sur Sentinel GRC.</p>
+      <p style="${styles.text}">L'organisation <strong>${escapeHtml(organizationId)}</strong> vous a assigné un audit sur Sentinel GRC.</p>
       <div style="${styles.highlightBox}">
         <p style="margin: 0; font-size: 14px; color: #64748b;">Connectez-vous à votre tableau de bord auditeur pour y accéder.</p>
       </div>
@@ -470,7 +482,7 @@ module.exports = {
       <div style="${styles.alertBox}">
         <h3 style="margin: 0; font-size: 16px;">Action requise</h3>
       </div>
-      <p style="${styles.text}">Le processus <strong>"${processName}"</strong> n'a pas été testé depuis plus d'un an.</p>
+      <p style="${styles.text}">Le processus <strong>"${escapeHtml(processName)}"</strong> n'a pas été testé depuis plus d'un an.</p>
       <p style="${styles.text}">La conformité et la résilience exigent des tests réguliers des plans de continuité.</p>
       <div style="${styles.highlightBox}">
         <p style="margin: 0; font-size: 14px; color: #64748b;">Veuillez planifier un nouvel exercice ou mettre à jour la date du dernier test.</p>
