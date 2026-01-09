@@ -19,7 +19,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
         incidentNotification: false,
         exitStrategy: false,
     });
-    const [isSaving, setIsSaving] = useState(false);
+    const [, setIsSaving] = useState(false);
 
     const handleToggle = async (key: keyof typeof clauses) => {
         if (!canEdit) return;

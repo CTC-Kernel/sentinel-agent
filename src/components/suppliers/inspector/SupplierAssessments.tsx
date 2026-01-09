@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClipboardList, FileText, ChevronRight, Clock, CheckCircle2 } from '../../ui/Icons';
+import { ClipboardList, ChevronRight, Clock, CheckCircle2 } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { SupplierQuestionnaireResponse } from '../../../types';
 import { Button } from '../../ui/button';
@@ -81,7 +81,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                                         </h3>
                                         <p className="text-sm text-slate-500 flex items-center gap-2 mt-1">
                                             <Clock className="w-3 h-3" />
-                                            {assessment.updatedAt ? new Date((assessment.updatedAt as any).seconds * 1000).toLocaleDateString('fr-FR') : 'Date inconnue'}
+                                            {assessment.updatedAt ? new Date((assessment.updatedAt as unknown as { seconds: number }).seconds * 1000).toLocaleDateString('fr-FR') : 'Date inconnue'}
                                         </p>
                                     </div>
                                 </div>

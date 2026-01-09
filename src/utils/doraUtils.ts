@@ -1,6 +1,6 @@
 import { SupplierQuestionnaireResponse } from '../../types';
 
-export const importDoraQuestions = (data: any): Partial<SupplierQuestionnaireResponse> => {
+export const importDoraQuestions = (_data: unknown): Partial<SupplierQuestionnaireResponse> => {
     // Placeholder to satisfy typescript import usage if needed in future
-    return {};
+    return {} as Partial<SupplierQuestionnaireResponse>;
 };

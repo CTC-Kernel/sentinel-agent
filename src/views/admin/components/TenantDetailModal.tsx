@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Dialog, Transition, Tab } from '@headlessui/react';
 import { X, Users, Database, Shield, AlertTriangle, CreditCard, Save } from 'lucide-react';
 import { Organization, PlanType } from '../../../types';
@@ -13,7 +13,7 @@ interface TenantDetailModalProps {
 }
 
 export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, onClose, tenant, onUpdate }) => {
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<Record<string, unknown> | null>(null);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
 
@@ -21,6 +21,20 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const [plan, setPlan] = useState<PlanType>('discovery');
     const [maxUsers, setMaxUsers] = useState(0);
     const [maxProjects, setMaxProjects] = useState(0);
+
+    const loadStats = useCallback(async () => {
+        if (!tenant) return;
+        setLoading(true);
+        try {
+            const data = await AdminService.getTenantStats(tenant.id);
+            setStats(data);
+        } catch (_error) {
+            console.error(_error);
+            toast.error("Failed to load stats");
+        } finally {
+            setLoading(false);
+        }
+    }, [tenant]);
 
     useEffect(() => {
         if (isOpen && tenant) {
@@ -33,21 +47,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
             setMaxUsers(customLimits.maxUsers || 5); // Default fallback
             setMaxProjects(customLimits.maxProjects || 1);
         }
-    }, [isOpen, tenant]);
-
-    const loadStats = async () => {
-        if (!tenant) return;
-        setLoading(true);
-        try {
-            const data = await AdminService.getTenantStats(tenant.id);
-            setStats(data);
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to load stats");
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [isOpen, tenant, loadStats]);
 
     const handleToggleStatus = async () => {
         if (!tenant) return;
@@ -60,7 +60,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
             toast.success(`Tenant ${newStatus ? 'activated' : 'suspended'} successfully`);
             onUpdate();
             onClose();
-        } catch (error) {
+        } catch {
             toast.error("Status update failed");
         } finally {
             setProcessing(false);
@@ -77,7 +77,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
             });
             toast.success("Subscription updated successfully");
             onUpdate();
-        } catch (error) {
+        } catch {
             toast.error("Update failed");
         } finally {
             setProcessing(false);

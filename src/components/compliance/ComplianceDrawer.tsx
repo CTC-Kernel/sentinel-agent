@@ -11,6 +11,25 @@ import { ComplianceInspector } from './ComplianceInspector';
 import { ProjectFormData } from '../../schemas/projectSchema';
 import { Control, Risk, Project, Asset, Supplier, UserProfile, Document, Finding } from '../../types';
 
+interface ComplianceActions {
+    updating: boolean;
+    handleStatusChange: (control: Control, newStatus: Control['status']) => Promise<void>;
+    handleAssign: (control: Control, userId: string) => Promise<void>;
+    handleLinkAsset: (control: Control, assetId: string) => Promise<void>;
+    handleUnlinkAsset: (control: Control, assetId: string) => Promise<void>;
+    handleLinkSupplier: (control: Control, supplierId: string) => Promise<void>;
+    handleUnlinkSupplier: (control: Control, supplierId: string) => Promise<void>;
+    handleLinkProject: (control: Control, projectId: string) => Promise<void>;
+    handleUnlinkProject: (control: Control, projectId: string) => Promise<void>;
+    handleLinkDocument: (control: Control, documentId: string) => Promise<void>;
+    handleUnlinkDocument: (control: Control, documentId: string) => Promise<void>;
+    updateJustification: (control: Control, text: string) => Promise<void>;
+    handleApplicabilityChange: (control: Control, isApplicable: boolean) => Promise<void>;
+    createRisk: (riskData: Record<string, unknown>) => Promise<string | null>;
+    createAudit: (auditData: Record<string, unknown>) => Promise<string | null>;
+    updateControl: (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation?: boolean) => Promise<boolean>;
+}
+
 interface ComplianceDrawerProps {
     isOpen: boolean;
     onClose: () => void;
@@ -31,7 +50,7 @@ interface ComplianceDrawerProps {
     canEdit: boolean;
     projectInitialData?: Partial<ProjectFormData>;
     onProjectSubmit: (data: ProjectFormData) => Promise<void>;
-    actions: any;
+    actions: ComplianceActions;
     onUploadEvidence: () => void;
 }
 

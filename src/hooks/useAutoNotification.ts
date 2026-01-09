@@ -30,7 +30,7 @@ export const useAutoNotification = (
                 notificationIdRef.current = null;
             }
         };
-    }, [condition, notificationKey, addNotification, removeNotification]);
+    }, [condition, notification, notificationKey, addNotification, removeNotification]);
 
     // Separate effect for unmount cleanup only
     useEffect(() => {

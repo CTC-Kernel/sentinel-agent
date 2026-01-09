@@ -11,7 +11,7 @@ export interface AuditLog {
     actorEmail?: string;
     action: string;
     targetId: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
 }
 
 export const AdminService = {
@@ -19,7 +19,7 @@ export const AdminService = {
     /**
      * Log an administrative action for security and compliance
      */
-    logAction: async (action: string, targetId: string, metadata: any = {}) => {
+    logAction: async (action: string, targetId: string, metadata: Record<string, unknown> = {}) => {
         try {
             const currentUser = auth.currentUser;
             if (!currentUser) {
@@ -135,7 +135,7 @@ export const AdminService = {
         try {
             const orgRef = doc(db, 'organizations', orgId);
 
-            const updateData: any = {
+            const updateData: Record<string, unknown> = {
                 'subscription.planId': plan,
                 'updatedAt': new Date().toISOString()
             };

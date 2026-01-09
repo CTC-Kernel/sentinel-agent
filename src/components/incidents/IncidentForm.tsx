@@ -118,7 +118,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                                         incident={{
                                             ...initialData,
                                             ...getValues(),
-                                            id: (initialData as any)?.id || 'new',
+                                            id: (initialData as Partial<IncidentFormData> & { id?: string })?.id || 'new',
                                             organizationId: 'current', // dummy
                                             reporter: 'current', // dummy
                                             dateReported: getValues('dateReported') || new Date().toISOString(),

@@ -5,7 +5,7 @@ import { ConnectivityService, ServiceHealth } from '../../../services/connectivi
 const ServiceStatus: React.FC<{
     name: string;
     status: 'operational' | 'degraded' | 'outage';
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     latency?: number;
     error?: string;
 }> = ({ name, status, icon: Icon, latency, error }) => {
@@ -52,7 +52,7 @@ const ServiceStatus: React.FC<{
 };
 
 interface ServiceHealthUI extends ServiceHealth {
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
 }
 
 export const SystemHealth: React.FC = () => {

@@ -8,7 +8,7 @@ import { ErrorLogger } from '../../../services/errorLogger';
 const StatCard: React.FC<{
     title: string;
     value: string | number;
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     trend?: string;
     color: 'blue' | 'purple' | 'emerald' | 'orange';
 }> = ({ title, value, icon: Icon, trend, color }) => {

@@ -65,9 +65,10 @@ export const TlptCampaignModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, 
 
     const [activeTab, setActiveTab] = React.useState<'details' | 'findings'>('details');
 
-    useEffect(() => {
+    // Reset tab when modal opens
+    React.useEffect(() => {
         if (isOpen) {
-            setActiveTab('details'); // Reset to details on open
+            setActiveTab('details');
         }
     }, [isOpen]);
 

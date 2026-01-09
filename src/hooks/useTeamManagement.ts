@@ -168,7 +168,7 @@ export const useTeamManagement = () => {
             return false;
         }
         return false;
-    }, [user, demoMode, addToast, t, fetchUsers, users.length]);
+    }, [user, demoMode, addToast, t, fetchUsers]);
 
     const updateUser = async (uid: string, data: Partial<UserFormData>, isPending: boolean) => {
         if (isPending) return;

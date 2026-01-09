@@ -172,7 +172,7 @@ class UsageAnalytics {
 
         // Also store locally for development
         if (process.env.NODE_ENV === 'development') {
-
+            // Local storage logic can be added here for debugging
         }
     }
 

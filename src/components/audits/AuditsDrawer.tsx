@@ -1,4 +1,5 @@
 import React from 'react';
+import { Document } from '@/types/documents';
 import { Drawer } from '../ui/Drawer';
 import { AuditForm } from './AuditForm';
 import { AuditInspector } from './AuditInspector';
@@ -21,7 +22,7 @@ interface AuditsDrawerProps {
     refreshAudits: () => Promise<void> | void;
     canEdit: boolean;
     onDelete?: (audit: Audit) => void;
-    documents?: any[]; // Keep flexible if Documents type isn't strictly imported yet, or import it
+    documents?: Document[];
 }
 
 export const AuditsDrawer: React.FC<AuditsDrawerProps> = ({

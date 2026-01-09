@@ -120,7 +120,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
             }
             tabs={tabs}
             activeTab={inspectorTab}
-            onTabChange={(id) => setInspectorTab(id as any)}
+            onTabChange={(id) => setInspectorTab(id as 'profile' | 'assessment' | 'contracts' | 'history' | 'comments')}
         >
             <div className="h-full flex flex-col">
                 <div className="flex-1 overflow-hidden relative">

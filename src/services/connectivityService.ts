@@ -57,7 +57,7 @@ export const ConnectivityService = {
         } catch (error) {
             // Storage rules might deny list on root, which is technically a successful connection (403).
             // We treat specific error codes as 'operational' in terms of connectivity if it proves we reached the server.
-            const err = error as any;
+            const err = error as { code?: string };
             if (err.code === 'storage/unauthorized') {
                 // We connected but were denied. That counts as operational network.
                 const latency = Math.round(performance.now() - start);
