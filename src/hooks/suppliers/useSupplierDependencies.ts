@@ -5,8 +5,29 @@ import { Document, UserProfile, BusinessProcess, Asset, Risk, Project } from '..
 import { QuestionnaireTemplate, SupplierQuestionnaireResponse } from '../../types/business';
 import { useStore } from '../../store';
 
-export const useSuppliersData = (organizationId?: string) => {
-    const { demoMode } = useStore();
+export interface UseSupplierDependenciesOptions {
+    fetchUsers?: boolean;
+    fetchDocuments?: boolean;
+    fetchProcesses?: boolean;
+    fetchAssets?: boolean;
+    fetchRisks?: boolean;
+    fetchProjects?: boolean;
+    fetchTemplates?: boolean;
+    fetchAssessments?: boolean;
+}
+
+export const useSupplierDependencies = (options: UseSupplierDependenciesOptions = {}) => {
+    const { user, demoMode } = useStore();
+    const organizationId = user?.organizationId;
+
+    const shouldFetchUsers = !!organizationId && !demoMode && options.fetchUsers;
+    const shouldFetchDocuments = !!organizationId && !demoMode && options.fetchDocuments;
+    const shouldFetchProcesses = !!organizationId && !demoMode && options.fetchProcesses;
+    const shouldFetchAssets = !!organizationId && !demoMode && options.fetchAssets;
+    const shouldFetchRisks = !!organizationId && !demoMode && options.fetchRisks;
+    const shouldFetchProjects = !!organizationId && !demoMode && options.fetchProjects;
+    const shouldFetchTemplates = !!organizationId && !demoMode && options.fetchTemplates;
+    const shouldFetchAssessments = !!organizationId && !demoMode && options.fetchAssessments;
 
     // Mock Data State
     const [mockData, setMockData] = useState<{
@@ -23,50 +44,50 @@ export const useSuppliersData = (organizationId?: string) => {
     // Queries
     const { data: usersRaw, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
-        [where('organizationId', '==', organizationId)],
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        shouldFetchUsers ? [where('organizationId', '==', organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchUsers }
     );
 
     const { data: documentsRaw, loading: loadingDocuments } = useFirestoreCollection<Document>(
         'documents',
-        [where('organizationId', '==', organizationId)],
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        shouldFetchDocuments ? [where('organizationId', '==', organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchDocuments }
     );
 
     const { data: processesRaw, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
-        [where('organizationId', '==', organizationId)],
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        shouldFetchProcesses ? [where('organizationId', '==', organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchProcesses }
     );
 
     const { data: assetsRaw, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
-        [where('organizationId', '==', organizationId)],
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        shouldFetchAssets ? [where('organizationId', '==', organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchAssets }
     );
 
     const { data: risksRaw, loading: loadingRisks } = useFirestoreCollection<Risk>(
         'risks',
-        [where('organizationId', '==', organizationId)],
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        shouldFetchRisks ? [where('organizationId', '==', organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchRisks }
     );
 
     const { data: projectsRaw, loading: loadingProjects } = useFirestoreCollection<Project>(
         'projects',
-        [where('organizationId', '==', organizationId)],
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        shouldFetchProjects ? [where('organizationId', '==', organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchProjects }
     );
 
     const { data: templatesRaw, loading: loadingTemplates, add: addTemplateRaw, update: updateTemplateRaw, remove: removeTemplate } = useFirestoreCollection<QuestionnaireTemplate>(
         'questionnaire_templates',
-        [where('organizationId', '==', organizationId)],
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        shouldFetchTemplates ? [where('organizationId', '==', organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchTemplates }
     );
 
     const { data: assessmentsRaw, loading: loadingAssessments, add: addAssessmentRaw, update: updateAssessmentRaw, remove: removeAssessment } = useFirestoreCollection<SupplierQuestionnaireResponse>(
         'questionnaire_responses',
-        [where('organizationId', '==', organizationId)],
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        shouldFetchAssessments ? [where('organizationId', '==', organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchAssessments }
     );
 
     // Load Mock Data Effect
@@ -80,23 +101,34 @@ export const useSuppliersData = (organizationId?: string) => {
                     assets: MockDataService.getCollection('assets') as Asset[],
                     risks: MockDataService.getCollection('risks') as Risk[],
                     projects: MockDataService.getCollection('projects') as Project[],
-                    templates: [], // Mock templates if needed, for now empty or todo
-                    responses: []  // Mock responses if needed
+                    templates: [],
+                    responses: []
                 });
             });
         }
     }, [demoMode, mockData]);
 
-    const users = useMemo(() => demoMode && mockData ? mockData.users : usersRaw, [usersRaw, mockData, demoMode]);
-    const documents = useMemo(() => demoMode && mockData ? mockData.documents : documentsRaw, [documentsRaw, mockData, demoMode]);
-    const processes = useMemo(() => demoMode && mockData ? mockData.processes : processesRaw, [processesRaw, mockData, demoMode]);
-    const assets = useMemo(() => demoMode && mockData ? mockData.assets : assetsRaw, [assetsRaw, mockData, demoMode]);
-    const risks = useMemo(() => demoMode && mockData ? mockData.risks : risksRaw, [risksRaw, mockData, demoMode]);
-    const projects = useMemo(() => demoMode && mockData ? mockData.projects : projectsRaw, [projectsRaw, mockData, demoMode]);
-    const templates = useMemo(() => demoMode && mockData ? mockData.templates : templatesRaw, [templatesRaw, mockData, demoMode]);
-    const assessments = useMemo(() => demoMode && mockData ? mockData.responses : assessmentsRaw, [assessmentsRaw, mockData, demoMode]);
+    const users = useMemo(() => demoMode && mockData ? mockData.users : (usersRaw || []), [usersRaw, mockData, demoMode]);
+    const documents = useMemo(() => demoMode && mockData ? mockData.documents : (documentsRaw || []), [documentsRaw, mockData, demoMode]);
+    const processes = useMemo(() => demoMode && mockData ? mockData.processes : (processesRaw || []), [processesRaw, mockData, demoMode]);
+    const assets = useMemo(() => demoMode && mockData ? mockData.assets : (assetsRaw || []), [assetsRaw, mockData, demoMode]);
+    const risks = useMemo(() => demoMode && mockData ? mockData.risks : (risksRaw || []), [risksRaw, mockData, demoMode]);
+    const projects = useMemo(() => demoMode && mockData ? mockData.projects : (projectsRaw || []), [projectsRaw, mockData, demoMode]);
+    const templates = useMemo(() => demoMode && mockData ? mockData.templates : (templatesRaw || []), [templatesRaw, mockData, demoMode]);
+    const assessments = useMemo(() => demoMode && mockData ? mockData.responses : (assessmentsRaw || []), [assessmentsRaw, mockData, demoMode]);
 
-    const loading = demoMode ? !mockData : (loadingUsers || loadingDocuments || loadingProcesses || loadingAssets || loadingRisks || loadingProjects || loadingTemplates || loadingAssessments);
+    const loading = demoMode
+        ? !mockData
+        : (
+            (options.fetchUsers && loadingUsers) ||
+            (options.fetchDocuments && loadingDocuments) ||
+            (options.fetchProcesses && loadingProcesses) ||
+            (options.fetchAssets && loadingAssets) ||
+            (options.fetchRisks && loadingRisks) ||
+            (options.fetchProjects && loadingProjects) ||
+            (options.fetchTemplates && loadingTemplates) ||
+            (options.fetchAssessments && loadingAssessments)
+        );
 
     // Wrapper functions to inject serverTimestamp
     const addTemplate = useCallback(async (data: Partial<QuestionnaireTemplate>) => {

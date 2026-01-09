@@ -215,23 +215,12 @@ export const Risks: React.FC = () => {
     }, [risks, t, handleDelete]);
 
     const handleFormSubmit = useCallback(async (data: RiskFormData) => {
-        const prob = Number(data.probability) || 1;
-        const imp = Number(data.impact) || 1;
-        const resProb = Number(data.residualProbability) || prob;
-        const resImp = Number(data.residualImpact) || imp;
-
         // Use Calculator for consistent scoring
-        const score = RiskCalculator.calculateScore(undefined, prob, imp);
-        const residualScore = RiskCalculator.calculateResidualScore(resProb, resImp);
+        const calculatedValues = RiskCalculator.parseRiskValues(data);
 
         const cleanedData = {
             ...data,
-            probability: prob as Risk['probability'],
-            impact: imp as Risk['impact'],
-            residualProbability: resProb as Risk['probability'],
-            residualImpact: resImp as Risk['impact'],
-            score: score,
-            residualScore: residualScore,
+            ...calculatedValues,
             aiAnalysis: data.aiAnalysis || undefined
         };
 
@@ -278,17 +267,13 @@ export const Risks: React.FC = () => {
 
     const handleTemplateSelect = useCallback(async (template: { risks: Partial<Risk>[] }, ownerId: string) => {
         const promises = template.risks.map((risk: Partial<Risk>) => {
-            const prob = Number(risk.probability) || 1;
-            const imp = Number(risk.impact) || 1;
-            const score = RiskCalculator.calculateScore(undefined, prob, imp);
+            const calculatedValues = RiskCalculator.parseRiskValues(risk);
 
             return createRisk({
                 threat: risk.threat,
                 vulnerability: risk.vulnerability,
-                probability: risk.probability,
-                impact: risk.impact,
-                score, // Calculated score
                 strategy: risk.strategy,
+                ...calculatedValues,
                 status: 'Ouvert',
                 framework: 'ISO27001',
                 owner: ownerId,

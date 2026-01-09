@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { SupplierQuestionnaireResponse } from '../../types/business';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
-import { Save, Check, ChevronRight } from '../ui/Icons';
-import { SupplierService } from '../../services/SupplierService';
+import { Save, Check, ChevronRight, ChevronLeft, AlertCircle } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
-import { useSuppliersData } from '../../hooks/suppliers/useSuppliersData';
-import { serverTimestamp } from 'firebase/firestore';
+import { Button } from '../ui/button';
+import { useSupplierDependencies } from '../../hooks/suppliers/useSupplierDependencies';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
     responseId: string;
@@ -13,248 +12,277 @@ interface Props {
     context?: 'supplier' | 'privacy';
 }
 
-export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context = 'supplier' }) => {
-    const { user, addToast } = useStore();
-    const { templates, assessments, loading: hookLoading, updateAssessment } = useSuppliersData(user?.organizationId);
+interface AssessmentAnswer {
+    value: string | number | boolean | string[];
+    notes?: string;
+    evidence?: string[];
+}
+
+export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
+    const { addToast } = useStore();
+    const { templates, assessments, loading: hookLoading, updateAssessment } = useSupplierDependencies({
+        fetchTemplates: true,
+        fetchAssessments: true
+    });
+
+    // Derive data
+    const response = useMemo(() => assessments.find(a => a.id === responseId), [assessments, responseId]);
+    const template = useMemo(() => templates.find(t => t.id === response?.templateId), [templates, response]);
+
+    // Local state for answers
+    const [localAnswers, setLocalAnswers] = useState<Record<string, AssessmentAnswer>>({});
     const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, { value: string | boolean | number | string[], comment?: string, evidenceUrl?: string }>>({});
+    const [isSaving, setIsSaving] = useState(false);
 
-    // Find the response by ID
-    const response = useMemo(() => {
-        return assessments.find(a => a.id === responseId) || null;
-    }, [assessments, responseId]);
-
-    // Find the template for this response
-    const template = useMemo(() => {
-        if (!response) return null;
-        return templates.find(t => t.id === response.templateId) || null;
-    }, [templates, response]);
-
-    const prevResponseIdRef = useRef(response?.id);
-
-    // Sync answers from response when it loads
+    // Sync state with loaded response
     useEffect(() => {
-        if (response && response.id !== prevResponseIdRef.current) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setAnswers(response.answers || {});
-            prevResponseIdRef.current = response.id;
+        if (response?.answers) {
+            setLocalAnswers(response.answers);
         }
     }, [response]);
 
-    const handleSave = async (submit = false) => {
-        if (!response || !template) return;
+    if (hookLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <span className="loading loading-spinner text-brand-600"></span>
+                <span className="ml-2 text-slate-500">Chargement de l'évaluation...</span>
+            </div>
+        );
+    }
 
-        // Validation before submission
-        if (submit) {
-            const missingRequired = [];
-            for (const section of template.sections) {
-                for (const q of section.questions) {
-                    // Check if question is required (default to false if undefined, though usually true by default for new questions)
-                    if (q.required) {
-                        const answer = answers[q.id]?.value;
-                        const isValid = answer !== undefined && answer !== null && answer !== '';
-                        if (!isValid) {
-                            missingRequired.push(q.text);
-                        }
-                    }
-                }
-            }
-
-            if (missingRequired.length > 0) {
-                addToast(`Veuillez répondre aux questions obligatoires (${missingRequired.length} restantes)`, 'error');
-                return;
-            }
-        }
-
-        try {
-            // Calculate Score (Real-time update)
-            const simulatedResponse = { ...response, answers };
-            const { overallScore, sectionScores } = SupplierService.calculateScore(simulatedResponse, template);
-
-            const updates: Partial<SupplierQuestionnaireResponse> = {
-                answers,
-                overallScore,
-                sectionScores,
-                status: submit ? 'Submitted' : 'In Progress'
-            };
-
-            if (submit) {
-                updates.submittedDate = serverTimestamp() as unknown as string;
-                // Update Supplier Risk Level ONLY if in supplier context
-                if (context === 'supplier') {
-                    await SupplierService.updateSupplierRiskFromAssessment(response.supplierId, overallScore);
-                }
-            }
-
-            await updateAssessment(responseId, updates);
-
-            addToast(submit ? 'Évaluation soumise' : 'Sauvegardé', 'success');
-            if (submit) onClose();
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'AssessmentView.handleSave', 'UPDATE_FAILED');
-        }
-    };
-
-    if (hookLoading || !template || !response) return <div className="p-8 text-center"><span className="loading loading-spinner"></span> Chargement...</div>;
+    if (!template || !response) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                <AlertCircle className="w-12 h-12 mb-4 text-slate-300" />
+                <p>Évaluation ou modèle introuvable.</p>
+                <Button variant="ghost" onClick={onClose} className="mt-4">Retour</Button>
+            </div>
+        );
+    }
 
     const currentSection = template.sections[currentSectionIndex];
 
-    return (
-        <div className="flex h-full flex-col bg-slate-50 dark:bg-slate-900">
-            {/* Header */}
-            <div className="bg-white dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center shadow-sm">
-                <div>
-                    <h2 className="text-xl font-bold dark:text-white">{template.title}</h2>
-                    <p className="text-sm text-slate-500">{response.supplierName} - {response.status}</p>
-                </div>
-                <div className="flex gap-3">
-                    <button aria-label="Sauvegarder les modifications" onClick={() => handleSave(false)} className="flex items-center px-4 py-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:opacity-80">
-                        <Save className="w-4 h-4 mr-2" />
-                        Sauvegarder
-                    </button>
-                    <button aria-label="Soumettre l'évaluation" onClick={() => handleSave(true)} className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">
-                        <Check className="w-4 h-4 mr-2" />
-                        Soumettre
-                    </button>
-                </div>
-            </div>
+    const handleAnswerChange = (questionId: string, value: AssessmentAnswer['value']) => {
+        setLocalAnswers(prev => ({
+            ...prev,
+            [questionId]: {
+                ...prev[questionId],
+                value
+            }
+        }));
+    };
 
-            <div className="flex flex-1 overflow-hidden">
-                {/* Sidebar Navigation */}
-                <div className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 overflow-y-auto p-4 flex flex-col gap-2">
+    const handleSave = async (submit = false) => {
+        if (!response) return;
+        setIsSaving(true);
+        try {
+            await updateAssessment(response.id, {
+                answers: localAnswers,
+                status: submit ? 'Submitted' : 'In Progress'
+            });
+            addToast(submit ? 'Évaluation soumise avec succès' : 'Brouillon sauvegardé', 'success');
+            if (submit) onClose();
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'AssessmentView.save', 'UPDATE_FAILED');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const calculateProgress = () => {
+        const totalQuestions = template.sections.reduce((acc, s) => acc + s.questions.length, 0);
+        const questionsIds = template.sections.flatMap(s => s.questions.map(q => q.id));
+        const answeredCount = questionsIds.filter(id => {
+            const answer = localAnswers[id];
+            return answer && (answer.value !== undefined && answer.value !== '');
+        }).length;
+
+        if (totalQuestions === 0) return 0;
+        return Math.round((answeredCount / totalQuestions) * 100);
+    };
+
+    return (
+        <div className="flex h-full bg-slate-50 dark:bg-slate-900">
+            {/* Sidebar Navigation */}
+            <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col hidden lg:flex">
+                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                    <h3 className="font-bold text-slate-800 dark:text-white truncate" title={template.title}>{template.title}</h3>
+                    <div className="mt-4">
+                        <div className="flex justify-between text-xs text-slate-500 mb-1">
+                            <span>Progression</span>
+                            <span>{calculateProgress()}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                            <div
+                                className="bg-brand-600 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${calculateProgress()}%` }}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <nav className="flex-1 overflow-y-auto p-4 space-y-1">
                     {template.sections.map((section, idx) => (
                         <button
-                            key={section.id}
-                            aria-label={`Aller à la section ${section.title}`}
+                            key={section.id || idx}
                             onClick={() => setCurrentSectionIndex(idx)}
-                            className={`text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${currentSectionIndex === idx
-                                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400'
+                            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${currentSectionIndex === idx
+                                ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300'
                                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                                 }`}
                         >
-                            <div className="flex justify-between items-center">
-                                <span>{idx + 1}. {section.title}</span>
-                                {response.sectionScores && response.sectionScores[section.id] !== undefined && (
-                                    <span className={`text-xs px-1.5 py-0.5 rounded ${response.sectionScores[section.id] >= 80 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
-                                        {response.sectionScores[section.id]}%
-                                    </span>
-                                )}
+                            <div className="flex items-center">
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${currentSectionIndex === idx ? 'bg-brand-200 text-brand-800' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                    }`}>
+                                    {idx + 1}
+                                </span>
+                                <span className="truncate">{section.title}</span>
                             </div>
                         </button>
                     ))}
-                    <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
-                        <p className="text-xs text-center text-slate-400">Score Global</p>
-                        <div className="text-3xl font-bold text-center text-indigo-600 dark:text-indigo-400 mt-1">
-                            {response.overallScore || 0}%
-                        </div>
+                </nav>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col min-w-0">
+                {/* Header */}
+                <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4 flex justify-between items-center shadow-sm z-10">
+                    <div className="flex items-center lg:hidden">
+                        <span className="font-bold text-slate-900 dark:text-white truncate max-w-[150px]">{currentSection?.title}</span>
                     </div>
-                </div>
+                    <div className="hidden lg:block text-sm text-slate-500">
+                        {response.supplierName} • <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${response.status === 'Submitted' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{response.status || 'Brouillon'}</span>
+                    </div>
 
-                {/* Main Content */}
-                <div className="flex-1 overflow-y-auto p-8">
+                    <div className="flex gap-3">
+                        <Button variant="ghost" onClick={() => handleSave(false)} disabled={isSaving}>
+                            <Save className="w-4 h-4 mr-2" />
+                            Sauvegarder
+                        </Button>
+                        <Button variant="default" onClick={() => handleSave(true)} disabled={isSaving}>
+                            <Check className="w-4 h-4 mr-2" />
+                            Soumettre
+                        </Button>
+                    </div>
+                </header>
+
+                {/* Content Area */}
+                <div className="flex-1 overflow-y-auto p-6 lg:p-10">
                     <div className="max-w-3xl mx-auto space-y-8">
-                        <div className="mb-6">
-                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">{currentSection.title}</h3>
-                            {currentSection.description && <p className="text-slate-500">{currentSection.description}</p>}
-                        </div>
-
-                        {currentSection.questions.map((q) => (
-                            <div key={q.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/50">
-                                <div className="mb-4">
-                                    <h4 className="font-semibold text-slate-900 dark:text-white text-lg">{q.text}</h4>
-                                    {q.helperText && <p className="text-sm text-slate-400 mt-1">{q.helperText}</p>}
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentSectionIndex}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <div className="mb-8">
+                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{currentSection?.title}</h2>
+                                    {currentSection?.description && (
+                                        <p className="text-slate-500 dark:text-slate-400">{currentSection.description}</p>
+                                    )}
                                 </div>
 
-                                <div className="space-y-4">
-                                    {/* Input Types */}
-                                    {q.type === 'yes_no' && (
-                                        <div className="flex gap-4">
-                                            {['Oui', 'Non', 'N/A'].map(opt => {
-                                                const val = opt === 'Oui' ? true : opt === 'Non' ? false : 'N/A';
-                                                const currentVal = answers[q.id]?.value;
-                                                const isSelected = (val === true && currentVal === true) || (val === false && currentVal === false) || (val === 'N/A' && currentVal === 'N/A');
+                                <div className="space-y-6">
+                                    {currentSection?.questions.map((question) => (
+                                        <div key={question.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                            <label className="block text-base font-semibold text-slate-800 dark:text-slate-200 mb-2">
+                                                {question.text}
+                                                {question.required && <span className="text-red-500 ml-1">*</span>}
+                                            </label>
+                                            {question.helperText && (
+                                                <p className="text-sm text-slate-500 mb-4">{question.helperText}</p>
+                                            )}
 
-                                                return (
+                                            {/* Input Types */}
+                                            {question.type === 'text' ? (
+                                                <textarea
+                                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all min-h-[120px]"
+                                                    placeholder="Votre réponse..."
+                                                    value={(localAnswers[question.id]?.value as string) || ''}
+                                                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                                                />
+                                            ) : question.type === 'yes_no' ? (
+                                                <div className="flex gap-4">
                                                     <button
-                                                        key={opt}
-                                                        aria-label={`Sélectionner ${opt}`}
-                                                        aria-pressed={isSelected}
-                                                        onClick={() => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], value: val } }))}
-                                                        className={`px-6 py-2 rounded-lg border font-medium transition-all ${isSelected
-                                                            ? 'bg-indigo-600 text-white border-indigo-600'
-                                                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-600 text-slate-600 hover:border-indigo-300'
+                                                        type="button"
+                                                        onClick={() => handleAnswerChange(question.id, 'Yes')}
+                                                        className={`px-4 py-2 rounded-lg border flex-1 transition-colors ${localAnswers[question.id]?.value === 'Yes'
+                                                            ? 'bg-green-50 border-green-200 text-green-700 font-medium'
+                                                            : 'border-slate-200 hover:bg-slate-50 text-slate-600'
                                                             }`}
                                                     >
-                                                        {opt}
+                                                        Oui
                                                     </button>
-                                                )
-                                            })}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleAnswerChange(question.id, 'No')}
+                                                        className={`px-4 py-2 rounded-lg border flex-1 transition-colors ${localAnswers[question.id]?.value === 'No'
+                                                            ? 'bg-red-50 border-red-200 text-red-700 font-medium'
+                                                            : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                                                            }`}
+                                                    >
+                                                        Non
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <input
+                                                    type={question.type === 'rating' ? 'number' : 'text'}
+                                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
+                                                    placeholder="Votre réponse..."
+                                                    value={(localAnswers[question.id]?.value as string) || ''}
+                                                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
+                                    {(!currentSection?.questions || currentSection.questions.length === 0) && (
+                                        <div className="text-center p-8 text-slate-400 italic bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                                            Aucune question dans cette section.
                                         </div>
                                     )}
-
-                                    {q.type === 'text' && (
-                                        <textarea
-                                            value={answers[q.id]?.value as string || ''}
-                                            onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], value: e.target.value } }))}
-                                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none"
-                                            rows={3}
-                                            placeholder="Votre réponse..."
-                                        />
-                                    )}
-
-                                    {q.type === 'rating' && (
-                                        <div className="flex gap-2">
-                                            {[1, 2, 3, 4, 5].map(rating => (
-                                                <button
-                                                    key={rating}
-                                                    aria-label={`Noter ${rating} sur 5`}
-                                                    aria-pressed={answers[q.id]?.value === rating}
-                                                    onClick={() => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], value: rating } }))}
-                                                    className={`w-10 h-10 rounded-lg font-bold flex items-center justify-center transition-all ${answers[q.id]?.value === rating
-                                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200'
-                                                        }`}
-                                                >
-                                                    {rating}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Comments / Evidence */}
-                                    <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-700">
-                                        <input aria-label="Commentaire ou preuve"
-                                            type="text"
-                                            placeholder="Ajouter un commentaire ou lien de preuve..."
-                                            value={answers[q.id]?.comment || ''}
-                                            onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], comment: e.target.value } }))}
-                                            className="w-full text-sm bg-transparent border-none focus:ring-0 px-0 text-slate-500 placeholder-slate-400"
-
-                                        />
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
-
-                        <div className="flex justify-end pt-4">
-                            {currentSectionIndex < template.sections.length - 1 ? (
-                                <button
-                                    aria-label="Passer à la section suivante"
-                                    onClick={() => setCurrentSectionIndex(prev => prev + 1)}
-                                    className="flex items-center px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-lg"
-                                >
-                                    Suivant
-                                    <ChevronRight className="w-4 h-4 ml-2" />
-                                </button>
-                            ) : (
-                                <div className="text-center w-full p-4 bg-green-50 text-green-800 rounded-xl border border-green-200">
-                                    Vous avez atteint la dernière section. Pensez à soumettre !
-                                </div>
-                            )}
-                        </div>
+                            </motion.div>
+                        </AnimatePresence>
                     </div>
                 </div>
-            </div>
+
+                {/* Footer Navigation */}
+                <div className="bg-white dark:bg-slate-800 p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center z-10">
+                    <Button
+                        variant="ghost"
+                        onClick={() => setCurrentSectionIndex(prev => Math.max(0, prev - 1))}
+                        disabled={currentSectionIndex === 0}
+                        className={currentSectionIndex === 0 ? 'invisible' : ''}
+                    >
+                        <ChevronLeft className="w-4 h-4 mr-2" />
+                        Précédent
+                    </Button>
+
+                    <div className="flex gap-2">
+                        {/* Optional dots or page indicators can act as pagination */}
+                    </div>
+
+                    {currentSectionIndex < template.sections.length - 1 ? (
+                        <Button
+                            variant="premium"
+                            onClick={() => setCurrentSectionIndex(prev => Math.min(template.sections.length - 1, prev + 1))}
+                        >
+                            Suivant
+                            <ChevronRight className="w-4 h-4 ml-2" />
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="default"
+                            onClick={() => handleSave(true)}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                            Terminer et Soumettre
+                            <Check className="w-4 h-4 ml-2" />
+                        </Button>
+                    )}
+                </div>
+            </main>
         </div>
     );
 };

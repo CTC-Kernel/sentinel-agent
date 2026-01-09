@@ -281,6 +281,8 @@ export const VoxelMesh: React.FC<{
         config: config.wobbly
     });
 
+    const safeSize = Number.isFinite(node.size) && node.size > 0 ? node.size : 1;
+
     useFrame(() => {
         // Only keep rotation for non-assets
         if (meshRef.current && node.type !== 'asset') {
@@ -337,12 +339,12 @@ export const VoxelMesh: React.FC<{
         const config = MODEL_LIBRARY_CONFIG[node.type];
         if (!config) return null;
         const source = modelLibrary[config.key];
-        if (!source) return null;
+        if (!source || source.children.length === 0) return null;
         const clone = source.clone(true);
-        const uniformScale = node.size * config.scale;
+        const uniformScale = safeSize * config.scale;
         clone.scale.setScalar(uniformScale);
         const [px = 0, py = 0, pz = 0] = config.position ?? [0, 0, 0];
-        clone.position.set(px * node.size, py * node.size, pz * node.size);
+        clone.position.set(px * safeSize, py * safeSize, pz * safeSize);
         const [rx = 0, ry = 0, rz = 0] = config.rotation ?? [0, 0, 0];
         clone.rotation.set(rx, ry, rz);
 
@@ -368,7 +370,7 @@ export const VoxelMesh: React.FC<{
             }
         });
         return clone;
-    }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, xRayMode, isDimmed]);
+    }, [modelLibrary, node.type, baseColor, emissiveColor, emissiveIntensity, xRayMode, isDimmed, safeSize]);
 
     const getDataLabel = useCallback((data: VoxelNode['data']): string => {
         if (!data) return 'Élément';
@@ -396,7 +398,7 @@ export const VoxelMesh: React.FC<{
                 scale={scale}
             >
                 <VoxelModelGeometry
-                    node={node}
+                    node={{ ...node, size: safeSize }}
                     libraryPrimitive={libraryPrimitive}
                     sharedMaterialProps={sharedMaterialProps}
                     emissiveColor={emissiveColor}
@@ -406,8 +408,8 @@ export const VoxelMesh: React.FC<{
             </AnimatedGroup>
 
             {(hovered || isSelected || isHighlighted) && (
-                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
-                    <ringGeometry args={[node.size * 0.8, node.size * 1.6, 64]} />
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -safeSize / 2, 0]}>
+                    <ringGeometry args={[safeSize * 0.8, safeSize * 1.6, 64]} />
                     <meshBasicMaterial
                         color={node.color}
                         transparent
@@ -420,7 +422,7 @@ export const VoxelMesh: React.FC<{
             {/* Label */}
             {labelVisible && (
                 <Text
-                    position={[0, node.size + 0.8, 0]}
+                    position={[0, safeSize + 0.8, 0]}
                     fontSize={0.55}
                     color="white"
                     anchorX="center"

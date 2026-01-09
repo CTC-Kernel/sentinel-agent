@@ -1,4 +1,6 @@
 import React, { memo, useState } from "react";
+import { createPortal } from "react-dom";
+import { AlertTriangle, Shield, Activity } from "lucide-react";
 import {
     ComposableMap,
     Geographies,
@@ -11,11 +13,17 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
+interface Threat {
+    name: string;
+    type: string;
+    severity: 'Critical' | 'High' | 'Medium' | 'Low';
+}
+
 interface MapProps {
     data: Array<{
         country: string;
         value: number;
-        markers: Array<{ coordinates: [number, number], name: string }>;
+        markers: Array<{ coordinates: [number, number]; name: string } & Threat>;
     }>;
     setTooltipContent?: (content: string) => void; // Keeping for compatibility, but unused
 }
@@ -54,10 +62,16 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                 geographies.map((geo) => {
                                     const countryName = geo.properties.name;
                                     const cur = data.find((s) => {
-                                        // Fuzzy match country name
-                                        return s.country === countryName ||
-                                            s.country.includes(countryName) ||
-                                            countryName.includes(s.country);
+                                        // Fuzzy match country name (Case Insensitive)
+                                        const sName = s.country.toLowerCase();
+                                        const gName = countryName.toLowerCase();
+
+                                        // Specific overrides for common mismatches
+                                        if (sName === 'usa' && (gName.includes('united states') || gName.includes('america'))) return true;
+                                        if (sName === 'uk' && (gName.includes('united kingdom') || gName.includes('britain'))) return true;
+                                        if (sName === 'russia' && gName.includes('russian')) return true;
+
+                                        return sName === gName || sName.includes(gName) || gName.includes(sName);
                                     });
                                     const intensity = cur ? cur.value : 0;
                                     const hasThreats = intensity > 0;
@@ -83,18 +97,85 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                             }}
                                             onMouseEnter={(e) => {
                                                 const { clientX, clientY } = e;
+                                                const topThreats = cur ? cur.markers.slice(0, 3) : [];
+                                                const threatCount = cur ? cur.markers.length : 0;
+
                                                 setTooltip({
                                                     x: clientX,
                                                     y: clientY,
                                                     content: (
-                                                        <>
-                                                            <div className="font-bold text-white border-b border-white/10 pb-1 mb-1">{countryName}</div>
-                                                            <div className="flex items-center gap-2 text-xs">
-                                                                <span className={hasThreats ? "text-red-400" : "text-emerald-400"}>
-                                                                    {hasThreats ? `THREAT LEVEL: ${intensity.toFixed(0)}` : "NO ACTIVE THREATS"}
-                                                                </span>
+                                                        <div className="min-w-[220px]">
+                                                            {/* Header */}
+                                                            <div className="flex justify-between items-start mb-2 pb-2 border-b border-white/10">
+                                                                <div className="font-bold text-white text-sm tracking-wide">{countryName}</div>
+                                                                {hasThreats && (
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <span className="relative flex h-2 w-2">
+                                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                                                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                                                        </span>
+                                                                        <span className="text-[10px] font-mono text-red-500 font-bold tracking-wider">LIVE</span>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        </>
+
+                                                            {/* Stats Grid */}
+                                                            <div className="grid grid-cols-2 gap-2 mb-3">
+                                                                <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                                                                    <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5">Score</div>
+                                                                    <div className={`text-lg font-bold font-mono ${hasThreats ? 'text-orange-400' : 'text-emerald-400'}`}>
+                                                                        {intensity.toFixed(0)}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="bg-white/5 rounded-lg p-2 text-center border border-white/5">
+                                                                    <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5">Events</div>
+                                                                    <div className="text-lg font-bold font-mono text-white">
+                                                                        {threatCount}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Active Threats List */}
+                                                            {topThreats.length > 0 && (
+                                                                <div className="space-y-2">
+                                                                    <div className="text-[10px] uppercase text-slate-500 font-bold tracking-wider border-l-2 border-slate-700 pl-2">
+                                                                        Latest Intelligence
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        {topThreats.map((t: Threat, idx) => (
+                                                                            <div key={idx} className="flex items-start gap-2 text-xs text-slate-200 group">
+                                                                                <div className={`mt-0.5 p-1 rounded flex-shrink-0 ${t.severity === 'Critical' ? 'bg-red-500/10 text-red-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                                                                                    {t.type === 'Malware' ? <Activity size={10} /> :
+                                                                                        t.type === 'Vulnerability' ? <Shield size={10} /> :
+                                                                                            <AlertTriangle size={10} />}
+                                                                                </div>
+                                                                                <div className="min-w-0">
+                                                                                    <div className="leading-tight opacity-90 group-hover:opacity-100 transition-opacity truncate font-medium">
+                                                                                        {t.name}
+                                                                                    </div>
+                                                                                    <div className="text-[10px] text-slate-500 flex gap-2 mt-0.5">
+                                                                                        <span>{t.type}</span>
+                                                                                        <span>•</span>
+                                                                                        <span className={t.severity === 'Critical' ? 'text-red-400' : 'text-orange-400'}>{t.severity}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                    {threatCount > 3 && (
+                                                                        <div className="text-[10px] text-center text-slate-500 italic pt-1">
+                                                                            + {threatCount - 3} other active events
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+
+                                                            {!hasThreats && (
+                                                                <div className="flex items-center justify-center gap-2 text-xs text-emerald-400/80 italic py-2 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
+                                                                    <span>No active threats detected.</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     )
                                                 });
                                             }}
@@ -155,24 +236,28 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
             </div>
 
             {/* Floating Tooltip Portal */}
-            <AnimatePresence>
-                {tooltipContent && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        style={{
-                            position: 'fixed',
-                            left: tooltipContent.x + 15,
-                            top: tooltipContent.y - 15,
-                            zIndex: 100
-                        }}
-                        className="bg-slate-900/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl pointer-events-none min-w-[150px]"
-                    >
-                        {tooltipContent.content}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {tooltipContent && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            style={{
+                                position: 'fixed',
+                                left: tooltipContent.x + 15,
+                                top: tooltipContent.y - 15,
+                                zIndex: 9999,
+                                pointerEvents: 'none'
+                            }}
+                            className="bg-slate-900/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl min-w-[150px]"
+                        >
+                            {tooltipContent.content}
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
 
             {/* Legend overlay */}
             <div className="absolute bottom-4 left-8 pointer-events-none">

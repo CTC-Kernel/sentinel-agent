@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
     collection,
     addDoc,
@@ -7,24 +7,39 @@ import {
     where,
     serverTimestamp
 } from 'firebase/firestore';
-import { db } from '../firebase';
-import { useStore } from '../store';
-import { Supplier } from '../types';
-import { sanitizeData } from '../utils/dataSanitizer';
-import { logAction } from '../services/logger';
-import { ErrorLogger } from '../services/errorLogger';
-import { SupplierService } from '../services/SupplierService';
-import { useFirestoreCollection } from './useFirestore';
-import { ImportService } from '../services/ImportService';
+import { db } from '../../firebase';
+import { useStore } from '../../store';
+import { Supplier } from '../../types';
+import { sanitizeData } from '../../utils/dataSanitizer';
+import { logAction } from '../../services/logger';
+import { ErrorLogger } from '../../services/errorLogger';
+import { SupplierService } from '../../services/SupplierService';
+import { useFirestoreCollection } from '../useFirestore';
+import { ImportService } from '../../services/ImportService';
 
-export const useSuppliers = () => {
-    const { user, t, addToast } = useStore();
+export const useSupplierLogic = () => {
+    const { user, t, addToast, demoMode } = useStore();
+    const [mockSuppliers, setMockSuppliers] = useState<Supplier[]>([]);
 
-    const { data: suppliers, loading, error } = useFirestoreCollection<Supplier>(
+    const { data: suppliersRaw, loading: loadingSuppliers, error } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: !!user?.organizationId && !demoMode }
     );
+
+    // Mock Data Effect
+    useEffect(() => {
+        if (demoMode) {
+            const loadMocks = async () => {
+                const { MockDataService } = await import('../../services/mockDataService');
+                setMockSuppliers(MockDataService.getCollection('suppliers') as Supplier[]);
+            };
+            loadMocks();
+        }
+    }, [demoMode]);
+
+    const suppliers = demoMode ? mockSuppliers : suppliersRaw;
+    const loading = demoMode ? mockSuppliers.length === 0 : loadingSuppliers;
 
     const addSupplier = useCallback(async (data: Partial<Supplier>) => {
         if (!user?.organizationId) return;
@@ -40,7 +55,7 @@ export const useSuppliers = () => {
             addToast(t('suppliers.toastCreated'), "success");
             return docRef.id;
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useSuppliers.addSupplier');
+            ErrorLogger.handleErrorWithToast(error, 'useSupplierLogic.addSupplier');
             throw error;
         }
     }, [user, addToast, t]);
@@ -55,7 +70,7 @@ export const useSuppliers = () => {
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
             addToast(t('suppliers.toastUpdated'), "success");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useSuppliers.updateSupplier');
+            ErrorLogger.handleErrorWithToast(error, 'useSupplierLogic.updateSupplier');
             throw error;
         }
     }, [user, addToast, t]);
@@ -69,7 +84,7 @@ export const useSuppliers = () => {
             await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${name || id}`);
             addToast(t('suppliers.toastDeleted'), 'success');
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useSuppliers.deleteSupplier');
+            ErrorLogger.handleErrorWithToast(error, 'useSupplierLogic.deleteSupplier');
             throw error;
         }
     }, [user, addToast, t]);
@@ -94,7 +109,7 @@ export const useSuppliers = () => {
             await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
             addToast(t('suppliers.toastImported', { count }), "success");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useSuppliers.importSuppliers');
+            ErrorLogger.handleErrorWithToast(error, 'useSupplierLogic.importSuppliers');
             throw error;
         }
     }, [user, addToast, t]);
@@ -105,7 +120,7 @@ export const useSuppliers = () => {
             // Use SupplierService to check dependencies
             return await SupplierService.checkDependencies(id, user.organizationId);
         } catch (error) {
-            ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'useSuppliers.checkDependencies');
+            ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'useSupplierLogic.checkDependencies');
             return { controls: 0, risks: 0, details: '' };
         }
     }, [user]);

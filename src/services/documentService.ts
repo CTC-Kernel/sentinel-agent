@@ -30,15 +30,18 @@ export class DocumentService {
      */
     static async checkDependencies(
         documentId: string,
-        organizationId: string,
-        controls: Control[] = []
+        organizationId: string
     ): Promise<DocumentDependencies> {
         try {
-            // Find controls that use this document as evidence
-            const linkedControls = controls.filter(c => c.evidenceIds?.includes(documentId));
-
             // Check dependencies in parallel across all collections
-            const [suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
+            const [linkedControlsSnap, suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
+                getDocs(
+                    query(
+                        collection(db, 'controls'),
+                        where('organizationId', '==', organizationId),
+                        where('evidenceIds', 'array-contains', documentId)
+                    )
+                ),
                 getDocs(
                     query(
                         collection(db, 'suppliers'),
@@ -65,8 +68,10 @@ export class DocumentService {
                 )
             ]);
 
+            const linkedControls = linkedControlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
+
             const hasDependencies =
-                linkedControls.length > 0 ||
+                !linkedControlsSnap.empty ||
                 !suppliersSnap.empty ||
                 !bcpSnap.empty ||
                 !findingsSnap.empty;
@@ -75,7 +80,7 @@ export class DocumentService {
 
             if (hasDependencies) {
                 const deps = [
-                    linkedControls.length > 0 ? `${linkedControls.length} contrôle(s)` : '',
+                    !linkedControlsSnap.empty ? `${linkedControlsSnap.size} contrôle(s)` : '',
                     !suppliersSnap.empty ? `${suppliersSnap.size} fournisseur(s)` : '',
                     !bcpSnap.empty ? `${bcpSnap.size} processus` : '',
                     !findingsSnap.empty ? `${findingsSnap.size} constat(s)` : ''

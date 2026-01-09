@@ -116,7 +116,7 @@ export const ThreatIntelligence: React.FC = () => {
     }, [isSeeding, addToast, user]);
 
     const mapData = useMemo(() => {
-        const countryCounts: Record<string, { value: number, iso3?: string, markers: { coordinates: [number, number]; name: string }[] }> = {};
+        const countryCounts: Record<string, { value: number, iso3?: string, markers: { coordinates: [number, number]; name: string; type?: string; severity?: string; date?: string; url?: string }[] }> = {};
 
         threats.forEach(t => {
             const country = t.country || 'Unknown';
@@ -141,12 +141,20 @@ export const ThreatIntelligence: React.FC = () => {
             // Criticality weight
             countryCounts[country].value += (t.severity === 'Critical' ? 3 : t.severity === 'High' ? 2 : 1);
 
-            countryCounts[country].markers.push({ coordinates: coords, name: t.title });
+            countryCounts[country].markers.push({
+                coordinates: coords,
+                name: t.title,
+                type: t.type,
+                severity: t.severity,
+                date: t.date,
+                url: t.url
+            });
         });
 
         return Object.entries(countryCounts).map(([country, data]) => ({
             country,
             value: data.value,
+            iso3: data.iso3, // Persist ISO3 if available
             markers: data.markers
         }));
     }, [threats]);

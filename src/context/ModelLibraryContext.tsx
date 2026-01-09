@@ -5,7 +5,7 @@ import { ModelLibraryContext } from './ModelLibraryContextDefinition';
 
 
 const assetModelUrl = '/models/lock/lock.obj';
-const riskModelUrl = '/models/warning/warning.obj';
+const riskModelUrl = '/models/flame/flame.obj';
 const incidentModelUrl = '/models/alert/alert.obj';
 const supplierModelUrl = '/models/cap/cap.obj';
 const projectModelUrl = '/models/box/box.obj';

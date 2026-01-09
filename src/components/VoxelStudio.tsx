@@ -9,8 +9,7 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, AI
 import { ErrorLogger } from '../services/errorLogger';
 import { VoxelMesh } from './voxel/VoxelMesh';
 import { ModelLibraryProvider } from '../context/ModelLibraryContext';
-import { EffectComposer, Bloom, Vignette, Noise } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
+
 
 // Helper for CSS Variables
 const resolveHslCssVar = (cssVarName: string, fallbackHsl: string) => {
@@ -171,7 +170,7 @@ const TargetReticle: React.FC<{ position: [number, number, number]; size: number
     }
   });
 
-  const scale = size * 1.8;
+  const scale = Number.isFinite(size) && size > 0 ? size * 1.8 : 1.8;
 
   return (
     <group position={position}>
@@ -489,8 +488,9 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       safeRisks.forEach((risk, index) => {
         const x = (index % GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
         const z = Math.floor(index / GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
-        const riskColor = risk.score >= 15 ? '#ef4444' : risk.score >= 10 ? '#f59e0b' : '#22c55e';
-        nodes.push({ id: risk.id, type: 'risk', position: applySceneOffset(x, -4, z), color: riskColor, size: 0.6 + (risk.score / 25) * 0.4, data: risk, connections: [risk.assetId] });
+        const safeScore = Number.isFinite(risk.score) ? risk.score : 0;
+        const riskColor = safeScore >= 15 ? '#ef4444' : safeScore >= 10 ? '#f59e0b' : '#22c55e';
+        nodes.push({ id: risk.id, type: 'risk', position: applySceneOffset(x, -4, z), color: riskColor, size: 0.6 + (safeScore / 25) * 0.4, data: risk, connections: [risk.assetId] });
       });
     }
     if (currentVisible.includes('project')) {
@@ -504,7 +504,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       safeAudits.forEach((audit, i) => {
         const angle = (i / (safeAudits.length || 1)) * Math.PI * 2;
         const radius = 12;
-        nodes.push({ id: audit.id, position: applySceneOffset(Math.cos(angle) * radius, 8, Math.sin(angle) * radius), color: '#06b6d4', size: 0.9, type: 'audit', data: audit, connections: [...(audit.relatedAssetIds || []), ...(audit.relatedRiskIds || []), ...(audit.relatedProjectIds || [])] });
+        nodes.push({ id: audit.id, position: applySceneOffset(Math.cos(angle) * radius, 8, Math.sin(angle) * radius), color: '#06b6d4', size: 0.9, type: 'audit', data: audit, connections: [...(Array.isArray(audit.relatedAssetIds) ? audit.relatedAssetIds : []), ...(Array.isArray(audit.relatedRiskIds) ? audit.relatedRiskIds : []), ...(Array.isArray(audit.relatedProjectIds) ? audit.relatedProjectIds : [])] });
       });
     }
     if (currentVisible.includes('incident')) {
@@ -520,8 +520,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         const x = Math.cos(i * 0.5 + 2) * 16;
         const z = Math.sin(i * 0.5 + 2) * 16;
         const connections: string[] = [];
-        if (s.relatedAssetIds) connections.push(...s.relatedAssetIds);
-        if (s.relatedProjectIds) connections.push(...s.relatedProjectIds);
+        if (Array.isArray(s.relatedAssetIds)) connections.push(...s.relatedAssetIds);
+        if (Array.isArray(s.relatedProjectIds)) connections.push(...s.relatedProjectIds);
         nodes.push({ id: s.id, type: 'supplier', data: s, position: applySceneOffset(x, 1, z), color: '#22c55e', size: 1.1, connections });
       });
     }
@@ -532,8 +532,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         const x = Math.cos(angle) * radius;
         const z = Math.sin(angle) * radius;
         const connections: string[] = [];
-        if (c.relatedAssetIds) connections.push(...c.relatedAssetIds);
-        if (c.relatedRiskIds) connections.push(...c.relatedRiskIds);
+        if (Array.isArray(c.relatedAssetIds)) connections.push(...c.relatedAssetIds);
+        if (Array.isArray(c.relatedRiskIds)) connections.push(...c.relatedRiskIds);
         nodes.push({ id: c.id, type: 'control', data: c, position: applySceneOffset(x, 2, z), color: '#14b8a6', size: 1.0, connections });
       });
     }
@@ -765,11 +765,11 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
               <FocusController target={selectedNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} focusOnCardRef={focusOnCardRef} overlayOffset={overlayOffset} />
               <PresentationManager presentationMode={presentationMode} voxelNodes={voxelNodes} onNodeSelect={handleNodeClick} />
 
-              <EffectComposer enableNormalPass={false}>
+              {/* <EffectComposer enableNormalPass={false}>
                 <Bloom luminanceThreshold={1.0} mipmapBlur intensity={1.2} radius={0.6} levels={8} />
                 <Vignette offset={0.2} darkness={0.6} blendFunction={BlendFunction.NORMAL} />
                 <Noise opacity={0.025} blendFunction={BlendFunction.OVERLAY} />
-              </EffectComposer>
+              </EffectComposer> */}
             </ModelLibraryProvider>
           </Suspense>
         </VoxelErrorBoundary>
