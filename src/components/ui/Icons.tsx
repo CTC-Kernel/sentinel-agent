@@ -138,7 +138,8 @@ import {
   GripVertical,
   Reply,
   Award,
-  ListChecks
+  ListChecks,
+  Play
 } from 'lucide-react';
 
 export {
@@ -280,5 +281,6 @@ export {
   GripVertical,
   Reply,
   Award,
-  ListChecks
+  ListChecks,
+  Play
 };
