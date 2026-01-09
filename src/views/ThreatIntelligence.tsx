@@ -24,6 +24,7 @@ import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { useThreatIntelligence } from '../hooks/useThreatIntelligence';
 import { ErrorLogger } from '../services/errorLogger';
+import { getCountryCoordinates } from '../constants/CountryCoordinates';
 
 import { hasPermission } from '../utils/permissions';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
@@ -115,31 +116,39 @@ export const ThreatIntelligence: React.FC = () => {
     }, [isSeeding, addToast, user]);
 
     const mapData = useMemo(() => {
-        const countryCounts: Record<string, { value: number, markers: { coordinates: [number, number]; name: string }[] }> = {};
-        const countryCoords: Record<string, [number, number]> = {
-            'United States': [-95.7129, 37.0902], 'Germany': [10.4515, 51.1657], 'France': [2.2137, 46.2276],
-            'India': [78.9629, 20.5937], 'China': [104.1954, 35.8617], 'Russia': [105.3188, 61.5240], 'Brazil': [-51.9253, -14.2350],
-            'United Kingdom': [-3.4359, 55.3781], 'Japan': [138.2529, 36.2048], 'Canada': [-106.3468, 56.1304]
-        };
+        const countryCounts: Record<string, { value: number, iso3?: string, markers: { coordinates: [number, number]; name: string }[] }> = {};
 
         threats.forEach(t => {
             const country = t.country || 'Unknown';
-            if (country === 'Unknown' && !t.coordinates) return; // Skip only if both unknown country AND no coordinates
+            if (country === 'Unknown' && !t.coordinates) return;
 
-            if (!countryCounts[country]) countryCounts[country] = { value: 0, markers: [] };
+            // Get coordinates: Explicit threat coords OR Country Centroid
+            let coords = t.coordinates;
+
+            // Try to resolve country coordinates if no explicit threat coords
+            if (!coords) {
+                const resolved = getCountryCoordinates(country);
+                if (resolved) coords = resolved;
+            }
+
+            // If we still have no coords, we can't map it.
+            if (!coords) return;
+
+            if (!countryCounts[country]) {
+                countryCounts[country] = { value: 0, markers: [] };
+            }
 
             // Criticality weight
             countryCounts[country].value += (t.severity === 'Critical' ? 3 : t.severity === 'High' ? 2 : 1);
 
-            // Use specific threat coordinates if available, otherwise fallback to country centroid
-            const coords = t.coordinates || countryCoords[country];
-
-            if (coords) {
-                countryCounts[country].markers.push({ coordinates: coords, name: t.title });
-            }
+            countryCounts[country].markers.push({ coordinates: coords, name: t.title });
         });
 
-        return Object.entries(countryCounts).map(([country, data]) => ({ country, value: data.value, markers: data.markers }));
+        return Object.entries(countryCounts).map(([country, data]) => ({
+            country,
+            value: data.value,
+            markers: data.markers
+        }));
     }, [threats]);
 
     const filteredThreats = useMemo(() => {

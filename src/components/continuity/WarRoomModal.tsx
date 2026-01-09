@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Lock, Send, X, FileText, User, Paperclip, Eye
+    Lock, Send, X, FileText, User, Paperclip, Eye, ShieldAlert
 } from 'lucide-react';
 import { Dialog } from '@headlessui/react';
 import { useStore } from '../../store';
@@ -9,88 +9,25 @@ import { Button } from '../ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-// Form error handling: error states displayed via toast
-
-interface Message {
-    id: string;
-    sender: string;
-    role: string;
-    content: string;
-    timestamp: Date;
-    isSystem?: boolean;
-}
+import { useWarRoom } from '../../hooks/incidents/useWarRoom';
 
 interface WarRoomModalProps {
     isOpen: boolean;
     onClose: () => void;
-    scenario: string;
+    incidentId: string;
+    incidentTitle: string;
 }
 
-export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, scenario }) => {
+export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, incidentId, incidentTitle }) => {
     const { user } = useStore();
-    const [messages, setMessages] = useState<Message[]>([]);
     const bottomRef = useRef<HTMLDivElement>(null);
-    const initializedRef = useRef(false);
+    const { messages, sendMessage, loading } = useWarRoom(incidentId);
 
-    // Simulated initial chat history based on scenario
     useEffect(() => {
-        if (isOpen && !initializedRef.current) {
-            initializedRef.current = true;
-            const initialMessages: Message[] = [
-                {
-                    id: 'sys-1',
-                    sender: 'SENTINEL-CORE',
-                    role: 'SYSTEM',
-                    content: `🔒 SESSION SÉCURISÉE INITIALISÉE - CHIFFREMENT AES-256 ACTIVÉ`,
-                    timestamp: new Date(),
-                    isSystem: true
-                },
-                {
-                    id: 'sys-2',
-                    sender: 'SENTINEL-CORE',
-                    role: 'SYSTEM',
-                    content: `⚠️ PROTOCOLE D'URGENCE : ${scenario.toUpperCase()}`,
-                    timestamp: new Date(),
-                    isSystem: true
-                }
-            ];
-            // Fix: Avoid synchronous setState in effect
-            setTimeout(() => setMessages(initialMessages), 0);
-
-            // Simulate incoming messages from other crisis members
-            setTimeout(() => {
-                setMessages(prev => [...prev, {
-                    id: 'msg-1',
-                    sender: 'Sarah Connor',
-                    role: 'RSSI',
-                    content: "J'ai confirmé l'incident. Isolation des serveurs en cours. J'ai besoin de l'aval de la direction pour couper les accès externes.",
-                    timestamp: new Date()
-                }]);
-            }, 1000);
-
-            setTimeout(() => {
-                setMessages(prev => [...prev, {
-                    id: 'msg-2',
-                    sender: 'John Doe',
-                    role: 'DSI',
-                    content: "C'est validé. Coupez tout. On passe sur le site de secours B.",
-                    timestamp: new Date()
-                }]);
-            }, 3000);
-        } else if (!isOpen) {
-            // Reset when modal closes to allow re-init next time
-            initializedRef.current = false;
-            setTimeout(() => setMessages([]), 0);
+        if (isOpen) {
+            bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [isOpen, scenario]);
-
-    useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
-    const addMessage = (msg: Message) => {
-        setMessages(prev => [...prev, msg]);
-    };
+    }, [messages, isOpen]);
 
     const messageSchema = z.object({
         content: z.string().min(1, "Le message ne peut pas être vide")
@@ -105,19 +42,15 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
         }
     });
 
-    const onSubmit = (data: MessageFormData) => {
+    const onSubmit = async (data: MessageFormData) => {
         if (!data.content.trim()) return;
-
-        // eslint-disable-next-line react-hooks/purity
-        const messageId = Date.now().toString();
-        addMessage({
-            id: messageId,
-            sender: user?.displayName || 'Moi',
-            role: user?.role || 'User',
-            content: data.content,
-            timestamp: new Date()
-        });
-        reset();
+        try {
+            await sendMessage(data.content);
+            reset();
+        } catch (error) {
+            // Toast error handled globally or we can add local error state
+            console.error(error);
+        }
     };
 
     return (
@@ -149,7 +82,8 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
                                         <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase">Top Secret // Eyes Only</span>
                                     </div>
                                     <h2 className="text-2xl font-black text-white uppercase tracking-tight">War Room</h2>
-                                    <p className="text-red-400 text-sm font-mono mt-1">Ref: OPE-{scenario.substring(0, 3).toUpperCase()}-{new Date().getFullYear()}</p>
+                                    <p className="text-red-400 text-sm font-mono mt-1 break-all">REF: {incidentId}</p>
+                                    <p className="text-slate-400 text-xs mt-2 line-clamp-2">{incidentTitle}</p>
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -159,6 +93,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
                                             <FileText className="w-4 h-4" /> Documents Critiques
                                         </h3>
                                         <div className="space-y-2">
+                                            {/* TODO: Link to real documents related to incident */}
                                             {['Plan de Continuité (PCA)', 'Annuaire de Crise', 'Procédures de Restauration'].map((doc, i) => (
                                                 <div key={`drill-${i}`} className="group flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all">
                                                     <div className="flex items-center gap-3">
@@ -178,14 +113,13 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
                                     {/* Active Users */}
                                     <div>
                                         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                            <User className="w-4 h-4" /> En Ligne (3)
+                                            <User className="w-4 h-4" /> En Ligne
                                         </h3>
                                         <div className="flex -space-x-2">
-                                            {[1, 2, 3].map((u) => (
-                                                <div key={u} className="w-8 h-8 rounded-full bg-slate-700 border-2 border-slate-900 flex items-center justify-center text-xs text-white cursor-help" title={`User ${u}`}>
-                                                    U{u}
-                                                </div>
-                                            ))}
+                                            {/* TODO: Real presence list */}
+                                            <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-slate-900 flex items-center justify-center text-xs text-white cursor-help" title="Vous">
+                                                {user?.displayName?.charAt(0) || 'U'}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -206,19 +140,26 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
 
                                 {/* Messages Area */}
                                 <div className="flex-1 overflow-y-auto p-6 space-y-4 font-mono text-sm max-h-[60vh] md:max-h-none">
+                                    {messages.length === 0 && !loading && (
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-2">
+                                            <ShieldAlert className="w-12 h-12 opacity-20" />
+                                            <p>Aucun message. Le canal est ouvert.</p>
+                                        </div>
+                                    )}
+
                                     {messages.map((msg) => (
                                         <motion.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             key={msg.id}
-                                            className={`flex ${msg.isSystem ? 'justify-center' : msg.sender === (user?.displayName || 'Moi') ? 'justify-end' : 'justify-start'}`}
+                                            className={`flex ${msg.isSystem ? 'justify-center' : msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}
                                         >
                                             {msg.isSystem ? (
                                                 <span className="px-3 py-1 rounded-full bg-red-950/50 border border-red-500/20 text-red-500 text-xs">
                                                     {msg.content}
                                                 </span>
                                             ) : (
-                                                <div className={`max-w-[80%] p-4 rounded-2xl border ${msg.sender === (user?.displayName || 'Moi')
+                                                <div className={`max-w-[80%] p-4 rounded-2xl border ${msg.senderId === user?.uid
                                                     ? 'bg-blue-600/20 border-blue-500/30 text-blue-100 rounded-tr-none'
                                                     : 'bg-slate-800 border-white/10 text-slate-300 rounded-tl-none'
                                                     }`}>
@@ -227,9 +168,9 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
                                                         <span>•</span>
                                                         <span>{msg.role}</span>
                                                         <span>•</span>
-                                                        <span>{msg.timestamp.toLocaleTimeString()}</span>
+                                                        <span>{msg.timestamp?.toLocaleTimeString ? msg.timestamp.toLocaleTimeString() : ''}</span>
                                                     </div>
-                                                    <p>{msg.content}</p>
+                                                    <p className="whitespace-pre-wrap">{msg.content}</p>
                                                 </div>
                                             )}
                                         </motion.div>
@@ -250,7 +191,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
                                             autoFocus
                                             {...register('content')}
                                         />
-                                        <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+                                        <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50">
                                             <Send className="w-4 h-4" />
                                         </Button>
                                     </form>
@@ -263,5 +204,3 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
         </AnimatePresence>
     );
 };
-
-// Headless UI handles FocusTrap and keyboard navigation

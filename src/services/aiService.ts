@@ -531,10 +531,18 @@ const aiCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
+    // Prevent loops: Rate limit client-side (1 second debounce)
+    const lastCallTimestamp = Date.now();
+    if (typeof lastGenCall !== 'undefined' && lastGenCall > 0 && (lastCallTimestamp - lastGenCall < 2000)) {
+        ErrorLogger.warn("Sentinel AI: Call throttled (client-side rate limit)", 'aiService.generateContentSafe');
+        return ""; // Return empty string or handle gracefully
+    }
+    lastGenCall = lastCallTimestamp;
+
     const cacheKey = `${modelName}:${prompt.substring(0, 100)}`; // Utiliser les 100 premiers caractères comme clé
     const cached = aiCache.get(cacheKey);
     const now = Date.now();
-    
+
     // Vérifier le cache
     if (cached && (now - cached.timestamp) < CACHE_DURATION) {
         ErrorLogger.info('Using cached AI response', 'aiService.generateContentSafe', {
@@ -542,15 +550,6 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         });
         return cached.data as string;
     }
-
-    // [DEBUG] Log caller for generateContentSafe
-
-    // Prevent loops: Rate limit client-side (1 second debounce)
-    const lastCallTimestamp = Date.now();
-    if (lastGenCall && (lastCallTimestamp - lastGenCall < 2000)) {
-        return ""; // Return empty string or handle gracefully
-    }
-    lastGenCall = lastCallTimestamp;
 
     try {
         const functions = getFunctions();

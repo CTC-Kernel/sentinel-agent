@@ -4,7 +4,7 @@ import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { where, doc, updateDoc, addDoc, collection, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Project, ProjectTask, Risk, Control, Asset, Audit, UserProfile } from '../../types';
+import { Project, ProjectTask, Risk, Control, Asset, Audit, UserProfile, ProjectMilestone } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { ProjectService } from '../../services/projectService';
 import { logAction } from '../../services/logger';
@@ -268,9 +268,65 @@ export const useProjectLogic = () => {
         }
     }, [user, addToast]);
 
+    const createProjectFromTemplateData = async (
+        projectData: Omit<Project, 'id'>,
+        milestones: Omit<ProjectMilestone, 'id'>[]
+    ) => {
+        if (!canEdit || !user?.organizationId) return;
+
+        const canAddProject = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+        if (!canAddProject) {
+            addToast(`Nombre maximum de projets atteint pour votre plan (${projects.length}/${limits?.maxProjects ?? '…'}).`, "error");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const batch = writeBatch(db);
+
+            // 1. Create Project
+            const newProjectRef = doc(collection(db, 'projects'));
+            const finalProjectData = sanitizeData({
+                ...projectData,
+                organizationId: user.organizationId,
+                createdAt: serverTimestamp(),
+                // Ensure tasks have unique IDs if not already
+                tasks: projectData.tasks.map((t, i) => ({
+                    ...t,
+                    id: t.id || `task-${Date.now()}-${i}`
+                }))
+            });
+
+            batch.set(newProjectRef, finalProjectData);
+
+            // 2. Create Milestones
+            milestones.forEach((m) => {
+                const newMilestoneRef = doc(collection(db, 'milestones'));
+                batch.set(newMilestoneRef, sanitizeData({
+                    ...m,
+                    projectId: newProjectRef.id,
+                    organizationId: user.organizationId,
+                    createdAt: serverTimestamp()
+                }));
+            });
+
+            await batch.commit();
+            await logAction(user, 'CREATE', 'Project', `Projet créé depuis template: ${projectData.name}`);
+            addToast("Projet et jalons créés avec succès", "success");
+
+            return newProjectRef.id;
+
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'useProjectLogic.createFromTemplate', 'CREATE_FAILED');
+            throw e;
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return {
         projects, risks, audits, controls, assets, usersList: effectiveUsers, loading,
-        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies, importProjects,
+        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies, importProjects, createProjectFromTemplateData,
         isSubmitting, role, canEdit, user, organization
     };
 };

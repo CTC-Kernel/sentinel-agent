@@ -163,7 +163,8 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
             <WarRoomModal
                 isOpen={isWarRoomOpen}
                 onClose={() => setIsWarRoomOpen(false)}
-                scenario={scenario}
+                incidentId={`crisis-${scenario}-${new Date().toISOString().split('T')[0]}`}
+                incidentTitle={`PROTOCOLE ${scenario.toUpperCase()}`}
             />
 
             <ConfirmModal

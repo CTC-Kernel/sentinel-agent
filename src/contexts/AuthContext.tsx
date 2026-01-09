@@ -448,7 +448,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
-    }, [setUser, setTheme, logout, setOrganization, claimsSynced]);
+    }, [setUser, setTheme, logout, setOrganization]);
 
     // MFA State
     const [mfaSecret, setMfaSecret] = useState<TotpSecret | null>(null);

@@ -4,7 +4,7 @@ import { startTransition } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Billboard, Text, Float, Environment } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, CanvasTexture, CatmullRomCurve3, Points as ThreePoints, DoubleSide, Group } from 'three';
-import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, AISuggestedLink } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 import { VoxelMesh } from './voxel/VoxelMesh';
