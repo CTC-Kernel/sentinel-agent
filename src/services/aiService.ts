@@ -22,8 +22,26 @@ export interface Conversation {
 const FAST_MODEL = "gemini-1.5-flash";
 const SMART_MODEL = "gemini-3-pro-preview";
 
-let lastChatCall = 0;
-let lastGenCall = 0;
+// Rate limiting with user-specific tracking to prevent race conditions
+const rateLimitMap = new Map<string, number>();
+const RATE_LIMIT_MS = 2000;
+
+const isRateLimited = (key: string): boolean => {
+    const lastCall = rateLimitMap.get(key) || 0;
+    const now = Date.now();
+    if (now - lastCall < RATE_LIMIT_MS) {
+        return true;
+    }
+    rateLimitMap.set(key, now);
+    // Cleanup old entries to prevent memory leaks
+    if (rateLimitMap.size > 1000) {
+        const cutoff = now - RATE_LIMIT_MS * 2;
+        for (const [k, v] of rateLimitMap.entries()) {
+            if (v < cutoff) rateLimitMap.delete(k);
+        }
+    }
+    return false;
+};
 
 interface GraphData {
     assets: Asset[];
@@ -202,12 +220,10 @@ export const aiService = {
     async chatWithAI(message: string, context?: Record<string, unknown>): Promise<string> {
         // [DEBUG] Log caller to identify source of unexpected calls
 
-        // Prevent loops: Rate limit client-side (1 second debounce)
-        const now = Date.now();
-        if (lastChatCall && (now - lastChatCall < 2000)) {
+        // Prevent loops: Rate limit client-side with user-specific tracking
+        if (isRateLimited('chat')) {
             return "Veuillez patienter quelques secondes avant de renvoyer un message.";
         }
-        lastChatCall = now;
 
         const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC.
             Ton rôle est d'aider les utilisateurs à gérer leur sécurité et d'EXÉCUTER des actions sur le tenant.
@@ -526,19 +542,29 @@ export const aiService = {
 };
 
 // --- Helpers ---
-// Cache pour les appels AI fréquents
+// Cache pour les appels AI fréquents with automatic cleanup
 const aiCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const MAX_CACHE_SIZE = 100;
+
+// Cleanup expired cache entries to prevent memory leaks
+const cleanupAiCache = () => {
+    const now = Date.now();
+    for (const [key, entry] of aiCache.entries()) {
+        if (now - entry.timestamp > CACHE_DURATION) {
+            aiCache.delete(key);
+        }
+    }
+    // If still too large, remove oldest entries
+    if (aiCache.size > MAX_CACHE_SIZE) {
+        const entries = Array.from(aiCache.entries())
+            .sort((a, b) => a[1].timestamp - b[1].timestamp);
+        const toRemove = entries.slice(0, entries.length - MAX_CACHE_SIZE);
+        toRemove.forEach(([key]) => aiCache.delete(key));
+    }
+};
 
 async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
-    // Prevent loops: Rate limit client-side (1 second debounce)
-    const lastCallTimestamp = Date.now();
-    if (typeof lastGenCall !== 'undefined' && lastGenCall > 0 && (lastCallTimestamp - lastGenCall < 2000)) {
-        ErrorLogger.warn("Sentinel AI: Call throttled (client-side rate limit)", 'aiService.generateContentSafe');
-        return ""; // Return empty string or handle gracefully
-    }
-    lastGenCall = lastCallTimestamp;
-
     const cacheKey = `${modelName}:${prompt.substring(0, 100)}`; // Utiliser les 100 premiers caractères comme clé
     const cached = aiCache.get(cacheKey);
     const now = Date.now();
@@ -551,6 +577,15 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         return cached.data as string;
     }
 
+    // [DEBUG] Log caller for generateContentSafe
+
+    // Prevent loops: Rate limit client-side with shared tracking
+    if (isRateLimited('generate')) {
+        return ""; // Return empty string or handle gracefully
+    }
+
+    // Cleanup cache periodically
+    cleanupAiCache();
     try {
         const functions = getFunctions();
         const callGeminiGenerateContent = httpsCallable<

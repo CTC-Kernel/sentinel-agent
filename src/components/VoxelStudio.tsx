@@ -468,6 +468,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   const safeProjects = useMemo(() => projects ?? [], [projects]);
   const safeAudits = useMemo(() => audits ?? [], [audits]);
   const safeIncidents = useMemo(() => incidents ?? [], [incidents]);
+  const safeSuppliers = useMemo(() => suppliers ?? [], [suppliers]);
+  const safeControls = useMemo(() => controls ?? [], [controls]);
 
   // Voxel Nodes Generation
   const voxelNodes = useMemo(() => {
@@ -514,7 +516,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       });
     }
     if (currentVisible.includes('supplier')) {
-      suppliers.forEach((s, i) => {
+      safeSuppliers.forEach((s, i) => {
         const x = Math.cos(i * 0.5 + 2) * 16;
         const z = Math.sin(i * 0.5 + 2) * 16;
         const connections: string[] = [];
@@ -524,8 +526,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       });
     }
     if (currentVisible.includes('control')) {
-      controls.forEach((c, i) => {
-        const angle = (i / (controls.length || 1)) * Math.PI * 2;
+      safeControls.forEach((c, i) => {
+        const angle = (i / (safeControls.length || 1)) * Math.PI * 2;
         const radius = 35;
         const x = Math.cos(angle) * radius;
         const z = Math.sin(angle) * radius;
@@ -536,7 +538,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       });
     }
     return nodes;
-  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, suppliers, controls, visibleTypes]);
+  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, safeSuppliers, safeControls, visibleTypes]);
 
   const handleOverlayPositionChange = useCallback((x: number, y: number) => {
     setOverlayOffset({ x, y });

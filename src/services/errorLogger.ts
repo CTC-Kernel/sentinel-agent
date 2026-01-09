@@ -28,7 +28,10 @@ class ErrorLoggerService {
     // En développement : console détaillé
     if (this.isDevelopment) {
       console.group(`🔴 ERROR [${context}]`);
-      if (errorStack) if (additionalContext) console.groupEnd();
+      console.error(errorMessage);
+      if (errorStack) console.error(errorStack);
+      if (additionalContext) console.log('Context:', additionalContext);
+      console.groupEnd();
     }
 
     // En production : envoyer à Sentry (si configuré)

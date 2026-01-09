@@ -35,8 +35,15 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
 }) => {
     const { updating, handleLinkAsset, handleUnlinkAsset, handleLinkSupplier, handleUnlinkSupplier, handleLinkProject, handleUnlinkProject } = handlers;
 
-    const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
-    const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
+    // Safely access arrays with null protection
+    const safeAssets = assets ?? [];
+    const safeSuppliers = suppliers ?? [];
+    const safeProjects = projects ?? [];
+    const safeRisks = risks ?? [];
+    const safeFindings = findings ?? [];
+
+    const riskCount = safeRisks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
+    const findingsCount = safeFindings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
 
     return (
         <div className="space-y-6 max-w-3xl mx-auto">
@@ -47,7 +54,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                     <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {control.relatedAssetIds?.map(assetId => {
-                            const asset = assets.find(a => a.id === assetId);
+                            const asset = safeAssets.find(a => a.id === assetId);
                             return asset ? (
                                 <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                     <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
@@ -62,7 +69,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                             label=""
                             value=""
                             onChange={(val) => handleLinkAsset(control, val as string)}
-                            options={assets.filter(a => !control.relatedAssetIds?.includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
+                            options={safeAssets.filter(a => !control.relatedAssetIds?.includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
                             placeholder="Lier un actif..."
                             disabled={updating}
                         />
@@ -74,7 +81,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                     <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {control.relatedSupplierIds?.map(supplierId => {
-                            const supplier = suppliers.find(s => s.id === supplierId);
+                            const supplier = safeSuppliers.find(s => s.id === supplierId);
                             return supplier ? (
                                 <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                     <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
@@ -89,7 +96,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                             label=""
                             value=""
                             onChange={(val) => handleLinkSupplier(control, val as string)}
-                            options={suppliers.filter(s => !control.relatedSupplierIds?.includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
+                            options={safeSuppliers.filter(s => !control.relatedSupplierIds?.includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
                             placeholder="Lier un fournisseur..."
                             disabled={updating}
                         />
@@ -102,7 +109,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Projets Liés</h3>
                 <div className="space-y-2 mb-4">
                     {control.relatedProjectIds?.map(pid => {
-                        const project = projects.find(p => p.id === pid);
+                        const project = safeProjects.find(p => p.id === pid);
                         return project ? (
                             <div key={pid} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                 <div className="flex items-center gap-3">
@@ -125,7 +132,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                         label=""
                         value=""
                         onChange={(val) => handleLinkProject(control, val as string)}
-                        options={projects.filter(p => !control.relatedProjectIds?.includes(p.id)).map(p => ({ value: p.id, label: p.name }))}
+                        options={safeProjects.filter(p => !control.relatedProjectIds?.includes(p.id)).map(p => ({ value: p.id, label: p.name }))}
                         placeholder="Lier un projet..."
                         disabled={updating}
                     />
@@ -140,7 +147,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Risques ({riskCount})</h3>
                     </div>
                     <div className="space-y-2">
-                        {risks.filter(r => r.mitigationControlIds?.includes(control.id)).map(risk => (
+                        {safeRisks.filter(r => r.mitigationControlIds?.includes(control.id)).map(risk => (
                             <div key={risk.id} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg text-xs border border-red-100 dark:border-red-900/30">
                                 <div className="font-bold truncate">{risk.threat}</div>
                                 <div className="text-slate-500">Risque brut: {risk.score}</div>
@@ -155,7 +162,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Non-conformités ({findingsCount})</h3>
                     </div>
                     <div className="space-y-2">
-                        {findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').map(finding => (
+                        {safeFindings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').map(finding => (
                             <div key={finding.id} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg text-xs border border-orange-100 dark:border-orange-900/30">
                                 <div className="font-bold truncate">{finding.description}</div>
                                 <div className="text-slate-500">Type: {finding.type}</div>

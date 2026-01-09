@@ -8,7 +8,21 @@ interface TokenPayload extends JwtPayload {
   role: string;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'SENTINEL_GRC_JWT_SECRET_CHANGE_IN_PROD';
+// JWT_SECRET must be set in environment variables for production security
+const getJwtSecret = (): string => {
+  const secret = import.meta.env.VITE_JWT_SECRET || process.env.JWT_SECRET;
+  if (!secret) {
+    // In development/demo mode, use a default secret with warning
+    if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
+      console.warn('[TokenService] JWT_SECRET not configured. Using default for development only.');
+      return 'SENTINEL_DEV_JWT_SECRET_NOT_FOR_PRODUCTION';
+    }
+    throw new Error('JWT_SECRET must be configured in production environment');
+  }
+  return secret;
+};
+
+const JWT_SECRET = getJwtSecret();
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 

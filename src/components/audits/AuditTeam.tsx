@@ -24,6 +24,9 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
     const [selectedUserId, setSelectedUserId] = useState('');
     const [externalEmail, setExternalEmail] = useState('');
 
+    // Safe array access
+    const safeUsers = users ?? [];
+
     const handleAddInternal = async () => {
         if (!selectedUserId) return;
         try {
@@ -123,7 +126,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                             <CustomSelect
                                 value={selectedUserId}
                                 onChange={val => setSelectedUserId(val as string)}
-                                options={users.filter(u => !audit.collaborators?.includes(u.uid)).map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                options={safeUsers.filter(u => !audit.collaborators?.includes(u.uid)).map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                                 placeholder="Sélectionner un membre..."
                             />
                         </div>
@@ -135,7 +138,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 <div className="space-y-2">
                     {audit.collaborators && audit.collaborators.length > 0 ? (
                         audit.collaborators.map(userId => {
-                            const userObj = users.find(u => u.uid === userId);
+                            const userObj = safeUsers.find(u => u.uid === userId);
                             return (
                                 <div key={userId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-xl">
                                     <div className="flex items-center">
