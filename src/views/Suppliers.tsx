@@ -318,6 +318,19 @@ export const Suppliers: React.FC = () => {
             )
         },
         {
+            accessorKey: 'isICTProvider',
+            header: 'DORA',
+            cell: ({ row }) => (
+                row.original.isICTProvider ? (
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800">
+                        DORA ICT
+                    </span>
+                ) : (
+                    <span className="text-slate-400 text-xs">-</span>
+                )
+            )
+        },
+        {
             accessorKey: 'securityScore', // Fixed property name
             header: 'Score',
             cell: ({ row }) => {
