@@ -6,25 +6,20 @@ import { Framework } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
-import { Drawer } from '../components/ui/Drawer';
 import { useComplianceActions } from '../hooks/useComplianceActions';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { InspectorLayout } from '../components/ui/InspectorLayout';
-import { ProjectForm } from '../components/projects/ProjectForm';
 import { canEditResource } from '../utils/permissions';
+import { ComplianceDrawer } from '../components/compliance/ComplianceDrawer';
 import { useComplianceData } from '../hooks/useComplianceData';
 import { useComplianceDataSeeder } from '../hooks/useComplianceDataSeeder';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
 import { useDocumentsData } from '../hooks/documents/useDocumentsData';
 import { FRAMEWORKS } from '../data/frameworks';
-import { RiskForm } from '../components/risks/RiskForm';
-import { AuditForm } from '../components/audits/AuditForm';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
 import { ComplianceList } from '../components/compliance/ComplianceList';
-import { ComplianceInspector } from '../components/compliance/ComplianceInspector';
-import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText, FolderKanban, AlertTriangle } from '../components/ui/Icons';
-import { toast } from 'sonner';
+import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText, AlertTriangle } from '../components/ui/Icons';
+import { toast } from '@/lib/toast';
 import { SoAView } from '../components/compliance/SoAView';
 import { Button } from '../components/ui/button';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
@@ -335,112 +330,29 @@ export const Compliance: React.FC = () => {
                 </div>
             </div>
 
-            {/* Inspector / Creation Drawer */}
-            {creationMode === 'project' ? (
-                <InspectorLayout
-                    isOpen={isDrawerOpen}
-                    onClose={closeProjectDrawer}
-                    title={t('compliance.newProject')}
-                    subtitle={t('projects.drawerSubtitle')}
-                    icon={FolderKanban}
-                    width="max-w-3xl"
-                    footer={
-                        <div className="flex justify-end gap-3" aria-busy={isProjectSubmitting}>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={closeProjectDrawer}
-                                disabled={isProjectSubmitting}
-                                className="min-w-[120px]"
-                            >
-                                {t('common.cancel')}
-                            </Button>
-                            <Button
-                                type="submit"
-                                form={projectFormId} // Intentional: HTML5 form attribute - submits form by ID
-                                isLoading={isProjectSubmitting}
-                                className="min-w-[160px]"
-                            >
-                                {t('projects.create')}
-                            </Button>
-                        </div>
-                    }
-                >
-                    <div aria-busy={isProjectSubmitting} aria-live="polite">
-                        <ProjectForm
-                            formId={projectFormId}
-                            hideActions
-                            usersList={usersList}
-                            availableRisks={risks}
-                            availableControls={frameworkControls}
-                            availableAssets={assets}
-                            onCancel={closeProjectDrawer}
-                            onSubmit={handleProjectCreation}
-                            initialData={projectInitialData}
-                            isLoading={isProjectSubmitting}
-                        />
-                    </div>
-                </InspectorLayout>
-            ) : (
-                <Drawer
-                    isOpen={isDrawerOpen}
-                    onClose={handleDrawerClose}
-                    title={creationMode ? (
-                        creationMode === 'risk' ? t('compliance.newRisk') : t('compliance.newAudit')
-                    ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('commandPalette.select'))}
-                    width="max-w-6xl"
-                >
-                    {creationMode === 'risk' && (
-                        <RiskForm
-                            onCancel={handleDrawerClose}
-                            onSubmit={async (data) => {
-                                await complianceActions.createRisk(data);
-                                handleDrawerClose();
-                            }}
-                            assets={assets}
-                            usersList={usersList}
-                            processes={[]}
-                            suppliers={suppliers}
-                            controls={frameworkControls}
-                        />
-                    )}
-
-                    {creationMode === 'audit' && (
-                        <AuditForm
-                            onCancel={handleDrawerClose}
-                            onSubmit={async (data) => {
-                                await complianceActions.createAudit(data);
-                                handleDrawerClose();
-                            }}
-                            assets={assets}
-                            risks={risks}
-                            controls={frameworkControls}
-                            projects={projects}
-                            usersList={usersList}
-                        />
-                    )}
-
-                    {!creationMode && selectedControl && (
-                        <ComplianceInspector
-                            control={selectedControl}
-                            canEdit={canEdit}
-                            usersList={usersList}
-                            assets={assets}
-                            suppliers={suppliers}
-                            documents={documents}
-                            risks={risks}
-                            projects={projects}
-                            findings={findings}
-                            linkingToProjectId={linkingToProjectId}
-                            linkingToProjectName={linkingToProjectName}
-                            handlers={{
-                                ...complianceActions,
-                                onUploadEvidence: () => setUploadWizardOpen(true)
-                            }}
-                        />
-                    )}
-                </Drawer>
-            )}
+            <ComplianceDrawer
+                isOpen={isDrawerOpen}
+                onClose={handleDrawerClose}
+                creationMode={creationMode}
+                selectedControl={selectedControl}
+                isProjectSubmitting={isProjectSubmitting}
+                projectFormId={projectFormId}
+                usersList={usersList}
+                risks={risks}
+                frameworkControls={frameworkControls}
+                assets={assets}
+                suppliers={suppliers}
+                projects={projects}
+                documents={documents}
+                findings={findings}
+                linkingToProjectId={linkingToProjectId}
+                linkingToProjectName={linkingToProjectName}
+                canEdit={canEdit}
+                projectInitialData={projectInitialData}
+                onProjectSubmit={handleProjectCreation}
+                actions={complianceActions}
+                onUploadEvidence={() => setUploadWizardOpen(true)}
+            />
 
             <DocumentUploadWizard
                 isOpen={uploadWizardOpen}

@@ -3,7 +3,7 @@ import { doc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'fireba
 import { db } from '../firebase';
 import { Control, UserProfile } from '../types';
 import { logAction } from '../services/logger';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { controlSchema } from '../schemas/controlSchema';
 import { z } from 'zod';
 import { sanitizeData } from '../utils/dataSanitizer';

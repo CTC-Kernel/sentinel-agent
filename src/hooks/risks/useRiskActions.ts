@@ -5,7 +5,7 @@ import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/fi
 import { useAuth } from '../../hooks/useAuth';
 import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { logAction } from '../../services/logger';
 import { getDiff } from '../../utils/diffUtils';
 import { ImportService } from '../../services/ImportService';

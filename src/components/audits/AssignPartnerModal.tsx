@@ -5,7 +5,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../../firebase';
 import { useStore } from '../../store';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 interface AssignPartnerModalProps {
     isOpen: boolean;

@@ -33,7 +33,7 @@ export interface UserProfile {
     organizationId?: string;
     organizationName?: string;
     email: string;
-    role: 'admin' | 'auditor' | 'user' | 'rssi' | 'project_manager' | 'direction';
+    role: 'super_admin' | 'admin' | 'auditor' | 'user' | 'rssi' | 'project_manager' | 'direction';
     displayName: string;
     department?: string;
     photoURL?: string | null;

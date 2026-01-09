@@ -27,7 +27,14 @@ export interface DashboardData {
     loading: boolean;
     error: string | null;
     refreshCounts: () => Promise<void>;
+    aggregatedStats?: {
+        totalRisks: number;
+        highRisks: number;
+        totalAssets: number;
+    } | null;
 }
+
+
 
 // Cache for counts with organization-specific keys to prevent race conditions
 const countsCache = new Map<string, {
@@ -136,24 +143,41 @@ export const useDashboardData = (): DashboardData => {
     const { data: controlsData, loading: controlsLoading } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && needsGlobalStats });
     const { data: recentActivityData, loading: logsLoading } = useFirestoreCollection<SystemLog>('system_logs', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('timestamp', 'desc'), limit(10)], { logError: true, realtime: true, enabled: !demoMode && needsLogs });
     const { data: historyStatsData, loading: historyLoading } = useFirestoreCollection<StatsHistoryEntry>('stats_history', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && (needsGlobalStats || isAuditor) });
-    const { data: allRisksData, loading: risksLoading } = useFirestoreCollection<Risk>('risks', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode });
-    const { data: allAssetsData, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && needsAssets });
-    const { data: allSuppliersData, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && needsSuppliers });
+
+    // Optimizations: Fetch only user's risks or limit to top/recent if needed.
+    // For global lists (allRisks), we now rely on aggregated stats for numbers, and only fetch a small subset for "Top Risks" display if really needed.
+    // However, Dashboard often lists "Top Risks". Let's fetch top 10 high risks instead of ALL risks.
+    const { data: topRisksData, loading: risksLoading } = useFirestoreCollection<Risk>('risks', [
+        where('organizationId', '==', user?.organizationId || 'ignore'),
+        where('score', '>=', 8), // Optimization: Only fetch significant risks
+        orderBy('score', 'desc'),
+        limit(20)
+    ], { logError: true, realtime: false, enabled: !demoMode });
+
+    // For Assets, we typically don't show a list of 1000 assets on dashboard, just the count and maybe top value. 
+    // We'll limit this too.
+    const { data: topAssetsData, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [
+        where('organizationId', '==', user?.organizationId || 'ignore'),
+        limit(20) // Only fetch a few for display if needed
+    ], { logError: true, realtime: false, enabled: !demoMode && needsAssets });
+
+    // Suppliers - limit
+    const { data: allSuppliersData, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(20)], { logError: true, realtime: false, enabled: !demoMode && needsSuppliers });
 
     // Personal/Role specific data
     const { data: allProjectsData, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isPM || isAdmin) });
     const { data: allAuditsData, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isAuditor || isAdmin) });
-    const { data: allDocumentsData, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode });
-    const { data: allIncidentsData, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode });
+    const { data: allDocumentsData, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(50)], { logError: true, realtime: true, enabled: !demoMode });
+    const { data: allIncidentsData, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '!=', 'Fermé'), limit(20)], { logError: true, realtime: true, enabled: !demoMode });
 
     // Unified Data Sources
     const controls = demoMode ? mockData.controls : controlsData;
     const recentActivity = demoMode ? mockData.logs : recentActivityData;
-    // Mocking history stats is cleaner if we just let it be empty or mock it specifically, but for now empty is fine or we can seed it.
-    // Dashboard metrics hook handles empty history gracefully usually.
     const historyStats = demoMode ? [] : historyStatsData;
-    const allRisks = demoMode ? mockData.risks : allRisksData;
-    const allAssets = demoMode ? mockData.assets : allAssetsData;
+    // Map optimized data to "allRisks" etc. Note: "allRisks" is now partial, but sufficient for Top Risks list.
+    // We need to inject the TRUE counts from AggregatedService separately for the Stats Cards.
+    const allRisks = demoMode ? mockData.risks : topRisksData;
+    const allAssets = demoMode ? mockData.assets : topAssetsData;
     const allSuppliers = demoMode ? mockData.suppliers : allSuppliersData;
     const allProjects = demoMode ? mockData.projects : allProjectsData;
     const allAudits = demoMode ? mockData.audits : allAuditsData;
@@ -210,6 +234,13 @@ export const useDashboardData = (): DashboardData => {
 
     const loading = demoMode ? mockData.loading : (manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || myIncidentsLoading);
 
+    // New State for Aggregated Stats
+    const [aggregatedStats, setAggregatedStats] = useState<{
+        totalRisks: number;
+        highRisks: number;
+        totalAssets: number;
+    } | null>(null);
+
     const fetchCounts = useCallback(async () => {
         if (demoMode) return; // Skip in demo mode
         if (!user?.organizationId) {
@@ -226,48 +257,38 @@ export const useDashboardData = (): DashboardData => {
             if (cachedCounts) {
                 setActiveIncidentsCount(cachedCounts.activeIncidentsCount);
                 setOpenAuditsCount(cachedCounts.openAuditsCount);
-                setError(null);
-                setManualLoading(false);
+                // Can also cache aggregated stats if we extended the cache structure
+            }
 
-                // Fetch org details if needed
-                if (!organizationName) {
-                    try {
-                        const orgDetails = await DashboardService.getOrganizationDetails(orgId);
-                        if (orgDetails) {
-                            setOrganizationName(orgDetails.name);
-                            setOrganizationLogo(orgDetails.logoUrl);
-                        } else if (user.organizationName) {
-                            setOrganizationName(user.organizationName);
-                        }
-                    } catch {
-                        if (user.organizationName) setOrganizationName(user.organizationName);
+            // Fetch organization details if needed
+            if (!organizationName) {
+                try {
+                    const orgDetails = await DashboardService.getOrganizationDetails(orgId);
+                    if (orgDetails) {
+                        setOrganizationName(orgDetails.name);
+                        setOrganizationLogo(orgDetails.logoUrl);
+                    } else if (user.organizationName) {
+                        setOrganizationName(user.organizationName);
                     }
+                } catch {
+                    if (user.organizationName) setOrganizationName(user.organizationName);
                 }
-
-                return;
             }
 
-            // Use DashboardService to fetch organization details and counts
-            try {
-                const orgDetails = await DashboardService.getOrganizationDetails(orgId);
-                if (orgDetails) {
-                    setOrganizationName(orgDetails.name);
-                    setOrganizationLogo(orgDetails.logoUrl);
-                } else if (user.organizationName) {
-                    setOrganizationName(user.organizationName);
-                }
-            } catch {
-                if (user.organizationName) setOrganizationName(user.organizationName);
-            }
+            // Parallel fetch: Counts + Aggregated Stats
+            const [counts, stats] = await Promise.all([
+                DashboardService.getDashboardCounts(orgId),
+                DashboardService.getAggregatedStats(orgId)
+            ]);
 
-            // Fetch counts using DashboardService
-            const counts = await DashboardService.getDashboardCounts(orgId);
-
-            // Update cache with organization-specific key
             setCachedCounts(orgId, counts);
-
             setActiveIncidentsCount(counts.activeIncidentsCount);
             setOpenAuditsCount(counts.openAuditsCount);
+            setAggregatedStats({
+                totalRisks: stats.totalRisks,
+                highRisks: stats.highRisks,
+                totalAssets: stats.totalAssets
+            });
             setError(null);
         } catch (err) {
             const code = (err as { code?: string })?.code;
@@ -305,6 +326,7 @@ export const useDashboardData = (): DashboardData => {
         organizationLogo,
         loading,
         error,
-        refreshCounts: fetchCounts
+        refreshCounts: fetchCounts,
+        aggregatedStats
     };
 };

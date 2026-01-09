@@ -4,7 +4,7 @@ import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { Asset, Criticality } from '../types';
 import { canEditResource } from '../utils/permissions';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { AssetFormData } from '../schemas/assetSchema';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { useStore } from '../store';

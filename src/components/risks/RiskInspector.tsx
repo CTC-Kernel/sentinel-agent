@@ -16,7 +16,7 @@ import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { TimelineView } from '../shared/TimelineView';
 import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
 import { integrationService } from '../../services/integrationService';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Button } from '../ui/button';
 import { ConfirmModal } from '../ui/ConfirmModal';
 

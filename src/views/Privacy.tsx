@@ -26,7 +26,7 @@ import { canEditResource } from '../utils/permissions';
 import { usePrivacy } from '../hooks/usePrivacy';
 import { usePersistedState } from '../hooks/usePersistedState';
 
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { ActivityCard } from '../components/privacy/ActivityCard';
 import { PrivacyInspector } from '../components/privacy/PrivacyInspector';
 import { CreateActivityForm } from '../components/privacy/CreateActivityForm';

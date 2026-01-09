@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, limit, serverTimestamp, getCountFromServer } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { UserProfile, Invitation, JoinRequest, CustomRole } from '../types';
@@ -126,8 +126,15 @@ export const useTeamManagement = () => {
         }
 
         try {
-            // Check plan limits
-            const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
+            // Check plan limits (Server-side)
+            const [usersCount, invitesCount] = await Promise.all([
+                getCountFromServer(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
+                getCountFromServer(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId)))
+            ]);
+
+            const totalUsers = usersCount.data().count + invitesCount.data().count;
+
+            const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', totalUsers);
             if (!canAddUser) return 'LIMIT_REACHED';
 
             await addDoc(collection(db, 'invitations'), sanitizeData({
@@ -217,8 +224,15 @@ export const useTeamManagement = () => {
 
     const approveRequest = async (req: JoinRequest) => {
         if (!user?.organizationId) return false;
-        // Check limits
-        const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
+        // Check limits (Server-side)
+        const [usersCount, invitesCount] = await Promise.all([
+            getCountFromServer(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
+            getCountFromServer(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId)))
+        ]);
+
+        const totalUsers = usersCount.data().count + invitesCount.data().count;
+
+        const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', totalUsers);
         if (!canAddUser) return 'LIMIT_REACHED';
 
         try {

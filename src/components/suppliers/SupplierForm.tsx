@@ -1,4 +1,4 @@
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import React, { useEffect } from 'react';
 import { useForm, Controller, SubmitHandler, useWatch, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

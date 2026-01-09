@@ -1,5 +1,5 @@
 import { ErrorLogger } from '../services/errorLogger';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 /**
  * Types d'erreurs standardisés pour Sentinel GRC

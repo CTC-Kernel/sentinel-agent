@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 interface ShareAuditModalProps {
     isOpen: boolean;

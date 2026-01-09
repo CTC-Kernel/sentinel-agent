@@ -14,7 +14,7 @@ import { CreateEventModal } from './CreateEventModal';
 import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck, Filter, MapPin, Download } from 'lucide-react';
 import { ErrorLogger } from '../../services/errorLogger';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 const locales = {
     'fr': fr,

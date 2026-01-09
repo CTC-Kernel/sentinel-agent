@@ -12,7 +12,7 @@
 
 import { ErrorLogger } from '../services/errorLogger';
 import * as Sentry from '@sentry/react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 /**
  * Catégories d'erreurs pour une meilleure classification

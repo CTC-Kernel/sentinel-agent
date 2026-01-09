@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useForm, SubmitHandler, useWatch, Controller, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { incidentSchema, IncidentFormData } from '../../schemas/incidentSchema';
 import { Criticality, UserProfile, BusinessProcess, Asset, Risk } from '../../types';
 import { ShieldAlert } from '../ui/Icons';

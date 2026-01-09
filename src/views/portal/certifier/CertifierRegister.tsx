@@ -8,7 +8,7 @@ import { httpsCallable } from 'firebase/functions';
 import { auth, functions } from '../../../firebase';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, ShieldCheck, Mail, Lock, Building2, Ticket } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 const registerSchema = z.object({
     orgName: z.string().min(2, "Nom de l'organisation requis"),

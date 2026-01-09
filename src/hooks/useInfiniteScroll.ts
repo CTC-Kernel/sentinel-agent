@@ -1,30 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-// Infinite Scroll Hook
+// Infinite Scroll Hook using Intersection Observer
 export const useInfiniteScroll = (
     loadMore: () => void,
-    hasMore: boolean,
-    threshold = 100
+    hasMore: boolean
 ) => {
     const [isFetching, setIsFetching] = useState(false);
+    const observer = useRef<IntersectionObserver | null>(null);
+
+    // Callback ref for the sentinel element
+    const lastElementRef = useCallback((node: HTMLElement | null) => {
+        if (isFetching) return;
+        if (observer.current) observer.current.disconnect();
+
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setIsFetching(true);
+                loadMore();
+            }
+        });
+
+        if (node) observer.current.observe(node);
+    }, [isFetching, hasMore, loadMore]);
+
+    // Reset fetching state when hasMore changes or after timeout/external signal
+    // For now, we assume loadMore drives state changes externally or we just toggle it briefly?
+    // Actually, usually setIsFetching(false) happens when data arrives.
+    // The previous implementation used setTimeout(..., 1000).
+    // We'll mimic that behavior for compatibility if loadMore is synchronous.
+    // Ideally loadMore returns a promise.
 
     useEffect(() => {
-        const handleScroll = () => {
-            if (
-                window.innerHeight + document.documentElement.scrollTop >=
-                document.documentElement.offsetHeight - threshold
-            ) {
-                if (!isFetching && hasMore) {
-                    setIsFetching(true);
-                    loadMore();
-                    setTimeout(() => setIsFetching(false), 1000);
-                }
-            }
-        };
+        if (isFetching) {
+            const timer = setTimeout(() => {
+                setIsFetching(false);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [isFetching]);
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [loadMore, hasMore, isFetching, threshold]);
-
-    return { isFetching };
+    return { isFetching, lastElementRef };
 };

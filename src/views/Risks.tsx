@@ -1,17 +1,16 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Transition } from '@headlessui/react';
 import {
-    FileText, FileSpreadsheet, FileCode, MoreVertical,
-    Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter, LayoutDashboard, List, Grid3x3, Upload
+    LayoutDashboard, List, Grid3x3, ShieldAlert
 } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
 import { PageHeader } from '../components/ui/PageHeader';
-import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+// PremiumPageControl removed
 import { AdvancedSearch } from '../components/ui/AdvancedSearch';
-import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
-import { ObsidianService } from '../services/ObsidianService';
+// Tooltip removed
+// ObsidianService removed
+import { RisksToolbar } from '../components/risks/RisksToolbar';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserProfile, Risk } from '../types';
@@ -20,8 +19,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 
-import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
-import { ImportService } from '../services/ImportService';
+import { RiskImportModal } from '../components/risks/RiskImportModal';
 
 // New Optimized Hooks
 import { useRiskLogic } from '../hooks/risks/useRiskLogic';
@@ -35,8 +33,9 @@ import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
 import { RiskMatrix } from '../components/risks/RiskMatrix';
 import { RiskDashboard } from '../components/risks/RiskDashboard';
-import { CustomSelect } from '../components/ui/CustomSelect';
-import { Button } from '../components/ui/button';
+// CustomSelect removed
+// Button removed
+
 
 import { Drawer } from '../components/ui/Drawer';
 import { RiskForm } from '../components/risks/RiskForm';
@@ -46,7 +45,7 @@ import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { aiService } from '../services/aiService';
 import { PdfService } from '../services/PdfService';
 import { useStore } from '../store';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { canEditResource } from '../utils/permissions';
 import { useAuth } from '../hooks/useAuth';
 
@@ -256,7 +255,7 @@ export const Risks: React.FC = () => {
         try {
             const prompt = t('risks.aiPrompt', { count: filteredRisks.length });
             const analysis = await aiService.chatWithAI(prompt);
-            toast.info(t('risks.analysisComplete'), { description: analysis, duration: 10000 });
+            toast.info(t('risks.analysisComplete'), typeof analysis === 'string' ? analysis : 'Analyse terminée');
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Risks.handleStartAiAnalysis', 'AI_ERROR');
             toast.error(t('risks.analysisError'));
@@ -307,11 +306,7 @@ export const Risks: React.FC = () => {
         }
     }, [assets.length, navigate]);
 
-    const handleImportFile = async (file: File) => {
-        const text = await file.text();
-        const success = await importRisks(text);
-        if (success) setImportModalOpen(false);
-    };
+
 
     // Role Logic
     const role = user?.role || 'user';
@@ -369,137 +364,25 @@ export const Risks: React.FC = () => {
             {/* CONTENT TABS */}
             {activeTab !== 'overview' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
-                    <PremiumPageControl
+                    <RisksToolbar
                         searchQuery={activeFilters.query}
                         onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
-                        searchPlaceholder={t('risks.searchPlaceholder')}
-                        activeView={activeTab === 'list' ? viewMode : undefined}
-                        onViewChange={activeTab === 'list' ? (m) => setViewMode(m as 'list' | 'grid' | 'matrix') : undefined}
-                        viewOptions={[
-                            { id: 'list', label: t('assets.viewList'), icon: List },
-                            { id: 'grid', label: t('assets.viewGrid'), icon: Grid3x3 }
-                        ]}
-                        actions={
-                            <>
-                                <div className="hidden md:block w-48">
-                                    <CustomSelect
-                                        value={frameworkFilter}
-                                        onChange={(v) => setFrameworkFilter(v as string)}
-                                        options={[
-                                            { value: '', label: t('risks.allFrameworks') },
-                                            { value: 'ISO 27001', label: 'ISO 27001' },
-                                            { value: 'ISO 27005', label: 'ISO 27005' },
-                                            { value: 'EBIOS', label: 'EBIOS RM' },
-                                            { value: 'NIST', label: 'NIST' }
-                                        ]}
-                                        placeholder={t('risks.framework')}
-                                    />
-                                </div>
-
-                                <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
-
-                                <CustomTooltip content={t('risks.startTour')}>
-                                    <Button variant="outline" size="icon" onClick={() => OnboardingService.startRisksTour()}>
-                                        <HelpCircle className="h-5 w-5" />
-                                    </Button>
-                                </CustomTooltip>
-
-                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-
-                                <CustomTooltip content={t('assets.advancedFilters')}>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        data-tour="risks-filters"
-                                        onClick={() => setShowAdvancedSearch(prev => !prev)}
-                                        className={showAdvancedSearch ? 'bg-brand-50 text-brand-600 border-brand-100' : ''}
-                                    >
-                                        <Filter className="h-5 w-5" />
-                                    </Button>
-                                </CustomTooltip>
-
-                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-
-                                <Menu as="div" className="relative inline-block text-left">
-                                    <Menu.Button as={Button} variant="outline" size="icon">
-                                        <MoreVertical className="h-5 w-5" />
-                                    </Menu.Button>
-                                    <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                            <div className="p-1">
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button onClick={handleCommonExport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            <FileText className="mr-2 h-4 w-4" /> {t('risks.reports')} (PDF)
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button onClick={() => exportCSV(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            <FileSpreadsheet className="mr-2 h-4 w-4" /> {t('risks.exportCsv')}
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            <FileCode className="mr-2 h-4 w-4" /> {t('risks.obsidian')}
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                            </div>
-                                            {canEdit && (
-                                                <div className="p-1">
-                                                    <Menu.Item>
-                                                        {({ active }) => (
-                                                            <button onClick={() => setImportModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                                <Upload className="mr-2 h-4 w-4" /> {t('risks.importCsv')}
-                                                            </button>
-                                                        )}
-                                                    </Menu.Item>
-                                                    <Menu.Item>
-                                                        {({ active }) => (
-                                                            <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                                <Copy className="mr-2 h-4 w-4" /> {t('risks.templates')}
-                                                            </button>
-                                                        )}
-                                                    </Menu.Item>
-                                                </div>
-                                            )}
-                                        </Menu.Items>
-                                    </Transition>
-                                </Menu>
-
-                                {canEdit && (
-                                    <>
-                                        <CustomTooltip content="Lancer l'analyse IA">
-                                            <Button
-                                                onClick={handleStartAiAnalysis}
-                                                disabled={isAnalyzing}
-                                                isLoading={isAnalyzing}
-                                                variant="premium"
-                                                className="hidden lg:flex"
-                                            >
-                                                {!isAnalyzing && <BrainCircuit className="h-4 w-4 mr-2" />}
-                                                <span className="hidden xl:inline">{isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}</span>
-                                            </Button>
-                                        </CustomTooltip>
-                                        <CustomTooltip content="Créer un nouveau risque">
-                                            <Button
-                                                data-tour="risks-create"
-                                                onClick={() => { setEditingRisk(null); setCreationMode(true); }}
-                                                variant="default"
-                                                className="shadow-lg shadow-brand-500/20"
-                                            >
-                                                <Plus className="h-4 w-4 mr-2" />
-                                                <span className="hidden sm:inline">{t('risks.newRisk')}</span>
-                                            </Button>
-                                        </CustomTooltip>
-                                    </>
-                                )}
-                            </>
-                        }
+                        viewMode={viewMode}
+                        onViewModeChange={(m) => setViewMode(m)}
+                        activeTab={activeTab}
+                        frameworkFilter={frameworkFilter}
+                        setFrameworkFilter={setFrameworkFilter}
+                        showAdvancedSearch={showAdvancedSearch}
+                        setShowAdvancedSearch={setShowAdvancedSearch}
+                        filteredRisks={filteredRisks}
+                        handleCommonExport={handleCommonExport}
+                        exportCSV={exportCSV}
+                        setImportModalOpen={setImportModalOpen}
+                        setIsTemplateModalOpen={setIsTemplateModalOpen}
+                        handleStartAiAnalysis={handleStartAiAnalysis}
+                        handleCreateRisk={() => { setEditingRisk(null); setCreationMode(true); }}
+                        canEdit={canEdit}
+                        isAnalyzing={isAnalyzing}
                     />
                 </motion.div>
             )}
@@ -623,17 +506,10 @@ export const Risks: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <ImportGuidelinesModal
+            <RiskImportModal
                 isOpen={importModalOpen}
                 onClose={() => setImportModalOpen(false)}
-                entityName={t('risks.title')}
-                guidelines={{
-                    required: ['menace', 'probabilite', 'gravite', 'strategie'],
-                    optional: ['description', 'vulnerabilite', 'statut', 'proprietaire'],
-                    format: 'CSV'
-                }}
-                onImport={handleImportFile}
-                onDownloadTemplate={() => ImportService.downloadRiskTemplate()}
+                importRisks={importRisks}
             />
         </motion.div>
     );

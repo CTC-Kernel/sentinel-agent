@@ -208,7 +208,7 @@ const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
     // SECURITY FIX: Multiple layers of ownership verification
     // 1. Primary check via immutable UID
     const uidMatch = ownerId === user.uid;
-    
+
     // 2. Additional verification for critical resources
     if (!uidMatch) {
         // Log suspicious ownership attempts
@@ -222,7 +222,7 @@ const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
         });
         return false;
     }
-    
+
     // 3. Verify user is active (check isPending flag)
     if (user.isPending) {
         ErrorLogger.warn('Pending user attempted ownership verification', 'permissions.isResourceOwner', {
@@ -234,7 +234,7 @@ const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
         });
         return false;
     }
-    
+
     return true;
 };
 
@@ -265,11 +265,6 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
 
     // FIX: Allow users to edit their own incidents
     if (resource === 'Incident' && isResourceOwner(user, resourceOwnerId)) {
-        return true;
-    }
-
-    // COMPLIANCE FIX: Allow RSSI and Project Managers to edit controls
-    if (resource === 'Control' && ['rssi', 'project_manager'].includes(user.role || '')) {
         return true;
     }
 

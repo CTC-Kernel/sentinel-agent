@@ -12,7 +12,7 @@ import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 import type { Framework } from '../../types';
 import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 import { useStore } from '../../store';
 

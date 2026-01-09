@@ -10,6 +10,11 @@ interface MetricInputs {
     openAuditsCount: number;
     myProjectsLength: number;
     userOrgId: string | undefined;
+    aggregatedStats?: {
+        totalRisks: number;
+        highRisks: number;
+        totalAssets: number;
+    } | null;
 }
 
 export const useDashboardMetrics = ({
@@ -20,7 +25,8 @@ export const useDashboardMetrics = ({
     activeIncidentsCount,
     openAuditsCount,
     myProjectsLength,
-    userOrgId
+    userOrgId,
+    aggregatedStats
 }: MetricInputs) => {
 
     // History Data Mapping
@@ -68,6 +74,7 @@ export const useDashboardMetrics = ({
         });
         const rData = Object.entries(domains).map(([subject, data]) => ({ subject, A: data.total > 0 ? Math.round((data.implemented / data.total) * 100) : 0, fullMark: 100 }));
 
+        // Asset Value Logic with Aggregation Fallback
         const calculateDepreciation = (price: number, purchaseDate: string) => {
             if (!price || !purchaseDate) return price;
             const start = new Date(purchaseDate);
@@ -77,11 +84,34 @@ export const useDashboardMetrics = ({
             return Math.max(0, Math.round(value));
         };
 
-        const totalAssetValue = allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0);
+        // Use aggregated totalAssets if available (count), but value is harder.
+        // If we have arrays (small tenant), use array. If aggregatedStats says 1000 assets but we have 20, use 20 for value?
+        // Actually, if we are in optimization mode, 'allAssets' is limited to 20.
+        // So 'totalAssetValue' based on 'allAssets' will be WRONG (too low).
+        // Solution: If using aggregatedStats, we need an estimate.
+        // Simple Estimate: (Sum of visible assets / visible assets count) * aggregated Total Count.
 
+        let totalAssetValue = 0;
+        const visibleAssetsCount = allAssets.length;
+        const trueTotalAssets = aggregatedStats?.totalAssets ?? visibleAssetsCount;
+
+        if (visibleAssetsCount > 0) {
+            const visibleValue = allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0);
+            const avgValue = visibleValue / visibleAssetsCount;
+            totalAssetValue = Math.round(avgValue * trueTotalAssets);
+        }
+
+        // Financial Exposure Logic
         let financialExposure = 0;
+
+        // Similarly for risks, we only have Top 20 risks.
+        // We can sum exposure for known top risks, but we miss exposure for hidden risks.
+        // This is acceptable for a Dashboard "Safety" metric if we focus on known high risks.
+        // Or we project: (Visible High Risk Exposure) + (Estimated hidden).
+        // For now, let's just sum the VISIBLE high risks as they are the most important. 
+        // Note: topRisksData in useDashboardData fetches score >= 8.
+
         allRisks.forEach(risk => {
-            // Updated threshold to be more realistic - include high risks (score >= 10)
             if (risk.score >= 10) {
                 if (risk.assetId) {
                     const asset = allAssets.find(a => a.id === risk.assetId);
@@ -89,43 +119,38 @@ export const useDashboardMetrics = ({
                         financialExposure += calculateDepreciation(asset.purchasePrice || 0, asset.purchaseDate || '');
                     }
                 } else {
-                    // For risks without specific assets, estimate based on risk score and average asset value
-                    const avgAssetValue = allAssets.length > 0
-                        ? allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0) / allAssets.length
-                        : 10000; // Default estimate if no assets exist
-
-                    // Scale exposure based on risk severity (score 10-20 maps to 10-100% of avg asset value)
-                    const exposurePercentage = Math.min(1, (risk.score - 9) / 10); // 10->10%, 20->100%
+                    const avgAssetValue = totalAssetValue > 0 && trueTotalAssets > 0 ? totalAssetValue / trueTotalAssets : 10000;
+                    const exposurePercentage = Math.min(1, (risk.score - 9) / 10);
                     financialExposure += Math.round(avgAssetValue * exposurePercentage);
                 }
             }
         });
 
-        // Updated critical risks calculation to be more inclusive
-        const criticalRisksCount = allRisks.filter(r => r.score >= 10).length; // Changed from 15 to 10
-
+        // Use aggregated counts if available
+        const totalRisksCount = aggregatedStats?.totalRisks ?? allRisks.length;
+        const criticalRisksCount = aggregatedStats?.highRisks ?? allRisks.filter(r => r.score >= 10).length;
 
         return {
             stats: {
-                risks: allRisks.length,
-                assets: allAssets.length,
+                risks: totalRisksCount,
+                assets: trueTotalAssets,
                 compliance: compScore,
                 highRisks: criticalRisksCount,
                 auditsOpen: openAuditsCount,
                 activeIncidents: activeIncidentsCount,
                 assetValue: totalAssetValue,
                 financialRisk: financialExposure,
-                totalRisks: allRisks.length,
+                totalRisks: totalRisksCount,
                 criticalRisks: criticalRisksCount,
                 openIncidents: activeIncidentsCount,
                 complianceRate: compScore,
-                totalAssets: allAssets.length,
+                totalAssets: trueTotalAssets,
                 activeProjects: myProjectsLength
             },
             radarData: rData,
             complianceScore: compScore
         };
-    }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount, myProjectsLength]);
+    }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount, myProjectsLength, aggregatedStats]);
 
     const scoreGrade = useMemo(() => {
         if (!Number.isFinite(complianceScore) || complianceScore < 0) return undefined;

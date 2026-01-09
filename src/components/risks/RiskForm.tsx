@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller, useWatch, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality, ThreatTemplate } from '../../types';
 import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers, AlertTriangle, Sparkles, History } from '../ui/Icons';
@@ -137,12 +137,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const residualImpact = useWatch({ control, name: 'residualImpact' });
     const mitigationControlIds = useWatch({ control, name: 'mitigationControlIds' });
     const strategy = useWatch({ control, name: 'strategy' });
-    // const status = useWatch({ control, name: 'status' }); // Removed unused status watch
     const assetId = useWatch({ control, name: 'assetId' });
-
-    // Watch for SLA fields
-    // const treatmentDeadline = watch('treatmentDeadline');
-    // const treatmentOwnerId = watch('treatmentOwnerId');
 
     const mapCriticalityToImpact = (crit: Criticality): number => {
         switch (crit) {

@@ -16,7 +16,7 @@ import {
 } from '../errorHandler';
 import { ErrorLogger } from '../../services/errorLogger';
 import * as Sentry from '@sentry/react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 // Mock dependencies
 vi.mock('../../services/errorLogger', () => ({

@@ -19,7 +19,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { PROJECT_STATUSES } from '../../data/projectConstants';
 
 type ProjectStatus = typeof PROJECT_STATUSES[number];
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Loader2 } from '../ui/Icons';
 
 type ProjectTemplate = BaseTemplate & { status: string; priority: string };

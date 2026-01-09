@@ -507,11 +507,6 @@ export const Suppliers: React.FC = () => {
                                 </Transition>
                             </Menu>
 
-                            import {Button} from '../components/ui/Button';
-
-                            // ... (other imports)
-
-                            // ...
 
                             <CustomTooltip content="Gérer les modèles d'évaluation">
                                 <Button

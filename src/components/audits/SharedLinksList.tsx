@@ -3,7 +3,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../../firebase';
 import { Loader2, Trash2, ExternalLink, ShieldAlert, Clock } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { ErrorLogger } from '../../services/errorLogger';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';

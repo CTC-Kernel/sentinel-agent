@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Modal } from './Modal';
 import { Button } from './button';
 import { FileSpreadsheet, Upload, AlertCircle, FileText, Info } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
 
 interface ImportGuidelinesModalProps {

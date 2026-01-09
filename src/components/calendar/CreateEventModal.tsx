@@ -11,7 +11,7 @@ import { CalendarService } from '../../services/calendarService';
 import { GoogleCalendarService } from '../../services/googleCalendarService';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useCalendarData } from '../../hooks/calendar/useCalendarData';
 import { ErrorLogger } from '../../services/errorLogger';
 
