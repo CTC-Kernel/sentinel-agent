@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 
 // Contexts & Hooks
 import { AuthProvider } from './contexts/AuthContext';
+import { CrisisProvider } from './context/CrisisContext';
 import { useStore } from './store';
 import { useAuth } from './hooks/useAuth';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
@@ -268,7 +269,9 @@ const AppInner: React.FC = () => {
                                 </TestAuthGuard> :
                                 <AuthGuard>
                                     <NotificationProvider>
-                                        <AppLayout />
+                                        <CrisisProvider>
+                                            <AppLayout />
+                                        </CrisisProvider>
                                     </NotificationProvider>
                                 </AuthGuard>
                         } />

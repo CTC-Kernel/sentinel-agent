@@ -36,7 +36,7 @@ export const useWarRoom = (incidentId: string) => {
         return rawMessages.map(msg => ({
             ...msg,
             // Ensure Javascript Date object for UI if it's a Firestore Timestamp
-            timestamp: (msg.timestamp as any)?.toDate ? (msg.timestamp as any).toDate() : new Date(msg.timestamp as any)
+            timestamp: msg.timestamp instanceof Timestamp ? msg.timestamp.toDate() : new Date(msg.timestamp as unknown as string | number | Date)
         }));
     }, [rawMessages]);
 
