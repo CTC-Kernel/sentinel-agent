@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
 import { Project, ProjectTemplate, UserProfile } from '../types';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
+import { useProjectDependencies } from '../hooks/projects/useProjectDependencies';
 import { useSuppliers } from '../hooks/useSuppliers';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ProjectList } from '../components/projects/ProjectList';
@@ -34,6 +35,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { LayoutDashboard, List, CalendarDays, FolderKanban } from 'lucide-react';
+import { Button } from '../components/ui/button';
 // Form validation: useForm with required fields
 
 import { OnboardingService } from '../services/onboardingService';
@@ -54,21 +56,6 @@ export const Projects: React.FC = () => {
     const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Month');
     const handleGanttViewModeChange = useCallback((mode: 'Day' | 'Week' | 'Month') => setGanttViewMode(mode), []);
 
-    const tabs = useMemo(() => [
-        { id: 'overview', label: t('projects.overview'), icon: LayoutDashboard },
-        { id: 'list', label: t('projects.list'), icon: List },
-        { id: 'board', label: t('projects.board.title'), icon: FolderKanban },
-        { id: 'gantt', label: t('projects.planning'), icon: CalendarDays },
-    ], [t]);
-    const {
-        projects, risks, controls, assets, audits, usersList, loading,
-        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
-        isSubmitting, canEdit, checkDependencies, importProjects, createProjectFromTemplateData // Destructured
-    } = useProjectLogic();
-
-    const { suppliers } = useSuppliers();
-
-
     // UI State
     const [viewMode, setViewMode] = useState<'list' | 'grid' | 'matrix' | 'kanban'>('grid');
     const [filter, setFilter] = useState('');
@@ -77,6 +64,36 @@ export const Projects: React.FC = () => {
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [csvImportOpen, setCsvImportOpen] = useState(false);
+
+    // Dependencies Logic: Only fetch detailed collections when needed (optimization)
+    const shouldFetchDetails = creationMode || !!editingProject || !!selectedProject;
+
+    const tabs = useMemo(() => [
+        { id: 'overview', label: t('projects.overview'), icon: LayoutDashboard },
+        { id: 'list', label: t('projects.list'), icon: List },
+        { id: 'board', label: t('projects.board.title'), icon: FolderKanban },
+        { id: 'gantt', label: t('projects.planning'), icon: CalendarDays },
+    ], [t]);
+
+    const {
+        projects, loading: loadingProjects,
+        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
+        isSubmitting, canEdit, checkDependencies, importProjects, createProjectFromTemplateData
+    } = useProjectLogic();
+
+    const {
+        risks, controls, assets, audits, usersList, loading: loadingDeps
+    } = useProjectDependencies({
+        fetchUsers: true, // Always needed for avatars/assignees
+        fetchRisks: shouldFetchDetails,
+        fetchControls: shouldFetchDetails,
+        fetchAssets: shouldFetchDetails,
+        fetchAudits: shouldFetchDetails
+    });
+
+    const loading = loadingProjects || (shouldFetchDetails && loadingDeps);
+
+    const { suppliers } = useSuppliers();
 
     // Confirm Modal State
     const [confirmData, setConfirmData] = useState<{
@@ -302,21 +319,21 @@ export const Projects: React.FC = () => {
                         <>
                             {/* Primary Action */}
                             <CustomTooltip content={t('projects.newProject')}>
-                                <button
+                                <Button
                                     aria-label={t('projects.newProject')}
                                     onClick={handleNewProjectClick}
-                                    className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                    className="shadow-lg shadow-brand-500/20"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
                                     <span className="hidden sm:inline">{t('projects.newProject')}</span>
-                                </button>
+                                </Button>
                             </CustomTooltip>
 
                             <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
                             {/* Secondary Actions Menu */}
                             <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                <Menu.Button as={Button} variant="ghost" size="icon" className="border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm">
                                     <MoreVertical className="h-5 w-5" />
                                 </Menu.Button>
                                 <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">

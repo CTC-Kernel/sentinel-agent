@@ -5,6 +5,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import { UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { WarRoomModal } from './WarRoomModal';
+import { useCrisis } from '../../context/CrisisContext';
 
 interface ContinuityCrisisProps {
     users: UserProfile[];
@@ -12,34 +13,44 @@ interface ContinuityCrisisProps {
 
 export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => {
     const { addToast } = useStore();
-    const [scenario, setScenario] = useState<'cyber' | 'fire' | 'supply' | 'staff'>('cyber');
-    const [crisisActive, setCrisisActive] = useState(false);
-    const [activationStep, setActivationStep] = useState(0);
-    const [isWarRoomOpen, setIsWarRoomOpen] = useState(false);
+    const {
+        isCrisisActive: crisisActive,
+        scenario,
+        activationStep,
+        activateCrisis,
+        deactivateCrisis,
+        setActivationStep
+    } = useCrisis();
+
+    // Derived state for local UI not managed by context
     const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+    const [selectedScenario, setSelectedScenario] = useState<'cyber' | 'fire' | 'supply' | 'staff'>('cyber');
+    const [isWarRoomOpen, setIsWarRoomOpen] = useState(false);
 
     const crisisTeam = users.filter(u => u.role === 'admin' || u.role === 'rssi' || u.role === 'direction');
 
-    const handleActivateCrisis = () => {
+    const handleActivateCrisis = async () => {
         if (activationStep < 2) {
-            setActivationStep(prev => prev + 1);
+            setActivationStep(activationStep + 1);
             return;
         }
-        setCrisisActive(true);
+
+        await activateCrisis(selectedScenario);
+
         const scenarioLabels = {
             cyber: "CYBERATTAQUE DE GRANDE AMPLEUR",
             fire: "INCENDIE DATACENTER / LOCAUX",
             supply: "DÉFAILLANCE CRITIQUE FOURNISSEUR",
             staff: "INDISPONIBILITÉ MAJEURE PERSONNEL"
         };
-        addToast(`⚠️ MODE CRISE ACTIVÉ : ${scenarioLabels[scenario]}`, "error");
+        addToast(`⚠️ MODE CRISE ACTIVÉ : ${scenarioLabels[selectedScenario]}`, "error");
         addToast("Notifications envoyées à la cellule de crise.", "info");
     };
 
-    const handleDeactivate = () => {
-        setCrisisActive(false);
-        setActivationStep(0);
+    const handleDeactivate = async () => {
+        await deactivateCrisis();
         setConfirmDeactivate(false);
+        setActivationStep(0);
         addToast("Mode crise désactivé. Retour à la normale.", "success");
     };
 
@@ -69,8 +80,8 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                             <div className="flex flex-col gap-2 items-end">
                                 {activationStep === 0 && (
                                     <select
-                                        value={scenario}
-                                        onChange={(e) => setScenario(e.target.value as 'cyber' | 'fire' | 'supply' | 'staff')}
+                                        value={selectedScenario}
+                                        onChange={(e) => setSelectedScenario(e.target.value as 'cyber' | 'fire' | 'supply' | 'staff')}
                                         className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 focus:ring-2 focus:ring-red-500"
                                     >
                                         <option value="cyber">Cyberattaque (Ransomware/DDoS)</option>

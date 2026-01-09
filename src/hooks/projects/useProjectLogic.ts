@@ -4,7 +4,7 @@ import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { where, doc, updateDoc, addDoc, collection, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Project, ProjectTask, Risk, Control, Asset, Audit, UserProfile, ProjectMilestone } from '../../types';
+import { Project, ProjectTask, ProjectMilestone } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { ProjectService } from '../../services/projectService';
 import { logAction } from '../../services/logger';
@@ -26,31 +26,17 @@ export const useProjectLogic = () => {
     // Mock Data State
     const [mockData, setMockData] = useState<{
         projects: Project[];
-        risks: Risk[];
-        controls: Control[];
-        assets: Asset[];
-        audits: Audit[];
-        users: UserProfile[];
     } | null>(null);
 
     // Data Fetching
+    // Data Fetching
     const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
-    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>('risks', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
-    const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
-    const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId), limit(1000)], { logError: true, realtime: true });
-    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
-    const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>('users', [where('organizationId', '==', user?.organizationId), limit(100)], { logError: true, realtime: true });
 
-    // Load Mock Data Effect
+    // Mock Data Effect
     useEffect(() => {
         if (demoMode && !mockData) {
             setMockData({
-                projects: MockDataService.getCollection('projects') as Project[],
-                risks: MockDataService.getCollection('risks') as Risk[],
-                controls: MockDataService.getCollection('controls') as Control[],
-                assets: MockDataService.getCollection('assets') as Asset[],
-                audits: MockDataService.getCollection('audits') as Audit[],
-                users: MockDataService.getCollection('users') as unknown as UserProfile[]
+                projects: MockDataService.getCollection('projects') as Project[]
             });
         }
     }, [demoMode, mockData]);
@@ -61,36 +47,7 @@ export const useProjectLogic = () => {
         return [...source].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
     }, [rawProjects, mockData, demoMode]);
 
-    const risks = useMemo(() => {
-        const source = demoMode && mockData ? mockData.risks : rawRisks;
-        return [...source].sort((a, b) => b.score - a.score);
-    }, [rawRisks, mockData, demoMode]);
-
-    const audits = useMemo(() => {
-        const source = demoMode && mockData ? mockData.audits : rawAudits;
-        return [...source].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
-    }, [rawAudits, mockData, demoMode]);
-
-    const controls = useMemo(() => {
-        const source = demoMode && mockData ? mockData.controls : rawControls;
-        return [...source].sort((a, b) => a.code.localeCompare(b.code));
-    }, [rawControls, mockData, demoMode]);
-
-    const assets = useMemo(() => {
-        const source = demoMode && mockData ? mockData.assets : rawAssets;
-        return [...source].sort((a, b) => a.name.localeCompare(b.name));
-    }, [rawAssets, mockData, demoMode]);
-
-    // Fix: Ensure usersList is never empty if we are logged in (fallback to self)
-    // This prevents "Manager Required" validation errors if RBAC prevents listing other users
-    const effectiveUsers = useMemo(() => {
-        const source = demoMode && mockData ? mockData.users : usersList;
-        if (source && source.length > 0) return source;
-        if (user && user.uid) return [user];
-        return [];
-    }, [usersList, user, mockData, demoMode]);
-
-    const loading = demoMode ? !mockData : (loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers || loadingAudits);
+    const loading = demoMode ? !mockData : loadingProjects;
 
     // Actions
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -325,7 +282,7 @@ export const useProjectLogic = () => {
     };
 
     return {
-        projects, risks, audits, controls, assets, usersList: effectiveUsers, loading,
+        projects, loading,
         handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies, importProjects, createProjectFromTemplateData,
         isSubmitting, role, canEdit, user, organization
     };

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,
-    Loader2, Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter, LayoutDashboard, List, Grid3x3, Upload
+    Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter, LayoutDashboard, List, Grid3x3, Upload
 } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
@@ -14,7 +14,7 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ObsidianService } from '../services/ObsidianService';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserProfile } from '../types';
+import { UserProfile, Risk } from '../types';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
@@ -23,9 +23,12 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { ImportService } from '../services/ImportService';
 
-import { useRiskData } from '../hooks/risks/useRiskData';
+// New Optimized Hooks
+import { useRiskLogic } from '../hooks/risks/useRiskLogic';
+import { useRiskDependencies } from '../hooks/risks/useRiskDependencies';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
 import { useRiskFilters } from '../hooks/risks/useRiskFilters';
+import { RiskCalculator } from '../utils/RiskCalculator';
 
 import { RiskFormData } from '../schemas/riskSchema';
 import { RiskList } from '../components/risks/RiskList';
@@ -44,83 +47,79 @@ import { aiService } from '../services/aiService';
 import { PdfService } from '../services/PdfService';
 import { useStore } from '../store';
 import { toast } from 'sonner';
-import { Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { useAuth } from '../hooks/useAuth';
-// Form validation: useForm with required fields
 
 export const Risks: React.FC = () => {
     // Hooks
-    const { user } = useAuth(); // Prefer useAuth for user object
+    const { user } = useAuth();
     const { demoMode, t } = useStore();
-    const { risks, loading, assets, controls, projects, audits, suppliers, usersList, rawProcesses, refreshRisks } = useRiskData();
 
-    // Permission check
+    // 1. Core Data (Always Fetch)
+    const { risks, loading: loadingRisks } = useRiskLogic();
+
+    // Permissions
     const canEdit = canEditResource(user as UserProfile, 'Risk');
 
+    // UI State
+    const [creationMode, setCreationMode] = useState(false);
+    const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
+    const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
+    const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'matrix'>('risks-view-mode', 'grid');
+    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'matrix'>('overview');
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+    const [initialFormData, setInitialFormData] = useState<Partial<RiskFormData> | undefined>(undefined);
+
+    // 2. Dependency Fetches (Lazy Loading)
+    // We fetch dependencies if:
+    // - We are creating/editing a risk (Form needs assets, controls, etc)
+    // - A risk is selected (Inspector needs details)
+    // - Logic requires users check (Assignment)
+    const shouldFetchDetails = creationMode || !!editingRisk || !!selectedRisk;
+
+    const {
+        assets,
+        controls,
+        projects,
+        audits,
+        suppliers,
+        processes,
+        usersList,
+        loading: loadingDeps
+    } = useRiskDependencies({
+        fetchUsers: true, // Always fetch users for avatars in list
+        fetchAssets: true, // List consumes asset names often, and empty state checks assets. Keep it active for now or optimize further.
+        fetchControls: shouldFetchDetails,
+        fetchProcesses: shouldFetchDetails,
+        fetchSuppliers: shouldFetchDetails,
+        fetchAudits: shouldFetchDetails,
+        fetchProjects: shouldFetchDetails
+    });
+
+    const loading = loadingRisks || (shouldFetchDetails && loadingDeps);
+
+    // 3. Actions
+    // Refresh is handled via Firestore realtime, so onRefresh can be no-op or specific trigger if needed
+    const {
+        createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
+        exportCSV, setIsGeneratingReport, submitting,
+        importRisks, checkDependencies
+    } = useRiskActions(() => { }); // Realtime updates handle refresh
+
     // Start module tour
-    React.useEffect(() => {
+    useEffect(() => {
         const timer = setTimeout(() => {
             OnboardingService.startRisksTour();
-        }, 1000); // Wait for animations
+        }, 1000);
         return () => clearTimeout(timer);
     }, []);
 
-    const {
-        createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
-        exportCSV, isGeneratingReport, setIsGeneratingReport, submitting, isExportingCSV,
-        importRisks, isImporting, checkDependencies // Destructured here
-    } = useRiskActions(refreshRisks);
-
-    // ... existing code ...
-
-    const handleDelete = React.useCallback(async (risk: { id: string, name: string }) => {
-        // Optimistic UI or Loading state could be added here if checkDependencies is slow
-        // For now, we just await it.
-        if (!canEditResource(user as UserProfile, 'Risk')) {
-            toast.error("Permission refusée");
-            return;
-        }
-        const { hasDependencies, dependencies } = await checkDependencies(risk.id);
-
-        let message = t('risks.deleteMessage');
-        if (hasDependencies && dependencies && dependencies.length > 0) {
-            const depDetails = dependencies.map((d: { type: string; name: string }) => `${d.type}: ${d.name}`).join(', ');
-            message = t('risks.deleteWarning', { count: dependencies.length, details: depDetails.slice(0, 100) + (depDetails.length > 100 ? '...' : '') });
-        }
-
-        setConfirmData({
-            isOpen: true,
-            title: t('risks.deleteTitle'),
-            message: message,
-            onConfirm: () => deleteRisk(risk.id, risk.name)
-        });
-    }, [user, t, checkDependencies, deleteRisk]);
-
-    // ... existing code ...
-
-    // Sanitize risks data centrally to ensure no NaNs propagate to children
-    const sanitizedRisks = React.useMemo(() => {
-        return risks.map(r => {
-            const prob = Number(r.probability) || 1;
-            const imp = Number(r.impact) || 1;
-            const computedScore = prob * imp;
-
-            const resProb = Number(r.residualProbability) || prob;
-            const resImp = Number(r.residualImpact) || imp;
-            const computedResScore = resProb * resImp;
-
-            return {
-                ...r,
-                probability: prob as Risk['probability'],
-                impact: imp as Risk['impact'],
-                score: Number(r.score) || computedScore,
-                residualProbability: resProb as Risk['probability'],
-                residualImpact: resImp as Risk['impact'],
-                residualScore: Number(r.residualScore) || computedResScore
-            };
-        });
-    }, [risks]);
+    // Sanitize and Filters
+    // Sanitize and Filters
+    // Risks are already sanitized in useRiskLogic
 
     const {
         activeFilters, setActiveFilters,
@@ -128,24 +127,9 @@ export const Risks: React.FC = () => {
         showAdvancedSearch, setShowAdvancedSearch,
         frameworkFilter, setFrameworkFilter,
         matrixFilter, setMatrixFilter
-    } = useRiskFilters(sanitizedRisks);
+    } = useRiskFilters(risks);
 
-    // Local UI State
-    const [creationMode, setCreationMode] = useState(false);
-    const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
-    const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
-    const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'matrix'>('risks-view-mode', 'grid');
-
-    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'matrix'>('overview');
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-    // const [isImporting, setIsImporting] = useState(false); // Removed local state
-    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-
-    const [initialFormData, setInitialFormData] = useState<Partial<RiskFormData> | undefined>(undefined);
-
-    // ... URL Params ...
+    // URL Params
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -153,170 +137,92 @@ export const Risks: React.FC = () => {
     const deepLinkAction = searchParams.get('action');
     const deepLinkAssetId = searchParams.get('createForAsset');
 
-    // Deep Linking Effect
-    React.useEffect(() => {
+    // Deep Link Logic
+    useEffect(() => {
         if (loading) return;
 
-        // 1. Open Risk Inspector
         if (deepLinkRiskId && risks.length > 0) {
             const risk = risks.find(r => r.id === deepLinkRiskId);
             if (risk && selectedRisk?.id !== risk.id) {
                 setSelectedRisk(risk);
             }
-        }
-
-        // 2. Open Creation Modal (Generic)
-        if (deepLinkAction === 'create' && !creationMode) {
+        } else if (deepLinkAction === 'create' && !creationMode) {
             setInitialFormData(undefined);
             setCreationMode(true);
-            // Consume the param immediately to prevent race conditions
-            setSearchParams(params => {
-                params.delete('action');
-                return params;
-            }, { replace: true });
-        }
-
-        // 3. Open Creation Modal (Pre-filled Asset)
-        if (deepLinkAssetId && !creationMode) {
-            setInitialFormData({
-                assetId: deepLinkAssetId
-            });
+            setSearchParams(params => { params.delete('action'); return params; }, { replace: true });
+        } else if (deepLinkAssetId && !creationMode) {
+            setInitialFormData({ assetId: deepLinkAssetId });
             setCreationMode(true);
-            // Consume the param immediately
-            setSearchParams(params => {
-                params.delete('createForAsset');
-                return params;
-            }, { replace: true });
+            setSearchParams(params => { params.delete('createForAsset'); return params; }, { replace: true });
         }
     }, [loading, deepLinkRiskId, deepLinkAction, deepLinkAssetId, risks, creationMode, selectedRisk, setSearchParams]);
 
-    // Cleanup Effect (Only for ID)
-    React.useEffect(() => {
-        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+    // Cleanup ID param
+    useEffect(() => {
         if (loading) return;
-
-        // Only cleanup ID if not found/selected
         if (!selectedRisk && deepLinkRiskId) {
-            setSearchParams(params => {
-                params.delete('id');
-                return params;
-            }, { replace: true });
+            setSearchParams(params => { params.delete('id'); return params; }, { replace: true });
         }
     }, [selectedRisk, deepLinkRiskId, setSearchParams, loading]);
 
-    // Handle navigation from AssetInspector (Legacy State Support)
-    React.useEffect(() => {
+    // Legacy State Support (Asset Inspector)
+    useEffect(() => {
         const state = location.state as { createForAsset?: string; assetName?: string } | null;
         if (state?.createForAsset && !creationMode) {
-            setInitialFormData({
-                assetId: state.createForAsset
-            });
+            setInitialFormData({ assetId: state.createForAsset });
             setCreationMode(true);
-            // Clear state to prevent reopening on refresh
             window.history.replaceState({}, document.title);
         }
     }, [location.state, creationMode]);
 
-    // Refs
-
-    // Helper functions
-    // Helper functions
-    const handleEdit = React.useCallback((risk: Risk) => {
+    // Handlers
+    const handleEdit = useCallback((risk: Risk) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return;
         setEditingRisk(risk);
-        setInitialFormData(undefined); // Clear initial data when editing existing
+        setInitialFormData(undefined);
         setCreationMode(true);
     }, [user]);
 
-    const handleExportExecutive = React.useCallback(async () => {
-        setIsGeneratingReport(true);
-        try {
-            await PdfService.generateRiskExecutiveReport(filteredRisks, {
-                title: t('risks.executiveReport'),
-                subtitle: `Généré par ${user?.displayName || 'Utilisateur'} le ${new Date().toLocaleDateString()} `,
-                filename: `risques_exec_${new Date().toISOString().split('T')[0]}.pdf`,
-                organizationName: user?.organizationName || 'Sentinel GRC',
-                author: user?.displayName || 'Sentinel User'
-            });
-            toast.success(t('risks.reportSuccess'));
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Risks.handleExportExecutive', 'REPORT_GENERATION_FAILED');
-            toast.error(t('risks.reportError'));
-        } finally {
-            setIsGeneratingReport(false);
+    const handleDelete = useCallback(async (risk: { id: string, name: string }) => {
+        if (!canEditResource(user as UserProfile, 'Risk')) {
+            toast.error("Permission refusée");
+            return;
         }
-    }, [filteredRisks, t, user, setIsGeneratingReport]);
+        // Check dependencies when user tries to delete
+        const { hasDependencies, dependencies } = await checkDependencies(risk.id);
 
-    const handleExportPDF = React.useCallback(async () => {
-        // Re-using executive report for now as it's the main PDF export
-        handleExportExecutive();
-    }, [handleExportExecutive]);
-
-    // Import Logic
-    const [importModalOpen, setImportModalOpen] = useState(false);
-
-    const handleDownloadTemplate = React.useCallback(() => {
-        ImportService.downloadRiskTemplate();
-    }, []);
-
-    const handleImportFile = async (file: File) => {
-        const text = await file.text();
-        const success = await importRisks(text);
-        if (success) {
-            setImportModalOpen(false);
+        let message = t('risks.deleteMessage');
+        if (hasDependencies && dependencies && dependencies.length > 0) {
+            const depDetails = dependencies.slice(0, 5).map((d) => `${d.type}: ${d.name}`).join(', ');
+            message = t('risks.deleteWarning', { count: dependencies.length, details: depDetails + (dependencies.length > 5 ? '...' : '') });
         }
-    };
 
-    // Callbacks
+        setConfirmData({
+            isOpen: true,
+            title: t('risks.deleteTitle'),
+            message: message,
+            onConfirm: async () => {
+                await deleteRisk(risk.id, risk.name);
+                setConfirmData(prev => ({ ...prev, isOpen: false }));
+                if (selectedRisk?.id === risk.id) setSelectedRisk(null);
+            }
+        });
+    }, [user, t, checkDependencies, deleteRisk, selectedRisk]);
 
-    const handleSearchChange = React.useCallback((q: string) => {
-        setActiveFilters(prev => ({ ...prev, query: q }));
-    }, [setActiveFilters]);
-
-    const handleFrameworkChange = React.useCallback((val: string | string[]) => {
-        setFrameworkFilter(val as string);
-    }, [setFrameworkFilter]);
-
-    const handleStartTour = React.useCallback(() => {
-        OnboardingService.startRisksTour();
-    }, []);
-
-    const handleAdvancedSearch = React.useCallback((filters: { query: string }) => {
-        setActiveFilters(prev => ({ ...prev, query: filters.query }));
-        setShowAdvancedSearch(false);
-    }, [setActiveFilters, setShowAdvancedSearch]);
-
-    const handleDeleteRiskItem = React.useCallback((id: string) => {
+    const handleDeleteRiskItem = useCallback((id: string) => {
         const r = risks.find(x => x.id === id);
         handleDelete({ id, name: r?.threat || t('common.unknown') });
     }, [risks, t, handleDelete]);
 
-    const handleDuplicateRisk = React.useCallback((r: Risk) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, history, ...rest } = r;
-
-        const newRisk: Omit<Risk, 'id'> = {
-            ...rest,
-            threat: `${r.threat} (${t('common.copy')})`,
-            probability: r.probability,
-            impact: r.impact,
-            status: 'Ouvert',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-
-        createRisk(newRisk as Risk);
-    }, [t, createRisk]);
-
-    const handleFormSubmit = React.useCallback(async (data: RiskFormData) => {
-        // Safe number conversion
+    const handleFormSubmit = useCallback(async (data: RiskFormData) => {
         const prob = Number(data.probability) || 1;
         const imp = Number(data.impact) || 1;
         const resProb = Number(data.residualProbability) || prob;
         const resImp = Number(data.residualImpact) || imp;
 
-        const calculatedScore = prob * imp;
-        const calculatedResidualScore = resProb * resImp;
+        // Use Calculator for consistent scoring
+        const score = RiskCalculator.calculateScore(undefined, prob, imp);
+        const residualScore = RiskCalculator.calculateResidualScore(resProb, resImp);
 
         const cleanedData = {
             ...data,
@@ -324,8 +230,8 @@ export const Risks: React.FC = () => {
             impact: imp as Risk['impact'],
             residualProbability: resProb as Risk['probability'],
             residualImpact: resImp as Risk['impact'],
-            score: calculatedScore,
-            residualScore: calculatedResidualScore,
+            score: score,
+            residualScore: residualScore,
             aiAnalysis: data.aiAnalysis || undefined
         };
 
@@ -338,27 +244,89 @@ export const Risks: React.FC = () => {
         setEditingRisk(null);
     }, [editingRisk, updateRisk, createRisk]);
 
-    const handleTemplateSelect = React.useCallback(async (template: { risks: Partial<Risk>[] }, ownerId: string) => {
-        const promises = template.risks.map((risk: Partial<Risk>) => createRisk({
-            threat: risk.threat,
-            vulnerability: risk.vulnerability,
-            probability: risk.probability,
-            impact: risk.impact,
-            strategy: risk.strategy,
-            status: 'Ouvert',
-            framework: 'ISO27001',
-            owner: ownerId,
-        }));
+    const handleCommonExport = useCallback(async () => {
+        setIsGeneratingReport(true);
+        try {
+            await PdfService.generateRiskExecutiveReport(filteredRisks, {
+                title: t('risks.executiveReport'),
+                subtitle: `Généré par ${user?.displayName || 'Utilisateur'} le ${new Date().toLocaleDateString()} `,
+                filename: `risques_exec_${new Date().toISOString().split('T')[0]}.pdf`,
+                organizationName: user?.organizationName || 'Sentinel GRC',
+                author: user?.displayName || 'Sentinel User'
+            });
+            toast.success(t('risks.reportSuccess'));
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleExportExecutive', 'REPORT_GENERATION_FAILED');
+        } finally {
+            setIsGeneratingReport(false);
+        }
+    }, [filteredRisks, t, user, setIsGeneratingReport]);
 
+    const handleStartAiAnalysis = useCallback(async () => {
+        setIsAnalyzing(true);
+        try {
+            const prompt = t('risks.aiPrompt', { count: filteredRisks.length });
+            const analysis = await aiService.chatWithAI(prompt);
+            toast.info(t('risks.analysisComplete'), { description: analysis, duration: 10000 });
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleStartAiAnalysis', 'AI_ERROR');
+            toast.error(t('risks.analysisError'));
+        } finally {
+            setIsAnalyzing(false);
+        }
+    }, [filteredRisks.length, t]);
+
+    const handleTemplateSelect = useCallback(async (template: { risks: Partial<Risk>[] }, ownerId: string) => {
+        const promises = template.risks.map((risk: Partial<Risk>) => {
+            const prob = Number(risk.probability) || 1;
+            const imp = Number(risk.impact) || 1;
+            const score = RiskCalculator.calculateScore(undefined, prob, imp);
+
+            return createRisk({
+                threat: risk.threat,
+                vulnerability: risk.vulnerability,
+                probability: risk.probability,
+                impact: risk.impact,
+                score, // Calculated score
+                strategy: risk.strategy,
+                status: 'Ouvert',
+                framework: 'ISO27001',
+                owner: ownerId,
+            });
+        });
         try {
             await Promise.all(promises);
             toast.success(t('risks.templateSuccess', { count: template.risks.length }));
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Risks.handleTemplateSelect', 'CREATE_FAILED');
+        } catch {
             toast.error(t('risks.templateError'));
         }
         setIsTemplateModalOpen(false);
     }, [createRisk, t]);
+
+    // Helpers
+    const handleDuplicateRisk = useCallback((r: Risk) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, history, ...rest } = r;
+        createRisk({
+            ...rest,
+            threat: `${r.threat} (${t('common.copy')})`,
+            status: 'Ouvert'
+        });
+    }, [t, createRisk]);
+
+    const handleEmptyAction = useCallback(() => {
+        if (assets.length > 0) {
+            setCreationMode(true);
+        } else {
+            navigate('/assets');
+        }
+    }, [assets.length, navigate]);
+
+    const handleImportFile = async (file: File) => {
+        const text = await file.text();
+        const success = await importRisks(text);
+        if (success) setImportModalOpen(false);
+    };
 
     // Role Logic
     const role = user?.role || 'user';
@@ -372,68 +340,16 @@ export const Risks: React.FC = () => {
         risksSubtitle = t('risks.subtitle_exec');
     }
 
-    // UI Handlers
-    const handleTabChange = React.useCallback((id: string) => setActiveTab(id as 'overview' | 'list' | 'matrix'), [setActiveTab]);
-    const handleMatrixFilterChange = React.useCallback((filter: { p: number; i: number } | null) => {
-        setMatrixFilter(filter);
-        if (filter) setActiveTab('list');
-    }, [setMatrixFilter, setActiveTab]);
-    const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'matrix'), [setViewMode]);
-    const handleAdvancedSearchClose = React.useCallback(() => setShowAdvancedSearch(false), [setShowAdvancedSearch]);
-    const handleAdvancedSearchToggle = React.useCallback(() => setShowAdvancedSearch(prev => !prev), [setShowAdvancedSearch]);
-    const handleResetMatrixFilter = React.useCallback(() => setMatrixFilter(null), [setMatrixFilter]);
-    const handleInspectorClose = React.useCallback(() => setSelectedRisk(null), []);
-    const handleInspectorDelete = React.useCallback((id: string, name: string) => handleDelete({ id, name }), [handleDelete]);
-    const handleCreationClose = React.useCallback(() => setCreationMode(false), []);
-    const handleFormCancel = React.useCallback(() => { setCreationMode(false); setEditingRisk(null); }, []);
-    const handleTemplateModalClose = React.useCallback(() => setIsTemplateModalOpen(false), []);
-    const handleConfirmClose = React.useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
-    const handleNewRiskClick = React.useCallback(() => { setEditingRisk(null); setCreationMode(true); }, []);
-    const handleRiskSelect = React.useCallback((risk: Risk) => setSelectedRisk(risk), []);
-
-    // Dynamic Empty State Logic
     const hasAssets = assets.length > 0;
     const emptyStateTitle = hasAssets ? t('risks.emptyTitle') : t('assets.emptyTitle');
     const emptyStateDescription = hasAssets ? t('risks.emptyDesc') : t('assets.emptyDesc');
     const emptyStateActionLabel = hasAssets ? t('risks.newRisk') : t('assets.createAsset');
 
-    const handleEmptyAction = React.useCallback(() => {
-        if (hasAssets) {
-            setCreationMode(true);
-        } else {
-            // Navigate to assets page to create an asset
-            navigate('/assets');
-        }
-    }, [hasAssets, navigate]);
-
-    const handleTemplateModalOpen = React.useCallback(() => setIsTemplateModalOpen(true), []);
-    const handleObsidianExport = React.useCallback(() => ObsidianService.exportRisksToObsidian(filteredRisks), [filteredRisks]);
-    const handleCSVExport = React.useCallback(() => exportCSV(filteredRisks), [exportCSV, filteredRisks]);
-
-    const tabs = React.useMemo(() => [
+    const tabs = useMemo(() => [
         { id: 'overview', label: t('risks.overview'), icon: LayoutDashboard },
         { id: 'list', label: t('risks.registry'), icon: List },
         { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },
     ], [t]);
-
-    const viewOptions = React.useMemo(() => [
-        { id: 'list', label: t('assets.viewList'), icon: List },
-        { id: 'grid', label: t('assets.viewGrid'), icon: Grid3x3 }
-    ], [t]);
-
-    const handleStartAiAnalysis = React.useCallback(async () => {
-        setIsAnalyzing(true);
-        try {
-            const prompt = t('risks.aiPrompt', { count: filteredRisks.length });
-            const analysis = await aiService.chatWithAI(prompt);
-            toast.info(t('risks.analysisComplete'), { description: analysis, duration: 10000 });
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Risks.handleStartAiAnalysis', 'AI_ERROR');
-            toast.error(t('risks.analysisError'));
-        } finally {
-            setIsAnalyzing(false);
-        }
-    }, [filteredRisks.length, t]);
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
@@ -452,39 +368,38 @@ export const Risks: React.FC = () => {
                 trustType="integrity"
             />
 
-            {/* TABS */}
             <ScrollableTabs
                 tabs={tabs}
                 activeTab={activeTab}
-                onTabChange={handleTabChange}
+                onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'matrix')}
             />
 
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="overview-tab" data-tour="risks-stats">
-                    <RiskDashboard
-                        risks={filteredRisks}
-                    />
+                    <RiskDashboard risks={filteredRisks} />
                 </motion.div>
             )}
 
-            {/* FILTER BAR (Visible for List & Matrix) */}
+            {/* CONTENT TABS */}
             {activeTab !== 'overview' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
                     <PremiumPageControl
                         searchQuery={activeFilters.query}
-                        onSearchChange={handleSearchChange}
+                        onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
                         searchPlaceholder={t('risks.searchPlaceholder')}
                         activeView={activeTab === 'list' ? viewMode : undefined}
-                        onViewChange={activeTab === 'list' ? handleViewModeChange : undefined}
-                        viewOptions={viewOptions}
+                        onViewChange={activeTab === 'list' ? (m) => setViewMode(m as 'list' | 'grid' | 'matrix') : undefined}
+                        viewOptions={[
+                            { id: 'list', label: t('assets.viewList'), icon: List },
+                            { id: 'grid', label: t('assets.viewGrid'), icon: Grid3x3 }
+                        ]}
                         actions={
                             <>
-                                {/* Framework Filter */}
                                 <div className="hidden md:block w-48">
                                     <CustomSelect
                                         value={frameworkFilter}
-                                        onChange={handleFrameworkChange}
+                                        onChange={(v) => setFrameworkFilter(v as string)}
                                         options={[
                                             { value: '', label: t('risks.allFrameworks') },
                                             { value: 'ISO 27001', label: 'ISO 27001' },
@@ -499,12 +414,7 @@ export const Risks: React.FC = () => {
                                 <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
 
                                 <CustomTooltip content={t('risks.startTour')}>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={handleStartTour}
-                                        aria-label={t('risks.startTour')}
-                                    >
+                                    <Button variant="outline" size="icon" onClick={() => OnboardingService.startRisksTour()}>
                                         <HelpCircle className="h-5 w-5" />
                                     </Button>
                                 </CustomTooltip>
@@ -516,12 +426,8 @@ export const Risks: React.FC = () => {
                                         variant="outline"
                                         size="icon"
                                         data-tour="risks-filters"
-                                        onClick={handleAdvancedSearchToggle}
-                                        aria-label={t('assets.advancedFilters')}
-                                        className={`transition-all ${showAdvancedSearch
-                                            ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
-                                            : ''
-                                            }`}
+                                        onClick={() => setShowAdvancedSearch(prev => !prev)}
+                                        className={showAdvancedSearch ? 'bg-brand-50 text-brand-600 border-brand-100' : ''}
                                     >
                                         <Filter className="h-5 w-5" />
                                     </Button>
@@ -529,66 +435,48 @@ export const Risks: React.FC = () => {
 
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
-                                {/* Actions Menu */}
                                 <Menu as="div" className="relative inline-block text-left">
-                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="More options">
+                                    <Menu.Button as={Button} variant="outline" size="icon">
                                         <MoreVertical className="h-5 w-5" />
                                     </Menu.Button>
                                     <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
                                         <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                             <div className="p-1">
-                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                    {t('risks.reports')}
-                                                </div>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button type="button" aria-label={t('risks.reports')} onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}>
-                                                            <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('risks.reports')} (PDF)
+                                                        <button onClick={handleCommonExport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <FileText className="mr-2 h-4 w-4" /> {t('risks.reports')} (PDF)
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button type="button" aria-label={t('risks.executiveReport')} onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />} {t('risks.executiveReport')}
+                                                        <button onClick={() => exportCSV(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <FileSpreadsheet className="mr-2 h-4 w-4" /> {t('risks.exportCsv')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button type="button" aria-label={t('risks.exportCsv')} onClick={handleCSVExport} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} {t('risks.exportCsv')}
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button type="button" aria-label={t('risks.obsidian')} onClick={handleObsidianExport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> {t('risks.obsidian')}
+                                                        <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <FileCode className="mr-2 h-4 w-4" /> {t('risks.obsidian')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                             </div>
                                             {canEdit && (
                                                 <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('risks.data')}</div>
                                                     <Menu.Item>
                                                         {({ active }) => (
-                                                            <button
-                                                                type="button"
-                                                                aria-label={t('risks.importCsv')}
-                                                                onClick={() => setImportModalOpen(true)}
-                                                                disabled={isImporting}
-                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                            >
-                                                                {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />} {t('risks.importCsv')}
+                                                            <button onClick={() => setImportModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                                <Upload className="mr-2 h-4 w-4" /> {t('risks.importCsv')}
                                                             </button>
                                                         )}
                                                     </Menu.Item>
                                                     <Menu.Item>
                                                         {({ active }) => (
-                                                            <button type="button" aria-label={t('risks.templates')} onClick={handleTemplateModalOpen} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                                <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('risks.templates')}
+                                                            <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                                <Copy className="mr-2 h-4 w-4" /> {t('risks.templates')}
                                                             </button>
                                                         )}
                                                     </Menu.Item>
@@ -598,7 +486,6 @@ export const Risks: React.FC = () => {
                                     </Transition>
                                 </Menu>
 
-                                {/* Main CTA Actions */}
                                 {canEdit && (
                                     <>
                                         <CustomTooltip content="Lancer l'analyse IA">
@@ -606,8 +493,8 @@ export const Risks: React.FC = () => {
                                                 onClick={handleStartAiAnalysis}
                                                 disabled={isAnalyzing}
                                                 isLoading={isAnalyzing}
-                                                aria-label={isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}
-                                                className="hidden lg:flex bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-indigo-500/20 border-0"
+                                                variant="premium"
+                                                className="hidden lg:flex"
                                             >
                                                 {!isAnalyzing && <BrainCircuit className="h-4 w-4 mr-2" />}
                                                 <span className="hidden xl:inline">{isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}</span>
@@ -616,8 +503,8 @@ export const Risks: React.FC = () => {
                                         <CustomTooltip content="Créer un nouveau risque">
                                             <Button
                                                 data-tour="risks-create"
-                                                onClick={handleNewRiskClick}
-                                                aria-label={t('risks.newRisk')}
+                                                onClick={() => { setEditingRisk(null); setCreationMode(true); }}
+                                                variant="default"
                                                 className="shadow-lg shadow-brand-500/20"
                                             >
                                                 <Plus className="h-4 w-4 mr-2" />
@@ -632,45 +519,26 @@ export const Risks: React.FC = () => {
                 </motion.div>
             )}
 
-            {/* Hidden Input for Import */}
-
-            {/* Advanced Search Panel Placeholder */}
             <AnimatePresence>
                 {showAdvancedSearch && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                    >
-                        <AdvancedSearch
-                            onSearch={handleAdvancedSearch}
-                            onClose={handleAdvancedSearchClose}
-                        />
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <AdvancedSearch onSearch={(filters) => { setActiveFilters(prev => ({ ...prev, query: filters.query })); setShowAdvancedSearch(false); }} onClose={() => setShowAdvancedSearch(false)} />
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* LIST TAB CONTENT */}
             {activeTab === 'list' && (
-                <motion.div
-                    key="risk-matrix"
-                    variants={slideUpVariants}
-                    initial="initial"
-                    animate="visible"
-                    exit="exit"
-                    className="mt-8"
-                >
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="mt-8">
                     {viewMode === 'list' ? (
                         <RiskList
                             risks={filteredRisks}
                             loading={loading}
-                            canEdit={canEditResource(user as UserProfile, 'Risk')}
+                            canEdit={canEdit}
                             onEdit={handleEdit}
                             onDelete={handleDeleteRiskItem}
                             onBulkDelete={bulkDeleteRisks}
-                            onSelect={handleRiskSelect}
-                            users={[]} // TODO: Pass actual users if needed for avatars
+                            onSelect={setSelectedRisk}
+                            users={[]}
                             assets={assets}
                             emptyStateTitle={emptyStateTitle}
                             emptyStateDescription={emptyStateDescription}
@@ -681,23 +549,21 @@ export const Risks: React.FC = () => {
                         <RiskGrid
                             risks={filteredRisks}
                             loading={loading}
-                            onSelect={handleRiskSelect}
+                            onSelect={setSelectedRisk}
                             assets={assets}
                             emptyStateIcon={ShieldAlert}
                             emptyStateTitle={emptyStateTitle}
                             emptyStateDescription={emptyStateDescription}
                             emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined}
                             onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined}
-                            canEdit={canEditResource(user as UserProfile, 'Risk')}
+                            canEdit={canEdit}
                             onEdit={handleEdit}
                             onDelete={handleDeleteRiskItem}
                         />
-
                     )}
                 </motion.div>
             )}
 
-            {/* MATRIX TAB CONTENT */}
             {activeTab === 'matrix' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1">
                     {matrixFilter && (
@@ -705,14 +571,13 @@ export const Risks: React.FC = () => {
                             <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
                                 {t('risks.matrix')} : {t('risks.searchPlaceholder')}
                             </span>
-                            {/* Note: searchPlaceholder mismatch for Matrix filter, using "Filtre Matrice" text which wasn't fully translated. Let's fix locally or use a placeholder */}
-                            <button type="button" onClick={handleResetMatrixFilter} className="text-xs text-red-500 font-bold hover:underline" aria-label={t('common.reset')}>{t('common.reset')}</button>
+                            <button type="button" onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">{t('common.reset')}</button>
                         </div>
                     )}
                     <RiskMatrix
                         risks={filteredRisks}
                         matrixFilter={matrixFilter}
-                        setMatrixFilter={handleMatrixFilterChange}
+                        setMatrixFilter={(f) => { setMatrixFilter(f); if (f) setActiveTab('list'); }}
                         frameworkFilter={frameworkFilter}
                     />
                 </motion.div>
@@ -720,7 +585,7 @@ export const Risks: React.FC = () => {
 
             <RiskInspector
                 isOpen={!!selectedRisk}
-                onClose={handleInspectorClose}
+                onClose={() => setSelectedRisk(null)}
                 risk={selectedRisk}
                 assets={assets}
                 controls={controls}
@@ -728,30 +593,29 @@ export const Risks: React.FC = () => {
                 audits={audits}
                 suppliers={suppliers}
                 usersList={usersList}
-                processes={rawProcesses}
+                processes={processes}
                 canEdit={canEdit}
                 demoMode={demoMode}
                 onUpdate={updateRisk}
-                onDelete={handleInspectorDelete}
+                onDelete={(id, name) => handleDelete({ id, name })}
                 onDuplicate={handleDuplicateRisk}
-            // FocusTrap and keyboard navigation are handled internally by Headless UI's Dialog/Drawer components
             />
 
             <Drawer
                 isOpen={creationMode}
-                onClose={handleCreationClose}
-                title={t('risks.newRisk')}
+                onClose={() => setCreationMode(false)}
+                title={editingRisk ? t('risks.editRisk') : t('risks.newRisk')}
                 width="max-w-6xl"
             >
                 <div className="p-6">
                     <RiskForm
-                        initialData={initialFormData} // Use initialFormData state
-                        existingRisk={editingRisk}   // existingRisk is null when creating new
+                        initialData={initialFormData}
+                        existingRisk={editingRisk}
                         onSubmit={handleFormSubmit}
-                        onCancel={handleFormCancel}
+                        onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
                         assets={assets}
                         usersList={usersList}
-                        processes={rawProcesses}
+                        processes={processes}
                         suppliers={suppliers}
                         controls={controls}
                         isLoading={submitting}
@@ -761,14 +625,14 @@ export const Risks: React.FC = () => {
 
             <RiskTemplateModal
                 isOpen={isTemplateModalOpen}
-                onClose={handleTemplateModalClose}
+                onClose={() => setIsTemplateModalOpen(false)}
                 onSelectTemplate={handleTemplateSelect}
                 users={usersList}
             />
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}
-                onClose={handleConfirmClose}
+                onClose={() => setConfirmData(prev => ({ ...prev, isOpen: false }))}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
@@ -784,9 +648,8 @@ export const Risks: React.FC = () => {
                     format: 'CSV'
                 }}
                 onImport={handleImportFile}
-                onDownloadTemplate={handleDownloadTemplate}
+                onDownloadTemplate={() => ImportService.downloadRiskTemplate()}
             />
-
         </motion.div>
     );
 };

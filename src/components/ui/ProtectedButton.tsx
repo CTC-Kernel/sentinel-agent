@@ -1,14 +1,19 @@
 import React, { useState, useCallback } from 'react';
 import { ErrorLogger } from '../../services/errorLogger';
+import { buttonVariants } from './button-variants';
+import { type VariantProps } from "class-variance-authority";
+import { cn } from '../../lib/utils';
+import { Spinner } from './Spinner';
 
 /**
  * Composant Button avec protection double-submit intégrée
  */
-export interface ProtectedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ProtectedButtonProps
+    extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
     isSubmitting?: boolean;
     loadingText?: string;
     children: React.ReactNode;
-    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
 
 export const ProtectedButton: React.FC<ProtectedButtonProps> = ({
@@ -17,6 +22,8 @@ export const ProtectedButton: React.FC<ProtectedButtonProps> = ({
     children,
     disabled,
     className,
+    variant,
+    size,
     onClick,
     ...props
 }) => {
@@ -50,13 +57,13 @@ export const ProtectedButton: React.FC<ProtectedButtonProps> = ({
             {...props}
             onClick={handleClick}
             disabled={disabled || isSubmitting}
-            className={className}
+            className={cn(buttonVariants({ variant, size, className }))}
             aria-busy={isSubmitting}
             aria-disabled={disabled || isSubmitting}
         >
             {isSubmitting ? (
                 <>
-                    <span className="animate-spin mr-2">⟳</span>
+                    <Spinner className="mr-2 h-4 w-4" size="sm" />
                     {loadingText}
                 </>
             ) : (
