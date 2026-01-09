@@ -82,7 +82,7 @@ const GlobalShortcutsWrapper: React.FC = () => {
 };
 
 const AppLayout: React.FC = () => {
-    console.log('AppLayout rendering. Mode:', import.meta.env.MODE);
+
     const { theme, user } = useStore();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
