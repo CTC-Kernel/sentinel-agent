@@ -70,5 +70,28 @@ export const RiskCalculator = {
             score: Number(risk.score) || score,
             residualScore: Number(risk.residualScore) || residualScore // Prioritize stored residual score if exists, else compute
         };
+    },
+
+    /**
+     * Parses partial risk values from forms or templates, ensuring defaults.
+     */
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    parseRiskValues: (data: any) => {
+        const prob = Number(data?.probability) || 1;
+        const imp = Number(data?.impact) || 1;
+        const resProb = Number(data?.residualProbability) || prob;
+        const resImp = Number(data?.residualImpact) || imp;
+
+        const score = RiskCalculator.calculateScore(undefined, prob, imp);
+        const residualScore = RiskCalculator.calculateResidualScore(resProb, resImp);
+
+        return {
+            probability: prob as Risk['probability'],
+            impact: imp as Risk['impact'],
+            residualProbability: resProb as Risk['probability'],
+            residualImpact: resImp as Risk['impact'],
+            score,
+            residualScore
+        };
     }
 };

@@ -8,7 +8,7 @@ import { hybridService } from '../services/hybridService';
 import { logAction } from '../services/logger';
 import { IncidentService } from '../services/incidentService';
 import { Incident, Criticality } from '../types';
-import { IncidentFormData } from '../schemas/incidentSchema';
+import { IncidentFormData, incidentSchema } from '../schemas/incidentSchema';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { SecurityEvent } from '../services/integrationService';
 import { ImportService } from '../services/ImportService';
@@ -62,10 +62,18 @@ export const useIncidents = () => {
         }
     }, [user, addToast, t]);
 
-    const updateIncident = useCallback(async (id: string, data: IncidentFormData, currentIncident?: Incident) => {
+    const updateIncident = useCallback(async (id: string, data: Partial<IncidentFormData>, currentIncident?: Incident) => {
         if (!user?.organizationId) return;
         setLoading(true);
         try {
+            // Validation (Partial)
+            const validationResult = incidentSchema.partial().safeParse(data);
+            if (!validationResult.success) {
+                const errorMessage = validationResult.error.issues[0]?.message || t('common.invalidData');
+                addToast(errorMessage, "error");
+                return;
+            }
+
             const incidentData = sanitizeData({ ...data });
             const now = new Date().toISOString();
 

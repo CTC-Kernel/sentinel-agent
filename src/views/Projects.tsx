@@ -6,7 +6,7 @@ import { useStore } from '../store';
 import { Project, ProjectTemplate, UserProfile } from '../types';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
 import { useProjectDependencies } from '../hooks/projects/useProjectDependencies';
-import { useSuppliers } from '../hooks/useSuppliers';
+import { useSupplierLogic } from '../hooks/suppliers/useSupplierLogic';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ProjectList } from '../components/projects/ProjectList';
 import { ProjectCard } from '../components/projects/ProjectCard';
@@ -93,7 +93,7 @@ export const Projects: React.FC = () => {
 
     const loading = loadingProjects || (shouldFetchDetails && loadingDeps);
 
-    const { suppliers } = useSuppliers();
+    const { suppliers } = useSupplierLogic();
 
     // Confirm Modal State
     const [confirmData, setConfirmData] = useState<{

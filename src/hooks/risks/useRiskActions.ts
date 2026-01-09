@@ -87,6 +87,14 @@ export const useRiskActions = (onRefresh: () => void) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
         setSubmitting(true);
         try {
+            // Validation Zod (Partial for updates)
+            const validationResult = riskSchema.partial().safeParse(data);
+            if (!validationResult.success) {
+                const errorMessage = validationResult.error.issues[0]?.message || t('common.invalidData');
+                toast.error(errorMessage);
+                return false;
+            }
+
             const riskRef = doc(db, 'risks', id);
             await updateDoc(riskRef, sanitizeData({
                 ...data,

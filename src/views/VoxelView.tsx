@@ -164,7 +164,12 @@ export const VoxelView: React.FC = () => {
 
   const [activeLayers, setActiveLayers] = useState<LayerType[]>(() => {
     const saved = localStorage.getItem('voxel_activeLayers');
-    return saved !== null ? JSON.parse(saved) : layerOptions.map(l => l.id);
+    try {
+      const parsed = saved !== null ? JSON.parse(saved) : null;
+      return Array.isArray(parsed) ? parsed : layerOptions.map(l => l.id);
+    } catch {
+      return layerOptions.map(l => l.id);
+    }
   });
 
   // Persistence Effects
@@ -445,7 +450,7 @@ export const VoxelView: React.FC = () => {
     if (route && isValidRoute(route)) {
       addToast(`Navigation vers ${selectedNodeDetails?.title}`, 'info');
       isValidRoute(route);
-      navigate(route, { // validateUrl validation check
+      navigate(`${route}?id=${selectedNode.id}`, { // validateUrl validation check
         state: {
           fromVoxel: true,
           nodeId: selectedNode.id
@@ -461,11 +466,11 @@ export const VoxelView: React.FC = () => {
     if (selectedNode.type === 'risk') {
       const asset = assets.find(a => a.id === (selectedNode.data as Risk).assetId);
       if (asset) items.push({ id: asset.id, type: 'asset', label: asset.name, meta: 'Actif lié' });
-      const linkedProjects = projects.filter(p => ((p as Project).relatedRiskIds || []).includes(selectedNode.id));
+      const linkedProjects = projects.filter(p => Array.isArray(p.relatedRiskIds) && p.relatedRiskIds.includes(selectedNode.id));
       linkedProjects.forEach(project => items.push({ id: project.id, type: 'project', label: project.name, meta: 'Projet' }));
       const linkedIncidents = incidents.filter(incident => incident.affectedAssetId === (selectedNode.data as Risk).assetId);
       linkedIncidents.forEach(incident => items.push({ id: incident.id, type: 'incident', label: incident.title, meta: 'Incident impacté' }));
-      const linkedControls = controls.filter(c => (c.relatedRiskIds || []).includes(selectedNode.id));
+      const linkedControls = controls.filter(c => Array.isArray(c.relatedRiskIds) && c.relatedRiskIds.includes(selectedNode.id));
       linkedControls.forEach(c => items.push({ id: c.id, type: 'control', label: c.name, meta: c.status }));
     } else if (selectedNode.type === 'asset') {
       const linkedRisks = risks.filter(risk => risk.assetId === selectedNode.id);
@@ -473,7 +478,7 @@ export const VoxelView: React.FC = () => {
       const linkedIncidents = incidents.filter(incident => incident.affectedAssetId === selectedNode.id);
       linkedIncidents.forEach(incident => items.push({ id: incident.id, type: 'incident', label: incident.title, meta: incident.severity }));
       controls.forEach(c => {
-        if ((c.relatedAssetIds || []).includes(selectedNode.id)) {
+        if (Array.isArray(c.relatedAssetIds) && c.relatedAssetIds.includes(selectedNode.id)) {
           items.push({ id: c.id, type: 'control', label: c.name, meta: c.status });
         }
       });
@@ -481,7 +486,8 @@ export const VoxelView: React.FC = () => {
       const asset = assets.find(a => a.id === (selectedNode.data as Incident).affectedAssetId);
       if (asset) items.push({ id: asset.id, type: 'asset', label: asset.name, meta: 'Actif impacté' });
     } else if (selectedNode.type === 'project') {
-      const relatedRisks = risks.filter(risk => ((selectedNode.data as Project).relatedRiskIds || []).includes(risk.id));
+      const projectData = selectedNode.data as Project;
+      const relatedRisks = risks.filter(risk => Array.isArray(projectData.relatedRiskIds) && projectData.relatedRiskIds.includes(risk.id));
       relatedRisks.forEach(risk => items.push({ id: risk.id, type: 'risk', label: risk.threat, meta: 'Risque suivi' }));
     } else if (selectedNode.type === 'control') {
       const control = selectedNode.data as Control;

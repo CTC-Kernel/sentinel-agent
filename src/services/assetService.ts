@@ -68,10 +68,10 @@ export const AssetService = {
     /**
      * Update an existing asset
      */
-    async update(id: string, data: AssetFormData, user: UserProfile): Promise<void> {
+    async update(id: string, data: Partial<AssetFormData>, user: UserProfile): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
 
-        const validatedData = assetSchema.parse(data);
+        const validatedData = assetSchema.partial().parse(data);
         const cleanData = sanitizeData(validatedData);
 
         await updateDoc(doc(db, 'assets', id), {

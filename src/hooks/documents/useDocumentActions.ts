@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { addDoc, collection, deleteDoc, doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Document, DocumentFolder, UserProfile, Control } from '../../types';
+import { Document, DocumentFolder, UserProfile } from '../../types';
 import { DocumentFormData } from '../../schemas/documentSchema';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { logAction } from '../../services/logger';
@@ -149,15 +149,14 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         }
     };
 
-    const initiateDelete = async (docItem: Document, controls: Control[] = []) => {
+    const initiateDelete = async (docItem: Document) => {
         if (!user?.organizationId || !canEditResource(user, 'Document', docItem.ownerId || docItem.owner)) return;
 
         try {
             // Use DocumentService to check dependencies
             const dependencies = await DocumentService.checkDependencies(
                 docItem.id,
-                user.organizationId,
-                controls
+                user.organizationId
             );
 
             setConfirmData({

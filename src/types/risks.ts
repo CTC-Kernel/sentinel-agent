@@ -166,6 +166,7 @@ export interface Threat {
     verified?: boolean; // New verified field
     source?: string; // 'Community' | 'CISA' | 'URLhaus' | etc.
     description?: string;
+    url?: string;
 }
 
 // AISuggestedLink moved to voxel.ts

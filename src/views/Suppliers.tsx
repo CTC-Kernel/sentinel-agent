@@ -8,9 +8,10 @@ import { canEditResource } from '../utils/permissions';
 import { Supplier, Criticality } from '../types';
 import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { Button } from '../components/ui/button';
 import { useStore } from '../store';
-import { useSuppliers } from '../hooks/useSuppliers';
-import { useSuppliersData } from '../hooks/suppliers/useSuppliersData';
+import { useSupplierLogic } from '../hooks/suppliers/useSupplierLogic';
+import { useSupplierDependencies } from '../hooks/suppliers/useSupplierDependencies';
 import { ConfirmModal } from '../components/ui/ConfirmModal'; // Keyboard: Escape key supported
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
@@ -83,14 +84,25 @@ export const Suppliers: React.FC = () => {
     });
 
     // Data Hooks
-    const { suppliers: suppliersRaw, loading: loadingSuppliers, addSupplier, updateSupplier, deleteSupplier, importSuppliers } = useSuppliers();
+    const { suppliers: suppliersRaw, loading: loadingLogic, addSupplier, updateSupplier, deleteSupplier, importSuppliers } = useSupplierLogic();
+
+    const shouldLoadDeps = !!selectedSupplier || creationMode;
     const {
         usersRaw: effectiveUsers,
         processesRaw,
         assetsRaw,
         risksRaw,
-        documentsRaw
-    } = useSuppliersData(user?.organizationId);
+        documentsRaw,
+        loading: loadingDeps
+    } = useSupplierDependencies({
+        fetchUsers: shouldLoadDeps,
+        fetchProcesses: shouldLoadDeps,
+        fetchAssets: shouldLoadDeps,
+        fetchRisks: shouldLoadDeps,
+        fetchDocuments: shouldLoadDeps
+    });
+
+    const loadingSuppliers = loadingLogic || (shouldLoadDeps && loadingDeps);
 
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
@@ -482,26 +494,34 @@ export const Suppliers: React.FC = () => {
                                 </Transition>
                             </Menu>
 
+                            import {Button} from '../components/ui/Button';
+
+                            // ... (other imports)
+
+                            // ...
+
                             <CustomTooltip content="Gérer les modèles d'évaluation">
-                                <button
-                                    aria-label="Gérer les modèles d'évaluation"
+                                <Button
+                                    variant="outline"
+                                    size="icon"
                                     onClick={handleTemplateModeOpen}
-                                    className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                    className="h-10 w-10 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10"
+                                    aria-label="Gérer les modèles d'évaluation"
                                 >
                                     <ClipboardList className="h-5 w-5" />
-                                </button>
+                                </Button>
                             </CustomTooltip>
 
                             <CustomTooltip content="Ajouter un nouveau fournisseur">
-                                <button
-                                    aria-label={t('suppliers.newSupplier')}
+                                <Button
+                                    variant="default"
                                     onClick={handleCreationDrawerOpen}
-                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
+                                    className="rounded-xl shadow-lg shadow-brand-500/20"
                                     data-tour="suppliers-new"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
                                     <span className="hidden sm:inline">{t('suppliers.newSupplier')}</span>
-                                </button>
+                                </Button>
                             </CustomTooltip>
                         </>
                     )}

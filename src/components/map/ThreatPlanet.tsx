@@ -1,12 +1,14 @@
 import React, { useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Sphere } from '@react-three/drei';
+import { AlertTriangle } from 'lucide-react';
 import * as THREE from 'three';
+import { EarthCountries } from './EarthCountries';
 
 interface ThreatData {
     country: string;
     value: number;
-    markers: Array<{ coordinates: [number, number], name: string }>;
+    markers: Array<{ coordinates: [number, number], name: string, type?: string, severity?: string }>;
 }
 
 interface ThreatPlanetProps {
@@ -23,7 +25,7 @@ const latLonToVector3 = (lat: number, lon: number, radius: number): THREE.Vector
     return new THREE.Vector3(x, y, z);
 };
 
-const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity: number; country: string }> = ({ position, name, intensity, country }) => {
+const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity: number; country: string; type?: string; severity?: string }> = ({ position, name, intensity, country, type, severity }) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const beamRef = useRef<THREE.Mesh>(null);
     const [hovered, setHovered] = useState(false);
@@ -42,8 +44,8 @@ const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity:
         }
     });
 
-    const isHigh = intensity > 5;
-    const color = intensity > 7 ? "#ef4444" : intensity > 4 ? "#f97316" : "#3b82f6";
+    const isHigh = intensity > 5 || severity === 'Critical';
+    const color = isHigh ? "#ef4444" : "#f97316";
     // Beam height proportional to intensity
     const beamHeight = 0.5 + (intensity / 10) * 2.5;
 
@@ -64,15 +66,11 @@ const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity:
                 <meshBasicMaterial color={color} transparent opacity={0.9} />
             </mesh>
 
-            {/* The Beam - Cylinder points along Y axis by default. 
-                Our group looks at 0,0,0, so Z points to center. -Z points Out.
-                We want beam pointing Out.
-                Rotate X 90 degrees puts Cylinder along Z axis.
-            */}
+            {/* The Beam */}
             <mesh
                 ref={beamRef}
                 rotation={[Math.PI / 2, 0, 0]}
-                position={[0, 0, beamHeight / 2 * -1]} // Offset so base is at surface (roughly)
+                position={[0, 0, beamHeight / 2 * -1]}
             >
                 <cylinderGeometry args={[0.02, 0.01, beamHeight, 8]} />
                 <meshBasicMaterial color={color} transparent opacity={0.6} blending={THREE.AdditiveBlending} />
@@ -81,21 +79,46 @@ const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity:
             {/* Tooltip */}
             {hovered && (
                 <Html distanceFactor={10} zIndexRange={[100, 0]}>
-                    <div className="bg-slate-900/90 text-white min-w-[200px] p-4 rounded-xl border border-white/20 shadow-2xl backdrop-blur-md select-none pointer-events-none transform -translate-x-1/2 -translate-y-full mb-4">
-                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
-                            <div className={`w-2 h-2 rounded-full ${isHigh ? 'bg-red-500 animate-pulse' : 'bg-blue-500'}`} />
-                            <span className="font-bold text-sm tracking-wider">{country}</span>
+                    <div className="bg-slate-900/95 text-white min-w-[240px] p-3 rounded-xl border border-white/10 shadow-2xl backdrop-blur-xl select-none pointer-events-none transform -translate-x-1/2 -translate-y-[120%] mb-2">
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-2 pb-2 border-b border-white/10">
+                            <div className="font-bold text-sm tracking-wide">{country}</div>
+                            <div className="flex items-center gap-1.5">
+                                <span className={`relative flex h-2 w-2`}>
+                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isHigh ? 'bg-red-500' : 'bg-orange-500'}`}></span>
+                                    <span className={`relative inline-flex rounded-full h-2 w-2 ${isHigh ? 'bg-red-500' : 'bg-orange-500'}`}></span>
+                                </span>
+                                <span className={`text-[10px] font-mono font-bold tracking-wider ${isHigh ? 'text-red-400' : 'text-orange-400'}`}>{severity ? severity.toUpperCase() : (isHigh ? 'CRITICAL' : 'WARNING')}</span>
+                            </div>
                         </div>
-                        <div className="font-mono text-xs text-slate-300 mb-1">{name}</div>
-                        <div className="flex justify-between items-center text-[10px] uppercase tracking-widest text-slate-500 mt-2">
-                            <span>INTENSITY: {intensity.toFixed(1)}</span>
-                            <span className="text-emerald-400">LIVE</span>
+
+                        {/* Content */}
+                        <div className="flex items-start gap-3 mb-2">
+                            <div className={`mt-0.5 p-1 rounded-md ${isHigh ? 'bg-red-500/10' : 'bg-orange-500/10'} border ${isHigh ? 'border-red-500/20' : 'border-orange-500/20'}`}>
+                                <AlertTriangle className={`w-3.5 h-3.5 ${isHigh ? 'text-red-500' : 'text-orange-500'}`} />
+                            </div>
+                            <div>
+                                <div className="text-[10px] uppercase text-slate-500 font-bold mb-0.5">{type || 'Threat Detected'}</div>
+                                <div className="text-xs text-slate-200 font-medium leading-snug">{name}</div>
+                            </div>
+                        </div>
+
+                        {/* Footer Stats */}
+                        <div className="flex gap-2 mt-2 pt-2 border-t border-white/5 bg-white/5 -mx-3 -mb-3 px-3 pb-3 rounded-b-xl">
+                            <div className="flex-1">
+                                <div className="text-[9px] text-slate-400 uppercase tracking-wider">Intensity</div>
+                                <div className="text-sm font-mono font-bold text-white">{intensity.toFixed(1)}</div>
+                            </div>
+                            <div className="flex-1 text-right">
+                                <div className="text-[9px] text-slate-400 uppercase tracking-wider">Status</div>
+                                <div className="text-sm font-mono font-bold text-emerald-400">ACTIVE</div>
+                            </div>
                         </div>
                     </div>
                 </Html>
             )}
 
-            {/* Hitbox for hover - much larger for easier interaction */}
+            {/* Hitbox */}
             <mesh onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }} onPointerOut={(e) => { e.stopPropagation(); setHovered(false); }} visible={false}>
                 <sphereGeometry args={[0.3, 8, 8]} />
             </mesh>
@@ -150,6 +173,9 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
                 />
             </Sphere>
 
+            {/* Country Borders */}
+            <EarthCountries color="#38bdf8" />
+
             {/* Atmosphere Glow Halo */}
             <Sphere args={[2.2, 64, 64]}>
                 <meshBasicMaterial
@@ -162,7 +188,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
             </Sphere>
 
             {markers.map((m, i) => (
-                <ThreatMarker key={i} position={m.vec3} name={m.name} intensity={m.intensity} country={m.country} />
+                <ThreatMarker key={i} position={m.vec3} name={m.name} intensity={m.intensity} country={m.country} type={m.type} severity={m.severity} />
             ))}
         </group>
     );

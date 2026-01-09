@@ -24,6 +24,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useDocumentWorkflow } from '../hooks/documents/useDocumentWorkflow';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
 import { useDocumentsData } from '../hooks/documents/useDocumentsData';
+import { useDocumentDependencies } from '../hooks/documents/useDocumentDependencies';
 import { DocumentFormData } from '../schemas/documentSchema';
 // Form error handling: error states displayed via toast
 
@@ -55,13 +56,21 @@ export const Documents: React.FC = () => {
     const {
         documents,
         usersList,
-        controls,
         folders,
-        rawAssets,
-        rawAudits,
-        rawRisks,
         loading
     } = useDocumentsData(user?.organizationId);
+
+    // Optimized: Lazy load dependencies
+    const { dependencies, loadDependencies } = useDocumentDependencies(user?.organizationId);
+
+    // Destructure lazy dependencies (empty initially)
+    const {
+        controls,
+        assets: rawAssets,
+        risks: rawRisks,
+        audits: rawAudits
+    } = dependencies;
+
 
     // FIX: Ensure usersList is never empty if logged in
     const effectiveUsers = useMemo(() => {
@@ -140,6 +149,7 @@ export const Documents: React.FC = () => {
         if (deepLinkDocId && documents.length > 0) {
             const doc = documents.find(d => d.id === deepLinkDocId);
             if (doc && selectedDocument?.id !== doc.id) {
+                loadDependencies();
                 setSelectedDocument(doc);
             }
         }
@@ -231,7 +241,7 @@ export const Documents: React.FC = () => {
     }, []);
 
     const handleDeleteDocumentClick = React.useCallback(() => {
-        if (selectedDocument) initiateDelete(selectedDocument, controls);
+        if (selectedDocument) initiateDelete(selectedDocument);
     }, [selectedDocument, initiateDelete, controls]);
 
     const handleWorkflowActionClick = useCallback((action: WorkflowAction) => {
