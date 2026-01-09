@@ -11,6 +11,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { IncidentSummaryCard } from './dashboard/IncidentSummaryCard';
 import { IncidentCharts } from './dashboard/IncidentCharts';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { NIS2DeadlineTimer } from './NIS2DeadlineTimer';
 
 interface IncidentDashboardProps {
     incidents: Incident[];
@@ -265,6 +266,11 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(inc.status)}`}>
                                             {inc.status}
                                         </span>
+                                        {inc.isSignificant && (
+                                            <div className="ml-1">
+                                                <NIS2DeadlineTimer incident={inc} compact={true} />
+                                            </div>
+                                        )}
                                     </div>
                                     {canDelete && onDelete && (
                                         <CustomTooltip content="Supprimer l'incident">

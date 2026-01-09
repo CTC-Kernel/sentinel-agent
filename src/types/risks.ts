@@ -41,7 +41,21 @@ export interface Vulnerability {
     relatedRiskId?: string;
     assignee?: string;
     createdAt?: string;
+    relatedTlptCampaignId?: string;
+    relatedTlptCampaignName?: string;
+    attachments?: EvidenceAttachment[];
     updatedAt?: string;
+}
+
+export interface EvidenceAttachment {
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+    uploadedAt: string;
+    uploadedBy: string;
+    hash?: string;
 }
 
 export interface Risk {

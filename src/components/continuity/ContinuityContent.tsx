@@ -12,7 +12,7 @@ import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { useTranslation } from 'react-i18next';
 
 interface ContinuityContentProps {
-    activeTab: 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
+    activeTab: 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis' | 'tlpt';
     loading: boolean;
     viewMode: 'grid' | 'list' | 'matrix' | 'kanban';
     filteredProcesses: BusinessProcess[];
@@ -29,6 +29,10 @@ interface ContinuityContentProps {
     onSetSelectedProcess: (process: BusinessProcess) => void;
     onOpenDrillModal: () => void;
     onDeleteDrill: (id: string) => void;
+    tlptCampaigns?: TlptCampaign[];
+    onAddTlpt: (data: Partial<TlptCampaign>) => Promise<void>;
+    onUpdateTlpt: (id: string, data: Partial<TlptCampaign>) => Promise<void>;
+    onDeleteTlpt: (id: string) => Promise<void>;
 }
 
 export const ContinuityContent: React.FC<ContinuityContentProps> = ({
@@ -48,7 +52,11 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
     onOpenProcessModal,
     onSetSelectedProcess,
     onOpenDrillModal,
-    onDeleteDrill
+    onDeleteDrill,
+    tlptCampaigns,
+    onAddTlpt,
+    onUpdateTlpt,
+    onDeleteTlpt
 }) => {
     const { t } = useTranslation();
 

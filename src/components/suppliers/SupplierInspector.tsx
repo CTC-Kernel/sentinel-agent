@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Supplier, UserProfile, BusinessProcess, Asset, Risk, Document as GRCDocument } from '../../types';
+import { Supplier, UserProfile, BusinessProcess, Asset, Risk, Document as GRCDocument, SupplierQuestionnaireResponse } from '../../types';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { SupplierForm } from './SupplierForm';
 import {
@@ -7,6 +7,7 @@ import {
     FileSpreadsheet,
     MessageSquare,
     ClipboardList,
+    Scale
 } from '../ui/Icons';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { CommentSection } from '../collaboration/CommentSection';
@@ -16,6 +17,7 @@ import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import type { SubmitHandler } from 'react-hook-form';
 import { SupplierFormData } from '../../schemas/supplierSchema';
 import { SupplierAssessments } from './inspector/SupplierAssessments';
+import { SupplierContractCompliance } from './inspector/SupplierContractCompliance';
 
 interface SupplierInspectorProps {
     supplier: Supplier;
@@ -29,6 +31,8 @@ interface SupplierInspectorProps {
     risks: Risk[];
     documents: GRCDocument[];
     onStartAssessment: () => void;
+    assessments: SupplierQuestionnaireResponse[];
+    onViewAssessment: (id: string) => void;
 }
 
 export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
@@ -42,14 +46,17 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
     assets,
     risks,
     documents,
-    onStartAssessment
+    onStartAssessment,
+    assessments,
+    onViewAssessment
 }) => {
     // Tabs state
-    const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'history' | 'comments'>('profile');
+    const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'contracts' | 'history' | 'comments'>('profile');
 
     const tabs = [
-        { id: 'profile', label: 'Profil', icon: Building }, // Changed ID from 'details' to 'profile' to match original usage in Suppliers.tsx if we want, but 'profile' is fine.
-        { id: 'assessment', label: 'Évaluations', icon: ClipboardList }, // Added Assessment tab
+        { id: 'profile', label: 'Profil', icon: Building },
+        { id: 'assessment', label: 'Évaluations', icon: ClipboardList },
+        { id: 'contracts', label: 'Contrats & DORA', icon: Scale },
         { id: 'history', label: 'Historique', icon: FileSpreadsheet },
         { id: 'comments', label: 'Commentaires', icon: MessageSquare }
     ];
@@ -113,7 +120,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
             }
             tabs={tabs}
             activeTab={inspectorTab}
-            onTabChange={(id) => setInspectorTab(id as 'profile' | 'assessment' | 'history' | 'comments')}
+            onTabChange={(id) => setInspectorTab(id as any)}
         >
             <div className="h-full flex flex-col">
                 <div className="flex-1 overflow-hidden relative">
@@ -136,7 +143,15 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                         <SupplierAssessments
                             canEdit={canEdit}
                             onStartAssessment={onStartAssessment}
-                            assessments={[]} // TODO: Connect to real assessment history
+                            assessments={assessments}
+                            onViewAssessment={onViewAssessment}
+                        />
+                    )}
+                    {inspectorTab === 'contracts' && (
+                        <SupplierContractCompliance
+                            supplier={supplier}
+                            canEdit={canEdit}
+                            onUpdate={onUpdate}
                         />
                     )}
                     {inspectorTab === 'history' && (

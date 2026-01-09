@@ -25,6 +25,14 @@ export interface Supplier {
         lastAssessmentDate?: string;
     };
     // DORA Specific Fields
+    doraContractClauses?: {
+        auditRights?: boolean;
+        slaDefined?: boolean;
+        dataLocation?: boolean;
+        subcontractingConditions?: boolean;
+        incidentNotification?: boolean;
+        exitStrategy?: boolean;
+    };
     isICTProvider?: boolean;
     supportsCriticalFunction?: boolean;
     doraCriticality?: 'Critical' | 'Important' | 'None';

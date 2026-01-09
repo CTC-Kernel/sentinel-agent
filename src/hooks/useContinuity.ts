@@ -186,6 +186,61 @@ export const useContinuity = () => {
         }
     }, [user, addToast, t]);
 
+    const addTlptCampaign = useCallback(async (data: Partial<import('../types/tlpt').TlptCampaign>) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            const newCampaign = {
+                ...data,
+                organizationId: user.organizationId,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                status: data.status || 'Planned'
+            };
+            const docRef = await addDoc(collection(db, 'tlpt_campaigns'), newCampaign);
+            await logAction(user, 'CREATE', 'TlptCampaign', `Created TLPT Campaign: ${data.name}`);
+            addToast("Campagne TLPT créée", 'success');
+            return { id: docRef.id, ...newCampaign };
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useContinuity.addTlptCampaign', 'CREATE_FAILED');
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast]);
+
+    const updateTlptCampaign = useCallback(async (id: string, data: Partial<import('../types/tlpt').TlptCampaign>) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            await updateDoc(doc(db, 'tlpt_campaigns', id), {
+                ...data,
+                updatedAt: serverTimestamp()
+            });
+            addToast("Campagne mise à jour", 'success');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useContinuity.updateTlptCampaign', 'UPDATE_FAILED');
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast]);
+
+    const deleteTlptCampaign = useCallback(async (id: string) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            await deleteDoc(doc(db, 'tlpt_campaigns', id));
+            await logAction(user, 'DELETE', 'TlptCampaign', `Deleted TLPT Campaign: ${id}`);
+            addToast("Campagne supprimée", 'success');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useContinuity.deleteTlptCampaign', 'DELETE_FAILED');
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast]);
+
     return {
         addProcess,
         updateProcess,
@@ -194,6 +249,9 @@ export const useContinuity = () => {
         updateDrill,
         deleteDrill,
         importProcesses,
+        addTlptCampaign,
+        updateTlptCampaign,
+        deleteTlptCampaign,
         loading
     };
 };

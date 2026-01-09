@@ -24,6 +24,14 @@ export const supplierSchema = z.object({
         lastAssessmentDate: z.string().optional()
     }).optional(),
     // DORA Fields
+    doraContractClauses: z.object({
+        auditRights: z.boolean().optional(),
+        slaDefined: z.boolean().optional(),
+        dataLocation: z.boolean().optional(),
+        subcontractingConditions: z.boolean().optional(),
+        incidentNotification: z.boolean().optional(),
+        exitStrategy: z.boolean().optional(),
+    }).optional(),
     isICTProvider: z.boolean().optional(),
     supportsCriticalFunction: z.boolean().optional(),
     doraCriticality: z.enum(['Critical', 'Important', 'None']).optional(),

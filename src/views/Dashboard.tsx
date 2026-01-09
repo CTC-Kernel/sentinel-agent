@@ -520,6 +520,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                                         radarData={radarData}
                                         incidents={activeIncidents}
                                         complianceScore={complianceScore}
+                                        suppliers={allSuppliers}
                                     />
                                 );
                             }

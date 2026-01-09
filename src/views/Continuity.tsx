@@ -11,7 +11,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useStore } from '../store';
-import { BusinessProcess } from '../types';
+import { BusinessProcess, TlptCampaign } from '../types';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useCallback } from 'react';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
@@ -29,7 +29,7 @@ import { ContinuityContent } from '../components/continuity/ContinuityContent';
 import { OnboardingService } from '../services/onboardingService';
 // Form validation: useForm with required fields
 
-type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
+type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis' | 'tlpt';
 
 export const Continuity: React.FC = () => {
     const { user, t } = useStore();
@@ -54,7 +54,7 @@ export const Continuity: React.FC = () => {
     const [filter, setFilter] = useState('');
 
     // Actions Hook
-    const { addProcess, updateProcess, deleteProcess, addDrill, deleteDrill, importProcesses, loading: loadingAction } = useContinuity();
+    const { addProcess, updateProcess, deleteProcess, addDrill, deleteDrill, importProcesses, addTlptCampaign, updateTlptCampaign, deleteTlptCampaign, loading: loadingAction } = useContinuity();
 
     const [csvImportOpen, setCsvImportOpen] = useState(false);
 
@@ -80,6 +80,7 @@ export const Continuity: React.FC = () => {
     const {
         processes,
         drills,
+        tlptCampaigns,
         assets,
         risks,
         suppliers,
@@ -229,6 +230,7 @@ export const Continuity: React.FC = () => {
         { id: 'bia', label: t('continuity.tabs.bia'), icon: AlertOctagon },
         { id: 'strategies', label: t('continuity.tabs.strategies'), icon: ShieldCheck },
         { id: 'drills', label: t('continuity.tabs.drills'), icon: Zap },
+        { id: 'tlpt', label: "Tests de Résilience (TLPT)", icon: ShieldCheck },
         { id: 'crisis', label: t('continuity.tabs.crisis'), icon: FileText },
     ], [t]);
 
@@ -298,6 +300,10 @@ export const Continuity: React.FC = () => {
                 onSetSelectedProcess={setSelectedProcess}
                 onOpenDrillModal={handleOpenDrillModal}
                 onDeleteDrill={handleDeleteDrill}
+                tlptCampaigns={tlptCampaigns}
+                onAddTlpt={async (data) => { await addTlptCampaign(data as Partial<TlptCampaign>); }}
+                onUpdateTlpt={(id, data) => updateTlptCampaign(id, data as Partial<TlptCampaign>)}
+                onDeleteTlpt={deleteTlptCampaign}
             />
 
             {/* Modals */}
