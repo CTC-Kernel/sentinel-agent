@@ -45,7 +45,7 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         // ALWAYS LOG
-        console.log('[TestAuthGuard] isTestMode:', isTestMode, 'Window TEST_MODE:', typeof window !== 'undefined' ? (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__ : 'N/A', 'Env:', import.meta.env.MODE);
+
 
     }, [setUser, isTestMode]);
 

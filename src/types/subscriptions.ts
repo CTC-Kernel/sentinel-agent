@@ -21,6 +21,7 @@ export interface Subscription {
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
     cancelAtPeriodEnd: boolean;
+    customLimits?: Partial<PlanLimits>;
 }
 
 export interface Organization {
@@ -36,6 +37,7 @@ export interface Organization {
     contactEmail?: string;
     createdAt: string;
     updatedAt: string;
+    isActive?: boolean;
     storageUsed?: number; // in bytes
     settings?: {
         theme?: 'light' | 'dark' | 'system';

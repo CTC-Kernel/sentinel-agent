@@ -4,11 +4,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../../../firebase';
+import { auth } from '../../../firebase';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
-import { toast } from 'sonner';
-import { doc, getDoc } from 'firebase/firestore';
+import { toast } from '@/lib/toast';
+import { MasterpieceBackground } from '../../../components/ui/MasterpieceBackground';
 
 const loginSchema = z.object({
     email: z.string().email('Email invalide'),
@@ -28,33 +28,22 @@ export const CertifierLogin: React.FC = () => {
     const onSubmit = async (data: LoginData) => {
         setIsLoading(true);
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-
-            // Validate that this user is actually a certifier
-            // We check the user profile or claims (client side check for redirection UX, claims enforced by backend)
-            await getDoc(doc(db, 'users', userCredential.user.uid));
-            // Assuming we store 'role' or custom claim locally or in user profile
-            // For now, if login works, we redirect to dashboard. 
-            // The dashboard data fetch will fail if they are not a certifier.
-
+            await signInWithEmailAndPassword(auth, data.email, data.password);
+            // Simple redirect after login/register
+            toast.success('Connexion réussie', 'Bienvenue sur le portail certificateur');
             navigate('/portal/dashboard');
-            toast.success('Connexion réussie');
-        } catch (_error: unknown) {
-            // Firebase Auth specific errors
-            const firebaseError = _error as { code?: string };
-            if (firebaseError.code === 'auth/invalid-credential' || firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
-                toast.error('Identifiants incorrects');
-            } else {
-                toast.error('Erreur de connexion');
-            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Erreur', 'Identifiants invalides ou erreur de connexion');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="flex min-h-[calc(100vh-200px)] flex-col justify-center py-12 px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex min-h-[calc(100vh-200px)] flex-col justify-center py-12 px-6 lg:px-8 relative overflow-hidden">
+            <MasterpieceBackground className="opacity-50" />
+            <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
                 <div className="flex justify-center">
                     <div className="w-16 h-16 bg-brand-500/10 rounded-2xl flex items-center justify-center">
                         <ShieldCheck className="w-10 h-10 text-brand-600" />

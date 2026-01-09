@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useForm, SubmitHandler, useWatch, Controller, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { incidentSchema, IncidentFormData } from '../../schemas/incidentSchema';
 import { Criticality, UserProfile, BusinessProcess, Asset, Risk } from '../../types';
 import { ShieldAlert } from '../ui/Icons';
@@ -13,6 +13,8 @@ import { Button } from '../ui/button';
 import { RichTextEditor } from '../ui/RichTextEditor';
 
 import { PLAYBOOKS, INCIDENT_STATUSES, NOTIFICATION_STATUSES } from '../../data/incidentConstants';
+import { NIS2DeadlineTimer } from './NIS2DeadlineTimer';
+import { Incident } from '../../types';
 
 interface IncidentFormProps {
     onSubmit: SubmitHandler<IncidentFormData>;
@@ -111,13 +113,18 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
 
                         {isSignificant && (
                             <div className="animate-fade-in pl-8 space-y-4 mt-4">
-                                <div className="p-4 bg-white/60 dark:bg-slate-900/50 rounded-2xl border border-red-100 dark:border-red-900/30">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">Délais de Notification</h4>
-                                    <ul className="text-xs space-y-2 text-slate-600 dark:text-slate-400">
-                                        <li className="flex justify-between items-center bg-white/40 dark:bg-white/5 p-2 rounded-lg"><span>Pré-notification (Early Warning)</span> <span className="font-bold bg-white dark:bg-black/20 px-2 py-0.5 rounded text-red-600">24h</span></li>
-                                        <li className="flex justify-between items-center bg-white/40 dark:bg-white/5 p-2 rounded-lg"><span>Notification Initiale</span> <span className="font-bold bg-white dark:bg-black/20 px-2 py-0.5 rounded text-red-600">72h</span></li>
-                                        <li className="flex justify-between items-center bg-white/40 dark:bg-white/5 p-2 rounded-lg"><span>Rapport Final</span> <span className="font-bold bg-white dark:bg-black/20 px-2 py-0.5 rounded text-red-600">1 mois</span></li>
-                                    </ul>
+                                <div className="bg-white/40 dark:bg-white/5 p-4 rounded-xl">
+                                    <NIS2DeadlineTimer
+                                        incident={{
+                                            ...initialData,
+                                            ...getValues(),
+                                            id: (initialData as Partial<IncidentFormData> & { id?: string })?.id || 'new',
+                                            organizationId: 'current', // dummy
+                                            reporter: 'current', // dummy
+                                            dateReported: getValues('dateReported') || new Date().toISOString(),
+                                            // Ensure other required fields are present for type satisfaction if needed, though they might be optional in Partial
+                                        } as Incident}
+                                    />
                                 </div>
 
                                 <Controller

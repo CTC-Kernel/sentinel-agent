@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { where, doc, updateDoc, addDoc, collection, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
+import { where, doc, updateDoc, addDoc, collection, writeBatch, limit, serverTimestamp, getCountFromServer, query } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Project, ProjectTask, ProjectMilestone } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -87,7 +87,10 @@ export const useProjectLogic = () => {
 
             } else {
                 // Create
-                const canAddProject = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+                const countSnap = await getCountFromServer(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)));
+                const currentCount = countSnap.data().count;
+
+                const canAddProject = await SubscriptionService.checkLimit(user.organizationId, 'projects', currentCount);
                 if (!canAddProject) {
                     addToast(`Nombre maximum de projets atteint pour votre plan (${projects.length}/${limits?.maxProjects ?? '…'}).`, "error");
                     setIsSubmitting(false);
@@ -138,7 +141,10 @@ export const useProjectLogic = () => {
 
     const handleDuplicate = async (project: Project) => {
         if (!canEdit || !user?.organizationId) return;
-        const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+
+        const countSnap = await getCountFromServer(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)));
+        const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'projects', countSnap.data().count);
+
         if (!canAdd) return 'LIMIT_REACHED';
 
         setIsSubmitting(true);

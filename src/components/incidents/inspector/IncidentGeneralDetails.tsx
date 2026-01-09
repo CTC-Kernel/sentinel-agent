@@ -4,6 +4,7 @@ import { BookOpen } from '../../ui/Icons';
 import { SafeHTML } from '../../ui/SafeHTML';
 import { Badge } from '../../ui/Badge';
 import { ThreatIntelChecker } from '../ThreatIntelChecker';
+import { NIS2DeadlineTimer } from '../NIS2DeadlineTimer';
 
 interface IncidentGeneralDetailsProps {
     incident: Incident;
@@ -30,6 +31,21 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                         )}
                     </div>
                 </div>
+
+                {/* NIS 2 Deadlines */}
+                {incident.isSignificant && (
+                    <div className="glass-premium p-6 rounded-2xl border border-red-100 dark:border-red-900/30 shadow-sm relative overflow-hidden">
+                        <div className="absolute inset-0 bg-red-50/30 dark:bg-red-900/10 pointer-events-none" />
+                        <div className="relative z-10">
+                            <h3 className="text-sm font-bold text-red-800 dark:text-red-400 mb-4 uppercase tracking-wider flex items-center gap-2">
+                                <span className="animate-pulse h-2 w-2 rounded-full bg-red-500" />
+                                Délais de Notification (NIS 2)
+                            </h3>
+                            <NIS2DeadlineTimer incident={incident} />
+                        </div>
+                    </div>
+                )}
+
 
                 {/* Badges & Status */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -97,6 +113,6 @@ export const IncidentGeneralDetails: React.FC<IncidentGeneralDetailsProps> = ({ 
                 {/* Threat Intel Check */}
                 <ThreatIntelChecker />
             </div>
-        </div>
+        </div >
     );
 };

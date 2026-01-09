@@ -66,6 +66,77 @@ export class DashboardService {
         }
     }
     /**
+     * Fetch aggregated stats (Risk counts by level, total assets)
+     * Optimized to use server-side counting to save reads
+     */
+    static async getAggregatedStats(organizationId: string): Promise<{
+        totalRisks: number;
+        highRisks: number;
+        mediumRisks: number;
+        lowRisks: number;
+        totalAssets: number;
+        controlsStats: { implemented: number; actionable: number; total: number };
+    }> {
+        try {
+            // Parallel execution of count queries
+            const [
+                totalRisksSnap,
+                highRisksSnap,
+                mediumRisksSnap,
+                lowRisksSnap,
+                assetsSnap,
+                // Controls might be needed in full for detailed compliance, but we can count for quick stats
+                // We'll trust the caller to fetch controls if they need the full radar
+                controlsImplementedSnap,
+                controlsTotalSnap
+            ] = await Promise.all([
+                // Total Risks
+                getCountFromServer(query(collection(db, 'risks'), where('organizationId', '==', organizationId))),
+                // High Risks (Score >= 10)
+                getCountFromServer(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 10))),
+                // Medium Risks (5 <= Score < 10) - Firestore doesn't support multiple inequalities well, so we might approx or just range
+                // Actually, let's just count Critical/High (>=10) vs others for now as that's the main KPI
+                getCountFromServer(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 5), where('score', '<', 10))),
+                // Low Risks (Score < 5)
+                getCountFromServer(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '<', 5))),
+
+                // Assets
+                getCountFromServer(query(collection(db, 'assets'), where('organizationId', '==', organizationId))),
+
+                // Controls
+                getCountFromServer(query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('status', '==', 'Implémenté'))),
+                getCountFromServer(query(collection(db, 'controls'), where('organizationId', '==', organizationId)))
+            ]);
+
+            return {
+                totalRisks: totalRisksSnap.data().count,
+                highRisks: highRisksSnap.data().count,
+                mediumRisks: mediumRisksSnap.data().count,
+                lowRisks: lowRisksSnap.data().count,
+                totalAssets: assetsSnap.data().count,
+                controlsStats: {
+                    implemented: controlsImplementedSnap.data().count,
+                    // Approximation for actionable without fetching all status types
+                    actionable: controlsTotalSnap.data().count,
+                    total: controlsTotalSnap.data().count
+                }
+            };
+
+        } catch (_error) {
+            ErrorLogger.error(_error, 'DashboardService.getAggregatedStats');
+            // Fallback to zeros to prevent UI crash
+            return {
+                totalRisks: 0,
+                highRisks: 0,
+                mediumRisks: 0,
+                lowRisks: 0,
+                totalAssets: 0,
+                controlsStats: { implemented: 0, actionable: 0, total: 0 }
+            };
+        }
+    }
+
+    /**
      * Fetch saved executive summary
      */
     static async getExecutiveSummary(organizationId: string): Promise<{ summary: string; generatedAt: string; metricsSnapshot?: { compliance: number } } | null> {

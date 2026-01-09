@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { BackupService, BackupMetadata } from '../services/backupService';
-import { Save, RotateCcw, Clock, CheckCircle2, AlertTriangle, FileText, Shield, Users, Database, Download, Trash2, RefreshCw, HardDrive, Calendar, CalendarDays } from '../components/ui/Icons';
+import { Save, RotateCcw, Clock, AlertTriangle, FileText, Shield, Users, Database, HardDrive, CheckCircle2, Calendar } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -22,6 +22,8 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { hasPermission } from '../utils/permissions';
 
 import { OnboardingService } from '../services/onboardingService';
+import { BackupStats } from '../components/settings/backup/BackupStats';
+import { BackupList } from '../components/settings/backup/BackupList';
 
 export const BackupRestore: React.FC = () => {
   const { user, addToast } = useStore();
@@ -223,40 +225,10 @@ export const BackupRestore: React.FC = () => {
   const selectBackupForRestore = (backup: BackupMetadata) => {
     setSelectedBackup(backup);
     restoreForm.setValue('backupId', backup.id);
-    // In BackupMetadata, collections is string[] (names of collections backed up)
-    // Wait, BackupMetadata definition in service: collections: string[]
-    // But in previous code it was treating it as object?
-    // Let's check service again.
-    // Service: collections: this.getCollectionsToBackup(config) -> string[]
-    // So it is string[].
     restoreForm.setValue('collections', backup.collections);
   };
 
-  const formatSize = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
 
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'completed': return 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
-      case 'creating': return 'text-blue-600 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 dark:text-blue-400';
-      case 'failed': return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400';
-      default: return 'text-slate-600 bg-slate-50 dark:bg-white/5 dark:text-slate-400';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <CheckCircle2 className="h-4 w-4" />;
-      case 'creating': return <RefreshCw className="h-4 w-4 animate-spin" />;
-      case 'failed': return <AlertTriangle className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
-    }
-  };
 
   return (
     <motion.div
@@ -303,48 +275,7 @@ export const BackupRestore: React.FC = () => {
       />
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors"></div>
-          <div className="flex items-center relative z-10">
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl text-blue-600 dark:text-blue-400 mr-4 border border-blue-100 dark:border-blue-500/20">
-              <Database className="h-8 w-8" />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Total Backups</p>
-              <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.totalBackups}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-colors"></div>
-          <div className="flex items-center relative z-10">
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-emerald-600 dark:text-emerald-400 mr-4 border border-emerald-100 dark:border-emerald-500/20">
-              <HardDrive className="h-8 w-8" />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Espace Utilisé</p>
-              <p className="text-3xl font-black text-slate-900 dark:text-white">{formatSize(stats.totalSize)}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/20 transition-colors"></div>
-          <div className="flex items-center relative z-10">
-            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl text-purple-600 dark:text-purple-400 mr-4 border border-purple-100 dark:border-purple-500/20">
-              <CalendarDays className="h-8 w-8" />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Dernier Backup</p>
-              <p className="text-xl font-black text-slate-900 dark:text-white">
-                {stats.lastBackup ? new Date(stats.lastBackup).toLocaleDateString('fr-FR') : 'Aucun'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <BackupStats stats={stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-w-0">
         {/* Left Panel: Actions */}
@@ -496,93 +427,20 @@ export const BackupRestore: React.FC = () => {
 
         {/* Right Panel: History */}
         <div className="space-y-6 min-w-0">
-          <div className="glass-premium p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-indigo-500" /> Historique
-            </h2>
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-              {backups.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                  <Database className="h-10 w-10 opacity-20 mb-3" />
-                  <p className="font-medium">Aucune sauvegarde</p>
-                </div>
-              ) : (
-                backups.map((backup) => (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    key={backup.id}
-                    onClick={() => selectBackupForRestore(backup)}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-500/30 ring-1 ring-indigo-500/20' : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">#{backup.id.slice(0, 6)}...</span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(backup.status).replace('bg-', 'border-').replace('/20', '/30')}`}>
-                          {getStatusIcon(backup.status)}
-                          <span className="ml-1.5">{backup.status}</span>
-                        </span>
-                      </div>
-                      <div className="flex gap-1">
-                        {backup.status === 'completed' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Télécharger le backup"
-                            onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleDownloadBackup(backup.id); }}
-                            className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                            title="Télécharger"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Supprimer le backup"
-                          onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            setConfirmData({
-                              isOpen: true,
-                              title: 'Supprimer le backup',
-                              message: `Êtes-vous sûr de vouloir supprimer le backup ${backup.id} ?`,
-                              onConfirm: () => handleDeleteBackup(backup.id)
-                            });
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
-                        <Database className="h-5 w-5 text-indigo-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">
-                          {format(new Date(backup.createdAt), "d MMM yyyy", { locale: fr })}
-                        </p>
-                        <p className="text-xs text-slate-500 font-medium">
-                          {format(new Date(backup.createdAt), "HH:mm", { locale: fr })} • {backup.collections.length} collections
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {backup.collections.slice(0, 3).map(c => (
-                        <span key={c} className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 capitalize">{c}</span>
-                      ))}
-                      {backup.collections.length > 3 && (
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>
-                      )}
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </div>
-          </div>
+          <BackupList
+            backups={backups}
+            selectedBackup={selectedBackup}
+            onSelect={selectBackupForRestore}
+            onDownload={handleDownloadBackup}
+            onDelete={(id) => {
+              setConfirmData({
+                isOpen: true,
+                title: 'Supprimer le backup',
+                message: `Êtes-vous sûr de vouloir supprimer le backup ${id} ?`,
+                onConfirm: () => handleDeleteBackup(id)
+              });
+            }}
+          />
         </div>
       </div>
 

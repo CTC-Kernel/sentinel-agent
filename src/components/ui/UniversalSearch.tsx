@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Command, Clock, TrendingUp, FileText, Users, Shield, Database } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../../hooks/useDebounce';
 
 interface SearchResult {
   id: string;
@@ -45,16 +46,18 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const debouncedQuery = useDebounce(query, 300);
+
   const filteredResults = useMemo(() => {
-    if (query.length > 0) {
+    if (debouncedQuery.length > 0) {
       return mockResults.filter(result =>
-        result.title.toLowerCase().includes(query.toLowerCase()) ||
-        result.category?.toLowerCase().includes(query.toLowerCase())
+        result.title.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+        result.category?.toLowerCase().includes(debouncedQuery.toLowerCase())
       );
     } else {
       return mockResults.slice(0, 5);
     }
-  }, [query]);
+  }, [debouncedQuery]);
 
   // Track previous results to reset index when they change
   const [prevFilteredResults, setPrevFilteredResults] = useState(filteredResults);

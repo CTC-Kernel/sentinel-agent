@@ -6,7 +6,7 @@ import { IntegrationCard } from '../components/integrations/IntegrationCard';
 import { Modal } from '../components/ui/Modal';
 import { Search, ShieldCheck, Cloud, Code, LayoutGrid, Key } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';

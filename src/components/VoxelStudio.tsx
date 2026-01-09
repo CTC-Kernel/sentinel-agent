@@ -713,24 +713,38 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
               <pointLight position={[15, 20, 15]} intensity={1.5} color="#60a5fa" />
               <pointLight position={[-15, -10, -10]} intensity={1.0} color="#2dd4bf" />
               <spotLight position={[0, 40, 0]} intensity={0.8} angle={Math.PI / 6} penumbra={1} color="#e879f9" />
-
               <OrbitControls ref={controlsRef} makeDefault enablePan enableZoom enableDamping autoRotate={autoRotate} autoRotateSpeed={0.35} minDistance={4} maxDistance={55} zoomSpeed={0.6} dampingFactor={0.05} />
-
-              {voxelNodes.length > 0 && (<Float floatIntensity={0.4} rotationIntensity={0.2} speed={1.2}> <PulseCore /> </Float>)}
+              {voxelNodes.length > 0 && (
+                <Float floatIntensity={0.4} rotationIntensity={0.2} speed={1.2}>
+                  <PulseCore />
+                </Float>
+              )}
               <StarField />
               <NeonGrid />
               <ScanRing radius={12} color="#0ea5e9" />
               <ScanRing radius={18} color="#9333ea" speed={0.15} />
               <ScanRing radius={25} color="#f97316" speed={0.1} />
               <Environment preset="city" />
-
-              {selectedNode && <TargetReticle position={selectedNode.position} size={selectedNode.size} color={selectedNode.color} />}
-              {impactPosition && <ImpactWave key={impactKey} position={impactPosition} />}
-
+              {selectedNode && (
+                <TargetReticle position={selectedNode.position} size={selectedNode.size} color={selectedNode.color} />
+              )}
+              {impactPosition && (
+                <ImpactWave key={impactKey} position={impactPosition} />
+              )}
               {connectionPairs.map((pair, i) => {
                 const isRelevant = !selectedNode || pair.sourceId === selectedNode.id || pair.targetId === selectedNode.id;
                 if (selectedNode && !isRelevant && !impactMode) return null;
-                return <DataFlowParticles key={`conn-${i}`} start={new Vector3(...pair.start)} end={new Vector3(...pair.end)} color={pair.type === 'risk' ? '#f87171' : defaultLinkColor} opacity={isRelevant ? 1.0 : 0.05} speed={isRelevant ? 0.8 : 0.15} size={isRelevant ? 0.7 : 0.2} />;
+                return (
+                  <DataFlowParticles
+                    key={`conn-${i}`}
+                    start={new Vector3(...pair.start)}
+                    end={new Vector3(...pair.end)}
+                    color={pair.type === 'risk' ? '#f87171' : defaultLinkColor}
+                    opacity={isRelevant ? 1.0 : 0.05}
+                    speed={isRelevant ? 0.8 : 0.15}
+                    size={isRelevant ? 0.7 : 0.2}
+                  />
+                );
               })}
 
               {aiConnectionPairs.map((pair, i) => {

@@ -334,7 +334,7 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
       allow delete: if false;
     }
 

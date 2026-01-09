@@ -4,7 +4,7 @@ import { httpsCallable } from 'firebase/functions';
 import { functions, storage } from '../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ErrorLogger } from '../../services/errorLogger';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 interface CertificateUploadProps {
     token: string;

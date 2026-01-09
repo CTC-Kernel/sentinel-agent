@@ -35,18 +35,18 @@ class UsageAnalytics {
         performanceScore: 100,
         lastActivity: Date.now()
     };
-    
+
     constructor() {
         this.sessionId = this.generateSessionId();
         this.startTime = Date.now();
         this.setupEventListeners();
     }
-    
+
     private generateSessionId(): string {
         return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
-    
-    
+
+
     private setupEventListeners(): void {
         // Track page visibility changes
         document.addEventListener('visibilitychange', () => {
@@ -56,12 +56,12 @@ class UsageAnalytics {
                 this.trackEvent('session_resume', 'engagement', 'Session resumed');
             }
         });
-        
+
         // Track page unload
         window.addEventListener('beforeunload', () => {
             this.endSession();
         });
-        
+
         // Track errors globally
         window.addEventListener('error', (event) => {
             this.trackError('javascript_error', event.error?.message || 'Unknown error', {
@@ -70,13 +70,13 @@ class UsageAnalytics {
                 colno: event.colno
             });
         });
-        
+
         // Track unhandled promise rejections
         window.addEventListener('unhandledrejection', (event) => {
             this.trackError('promise_rejection', event.reason?.message || 'Unhandled promise rejection');
         });
     }
-    
+
     public trackPageView(page: string, title?: string): void {
         this.metrics.pageViews++;
         this.trackEvent('page_view', page, title || `Page: ${page}`, undefined, undefined, {
@@ -84,27 +84,27 @@ class UsageAnalytics {
             title
         });
     }
-    
+
     public trackFeatureUse(feature: string, action: string, value?: number, metadata?: Record<string, unknown>): void {
         const key = `${feature}_${action}`;
         this.metrics.featureUsage[key] = (this.metrics.featureUsage[key] || 0) + (value || 1);
-        
+
         this.trackEvent('feature_use', feature, action, value ? `Count: ${value}` : undefined, value, metadata);
     }
-    
+
     public trackError(error: string, message?: string, metadata?: Record<string, unknown>): void {
         this.metrics.errorCount++;
         this.metrics.performanceScore = Math.max(0, this.metrics.performanceScore - 5);
-        
+
         this.trackEvent('error', error, message || 'Error occurred', undefined, undefined, {
             errorMessage: message,
             ...metadata
         });
     }
-    
+
     public trackPerformance(metric: string, value: number, threshold?: number): void {
         let score = this.metrics.performanceScore;
-        
+
         if (threshold) {
             if (value > threshold) {
                 score -= 10; // Penalty for poor performance
@@ -112,18 +112,18 @@ class UsageAnalytics {
                 score += 2; // Reward for good performance
             }
         }
-        
+
         this.metrics.performanceScore = Math.min(100, Math.max(0, score));
         this.trackEvent('performance', metric, `Performance: ${metric}`, undefined, value, {
             threshold,
             score
         });
     }
-    
+
     public trackUserAction(action: string, category: string, label?: string, value?: number): void {
         this.trackEvent('user_action', category, action, label, value);
     }
-    
+
     private trackEvent(type: UsageEvent['type'], category: string, action: string, label?: string, value?: number, metadata?: Record<string, unknown>): void {
         const event: UsageEvent = {
             type,
@@ -136,11 +136,11 @@ class UsageAnalytics {
             sessionId: this.sessionId,
             userId: this.getUserId()
         };
-        
+
         this.events.push(event);
         this.sendEvent(event);
     }
-    
+
     private getUserId(): string | undefined {
         // Get user ID from store or localStorage
         try {
@@ -153,7 +153,7 @@ class UsageAnalytics {
             return undefined;
         }
     }
-    
+
     private sendEvent(event: UsageEvent): void {
         // Send to analytics endpoint
         if (typeof window !== 'undefined' && window.navigator.sendBeacon) {
@@ -166,24 +166,24 @@ class UsageAnalytics {
                     height: screen.height
                 }
             });
-            
+
             window.navigator.sendBeacon('/api/usage-events', data);
         }
-        
+
         // Also store locally for development
         if (process.env.NODE_ENV === 'development') {
-            console.log('[Usage Analytics]', event);
+            // Local storage logic can be added here for debugging
         }
     }
-    
+
     public endSession(): void {
         this.metrics.sessionDuration = Date.now() - this.startTime;
         this.metrics.lastActivity = Date.now();
-        
+
         // Send final session metrics
         this.sendSessionMetrics();
     }
-    
+
     private sendSessionMetrics(): void {
         const sessionData = {
             ...this.metrics,
@@ -191,20 +191,20 @@ class UsageAnalytics {
             userId: this.getUserId(),
             endTime: new Date().toISOString()
         };
-        
+
         if (typeof window !== 'undefined' && window.navigator.sendBeacon) {
             window.navigator.sendBeacon('/api/session-metrics', JSON.stringify(sessionData));
         }
     }
-    
+
     public getMetrics(): UsageMetrics {
         return { ...this.metrics };
     }
-    
+
     public getEvents(): UsageEvent[] {
         return [...this.events];
     }
-    
+
     public clearEvents(): void {
         this.events = [];
     }

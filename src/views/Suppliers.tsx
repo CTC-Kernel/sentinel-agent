@@ -5,7 +5,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
-import { Supplier, Criticality } from '../types';
+import { Supplier, Criticality, SupplierQuestionnaireResponse } from '../types';
 import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Button } from '../components/ui/button';
@@ -30,6 +30,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { QuestionnaireBuilder } from '../components/suppliers/QuestionnaireBuilder';
 import { AssessmentView } from '../components/suppliers/AssessmentView';
+import { SupplierAssessmentModal } from '../components/suppliers/SupplierAssessmentModal';
 
 import { ImportService } from '../services/ImportService';
 import { SupplierCard } from '../components/suppliers/SupplierCard';
@@ -55,7 +56,7 @@ const getScoreColor = (score: number) => {
 
 export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
-    const { user, addToast, t } = useStore();
+    const { user, t } = useStore();
 
     // Start module tour
     useEffect(() => {
@@ -71,6 +72,10 @@ export const Suppliers: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [templateMode, setTemplateMode] = useState(false);
     const [assessmentMode, setAssessmentMode] = useState<string | null>(null); // responseId
+
+    // Assessment Modal State
+    const [assessmentModalOpen, setAssessmentModalOpen] = useState(false);
+    const [assessmentSupplier, setAssessmentSupplier] = useState<Supplier | null>(null);
 
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,14 +98,20 @@ export const Suppliers: React.FC = () => {
         assetsRaw,
         risksRaw,
         documentsRaw,
-        loading: loadingDeps
+        assessments: assessmentsRaw, // Alias it
+        loading: loadingDeps,
+        addAssessment
     } = useSupplierDependencies({
         fetchUsers: shouldLoadDeps,
         fetchProcesses: shouldLoadDeps,
         fetchAssets: shouldLoadDeps,
         fetchRisks: shouldLoadDeps,
-        fetchDocuments: shouldLoadDeps
+        fetchDocuments: shouldLoadDeps,
+        fetchAssessments: shouldLoadDeps // Add this
     });
+
+
+
 
     const loadingSuppliers = loadingLogic || (shouldLoadDeps && loadingDeps);
 
@@ -235,11 +246,13 @@ export const Suppliers: React.FC = () => {
         setSelectedSupplier(supplier);
     }, []);
 
-    const handleStartAssessmentClick = useCallback((_supplierId: string) => {
-        // Placeholder for starting assessment - create response then set mode
-        // For now, simple toast or log
-        addToast("Fonctionnalité d'évaluation à venir", "info");
-    }, [addToast]);
+    const handleStartAssessmentClick = useCallback((supplierId: string) => {
+        const supplier = suppliersRaw.find(s => s.id === supplierId);
+        if (supplier) {
+            setAssessmentSupplier(supplier);
+            setAssessmentModalOpen(true);
+        }
+    }, [suppliersRaw]);
 
     // Import Logic
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -507,11 +520,6 @@ export const Suppliers: React.FC = () => {
                                 </Transition>
                             </Menu>
 
-                            import {Button} from '../components/ui/Button';
-
-                            // ... (other imports)
-
-                            // ...
 
                             <CustomTooltip content="Gérer les modèles d'évaluation">
                                 <Button
@@ -616,6 +624,10 @@ export const Suppliers: React.FC = () => {
                     risks={risksRaw}
                     documents={documentsRaw}
                     onStartAssessment={() => handleStartAssessmentClick(selectedSupplier.id)}
+                    assessments={assessmentsRaw?.filter(a => a.supplierId === selectedSupplier.id) || []}
+                    onViewAssessment={(id) => {
+                        setAssessmentMode(id);
+                    }}
                 />
             )}
 
@@ -627,6 +639,22 @@ export const Suppliers: React.FC = () => {
                 onImport={handleImportFile}
                 onDownloadTemplate={handleDownloadTemplate}
             />
+
+            {assessmentSupplier && (
+                <SupplierAssessmentModal
+                    isOpen={assessmentModalOpen}
+                    onClose={() => setAssessmentModalOpen(false)}
+                    supplierId={assessmentSupplier.id}
+                    supplierName={assessmentSupplier.name}
+                    onSave={async (data: Partial<SupplierQuestionnaireResponse>) => {
+                        // Add organizationId from store wrapper or handle it here
+                        await addAssessment({
+                            ...data,
+                            organizationId: user?.organizationId
+                        });
+                    }}
+                />
+            )}
         </motion.div>
     );
 };

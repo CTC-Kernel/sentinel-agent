@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Html, Text, Line } from '@react-three/drei';
@@ -9,6 +8,38 @@ import { VoxelDetailOverlay } from '../VoxelDetailOverlay';
 import { useModelLibrary } from '../../hooks/useModelLibrary';
 import { MODEL_LIBRARY_CONFIG } from '../../context/modelLibraryConstants';
 import { GlassMaterial, EdgesWithColor } from './VoxelMaterials';
+
+// Helper functions for LOD calculations
+const getLODGeometryArgs = (nodeType: VoxelNode['type'], lodLevel: number, size: number) => {
+    switch (nodeType) {
+        case 'asset':
+            switch (lodLevel) {
+                case 0: return [size * 0.9, size * 0.25, size * 0.6];
+                case 1: return [size * 0.7, size * 0.2, size * 0.5];
+                case 2: return [size * 0.5, size * 0.15, size * 0.4];
+                case 3: return [size * 0.3, size * 0.1, size * 0.3];
+                default: return [size * 0.1, size * 0.05, size * 0.2];
+            }
+        case 'risk':
+            switch (lodLevel) {
+                case 0: return [size * 0.6];
+                case 1: return [size * 0.4];
+                case 2: return [size * 0.3];
+                case 3: return [size * 0.2];
+                default: return [size * 0.1];
+            }
+        case 'project':
+            switch (lodLevel) {
+                case 0: return [size * 0.7, size * 0.2, size * 0.7];
+                case 1: return [size * 0.5, size * 0.15, size * 0.6];
+                case 2: return [size * 0.3, size * 0.1, size * 0.5];
+                case 3: return [size * 0.2, size * 0.05, size * 0.4];
+                default: return [size * 0.1, size * 0.05, size * 0.3];
+            }
+        default:
+            return [size * 0.5, size * 0.2, size * 0.5];
+    }
+};
 
 // Helper
 const safeRender = (value: unknown): React.ReactNode => {
@@ -21,6 +52,7 @@ const safeRender = (value: unknown): React.ReactNode => {
         }
         return '';
     }
+    if (typeof value === 'string') return value;
     return String(value);
 };
 
@@ -53,32 +85,45 @@ const VoxelModelGeometry: React.FC<{
     emissiveColor: string;
     opacity: number;
     xRayMode: boolean;
-}> = React.memo(({ node, libraryPrimitive, sharedMaterialProps, emissiveColor, opacity, xRayMode }) => {
+    cameraPosition?: [number, number, number];
+    lodLevel?: number;
+}> = React.memo(({ node, libraryPrimitive, sharedMaterialProps, emissiveColor, opacity, xRayMode, cameraPosition, lodLevel = 0 }) => {
+    // Calculer la distance depuis la caméra pour le LOD
+    const distance = cameraPosition ? Math.sqrt(
+        Math.pow(cameraPosition[0] - node.position[0], 2) +
+        Math.pow(cameraPosition[1] - node.position[1], 2) +
+        Math.pow(cameraPosition[2] - node.position[2], 2)
+    ) : 50; // Distance par défaut
+
+    const calculatedLODLevel = Math.floor(distance / 20);
+    const finalLODLevel = lodLevel !== undefined ? lodLevel : calculatedLODLevel;
+
     if (libraryPrimitive) {
         return <primitive object={libraryPrimitive} />;
     }
 
-    // Fallback Geometries
+    const geometryArgs = getLODGeometryArgs(node.type, finalLODLevel, node.size);
+
     switch (node.type) {
         case 'asset':
             return (
                 <>
                     <mesh position={[0, -node.size * 0.2, 0]}>
-                        <boxGeometry args={[node.size * 0.9, node.size * 0.25, node.size * 0.6]} />
-                        <GlassMaterial {...sharedMaterialProps} />
-                        <EdgesWithColor color={emissiveColor} />
-                    </mesh>
-                    <mesh position={[0, 0, 0]}>
-                        <boxGeometry args={[node.size * 0.75, node.size * 0.2, node.size * 0.5]} />
+                        <boxGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
                         <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
                     <mesh position={[0, node.size * 0.18, 0]}>
-                        <boxGeometry args={[node.size * 0.55, node.size * 0.18, node.size * 0.4]} />
+                        <boxGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
                         <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
-                    {[-0.25, 0.25].map(offset => (
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <boxGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
+                        <EdgesWithColor color={emissiveColor} />
+                    </mesh>
+                    {[0, 0.25, 0.5].map(offset => (
                         <mesh key={`asset-light-${node.id}-${offset}`} position={[offset * node.size, node.size * 0.28, node.size * 0.18]}>
                             <boxGeometry args={[node.size * 0.08, node.size * 0.06, node.size * 0.02]} />
                             <meshBasicMaterial color="#facc15" transparent opacity={0.8} />
@@ -90,7 +135,7 @@ const VoxelModelGeometry: React.FC<{
             return (
                 <>
                     <mesh rotation={[0, 0, Math.PI / 4]}>
-                        <octahedronGeometry args={[node.size * 0.6, 0]} />
+                        <octahedronGeometry args={[geometryArgs[0]]} />
                         <GlassMaterial {...sharedMaterialProps} metalness={0.2} roughness={0.35} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
@@ -102,7 +147,7 @@ const VoxelModelGeometry: React.FC<{
                                 position={[Math.cos(angle) * node.size * 0.55, 0, Math.sin(angle) * node.size * 0.55]}
                                 rotation={[Math.PI / 2, angle, 0]}
                             >
-                                <coneGeometry args={[node.size * 0.15, node.size * 0.45, 8]} />
+                                <octahedronGeometry args={[geometryArgs[0]]} />
                                 <GlassMaterial
                                     color="#f97316"
                                     emissive="#fb923c"
@@ -115,80 +160,64 @@ const VoxelModelGeometry: React.FC<{
                             </mesh>
                         );
                     })}
-                    <mesh rotation={[Math.PI / 2, 0, 0]}>
-                        <torusGeometry args={[node.size * 0.55, node.size * 0.05, 16, 32]} />
-                        <GlassMaterial color="#f97316" emissive="#fb923c" emissiveIntensity={0.5} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-                    </mesh>
                 </>
             );
         case 'project':
             return (
                 <>
                     <mesh position={[0, -node.size * 0.18, 0]}>
-                        <cylinderGeometry args={[node.size * 0.7, node.size * 0.7, node.size * 0.18, 24]} />
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
                         <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
-                    <mesh position={[0, node.size * 0.05, 0]}>
-                        <cylinderGeometry args={[node.size * 0.5, node.size * 0.5, node.size * 0.35, 24]} />
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
                         <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
-                    <mesh position={[0, node.size * 0.32, 0]}>
-                        <cylinderGeometry args={[node.size * 0.18, node.size * 0.18, node.size * 0.7, 12]} />
-                        <GlassMaterial color="#fcd34d" emissive="#fbbf24" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
+                        <EdgesWithColor color={emissiveColor} />
+                    </mesh>
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial color="#fcd34d" emissive="#fbbf24" emissiveIntensity={0.8} opacity={opacity} transparent />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
                     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, node.size * 0.05, 0]}>
-                        <ringGeometry args={[node.size * 0.55, node.size * 0.58, 32]} />
-                        <meshBasicMaterial color="#c084fc" transparent opacity={0.6} side={DoubleSide} />
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial color="#c084fc" emissive="#2dd4bf" emissiveIntensity={0.5} opacity={opacity} transparent />
+                        <EdgesWithColor color={emissiveColor} />
+                    </mesh>
+                    <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, node.size * 0.05, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial color="#c084fc" emissive="#2dd4bf" emissiveIntensity={0.5} opacity={opacity} transparent />
+                        <EdgesWithColor color={emissiveColor} />
                     </mesh>
                 </>
             );
         case 'audit':
             return (
                 <>
-                    <mesh rotation={[-Math.PI / 2, 0, 0]}>
-                        <torusGeometry args={[node.size * 0.6, node.size * 0.1, 24, 48]} />
-                        <GlassMaterial {...sharedMaterialProps} metalness={0.5} roughness={0.2} />
-                        <EdgesWithColor color={emissiveColor} />
-                    </mesh>
-                    <mesh position={[0, node.size * 0.18, 0]}>
-                        <boxGeometry args={[node.size * 0.75, node.size * 0.04, node.size * 0.55]} />
+                    <mesh position={[0, -node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
                         <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
-                    <mesh position={[0, node.size * 0.06, 0]}>
-                        <boxGeometry args={[node.size * 0.22, node.size * 0.25, node.size * 0.06]} />
-                        <GlassMaterial color="#67e8f9" emissive="#22d3ee" emissiveIntensity={0.7} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
-                    <mesh position={[node.size * 0.35, node.size * 0.05, node.size * 0.2]}>
-                        <torusGeometry args={[node.size * 0.12, node.size * 0.03, 16, 32]} />
-                        <meshBasicMaterial color="#f8fafc" transparent opacity={0.6} />
-                    </mesh>
-                </>
-            );
-        case 'incident':
-            return (
-                <>
-                    <mesh>
-                        <sphereGeometry args={[node.size * 0.55, 28, 28]} />
-                        <GlassMaterial {...sharedMaterialProps} metalness={0.15} roughness={0.35} />
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
-                    <mesh rotation={[Math.PI / 2, 0, 0]}>
-                        <torusGeometry args={[node.size * 0.75, node.size * 0.08, 24, 48]} />
-                        <GlassMaterial color="#fb7185" emissive="#f43f5e" emissiveIntensity={0.8} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-                    </mesh>
-                    <mesh position={[0, node.size * 0.55, 0]}>
-                        <coneGeometry args={[node.size * 0.2, node.size * 0.5, 12]} />
-                        <GlassMaterial color="#f97316" emissive="#f97316" emissiveIntensity={0.9} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-                        <EdgesWithColor color={emissiveColor} />
-                    </mesh>
-                    <mesh position={[node.size * 0.45, 0, 0]} rotation={[0, 0, Math.PI / 6]}>
-                        <boxGeometry args={[node.size * 0.2, node.size * 0.4, node.size * 0.04]} />
-                        <GlassMaterial color="#fee2e2" emissive="#fecaca" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
                 </>
@@ -197,35 +226,42 @@ const VoxelModelGeometry: React.FC<{
             return (
                 <>
                     <mesh position={[0, -node.size * 0.12, 0]}>
-                        <cylinderGeometry args={[node.size * 0.45, node.size * 0.45, node.size * 0.35, 20]} />
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
                         <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
-                    <mesh position={[0, node.size * 0.22, 0]}>
-                        <coneGeometry args={[node.size * 0.55, node.size * 0.75, 20]} />
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
                         <GlassMaterial {...sharedMaterialProps} />
                         <EdgesWithColor color={emissiveColor} />
                     </mesh>
-                    {[...Array(6)].map((_, index) => {
-                        const angle = (Math.PI * 2 * index) / 6;
-                        return (
-                            <mesh key={`supplier-node-${node.id}-${index}`} position={[Math.cos(angle) * node.size * 0.8, node.size * 0.12, Math.sin(angle) * node.size * 0.8]}>
-                                <sphereGeometry args={[node.size * 0.12, 16, 16]} />
-                                <GlassMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.6} opacity={opacity} transparent wireframe={Boolean(xRayMode)} />
-                            </mesh>
-                        );
-                    })}
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <cylinderGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
+                        <EdgesWithColor color={emissiveColor} />
+                    </mesh>
                 </>
             );
-        default: {
+        default:
             return (
-                <mesh>
-                    <boxGeometry args={[node.size || 1, node.size || 1, node.size || 1]} />
-                    <GlassMaterial {...sharedMaterialProps} />
-                    <EdgesWithColor color={emissiveColor} />
-                </mesh>
+                <>
+                    <mesh position={[0, -node.size * 0.2, 0]}>
+                        <boxGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
+                        <EdgesWithColor color={emissiveColor} />
+                    </mesh>
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <boxGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
+                        <EdgesWithColor color={emissiveColor} />
+                    </mesh>
+                    <mesh position={[0, node.size * 0.18, 0]}>
+                        <boxGeometry args={[geometryArgs[0], geometryArgs[1], geometryArgs[2]]} />
+                        <GlassMaterial {...sharedMaterialProps} />
+                        <EdgesWithColor color={emissiveColor} />
+                    </mesh>
+                </>
             );
-        }
     }
 });
 
@@ -422,14 +458,14 @@ export const VoxelMesh: React.FC<{
             {/* Label */}
             {labelVisible && (
                 <Text
-                    position={[0, safeSize + 0.8, 0]}
-                    fontSize={0.55}
+                    position={[0, safeSize + 1.2, 0]}
+                    fontSize={0.45}
                     color="white"
                     anchorX="center"
                     anchorY="middle"
-                    outlineWidth={0.08}
+                    outlineWidth={0.06}
                     outlineColor="black"
-                    maxWidth={3.5}
+                    maxWidth={2.8}
                     lineHeight={1.1}
                     font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
                 >

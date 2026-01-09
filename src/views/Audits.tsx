@@ -7,12 +7,10 @@ import { motion } from 'framer-motion';
 
 import { useAudits } from '../hooks/audits/useAudits';
 import { AuditsList } from '../components/audits/AuditsList';
-import { Drawer } from '../components/ui/Drawer';
-import { AuditForm } from '../components/audits/AuditForm';
+import { AuditsDrawer } from '../components/audits/AuditsDrawer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
-import { AuditInspector } from '@/components/audits/AuditInspector';
 import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -401,45 +399,28 @@ export const Audits: React.FC = () => {
                 )
             }
 
-            {/* Creation/Edit Drawer */}
-            <Drawer
-                isOpen={creationMode}
-                onClose={() => { setCreationMode(false); setEditingAudit(null); }}
-                title={editingAudit ? t('audits.editAudit') : t('audits.newAudit')}
-                width="max-w-6xl"
-            >
-                <AuditForm
-                    initialData={editingAudit || undefined}
-                    onSubmit={onFormSubmit}
-                    onCancel={() => { setCreationMode(false); setEditingAudit(null); }}
-                    isLoading={loading}
-                    assets={assets}
-                    risks={risks}
-                    controls={controls}
-                    projects={projects}
-                    usersList={usersList}
-                />
-            </Drawer>
-
-            {/* Inspection Drawer */}
-            {selectedAudit && (
-                <AuditInspector
-                    audit={selectedAudit}
-                    onClose={() => setSelectedAudit(null)}
-                    controls={controls}
-                    documents={documents}
-                    assets={assets}
-                    risks={risks}
-                    projects={projects}
-                    usersList={usersList}
-                    refreshAudits={refreshAudits}
-                    canEdit={canEdit}
-                    onDelete={(id, name) => {
-                        setSelectedAudit(null);
-                        handleDelete({ id, name } as Audit);
-                    }}
-                />
-            )}
+            {/* Creation/Edit/Inspection Drawer */}
+            <AuditsDrawer
+                creationMode={creationMode}
+                editingAudit={editingAudit}
+                selectedAudit={selectedAudit}
+                onClose={() => {
+                    setCreationMode(false);
+                    setEditingAudit(null);
+                    setSelectedAudit(null);
+                }}
+                onFormSubmit={onFormSubmit}
+                isLoading={loading}
+                assets={assets}
+                risks={risks}
+                controls={controls}
+                projects={projects}
+                usersList={usersList}
+                refreshAudits={refreshAudits}
+                canEdit={canEdit}
+                onDelete={handleDelete}
+                documents={documents}
+            />
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}

@@ -198,9 +198,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
                                     type={action.type as AIActionType}
                                     payload={action.payload as Record<string, unknown>}
                                     reasoning={action.reasoning as string}
-                                    onComplete={(msg) => {
+                                    onComplete={() => {
                                         // Optional: trigger a follow up or just show success state in card
-                                        console.log(msg);
+
                                     }}
                                 />
                             )}

@@ -3,7 +3,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { auth } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 export const useAdminActions = () => {
     const { t } = useStore();

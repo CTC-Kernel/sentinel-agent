@@ -13,7 +13,7 @@ import {
     ISO22301_SEED_CONTROLS
 } from '../data/complianceData';
 import { useStore } from '../store';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Framework } from '../types';
 
 export const useComplianceDataSeeder = () => {

@@ -36,6 +36,7 @@ interface AdminDashboardViewProps {
     onLayoutUpdate?: (layout: WidgetLayout[]) => void;
     incidents?: unknown[];
     complianceScore?: number;
+    suppliers?: unknown[];
 }
 
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => {
@@ -49,6 +50,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
         { id: 'risks-1', widgetId: 'priority-risks', colSpan: 1 }, // Row 2 Right
         { id: 'history-1', widgetId: 'compliance-evolution', colSpan: 2 }, // Row 3 Left
         { id: 'activity-1', widgetId: 'recent-activity', colSpan: 1 }, // Row 3 Right
+        { id: 'nis2-1', widgetId: 'nis2-dora-kpi', colSpan: 1 }, // Row 4
     ];
 
     const { layout, updateLayout, resetLayout } = useDashboardPreferences(user?.uid, 'admin', defaultLayout);

@@ -37,7 +37,7 @@ export const Dashboard: React.FC = () => {
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);
 
-    const { user, theme, addToast, t, demoMode, toggleDemoMode } = useStore();
+    const { user, theme, t, demoMode, toggleDemoMode } = useStore();
     // Use new hook for persistence
     const [gettingStartedState, setGettingStartedState] = useGettingStartedState(user?.uid);
 
@@ -69,7 +69,8 @@ export const Dashboard: React.FC = () => {
         organizationName: fetchedOrgName,
         organizationLogo: fetchedOrgLogo,
         loading,
-        error: dataError
+        error: dataError,
+        aggregatedStats
     } = useDashboardData();
 
     // Update local state when hook data changes
@@ -97,7 +98,8 @@ export const Dashboard: React.FC = () => {
         activeIncidentsCount,
         openAuditsCount,
         myProjectsLength: myProjects.length,
-        userOrgId: user?.organizationId
+        userOrgId: user?.organizationId,
+        aggregatedStats // Passed from useDashboardData
     });
 
     // Personalized Risks
@@ -141,8 +143,6 @@ export const Dashboard: React.FC = () => {
         radarData
     });
 
-    const copyRules = () => { navigator.clipboard.writeText(`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}`); addToast(t('dashboard.rulesCopied'), "success"); };
-
     const { isGeneratingReport, generateICal, generateExecutiveReport: generateReport } = useDashboardReports();
 
     // Helper to call report generation with current data
@@ -160,7 +160,7 @@ export const Dashboard: React.FC = () => {
         });
     };
 
-    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-premium rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> <Button aria-label={t('dashboard.copyRules')} onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('dashboard.copyRules')}</Button> </div> </div>); }
+    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-premium rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> </div> </div>); }
 
     if (loading) {
         return <DashboardSkeleton />;
@@ -346,13 +346,14 @@ export const DashboardWithQuickActions: React.FC = () => {
         organizationName: fetchedOrgName,
         organizationLogo: fetchedOrgLogo,
         loading,
-        error: dataError
+        error: dataError,
+        aggregatedStats
     } = useDashboardData();
 
     const [organizationName, setOrganizationName] = useState<string>('');
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);
-    const { user, theme, addToast, t } = useStore();
+    const { user, theme, t } = useStore();
     // Use persistent state hook
     const [gettingStartedState, setGettingStartedState] = useGettingStartedState(user?.uid);
     const showGettingStarted = gettingStartedState !== 'closed';
@@ -386,7 +387,8 @@ export const DashboardWithQuickActions: React.FC = () => {
         activeIncidentsCount,
         openAuditsCount,
         myProjectsLength: myProjects.length,
-        userOrgId: user?.organizationId
+        userOrgId: user?.organizationId,
+        aggregatedStats // Passed from useDashboardData
     });
 
     const myRisksList = React.useMemo(() => {
@@ -428,8 +430,6 @@ export const DashboardWithQuickActions: React.FC = () => {
         radarData
     });
 
-    const copyRules = () => { navigator.clipboard.writeText(`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}`); addToast(t('dashboard.rulesCopied'), "success"); };
-
     const { isGeneratingReport, generateICal, generateExecutiveReport: generateReport } = useDashboardReports();
 
     const generateExecutiveReport = () => {
@@ -446,7 +446,7 @@ export const DashboardWithQuickActions: React.FC = () => {
         });
     };
 
-    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-premium rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> <Button aria-label={t('dashboard.copyRules')} onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('dashboard.copyRules')}</Button> </div> </div>); }
+    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-premium rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> </div> </div>); }
 
     if (loading) {
         return <DashboardSkeleton />;
@@ -520,6 +520,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                                         radarData={radarData}
                                         incidents={activeIncidents}
                                         complianceScore={complianceScore}
+                                        suppliers={allSuppliers}
                                     />
                                 );
                             }

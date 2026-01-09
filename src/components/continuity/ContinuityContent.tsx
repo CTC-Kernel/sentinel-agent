@@ -8,11 +8,12 @@ import { ContinuityCrisis } from './ContinuityCrisis';
 import { EmptyState } from '../ui/EmptyState';
 import { AlertOctagon, Download, Plus, Upload } from 'lucide-react';
 import { BusinessProcess, BcpDrill, Asset, UserProfile } from '../../types';
+import { TlptCampaign } from '../../types/tlpt';
 import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { useTranslation } from 'react-i18next';
 
 interface ContinuityContentProps {
-    activeTab: 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
+    activeTab: 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis' | 'tlpt';
     loading: boolean;
     viewMode: 'grid' | 'list' | 'matrix' | 'kanban';
     filteredProcesses: BusinessProcess[];
@@ -29,6 +30,10 @@ interface ContinuityContentProps {
     onSetSelectedProcess: (process: BusinessProcess) => void;
     onOpenDrillModal: () => void;
     onDeleteDrill: (id: string) => void;
+    _tlptCampaigns?: TlptCampaign[];
+    _onAddTlpt: (data: Partial<TlptCampaign>) => Promise<void>;
+    _onUpdateTlpt: (id: string, data: Partial<TlptCampaign>) => Promise<void>;
+    _onDeleteTlpt: (id: string) => Promise<void>;
 }
 
 export const ContinuityContent: React.FC<ContinuityContentProps> = ({
@@ -48,7 +53,11 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
     onOpenProcessModal,
     onSetSelectedProcess,
     onOpenDrillModal,
-    onDeleteDrill
+    onDeleteDrill,
+    _tlptCampaigns,
+    _onAddTlpt,
+    _onUpdateTlpt,
+    _onDeleteTlpt
 }) => {
     const { t } = useTranslation();
 

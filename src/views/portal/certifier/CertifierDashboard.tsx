@@ -4,7 +4,7 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../firebase';
 import { Loader2, Building2, FileCheck, Clock, CheckCircle, Search, ChevronRight, LogOut, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../../firebase';
 

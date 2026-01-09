@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNotifications } from './useNotifications';
 import { Notification } from '../contexts/NotificationContext';
 
@@ -9,14 +9,35 @@ export const useAutoNotification = (
 ) => {
     const { addNotification, removeNotification } = useNotifications();
 
+    const notificationIdRef = useRef<string | null>(null);
+
+    // Deep compare notification object to avoid re-triggering on new object references
+    const notificationKey = JSON.stringify(notification);
+
     useEffect(() => {
-        if (condition) {
+        if (condition && !notificationIdRef.current) {
             const id = addNotification(notification);
-            return () => {
-                if (typeof id === 'string') {
-                    removeNotification(id);
-                }
-            };
+            if (typeof id === 'string') {
+                notificationIdRef.current = id;
+            }
         }
-    }, [condition, notification, addNotification, removeNotification]);
+
+        // Cleanup function to remove notification when condition becomes false or component unmounts
+        // Only if we have an active notification
+        return () => {
+            if (!condition && notificationIdRef.current) {
+                removeNotification(notificationIdRef.current);
+                notificationIdRef.current = null;
+            }
+        };
+    }, [condition, notification, notificationKey, addNotification, removeNotification]);
+
+    // Separate effect for unmount cleanup only
+    useEffect(() => {
+        return () => {
+            if (notificationIdRef.current) {
+                removeNotification(notificationIdRef.current);
+            }
+        };
+    }, [removeNotification]);
 };

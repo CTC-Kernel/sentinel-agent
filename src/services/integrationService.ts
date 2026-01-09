@@ -657,7 +657,7 @@ class IntegrationService {
         const demoMode = this.normalizeDemoMode(isDemoMode);
         if (demoMode) {
             await new Promise(resolve => setTimeout(resolve, 800));
-            console.log(`[Demo] Triggered N8N Webhook: ${webhookPath}`, payload);
+
             return { success: true, message: 'Workflow triggered successfully (Demo)' };
         }
 

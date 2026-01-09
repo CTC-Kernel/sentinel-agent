@@ -41,7 +41,7 @@ export const Documents: React.FC = () => {
     const location = useLocation();
 
     // DEBUG LOG
-    console.log('[Documents] Rendering Documents Page. User:', user?.email, 'Org:', user?.organizationId);
+
     const canCreate = canEditResource(user, 'Document');
 
     // Start module tour

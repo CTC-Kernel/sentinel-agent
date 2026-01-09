@@ -5,7 +5,7 @@ import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../../firebase';
 import { useStore } from '../../store';
 import { Handshake, Plus, Mail, Loader2, Building2, Clock, Trash2, AlertTriangle, ShieldCheck } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { ErrorLogger } from '../../services/errorLogger';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { AnimatePresence, motion } from 'framer-motion';

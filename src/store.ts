@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { UserProfile, Organization, CustomRole } from './types';
-import { toast } from 'sonner';
+import { toast } from './lib/toast';
 import { SecureStorage } from './services/secureStorage';
 
 export interface ToastMessage {
@@ -83,11 +83,11 @@ export const useStore = create<AppState>((set) => ({
   setLoading: (loading) => set({ isLoading: loading }),
   addToast: (message, type = 'info') => {
     if (type === 'success') {
-      toast.success(message);
+      toast.success('Succès', message);
     } else if (type === 'error') {
-      toast.error(message);
+      toast.error('Erreur', message);
     } else {
-      toast.info(message);
+      toast.info('Information', message);
     }
     // Legacy state update removed
   },

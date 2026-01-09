@@ -11,7 +11,7 @@ import { canDeleteResource } from '../../utils/permissions';
 import { AuditForm } from './AuditForm';
 import { ShareAuditModal } from './ShareAuditModal';
 import { AssignPartnerModal } from './AssignPartnerModal';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 // Sub-components
 import { AuditFindings } from './inspector/AuditFindings';

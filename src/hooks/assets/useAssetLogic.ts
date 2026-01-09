@@ -1,14 +1,15 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { where, limit } from 'firebase/firestore';
+import { where, limit, getCountFromServer, collection, query } from 'firebase/firestore';
+import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import { Asset, UserProfile } from '../../types';
 import { MockDataService } from '../../services/mockDataService';
 import { AssetService } from '../../services/assetService';
 import { canEditResource } from '../../utils/permissions';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { AssetFormData } from '../../schemas/assetSchema';
 import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
@@ -41,6 +42,7 @@ export const useAssetLogic = () => {
     }, [demoMode]);
 
     // Fetch ONLY Assets (Lightweight)
+    // We keep limit(1000) for now until pagination is fully implemented in UI
     const { data: rawAssets, loading: assetsLoading, refresh: refreshFirestoreAssets } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId || 'ignore'), limit(1000)],
@@ -72,8 +74,21 @@ export const useAssetLogic = () => {
             return { success: false, error: 'PERMISSION_DENIED' };
         }
 
-        if (assets.length >= limits.maxAssets) {
-            return { success: false, error: 'LIMIT_REACHED' };
+        // Server-side check for accurate limit enforcement and cost optimization
+        // (prevents downloading all assets just to check count)
+        try {
+            const countSnap = await getCountFromServer(query(
+                collection(db, 'assets'),
+                where('organizationId', '==', user.organizationId)
+            ));
+
+            if (countSnap.data().count >= limits.maxAssets) {
+                return { success: false, error: 'LIMIT_REACHED' };
+            }
+        } catch (err) {
+            console.error('Error checking asset limits:', err);
+            // Fail safe: if check fails, maybe allow or block? Blocking is safer for quotas.
+            return { success: false, error: 'LIMIT_CHECK_FAILED' };
         }
 
         setIsSubmitting(true);

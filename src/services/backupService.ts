@@ -50,6 +50,7 @@ export class BackupService {
   private static readonly BACKUP_COLLECTION = 'backups';
 
   static async createBackup(user: UserProfile, config: BackupConfig): Promise<string> {
+    this.checkPermission(user);
     if (!user.organizationId) throw new Error('Organisation non définie');
 
     const backupId = `backup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -115,6 +116,7 @@ export class BackupService {
   }
 
   static async restoreBackup(user: UserProfile, config: RestoreConfig): Promise<{ success: boolean; summary: RestoreSummary }> {
+    this.checkPermission(user);
     if (!user.organizationId) throw new Error('Organisation non définie');
 
     // Récupérer les métadonnées du backup
@@ -249,6 +251,7 @@ export class BackupService {
   }
 
   static async deleteBackup(user: UserProfile, backupId: string): Promise<void> {
+    this.checkPermission(user);
     if (!user.organizationId) throw new Error('Organisation non définie');
 
     try {
@@ -310,6 +313,7 @@ export class BackupService {
   }
 
   static async scheduleBackup(user: UserProfile, config: BackupConfig, frequency: 'daily' | 'weekly' | 'monthly'): Promise<void> {
+    this.checkPermission(user);
     if (!user.organizationId) throw new Error('Organisation non définie');
 
     const scheduleId = `schedule_${user.organizationId}`;
@@ -368,5 +372,10 @@ export class BackupService {
     if (frequency === 'weekly') date.setDate(date.getDate() + 7);
     if (frequency === 'monthly') date.setMonth(date.getMonth() + 1);
     return date;
+  }
+  private static checkPermission(user: UserProfile): void {
+    if (user.role !== 'admin') {
+      throw new Error('Permission denied: Admin role required for backup operations');
+    }
   }
 }

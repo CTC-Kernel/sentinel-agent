@@ -4,7 +4,7 @@ import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import { canEditResource } from '../../utils/permissions';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Asset, UserProfile, Supplier, BusinessProcess } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
 import { usePlanLimits } from '../usePlanLimits';

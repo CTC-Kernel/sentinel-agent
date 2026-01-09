@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { where, orderBy, collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
-import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile, Incident } from '../../types';
+import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile, Incident, TlptCampaign } from '../../types';
 
 export const useContinuityData = (organizationId?: string) => {
     const { demoMode } = useStore();
     const [processes, setProcesses] = useState<BusinessProcess[]>([]);
     const [drills, setDrills] = useState<BcpDrill[]>([]);
+    const [tlptCampaigns, setTlptCampaigns] = useState<TlptCampaign[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -41,6 +42,7 @@ export const useContinuityData = (organizationId?: string) => {
                 setUsers(module.MockDataService.getCollection('users') as unknown as UserProfile[]);
                 setIncidents(module.MockDataService.getCollection('incidents') as unknown as Incident[]);
                 setIncidents(module.MockDataService.getCollection('incidents') as unknown as Incident[]);
+                setTlptCampaigns(module.MockDataService.getCollection('tlpt_campaigns') as unknown as TlptCampaign[]);
                 setLoading(false);
             }).catch(_err => {
                 setLoading(false);
@@ -72,6 +74,9 @@ export const useContinuityData = (organizationId?: string) => {
         const qIncidents = query(collection(db, 'incidents'), where('organizationId', '==', organizationId));
         unsubscribes.push(onSnapshot(qIncidents, (s) => setIncidents(s.docs.map(d => ({ id: d.id, ...d.data() } as Incident)))));
 
+        const qTlpt = query(collection(db, 'tlpt_campaigns'), where('organizationId', '==', organizationId));
+        unsubscribes.push(onSnapshot(qTlpt, (s) => setTlptCampaigns(s.docs.map(d => ({ id: d.id, ...d.data() } as TlptCampaign)))));
+
         // We assume loading finishes reasonably quickly for realtime listeners for now, 
         // or effectively "stream" updates. For strict loading state, one would count initial loads.
         // Simplification: set loading false after a short timeout or rely on initial empty state if appropriate.
@@ -93,6 +98,7 @@ export const useContinuityData = (organizationId?: string) => {
         suppliers,
         users,
         incidents,
+        tlptCampaigns,
         loading
     };
 };

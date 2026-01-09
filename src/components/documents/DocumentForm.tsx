@@ -12,7 +12,7 @@ import { externalStorageService } from '../../services/externalStorageService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import { RichTextEditor } from '../ui/RichTextEditor';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 interface DocumentFormProps {
     onSubmit: (data: DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean }) => Promise<void>;

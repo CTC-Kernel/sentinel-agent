@@ -5,6 +5,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { Button } from '../ui/button';
 import { useSupplierDependencies } from '../../hooks/suppliers/useSupplierDependencies';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SupplierService } from '../../services/SupplierService';
 
 interface Props {
     responseId: string;
@@ -73,15 +74,26 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
     };
 
     const handleSave = async (submit = false) => {
-        if (!response) return;
+        if (!response || !template) return;
         setIsSaving(true);
         try {
+            // Calculate real-time score
+            const currentResponse = { ...response, answers: localAnswers };
+            const { overallScore } = SupplierService.calculateScore(currentResponse, template);
+
             await updateAssessment(response.id, {
                 answers: localAnswers,
-                status: submit ? 'Submitted' : 'In Progress'
+                status: submit ? 'Submitted' : 'In Progress',
+                overallScore: overallScore
             });
-            addToast(submit ? 'Évaluation soumise avec succès' : 'Brouillon sauvegardé', 'success');
-            if (submit) onClose();
+
+            if (submit) {
+                await SupplierService.updateSupplierRiskFromAssessment(response.supplierId, overallScore);
+                addToast('Évaluation soumise avec succès', 'success');
+                onClose();
+            } else {
+                addToast('Brouillon sauvegardé', 'success');
+            }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'AssessmentView.save', 'UPDATE_FAILED');
         } finally {

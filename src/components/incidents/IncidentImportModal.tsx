@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
 import { Shield, Activity, CheckCircle, Disc } from 'lucide-react';
 import { Badge } from '../ui/Badge';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
 
 interface IncidentImportModalProps {

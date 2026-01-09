@@ -18,6 +18,7 @@ import { ComplianceProgressWidget } from '../widgets/ComplianceProgressWidget';
 import { AssetStatsWidget } from '../widgets/AssetStatsWidget';
 import { SuppliersStatsWidget } from '../widgets/SuppliersStatsWidget';
 import { ContinuityPlansWidget } from '../widgets/ContinuityPlansWidget';
+import { NIS2DoraKPIWidget } from '../widgets/NIS2DoraKPIWidget';
 
 // Define generic props for widgets
 export type DashboardWidgetProps = Record<string, unknown>;
@@ -146,6 +147,11 @@ export const WIDGET_REGISTRY: Record<string, {
         defaultRowSpan: 1,
         minColSpan: 1,
         minRowSpan: 1
+    },
+    'nis2-dora-kpi': {
+        component: NIS2DoraKPIWidget,
+        defaultColSpan: 1,
+        titleKey: 'Configuration NIS2/DORA'
     }
 };
 export type WidgetId = keyof typeof WIDGET_REGISTRY;

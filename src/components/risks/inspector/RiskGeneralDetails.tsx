@@ -4,7 +4,7 @@ import { Badge } from '../../ui/Badge';
 import { SafeHTML } from '../../ui/SafeHTML';
 import { RiskAIAssistant } from '../RiskAIAssistant';
 import { Risk } from '../../../types';
-// import { toast } from 'sonner';
+// import { toast } from '@/lib/toast';
 
 interface RiskGeneralDetailsProps {
     risk: Risk;

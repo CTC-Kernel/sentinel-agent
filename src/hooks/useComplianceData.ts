@@ -35,15 +35,10 @@ export const useComplianceData = (currentFramework?: Framework) => {
         const storedDemo = typeof window !== 'undefined' ? (() => { try { return localStorage.getItem('demoMode') } catch { return 'false' } })() : 'false';
         const isDemo = demoMode || storedDemo === 'true' || (typeof window !== 'undefined' && !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__));
 
-        console.log('[Debug] useComplianceData:', {
-            demoModeStore: demoMode,
-            demoModeLocal: storedDemo,
-            isDemo,
-            orgId: user.organizationId
-        });
+
 
         if (isDemo) {
-            console.log('useComplianceData: Entering demo mode (static)');
+
             setTimeout(() => {
                 setControls(MockDataService.getCollection('controls') as unknown as Control[]);
                 setRisks(MockDataService.getCollection('risks') as unknown as Risk[]);

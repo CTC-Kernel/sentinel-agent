@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'; // HashRouter aliased as Router
-import { Toaster } from 'sonner';
+
 
 // Contexts & Hooks
 import { AuthProvider } from './contexts/AuthContext';
@@ -28,6 +28,7 @@ import { AuthGuard } from './components/auth/AuthGuard';
 import { TestAuthGuard } from './components/auth/TestGuards';
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
 import { CertifierAuthGuard } from './components/auth/CertifierAuthGuard';
+import { SuperAdminGuard } from './components/auth/SuperAdminGuard';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WifiOff } from './components/ui/Icons';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
@@ -57,6 +58,7 @@ const ExternalAuditLayout = React.lazy(() => import('./views/layouts/ExternalAud
 const CertifierLogin = React.lazy(() => import('@/views/portal/certifier/CertifierLogin').then(module => ({ default: module.CertifierLogin })));
 const CertifierRegister = React.lazy(() => import('@/views/portal/certifier/CertifierRegister').then(module => ({ default: module.CertifierRegister })));
 const CertifierDashboard = React.lazy(() => import('@/views/portal/certifier/CertifierDashboard').then(module => ({ default: module.CertifierDashboard })));
+const AdminDashboard = React.lazy(() => import('./views/admin/AdminDashboard'));
 
 // Route wrapper that decides whether to show Landing Page or App logic
 
@@ -82,7 +84,7 @@ const GlobalShortcutsWrapper: React.FC = () => {
 };
 
 const AppLayout: React.FC = () => {
-    console.log('AppLayout rendering. Mode:', import.meta.env.MODE);
+
     const { theme, user } = useStore();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -154,7 +156,10 @@ const AppLayout: React.FC = () => {
                 <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             </div>
 
-            <Toaster richColors position="bottom-right" theme={theme === 'dark' ? 'dark' : 'light'} />
+            <div>
+                <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+            </div>
+
             <SEO
                 title="Tableau de bord"
                 description="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité."
@@ -257,6 +262,17 @@ const AppInner: React.FC = () => {
                                     <CertifierDashboard />
                                 </CertifierAuthGuard>
                             } />
+                        </Route>
+
+                        {/* Super Admin Route */}
+                        <Route path="/admin_management" element={
+                            <SuperAdminGuard>
+                                <NotificationProvider>
+                                    <AppLayout />
+                                </NotificationProvider>
+                            </SuperAdminGuard>
+                        } >
+                            <Route index element={<AdminDashboard />} />
                         </Route>
 
                         {/* Main App Route - Handles all paths and sub-routes */}

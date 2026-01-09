@@ -5,7 +5,7 @@ import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
 import { Asset, UserProfile, Supplier, Criticality } from '../../types';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Button } from '../ui/button';
 import { Sparkles, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { aiService } from '../../services/aiService';

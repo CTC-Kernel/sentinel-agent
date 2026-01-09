@@ -3,7 +3,7 @@ import { collection, query, where, orderBy, limit, startAfter, getDocs, QueryDoc
 import { db } from '../firebase';
 import { SystemLog } from '../types';
 import { useStore } from '../store';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 export const useResourceLogs = (_resourceType: string, resourceId?: string, limitCount: number = 20) => {
     const { user } = useStore();
