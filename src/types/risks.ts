@@ -168,11 +168,4 @@ export interface Threat {
     description?: string;
 }
 
-export interface AISuggestedLink {
-    id: string;
-    sourceId: string;
-    targetId: string;
-    type: 'risk_factor' | 'dependency' | 'impact' | 'mitigation';
-    confidence: number;
-    reasoning: string;
-}
+// AISuggestedLink moved to voxel.ts

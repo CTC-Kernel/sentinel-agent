@@ -90,13 +90,7 @@ interface VoxelStudioProps {
   visibleTypes?: VoxelNode['type'][];
   focusNodeId?: string | null;
   highlightCritical?: boolean;
-  summaryStats?: {
-    assets: number;
-    risks: number;
-    projects: number;
-    incidents: number;
-    controls: number;
-  };
+
   xRayMode?: boolean;
   autoRotatePreference?: boolean | null;
   releaseToken?: number | null;
@@ -453,7 +447,7 @@ const applySceneOffset = (x: number, y: number, z: number): [number, number, num
 export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   assets = [], risks = [], projects = [], audits = [], incidents = [], suppliers = [], controls = [],
   onNodeClick, className = "", visibleTypes = [],
-  focusNodeId, highlightCritical = false, summaryStats, releaseToken,
+  focusNodeId, highlightCritical = false, releaseToken,
   suggestedLinks = [], xRayMode, presentationMode,
   selectedNodeDetails, isDetailMinimized, setIsDetailMinimized, handleSelectionClear, relatedElements = [], applyFocus, handleOpenSelected,
   impactMode, setImpactMode
@@ -778,13 +772,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           </Suspense>
         </VoxelErrorBoundary>
       </Canvas>
-      {summaryStats && (
-        <div className="absolute top-4 right-4 bg-white/90 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white space-y-1 shadow-lg">
-          <div className="flex items-center gap-3"><span className="font-semibold text-blue-600 dark:text-blue-300">{summaryStats.assets} Actifs</span><span className="font-semibold text-orange-600 dark:text-orange-300">{summaryStats.risks} Risques</span></div>
-          <div className="flex items-center gap-3"><span className="font-semibold text-purple-600 dark:text-purple-200">{summaryStats.projects} Projets</span><span className="font-semibold text-rose-600 dark:text-rose-300">{summaryStats.incidents} Incidents</span></div>
-          {highlightCritical && <div className="text-[10px] uppercase tracking-[0.2em] text-rose-600 dark:text-rose-300">Heatmap active</div>}
-        </div>
-      )}
+
     </div>
   );
 };

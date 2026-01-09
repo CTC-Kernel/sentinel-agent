@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck, MonitorPlay, Info } from 'lucide-react';
+import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, RotateCw, Minimize2, CheckCheck, MonitorPlay } from 'lucide-react';
 
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
@@ -15,13 +15,13 @@ import { VoxelStudio } from '../components/VoxelStudio';
 import { PageHeader } from '../components/ui/PageHeader';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { Network } from '../components/ui/Icons';
+
 import { SEO } from '../components/SEO';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
 
-import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode } from '../types';
-
-type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier' | 'control';
+import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode, LayerType } from '../types';
+import { VoxelSidebar } from '../components/voxel/VoxelSidebar';
+import { VoxelSilhouettes } from '../components/voxel/VoxelSilhouettes';
 
 const formatSafeDate = (date: unknown): string => {
   if (!date) return '—';
@@ -175,64 +175,7 @@ export const VoxelView: React.FC = () => {
   useEffect(() => { localStorage.setItem('voxel_activeLayers', JSON.stringify(activeLayers)); }, [activeLayers]);
 
   // Silhouette Map (Restored)
-  const silhouetteMap: Record<LayerType, React.ReactNode> = {
-    asset: (
-      <svg viewBox="0 0 64 64" className="w-full h-full text-blue-500 fill-current">
-        <rect x="10" y="28" width="16" height="26" rx="2" className="opacity-80" />
-        <rect x="28" y="18" width="18" height="36" rx="2" className="opacity-90" />
-        <rect x="48" y="34" width="8" height="20" rx="2" className="opacity-70" />
-        <rect x="14" y="34" width="6" height="8" className="text-white fill-current" />
-        <rect x="34" y="24" width="6" height="8" className="text-white fill-current" />
-      </svg>
-    ),
-    risk: (
-      <svg viewBox="0 0 64 64" className="w-full h-full text-orange-500 fill-current">
-        <path d="M32 6 L50 16 V34 C50 44 42 53 32 56 C22 53 14 44 14 34 V16 Z" className="opacity-80" />
-        <path d="M32 17 L42 23 V33 C42 40 37 46 32 48 C27 46 22 40 22 33 V23 Z" className="text-white fill-current opacity-70" />
-      </svg>
-    ),
-    project: (
-      <svg viewBox="0 0 64 64" className="w-full h-full text-purple-500 fill-current">
-        <rect x="10" y="40" width="44" height="10" rx="4" className="opacity-60" />
-        <rect x="14" y="28" width="36" height="10" rx="4" className="opacity-75" />
-        <rect x="20" y="16" width="24" height="10" rx="4" className="opacity-100" />
-        <circle cx="32" cy="21" r="3" className="text-white fill-current" />
-      </svg>
-    ),
-    audit: (
-      <svg viewBox="0 0 64 64" className="w-full h-full text-cyan-500 fill-current">
-        <rect x="16" y="10" width="32" height="44" rx="4" className="opacity-80" />
-        <rect x="22" y="16" width="20" height="4" className="text-white fill-current" />
-        <rect x="22" y="24" width="20" height="4" className="text-white/80 fill-current" />
-        <rect x="22" y="32" width="12" height="4" className="text-white/60 fill-current" />
-        <path d="M36 36 L44 44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="33" cy="38" r="4" className="text-white fill-current" />
-      </svg>
-    ),
-    incident: (
-      <svg viewBox="0 0 64 64" className="w-full h-full text-rose-500 fill-current">
-        <path d="M32 8 C32 16 20 18 24 30 C20 28 16 32 16 38 C16 48 24 56 32 56 C40 56 48 48 48 38 C48 28 40 20 36 18 C38 26 32 28 32 20" className="opacity-90" />
-      </svg>
-    ),
-    control: (
-      <svg viewBox="0 0 64 64" className="w-full h-full text-teal-500 fill-current">
-        <rect x="12" y="12" width="40" height="40" rx="8" className="opacity-80" />
-        <path d="M22 32 L30 40 L42 24" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      </svg>
-    ),
-    supplier: (
-      <svg viewBox="0 0 64 64" className="w-full h-full text-green-500 fill-current">
-        <circle cx="32" cy="20" r="6" className="opacity-85" />
-        <circle cx="16" cy="42" r="5" className="opacity-75" />
-        <circle cx="48" cy="42" r="5" className="opacity-75" />
-        <circle cx="32" cy="52" r="4" className="opacity-65" />
-        <line x1="32" y1="26" x2="32" y2="48" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        <line x1="26" y1="38" x2="38" y2="38" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        <line x1="32" y1="20" x2="16" y2="42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <line x1="32" y1="20" x2="48" y2="42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-    ),
-  };
+  // Silhouettes imported from VoxelSilhouettes.tsx
 
   const orderedNodes = useMemo(() => {
     const getDataLabel = (item: DataNode['data']): string => {
@@ -617,14 +560,11 @@ export const VoxelView: React.FC = () => {
     if (selectedNode?.id !== node?.id) {
       setIsDetailMinimized(false);
     }
-    setSelectedNode(node);
+    setSelectedNode(node as DataNode | null);
     setFocusedNodeId(node?.id ?? null);
   };
 
-  const handleSearchButtonClick = () => {
-    setNavCollapsed(false);
-    setTimeout(() => document.getElementById('voxel-search')?.focus(), 100);
-  };
+
 
   const handleRefresh = () => {
     refresh();
@@ -758,203 +698,115 @@ export const VoxelView: React.FC = () => {
           </>
         )}
 
-        {/* Sidebar Navigation (Available in all modes) */}
-        <aside aria-label="Navigation latérale" className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/80 border-l border-white/10 backdrop-blur-2xl z-50 p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}>
-          <div className="flex items-center justify-between text-white mb-6 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <Network className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <span className="text-sm font-bold tracking-tight block">CTC Engine</span>
-                <span className="text-[10px] text-white/50 font-medium uppercase tracking-wider">{orderedNodes.length} Éléments</span>
-              </div>
-            </div>
+        {/* Sidebar Navigation */}
+        <VoxelSidebar
+          navCollapsed={navCollapsed}
+          setNavCollapsed={setNavCollapsed}
+          orderedNodesLength={orderedNodes.length}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          categorizedNodes={categorizedNodes}
+          selectedNodeId={focusedNodeId}
+          onNodeSelect={applyFocus}
+          activeLayers={activeLayers}
+          onLayerToggle={handleLayerToggle}
+        />
+
+        {/* Floating Tool Bar (Right side) */}
+        <div className="absolute top-20 right-6 z-40 flex flex-col gap-3 animate-in fade-in slide-in-from-right-4 duration-500 delay-100">
+          {/* Navigation Arrows */}
+          <div className="flex flex-col gap-1 p-1 bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
             <button
-              onClick={() => setNavCollapsed(true)}
-              aria-label="Fermer le menu"
-              className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+              aria-label="Élément précédent"
+              onClick={() => focusByOffset(-1)}
+              disabled={!orderedNodes.length}
+              className="p-2.5 rounded-xl transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed group relative"
+              title="Élément précédent"
             >
-              <XCircle className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              aria-label="Élément suivant"
+              onClick={() => focusByOffset(1)}
+              disabled={!orderedNodes.length}
+              className="p-2.5 rounded-xl transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed group relative"
+              title="Élément suivant"
+            >
+              <ArrowRight className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="relative mb-6 shrink-0 group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-indigo-400 transition-colors" />
-            <input value={searchQuery}
-              aria-label="Rechercher"
-              id="voxel-search"
-              type="text"
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-indigo-500/50 transition-all shadow-sm"
-            />
+          {/* Visualization Tools */}
+          <div className="flex flex-col gap-1 p-1 bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+            <button
+              aria-label="Calques"
+              onClick={() => setShowLayerMenu(!showLayerMenu)}
+              className={`p-2.5 rounded-xl transition relative group ${showLayerMenu ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+              title="Calques"
+            >
+              <Layers className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white border border-slate-900">
+                {activeLayers.length}
+              </span>
+            </button>
+
+            <button
+              aria-label="Heatmap"
+              onClick={() => setHeatmapEnabled(!heatmapEnabled)}
+              className={`p-2.5 rounded-xl transition group ${heatmapEnabled ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+              title="Heatmap"
+            >
+              <Flame className="h-5 w-5" />
+            </button>
+
+            <button
+              aria-label="Mode X-Ray"
+              onClick={() => setXRayEnabled(!xRayEnabled)}
+              className={`p-2.5 rounded-xl transition group ${xRayEnabled ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+              title="Mode X-Ray"
+            >
+              <Eye className="h-5 w-5" />
+            </button>
+
+            <button
+              aria-label="Auto-rotate"
+              onClick={() => setAutoRotateEnabled(!autoRotateEnabled)}
+              className={`p-2.5 rounded-xl transition group ${autoRotateEnabled ? 'bg-green-500/20 text-green-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+              title="Auto-rotate"
+            >
+              <RotateCw className={`h-5 w-5 ${autoRotateEnabled ? 'animate-spin-slow' : ''}`} />
+            </button>
+
+            <button
+              aria-label="Mode Présentation"
+              onClick={() => setPresentationMode(!presentationMode)}
+              className={`p-2.5 rounded-xl transition group ${presentationMode ? 'bg-indigo-500/20 text-indigo-400 animate-pulse' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+              title="Mode Présentation"
+            >
+              <MonitorPlay className="h-5 w-5" />
+            </button>
           </div>
 
-          <div className="space-y-6 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-            {categorizedNodes.map(category => (
-              <div key={category.id} className="animate-[fadeIn_0.5s_ease-out]">
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 mb-3 px-1">
-                  <span className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full ${category.color} shadow-[0_0_8px_currentColor]`}></span>
-                    {category.label}
-                  </span>
-                  <span className="bg-white/5 px-1.5 py-0.5 rounded text-white/30">{category.items.length}</span>
-                </div>
-                <div className="space-y-1">
-                  {category.items.map(item => (
-                    <button
-                      aria-label={item.label}
-                      key={item.id}
-                      onClick={() => applyFocus(item.id, category.id)}
-                      className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-all duration-200 flex items-center gap-3 group relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${focusedNodeId === item.id
-                        ? 'border-indigo-500/50 bg-indigo-500/10 text-white shadow-[0_0_20px_rgba(99,102,241,0.15)]'
-                        : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
-                        }`}
-                    >
-                      {focusedNodeId === item.id && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent opacity-50" />
-                      )}
-                      <span className={`shrink-0 flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${focusedNodeId === item.id ? 'bg-indigo-500/20 text-indigo-300' : 'bg-white/5 text-white/40 group-hover:text-white/60 group-hover:bg-white/10'}`}>
-                        <span className="inline-block h-5 w-5 text-inherit">
-                          {silhouetteMap[category.id]}
-                        </span>
-                      </span>
-                      <div className="flex flex-col flex-1 min-w-0 relative z-10">
-                        <span className="font-medium line-clamp-1">{item.label}</span>
-                        {item.meta && <span className="text-[10px] text-white/40 group-hover:text-white/50 transition-colors">{item.meta}</span>}
-                      </div>
-                      {focusedNodeId === item.id && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_currentColor]" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-            {categorizedNodes.length === 0 && (
-              <div className="text-center py-12 text-white/30 text-sm flex flex-col items-center gap-3">
-                <Search className="h-8 w-8 opacity-20" />
-                <p>Aucun résultat trouvé</p>
-              </div>
-            )}
+          {/* View Controls */}
+          <div className="flex flex-col gap-1 p-1 bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+            <button
+              aria-label="Réinitialiser la vue"
+              onClick={handleResetView}
+              className="p-2.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition group"
+              title="Réinitialiser la vue"
+            >
+              <RefreshCw className="h-5 w-5" />
+            </button>
+
+            <button
+              aria-label={isFullscreen ? "Quitter plein écran" : "Plein écran"}
+              onClick={handleFullscreenToggle}
+              className="p-2.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition group"
+              title={isFullscreen ? "Quitter plein écran" : "Plein écran"}
+            >
+              {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+            </button>
           </div>
-        </aside>
-
-        {/* Unified Command Bar (Dock) */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 p-2 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md shadow-glass-lg transition-all hover:bg-black/50">
-          <button
-            aria-label="Guide du module"
-            onClick={() => setShowGuide(true)}
-            className="p-3 rounded-full hover:bg-white/10 text-indigo-400 hover:text-white transition tooltip-trigger group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-            title="Guide du module"
-          >
-            <Info className="h-5 w-5" />
-          </button>
-
-          <div className="w-px h-6 bg-white/10 mx-1" />
-
-          <button
-            aria-label="Rechercher (Cmd+K)"
-            onClick={handleSearchButtonClick}
-            className={`p-3 rounded-full transition tooltip-trigger group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${!navCollapsed ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-            title="Rechercher (Cmd+K)"
-          >
-            <Search className="h-5 w-5" />
-            {searchQuery && <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border border-slate-900"></span>}
-          </button>
-
-          <div className="w-px h-6 bg-white/10 mx-1" />
-
-          {/* Navigation buttons */}
-          <button
-            aria-label="Élément précédent"
-            onClick={() => focusByOffset(-1)}
-            disabled={!orderedNodes.length}
-            className="p-3 rounded-full transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-            title="Élément précédent"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            aria-label="Élément suivant"
-            onClick={() => focusByOffset(1)}
-            disabled={!orderedNodes.length}
-            className="p-3 rounded-full transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-            title="Élément suivant"
-          >
-            <ArrowRight className="h-5 w-5" />
-          </button>
-
-          <div className="w-px h-6 bg-white/10 mx-1" />
-
-          <button
-            aria-label="Calques"
-            onClick={() => setShowLayerMenu(!showLayerMenu)}
-            className={`p-3 rounded-full transition relative ${showLayerMenu ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-            title="Calques"
-          >
-            <Layers className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white border border-slate-900">
-              {activeLayers.length}
-            </span>
-          </button>
-
-          <button
-            aria-label="Heatmap"
-            onClick={() => setHeatmapEnabled(!heatmapEnabled)}
-            className={`p-3 rounded-full transition ${heatmapEnabled ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-            title="Heatmap"
-          >
-            <Flame className="h-5 w-5" />
-          </button>
-
-          <button
-            aria-label="Mode X-Ray"
-            onClick={() => setXRayEnabled(!xRayEnabled)}
-            className={`p-3 rounded-full transition ${xRayEnabled ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-            title="Mode X-Ray"
-          >
-            <Eye className="h-5 w-5" />
-          </button>
-
-          <button
-            aria-label="Auto-rotate"
-            onClick={() => setAutoRotateEnabled(!autoRotateEnabled)}
-            className={`p-3 rounded-full transition ${autoRotateEnabled ? 'bg-green-500/20 text-green-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-            title="Auto-rotate"
-          >
-            <RotateCw className={`h-5 w-5 ${autoRotateEnabled ? 'animate-spin-slow' : ''}`} />
-          </button>
-
-          <button
-            aria-label="Mode Présentation (Auto-Pilot)"
-            onClick={() => setPresentationMode(!presentationMode)}
-            className={`p-3 rounded-full transition ${presentationMode ? 'bg-indigo-500/20 text-indigo-400 animate-pulse' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-            title="Mode Présentation (Auto-Pilot)"
-          >
-            <MonitorPlay className="h-5 w-5" />
-          </button>
-
-          <div className="w-px h-6 bg-white/10 mx-1" />
-
-          <button
-            aria-label="Réinitialiser la vue"
-            onClick={handleResetView}
-            className="p-3 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition"
-            title="Réinitialiser la vue"
-          >
-            <RefreshCw className="h-5 w-5" />
-          </button>
-
-          <button
-            aria-label={isFullscreen ? "Quitter plein écran" : "Plein écran"}
-            onClick={handleFullscreenToggle}
-            className="p-3 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition"
-            title={isFullscreen ? "Quitter plein écran" : "Plein écran"}
-          >
-            {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-          </button>
         </div>
 
         {/* Layer Menu Popover */}
@@ -1001,13 +853,7 @@ export const VoxelView: React.FC = () => {
           xRayMode={xRayEnabled}
           autoRotatePreference={autoRotateEnabled}
           presentationMode={presentationMode}
-          summaryStats={{
-            assets: assets.length,
-            risks: risks.length,
-            projects: projects.length,
-            incidents: incidents.length,
-            controls: controls.length,
-          }}
+
 
           releaseToken={releaseToken}
           suggestedLinks={suggestedLinks}
@@ -1093,7 +939,7 @@ export const VoxelView: React.FC = () => {
               {layerOptions.map(layer => (
                 <div key={layer.id} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-white/5">
                   <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900/60">
-                    {silhouetteMap[layer.id]}
+                    {VoxelSilhouettes[layer.id as LayerType]}
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wide text-slate-500">{layer.label}</p>
@@ -1189,7 +1035,7 @@ export const VoxelView: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-white/10 w-12 h-12 flex items-center justify-center shrink-0">
-                  {silhouetteMap[selectedNode.type]}
+                  {VoxelSilhouettes[selectedNode.type as LayerType]}
                 </div>
                 <div>
                   <p className="text-sm text-slate-300 capitalize">{selectedNode.type}</p>
