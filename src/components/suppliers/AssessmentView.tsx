@@ -12,6 +12,12 @@ interface Props {
     context?: 'supplier' | 'privacy';
 }
 
+interface AssessmentAnswer {
+    value: string | number | boolean | string[];
+    notes?: string;
+    evidence?: string[];
+}
+
 export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
     const { addToast } = useStore();
     const { templates, assessments, loading: hookLoading, updateAssessment } = useSupplierDependencies({
@@ -24,7 +30,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
     const template = useMemo(() => templates.find(t => t.id === response?.templateId), [templates, response]);
 
     // Local state for answers
-    const [localAnswers, setLocalAnswers] = useState<Record<string, any>>({});
+    const [localAnswers, setLocalAnswers] = useState<Record<string, AssessmentAnswer>>({});
     const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -56,7 +62,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
 
     const currentSection = template.sections[currentSectionIndex];
 
-    const handleAnswerChange = (questionId: string, value: any) => {
+    const handleAnswerChange = (questionId: string, value: AssessmentAnswer['value']) => {
         setLocalAnswers(prev => ({
             ...prev,
             [questionId]: {

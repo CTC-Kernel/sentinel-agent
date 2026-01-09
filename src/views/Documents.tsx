@@ -163,7 +163,7 @@ export const Documents: React.FC = () => {
                 return params;
             }, { replace: true });
         }
-    }, [loading, deepLinkDocId, deepLinkAction, documents, selectedDocument, setSelectedDocument, showCreateModal, setSearchParams]);
+    }, [loading, deepLinkDocId, deepLinkAction, documents, selectedDocument, setSelectedDocument, showCreateModal, setSearchParams, loadDependencies]);
 
     // Cleanup Effect
     React.useEffect(() => {
@@ -242,7 +242,7 @@ export const Documents: React.FC = () => {
 
     const handleDeleteDocumentClick = React.useCallback(() => {
         if (selectedDocument) initiateDelete(selectedDocument);
-    }, [selectedDocument, initiateDelete, controls]);
+    }, [selectedDocument, initiateDelete]);
 
     const handleWorkflowActionClick = useCallback((action: WorkflowAction) => {
         if (selectedDocument) handleWorkflowAction(selectedDocument, action);

@@ -9,8 +9,19 @@ interface EarthCountriesProps {
     color?: string;
 }
 
+interface GeoJsonFeature {
+    geometry: {
+        type: 'Polygon' | 'MultiPolygon';
+        coordinates: number[][][] | number[][][][];
+    };
+}
+
+interface GeoJsonData {
+    features: GeoJsonFeature[];
+}
+
 export const EarthCountries: React.FC<EarthCountriesProps> = ({ color = '#38bdf8' }) => {
-    const [geoJson, setGeoJson] = useState<any>(null);
+    const [geoJson, setGeoJson] = useState<GeoJsonData | null>(null);
 
     useEffect(() => {
         fetch(GEOJSON_URL)
@@ -34,12 +45,12 @@ export const EarthCountries: React.FC<EarthCountriesProps> = ({ color = '#38bdf8
             }
         };
 
-        geoJson.features.forEach((feature: any) => {
+        geoJson.features.forEach((feature: GeoJsonFeature) => {
             const { geometry } = feature;
             if (geometry.type === 'Polygon') {
-                geometry.coordinates.forEach((ring: number[][]) => addLine(ring));
+                (geometry.coordinates as number[][][]).forEach((ring: number[][]) => addLine(ring));
             } else if (geometry.type === 'MultiPolygon') {
-                geometry.coordinates.forEach((polygon: number[][][]) => {
+                (geometry.coordinates as number[][][][]).forEach((polygon: number[][][]) => {
                     polygon.forEach((ring: number[][]) => addLine(ring));
                 });
             }

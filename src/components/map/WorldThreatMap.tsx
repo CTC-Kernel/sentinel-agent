@@ -13,11 +13,17 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
+interface Threat {
+    name: string;
+    type: string;
+    severity: 'Critical' | 'High' | 'Medium' | 'Low';
+}
+
 interface MapProps {
     data: Array<{
         country: string;
         value: number;
-        markers: Array<{ coordinates: [number, number], name: string }>;
+        markers: Array<{ coordinates: [number, number]; name: string } & Threat>;
     }>;
     setTooltipContent?: (content: string) => void; // Keeping for compatibility, but unused
 }
@@ -136,7 +142,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
                                                                         Latest Intelligence
                                                                     </div>
                                                                     <div className="space-y-1.5">
-                                                                        {topThreats.map((t: any, idx) => (
+                                                                        {topThreats.map((t: Threat, idx) => (
                                                                             <div key={idx} className="flex items-start gap-2 text-xs text-slate-200 group">
                                                                                 <div className={`mt-0.5 p-1 rounded flex-shrink-0 ${t.severity === 'Critical' ? 'bg-red-500/10 text-red-500' : 'bg-orange-500/10 text-orange-500'}`}>
                                                                                     {t.type === 'Malware' ? <Activity size={10} /> :

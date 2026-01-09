@@ -370,7 +370,7 @@ export const VoxelMesh: React.FC<{
             }
         });
         return clone;
-    }, [modelLibrary, node.type, node.size, baseColor, emissiveColor, emissiveIntensity, xRayMode, isDimmed]);
+    }, [modelLibrary, node.type, baseColor, emissiveColor, emissiveIntensity, xRayMode, isDimmed, safeSize]);
 
     const getDataLabel = useCallback((data: VoxelNode['data']): string => {
         if (!data) return 'Élément';
