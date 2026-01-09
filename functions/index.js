@@ -590,6 +590,11 @@ exports.auditDocuments = generateAuditTrigger('documents/{docId}', 'title');
 exports.auditSuppliers = generateAuditTrigger('suppliers/{docId}', 'name');
 exports.auditUsers = generateAuditTrigger('users/{docId}', 'email');
 exports.auditIncidents = generateAuditTrigger('incidents/{docId}', 'title');
+exports.auditAssets = generateAuditTrigger('assets/{docId}', 'name');
+exports.auditProjects = generateAuditTrigger('projects/{docId}', 'name');
+exports.auditBusinessProcesses = generateAuditTrigger('business_processes/{docId}', 'name');
+exports.auditProcessingActivities = generateAuditTrigger('processing_activities/{docId}', 'name');
+exports.auditAudits = generateAuditTrigger('audits/{docId}', 'name');
 
 // --- B2B2C AUDIT PORTAL TRIGGERS ---
 const auditPortal = require('./auditPortal');

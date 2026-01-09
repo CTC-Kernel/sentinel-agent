@@ -18,7 +18,8 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { AssetList } from '../components/assets/AssetList';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
-import { useAssets } from '../hooks/assets/useAssets';
+import { useAssetLogic } from '../hooks/assets/useAssetLogic';
+import { useAssetDependencies } from '../hooks/assets/useAssetDependencies';
 import { FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, MoreVertical, List, LayoutGrid, Upload } from 'lucide-react';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -34,7 +35,27 @@ import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 const Assets: React.FC = () => {
     const { user, t } = useStore();
     const canEdit = canEditResource(user, 'Asset');
-    const { assets, loading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, usersList, suppliers, processes, checkDependencies } = useAssets();
+    // UI State
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('assets-view-mode', 'grid');
+    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+    const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
+    const [inspectorOpen, setInspectorOpen] = useState(false);
+    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+
+    // Optimized Data Fetching
+    const { assets, loading: assetsLoading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, checkDependencies } = useAssetLogic();
+
+    // Lazy load dependencies only when needed (Inspector or Import)
+    const shouldLoadDependencies = inspectorOpen || importModalOpen;
+    const { usersList, suppliers, processes, loading: depsLoading } = useAssetDependencies({
+        fetchUsers: shouldLoadDependencies || viewMode === 'list', // List view might show owners
+        fetchSuppliers: shouldLoadDependencies,
+        fetchProcesses: shouldLoadDependencies
+    });
+
+    const loading = assetsLoading || (shouldLoadDependencies && depsLoading);
     const { limits } = usePlanLimits();
     const reachedAssetLimit = assets.length >= limits.maxAssets;
 
@@ -47,12 +68,7 @@ const Assets: React.FC = () => {
     }, []);
 
     // UI State
-    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('assets-view-mode', 'grid');
-    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-    const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
-    const [inspectorOpen, setInspectorOpen] = useState(false);
-    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
 
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
@@ -270,7 +286,7 @@ const Assets: React.FC = () => {
     }, [createAsset, t]);
 
     // Import Handlers
-    const [importModalOpen, setImportModalOpen] = useState(false);
+
 
     const assetGuidelines = useMemo(() => ({
         required: [

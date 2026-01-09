@@ -5,8 +5,8 @@ import { useStore } from '../store';
 import { Incident, UserProfile, Criticality } from '../types';
 import { IncidentDashboard } from '../components/incidents/IncidentDashboard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { useIncidents } from '../hooks/useIncidents';
-import { useIncidentsData } from '../hooks/incidents/useIncidentsData';
+import { useIncidentLogic } from '../hooks/incidents/useIncidentLogic';
+import { useIncidentDependencies } from '../hooks/incidents/useIncidentDependencies';
 
 import { PageHeader } from '../components/ui/PageHeader';
 import { Siren, Plus, ShieldAlert, BrainCircuit, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
@@ -52,8 +52,22 @@ export const Incidents: React.FC = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    // Action Hooks
+    // State Declarations - Lifted up
+    const [creationMode, setCreationMode] = useState(false);
+    const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const [csvImportOpen, setCsvImportOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('grid');
+    const [filter, setFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [severityFilter, setSeverityFilter] = useState('');
+
+    // Optimized Data Hooks
     const {
+        incidents: sortedIncidents,
+        loading: loadingData,
         addIncident,
         updateIncident,
         deleteIncident,
@@ -62,17 +76,22 @@ export const Incidents: React.FC = () => {
         importIncidents,
         simulateAttack,
         loading: loadingAction
-    } = useIncidents();
+    } = useIncidentLogic(user?.organizationId);
 
-    // Data Hook
+    // Lazy load dependencies
+    const shouldLoadDeps = !!selectedIncident || creationMode || importModalOpen || csvImportOpen;
     const {
-        sortedIncidents,
         assets,
         risks,
+        processes: rawProcesses,
         usersList,
-        rawProcesses,
-        loading: loadingData
-    } = useIncidentsData(user?.organizationId);
+        loading: loadingDeps
+    } = useIncidentDependencies({
+        fetchAssets: shouldLoadDeps,
+        fetchRisks: shouldLoadDeps,
+        fetchProcesses: shouldLoadDeps,
+        fetchUsers: shouldLoadDeps || viewMode === 'list' // Authors might differ in list view
+    });
 
     // FIX: Ensure usersList is never empty if logged in
     const effectiveUsers = React.useMemo(() => {
@@ -82,19 +101,7 @@ export const Incidents: React.FC = () => {
     }, [usersList, user]);
 
     // State Declarations
-    const [creationMode, setCreationMode] = useState(false);
 
-    const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const [importModalOpen, setImportModalOpen] = useState(false); // SIEM Import
-    const [csvImportOpen, setCsvImportOpen] = useState(false); // CSV Import
-    const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('grid');
-    const [filter, setFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
-    const [severityFilter, setSeverityFilter] = useState('');
 
     // Derived State
     const incidents = React.useMemo(() => {
@@ -105,7 +112,7 @@ export const Incidents: React.FC = () => {
         });
     }, [sortedIncidents, statusFilter, severityFilter]);
 
-    const loading = loadingData;
+    const loading = loadingData || (shouldLoadDeps && loadingDeps);
 
     const handleImportFromEvents = useCallback(async (events: SecurityEvent[]) => {
         setIsSubmitting(true);
