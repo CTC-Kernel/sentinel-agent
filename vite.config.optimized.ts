@@ -61,7 +61,7 @@ export default defineConfig({
           // Vendor chunks for better caching
           vendor: ['react', 'react-dom', 'react-router-dom'],
           firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-          ui: ['@headlessui/react', 'framer-motion', 'sonner'],
+          ui: ['@headlessui/react', 'framer-motion'],
           charts: ['recharts', 'd3-scale', 'd3-interpolate'],
           utils: ['date-fns', 'zod', 'clsx']
         },
