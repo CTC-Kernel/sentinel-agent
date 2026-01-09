@@ -114,7 +114,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         <button
                             onClick={handleManualRefresh}
                             disabled={aiLoading || !aiSummary}
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400 hover:text-brand-500 disabled:opacity-50 disabled:cursor-not-allowed group/refresh"
+                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 hover:text-brand-500 disabled:opacity-50 disabled:cursor-not-allowed group/refresh"
                             title="Actualiser l'analyse"
                         >
                             <RefreshCw className={`w-4 h-4 ${aiLoading ? 'animate-spin text-brand-500' : 'group-hover/refresh:rotate-180 transition-transform duration-500'}`} />
@@ -146,7 +146,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                     {aiSummary}
                                 </ReactMarkdown>
                                 <div className="mt-3 flex items-center justify-end">
-                                    <span className="text-[10px] font-medium text-muted-foreground/60 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">
+                                    <span className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">
                                         Généré par Sentinel AI
                                     </span>
                                 </div>
