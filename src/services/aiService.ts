@@ -586,7 +586,6 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
 
     // Cleanup cache periodically
     cleanupAiCache();
-
     try {
         const functions = getFunctions();
         const callGeminiGenerateContent = httpsCallable<

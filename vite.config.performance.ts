@@ -13,11 +13,11 @@ import path from "path"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { visualizer } from 'rollup-plugin-visualizer';
+// import { visualizer } from 'rollup-plugin-visualizer';
 import type { InlineConfig } from 'vitest';
 import type { UserConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import viteCompression from 'vite-plugin-compression';
+// import viteCompression from 'vite-plugin-compression';
 
 interface VitestConfigExport extends UserConfig {
   test: InlineConfig;
@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
         babel: {
           plugins: [
             // Supprimer les PropTypes en production
-            isProd && ['babel-plugin-transform-remove-console'],
+            ...(isProd ? [['babel-plugin-transform-remove-console']] : []),
           ].filter(Boolean),
         },
       }),
@@ -122,31 +122,32 @@ export default defineConfig(({ mode }) => {
       }),
 
       // Compression Gzip
-      viteCompression({
+      // Compression Gzip
+      /* viteCompression({
         verbose: true,
         disable: !isProd,
         threshold: 10240,
         algorithm: 'gzip',
         ext: '.gz',
-      }),
+      }), */
 
       // Compression Brotli (meilleure que Gzip)
-      viteCompression({
+      /* viteCompression({
         verbose: true,
         disable: !isProd,
         threshold: 10240,
         algorithm: 'brotliCompress',
         ext: '.br',
-      }),
+      }), */
 
       // Bundle analyzer (seulement en mode analyze)
-      mode === 'analyze' && visualizer({
+      /* mode === 'analyze' && visualizer({
         filename: './dist/stats.html',
         open: true,
         gzipSize: true,
         brotliSize: true,
         template: 'treemap', // 'sunburst', 'treemap', 'network'
-      }),
+      }), */
     ].filter(Boolean),
 
     resolve: {
@@ -304,8 +305,7 @@ export default defineConfig(({ mode }) => {
           },
 
           // Optimiser les noms de chunks
-          chunkFileNames: (chunkInfo) => {
-            const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : '';
+          chunkFileNames: () => {
             return `assets/js/[name]-[hash].js`;
           },
 

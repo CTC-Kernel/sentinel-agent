@@ -293,6 +293,7 @@ export const Incidents: React.FC = () => {
     }, [user, t, deleteIncidentsBulk, selectedIncident]);
 
     const canEdit = canEditResource(user, 'Incident');
+    const canCreate = hasPermission(user, 'Incident', 'create');
 
     const incidentStats = React.useMemo(() => {
         const total = incidents.length;
@@ -619,7 +620,7 @@ export const Incidents: React.FC = () => {
                             </Transition>
                         </Menu>
 
-                        {canEdit && (
+                        {(canEdit || canCreate) && (
                             <CustomTooltip content={t('incidents.declare')}>
                                 <button
                                     aria-label={t('incidents.declare')}

@@ -296,8 +296,12 @@ export const VoxelMesh: React.FC<{
     const handlePointerOver = useCallback((e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
         setHovered(true);
+        if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
     }, []);
-    const handlePointerOut = useCallback(() => setHovered(false), []);
+    const handlePointerOut = useCallback(() => {
+        setHovered(false);
+        if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+    }, []);
 
     let baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
     let emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;

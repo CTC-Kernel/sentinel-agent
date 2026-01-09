@@ -23,7 +23,7 @@ const latLonToVector3 = (lat: number, lon: number, radius: number): THREE.Vector
     return new THREE.Vector3(x, y, z);
 };
 
-const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity: number }> = ({ position, name, intensity }) => {
+const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity: number; country: string }> = ({ position, name, intensity, country }) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const beamRef = useRef<THREE.Mesh>(null);
     const [hovered, setHovered] = useState(false);
@@ -38,74 +38,66 @@ const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity:
         if (beamRef.current) {
             // Pulse beam height and opacity
             beamRef.current.scale.y = 1 + Math.sin(t * 2 + position.x) * 0.2;
-            (beamRef.current.material as THREE.MeshBasicMaterial).opacity = 0.3 + Math.sin(t * 4) * 0.2;
+            (beamRef.current.material as THREE.MeshBasicMaterial).opacity = 0.5 + Math.sin(t * 4) * 0.2;
         }
     });
 
+    const isHigh = intensity > 5;
     const color = intensity > 7 ? "#ef4444" : intensity > 4 ? "#f97316" : "#3b82f6";
     // Beam height proportional to intensity
-    const beamHeight = 0.5 + (intensity / 10) * 1.5;
+    const beamHeight = 0.5 + (intensity / 10) * 2.5;
 
-    // Look at center to orient the beam effectively outwards
+    // Orient group to face center (so Y axis points OUT)
     const lookAtPos = new THREE.Vector3(0, 0, 0);
 
     return (
         <group position={position} lookAt={lookAtPos}>
-            {/* Rotate beam to point OUTWARDS from the sphere surface. 
-                Default cylinder is Y-up. If we place it at surface and `lookAt(0,0,0)`, 
-                the negative Z axis points to center. 
-                We need positive Y axis to point AWAY from center.
-                Actually simpler: Just place it, and rotate it locally if needed. 
-                But `lookAt` with a group is easier. 
-                However, `group.lookAt(0,0,0)` makes the group's positive Z point to 0,0,0. 
-                So the "back" of the group points to center. 
-                This means positive Z is "Inwards". Negative Z is "Outwards".
-                We want the beam (Y-axis cylinder) to align with the normal.
-                Wait, cleaner approach: Use a helper or just Quaternions.
-                Or simpler: Just rely on position and `lookAt` logic is messy in head.
-                
-                Let's stick to world rotation approach in `ThreatScene` or just standard quaternion magic.
-                Actually, simpler: Position is correct. Direction is Position.normalized().
-            */}
+            {/* Base Ring (Country Highlight Effect) */}
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[0.08, 0.12, 32]} />
+                <meshBasicMaterial color={color} opacity={0.3} transparent side={THREE.DoubleSide} />
+            </mesh>
 
             {/* Base Dot */}
             <mesh ref={meshRef}>
-                <sphereGeometry args={[0.04, 16, 16]} />
+                <sphereGeometry args={[0.05, 16, 16]} />
                 <meshBasicMaterial color={color} transparent opacity={0.9} />
             </mesh>
 
-            {/* The Beam - We rotate it 90deg X to align with Z axis, then lookAt handles the rest? 
-                No, let's just manually orient it. 
-                position is the normal vector (normalized * radius).
+            {/* The Beam - Cylinder points along Y axis by default. 
+                Our group looks at 0,0,0, so Z points to center. -Z points Out.
+                We want beam pointing Out.
+                Rotate X 90 degrees puts Cylinder along Z axis.
             */}
             <mesh
                 ref={beamRef}
-                position={[0, 0, 0]} // Relative to group
-                rotation={[Math.PI / 2, 0, 0]} // Align cylinder Y with Local Z (which points to center if we lookAt center?)
-            // Actually let's use the lookAt hack:
-            // If group looks at 0,0,0, its Z axis points TO the center.
-            // So -Z points AWAY.
-            // We want the cylinder along Z axis? No, cylinder is Y axis.
-            // Rotate cylinder X=90 -> Cylinder is now along Z. 
-            // So it points In/Out. 
+                rotation={[Math.PI / 2, 0, 0]}
+                position={[0, 0, beamHeight / 2 * -1]} // Offset so base is at surface (roughly)
             >
-                <cylinderGeometry args={[0.02, 0.005, beamHeight, 8]} />
+                <cylinderGeometry args={[0.02, 0.01, beamHeight, 8]} />
                 <meshBasicMaterial color={color} transparent opacity={0.6} blending={THREE.AdditiveBlending} />
             </mesh>
 
+            {/* Tooltip */}
             {hovered && (
-                <Html distanceFactor={15}>
-                    <div className="bg-slate-900/90 text-cyan-500 text-xs px-3 py-2 rounded-lg border border-cyan-500/30 whitespace-nowrap backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                        <div className="font-bold border-b border-cyan-500/30 mb-1 pb-0.5">{name}</div>
-                        <div className="text-white font-mono text-[10px]">INTENSITY: {intensity.toFixed(1)}</div>
-                        <div className="text-red-400 font-mono text-[10px] animate-pulse">LIVE SIGNAL</div>
+                <Html distanceFactor={10} zIndexRange={[100, 0]}>
+                    <div className="bg-slate-900/90 text-white min-w-[200px] p-4 rounded-xl border border-white/20 shadow-2xl backdrop-blur-md select-none pointer-events-none transform -translate-x-1/2 -translate-y-full mb-4">
+                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
+                            <div className={`w-2 h-2 rounded-full ${isHigh ? 'bg-red-500 animate-pulse' : 'bg-blue-500'}`} />
+                            <span className="font-bold text-sm tracking-wider">{country}</span>
+                        </div>
+                        <div className="font-mono text-xs text-slate-300 mb-1">{name}</div>
+                        <div className="flex justify-between items-center text-[10px] uppercase tracking-widest text-slate-500 mt-2">
+                            <span>INTENSITY: {intensity.toFixed(1)}</span>
+                            <span className="text-emerald-400">LIVE</span>
+                        </div>
                     </div>
                 </Html>
             )}
 
-            {/* Hitbox for hover */}
-            <mesh onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)} visible={false}>
-                <sphereGeometry args={[0.2, 8, 8]} />
+            {/* Hitbox for hover - much larger for easier interaction */}
+            <mesh onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }} onPointerOut={(e) => { e.stopPropagation(); setHovered(false); }} visible={false}>
+                <sphereGeometry args={[0.3, 8, 8]} />
             </mesh>
         </group>
     );
@@ -124,6 +116,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
         return data.flatMap(d => d.markers.map(m => ({
             ...m,
             intensity: d.value,
+            country: d.country,
             vec3: latLonToVector3(m.coordinates[1], m.coordinates[0], 2.05)
         })));
     }, [data]);
@@ -132,7 +125,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
         <group ref={groupRef}>
             {/* Core black void sphere to block background */}
             <Sphere args={[2, 64, 64]}>
-                <meshBasicMaterial color="#000000" />
+                <meshBasicMaterial color="#020617" />
             </Sphere>
 
             {/* Earth Surface Texture/Mesh */}
@@ -169,7 +162,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
             </Sphere>
 
             {markers.map((m, i) => (
-                <ThreatMarker key={i} position={m.vec3} name={m.name} intensity={m.intensity} />
+                <ThreatMarker key={i} position={m.vec3} name={m.name} intensity={m.intensity} country={m.country} />
             ))}
         </group>
     );

@@ -63,7 +63,7 @@ export const Projects: React.FC = () => {
     const {
         projects, risks, controls, assets, audits, usersList, loading,
         handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
-        isSubmitting, canEdit, checkDependencies, importProjects // Destructured
+        isSubmitting, canEdit, checkDependencies, importProjects, createProjectFromTemplateData // Destructured
     } = useProjectLogic();
 
     const { suppliers } = useSuppliers();
@@ -175,13 +175,16 @@ export const Projects: React.FC = () => {
                 id: managerId,
                 label: managerUser?.displayName || managerUser?.email || 'Responsable'
             };
-            await createProjectFromTemplate(template, customName, startDate, managerPayload, user?.organizationId || '');
-            addToast(t('projects.toastCreated'), "success");
+            const { project, milestones } = await createProjectFromTemplate(template, customName, startDate, managerPayload, user?.organizationId || '');
+
+            await createProjectFromTemplateData(project, milestones);
+
+            // Success toast is handled in createProjectFromTemplateData
             setShowTemplateModal(false);
         } catch {
             addToast(t('projects.toastError'), "error");
         }
-    }, [usersList, user, addToast, t]);
+    }, [usersList, user, addToast, t, createProjectFromTemplateData]);
 
     // Exports
     const handleExportCSV = useCallback(() => {

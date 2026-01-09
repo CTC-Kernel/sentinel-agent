@@ -45,7 +45,18 @@ type AuthAuditPayload = {
     metadata?: Record<string, unknown>;
 };
 
+// Simple in-memory rate limiter for client-side logging
+let lastLogTime = 0;
+const MIN_LOG_INTERVAL_MS = 2000; // 2 seconds between logs
+
 export const logAuthAuditEvent = async (payload: AuthAuditPayload) => {
+    const now = Date.now();
+    if (now - lastLogTime < MIN_LOG_INTERVAL_MS) {
+        // Skip log if too frequent
+        return;
+    }
+    lastLogTime = now;
+
     try {
         const logAuthAttemptFn = httpsCallable(functions, 'logAuthAttempt');
         await logAuthAttemptFn({
