@@ -372,7 +372,19 @@ export const Risks: React.FC = () => {
 
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
-                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="overview-tab" data-tour="risks-stats">
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="initial"
+                    animate="visible"
+                    exit="exit"
+                    key="overview-tab"
+                    data-tour="risks-stats"
+                    role="tabpanel"
+                    id="panel-overview"
+                    aria-labelledby="tab-overview"
+                    tabIndex={0}
+                    className="focus:outline-none"
+                >
                     <RiskDashboard risks={filteredRisks} />
                 </motion.div>
             )}
@@ -412,7 +424,17 @@ export const Risks: React.FC = () => {
             </AnimatePresence>
 
             {activeTab === 'list' && (
-                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="mt-8">
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="initial"
+                    animate="visible"
+                    exit="exit"
+                    className="mt-8 focus:outline-none"
+                    role="tabpanel"
+                    id="panel-list"
+                    aria-labelledby="tab-list"
+                    tabIndex={0}
+                >
                     {viewMode === 'list' ? (
                         <RiskList
                             risks={filteredRisks}
@@ -451,7 +473,16 @@ export const Risks: React.FC = () => {
             )}
 
             {activeTab === 'matrix' && (
-                <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1">
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="initial"
+                    animate="visible"
+                    className="p-1 focus:outline-none"
+                    role="tabpanel"
+                    id="panel-matrix"
+                    aria-labelledby="tab-matrix"
+                    tabIndex={0}
+                >
                     {matrixFilter && (
                         <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
                             <span className="text-sm font-bold text-brand-900 dark:text-brand-100">

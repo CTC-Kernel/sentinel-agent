@@ -22,50 +22,58 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
     const riskReduction = avgScore > 0 ? ((avgScore - avgResidual) / avgScore * 100) : 0;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" role="region" aria-label="Tableau de bord des risques">
             {/* KPI Cards Consolidated (Risk Style) */}
-            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
+            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group transition-all hover:shadow-apple-lg">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
                 <div className="space-y-2 relative z-10">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                        <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse w-2 h-2" aria-hidden="true" />
                         Vue globale des risques
                     </p>
                     <div className="flex items-baseline gap-3">
                         <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
                             {totalRisks}
                         </p>
-                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Risques identifiés</span>
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Risques identifiés</span>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
                     {/* Critical Risks Card */}
-                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-50/50 dark:hover:bg-red-900/20">
+                    <div
+                        className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-50/50 dark:hover:bg-red-900/20 focus-within:ring-2 focus-within:ring-red-500"
+                        tabIndex={0}
+                        aria-label={`${criticalRisks} Risques Critiques`}
+                    >
                         <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
 
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Critiques</span>
-                            <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-700 dark:text-red-300">Critiques</span>
+                            <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400" aria-hidden="true">
                                 <ShieldAlert className="h-4 w-4" />
                             </div>
                         </div>
                         <div className="space-y-1">
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{criticalRisks}</p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Score ≥ 10</p>
+                            <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Score ≥ 10</p>
                         </div>
                     </div>
 
                     {/* Above Appetite Card */}
-                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-orange-900/20">
+                    <div
+                        className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-orange-900/20 focus-within:ring-2 focus-within:ring-orange-500"
+                        tabIndex={0}
+                        aria-label={`${risksAboveAppetite} Risques Hors Appétence`}
+                    >
                         <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
 
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Hors Appétence</span>
-                            <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-700 dark:text-orange-300">Hors Appétence</span>
+                            <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400" aria-hidden="true">
                                 <AlertTriangle className="h-4 w-4" />
                             </div>
                         </div>
@@ -73,18 +81,22 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {risksAboveAppetite}
                             </p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{`> Seuil accept.`}</p>
+                            <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{`> Seuil accept.`}</p>
                         </div>
                     </div>
 
                     {/* Avg Score Card */}
-                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20">
+                    <div
+                        className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 focus-within:ring-2 focus-within:ring-indigo-500"
+                        tabIndex={0}
+                        aria-label={`Score Moyen: ${avgScore.toFixed(1)}`}
+                    >
                         <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
                         <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
 
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Score Moyen</span>
-                            <div className="p-1.5 rounded-lg bg-indigo-100/50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 dark:text-indigo-300">Score Moyen</span>
+                            <div className="p-1.5 rounded-lg bg-indigo-100/50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400" aria-hidden="true">
                                 <Activity className="h-4 w-4" />
                             </div>
                         </div>
@@ -94,12 +106,15 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                     {avgScore.toFixed(1)}
                                 </p>
                                 {riskReduction > 0 && (
-                                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                    <span
+                                        className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100/50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded"
+                                        aria-label={`Réduction de ${riskReduction.toFixed(0)}%`}
+                                    >
                                         -{riskReduction.toFixed(0)}%
                                     </span>
                                 )}
                             </div>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tendance</p>
+                            <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Tendance</p>
                         </div>
                     </div>
                 </div>
@@ -107,19 +122,31 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
 
             {/* Charts Row 1: Heatmap + Treatment */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Risk Heatmap (Replacing Evolution) */}
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm">
+                {/* Risk Heatmap */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }} // Reduced delay for snappier feel
+                    className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
+                    aria-label="Graphique Heatmap des risques"
+                >
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-indigo-500" />
+                        <Activity className="w-5 h-5 text-indigo-500" aria-hidden="true" />
                         Cartographie des Risques (Heatmap)
                     </h3>
                     <RiskHeatmap risks={risks} />
                 </motion.div>
 
-                {/* Treatment Progress (Replacing Donut) */}
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6 }} className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm">
+                {/* Treatment Progress */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }} // Staggered
+                    className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
+                    aria-label="Graphique d'avancement des traitements"
+                >
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                        <Layers className="w-5 h-5 text-emerald-500" />
+                        <Layers className="w-5 h-5 text-emerald-500" aria-hidden="true" />
                         Avancement des Traitements
                     </h3>
                     <RiskTreatmentChart risks={risks} />
@@ -127,11 +154,11 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
             </div>
 
             {/* Row 2: Inherent vs Residual (Full Width) */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden min-h-[350px]">
+            <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden min-h-[350px] transition-all hover:shadow-apple-lg">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
 
                 <div className="flex items-center gap-3 mb-6 relative z-10">
-                    <div className="p-2 bg-brand-500/10 rounded-lg">
+                    <div className="p-2 bg-brand-500/10 rounded-lg" aria-hidden="true">
                         <TrendingUp className="h-5 w-5 text-brand-500" />
                     </div>
                     <div>
@@ -140,7 +167,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     </div>
                 </div>
 
-                <div className="h-[250px] w-full relative z-10">
+                <div className="h-[250px] w-full relative z-10" aria-label="Graphique de réduction du risque">
                     <RiskResidualChart risks={risks} />
                 </div>
             </div>
@@ -148,9 +175,9 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
             {/* Top Critical Risks Table */}
             {
                 criticalRisks > 0 && (
-                    <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden">
+                    <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden transition-all hover:shadow-apple-lg">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-red-500/10 rounded-lg">
+                            <div className="p-2 bg-red-500/10 rounded-lg" aria-hidden="true">
                                 <AlertTriangle className="h-5 w-5 text-red-500" />
                             </div>
                             <div>
@@ -159,13 +186,19 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Liste des risques critiques">
                             {risks
                                 .filter(r => r.score >= 10)
                                 .sort((a, b) => b.score - a.score)
                                 .slice(0, 6)
                                 .map((risk, index) => (
-                                    <div key={`risk-card-${index}`} className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-red-200 dark:border-red-500/20 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all cursor-default group">
+                                    <div
+                                        key={`risk-card-${index}`}
+                                        className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-red-200 dark:border-red-500/20 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all cursor-pointer group focus:ring-2 focus:ring-red-500 focus:outline-none"
+                                        role="listitem"
+                                        tabIndex={0}
+                                        aria-label={`Risque critique: ${risk.threat}, Score ${risk.score}`}
+                                    >
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
                                                 Score {risk.score}
