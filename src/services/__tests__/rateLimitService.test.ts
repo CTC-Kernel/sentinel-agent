@@ -290,6 +290,12 @@ describe('RateLimitService', () => {
 });
 
 describe('withRateLimit decorator', () => {
+  beforeEach(() => {
+    // Reset rate limiter before each test to avoid state leakage
+    localStorage.clear();
+    RateLimiter.reset('auth');
+  });
+
   it('devrait protéger une fonction avec rate limiting', () => {
     const mockFn = vi.fn(() => 'success');
     const protectedFn = withRateLimit('auth', mockFn);
