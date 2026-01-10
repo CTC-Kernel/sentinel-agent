@@ -1,0 +1,181 @@
+src/components/assets/AssetForm.tsx(93,46): error TS2345: Argument of type '{ description: string; }' is not assignable to parameter of type 'string'.
+src/components/continuity/ContinuityContent.tsx(57,5): error TS6133: '_tlptCampaigns' is declared but its value is never read.
+src/components/continuity/ContinuityContent.tsx(58,5): error TS6133: '_onAddTlpt' is declared but its value is never read.
+src/components/continuity/ContinuityContent.tsx(59,5): error TS6133: '_onUpdateTlpt' is declared but its value is never read.
+src/components/continuity/ContinuityContent.tsx(60,5): error TS6133: '_onDeleteTlpt' is declared but its value is never read.
+src/components/continuity/tlpt/TlptCampaignModal.tsx(45,87): error TS2339: Property 'seconds' does not exist on type 'string | Date'.
+  Property 'seconds' does not exist on type 'string'.
+src/components/continuity/tlpt/TlptCampaignModal.tsx(45,119): error TS2339: Property 'seconds' does not exist on type 'string | Date'.
+  Property 'seconds' does not exist on type 'string'.
+src/components/continuity/tlpt/TlptCampaignModal.tsx(46,81): error TS2339: Property 'seconds' does not exist on type 'string | Date'.
+  Property 'seconds' does not exist on type 'string'.
+src/components/continuity/tlpt/TlptCampaignModal.tsx(46,111): error TS2339: Property 'seconds' does not exist on type 'string | Date'.
+  Property 'seconds' does not exist on type 'string'.
+src/components/continuity/tlpt/TlptDashboard.tsx(104,91): error TS2339: Property 'seconds' does not exist on type 'string | Date'.
+  Property 'seconds' does not exist on type 'string'.
+src/components/continuity/tlpt/TlptDashboard.tsx(104,120): error TS2339: Property 'seconds' does not exist on type 'string | Date'.
+  Property 'seconds' does not exist on type 'string'.
+src/components/roles/UserRow.tsx(68,38): error TS2345: Argument of type '"super_admin" | "admin" | "auditor" | "user" | "rssi" | "project_manager" | "direction"' is not assignable to parameter of type 'Role'.
+  Type '"super_admin"' is not assignable to type 'Role'.
+src/components/roles/UserRow.tsx(101,62): error TS2345: Argument of type '"super_admin" | "admin" | "auditor" | "user" | "rssi" | "project_manager" | "direction"' is not assignable to parameter of type 'Role'.
+  Type '"super_admin"' is not assignable to type 'Role'.
+src/components/settings/ProfileSettings.tsx(38,13): error TS2322: Type '"super_admin" | "admin" | "auditor" | "user" | "rssi" | "project_manager" | "direction"' is not assignable to type '"admin" | "auditor" | "user" | "rssi" | "project_manager" | "direction" | undefined'.
+  Type '"super_admin"' is not assignable to type '"admin" | "auditor" | "user" | "rssi" | "project_manager" | "direction" | undefined'.
+src/components/settings/ProfileSettings.tsx(212,62): error TS2345: Argument of type 'SubmitHandler<{ displayName: string; role: "admin" | "auditor" | "user" | "rssi" | "project_manager" | "direction"; department?: string | undefined; shodanApiKey?: string | undefined; hibpApiKey?: string | undefined; safeBrowsingApiKey?: string | undefined; notificationPreferences?: { ...; } | undefined; }>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Type 'TFieldValues' is not assignable to type '{ displayName: string; role: "admin" | "auditor" | "user" | "rssi" | "project_manager" | "direction"; department?: string | undefined; shodanApiKey?: string | undefined; hibpApiKey?: string | undefined; safeBrowsingApiKey?: string | undefined; notificationPreferences?: { ...; } | undefined; }'.
+    Type 'FieldValues' is missing the following properties from type '{ displayName: string; role: "admin" | "auditor" | "user" | "rssi" | "project_manager" | "direction"; department?: string | undefined; shodanApiKey?: string | undefined; hibpApiKey?: string | undefined; safeBrowsingApiKey?: string | undefined; notificationPreferences?: { ...; } | undefined; }': displayName, role
+src/components/suppliers/SupplierAssessmentModal.tsx(105,31): error TS2322: Type '{ children: Element; open: boolean; onOpenChange: () => void; }' is not assignable to type 'IntrinsicAttributes & DialogProps'.
+  Property 'onOpenChange' does not exist on type 'IntrinsicAttributes & DialogProps'.
+src/components/suppliers/SupplierAssessmentModal.tsx(133,33): error TS2322: Type 'Dispatch<SetStateAction<string>>' is not assignable to type '(value: string | string[]) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string | string[]' is not assignable to type 'SetStateAction<string>'.
+      Type 'string[]' is not assignable to type 'SetStateAction<string>'.
+src/components/ui/__tests__/DraftBadge.test.tsx(9,1): error TS6133: 'React' is declared but its value is never read.
+src/components/ui/__tests__/DraftBadge.test.tsx(28,7): error TS2322: Type '"en"' is not assignable to type '"fr"'.
+src/components/ui/DraftBadge.tsx(12,10): error TS2305: Module '"../ui/Icons"' has no exported member 'FileEdit'.
+src/components/VersionCheck.tsx(27,71): error TS2345: Argument of type '{ description: string; duration: number; action: { label: string; onClick: () => void; }; }' is not assignable to parameter of type 'string'.
+src/config/__tests__/localeConfig.test.ts(17,8): error TS6133: 'SupportedLocale' is declared but its value is never read.
+src/config/localeConfig.ts(85,18): error TS2304: Cannot find name 'Locale'.
+src/config/localeConfig.ts(214,60): error TS2304: Cannot find name 'Locale'.
+src/config/localeConfig.ts(492,5): error TS2353: Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.
+src/hooks/__tests__/useDraftMode.test.ts(7,36): error TS6133: 'beforeEach' is declared but its value is never read.
+src/hooks/useDraftMode.ts(15,10): error TS6133: 'canSaveAsDraft' is declared but its value is never read.
+src/hooks/useDraftMode.ts(24,29): error TS2344: Type 'output<TFullSchema>' does not satisfy the constraint 'FieldValues'.
+  Type 'unknown' is not assignable to type 'FieldValues'.
+src/hooks/useDraftMode.ts(104,23): error TS2344: Type 'output<TFullSchema>' does not satisfy the constraint 'FieldValues'.
+  Type 'unknown' is not assignable to type 'FieldValues'.
+src/hooks/useDraftMode.ts(120,24): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(schema: Zod3Type<unknown, FieldValues>, schemaOptions?: ParseParams | undefined, resolverOptions?: NonRawResolverOptions | undefined): Resolver<...>', gave the following error.
+    Argument of type 'TFullSchema | TDraftSchema' is not assignable to parameter of type 'Zod3Type<unknown, FieldValues>'.
+      Type 'TFullSchema' is not assignable to type 'Zod3Type<unknown, FieldValues>'.
+        Type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is not assignable to type 'Zod3Type<unknown, FieldValues>'.
+          Types of property '_input' are incompatible.
+            Type 'unknown' is not assignable to type 'FieldValues'.
+  Overload 2 of 4, '(schema: $ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>, schemaOptions?: ParseContext<$ZodIssue> | undefined, resolverOptions?: NonRawResolverOptions | undefined): Resolver<...>', gave the following error.
+    Argument of type 'TFullSchema | TDraftSchema' is not assignable to parameter of type '$ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>'.
+      Type 'TFullSchema' is not assignable to type '$ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>'.
+        Type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is not assignable to type '$ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>'.
+          Types of property '_zod' are incompatible.
+            Type '$ZodTypeInternals<unknown, unknown>' is not assignable to type '$ZodTypeInternals<unknown, FieldValues>'.
+              Type 'unknown' is not assignable to type 'FieldValues'.
+src/hooks/useDraftMode.ts(124,24): error TS2344: Type 'output<TFullSchema>' does not satisfy the constraint 'FieldValues'.
+  Type 'unknown' is not assignable to type 'FieldValues'.
+src/hooks/useDraftMode.ts(178,25): error TS2345: Argument of type 'string' is not assignable to parameter of type '"root" | `root.${string}` | Path<output<TFullSchema>>'.
+src/hooks/useDraftMode.ts(188,9): error TS2698: Spread types may only be created from object types.
+src/hooks/useDraftMode.ts(206,25): error TS2345: Argument of type 'TFieldValues & { isDraft: boolean; }' is not assignable to parameter of type 'output<TFullSchema>'.
+src/hooks/useDraftMode.ts(216,5): error TS2322: Type 'UseFormReturn<output<TFullSchema>, any, TFieldValues>' is not assignable to type 'UseFormReturn<output<TFullSchema>>'.
+  Types of property 'handleSubmit' are incompatible.
+    Type 'UseFormHandleSubmit<output<TFullSchema>, TFieldValues>' is not assignable to type 'UseFormHandleSubmit<output<TFullSchema>, output<TFullSchema>>'.
+      Types of parameters 'onValid' and 'onValid' are incompatible.
+        Types of parameters 'data' and 'data' are incompatible.
+          Type 'TFieldValues' is not assignable to type 'output<TFullSchema>'.
+            Type 'FieldValues' is not assignable to type 'output<TFullSchema>'.
+src/hooks/useErrorHandler.ts(80,7): error TS2349: This expression is not callable.
+  Type '{ success: (title: string, message?: string | undefined) => string; error: (title: string, message?: string | undefined) => string; warning: (title: string, message?: string | undefined) => string; info: (title: string, message?: string | undefined) => string; persistent: (type: "warning" | ... 7 more ... | "deadlin...' has no call signatures.
+src/hooks/useLocale.ts(28,18): error TS2304: Cannot find name 'Locale'.
+src/hooks/useZodForm.ts(9,48): error TS6133: 'FieldValues' is declared but its value is never read.
+src/hooks/useZodForm.ts(19,29): error TS2344: Type 'output<TSchema>' does not satisfy the constraint 'FieldValues'.
+  Type 'unknown' is not assignable to type 'FieldValues'.
+src/hooks/useZodForm.ts(59,18): error TS2344: Type 'output<TSchema>' does not satisfy the constraint 'FieldValues'.
+  Type 'unknown' is not assignable to type 'FieldValues'.
+src/hooks/useZodForm.ts(65,3): error TS2322: Type 'UseFormReturn<output<TSchema>, any, TFieldValues>' is not assignable to type 'UseFormReturn<output<TSchema>>'.
+  Types of property 'handleSubmit' are incompatible.
+    Type 'UseFormHandleSubmit<output<TSchema>, TFieldValues>' is not assignable to type 'UseFormHandleSubmit<output<TSchema>, output<TSchema>>'.
+      Types of parameters 'onValid' and 'onValid' are incompatible.
+        Types of parameters 'data' and 'data' are incompatible.
+          Type 'TFieldValues' is not assignable to type 'output<TSchema>'.
+            Type 'FieldValues' is not assignable to type 'output<TSchema>'.
+src/hooks/useZodForm.ts(65,18): error TS2344: Type 'output<TSchema>' does not satisfy the constraint 'FieldValues'.
+  Type 'unknown' is not assignable to type 'FieldValues'.
+src/hooks/useZodForm.ts(67,27): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(schema: Zod3Type<unknown, FieldValues>, schemaOptions?: ParseParams | undefined, resolverOptions?: NonRawResolverOptions | undefined): Resolver<...>', gave the following error.
+    Argument of type 'TSchema' is not assignable to parameter of type 'Zod3Type<unknown, FieldValues>'.
+      Type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is not assignable to type 'Zod3Type<unknown, FieldValues>'.
+        Types of property '_input' are incompatible.
+          Type 'unknown' is not assignable to type 'FieldValues'.
+  Overload 2 of 4, '(schema: $ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>, schemaOptions?: ParseContext<$ZodIssue> | undefined, resolverOptions?: NonRawResolverOptions | undefined): Resolver<...>', gave the following error.
+    Argument of type 'TSchema' is not assignable to parameter of type '$ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>'.
+      Type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is not assignable to type '$ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>'.
+        Types of property '_zod' are incompatible.
+          Type '$ZodTypeInternals<unknown, unknown>' is not assignable to type '$ZodTypeInternals<unknown, FieldValues>'.
+            Type 'unknown' is not assignable to type 'FieldValues'.
+src/hooks/useZodForm.ts(92,22): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(schema: Zod3Type<unknown, FieldValues>, schemaOptions?: ParseParams | undefined, resolverOptions?: NonRawResolverOptions | undefined): Resolver<...>', gave the following error.
+    Argument of type 'TSchema' is not assignable to parameter of type 'Zod3Type<unknown, FieldValues>'.
+      Type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is not assignable to type 'Zod3Type<unknown, FieldValues>'.
+        Types of property '_input' are incompatible.
+          Type 'unknown' is not assignable to type 'FieldValues'.
+  Overload 2 of 4, '(schema: $ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>, schemaOptions?: ParseContext<$ZodIssue> | undefined, resolverOptions?: NonRawResolverOptions | undefined): Resolver<...>', gave the following error.
+    Argument of type 'TSchema' is not assignable to parameter of type '$ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>'.
+      Type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is not assignable to type '$ZodType<unknown, FieldValues, $ZodTypeInternals<unknown, FieldValues>>'.
+        Types of property '_zod' are incompatible.
+          Type '$ZodTypeInternals<unknown, unknown>' is not assignable to type '$ZodTypeInternals<unknown, FieldValues>'.
+            Type 'unknown' is not assignable to type 'FieldValues'.
+src/utils/doraUtils.ts(1,47): error TS2307: Cannot find module '../../types' or its corresponding type declarations.
+src/utils/draftSchema.ts(69,52): error TS2345: Argument of type 'T[keyof T]' is not assignable to parameter of type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>'.
+  Type 'T[string] | T[number] | T[symbol]' is not assignable to type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>'.
+    Type 'T[string]' is not assignable to type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>'.
+      Type '$ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is missing the following properties from type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>': def, type, _def, _output, and 39 more.
+src/utils/draftSchema.ts(72,39): error TS2345: Argument of type 'T[keyof T]' is not assignable to parameter of type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>'.
+  Type 'T[string] | T[number] | T[symbol]' is not assignable to type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>'.
+    Type 'T[string]' is not assignable to type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>'.
+      Type '$ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is missing the following properties from type 'ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>': def, type, _def, _output, and 39 more.
+src/utils/draftSchema.ts(96,34): error TS2339: Property 'optional' does not exist on type '$ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>'.
+src/utils/draftSchema.ts(114,7): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(predicate: (value: $ZodCheck<never>, index: number, array: $ZodCheck<never>[]) => unknown, thisArg?: any): boolean', gave the following error.
+    Argument of type '(check: { kind: string; }) => boolean' is not assignable to parameter of type '(value: $ZodCheck<never>, index: number, array: $ZodCheck<never>[]) => unknown'.
+      Types of parameters 'check' and 'value' are incompatible.
+        Property 'kind' is missing in type '$ZodCheck<never>' but required in type '{ kind: string; }'.
+  Overload 2 of 2, '(predicate: (value: $ZodCheck<string>, index: number, array: $ZodCheck<string>[]) => unknown, thisArg?: any): boolean', gave the following error.
+    Argument of type '(check: { kind: string; }) => boolean' is not assignable to parameter of type '(value: $ZodCheck<string>, index: number, array: $ZodCheck<string>[]) => unknown'.
+      Types of parameters 'check' and 'value' are incompatible.
+        Property 'kind' is missing in type '$ZodCheck<string>' but required in type '{ kind: string; }'.
+src/utils/draftSchema.ts(123,9): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(check: { kind: string; value?: number; }) => boolean' is not assignable to parameter of type '(value: $ZodCheck<string>, index: number, obj: $ZodCheck<string>[]) => unknown'.
+      Types of parameters 'check' and 'value' are incompatible.
+        Property 'kind' is missing in type '$ZodCheck<string>' but required in type '{ kind: string; value?: number | undefined; }'.
+src/utils/draftSchema.ts(205,24): error TS2322: Type 'ZodObject<{ [K in keyof { -readonly [P in keyof T]: T[P]; }]: K extends string ? { -readonly [P in keyof T]: T[P]; }[K] : ZodOptional<{ -readonly [P in keyof T]: T[P]; }[K]>; }, $strip>' is not assignable to type 'ZodObject<{ [K in keyof T]: K extends keyof T ? T[K] : ZodOptional<T[K]>; }, $strip>'.
+  Type '{ [K in keyof { -readonly [P in keyof T]: T[P]; }]: K extends string ? { -readonly [P in keyof T]: T[P]; }[K] : ZodOptional<{ -readonly [P in keyof T]: T[P]; }[K]>; }' is not assignable to type '{ [K in keyof T]: K extends keyof T ? T[K] : ZodOptional<T[K]>; }'.
+    Type 'K extends string ? { -readonly [P in keyof T]: T[P]; }[K] : ZodOptional<{ -readonly [P in keyof T]: T[P]; }[K]>' is not assignable to type 'K extends keyof T ? T[K] : ZodOptional<T[K]>'.
+      Type '{ -readonly [P in keyof T]: T[P]; }[K] | ZodOptional<{ -readonly [P in keyof T]: T[P]; }[K]>' is not assignable to type 'K extends keyof T ? T[K] : ZodOptional<T[K]>'.
+        Type 'T[K]' is not assignable to type 'K extends keyof T ? T[K] : ZodOptional<T[K]>'.
+          Type 'T[string]' is not assignable to type 'K extends keyof T ? T[K] : ZodOptional<T[K]>'.
+            Type '$ZodType<unknown, unknown, $ZodTypeInternals<unknown, unknown>>' is not assignable to type 'K extends keyof T ? T[K] : ZodOptional<T[K]>'.
+src/utils/errorHandler.ts(209,30): error TS2345: Argument of type '{ duration: number; description: string; }' is not assignable to parameter of type 'string'.
+src/utils/errorHandler.ts(215,30): error TS2345: Argument of type '{ duration: number; }' is not assignable to parameter of type 'string'.
+src/utils/errorHandler.ts(218,32): error TS2345: Argument of type '{ duration: number; }' is not assignable to parameter of type 'string'.
+src/utils/zodErrorMap.ts(55,3): error TS2322: Type '(issue: any, ctx: any) => { message: any; }' is not assignable to type '$ZodErrorMap<$ZodIssue>'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/utils/zodErrorMap.ts(55,11): error TS7006: Parameter 'issue' implicitly has an 'any' type.
+src/utils/zodErrorMap.ts(55,18): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/utils/zodErrorMap.ts(97,27): error TS2339: Property 'invalid_string' does not exist on type '{ readonly invalid_type: "invalid_type"; readonly too_big: "too_big"; readonly too_small: "too_small"; readonly invalid_format: "invalid_format"; readonly not_multiple_of: "not_multiple_of"; ... 5 more ...; readonly custom: "custom"; }'.
+src/utils/zodErrorMap.ts(112,27): error TS2551: Property 'invalid_date' does not exist on type '{ readonly invalid_type: "invalid_type"; readonly too_big: "too_big"; readonly too_small: "too_small"; readonly invalid_format: "invalid_format"; readonly not_multiple_of: "not_multiple_of"; ... 5 more ...; readonly custom: "custom"; }'. Did you mean 'invalid_type'?
+src/utils/zodErrorMap.ts(115,27): error TS2551: Property 'invalid_enum_value' does not exist on type '{ readonly invalid_type: "invalid_type"; readonly too_big: "too_big"; readonly too_small: "too_small"; readonly invalid_format: "invalid_format"; readonly not_multiple_of: "not_multiple_of"; ... 5 more ...; readonly custom: "custom"; }'. Did you mean 'invalid_value'?
+src/utils/zodErrorMap.ts(142,5): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; } | undefined): ZodString', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.
+  Overload 2 of 2, '(params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; } | undefined): $ZodType<...>', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.
+src/utils/zodErrorMap.ts(171,5): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; } | undefined): ZodString', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.
+  Overload 2 of 2, '(params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; } | undefined): $ZodType<...>', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.
+src/utils/zodErrorMap.ts(191,5): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; } | undefined): ZodString', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.
+  Overload 2 of 2, '(params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; } | undefined): $ZodType<...>', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.
+src/utils/zodErrorMap.ts(218,5): error TS2353: Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.
+src/views/admin/components/TenantDetailModal.tsx(170,98): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/views/admin/components/TenantDetailModal.tsx(180,98): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+src/views/Assets.tsx(138,113): error TS2345: Argument of type '{ description: string; }' is not assignable to parameter of type 'string'.
+src/views/Assets.tsx(186,48): error TS2345: Argument of type '{ description: string; }' is not assignable to parameter of type 'string'.
+src/views/Assets.tsx(222,54): error TS2345: Argument of type '{ description: string; duration: number; }' is not assignable to parameter of type 'string'.
+src/views/Assets.tsx(328,61): error TS2345: Argument of type '{ description: string; }' is not assignable to parameter of type 'string'.
+src/views/Continuity.tsx(303,17): error TS2322: Type '{ activeTab: ContinuityTab; loading: boolean; viewMode: "grid" | "list" | "matrix" | "kanban"; filteredProcesses: BusinessProcess[]; assets: Asset[]; ... 15 more ...; onDeleteTlpt: (id: string) => Promise<...>; }' is not assignable to type 'IntrinsicAttributes & ContinuityContentProps'.
+  Property 'tlptCampaigns' does not exist on type 'IntrinsicAttributes & ContinuityContentProps'. Did you mean '_tlptCampaigns'?
+src/views/Continuity.tsx(304,35): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/views/Continuity.tsx(305,32): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/views/Continuity.tsx(305,36): error TS7006: Parameter 'data' implicitly has an 'any' type.
