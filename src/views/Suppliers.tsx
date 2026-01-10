@@ -5,7 +5,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
-import { Supplier, Criticality, SupplierQuestionnaireResponse } from '../types';
+import { Supplier, Criticality } from '../types';
 import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Button } from '../components/ui/button';
@@ -99,8 +99,7 @@ export const Suppliers: React.FC = () => {
         risksRaw,
         documentsRaw,
         assessments: assessmentsRaw, // Alias it
-        loading: loadingDeps,
-        addAssessment
+        loading: loadingDeps
     } = useSupplierDependencies({
         fetchUsers: shouldLoadDeps,
         fetchProcesses: shouldLoadDeps,
@@ -644,14 +643,10 @@ export const Suppliers: React.FC = () => {
                 <SupplierAssessmentModal
                     isOpen={assessmentModalOpen}
                     onClose={() => setAssessmentModalOpen(false)}
-                    supplierId={assessmentSupplier.id}
-                    supplierName={assessmentSupplier.name}
-                    onSave={async (data: Partial<SupplierQuestionnaireResponse>) => {
-                        // Add organizationId from store wrapper or handle it here
-                        await addAssessment({
-                            ...data,
-                            organizationId: user?.organizationId
-                        });
+                    supplier={assessmentSupplier}
+                    onAssessmentCreated={(id) => {
+                        setAssessmentMode(id);
+                        setAssessmentModalOpen(false);
                     }}
                 />
             )}
