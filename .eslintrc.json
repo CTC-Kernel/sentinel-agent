@@ -86,6 +86,8 @@
     "node_modules/",
     "dist/",
     "build/",
+    "_bmad/",
+    "_bmad-output/",
     "*.config.js",
     "*.config.ts",
     "vite.config.ts",
