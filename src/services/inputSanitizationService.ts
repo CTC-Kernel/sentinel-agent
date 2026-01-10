@@ -135,7 +135,7 @@ class InputSanitizationService {
       }
 
       return parsed.toString();
-    } catch (error) {
+    } catch {
       ErrorLogger.warn('Invalid URL format', 'InputSanitization', {
         metadata: { url: sanitized.substring(0, 50) + '...' }
       });
@@ -269,7 +269,7 @@ class InputSanitizationService {
       }
 
       return parsed.toISOString();
-    } catch (error) {
+    } catch {
       ErrorLogger.warn('Invalid date format', 'InputSanitization');
       return '';
     }

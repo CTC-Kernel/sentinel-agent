@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { RateLimiter } from '../rateLimitService';
+import { RateLimiter, withRateLimit } from '../rateLimitService';
 
 describe('RateLimitService', () => {
   beforeEach(() => {
@@ -291,8 +291,6 @@ describe('RateLimitService', () => {
 
 describe('withRateLimit decorator', () => {
   it('devrait protéger une fonction avec rate limiting', () => {
-    const { withRateLimit } = require('../rateLimitService');
-
     const mockFn = vi.fn(() => 'success');
     const protectedFn = withRateLimit('auth', mockFn);
 
@@ -307,8 +305,6 @@ describe('withRateLimit decorator', () => {
   });
 
   it('devrait passer les arguments à la fonction protégée', () => {
-    const { withRateLimit } = require('../rateLimitService');
-
     const mockFn = vi.fn((a: number, b: number) => a + b);
     const protectedFn = withRateLimit('auth', mockFn);
 

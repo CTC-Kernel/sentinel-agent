@@ -12,11 +12,9 @@
  * <SecurityDashboard /> dans une page admin
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SessionMonitor } from '../../services/sessionMonitoringService';
-import { RateLimiter } from '../../services/rateLimitService';
-import { Shield, AlertTriangle, Activity, Clock, Users, TrendingUp } from 'lucide-react';
-import { useStore } from '../../store';
+import { Shield, AlertTriangle, Activity, Clock, Users } from 'lucide-react';
 
 interface SecurityMetrics {
   sessionMetrics: {
@@ -47,21 +45,30 @@ interface SecurityMetrics {
 }
 
 export const SecurityDashboard: React.FC = () => {
-  const user = useStore(state => state.user);
   const [metrics, setMetrics] = useState<SecurityMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Charger les métriques
-  useEffect(() => {
-    loadMetrics();
+  const calculateHealthScore = useCallback((
+    anomalyStats: { critical: number; high: number; medium: number; low: number },
+    sessionMetrics: { duration: number; idleTime: number } | null
+  ): number => {
+    let score = 100;
 
-    // Rafraîchir toutes les 10 secondes
-    const interval = setInterval(loadMetrics, 10000);
+    // Pénalités pour anomalies
+    score -= anomalyStats.critical * 20;
+    score -= anomalyStats.high * 10;
+    score -= anomalyStats.medium * 5;
+    score -= anomalyStats.low * 2;
 
-    return () => clearInterval(interval);
-  }, [user]);
+    // Pénalité pour inactivité prolongée
+    if (sessionMetrics && sessionMetrics.idleTime > 15 * 60 * 1000) {
+      score -= 10;
+    }
 
-  const loadMetrics = () => {
+    return Math.max(0, Math.min(100, score));
+  }, []);
+
+  const loadMetrics = useCallback(() => {
     try {
       const sessionMetrics = SessionMonitor.getMetrics();
       const anomalies = SessionMonitor.getAnomalies();
@@ -100,27 +107,22 @@ export const SecurityDashboard: React.FC = () => {
       console.error('Erreur lors du chargement des métriques:', error);
       setLoading(false);
     }
-  };
+  }, [calculateHealthScore]);
 
-  const calculateHealthScore = (
-    anomalyStats: { critical: number; high: number; medium: number; low: number },
-    sessionMetrics: { duration: number; idleTime: number } | null
-  ): number => {
-    let score = 100;
+  // Charger les métriques au montage et toutes les 10 secondes
+  useEffect(() => {
+    // Rafraîchir toutes les 10 secondes
+    const interval = setInterval(loadMetrics, 10000);
 
-    // Pénalités pour anomalies
-    score -= anomalyStats.critical * 20;
-    score -= anomalyStats.high * 10;
-    score -= anomalyStats.medium * 5;
-    score -= anomalyStats.low * 2;
+    return () => clearInterval(interval);
+  }, [loadMetrics]);
 
-    // Pénalité pour inactivité prolongée
-    if (sessionMetrics && sessionMetrics.idleTime > 15 * 60 * 1000) {
-      score -= 10;
-    }
-
-    return Math.max(0, Math.min(100, score));
-  };
+  // Chargement initial
+  useEffect(() => {
+    const timer = setTimeout(loadMetrics, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const formatDuration = (ms: number): string => {
     const hours = Math.floor(ms / (60 * 60 * 1000));

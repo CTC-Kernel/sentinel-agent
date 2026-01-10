@@ -8,7 +8,7 @@
  * CHOISISSEZ L'APPROCHE QUI CONVIENT À VOTRE PROJET
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
@@ -41,14 +41,12 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
     onSubmit,
     onCancel,
     initialData,
-    usersList,
-    suppliers,
+    usersList: _usersList,
+    suppliers: _suppliers,
     isEditing = false,
-    isLoading = false,
+    isLoading: _isLoading = false,
     readOnly = false
 }) => {
-    const user = useStore(state => state.user);
-
     // Utiliser useSecureFormWithZod au lieu de useForm
     const form = useSecureFormWithZod<AssetFormData>({
         schema: assetSchema,
@@ -152,8 +150,8 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
     onSubmit,
     onCancel,
     initialData,
-    usersList,
-    suppliers,
+    usersList: _usersList,
+    suppliers: _suppliers,
     isEditing = false,
     isLoading = false,
     readOnly = false
@@ -162,7 +160,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Garder react-hook-form existant
-    const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues, register } = useForm<AssetFormData>({
+    const { handleSubmit } = useForm<AssetFormData>({
         resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
         mode: 'onBlur',
         defaultValues: {
