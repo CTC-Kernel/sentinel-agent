@@ -489,10 +489,10 @@ export function createLocalizedNumberSchema(
   const config = localeConfig[locale];
   const { required = true, min, max, integer = false } = options ?? {};
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let schema = z.number({
     required_error: config.zodMessages.required,
     invalid_type_error: config.zodMessages.invalidNumber,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
   if (integer) {

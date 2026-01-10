@@ -49,18 +49,7 @@ export function useComplianceScore(
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Fetch history on mount and when organizationId changes
-  const fetchHistory = useCallback(async () => {
-    if (!organizationId) return;
 
-    try {
-      const historyData = await ScoreService.getScoreHistory(organizationId, historyDays);
-      setHistory(historyData);
-    } catch (err) {
-      console.error('Error fetching score history:', err);
-      // Don't set error for history - it's not critical
-    }
-  }, [organizationId, historyDays]);
 
   // Subscribe to real-time score updates
   useEffect(() => {
@@ -69,6 +58,14 @@ export function useComplianceScore(
     }
 
     // Fetch initial history
+    const fetchHistory = async () => {
+      try {
+        const historyData = await ScoreService.getScoreHistory(organizationId, historyDays);
+        setHistory(historyData);
+      } catch (err) {
+        console.error('Error fetching score history:', err);
+      }
+    };
     fetchHistory();
 
     if (realtime) {
@@ -102,7 +99,7 @@ export function useComplianceScore(
           setLoading(false);
         });
     }
-  }, [organizationId, realtime, fetchHistory]);
+  }, [organizationId, realtime, historyDays]);
 
   // Memoized breakdown
   const breakdown = useMemo<ScoreBreakdown | null>(() => {

@@ -78,13 +78,13 @@ describe('useComplianceScore', () => {
 
   it('should subscribe to score updates when realtime is enabled', () => {
     const unsubscribe = vi.fn();
-    vi.mocked(ScoreService.subscribeToScore).mockImplementation((orgId, callback) => {
+    vi.mocked(ScoreService.subscribeToScore).mockImplementation((_orgId, callback) => {
       callback(mockScore);
       return unsubscribe;
     });
     vi.mocked(ScoreService.getScoreHistory).mockResolvedValue(mockHistory);
 
-    const { result, unmount } = renderHook(() =>
+    const { unmount } = renderHook(() =>
       useComplianceScore('org-123', { realtime: true })
     );
 
@@ -173,7 +173,7 @@ describe('useComplianceScore', () => {
 
   it('should update history state with fetched data', async () => {
     const unsubscribe = vi.fn();
-    vi.mocked(ScoreService.subscribeToScore).mockImplementation((orgId, callback) => {
+    vi.mocked(ScoreService.subscribeToScore).mockImplementation((_orgId, callback) => {
       callback(mockScore);
       return unsubscribe;
     });
