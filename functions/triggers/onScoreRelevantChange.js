@@ -70,12 +70,10 @@ async function queueScoreRecalculation(organizationId, source) {
 
     logger.info(`Score recalculation queued for ${organizationId} from ${source}`);
 
-    // Schedule the actual recalculation after debounce delay
-    // Note: In a real production system, you might use Cloud Tasks for this
-    // For simplicity, we use setTimeout but this only works within the function execution time
-    setTimeout(async () => {
-      await executeQueuedRecalculation(organizationId);
-    }, DEBOUNCE_DELAY_MS);
+    // Execute recalculation immediately if this is a fresh queue entry
+    // The debouncing is handled by the queue document's timestamp check
+    // Note: For production, consider using Cloud Tasks for better reliability
+    await executeQueuedRecalculation(organizationId);
 
   } catch (error) {
     logger.error(`Error queueing score recalculation for ${organizationId}:`, error);
@@ -101,10 +99,7 @@ async function executeQueuedRecalculation(organizationId) {
       processedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Calculate the score
-    const { calculateComplianceScoreInternal } = require('../callable/calculateComplianceScore');
-
-    // If the function doesn't export an internal version, call the calculation directly
+    // Calculate the score using exported helper functions
     const calculateModule = require('../callable/calculateComplianceScore');
 
     // Perform the calculation

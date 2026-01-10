@@ -54,14 +54,27 @@ export function useComplianceScore(
   // Subscribe to real-time score updates
   useEffect(() => {
     if (!organizationId) {
+      setLoading(false);
+      setScore(null);
+      setHistory([]);
+      setError(null);
       return;
     }
+
+    // Reset state when organizationId changes
+    setLoading(true);
+    setError(null);
+
+    // Track if component is still mounted to prevent memory leaks
+    let isMounted = true;
 
     // Fetch initial history
     const fetchHistory = async () => {
       try {
         const historyData = await ScoreService.getScoreHistory(organizationId, historyDays);
-        setHistory(historyData);
+        if (isMounted) {
+          setHistory(historyData);
+        }
       } catch (err) {
         console.error('Error fetching score history:', err);
       }
@@ -85,19 +98,28 @@ export function useComplianceScore(
       );
 
       return () => {
+        isMounted = false;
         unsubscribe();
       };
     } else {
       // One-time fetch
       ScoreService.getComplianceScore(organizationId)
         .then((fetchedScore) => {
-          setScore(fetchedScore);
-          setLoading(false);
+          if (isMounted) {
+            setScore(fetchedScore);
+            setLoading(false);
+          }
         })
         .catch((fetchError) => {
-          setError(fetchError);
-          setLoading(false);
+          if (isMounted) {
+            setError(fetchError);
+            setLoading(false);
+          }
         });
+
+      return () => {
+        isMounted = false;
+      };
     }
   }, [organizationId, realtime, historyDays]);
 

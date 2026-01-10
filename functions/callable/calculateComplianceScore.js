@@ -24,6 +24,9 @@ const DEFAULT_WEIGHTS = {
 // Trend threshold percentage
 const TREND_THRESHOLD = 5;
 
+// Critical risk score threshold (risks with score >= this value are considered critical)
+const CRITICAL_RISK_THRESHOLD = 15;
+
 /**
  * Calculate controls score
  * Formula: (implementedControls / actionableControls) * 100
@@ -72,7 +75,7 @@ async function calculateRisksScore(db, organizationId) {
       .get(),
     risksRef
       .where('organizationId', '==', organizationId)
-      .where('score', '>=', 15) // Critical risks have score >= 15
+      .where('score', '>=', CRITICAL_RISK_THRESHOLD)
       .count()
       .get(),
   ]);
@@ -232,8 +235,15 @@ const calculateComplianceScore = onCall({
 }, async (request) => {
   const { organizationId } = request.data || {};
 
+  // Validate organizationId
   if (!organizationId) {
     throw new HttpsError('invalid-argument', 'organizationId is required');
+  }
+  if (typeof organizationId !== 'string') {
+    throw new HttpsError('invalid-argument', 'organizationId must be a string');
+  }
+  if (organizationId.trim().length === 0) {
+    throw new HttpsError('invalid-argument', 'organizationId cannot be empty');
   }
 
   logger.info(`Calculating compliance score for organization: ${organizationId}`);
@@ -320,4 +330,5 @@ module.exports = {
   calculateTrend,
   DEFAULT_WEIGHTS,
   TREND_THRESHOLD,
+  CRITICAL_RISK_THRESHOLD,
 };

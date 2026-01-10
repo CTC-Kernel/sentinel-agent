@@ -58,7 +58,7 @@ export interface CalculationDetails {
 
 /**
  * Main ComplianceScore interface (ADR-003)
- * Stored at: tenants/{tenantId}/complianceScores/current
+ * Stored at: organizations/{organizationId}/complianceScores/current
  */
 export interface ComplianceScore {
   /** Global compliance score (0-100) */
@@ -77,7 +77,7 @@ export interface ComplianceScore {
 
 /**
  * Historical score entry for trend tracking
- * Stored at: tenants/{tenantId}/complianceScores/history/{YYYY-MM-DD}
+ * Stored at: organizations/{organizationId}/complianceScores/current/history/{YYYY-MM-DD}
  */
 export interface ScoreHistory {
   /** Date of this historical entry (YYYY-MM-DD format) */
