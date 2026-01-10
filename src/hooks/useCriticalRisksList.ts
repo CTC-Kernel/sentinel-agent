@@ -133,7 +133,7 @@ export function useCriticalRisksList(
   const [count, setCount] = useState<number>(0);
   const [previousCount, setPreviousCount] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!tenantId);
   const [error, setError] = useState<Error | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -143,9 +143,11 @@ export function useCriticalRisksList(
 
   useEffect(() => {
     if (!tenantId) {
-      setRisks([]);
-      setCount(0);
-      setLoading(false);
+      if (risks.length > 0 || count > 0 || loading) {
+        setRisks([]);
+        setCount(0);
+        setLoading(false);
+      }
       return;
     }
 

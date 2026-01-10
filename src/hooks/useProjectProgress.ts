@@ -158,7 +158,7 @@ export function useProjectProgress(
   const [progress, setProgress] = useState<ProgressMetrics>(DEFAULT_PROGRESS);
   const [previousOverall, setPreviousOverall] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!tenantId);
   const [error, setError] = useState<Error | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -168,8 +168,10 @@ export function useProjectProgress(
 
   useEffect(() => {
     if (!tenantId) {
-      setProgress(DEFAULT_PROGRESS);
-      setLoading(false);
+      if (progress.overall !== 0 || loading) {
+        setProgress(DEFAULT_PROGRESS);
+        setLoading(false);
+      }
       return;
     }
 

@@ -64,7 +64,7 @@ export function useOngoingAudits(tenantId: string | undefined): OngoingAuditsRes
   const [count, setCount] = useState<number | null>(null);
   const [previousCount, setPreviousCount] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!tenantId);
   const [error, setError] = useState<Error | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -74,8 +74,10 @@ export function useOngoingAudits(tenantId: string | undefined): OngoingAuditsRes
 
   useEffect(() => {
     if (!tenantId) {
-      setCount(null);
-      setLoading(false);
+      if (count !== null || loading) {
+        setCount(null);
+        setLoading(false);
+      }
       return;
     }
 

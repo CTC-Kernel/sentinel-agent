@@ -20,6 +20,16 @@ import { SuppliersStatsWidget } from '../widgets/SuppliersStatsWidget';
 import { ContinuityPlansWidget } from '../widgets/ContinuityPlansWidget';
 import { NIS2DoraKPIWidget } from '../widgets/NIS2DoraKPIWidget';
 
+// Import Story 2-2 to 2-5 widgets
+import { ComplianceScoreWidget } from '../ComplianceScoreWidget';
+import { ExecutiveKPIWidget } from '../ExecutiveKPIWidget';
+import { RSSICriticalRisksWidget } from '../RSSICriticalRisksWidget';
+import { RSSIIncidentsWidget } from '../RSSIIncidentsWidget';
+import { RSSIActionsWidget } from '../RSSIActionsWidget';
+import { PMActionsOverdueWidget } from '../PMActionsOverdueWidget';
+import { PMTimelineWidget } from '../PMTimelineWidget';
+import { PMProgressWidget } from '../PMProgressWidget';
+
 // Define generic props for widgets
 export type DashboardWidgetProps = Record<string, unknown>;
 
@@ -152,6 +162,82 @@ export const WIDGET_REGISTRY: Record<string, {
         component: NIS2DoraKPIWidget,
         defaultColSpan: 1,
         titleKey: 'Configuration NIS2/DORA'
+    },
+    // Story 2-2: Apple Health Style Score Gauge
+    'compliance-score': {
+        id: 'compliance-score',
+        component: ComplianceScoreWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.complianceScore'
+    },
+    // Story 2-3: Executive KPI Cards
+    'executive-kpi': {
+        id: 'executive-kpi',
+        component: ExecutiveKPIWidget,
+        defaultColSpan: 3,
+        defaultRowSpan: 1,
+        minColSpan: 2,
+        minRowSpan: 1,
+        titleKey: 'dashboard.executiveKpi'
+    },
+    // Story 2-4: RSSI Risk & Incident View
+    'rssi-critical-risks': {
+        id: 'rssi-critical-risks',
+        component: RSSICriticalRisksWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.rssiCriticalRisks'
+    },
+    'rssi-incidents': {
+        id: 'rssi-incidents',
+        component: RSSIIncidentsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.rssiIncidents'
+    },
+    'rssi-actions': {
+        id: 'rssi-actions',
+        component: RSSIActionsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.rssiActions'
+    },
+    // Story 2-5: Project Manager Progress View
+    'pm-actions-overdue': {
+        id: 'pm-actions-overdue',
+        component: PMActionsOverdueWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.pmActionsOverdue'
+    },
+    'pm-timeline': {
+        id: 'pm-timeline',
+        component: PMTimelineWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.pmTimeline'
+    },
+    'pm-progress': {
+        id: 'pm-progress',
+        component: PMProgressWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'dashboard.pmProgress'
     }
 };
 export type WidgetId = keyof typeof WIDGET_REGISTRY;

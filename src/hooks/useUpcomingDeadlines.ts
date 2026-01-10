@@ -171,7 +171,7 @@ export function useUpcomingDeadlines(
   const [dueSoonCount, setDueSoonCount] = useState<number>(0);
   const [previousCount, setPreviousCount] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!tenantId);
   const [error, setError] = useState<Error | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -181,10 +181,12 @@ export function useUpcomingDeadlines(
 
   useEffect(() => {
     if (!tenantId) {
-      setItems([]);
-      setCount(0);
-      setDueSoonCount(0);
-      setLoading(false);
+      if (items.length > 0 || count > 0 || loading) {
+        setItems([]);
+        setCount(0);
+        setDueSoonCount(0);
+        setLoading(false);
+      }
       return;
     }
 
