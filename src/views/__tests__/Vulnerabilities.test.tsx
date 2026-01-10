@@ -93,7 +93,7 @@ describe('Vulnerability Data Structure', () => {
         };
 
         const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(yesterday.getHours() - 23);
 
         expect(calculateAge(yesterday)).toBe(1);
     });
