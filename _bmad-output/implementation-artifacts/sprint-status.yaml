@@ -1,0 +1,144 @@
+# generated: 2026-01-10
+# project: sentinel-grc-v2-prod
+# project_key: sentinel-grc
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: "2026-01-10"
+project: sentinel-grc-v2-prod
+project_key: sentinel-grc
+tracking_system: file-system
+story_location: "_bmad-output/implementation-artifacts"
+
+development_status:
+  # Epic 1: Foundation UX & Locale (P0 - MVP Quick Win)
+  epic-1: in-progress
+  1-1-locale-configuration-centralisee: done
+  1-2-humanized-error-messages: done
+  1-3-draft-mode-for-forms: in-progress
+  1-4-auto-save-with-visual-indicator: backlog
+  1-5-live-form-validation: backlog
+  1-6-contextual-actions-in-lists: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Compliance Score Dashboard (P1 - MVP Core)
+  epic-2: backlog
+  2-1-global-compliance-score-calculation: backlog
+  2-2-apple-health-style-score-gauge: backlog
+  2-3-executive-kpi-cards: backlog
+  2-4-rssi-risk-incident-view: backlog
+  2-5-project-manager-progress-view: backlog
+  2-6-configurable-dashboard-widgets: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Risk Management Enhancement (P1 - Core)
+  epic-3: backlog
+  3-1-enhanced-risk-creation-form: backlog
+  3-2-risk-evaluation-matrix: backlog
+  3-3-link-risks-to-controls: backlog
+  3-4-risk-treatment-actions: backlog
+  3-5-risk-register-view: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Multi-Framework Compliance Engine (P1 - Differenciateur EU)
+  epic-4: backlog
+  4-1-framework-activation: backlog
+  4-2-cross-framework-control-mapping: backlog
+  4-3-shared-requirements-view: backlog
+  4-4-statement-of-applicability-soa-generation: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Audit & Evidence Management (P1 - Core)
+  epic-5: backlog
+  5-1-internal-audit-creation: backlog
+  5-2-evidence-linking-to-controls: backlog
+  5-3-external-auditor-portal: backlog
+  5-4-interactive-audit-checklist: backlog
+  5-5-automatic-evidence-dossier-generation: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Document Lifecycle Management (P2 - Growth)
+  epic-6: backlog
+  6-1-document-crud-operations: backlog
+  6-2-document-version-history: backlog
+  6-3-document-linking-to-controls-and-risks: backlog
+  6-4-regulatory-document-templates: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Executive Reporting (P2 - Growth)
+  epic-7: backlog
+  7-1-automatic-executive-report-generation: backlog
+  7-2-multi-format-export: backlog
+  7-3-scheduled-recurring-reports: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Project & Action Tracking (P2 - Growth)
+  epic-8: backlog
+  8-1-project-plans-with-milestones: backlog
+  8-2-action-assignment-with-deadlines: backlog
+  8-3-automatic-deadline-reminders: backlog
+  8-4-action-completion-tracking: backlog
+  epic-8-retrospective: optional
+
+  # Epic 9: Real-time Collaboration (P2 - Engagement)
+  epic-9: backlog
+  9-1-task-notifications: backlog
+  9-2-entity-comments: backlog
+  9-3-mention-colleagues: backlog
+  9-4-critical-alert-notifications: backlog
+  epic-9-retrospective: optional
+
+  # Epic 10: Tenant Administration (P2 - Enterprise)
+  epic-10: backlog
+  10-1-user-management: backlog
+  10-2-role-assignment: backlog
+  10-3-csv-user-import: backlog
+  10-4-organization-settings: backlog
+  10-5-audit-trail-viewing: backlog
+  epic-10-retrospective: optional
+
+  # Epic 11: Enterprise Authentication (P3 - Enterprise Tier)
+  epic-11: backlog
+  11-1-email-password-authentication: backlog
+  11-2-sso-integration-azure-ad-google: backlog
+  11-3-multi-factor-authentication: backlog
+  11-4-tenant-data-isolation: backlog
+  epic-11-retrospective: optional
+
+  # Epic 12: SMSI Wizard (P2 - Differenciateur Majeur)
+  epic-12: backlog
+  12-1-wizard-entry-point: backlog
+  12-2-scope-definition-step: backlog
+  12-3-progressive-step-validation: backlog
+  12-4-time-to-certification-estimate: backlog
+  12-5-sector-based-control-suggestions: backlog
+  epic-12-retrospective: optional
