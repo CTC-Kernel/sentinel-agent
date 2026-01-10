@@ -6,9 +6,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useFormValidation } from '../useFormValidation';
+import { useFormValidationState } from '../useFormValidation';
 
-describe('useFormValidation', () => {
+describe('useFormValidationState', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -20,13 +20,13 @@ describe('useFormValidation', () => {
 
   describe('initialization', () => {
     it('initializes with isFormValid as true when no fields registered', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       expect(result.current.isFormValid).toBe(true);
     });
 
     it('initializes with empty fields object', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       expect(result.current.getFieldState('nonexistent')).toBe('idle');
     });
@@ -34,7 +34,7 @@ describe('useFormValidation', () => {
 
   describe('field registration', () => {
     it('registers a field validator', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -44,7 +44,7 @@ describe('useFormValidation', () => {
     });
 
     it('unregisters a field validator', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -60,7 +60,7 @@ describe('useFormValidation', () => {
 
   describe('field state updates', () => {
     it('updates field state when setFieldState is called', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -71,7 +71,7 @@ describe('useFormValidation', () => {
     });
 
     it('updates isFormValid to false when any field is invalid', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -84,7 +84,7 @@ describe('useFormValidation', () => {
     });
 
     it('updates isFormValid to true when all fields are valid', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -97,7 +97,7 @@ describe('useFormValidation', () => {
     });
 
     it('considers idle fields as valid for isFormValid', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -115,7 +115,7 @@ describe('useFormValidation', () => {
       const validator1 = vi.fn().mockResolvedValue(true);
       const validator2 = vi.fn().mockResolvedValue(true);
 
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('field1', validator1);
@@ -131,7 +131,7 @@ describe('useFormValidation', () => {
     });
 
     it('returns true when all validators pass', async () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('field1', async () => true);
@@ -147,7 +147,7 @@ describe('useFormValidation', () => {
     });
 
     it('returns false when any validator fails', async () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('field1', async () => true);
@@ -163,7 +163,7 @@ describe('useFormValidation', () => {
     });
 
     it('returns true when no fields registered', async () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       let isValid: boolean = false;
       await act(async () => {
@@ -176,7 +176,7 @@ describe('useFormValidation', () => {
 
   describe('touched fields tracking', () => {
     it('tracks touched fields', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -187,7 +187,7 @@ describe('useFormValidation', () => {
     });
 
     it('returns false for untouched fields', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -197,7 +197,7 @@ describe('useFormValidation', () => {
     });
 
     it('can untouch a field', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -214,7 +214,7 @@ describe('useFormValidation', () => {
 
   describe('reset', () => {
     it('resets all field states to idle', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -232,7 +232,7 @@ describe('useFormValidation', () => {
     });
 
     it('resets all touched fields', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => true);
@@ -247,7 +247,7 @@ describe('useFormValidation', () => {
     });
 
     it('resets isFormValid to true', () => {
-      const { result } = renderHook(() => useFormValidation());
+      const { result } = renderHook(() => useFormValidationState());
 
       act(() => {
         result.current.registerField('email', async () => false);

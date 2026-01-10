@@ -103,7 +103,7 @@ export function AutoSaveIndicator({
   onRetry,
   className = '',
   compact = false,
-}: AutoSaveIndicatorProps): JSX.Element | null {
+}: AutoSaveIndicatorProps): React.ReactElement | null {
   const { locale } = useLocale();
   const l = labels[locale];
 

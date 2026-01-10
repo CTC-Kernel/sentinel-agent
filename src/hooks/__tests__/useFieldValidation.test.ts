@@ -395,7 +395,7 @@ describe('useFieldValidation', () => {
       );
 
       act(() => {
-        result.current.setValue('150');
+        result.current.setValue(150);
       });
 
       act(() => {
@@ -405,7 +405,7 @@ describe('useFieldValidation', () => {
       expect(result.current.state).toBe('invalid');
 
       act(() => {
-        result.current.setValue('50');
+        result.current.setValue(50);
       });
 
       act(() => {

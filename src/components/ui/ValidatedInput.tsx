@@ -118,7 +118,7 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
     },
     ref
   ) => {
-    const { locale } = useLocale();
+    useLocale(); // Hook called for potential future use
     const generatedId = useId();
     const inputId = id || generatedId;
     const errorId = `${inputId}-error`;

@@ -1,0 +1,5 @@
+
+> sentinel-grc@2.0.0 type-check
+> tsc --noEmit
+
+src/hooks/__tests__/useFormValidation.test.ts(9,8): error TS6133: 'useFormValidation' is declared but its value is never read.
