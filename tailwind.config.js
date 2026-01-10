@@ -29,13 +29,12 @@ export default {
       },
       fontFamily: {
         sans: [
-          'Outfit',
           '-apple-system',
           'BlinkMacSystemFont',
-          'San Francisco',
-          'Segoe UI',
-          'Roboto',
-          'Helvetica Neue',
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          'system-ui',
+          '"Helvetica Neue"',
           'sans-serif',
         ],
         display: [
