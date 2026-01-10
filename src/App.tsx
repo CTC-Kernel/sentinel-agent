@@ -156,7 +156,6 @@ const AppLayout: React.FC = () => {
             </div>
 
 
-
             <SEO
                 title="Tableau de bord"
                 description="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité."
