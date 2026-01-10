@@ -1,6 +1,6 @@
 # Story 1.5: Live Form Validation
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -32,38 +32,38 @@ So that **I can correct errors immediately**.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Create useFieldValidation hook** (AC: 1, 5)
-  - [ ] 1.1 Create `src/hooks/useFieldValidation.ts` file
-  - [ ] 1.2 Implement validation on blur trigger
-  - [ ] 1.3 Implement validation on delay trigger (configurable, default 500ms)
-  - [ ] 1.4 Track validation state: 'idle' | 'validating' | 'valid' | 'invalid'
-  - [ ] 1.5 Expose error message when invalid
-  - [ ] 1.6 Support Zod schema integration for field-level validation
+- [x] **Task 1: Create useFieldValidation hook** (AC: 1, 5)
+  - [x] 1.1 Create `src/hooks/useFieldValidation.ts` file
+  - [x] 1.2 Implement validation on blur trigger
+  - [x] 1.3 Implement validation on delay trigger (configurable, default 500ms)
+  - [x] 1.4 Track validation state: 'idle' | 'validating' | 'valid' | 'invalid'
+  - [x] 1.5 Expose error message when invalid
+  - [x] 1.6 Support Zod schema integration for field-level validation
 
-- [ ] **Task 2: Create ValidatedInput component** (AC: 2, 3, 5)
-  - [ ] 2.1 Create `src/components/ui/ValidatedInput.tsx`
-  - [ ] 2.2 Extend base Input component with validation state
-  - [ ] 2.3 Display green checkmark (Check icon) when valid
-  - [ ] 2.4 Display red error icon (AlertCircle) when invalid
-  - [ ] 2.5 Display error message below field when invalid
-  - [ ] 2.6 Support custom validation delay
-  - [ ] 2.7 Apply visual styles: green border for valid, red border for invalid
+- [x] **Task 2: Create ValidatedInput component** (AC: 2, 3, 5)
+  - [x] 2.1 Create `src/components/ui/ValidatedInput.tsx`
+  - [x] 2.2 Extend base Input component with validation state
+  - [x] 2.3 Display green checkmark (Check icon) when valid
+  - [x] 2.4 Display red error icon (AlertCircle) when invalid
+  - [x] 2.5 Display error message below field when invalid
+  - [x] 2.6 Support custom validation delay
+  - [x] 2.7 Apply visual styles: green border for valid, red border for invalid
 
-- [ ] **Task 3: Create useFormValidation hook** (AC: 4)
-  - [ ] 3.1 Create `src/hooks/useFormValidation.ts`
-  - [ ] 3.2 Track overall form validity (all fields valid)
-  - [ ] 3.3 Expose isFormValid boolean
-  - [ ] 3.4 Expose touched fields tracking
-  - [ ] 3.5 Support registering multiple field validators
-  - [ ] 3.6 Provide validateAll() function for submit
+- [x] **Task 3: Create useFormValidationState hook** (AC: 4)
+  - [x] 3.1 Extended `src/hooks/useFormValidation.ts` with new hook
+  - [x] 3.2 Track overall form validity (all fields valid)
+  - [x] 3.3 Expose isFormValid boolean
+  - [x] 3.4 Expose touched fields tracking
+  - [x] 3.5 Support registering multiple field validators
+  - [x] 3.6 Provide validateAll() function for submit
 
-- [ ] **Task 4: Write unit tests** (AC: all)
-  - [ ] 4.1 Test useFieldValidation validation triggers (blur, delay)
-  - [ ] 4.2 Test useFieldValidation state transitions
-  - [ ] 4.3 Test ValidatedInput visual states (idle, valid, invalid)
-  - [ ] 4.4 Test ValidatedInput error message display
-  - [ ] 4.5 Test useFormValidation overall validity tracking
-  - [ ] 4.6 Test integration with Zod schemas
+- [x] **Task 4: Write unit tests** (AC: all)
+  - [x] 4.1 Test useFieldValidation validation triggers (blur, delay)
+  - [x] 4.2 Test useFieldValidation state transitions
+  - [x] 4.3 Test ValidatedInput visual states (idle, valid, invalid)
+  - [x] 4.4 Test ValidatedInput error message display
+  - [x] 4.5 Test useFormValidationState overall validity tracking
+  - [x] 4.6 Test integration with Zod schemas
 
 ## Dev Notes
 
@@ -283,30 +283,51 @@ src/
 
 ### Agent Model Used
 
-(To be filled during implementation)
+claude-opus-4-5-20251101
 
 ### Completion Notes List
 
-(To be filled during implementation)
+1. **useFieldValidation hook**: Implemented with blur and delay triggers, synchronous Zod validation using `safeParse`, debounced validation for delay mode, and full TypeScript generics support.
+
+2. **ValidatedInput component**: Created using `forwardRef` pattern, integrates with useFieldValidation, displays Check/AlertCircle icons from existing Icons.tsx, supports external error messages for server-side validation.
+
+3. **useFormValidationState hook**: Added to existing `useFormValidation.ts` file to preserve backward compatibility. Original hook handles form data + rules, new hook tracks validation states from ValidatedInput components.
+
+4. **Technical decisions**:
+   - Used synchronous `safeParse` instead of `parseAsync` for better compatibility with fake timers in tests
+   - Used Zod v4 syntax (`result.error.issues` instead of `err.errors`)
+   - Stored form validity as React state (not computed during render) to satisfy `react-hooks/refs` lint rule
 
 ### File List
 
 **Files Created:**
-(To be filled during implementation)
+- `src/hooks/useFieldValidation.ts` - Field-level validation hook with blur/delay triggers
+- `src/hooks/__tests__/useFieldValidation.test.ts` - 16 unit tests for useFieldValidation
+- `src/components/ui/ValidatedInput.tsx` - Validated input component with visual feedback
+- `src/components/ui/__tests__/ValidatedInput.test.tsx` - 22 unit tests for ValidatedInput
 
 **Files Modified:**
-(To be filled during implementation)
+- `src/hooks/useFormValidation.ts` - Extended with useFormValidationState hook
+- `src/hooks/__tests__/useFormValidation.test.ts` - 18 unit tests for useFormValidationState
 
 ### Acceptance Criteria Verification
 
 | AC | Status | Verification |
 |----|--------|--------------|
-| AC1: Validation on blur/delay | Pending | |
-| AC2: Green checkmark for valid | Pending | |
-| AC3: Red error for invalid | Pending | |
-| AC4: Submit button reflects validity | Pending | |
-| AC5: No validation while typing | Pending | |
+| AC1: Validation on blur/delay | ✅ Passed | useFieldValidation supports 'blur', 'delay', and 'both' triggers. Tests verify validation fires on blur and after delay. |
+| AC2: Green checkmark for valid | ✅ Passed | ValidatedInput displays Check icon in emerald-500 and applies border-emerald-500 when valid. |
+| AC3: Red error for invalid | ✅ Passed | ValidatedInput displays AlertCircle icon in rose-500, border-rose-500, and error message with role="alert". |
+| AC4: Submit button reflects validity | ✅ Passed | useFormValidationState provides isFormValid boolean that updates when field states change. |
+| AC5: No validation while typing | ✅ Passed | Validation only runs on blur or after delay (configurable via delayMs), not on every keystroke. |
+
+### Test Summary
+
+- **useFieldValidation**: 16 tests passed
+- **ValidatedInput**: 22 tests passed
+- **useFormValidationState**: 18 tests passed
+- **Total**: 56 tests passed
 
 ### Change Log
 
 - 2026-01-10: Story created for implementation
+- 2026-01-10: Implementation completed - all 4 tasks done, 56 tests passing, build successful
