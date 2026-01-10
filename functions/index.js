@@ -4008,3 +4008,27 @@ exports.ingestWebhook = onRequest({
         res.status(500).json({ error: error.message });
     }
 });
+
+// ============================================================================
+// COMPLIANCE SCORE FUNCTIONS (ADR-003)
+// ============================================================================
+
+const { calculateComplianceScore } = require('./callable/calculateComplianceScore');
+exports.calculateComplianceScore = calculateComplianceScore;
+
+// Score Recalculation Triggers
+const {
+  onRisksChange,
+  onControlsChange,
+  onDocumentsChange,
+  onAuditsChange,
+} = require('./triggers/onScoreRelevantChange');
+
+exports.onRisksScoreChange = onRisksChange;
+exports.onControlsScoreChange = onControlsChange;
+exports.onDocumentsScoreChange = onDocumentsChange;
+exports.onAuditsScoreChange = onAuditsChange;
+
+// Daily Score Snapshot Scheduler
+const { dailyScoreSnapshot } = require('./scheduled/dailyScoreSnapshot');
+exports.dailyScoreSnapshot = dailyScoreSnapshot;

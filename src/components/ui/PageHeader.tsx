@@ -32,7 +32,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         {/* Title Section with Icon */}
         <div className="flex items-center gap-4 sm:gap-8 min-w-0">
           {icon && (
-            <div className="flex shrink-0 items-center justify-center w-40 h-28 sm:w-52 sm:h-36 lg:w-72 lg:h-48 xl:w-80 xl:h-56 rounded-3xl bg-slate-950 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-950 shadow-2xl shadow-slate-300/20 dark:shadow-slate-800/30 ring-2 ring-slate-200/60 dark:ring-slate-700/40 group-hover:scale-105 group-hover:shadow-3xl group-hover:-translate-y-1 transition-all duration-500 relative overflow-hidden backdrop-blur-sm">
+            <div className="flex shrink-0 items-center justify-center w-40 h-28 sm:w-52 sm:h-36 lg:w-72 lg:h-48 xl:w-80 xl:h-56 rounded-3xl bg-slate-950 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-950 shadow-2xl shadow-slate-300/20 dark:shadow-slate-800/30 ring-2 ring-slate-200/60 dark:ring-slate-700/40 group-hover:scale-105 group-hover:shadow-3xl group-hover:-translate-y-1 transition-all duration-500 relative overflow-hidden backdrop-blur-sm [&_img]:scale-150">
               <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
               <div className="absolute inset-0 bg-gradient-to-t from-white/10 dark:from-white/5 to-transparent opacity-0 group-hover:opacity-15 transition-opacity duration-500"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>

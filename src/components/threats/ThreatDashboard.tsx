@@ -1,7 +1,7 @@
 import React from 'react';
 import { Threat } from '../../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { Globe, AlertTriangle, Shield, Activity } from '../ui/Icons';
+import { AlertTriangle, Shield, Activity } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
 
@@ -15,6 +15,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
         total: threats.length,
         critical: threats.filter(t => t.severity === 'Critical').length,
         ransomware: threats.filter(t => t.type === 'Ransomware').length,
+        malware: threats.filter(t => t.type === 'Malware').length,
     };
 
     // Stable timestamp for calculations
@@ -61,42 +62,77 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
 
     return (
         <div className="space-y-6">
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="glass-panel p-4 rounded-2xl border border-white/10 flex items-center gap-4">
-                    <div className="p-3 bg-red-500/10 rounded-xl text-red-500">
-                        <Globe className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Activité Globale</p>
-                        <p className="text-sm font-bold text-red-500 uppercase">ÉLEVÉE</p>
-                    </div>
-                </div>
-                <div className="glass-panel p-4 rounded-2xl border border-white/10 flex items-center gap-4">
-                    <div className="p-3 bg-brand-500/10 rounded-xl text-brand-500">
-                        <Activity className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Total Menaces</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
+            {/* KPI Cards Consolidated (Threat Intel Style) */}
+            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+
+                <div className="space-y-2 relative z-10">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                        Menaces en temps réel
+                    </p>
+                    <div className="flex items-baseline gap-3">
+                        <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                            {stats.total}
+                        </p>
+                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Actives (24h)</span>
                     </div>
                 </div>
-                <div className="glass-panel p-4 rounded-2xl border border-white/10 flex items-center gap-4">
-                    <div className="p-3 bg-orange-500/10 rounded-xl text-orange-500">
-                        <AlertTriangle className="h-6 w-6" />
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
+                    {/* Critical Threats Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-50/50 dark:hover:bg-red-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Critiques</span>
+                            <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400">
+                                <AlertTriangle className="h-4 w-4" />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{stats.critical}</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priorité haute</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Critiques</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.critical}</p>
+
+                    {/* Ransomware Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-brand-50/50 dark:hover:bg-brand-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">Ransomware</span>
+                            <div className="p-1.5 rounded-lg bg-brand-100/50 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400">
+                                <Shield className="h-4 w-4" />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                {stats.ransomware}
+                            </p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Campagnes</p>
+                        </div>
                     </div>
-                </div>
-                <div className="glass-panel p-4 rounded-2xl border border-white/10 flex items-center gap-4">
-                    <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500">
-                        <Shield className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Ransomware</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.ransomware}</p>
+
+                    {/* Malware Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-orange-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Malware</span>
+                            <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
+                                <Activity className="h-4 w-4" />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                {stats.malware}
+                            </p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Détectés</p>
+                        </div>
                     </div>
                 </div>
             </div>

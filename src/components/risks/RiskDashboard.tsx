@@ -1,12 +1,11 @@
 import React from 'react';
 import { Risk } from '../../types';
-import { ShieldAlert, AlertTriangle, TrendingUp, Layers, Activity } from '../ui/Icons';
+import { ShieldAlert, AlertTriangle, Activity, Layers, TrendingUp } from '../ui/Icons';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../../constants/RiskConstants';
 import { motion } from 'framer-motion';
 import { RiskHeatmap } from './RiskHeatmap';
 import { RiskResidualChart } from './RiskResidualChart';
 import { RiskTreatmentChart } from './RiskTreatmentChart';
-import { RiskKPICard } from './dashboard/RiskKPICard';
 
 interface RiskDashboardProps {
     risks: Risk[];
@@ -24,44 +23,86 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
 
     return (
         <div className="space-y-6">
-            {/* KPI Cards Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <RiskKPICard
-                    title="Risques Critiques"
-                    value={criticalRisks}
-                    subtext="Risques Critiques"
-                    icon={ShieldAlert}
-                    color="red"
-                    delay={0.1}
-                />
-                <RiskKPICard
-                    title="Au-dessus de l'appétence"
-                    value={risksAboveAppetite}
-                    subtext="Au-dessus de l'appétence"
-                    icon={AlertTriangle}
-                    color="orange"
-                    delay={0.2}
-                />
-                <RiskKPICard
-                    title="Score Moyen"
-                    value={avgScore.toFixed(1)}
-                    subtext="Score Moyen"
-                    icon={TrendingUp}
-                    color="blue"
-                    chip={{
-                        label: `${riskReduction > 0 ? '-' : ''}${riskReduction.toFixed(0)}%`,
-                        color: 'emerald'
-                    }}
-                    delay={0.3}
-                />
-                <RiskKPICard
-                    title="Total Risques"
-                    value={totalRisks}
-                    subtext="Total Risques"
-                    icon={Activity}
-                    color="purple"
-                    delay={0.4}
-                />
+            {/* KPI Cards Consolidated (Risk Style) */}
+            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+
+                <div className="space-y-2 relative z-10">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                        Vue globale des risques
+                    </p>
+                    <div className="flex items-baseline gap-3">
+                        <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                            {totalRisks}
+                        </p>
+                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Risques identifiés</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
+                    {/* Critical Risks Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-50/50 dark:hover:bg-red-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Critiques</span>
+                            <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400">
+                                <ShieldAlert className="h-4 w-4" />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{criticalRisks}</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Score ≥ 10</p>
+                        </div>
+                    </div>
+
+                    {/* Above Appetite Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-orange-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Hors Appétence</span>
+                            <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
+                                <AlertTriangle className="h-4 w-4" />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                {risksAboveAppetite}
+                            </p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{`> Seuil accept.`}</p>
+                        </div>
+                    </div>
+
+                    {/* Avg Score Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Score Moyen</span>
+                            <div className="p-1.5 rounded-lg bg-indigo-100/50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+                                <Activity className="h-4 w-4" />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex items-baseline gap-2">
+                                <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                    {avgScore.toFixed(1)}
+                                </p>
+                                {riskReduction > 0 && (
+                                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                        -{riskReduction.toFixed(0)}%
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tendance</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Charts Row 1: Heatmap + Treatment */}
