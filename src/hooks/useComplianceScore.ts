@@ -46,7 +46,7 @@ export function useComplianceScore(
 
   const [score, setScore] = useState<ComplianceScore | null>(null);
   const [history, setHistory] = useState<ScoreHistory[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!!organizationId);
   const [error, setError] = useState<Error | null>(null);
   const [refetchCounter, setRefetchCounter] = useState<number>(0);
 
