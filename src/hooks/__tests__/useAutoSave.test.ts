@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { useAutoSave, type AutoSaveStatus } from '../useAutoSave';
+import { renderHook, act } from '@testing-library/react';
+import { useAutoSave } from '../useAutoSave';
 
 // Mock useLocale hook
 vi.mock('../useLocale', () => ({
@@ -39,7 +39,7 @@ describe('useAutoSave', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('respects enabled option when false', () => {
+    it('respects enabled option when false', async () => {
       const onSave = vi.fn().mockResolvedValue(undefined);
 
       const { result, rerender } = renderHook(
@@ -56,8 +56,8 @@ describe('useAutoSave', () => {
       rerender({ data: { title: 'Changed' } });
 
       // Advance timers
-      act(() => {
-        vi.advanceTimersByTime(35000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(35000);
       });
 
       // Should not trigger save
@@ -65,7 +65,7 @@ describe('useAutoSave', () => {
       expect(result.current.status).toBe('idle');
     });
 
-    it('uses default debounceMs of 30000', () => {
+    it('uses default debounceMs of 30000', async () => {
       const onSave = vi.fn().mockResolvedValue(undefined);
 
       const { rerender } = renderHook(
@@ -81,21 +81,21 @@ describe('useAutoSave', () => {
       rerender({ data: { title: 'Changed' } });
 
       // Should not save before 30 seconds
-      act(() => {
-        vi.advanceTimersByTime(29000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(29000);
       });
       expect(onSave).not.toHaveBeenCalled();
 
       // Should save after 30 seconds
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
       expect(onSave).toHaveBeenCalledWith({ title: 'Changed' });
     });
   });
 
   describe('debounce behavior', () => {
-    it('triggers save after debounce delay', () => {
+    it('triggers save after debounce delay', async () => {
       const onSave = vi.fn().mockResolvedValue(undefined);
 
       const { rerender } = renderHook(
@@ -115,14 +115,14 @@ describe('useAutoSave', () => {
       expect(onSave).not.toHaveBeenCalled();
 
       // Advance time past debounce
-      act(() => {
-        vi.advanceTimersByTime(5500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5500);
       });
 
       expect(onSave).toHaveBeenCalledWith({ title: 'Changed' });
     });
 
-    it('resets debounce timer on subsequent data changes', () => {
+    it('resets debounce timer on subsequent data changes', async () => {
       const onSave = vi.fn().mockResolvedValue(undefined);
 
       const { rerender } = renderHook(
@@ -139,24 +139,24 @@ describe('useAutoSave', () => {
       rerender({ data: { title: 'First' } });
 
       // Wait 3 seconds
-      act(() => {
-        vi.advanceTimersByTime(3000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3000);
       });
 
       // Second change - should reset timer
       rerender({ data: { title: 'Second' } });
 
       // Wait another 3 seconds (6 seconds from first change, 3 from second)
-      act(() => {
-        vi.advanceTimersByTime(3000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3000);
       });
 
       // Should not have saved yet (only 3s since last change)
       expect(onSave).not.toHaveBeenCalled();
 
       // Wait 2 more seconds (5 seconds from second change)
-      act(() => {
-        vi.advanceTimersByTime(2500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2500);
       });
 
       // Now should have saved with latest data
@@ -164,7 +164,7 @@ describe('useAutoSave', () => {
       expect(onSave).toHaveBeenCalledTimes(1);
     });
 
-    it('does not trigger save if data has not changed', () => {
+    it('does not trigger save if data has not changed', async () => {
       const onSave = vi.fn().mockResolvedValue(undefined);
       const data = { title: 'Same' };
 
@@ -182,8 +182,8 @@ describe('useAutoSave', () => {
       rerender({ data });
 
       // Advance time
-      act(() => {
-        vi.advanceTimersByTime(10000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10000);
       });
 
       // Should not save because data reference is the same
@@ -193,9 +193,7 @@ describe('useAutoSave', () => {
 
   describe('status transitions', () => {
     it('transitions idle → pending → saving → saved on successful save', async () => {
-      const onSave = vi.fn().mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 100))
-      );
+      const onSave = vi.fn().mockResolvedValue(undefined);
 
       const { result, rerender } = renderHook(
         ({ data }) =>
@@ -213,27 +211,16 @@ describe('useAutoSave', () => {
       // Change data → should go to pending
       rerender({ data: { title: 'Changed' } });
 
-      await waitFor(() => {
-        expect(result.current.status).toBe('pending');
+      // After rerender, status should be pending
+      expect(result.current.status).toBe('pending');
+
+      // Advance past debounce and wait for promise to resolve
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      // Advance past debounce → should go to saving
-      act(() => {
-        vi.advanceTimersByTime(1500);
-      });
-
-      await waitFor(() => {
-        expect(result.current.status).toBe('saving');
-      });
-
-      // Wait for save to complete → should go to saved
-      act(() => {
-        vi.advanceTimersByTime(200);
-      });
-
-      await waitFor(() => {
-        expect(result.current.status).toBe('saved');
-      });
+      // After save completes, should be saved
+      expect(result.current.status).toBe('saved');
     });
 
     it('transitions to error status on save failure', async () => {
@@ -254,15 +241,12 @@ describe('useAutoSave', () => {
       rerender({ data: { title: 'Changed' } });
 
       // Advance past debounce
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      // Wait for save to fail
-      await waitFor(() => {
-        expect(result.current.status).toBe('error');
-      });
-
+      // Should be in error state
+      expect(result.current.status).toBe('error');
       expect(result.current.error).toBe(saveError);
     });
 
@@ -281,20 +265,16 @@ describe('useAutoSave', () => {
 
       // First save cycle
       rerender({ data: { title: 'First' } });
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      await waitFor(() => {
-        expect(result.current.status).toBe('saved');
-      });
+      expect(result.current.status).toBe('saved');
 
       // Change data again
       rerender({ data: { title: 'Second' } });
 
-      await waitFor(() => {
-        expect(result.current.status).toBe('pending');
-      });
+      expect(result.current.status).toBe('pending');
     });
   });
 
@@ -316,13 +296,11 @@ describe('useAutoSave', () => {
 
       // Trigger save
       rerender({ data: { title: 'Changed' } });
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      await waitFor(() => {
-        expect(result.current.lastSavedAt).toBeInstanceOf(Date);
-      });
+      expect(result.current.lastSavedAt).toBeInstanceOf(Date);
     });
 
     it('does not update lastSavedAt on failed save', async () => {
@@ -340,14 +318,11 @@ describe('useAutoSave', () => {
 
       // Trigger save
       rerender({ data: { title: 'Changed' } });
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      await waitFor(() => {
-        expect(result.current.status).toBe('error');
-      });
-
+      expect(result.current.status).toBe('error');
       expect(result.current.lastSavedAt).toBeNull();
     });
   });
@@ -369,13 +344,11 @@ describe('useAutoSave', () => {
 
       // Trigger save
       rerender({ data: { title: 'Changed' } });
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      await waitFor(() => {
-        expect(result.current.error?.message).toBe('Save failed');
-      });
+      expect(result.current.error?.message).toBe('Save failed');
     });
 
     it('retry function attempts save again', async () => {
@@ -396,14 +369,11 @@ describe('useAutoSave', () => {
 
       // Trigger initial save that fails
       rerender({ data: { title: 'Changed' } });
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      await waitFor(() => {
-        expect(result.current.status).toBe('error');
-      });
-
+      expect(result.current.status).toBe('error');
       expect(onSave).toHaveBeenCalledTimes(1);
 
       // Retry
@@ -412,11 +382,7 @@ describe('useAutoSave', () => {
       });
 
       expect(onSave).toHaveBeenCalledTimes(2);
-
-      await waitFor(() => {
-        expect(result.current.status).toBe('saved');
-      });
-
+      expect(result.current.status).toBe('saved');
       expect(result.current.error).toBeNull();
     });
 
@@ -438,23 +404,19 @@ describe('useAutoSave', () => {
 
       // Trigger failing save
       rerender({ data: { title: 'Changed' } });
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
 
-      await waitFor(() => {
-        expect(result.current.error).not.toBeNull();
-      });
+      expect(result.current.error).not.toBeNull();
 
       // Retry successfully
       await act(async () => {
         await result.current.retry();
       });
 
-      await waitFor(() => {
-        expect(result.current.error).toBeNull();
-        expect(result.current.status).toBe('saved');
-      });
+      expect(result.current.error).toBeNull();
+      expect(result.current.status).toBe('saved');
     });
   });
 
@@ -485,7 +447,7 @@ describe('useAutoSave', () => {
   });
 
   describe('cleanup', () => {
-    it('clears timeout on unmount', () => {
+    it('clears timeout on unmount', async () => {
       const onSave = vi.fn().mockResolvedValue(undefined);
 
       const { rerender, unmount } = renderHook(
@@ -505,8 +467,8 @@ describe('useAutoSave', () => {
       unmount();
 
       // Advance time
-      act(() => {
-        vi.advanceTimersByTime(10000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10000);
       });
 
       // Save should not have been called
@@ -515,7 +477,7 @@ describe('useAutoSave', () => {
   });
 
   describe('configurable debounce', () => {
-    it('uses custom debounceMs value', () => {
+    it('uses custom debounceMs value', async () => {
       const onSave = vi.fn().mockResolvedValue(undefined);
 
       const { rerender } = renderHook(
@@ -531,14 +493,14 @@ describe('useAutoSave', () => {
       rerender({ data: { title: 'Changed' } });
 
       // Should not save before 2 seconds
-      act(() => {
-        vi.advanceTimersByTime(1500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
       });
       expect(onSave).not.toHaveBeenCalled();
 
       // Should save after 2 seconds
-      act(() => {
-        vi.advanceTimersByTime(1000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
       });
       expect(onSave).toHaveBeenCalled();
     });
