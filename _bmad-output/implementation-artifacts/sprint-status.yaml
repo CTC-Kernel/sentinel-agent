@@ -52,7 +52,7 @@ development_status:
 
   # Epic 2: Compliance Score Dashboard (P1 - MVP Core)
   epic-2: in-progress
-  2-1-global-compliance-score-calculation: in-progress
+  2-1-global-compliance-score-calculation: done
   2-2-apple-health-style-score-gauge: backlog
   2-3-executive-kpi-cards: backlog
   2-4-rssi-risk-incident-view: backlog
