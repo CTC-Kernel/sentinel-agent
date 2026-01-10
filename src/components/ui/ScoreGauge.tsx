@@ -4,9 +4,9 @@
  * Implements ADR-003: Score de Conformité Global
  */
 
-import { useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { cn } from '../../lib/utils';
-import { getScoreTextColor, getScoreHexColor, getScoreLevel } from '../../utils/scoreUtils';
+import { getScoreTextColor, getScoreLevel } from '../../utils/scoreUtils';
 
 export type ScoreGaugeSize = 'sm' | 'md' | 'lg';
 
@@ -44,24 +44,6 @@ const GRADIENT_COLORS = {
 } as const;
 
 /**
- * Get color class based on score value (re-exported for backwards compatibility)
- * @deprecated Use getScoreTextColor from scoreUtils instead
- */
-export function getScoreColor(score: number): string {
-  return getScoreTextColor(score);
-}
-
-/**
- * Get stroke color class based on score value (re-exported for backwards compatibility)
- * @deprecated Use getScoreHexColor from scoreUtils for gradients
- */
-export function getScoreStrokeColor(score: number): string {
-  if (score < 50) return 'stroke-red-500';
-  if (score <= 75) return 'stroke-orange-500';
-  return 'stroke-green-500';
-}
-
-/**
  * ScoreGauge - Circular progress gauge component
  *
  * @example
@@ -96,7 +78,11 @@ export function ScoreGauge({
   const textColorClass = getScoreTextColor(normalizedScore);
 
   // Unique gradient ID for this instance
-  const gradientId = useMemo(() => `score-gradient-${Math.random().toString(36).substr(2, 9)}`, []);
+  const [gradientId, setGradientId] = useState('');
+
+  useEffect(() => {
+    setGradientId(`score-gradient-${Math.random().toString(36).substr(2, 9)}`);
+  }, []);
 
   // Critical score pulse animation
   const isCritical = normalizedScore < 30;

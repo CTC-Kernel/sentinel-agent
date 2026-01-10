@@ -92,9 +92,9 @@ export function TrendSparkline({
   className,
 }: TrendSparklineProps) {
   // Calculate sparkline path and reusable values
-  const { path, lastScore, minScore, maxScore, range, padding, chartHeight } = useMemo(() => {
+  const { path, lastScore, minScore, range, padding, chartHeight } = useMemo(() => {
     if (!history || history.length === 0) {
-      return { path: '', lastScore: 0, minScore: 0, maxScore: 0, range: 1, padding: 2, chartHeight: 0 };
+      return { path: '', lastScore: 0, minScore: 0, range: 1, padding: 2, chartHeight: 0 };
     }
 
     const scores = history.map((h) => h.global);
@@ -124,7 +124,6 @@ export function TrendSparkline({
       path: pathString,
       lastScore: scores[scores.length - 1] || 0,
       minScore: min,
-      maxScore: max,
       range: scoreRange,
       padding: pad,
       chartHeight: chartH,

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { RSSIDashboardWidget, canViewRSSIDashboard } from '../RSSIDashboardWidget';
+import { RSSIDashboardWidget } from '../RSSIDashboardWidget';
+import { canViewRSSIDashboard } from '../utils';
 import type { UserWithRole } from '../../../utils/roleUtils';
 
 // Mock child components

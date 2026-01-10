@@ -7,7 +7,8 @@
  */
 
 import { cn } from '../../lib/utils';
-import { hasAnyRole, type UserWithRole } from '../../utils/roleUtils';
+import type { UserWithRole } from '../../utils/roleUtils';
+import { canViewPMDashboard } from './utils';
 import { PMProgressWidget } from './PMProgressWidget';
 import { PMTimelineWidget } from './PMTimelineWidget';
 import { PMActionsOverdueWidget } from './PMActionsOverdueWidget';
@@ -39,19 +40,6 @@ export interface PMDashboardWidgetProps {
   daysAhead?: number;
   /** Whether to skip role check (for admin override) */
   skipRoleCheck?: boolean;
-}
-
-/**
- * Roles that can view PM dashboard
- * Per ADR-004: project_manager role gets progress-global, timeline-next, actions-overdue
- */
-const PM_DASHBOARD_ROLES = ['project_manager', 'admin'] as const;
-
-/**
- * Check if user can view PM dashboard
- */
-export function canViewPMDashboard(user: UserWithRole | null | undefined): boolean {
-  return hasAnyRole(user, [...PM_DASHBOARD_ROLES]);
 }
 
 /**

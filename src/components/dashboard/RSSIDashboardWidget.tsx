@@ -6,7 +6,8 @@
  */
 
 import { cn } from '../../lib/utils';
-import { hasAnyRole, type UserWithRole } from '../../utils/roleUtils';
+import type { UserWithRole } from '../../utils/roleUtils';
+import { canViewRSSIDashboard } from './utils';
 import { RSSICriticalRisksWidget } from './RSSICriticalRisksWidget';
 import { RSSIIncidentsWidget } from './RSSIIncidentsWidget';
 import { RSSIActionsWidget } from './RSSIActionsWidget';
@@ -38,19 +39,6 @@ export interface RSSIDashboardWidgetProps {
   onViewAllActionsClick?: () => void;
   /** Whether to skip role check (for admin override) */
   skipRoleCheck?: boolean;
-}
-
-/**
- * Roles that can view RSSI dashboard
- * Per ADR-004: rssi role gets risks-critical, actions-overdue, incidents-recent
- */
-const RSSI_DASHBOARD_ROLES = ['rssi', 'admin'] as const;
-
-/**
- * Check if user can view RSSI dashboard
- */
-export function canViewRSSIDashboard(user: UserWithRole | null | undefined): boolean {
-  return hasAnyRole(user, [...RSSI_DASHBOARD_ROLES]);
 }
 
 /**

@@ -65,7 +65,7 @@ function WidgetError({ error, onRetry }: { error: Error; onRetry?: () => void })
         </svg>
       </div>
       <p className="text-sm text-gray-600 dark:text-gray-400">
-        Impossible de charger le score
+        Impossible de charger le score: {error.message}
       </p>
       {onRetry && (
         <button

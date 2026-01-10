@@ -389,6 +389,29 @@ export const translations = {
             suppliersStats: 'Statistiques Fournisseurs',
             continuityPlans: 'Plans de Continuité',
             systemHealth: 'Santé du Système',
+            // Story 2-6: New widget titles
+            complianceScore: 'Score de Conformité',
+            executiveKpi: 'KPIs Direction',
+            rssiCriticalRisks: 'Risques Critiques',
+            rssiIncidents: 'Incidents Actifs',
+            rssiActions: 'Actions RSSI',
+            pmActionsOverdue: 'Actions en Retard',
+            pmTimeline: 'Timeline Projet',
+            pmProgress: 'Progression Projet',
+            // Story 2-6: Edit mode
+            editMode: 'Mode édition',
+            customize: 'Personnaliser',
+            doneEditing: 'Terminer',
+            resetToDefaults: 'Réinitialiser',
+            resetConfirm: 'Réinitialiser votre dashboard aux paramètres par défaut ?',
+            removeWidget: 'Supprimer',
+            widgetCategories: {
+                scoreKpi: 'Score & KPI',
+                risks: 'Risques',
+                actions: 'Actions',
+                audits: 'Audits',
+                other: 'Autres'
+            },
             addWidgetToDashboard: 'Ajouter ce widget au tableau de bord.',
             widgets: {
                 'stats-overview': { description: 'Vue globale des indicateurs clés.' },
@@ -408,7 +431,16 @@ export const translations = {
                 'asset-stats': { description: 'Répartition et criticité des actifs.' },
                 'suppliers-stats': { description: 'Suivi des fournisseurs et de leur conformité.' },
                 'continuity-plans': { description: 'État des plans de continuité et exercices.' },
-                'system-health': { description: 'État de santé global du système.' }
+                'system-health': { description: 'État de santé global du système.' },
+                // Story 2-6: New widget descriptions
+                'compliance-score': { description: 'Score global de conformité style Apple Health.' },
+                'executive-kpi': { description: 'Indicateurs clés pour la direction.' },
+                'rssi-critical-risks': { description: 'Risques critiques nécessitant attention.' },
+                'rssi-incidents': { description: 'Incidents de sécurité actifs.' },
+                'rssi-actions': { description: 'Actions assignées et leur statut.' },
+                'pm-actions-overdue': { description: 'Actions en retard à traiter.' },
+                'pm-timeline': { description: 'Échéances et jalons à venir.' },
+                'pm-progress': { description: 'Progression globale du projet.' }
             },
         },
         settings: {
@@ -1047,6 +1079,29 @@ export const translations = {
             suppliersStats: 'Suppliers Stats',
             continuityPlans: 'Continuity Plans',
             systemHealth: 'System Health',
+            // Story 2-6: New widget titles
+            complianceScore: 'Compliance Score',
+            executiveKpi: 'Executive KPIs',
+            rssiCriticalRisks: 'Critical Risks',
+            rssiIncidents: 'Active Incidents',
+            rssiActions: 'RSSI Actions',
+            pmActionsOverdue: 'Overdue Actions',
+            pmTimeline: 'Project Timeline',
+            pmProgress: 'Project Progress',
+            // Story 2-6: Edit mode
+            editMode: 'Edit Mode',
+            customize: 'Customize',
+            doneEditing: 'Done',
+            resetToDefaults: 'Reset',
+            resetConfirm: 'Reset your dashboard to default settings?',
+            removeWidget: 'Remove',
+            widgetCategories: {
+                scoreKpi: 'Score & KPI',
+                risks: 'Risks',
+                actions: 'Actions',
+                audits: 'Audits',
+                other: 'Other'
+            },
             addWidgetToDashboard: 'Add this widget to the dashboard.',
             widgets: {
                 'stats-overview': { description: 'Global view of key indicators.' },
@@ -1066,7 +1121,16 @@ export const translations = {
                 'asset-stats': { description: 'Asset distribution and criticality.' },
                 'suppliers-stats': { description: 'Supplier tracking and compliance.' },
                 'continuity-plans': { description: 'Continuity plans status and drills.' },
-                'system-health': { description: 'Overall system health status.' }
+                'system-health': { description: 'Overall system health status.' },
+                // Story 2-6: New widget descriptions
+                'compliance-score': { description: 'Apple Health style compliance score gauge.' },
+                'executive-kpi': { description: 'Key performance indicators for executives.' },
+                'rssi-critical-risks': { description: 'Critical risks requiring attention.' },
+                'rssi-incidents': { description: 'Active security incidents.' },
+                'rssi-actions': { description: 'Assigned actions and their status.' },
+                'pm-actions-overdue': { description: 'Overdue actions to address.' },
+                'pm-timeline': { description: 'Upcoming deadlines and milestones.' },
+                'pm-progress': { description: 'Overall project progress.' }
             },
             welcomeTitle: 'Bienvenue sur Sentinel GRC',
             welcomeSubtitle1: 'La plateforme tout-en-un pour piloter votre conformité ISO 27001.',
