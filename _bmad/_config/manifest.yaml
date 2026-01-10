@@ -1,0 +1,13 @@
+installation:
+  version: 6.0.0-alpha.22
+  installDate: 2026-01-10T01:21:01.604Z
+  lastUpdated: 2026-01-10T01:21:01.604Z
+modules:
+  - core
+  - bmb
+  - bmm
+ides:
+  - claude-code
+  - github-copilot
+  - antigravity
+  - windsurf
