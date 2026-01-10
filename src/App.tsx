@@ -62,8 +62,6 @@ const AdminDashboard = React.lazy(() => import('./views/admin/AdminDashboard'));
 
 // Route wrapper that decides whether to show Landing Page or App logic
 
-// Route wrapper that decides whether to show Landing Page or App logic
-
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
     const navigate = useNavigate();

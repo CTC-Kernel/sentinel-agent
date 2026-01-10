@@ -1,7 +1,20 @@
-import { useState } from 'react';
-import { ValidationRule, ValidationErrors, validateField, validateForm } from '../utils/validationUtils';
+/**
+ * useFormValidation Hooks (Story 1.5)
+ *
+ * Provides form-level validation functionality:
+ * - useFormValidation: Original hook for form data + validation rules
+ * - useFormValidationState: New hook for tracking field validation states
+ *
+ * @module useFormValidation
+ */
 
-// Hook for form validation
+import { useState, useCallback, useRef } from 'react';
+import { ValidationRule, ValidationErrors, validateField, validateForm } from '../utils/validationUtils';
+import type { FieldValidationState } from './useFieldValidation';
+
+/**
+ * Original form validation hook - manages form data AND validation rules
+ */
 export const useFormValidation = (initialData: Record<string, unknown>, rules: Record<string, ValidationRule>) => {
     const [data, setData] = useState(initialData);
     const [errors, setErrors] = useState<ValidationErrors>({});
