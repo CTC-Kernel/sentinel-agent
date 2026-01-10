@@ -13,11 +13,13 @@ import { z } from 'zod';
 /**
  * Validation state for a field
  * - idle: No validation has run yet
- * - validating: Validation is in progress (for async validation)
  * - valid: Field value passed validation
  * - invalid: Field value failed validation
+ *
+ * Note: 'validating' state was removed as validation is synchronous via Zod safeParse.
+ * If async validation is needed in the future, add 'validating' state back.
  */
-export type FieldValidationState = 'idle' | 'validating' | 'valid' | 'invalid';
+export type FieldValidationState = 'idle' | 'valid' | 'invalid';
 
 /**
  * Validation trigger mode

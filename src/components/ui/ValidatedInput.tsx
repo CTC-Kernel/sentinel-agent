@@ -7,7 +7,7 @@
  * @module ValidatedInput
  */
 
-import { forwardRef, useId, useEffect } from 'react';
+import { forwardRef, useId, useEffect, useMemo } from 'react';
 import { z } from 'zod';
 import { Check, AlertCircle } from './Icons';
 import {
@@ -15,7 +15,6 @@ import {
   type FieldValidationState,
   type ValidationTrigger,
 } from '../../hooks/useFieldValidation';
-import { useLocale } from '../../hooks/useLocale';
 import type { SupportedLocale } from '../../config/localeConfig';
 
 /**
@@ -46,7 +45,7 @@ export function getValidationLabel(
  * Props for the ValidatedInput component
  */
 export interface ValidatedInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   /** Zod schema for validation */
   schema?: z.ZodType<string>;
   /** Validation trigger mode */
@@ -59,6 +58,8 @@ export interface ValidatedInputProps
   helperText?: string;
   /** External error message (for server-side errors) */
   externalError?: string;
+  /** Controlled value (for controlled mode) */
+  value?: string;
   /** Callback when value changes */
   onChange?: (value: string) => void;
   /** Callback when validation state changes */
