@@ -358,3 +358,141 @@ describe('getValidationLabel', () => {
     expect(getValidationLabel('en', 'invalid')).toBe('Invalid value');
   });
 });
+
+describe('ValidatedInput controlled mode', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('supports controlled value prop', () => {
+    const handleChange = vi.fn();
+
+    const { rerender } = render(
+      <ValidatedInput
+        name="test"
+        value="initial"
+        onChange={handleChange}
+      />
+    );
+
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveValue('initial');
+
+    // Rerender with new value
+    rerender(
+      <ValidatedInput
+        name="test"
+        value="updated"
+        onChange={handleChange}
+      />
+    );
+
+    expect(input).toHaveValue('updated');
+  });
+
+  it('calls onChange but does not update internal state in controlled mode', () => {
+    const handleChange = vi.fn();
+
+    render(
+      <ValidatedInput
+        name="test"
+        value="controlled"
+        onChange={handleChange}
+      />
+    );
+
+    const input = screen.getByRole('textbox');
+
+    act(() => {
+      fireEvent.change(input, { target: { value: 'new value' } });
+    });
+
+    expect(handleChange).toHaveBeenCalledWith('new value');
+    // Value should still be 'controlled' since parent controls it
+    expect(input).toHaveValue('controlled');
+  });
+});
+
+describe('ValidatedInput + useFormValidationState integration', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('notifies parent of validation state changes via onValidationChange', () => {
+    const handleValidationChange = vi.fn();
+
+    render(
+      <ValidatedInput
+        name="test"
+        schema={z.string().min(3)}
+        trigger="blur"
+        defaultValue="ab"
+        onValidationChange={handleValidationChange}
+      />
+    );
+
+    const input = screen.getByRole('textbox');
+
+    act(() => {
+      fireEvent.blur(input);
+    });
+
+    // Should notify parent that field is invalid
+    expect(handleValidationChange).toHaveBeenCalledWith('invalid', expect.any(String));
+  });
+
+  it('can be used to track form validity', () => {
+    // This test demonstrates the integration pattern
+    let formIsValid = true;
+    const fieldStates: Record<string, string> = {};
+
+    const handleValidationChange = (name: string) => (state: string) => {
+      fieldStates[name] = state;
+      formIsValid = Object.values(fieldStates).every(
+        (s) => s === 'valid' || s === 'idle'
+      );
+    };
+
+    render(
+      <>
+        <ValidatedInput
+          name="email"
+          schema={z.string().email()}
+          trigger="blur"
+          defaultValue="invalid"
+          onValidationChange={handleValidationChange('email')}
+        />
+        <ValidatedInput
+          name="name"
+          schema={z.string().min(2)}
+          trigger="blur"
+          defaultValue="ok"
+          onValidationChange={handleValidationChange('name')}
+        />
+      </>
+    );
+
+    const [emailInput, nameInput] = screen.getAllByRole('textbox');
+
+    // Validate both fields
+    act(() => {
+      fireEvent.blur(emailInput);
+      fireEvent.blur(nameInput);
+    });
+
+    // Email is invalid, name is valid
+    expect(fieldStates['email']).toBe('invalid');
+    expect(fieldStates['name']).toBe('valid');
+    expect(formIsValid).toBe(false);
+  });
+});

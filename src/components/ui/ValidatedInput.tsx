@@ -106,6 +106,7 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
       label,
       helperText,
       externalError,
+      value: controlledValue,
       onChange,
       onValidationChange,
       containerClassName = '',
@@ -119,18 +120,20 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
     },
     ref
   ) => {
-    useLocale(); // Hook called for potential future use
     const generatedId = useId();
     const inputId = id || generatedId;
     const errorId = `${inputId}-error`;
 
+    // Determine if component is controlled
+    const isControlled = controlledValue !== undefined;
+
     // Create a default schema if none provided
-    const effectiveSchema = schema || z.string();
+    const effectiveSchema = useMemo(() => schema || z.string(), [schema]);
 
     // Use the field validation hook
     const {
       state,
-      value,
+      value: internalValue,
       error: validationError,
       setValue,
       onBlur,
@@ -140,6 +143,9 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
       delayMs,
       initialValue: (defaultValue as string) || '',
     });
+
+    // Use controlled value if provided, otherwise use internal value
+    const displayValue = isControlled ? controlledValue : internalValue;
 
     // Combine validation error with external error
     const displayError = externalError || validationError;
@@ -153,10 +159,19 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
       }
     }, [effectiveState, displayError, onValidationChange]);
 
+    // Sync controlled value with internal state for validation
+    useEffect(() => {
+      if (isControlled && controlledValue !== internalValue) {
+        setValue(controlledValue);
+      }
+    }, [isControlled, controlledValue, internalValue, setValue]);
+
     // Handle input change
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
-      setValue(newValue);
+      if (!isControlled) {
+        setValue(newValue);
+      }
       if (onChange) {
         onChange(newValue);
       }
@@ -198,7 +213,7 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
             ref={ref}
             id={inputId}
             type="text"
-            value={value || ''}
+            value={displayValue || ''}
             onChange={handleChange}
             onBlur={onBlur}
             disabled={disabled}
