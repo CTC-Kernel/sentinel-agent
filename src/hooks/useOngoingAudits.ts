@@ -93,8 +93,11 @@ export function useOngoingAudits(tenantId: string | undefined): OngoingAuditsRes
     const setupListener = async () => {
       try {
         // Query for audits with status 'in_progress'
+        // Query for audits with status 'in_progress'
+        // Must use 'audits' root collection with organizationId filter
         const ongoingAuditsQuery = query(
-          collection(db, `tenants/${tenantId}/audits`),
+          collection(db, 'audits'),
+          where('organizationId', '==', tenantId),
           where('status', '==', 'in_progress')
         );
 

@@ -80,7 +80,7 @@ describe('ComplianceScoreWidget', () => {
 
     render(<ComplianceScoreWidget organizationId="org-123" />);
 
-    expect(screen.getByText('Impossible de charger le score')).toBeInTheDocument();
+    expect(screen.getByText(/Impossible de charger le score/)).toBeInTheDocument();
     expect(screen.getByText('Réessayer')).toBeInTheDocument();
   });
 

@@ -171,8 +171,11 @@ export function useActiveIncidents(
     const setupListener = async () => {
       try {
         // Query for active incidents sorted by date
+        // Query for active incidents sorted by date
+        // Must use 'incidents' root collection with organizationId filter
         const activeIncidentsQuery = query(
-          collection(db, `tenants/${tenantId}/incidents`),
+          collection(db, 'incidents'),
+          where('organizationId', '==', tenantId),
           where('status', 'in', ACTIVE_INCIDENT_STATUSES),
           orderBy('dateReported', 'desc'),
           limit(maxItems)

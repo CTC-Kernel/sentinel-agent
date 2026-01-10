@@ -8,11 +8,6 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('../../hooks/audits/useAudits');
 vi.mock('../../store');
 vi.mock('../../hooks/usePersistedState');
-vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
-    }
-}));
 
 // Mock Components to isolate View logic
 vi.mock('../../components/audits/AuditDashboard', () => ({

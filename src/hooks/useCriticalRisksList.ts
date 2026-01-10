@@ -9,7 +9,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   limit,
   onSnapshot,
   type Unsubscribe,
@@ -162,11 +161,14 @@ export function useCriticalRisksList(
     const setupListener = async () => {
       try {
         // Query for critical risks sorted by criticality (score = impact * probability)
+        // Query for risks for the organization
+        // We fetch more items and filter/sort client side to avoid complex compound indexes
+        // active risks sorted by score descending
         const criticalRisksQuery = query(
-          collection(db, `tenants/${tenantId}/risks`),
+          collection(db, 'risks'),
+          where('organizationId', '==', tenantId),
           where('status', 'in', ACTIVE_RISK_STATUSES),
-          orderBy('score', 'desc'),
-          limit(maxItems)
+          limit(maxItems * 4) // Fetch 4x more to ensure we get enough critical ones after filtering
         );
 
         unsubscribe = onSnapshot(

@@ -97,17 +97,32 @@ export function useCriticalRisks(tenantId: string | undefined): CriticalRisksRes
 
     const setupListener = async () => {
       try {
-        // Query for critical risks that are not mitigated
-        const criticalRisksQuery = query(
-          collection(db, `tenants/${tenantId}/risks`),
-          where('level', '==', 'critical'),
+        // Query for all active risks for the organization
+        // We filter for critical ones client-side to ensure consistency with RiskStats
+        const activeRisksQuery = query(
+          collection(db, 'risks'),
+          where('organizationId', '==', tenantId),
           where('status', 'in', ACTIVE_RISK_STATUSES)
         );
 
         unsubscribe = onSnapshot(
-          criticalRisksQuery,
+          activeRisksQuery,
           (snapshot) => {
-            const newCount = snapshot.size;
+            let criticalCount = 0;
+
+            snapshot.docs.forEach((doc) => {
+              const data = doc.data();
+              // Calculate criticality score: impact * probability
+              // Handle potential missing fields with defaults
+              const score = (data.impact || 1) * (data.probability || 1);
+
+              // Critical threshold is >= 20 (or 15 for 'High' depending on definition)
+              if (score >= 15) {
+                criticalCount++;
+              }
+            });
+
+            const newCount = criticalCount;
 
             // Store previous count for trend calculation
             setCount((prevCount) => {

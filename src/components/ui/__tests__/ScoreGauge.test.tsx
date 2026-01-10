@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ScoreGauge, getScoreColor, getScoreStrokeColor } from '../ScoreGauge';
+import { ScoreGauge } from '../ScoreGauge';
+import { getScoreTextColor, getScoreStrokeColor } from '../../../utils/scoreUtils';
+
+// Aliases for backward compatibility with test naming
+const getScoreColor = getScoreTextColor;
 
 describe('ScoreGauge', () => {
   describe('getScoreColor', () => {
