@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
+// Conflict resolution verified
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'; // HashRouter aliased as Router
 
 
