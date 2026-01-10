@@ -60,10 +60,12 @@ export function useComplianceScore(
   // Subscribe to real-time score updates
   useEffect(() => {
     if (!organizationId) {
-      setLoading(false);
-      setScore(null);
-      setHistory([]);
-      setError(null);
+      if (score || history.length > 0 || loading) {
+        setLoading(false);
+        setScore(null);
+        setHistory([]);
+        setError(null);
+      }
       return;
     }
 

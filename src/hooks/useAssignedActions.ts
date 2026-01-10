@@ -145,7 +145,7 @@ export function useAssignedActions(
   const [overdueCount, setOverdueCount] = useState<number>(0);
   const [previousCount, setPreviousCount] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!tenantId);
   const [error, setError] = useState<Error | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -155,10 +155,12 @@ export function useAssignedActions(
 
   useEffect(() => {
     if (!tenantId) {
-      setActions([]);
-      setCount(0);
-      setOverdueCount(0);
-      setLoading(false);
+      if (actions.length > 0 || count > 0 || overdueCount > 0 || loading) {
+        setActions([]);
+        setCount(0);
+        setOverdueCount(0);
+        setLoading(false);
+      }
       return;
     }
 
@@ -192,7 +194,6 @@ export function useAssignedActions(
         unsubscribe = onSnapshot(
           actionsQuery,
           (snapshot) => {
-            const now = new Date();
             const actionItems: ActionListItem[] = snapshot.docs.map((doc) => {
               const data = doc.data();
               const dueDate = data.dueDate || data.deadline || '';
