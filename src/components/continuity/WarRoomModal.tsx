@@ -56,7 +56,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
     return (
         <AnimatePresence>
             {isOpen && (
-                <Dialog static open={isOpen} onClose={onClose} className="relative z-[100]">
+                <Dialog static open={isOpen} onClose={onClose} className="relative z-[200]">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

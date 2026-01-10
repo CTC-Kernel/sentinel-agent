@@ -22,7 +22,7 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
     return (
         <Transition.Root show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-[100]" initialFocus={initialFocus} onClose={onClose}>
+            <Dialog as="div" className="relative z-[200]" initialFocus={initialFocus} onClose={onClose}>
                 {/* FocusTrap and keyboard navigation are handled internally by Headless UI */}
                 <Transition.Child
                     as={Fragment}

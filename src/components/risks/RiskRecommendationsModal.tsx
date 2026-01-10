@@ -27,7 +27,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
             <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[2rem] shadow-2xl border border-white/10 flex flex-col max-h-[90vh] animate-scale-in overflow-hidden">
 
                 {/* Header */}

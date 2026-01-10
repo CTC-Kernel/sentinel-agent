@@ -87,7 +87,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-max flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
             <div className="glass-panel rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20 animate-scale-in relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                 {/* Header */}

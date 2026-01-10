@@ -138,6 +138,12 @@ service cloud.firestore {
         allow read: if belongsToOrganization(orgId);
         allow write: if belongsToOrganization(orgId) && isAdmin();
       }
+
+      // Modules (Crisis, War Room, etc.)
+      match /modules/{moduleId} {
+        allow read: if belongsToOrganization(orgId);
+        allow write: if belongsToOrganization(orgId) && (isAdmin() || isRSSI() || isOrgOwner(orgId));
+      }
     }
 
     // Users collection
@@ -386,6 +392,26 @@ service cloud.firestore {
     
     // BCP Drills
     match /bcp_drills/{drillId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // TLPT Campaigns
+    match /tlpt_campaigns/{campaignId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
+      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // Threat Library (Custom Threats)
+    match /threat_library/{threatId} {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&

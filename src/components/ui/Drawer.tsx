@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from './button';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from './Icons';
@@ -27,7 +28,7 @@ export const Drawer: React.FC<DrawerProps> = ({
     width = 'max-w-2xl',
     disableScroll = false
 }) => {
-    return (
+    return createPortal(
         <Transition.Root show={isOpen} as={React.Fragment}>
             <Dialog as="div" className="relative z-[100]" onClose={onClose}>
                 <Transition.Child
@@ -87,6 +88,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                     </div>
                 </div>
             </Dialog>
-        </Transition.Root>
+        </Transition.Root>,
+        document.body
     );
 };
