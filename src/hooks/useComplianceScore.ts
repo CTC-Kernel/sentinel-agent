@@ -46,12 +46,18 @@ export function useComplianceScore(
 
   const [score, setScore] = useState<ComplianceScore | null>(null);
   const [history, setHistory] = useState<ScoreHistory[]>([]);
-  const [loading, setLoading] = useState<boolean>(!!organizationId);
   const [error, setError] = useState<Error | null>(null);
   const [refetchCounter, setRefetchCounter] = useState<number>(0);
 
+  // Derived loading state
+  const [fetchedOrganizationId, setFetchedOrganizationId] = useState<string | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  const loading = (!!organizationId && organizationId !== fetchedOrganizationId) || isRefetching;
+
   // Refetch function to manually trigger data reload
   const refetch = useCallback(() => {
+    setIsRefetching(true);
     setRefetchCounter((prev) => prev + 1);
   }, []);
 
@@ -60,18 +66,12 @@ export function useComplianceScore(
   // Subscribe to real-time score updates
   useEffect(() => {
     if (!organizationId) {
-      if (score || history.length > 0 || loading) {
-        setLoading(false);
-        setScore(null);
-        setHistory([]);
-        setError(null);
-      }
       return;
     }
 
     // Reset state when organizationId changes
-    setLoading(true);
-    setError(null);
+    // Loading is derived, no set state needed
+
 
     // Track if component is still mounted to prevent memory leaks
     let isMounted = true;
@@ -94,7 +94,8 @@ export function useComplianceScore(
       const unsubscribe = ScoreService.subscribeToScore(
         organizationId,
         (newScore, subscriptionError) => {
-          setLoading(false);
+          setFetchedOrganizationId(organizationId);
+          setIsRefetching(false);
 
           if (subscriptionError) {
             setError(subscriptionError);
@@ -115,13 +116,15 @@ export function useComplianceScore(
         .then((fetchedScore) => {
           if (isMounted) {
             setScore(fetchedScore);
-            setLoading(false);
+            setFetchedOrganizationId(organizationId);
+            setIsRefetching(false);
           }
         })
         .catch((fetchError) => {
           if (isMounted) {
             setError(fetchError);
-            setLoading(false);
+            setFetchedOrganizationId(organizationId);
+            setIsRefetching(false);
           }
         });
 

@@ -4,7 +4,7 @@
  * Implements ADR-003: Score de Conformité Global
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { cn } from '../../lib/utils';
 import { getScoreTextColor, getScoreLevel } from '../../utils/scoreUtils';
 
@@ -78,11 +78,7 @@ export function ScoreGauge({
   const textColorClass = getScoreTextColor(normalizedScore);
 
   // Unique gradient ID for this instance
-  const [gradientId, setGradientId] = useState('');
-
-  useEffect(() => {
-    setGradientId(`score-gradient-${Math.random().toString(36).substr(2, 9)}`);
-  }, []);
+  const [gradientId] = useState(() => `score-gradient-${Math.random().toString(36).substr(2, 9)}`);
 
   // Critical score pulse animation
   const isCritical = normalizedScore < 30;

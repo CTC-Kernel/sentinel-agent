@@ -171,27 +171,29 @@ export function useUpcomingDeadlines(
   const [dueSoonCount, setDueSoonCount] = useState<number>(0);
   const [previousCount, setPreviousCount] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendType | null>(null);
-  const [loading, setLoading] = useState(!!tenantId);
   const [error, setError] = useState<Error | null>(null);
+
+  // State for loading management
+  const [fetchedTenantId, setFetchedTenantId] = useState<string | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  // Derived loading state
+  const loading = (!!tenantId && tenantId !== fetchedTenantId) || isRefetching;
+
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refetch = useCallback(() => {
+    setIsRefetching(true);
     setRefreshKey((prev) => prev + 1);
   }, []);
 
   useEffect(() => {
     if (!tenantId) {
-      if (items.length > 0 || count > 0 || loading) {
-        setItems([]);
-        setCount(0);
-        setDueSoonCount(0);
-        setLoading(false);
-      }
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    // Loading is derived, no set state needed.
+
 
     let unsubscribe: Unsubscribe | null = null;
 
@@ -265,24 +267,28 @@ export function useUpcomingDeadlines(
               if (prevCount !== newCount) {
                 setPreviousCount(prevCount);
                 setTrend(calculateTrend(newCount, prevCount));
-              } else if (trend === null) {
-                setTrend('stable');
+              } else {
+                setTrend((curr) => curr || 'stable');
               }
               return newCount;
             });
 
-            setLoading(false);
+            setError(null);
+            setFetchedTenantId(tenantId);
+            setIsRefetching(false);
           },
           (err) => {
             console.error('Error fetching upcoming deadlines:', err);
             setError(err as Error);
-            setLoading(false);
+            setFetchedTenantId(tenantId);
+            setIsRefetching(false);
           }
         );
       } catch (err) {
         console.error('Error setting up deadlines listener:', err);
         setError(err as Error);
-        setLoading(false);
+        setFetchedTenantId(tenantId);
+        setIsRefetching(false);
       }
     };
 
@@ -296,12 +302,12 @@ export function useUpcomingDeadlines(
   }, [tenantId, daysAhead, maxItems, refreshKey]);
 
   return {
-    items,
-    count,
-    dueSoonCount,
+    items: tenantId ? items : [],
+    count: tenantId ? count : 0,
+    dueSoonCount: tenantId ? dueSoonCount : 0,
     previousCount,
     trend,
-    loading,
+    loading: tenantId ? loading : false,
     error,
     refetch,
   };

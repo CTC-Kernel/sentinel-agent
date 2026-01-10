@@ -158,25 +158,29 @@ export function useProjectProgress(
   const [progress, setProgress] = useState<ProgressMetrics>(DEFAULT_PROGRESS);
   const [previousOverall, setPreviousOverall] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendType | null>(null);
-  const [loading, setLoading] = useState(!!tenantId);
   const [error, setError] = useState<Error | null>(null);
+
+  // State for loading management
+  const [fetchedTenantId, setFetchedTenantId] = useState<string | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  // Derived loading state
+  const loading = (!!tenantId && tenantId !== fetchedTenantId) || isRefetching;
+
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refetch = useCallback(() => {
+    setIsRefetching(true);
     setRefreshKey((prev) => prev + 1);
   }, []);
 
   useEffect(() => {
     if (!tenantId) {
-      if (progress.overall !== 0 || loading) {
-        setProgress(DEFAULT_PROGRESS);
-        setLoading(false);
-      }
       return;
     }
 
-    setLoading(true);
-    setError(null);
+
+
 
     const unsubscribes: Unsubscribe[] = [];
 
@@ -269,13 +273,16 @@ export function useProjectProgress(
           if (prevProgress.overall !== newProgress.overall) {
             setPreviousOverall(prevProgress.overall);
             setTrend(calculateTrend(newProgress.overall, prevProgress.overall));
-          } else if (trend === null) {
-            setTrend('stable');
+          } else {
+            // If stable, ensure trend is initialized
+            setTrend((curr) => curr || 'stable');
           }
           return newProgress;
         });
 
-        setLoading(false);
+        setError(null);
+        setFetchedTenantId(tenantId);
+        setIsRefetching(false);
 
         // Set up real-time listener for actions (most frequently changing)
         const actionsQuery = query(
@@ -291,7 +298,8 @@ export function useProjectProgress(
       } catch (err) {
         console.error('Error fetching project progress:', err);
         setError(err as Error);
-        setLoading(false);
+        setFetchedTenantId(tenantId);
+        setIsRefetching(false);
       }
     };
 
@@ -300,13 +308,13 @@ export function useProjectProgress(
     return () => {
       unsubscribes.forEach((unsub) => unsub());
     };
-  }, [tenantId, refreshKey]);
+  }, [tenantId, refreshKey, refetch]);
 
   return {
-    progress,
+    progress: tenantId ? progress : DEFAULT_PROGRESS,
     previousOverall,
     trend,
-    loading,
+    loading: tenantId ? loading : false,
     error,
     refetch,
   };
