@@ -44,8 +44,8 @@ development_status:
   epic-1: in-progress
   1-1-locale-configuration-centralisee: done
   1-2-humanized-error-messages: done
-  1-3-draft-mode-for-forms: in-progress
-  1-4-auto-save-with-visual-indicator: backlog
+  1-3-draft-mode-for-forms: done
+  1-4-auto-save-with-visual-indicator: in-progress
   1-5-live-form-validation: backlog
   1-6-contextual-actions-in-lists: backlog
   epic-1-retrospective: optional
