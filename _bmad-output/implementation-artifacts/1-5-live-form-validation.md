@@ -1,6 +1,6 @@
 # Story 1.5: Live Form Validation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -36,7 +36,7 @@ So that **I can correct errors immediately**.
   - [x] 1.1 Create `src/hooks/useFieldValidation.ts` file
   - [x] 1.2 Implement validation on blur trigger
   - [x] 1.3 Implement validation on delay trigger (configurable, default 500ms)
-  - [x] 1.4 Track validation state: 'idle' | 'validating' | 'valid' | 'invalid'
+  - [x] 1.4 Track validation state: 'idle' | 'valid' | 'invalid' (validating removed - sync validation)
   - [x] 1.5 Expose error message when invalid
   - [x] 1.6 Support Zod schema integration for field-level validation
 
@@ -64,6 +64,12 @@ So that **I can correct errors immediately**.
   - [x] 4.4 Test ValidatedInput error message display
   - [x] 4.5 Test useFormValidationState overall validity tracking
   - [x] 4.6 Test integration with Zod schemas
+
+### Review Follow-ups (AI)
+
+- [ ] [AI-Review][LOW] Test file description mismatch - Comment says "useFormValidation" but tests "useFormValidationState" `useFormValidation.test.ts:2-4`
+- [ ] [AI-Review][LOW] Missing aria-live on validation icons - Add `aria-live="polite"` to icon container for accessibility `ValidatedInput.tsx:228`
+- [ ] [AI-Review][LOW] No cleanup/unregister pattern - When ValidatedInput unmounts, consider unregistering from useFormValidationState
 
 ## Dev Notes
 
@@ -298,6 +304,13 @@ claude-opus-4-5-20251101
    - Used Zod v4 syntax (`result.error.issues` instead of `err.errors`)
    - Stored form validity as React state (not computed during render) to satisfy `react-hooks/refs` lint rule
 
+5. **Code Review Fixes (2026-01-10)**:
+   - Removed unused 'validating' state from FieldValidationState type (sync validation doesn't need it)
+   - Removed unused `useLocale()` call from ValidatedInput
+   - Added controlled mode support to ValidatedInput (value prop now works)
+   - Added integration tests for ValidatedInput + form validation pattern
+   - Added useMemo for schema to prevent unnecessary re-renders
+
 ### File List
 
 **Files Created:**
@@ -323,11 +336,12 @@ claude-opus-4-5-20251101
 ### Test Summary
 
 - **useFieldValidation**: 16 tests passed
-- **ValidatedInput**: 22 tests passed
+- **ValidatedInput**: 26 tests passed (4 new integration tests added)
 - **useFormValidationState**: 18 tests passed
-- **Total**: 56 tests passed
+- **Total**: 60 tests passed
 
 ### Change Log
 
 - 2026-01-10: Story created for implementation
 - 2026-01-10: Implementation completed - all 4 tasks done, 56 tests passing, build successful
+- 2026-01-10: Code review completed - 2 HIGH, 4 MEDIUM issues fixed, 3 LOW action items created, 60 tests passing
