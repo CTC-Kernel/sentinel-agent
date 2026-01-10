@@ -7,7 +7,7 @@ import { staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
 import { useStore } from '../store';
-import { EmptyState } from '../components/ui/EmptyState';
+import { EmptyState } from '../components/common/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { Notification } from '../types/notification';
@@ -134,9 +134,9 @@ export const Notifications: React.FC = () => {
                 </div>
             ) : filteredNotifications.length === 0 ? (
                 <EmptyState
-                    icon={Bell}
-                    title={t('notifications.empty.title')}
-                    description={searchQuery ? t('notifications.empty.descSearch') : t('notifications.empty.desc')}
+                    image="/images/generated-empty-state-general.png"
+                    title={t('notifications.emptyTitle')}
+                    description={filterStatus === 'unread' ? t('notifications.emptyDescUnread') : t('notifications.emptyDescAll')}
                 />
             ) : (
                 <div className="space-y-4">

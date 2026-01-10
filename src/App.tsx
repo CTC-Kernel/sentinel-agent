@@ -156,9 +156,7 @@ const AppLayout: React.FC = () => {
                 <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             </div>
 
-            <div>
-                <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-            </div>
+
 
             <SEO
                 title="Tableau de bord"
