@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const profileSchema = z.object({
     displayName: z.string().min(1, 'Le nom d\'affichage est requis'),
     department: z.string().optional(),
-    role: z.enum(['admin', 'rssi', 'direction', 'project_manager', 'auditor', 'user']),
+    role: z.enum(['admin', 'rssi', 'direction', 'project_manager', 'auditor', 'user', 'super_admin']),
     shodanApiKey: z.string().optional(),
     hibpApiKey: z.string().optional(),
     safeBrowsingApiKey: z.string().optional(),

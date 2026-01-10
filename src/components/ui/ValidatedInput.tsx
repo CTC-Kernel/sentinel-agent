@@ -15,31 +15,10 @@ import {
   type FieldValidationState,
   type ValidationTrigger,
 } from '../../hooks/useFieldValidation';
-import type { SupportedLocale } from '../../config/localeConfig';
 
 /**
- * Localized labels for validation states
+ * Props for the ValidatedInput component
  */
-const validationLabels = {
-  fr: {
-    required: 'Ce champ est requis',
-    invalid: 'Valeur invalide',
-  },
-  en: {
-    required: 'This field is required',
-    invalid: 'Invalid value',
-  },
-} as const;
-
-/**
- * Get validation label for a locale
- */
-export function getValidationLabel(
-  locale: SupportedLocale,
-  key: keyof typeof validationLabels.fr
-): string {
-  return validationLabels[locale][key];
-}
 
 /**
  * Props for the ValidatedInput component
@@ -247,11 +226,10 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
         {(helperText || displayError) && (
           <p
             id={errorId}
-            className={`mt-1 text-sm ${
-              displayError
-                ? 'text-rose-600 dark:text-rose-400'
-                : 'text-slate-500 dark:text-slate-400'
-            }`}
+            className={`mt-1 text-sm ${displayError
+              ? 'text-rose-600 dark:text-rose-400'
+              : 'text-slate-500 dark:text-slate-400'
+              }`}
             role={displayError ? 'alert' : undefined}
           >
             {displayError || helperText}

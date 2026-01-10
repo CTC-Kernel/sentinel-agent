@@ -9,8 +9,8 @@
 import { Badge } from './Badge';
 import { useLocale } from '../../hooks/useLocale';
 import { getDraftLabel } from '../../hooks/useDraftMode';
-import { DRAFT_STATUS } from '../../utils/draftSchema';
 import { Edit } from '../ui/Icons';
+import { isDraftStatus } from '../../utils/draftUtils';
 
 interface DraftBadgeProps {
   /** Size variant */
@@ -72,25 +72,7 @@ export const DraftBadge: React.FC<DraftBadgeProps> = ({
   );
 };
 
-/**
- * Check if an entity status indicates draft mode.
- * Handles various status conventions used in the codebase.
- *
- * @param status - The status value to check
- * @returns True if the status represents a draft
- */
-export function isDraftStatus(status: string | undefined | null): boolean {
-  if (!status) return false;
 
-  // Use DRAFT_STATUS values to stay synchronized with draftSchema.ts
-  // Also include lowercase variants for case-insensitive matching
-  const draftValues = [
-    ...Object.values(DRAFT_STATUS),
-    ...Object.values(DRAFT_STATUS).map((v) => v.toLowerCase()),
-  ];
-
-  return draftValues.includes(status);
-}
 
 /**
  * Conditionally renders a DraftBadge based on status.

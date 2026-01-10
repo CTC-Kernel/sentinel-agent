@@ -82,3 +82,29 @@ export const validateForm = (
         errors
     };
 };
+
+import { SupportedLocale } from '../config/localeConfig';
+
+/**
+ * Localized labels for validation states
+ */
+const validationLabels = {
+    fr: {
+        required: 'Ce champ est requis',
+        invalid: 'Valeur invalide',
+    },
+    en: {
+        required: 'This field is required',
+        invalid: 'Invalid value',
+    },
+} as const;
+
+/**
+ * Get validation label for a locale
+ */
+export function getValidationLabel(
+    locale: SupportedLocale,
+    key: keyof typeof validationLabels.fr
+): string {
+    return validationLabels[locale][key];
+}

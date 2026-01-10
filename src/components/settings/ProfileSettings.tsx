@@ -35,7 +35,7 @@ export const ProfileSettings: React.FC = () => {
         defaultValues: {
             displayName: user?.displayName || '',
             department: user?.department || '',
-            role: (user?.role as any) || 'user',
+            role: user?.role || 'user',
             shodanApiKey: '',
             hibpApiKey: '',
             safeBrowsingApiKey: '',
@@ -209,7 +209,7 @@ export const ProfileSettings: React.FC = () => {
                     </div>
 
                     {/* Form Section */}
-                    <form onSubmit={profileForm.handleSubmit(handleUpdateProfile as any)} className="flex-1 w-full space-y-8">
+                    <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="flex-1 w-full space-y-8">
                         {/* Personal Info */}
                         <div className="space-y-6">
                             <div>

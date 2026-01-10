@@ -65,14 +65,8 @@ export function useComplianceScore(
   // Subscribe to real-time score updates
   useEffect(() => {
     if (!organizationId) {
-      setScore(null);
-      setHistory([]);
-      setLoading(false);
       return;
     }
-
-    setLoading(true);
-    setError(null);
 
     // Fetch initial history
     fetchHistory();

@@ -6,7 +6,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { AutoSaveIndicator, getAutoSaveLabel } from '../AutoSaveIndicator';
+import { AutoSaveIndicator } from '../AutoSaveIndicator';
+import { getAutoSaveLabel } from '../../../utils/autoSaveUtils';
 
 // Mock useLocale hook
 vi.mock('../../../hooks/useLocale', () => ({

@@ -133,12 +133,14 @@ export function useDuplicate<T extends { id: string }>(
 
         // Create the duplicate data
         // Remove id and system fields that shouldn't be copied
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         const {
           id: _id,
           createdAt: _createdAt,
           updatedAt: _updatedAt,
           ...entityData
         } = entity as T & { createdAt?: unknown; updatedAt?: unknown };
+        /* eslint-enable @typescript-eslint/no-unused-vars */
 
         const duplicateData = {
           ...entityData,
@@ -173,7 +175,7 @@ export function useDuplicate<T extends { id: string }>(
         const newEntity = {
           ...duplicateData,
           id: docRef.id,
-        } as T & { id: string };
+        } as unknown as T & { id: string };
 
         onSuccess?.(newEntity);
 

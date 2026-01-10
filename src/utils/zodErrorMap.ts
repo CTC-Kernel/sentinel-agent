@@ -53,60 +53,65 @@ export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap 
   const messages = getZodMessages(locale);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((issue: any, ctx: any) => {
+  return ((issue: unknown, ctx: any): { message: string } => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const i = issue as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const c = ctx as any;
+
     // Handle specific error codes with localized messages
-    switch (issue.code) {
+    switch (i.code) {
       case z.ZodIssueCode.invalid_type:
-        if (issue.received === 'undefined' || issue.received === 'null') {
+        if (i.received === 'undefined' || i.received === 'null') {
           return { message: messages.required };
         }
-        if (issue.expected === 'string') {
+        if (i.expected === 'string') {
           return { message: messages.invalidString };
         }
-        if (issue.expected === 'number') {
+        if (i.expected === 'number') {
           return { message: messages.invalidNumber };
         }
         return { message: messages.invalidType };
 
       case z.ZodIssueCode.too_small:
-        if (issue.type === 'string') {
-          if (issue.minimum === 1) {
+        if (i.type === 'string') {
+          if (i.minimum === 1) {
             return { message: messages.required };
           }
-          return { message: messages.tooShort(Number(issue.minimum)) };
+          return { message: messages.tooShort(Number(i.minimum)) };
         }
-        if (issue.type === 'number') {
-          return { message: messages.tooSmall(Number(issue.minimum)) };
+        if (i.type === 'number') {
+          return { message: messages.tooSmall(Number(i.minimum)) };
         }
-        if (issue.type === 'array') {
-          return { message: messages.arrayTooShort(Number(issue.minimum)) };
+        if (i.type === 'array') {
+          return { message: messages.arrayTooShort(Number(i.minimum)) };
         }
         break;
 
       case z.ZodIssueCode.too_big:
-        if (issue.type === 'string') {
-          return { message: messages.tooLong(Number(issue.maximum)) };
+        if (i.type === 'string') {
+          return { message: messages.tooLong(Number(i.maximum)) };
         }
-        if (issue.type === 'number') {
-          return { message: messages.tooBig(Number(issue.maximum)) };
+        if (i.type === 'number') {
+          return { message: messages.tooBig(Number(i.maximum)) };
         }
-        if (issue.type === 'array') {
-          return { message: messages.arrayTooLong(Number(issue.maximum)) };
+        if (i.type === 'array') {
+          return { message: messages.arrayTooLong(Number(i.maximum)) };
         }
         break;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       case (z.ZodIssueCode as any).invalid_string:
-        if (issue.validation === 'email') {
+        if (i.validation === 'email') {
           return { message: messages.invalidEmail };
         }
-        if (issue.validation === 'url') {
+        if (i.validation === 'url') {
           return { message: messages.invalidUrl };
         }
-        if (issue.validation === 'uuid') {
+        if (i.validation === 'uuid') {
           return { message: messages.invalidUuid };
         }
-        if (issue.validation === 'regex') {
+        if (i.validation === 'regex') {
           return { message: messages.invalidRegex };
         }
         return { message: messages.invalidString };
@@ -117,14 +122,15 @@ export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap 
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       case (z.ZodIssueCode as any).invalid_enum_value:
-        return { message: messages.invalidEnum(issue.options as string[]) };
+        return { message: messages.invalidEnum(i.options as string[]) };
 
       case z.ZodIssueCode.custom:
-        return { message: issue.message || messages.custom };
+        return { message: i.message || messages.custom };
     }
 
     // Fall back to default message
-    return { message: ctx.defaultError };
+    return { message: c.defaultError };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }) as any;
 }
 

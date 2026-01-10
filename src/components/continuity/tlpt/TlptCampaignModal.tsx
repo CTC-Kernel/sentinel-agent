@@ -42,8 +42,8 @@ export const TlptCampaignModal: React.FC<Props> = ({ isOpen, onClose, onSubmit, 
                     methodology: initialData.methodology,
                     provider: initialData.provider,
                     status: initialData.status,
-                    startDate: initialData.startDate ? new Date((initialData.startDate as any).seconds ? (initialData.startDate as any).seconds * 1000 : initialData.startDate) : undefined,
-                    endDate: initialData.endDate ? new Date((initialData.endDate as any).seconds ? (initialData.endDate as any).seconds * 1000 : initialData.endDate) : undefined,
+                    startDate: initialData.startDate ? new Date(((initialData.startDate as unknown) as { seconds: number }).seconds ? ((initialData.startDate as unknown) as { seconds: number }).seconds * 1000 : initialData.startDate as Date | string | number) : undefined,
+                    endDate: initialData.endDate ? new Date(((initialData.endDate as unknown) as { seconds: number }).seconds ? ((initialData.endDate as unknown) as { seconds: number }).seconds * 1000 : initialData.endDate as Date | string | number) : undefined,
                     budget: initialData.budget,
                     notes: initialData.notes
                 });

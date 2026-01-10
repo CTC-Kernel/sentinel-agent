@@ -7,7 +7,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { z } from 'zod';
-import { ValidatedInput, getValidationLabel } from '../ValidatedInput';
+import { ValidatedInput } from '../ValidatedInput';
+import { getValidationLabel } from '../../../utils/validationUtils';
 
 // Mock useLocale hook
 vi.mock('../../../hooks/useLocale', () => ({

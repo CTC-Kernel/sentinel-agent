@@ -48,10 +48,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         }
     }, [deletingIds, onDelete]);
 
-    const createDeleteHandler = React.useCallback((id: string, name: string) => (e: React.MouseEvent) => {
-        e.stopPropagation();
-        void handleDelete(id, name);
-    }, [handleDelete]);
+
 
     const columns = useMemo<ColumnDef<Project>[]>(() => [
         {

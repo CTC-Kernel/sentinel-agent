@@ -6,7 +6,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { DraftBadge, ConditionalDraftBadge, isDraftStatus } from '../DraftBadge';
+import { DraftBadge, ConditionalDraftBadge } from '../DraftBadge';
+import { isDraftStatus } from '../../../utils/draftUtils';
 
 // Mock useLocale hook
 const mockLocale = { locale: 'fr' as 'fr' | 'en' };
