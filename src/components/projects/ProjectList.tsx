@@ -4,8 +4,9 @@ import { Project, UserProfile } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/Badge';
 import { DataTable } from '../ui/DataTable';
-import { Edit, Trash2 } from '../ui/Icons';
+import { Edit, Trash2, Copy } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
+import { RowActionsMenu, RowActionItem } from '../ui/RowActionsMenu';
 import { canDeleteResource } from '../../utils/permissions';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
@@ -21,12 +22,14 @@ interface ProjectListProps {
     usersList?: UserProfile[]; // Made optional to avoid immediate break, but should be passed
     onEdit: (project: Project) => void;
     onDelete: (id: string, name: string) => void;
+    onDuplicate?: (project: Project) => void;
     onBulkDelete: (ids: string[]) => void;
     onSelect: (project: Project) => void;
+    duplicatingIds?: Set<string>;
 }
 
 export const ProjectList: React.FC<ProjectListProps> = ({
-    projects, loading, canEdit, user, usersList = [], onEdit, onDelete, onBulkDelete, onSelect
+    projects, loading, canEdit, user, usersList = [], onEdit, onDelete, onDuplicate, onBulkDelete, onSelect, duplicatingIds = new Set(),
 }) => {
     const { t } = useStore();
     const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
@@ -158,28 +161,43 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         },
         {
             id: 'actions',
-            cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()} role="presentation">
-                    {canEdit && (
-                        <>
-                            <CustomTooltip content={t('projects.tooltips.edit')}>
-                                <button onClick={(e) => { e.stopPropagation(); onEdit(row.original); }} className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                    <Edit className="h-4 w-4" />
-                                </button>
-                            </CustomTooltip>
-                            {canDeleteResource(user, 'Project') && (
-                                <CustomTooltip content={deletingIds.has(row.original.id) ? "Suppression..." : t('projects.tooltips.delete')}>
-                                    <button onClick={createDeleteHandler(row.original.id, row.original.name)} disabled={deletingIds.has(row.original.id)} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Supprimer le projet ${row.original.name}`}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </CustomTooltip>
-                            )}
-                        </>
-                    )}
-                </div>
-            )
+            cell: ({ row }) => {
+                if (!canEdit) return null;
+
+                const isDuplicating = duplicatingIds.has(row.original.id);
+                const isDeleting = deletingIds.has(row.original.id);
+                const menuItems: RowActionItem[] = [
+                    {
+                        label: t('projects.tooltips.edit'),
+                        icon: Edit,
+                        onClick: () => onEdit(row.original),
+                    },
+                    ...(onDuplicate ? [{
+                        label: t('common.duplicate') || 'Dupliquer',
+                        icon: Copy,
+                        onClick: () => onDuplicate(row.original),
+                        disabled: isDuplicating,
+                    }] : []),
+                    ...(canDeleteResource(user, 'Project') ? [{
+                        label: t('projects.tooltips.delete'),
+                        icon: Trash2,
+                        onClick: () => handleDelete(row.original.id, row.original.name),
+                        variant: 'danger' as const,
+                        disabled: isDeleting,
+                    }] : []),
+                ];
+
+                return (
+                    <div className="flex justify-end">
+                        <RowActionsMenu
+                            items={menuItems}
+                            aria-label={`Actions pour ${row.original.name}`}
+                        />
+                    </div>
+                );
+            }
         }
-    ], [canEdit, onEdit, deletingIds, user, usersList, t, createDeleteHandler]);
+    ], [canEdit, onEdit, onDuplicate, deletingIds, duplicatingIds, user, usersList, t, handleDelete]);
 
     return (
         <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">

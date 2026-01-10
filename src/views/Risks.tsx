@@ -287,16 +287,32 @@ export const Risks: React.FC = () => {
         setIsTemplateModalOpen(false);
     }, [createRisk, t]);
 
+    // Duplicating State
+    const [duplicatingIds, setDuplicatingIds] = React.useState<Set<string>>(new Set());
+
     // Helpers
-    const handleDuplicateRisk = useCallback((r: Risk) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, history, ...rest } = r;
-        createRisk({
-            ...rest,
-            threat: `${r.threat} (${t('common.copy')})`,
-            status: 'Ouvert'
-        });
-    }, [t, createRisk]);
+    const handleDuplicateRisk = useCallback(async (r: Risk) => {
+        if (duplicatingIds.has(r.id)) return;
+        setDuplicatingIds(prev => new Set(prev).add(r.id));
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id, history, ...rest } = r;
+            await createRisk({
+                ...rest,
+                threat: `${r.threat} (${t('common.copy')})`,
+                status: 'Ouvert'
+            });
+            toast.success(t('risks.duplicateSuccess') || 'Risque dupliqué avec succès');
+        } catch {
+            toast.error(t('risks.duplicateError') || 'Erreur lors de la duplication');
+        } finally {
+            setDuplicatingIds(prev => {
+                const next = new Set(prev);
+                next.delete(r.id);
+                return next;
+            });
+        }
+    }, [t, createRisk, duplicatingIds]);
 
     const handleEmptyAction = useCallback(() => {
         if (assets.length > 0) {
@@ -404,8 +420,10 @@ export const Risks: React.FC = () => {
                             canEdit={canEdit}
                             onEdit={handleEdit}
                             onDelete={handleDeleteRiskItem}
+                            onDuplicate={handleDuplicateRisk}
                             onBulkDelete={bulkDeleteRisks}
                             onSelect={setSelectedRisk}
+                            duplicatingIds={duplicatingIds}
                             users={[]}
                             assets={assets}
                             emptyStateTitle={emptyStateTitle}

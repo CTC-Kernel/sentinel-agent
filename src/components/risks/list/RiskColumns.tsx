@@ -1,10 +1,10 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Risk, Asset, UserProfile } from '../../../types';
-import { ShieldAlert, Clock, Edit, Trash2 } from 'lucide-react';
+import { ShieldAlert, Clock } from 'lucide-react';
+import { Edit, Copy, Trash2 } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
-import { Button } from '../../ui/button';
-import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
+import { RowActionsMenu, RowActionItem } from '../../ui/RowActionsMenu';
 import { getRiskLevel, getSLAStatus } from '../../../utils/riskUtils';
 import { getUserAvatarUrl } from '../../../utils/avatarUtils';
 
@@ -14,7 +14,9 @@ interface UseRiskColumnsProps {
     users: UserProfile[];
     onEdit: (risk: Risk) => void;
     onDelete: (id: string, name: string) => void;
+    onDuplicate?: (risk: Risk) => void;
     deletingIds: Set<string>;
+    duplicatingIds?: Set<string>;
 }
 
 export const useRiskColumns = ({
@@ -23,7 +25,9 @@ export const useRiskColumns = ({
     users,
     onEdit,
     onDelete,
-    deletingIds
+    onDuplicate,
+    deletingIds,
+    duplicatingIds = new Set(),
 }: UseRiskColumnsProps): ColumnDef<Risk>[] => {
 
     const getOwnerName = React.useCallback((ownerId?: string) => {
@@ -123,36 +127,42 @@ export const useRiskColumns = ({
         {
             id: 'actions',
             header: '',
-            cell: ({ row }) => (
-                <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()} role="presentation">
-                    {canEdit && (
-                        <>
-                            <CustomTooltip content="Modifier le risque">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => onEdit(row.original)}
-                                    className="h-8 w-8 p-0"
-                                >
-                                    <Edit className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                                </Button>
-                            </CustomTooltip>
-                            <CustomTooltip content={deletingIds.has(row.original.id) ? "Suppression..." : "Supprimer le risque"}>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => onDelete(row.original.id, row.original.threat)}
-                                    disabled={deletingIds.has(row.original.id)}
-                                    className="h-8 w-8 p-0 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                    aria-label={`Supprimer le risque ${row.original.threat}`}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </CustomTooltip>
-                        </>
-                    )}
-                </div>
-            ),
+            cell: ({ row }) => {
+                if (!canEdit) return null;
+
+                const isDeleting = deletingIds.has(row.original.id);
+                const isDuplicating = duplicatingIds.has(row.original.id);
+
+                const menuItems: RowActionItem[] = [
+                    {
+                        label: 'Modifier',
+                        icon: Edit,
+                        onClick: () => onEdit(row.original),
+                    },
+                    ...(onDuplicate ? [{
+                        label: 'Dupliquer',
+                        icon: Copy,
+                        onClick: () => onDuplicate(row.original),
+                        disabled: isDuplicating,
+                    }] : []),
+                    {
+                        label: 'Supprimer',
+                        icon: Trash2,
+                        onClick: () => onDelete(row.original.id, row.original.threat),
+                        variant: 'danger' as const,
+                        disabled: isDeleting,
+                    },
+                ];
+
+                return (
+                    <div className="flex justify-end">
+                        <RowActionsMenu
+                            items={menuItems}
+                            aria-label={`Actions pour ${row.original.threat}`}
+                        />
+                    </div>
+                );
+            },
         },
-    ], [canEdit, assets, onEdit, onDelete, deletingIds, getOwnerName, users]);
+    ], [canEdit, assets, onEdit, onDelete, onDuplicate, deletingIds, duplicatingIds, getOwnerName, users]);
 };

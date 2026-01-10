@@ -15,8 +15,10 @@ interface RiskListProps {
     users: UserProfile[];
     onEdit: (risk: Risk) => void;
     onDelete: (id: string, name: string) => void;
+    onDuplicate?: (risk: Risk) => void;
     onBulkDelete: (ids: string[]) => void;
     onSelect: (risk: Risk) => void;
+    duplicatingIds?: Set<string>;
     emptyStateTitle?: string;
     emptyStateDescription?: string;
     emptyStateActionLabel?: string;
@@ -24,7 +26,8 @@ interface RiskListProps {
 }
 
 export const RiskList = React.memo<RiskListProps>(({
-    risks, loading, canEdit, assets, users, onEdit, onDelete, onBulkDelete, onSelect,
+    risks, loading, canEdit, assets, users, onEdit, onDelete, onDuplicate, onBulkDelete, onSelect,
+    duplicatingIds = new Set(),
     emptyStateTitle, emptyStateDescription, emptyStateActionLabel, onEmptyStateAction
 }) => {
     const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
@@ -49,7 +52,9 @@ export const RiskList = React.memo<RiskListProps>(({
         users,
         onEdit,
         onDelete: handleDelete,
-        deletingIds
+        onDuplicate,
+        deletingIds,
+        duplicatingIds,
     });
 
     return (

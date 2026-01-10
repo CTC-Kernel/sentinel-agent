@@ -2,8 +2,9 @@ import React, { useMemo } from 'react';
 import { DataTable } from '../ui/DataTable';
 import { Audit, UserProfile } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2, CalendarDays, ClipboardCheck, AlertOctagon } from 'lucide-react';
-import { Tooltip } from '../ui/Tooltip';
+import { CalendarDays, ClipboardCheck, AlertOctagon } from 'lucide-react';
+import { Edit, Trash2, Copy } from '../ui/Icons';
+import { RowActionsMenu, RowActionItem } from '../ui/RowActionsMenu';
 import { EmptyState } from '../ui/EmptyState';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
@@ -12,12 +13,14 @@ interface AuditsListProps {
     isLoading: boolean;
     onEdit: (audit: Audit) => void;
     onDelete: (audit: Audit) => void;
+    onDuplicate?: (audit: Audit) => void;
     onOpen: (audit: Audit) => void;
     canEdit: boolean;
     canDelete: boolean;
     selectedIds?: string[];
     onSelect?: (ids: string[]) => void;
     users?: UserProfile[];
+    duplicatingIds?: Set<string>;
 }
 
 // Helper function moved outside component to be stable
@@ -32,7 +35,7 @@ const getStatusColor = (s: string) => {
 };
 
 export const AuditsList: React.FC<AuditsListProps> = ({
-    audits, isLoading, onEdit, onDelete, onOpen, canEdit, canDelete, selectedIds = [], onSelect, users
+    audits, isLoading, onEdit, onDelete, onDuplicate, onOpen, canEdit, canDelete, selectedIds = [], onSelect, users, duplicatingIds = new Set(),
 }) => {
 
     const columns = useMemo<ColumnDef<Audit>[]>(() => [
@@ -143,31 +146,44 @@ export const AuditsList: React.FC<AuditsListProps> = ({
         },
         {
             id: 'actions',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2 justify-end transition-opacity">
-                    <Tooltip content="Ouvrir">
-                        <button type="button" onClick={() => onOpen(row.original)} className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" aria-label={`Ouvrir ${row.original.name}`}>
-                            <ClipboardCheck className="w-4 h-4" />
-                        </button>
-                    </Tooltip>
-                    {canEdit && (
-                        <Tooltip content="Modifier">
-                            <button type="button" onClick={() => onEdit(row.original)} className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" aria-label={`Modifier ${row.original.name}`}>
-                                <Edit className="w-4 h-4" />
-                            </button>
-                        </Tooltip>
-                    )}
-                    {canDelete && (
-                        <Tooltip content="Supprimer">
-                            <button type="button" onClick={() => onDelete(row.original)} className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" aria-label={`Supprimer ${row.original.name}`}>
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </Tooltip>
-                    )}
-                </div>
-            )
+            cell: ({ row }) => {
+                const isDuplicating = duplicatingIds.has(row.original.id);
+                const menuItems: RowActionItem[] = [
+                    {
+                        label: 'Ouvrir',
+                        icon: ClipboardCheck,
+                        onClick: () => onOpen(row.original),
+                    },
+                    ...(canEdit ? [{
+                        label: 'Modifier',
+                        icon: Edit,
+                        onClick: () => onEdit(row.original),
+                    }] : []),
+                    ...(onDuplicate && canEdit ? [{
+                        label: 'Dupliquer',
+                        icon: Copy,
+                        onClick: () => onDuplicate(row.original),
+                        disabled: isDuplicating,
+                    }] : []),
+                    ...(canDelete ? [{
+                        label: 'Supprimer',
+                        icon: Trash2,
+                        onClick: () => onDelete(row.original),
+                        variant: 'danger' as const,
+                    }] : []),
+                ];
+
+                return (
+                    <div className="flex justify-end">
+                        <RowActionsMenu
+                            items={menuItems}
+                            aria-label={`Actions pour ${row.original.name}`}
+                        />
+                    </div>
+                );
+            }
         }
-    ], [canEdit, canDelete, onEdit, onDelete, onOpen, onSelect, selectedIds, audits, users]);
+    ], [canEdit, canDelete, onEdit, onDelete, onDuplicate, onOpen, onSelect, selectedIds, audits, users, duplicatingIds]);
 
     return (
         <DataTable

@@ -2,10 +2,10 @@ import React, { useMemo } from 'react';
 import { Asset, Criticality, UserProfile } from '../../types';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
 import { DataTable } from '../ui/DataTable';
-import { Server, Edit, Trash2, Tag } from '../ui/Icons';
+import { Server, Edit, Trash2, Tag, Copy } from '../ui/Icons';
 import { CardSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
-import { Tooltip as CustomTooltip } from '../ui/Tooltip';
+import { RowActionsMenu, RowActionItem } from '../ui/RowActionsMenu';
 import { canDeleteResource } from '../../utils/permissions';
 import { ColumnDef } from '@tanstack/react-table';
 import { useStore } from '../../store';
@@ -17,12 +17,14 @@ interface AssetListProps {
     user: UserProfile | null;
     onEdit: (asset: Asset) => void;
     onDelete: (id: string, name: string) => void;
+    onDuplicate?: (asset: Asset) => void;
     onGenerateLabel: (asset: Asset) => void;
     isGeneratingLabels?: boolean;
     canEdit: boolean;
     activeFiltersQuery?: string;
     onBulkDelete?: (ids: string[]) => void;
     users?: UserProfile[];
+    duplicatingIds?: Set<string>;
 }
 
 const getCriticalityColor = (level: Criticality) => {
@@ -41,12 +43,14 @@ export const AssetList = React.memo<AssetListProps>(({
     user,
     onEdit,
     onDelete,
+    onDuplicate,
     onBulkDelete,
     activeFiltersQuery,
     canEdit,
     onGenerateLabel,
     isGeneratingLabels,
-    users
+    users,
+    duplicatingIds = new Set(),
 }) => {
     const { t } = useStore();
     const canDelete = canDeleteResource(user, 'Asset');
@@ -106,41 +110,47 @@ export const AssetList = React.memo<AssetListProps>(({
         {
             header: t('common.actions.title'),
             id: 'actions',
-            cell: ({ row }) => (
-                <div className="flex items-center justify-end gap-2">
-                    <CustomTooltip content={t('assets.printLabel')}>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onGenerateLabel(row.original); }}
-                            className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                            disabled={isGeneratingLabels}
-                        >
-                            <Tag className="h-4 w-4" />
-                        </button>
-                    </CustomTooltip>
-                    {canEdit && (
-                        <CustomTooltip content={t('assets.editAsset')}>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onEdit(row.original); }}
-                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                            >
-                                <Edit className="h-4 w-4" />
-                            </button>
-                        </CustomTooltip>
-                    )}
-                    {canDeleteResource(user, 'Asset') && (
-                        <CustomTooltip content={t('assets.deleteAssetTooltip')}>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }}
-                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </CustomTooltip>
-                    )}
-                </div>
-            )
+            cell: ({ row }) => {
+                const isDuplicating = duplicatingIds.has(row.original.id);
+                const menuItems: RowActionItem[] = [
+                    {
+                        label: t('assets.printLabel'),
+                        icon: Tag,
+                        onClick: () => onGenerateLabel(row.original),
+                        disabled: isGeneratingLabels,
+                    },
+                    ...(canEdit ? [{
+                        label: t('assets.editAsset'),
+                        icon: Edit,
+                        onClick: () => onEdit(row.original),
+                    }] : []),
+                    ...(onDuplicate && canEdit ? [{
+                        label: t('common.duplicate') || 'Dupliquer',
+                        icon: Copy,
+                        onClick: () => onDuplicate(row.original),
+                        disabled: isDuplicating,
+                    }] : []),
+                    ...(canDeleteResource(user, 'Asset') ? [{
+                        label: t('assets.deleteAssetTooltip'),
+                        icon: Trash2,
+                        onClick: () => onDelete(row.original.id, row.original.name),
+                        variant: 'danger' as const,
+                    }] : []),
+                ];
+
+                if (menuItems.length === 0) return null;
+
+                return (
+                    <div className="flex justify-end">
+                        <RowActionsMenu
+                            items={menuItems}
+                            aria-label={`Actions pour ${row.original.name}`}
+                        />
+                    </div>
+                );
+            }
         }
-    ], [canEdit, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user, t, users]);
+    ], [canEdit, isGeneratingLabels, onEdit, onDelete, onDuplicate, onGenerateLabel, user, t, users, duplicatingIds]);
 
     if (viewMode === 'list') {
         return (

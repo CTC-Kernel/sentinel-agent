@@ -7,7 +7,7 @@
  * @module useDuplicate
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './useAuth';
@@ -102,6 +102,7 @@ export function useDuplicate<T extends { id: string }>(
   const { locale } = useLocale();
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const duplicatingRef = useRef(false); // Synchronous guard for double-click prevention
 
   const clearError = useCallback(() => {
     setError(null);
@@ -116,10 +117,12 @@ export function useDuplicate<T extends { id: string }>(
         return null;
       }
 
-      if (isDuplicating) {
+      // Use ref for synchronous double-click prevention
+      if (duplicatingRef.current) {
         return null; // Prevent double-click
       }
 
+      duplicatingRef.current = true;
       setIsDuplicating(true);
       setError(null);
 
@@ -190,13 +193,13 @@ export function useDuplicate<T extends { id: string }>(
 
         return null;
       } finally {
+        duplicatingRef.current = false;
         setIsDuplicating(false);
       }
     },
     [
       user,
       locale,
-      isDuplicating,
       collectionName,
       nameField,
       resetFields,

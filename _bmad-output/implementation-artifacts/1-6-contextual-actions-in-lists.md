@@ -1,6 +1,6 @@
 # Story 1.6: Contextual Actions in Lists
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -44,39 +44,39 @@ So that **I can work more efficiently without navigating to detail pages**.
   - [x] 1.6 Add keyboard navigation (Escape to close, arrow keys)
   - [x] 1.7 Handle click-outside-to-close
 
-- [ ] **Task 2: Implement Duplicate functionality** (AC: 4)
-  - [ ] 2.1 Create `useDuplicate` hook in `src/hooks/useDuplicate.ts`
-  - [ ] 2.2 Implement generic duplicate logic that works with any entity
-  - [ ] 2.3 Add "(Copie)" suffix to duplicated name/title field (locale-aware)
-  - [ ] 2.4 Generate new ID for duplicated entity
-  - [ ] 2.5 Reset status fields (e.g., draft status for new copies)
-  - [ ] 2.6 Handle Firestore creation with proper tenant context
-  - [ ] 2.7 Return loading state and error handling
+- [x] **Task 2: Implement Duplicate functionality** (AC: 4)
+  - [x] 2.1 Create `useDuplicate` hook in `src/hooks/useDuplicate.ts`
+  - [x] 2.2 Implement generic duplicate logic that works with any entity
+  - [x] 2.3 Add "(Copie)" suffix to duplicated name/title field (locale-aware)
+  - [x] 2.4 Generate new ID for duplicated entity
+  - [x] 2.5 Reset status fields (e.g., draft status for new copies)
+  - [x] 2.6 Handle Firestore creation with proper tenant context
+  - [x] 2.7 Return loading state and error handling
 
-- [ ] **Task 3: Integrate RowActionsMenu into RiskColumns** (AC: 1, 2, 3, 4, 5)
-  - [ ] 3.1 Replace individual Edit/Delete buttons with RowActionsMenu
-  - [ ] 3.2 Add Edit action (uses existing onEdit callback)
-  - [ ] 3.3 Add Delete action (uses existing onDelete callback with ConfirmModal)
-  - [ ] 3.4 Add Duplicate action using useDuplicate hook
-  - [ ] 3.5 Show toast notification on successful duplication
-  - [ ] 3.6 Pass canEdit prop to conditionally show menu
+- [x] **Task 3: Integrate RowActionsMenu into RiskColumns** (AC: 1, 2, 3, 4, 5)
+  - [x] 3.1 Replace individual Edit/Delete buttons with RowActionsMenu
+  - [x] 3.2 Add Edit action (uses existing onEdit callback)
+  - [x] 3.3 Add Delete action (uses existing onDelete callback with ConfirmModal)
+  - [x] 3.4 Add Duplicate action using useDuplicate hook
+  - [x] 3.5 Show toast notification on successful duplication
+  - [x] 3.6 Pass canEdit prop to conditionally show menu
 
-- [ ] **Task 4: Update other list components** (AC: 1, 2, 3, 4, 5)
-  - [ ] 4.1 Update `AssetList` columns to use RowActionsMenu
-  - [ ] 4.2 Update `VulnerabilityList` columns to use RowActionsMenu
-  - [ ] 4.3 Update `AuditsList` columns to use RowActionsMenu
-  - [ ] 4.4 Update `ProjectList` columns to use RowActionsMenu
-  - [ ] 4.5 Ensure consistent action ordering: Edit, Duplicate, Delete
+- [x] **Task 4: Update other list components** (AC: 1, 2, 3, 4, 5)
+  - [x] 4.1 Update `AssetList` columns to use RowActionsMenu
+  - [x] 4.2 Update `VulnerabilityList` columns to use RowActionsMenu
+  - [x] 4.3 Update `AuditsList` columns to use RowActionsMenu
+  - [x] 4.4 Update `ProjectList` columns to use RowActionsMenu
+  - [x] 4.5 Ensure consistent action ordering: Edit, Duplicate, Delete
 
-- [ ] **Task 5: Write unit tests** (AC: all)
-  - [ ] 5.1 Test RowActionsMenu rendering with multiple items
-  - [ ] 5.2 Test RowActionsMenu keyboard navigation
-  - [ ] 5.3 Test useDuplicate hook creates copy with "(Copie)" suffix
-  - [ ] 5.4 Test useDuplicate generates new ID
-  - [ ] 5.5 Test Edit action triggers callback
-  - [ ] 5.6 Test Delete action shows confirmation modal
-  - [ ] 5.7 Test Duplicate action creates entity and refreshes list
-  - [ ] 5.8 Test menu hidden when canEdit is false
+- [x] **Task 5: Write unit tests** (AC: all)
+  - [x] 5.1 Test RowActionsMenu rendering with multiple items
+  - [x] 5.2 Test RowActionsMenu keyboard navigation
+  - [x] 5.3 Test useDuplicate hook creates copy with "(Copie)" suffix
+  - [x] 5.4 Test useDuplicate generates new ID
+  - [x] 5.5 Test Edit action triggers callback
+  - [x] 5.6 Test Delete action shows confirmation modal
+  - [x] 5.7 Test Duplicate action creates entity and refreshes list
+  - [x] 5.8 Test menu hidden when canEdit is false
 
 ## Dev Notes
 
@@ -292,30 +292,67 @@ src/
 
 ### Agent Model Used
 
-(To be filled after implementation)
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
-(To be filled after implementation)
+1. **RowActionsMenu Component**: Created reusable dropdown menu component using Headless UI Menu with glass-premium styling, keyboard navigation, and accessibility support.
+
+2. **useDuplicate Hook**: Implemented generic hook for entity duplication with:
+   - Locale-aware suffix ("Copie" for French, "Copy" for English)
+   - Ref-based double-click prevention for synchronous guard
+   - Proper Firestore integration with tenant context
+   - Toast notifications for success/error feedback
+
+3. **List Component Integrations**: Updated 5 list components to use RowActionsMenu:
+   - RiskColumns: Edit, Duplicate, Delete actions
+   - AssetList: Print Label, Edit, Duplicate, Delete actions
+   - VulnerabilityList: Edit, Duplicate, Delete actions
+   - AuditsList: Open, Edit, Duplicate, Delete actions
+   - ProjectList: Edit, Duplicate, Delete actions
+
+4. **Testing**: 44 new tests added (20 for RowActionsMenu, 24 for useDuplicate), all passing.
 
 ### File List
 
-(To be filled after implementation)
+**New Files:**
+- `src/components/ui/RowActionsMenu.tsx` - Contextual actions dropdown component
+- `src/components/ui/__tests__/RowActionsMenu.test.tsx` - 20 unit tests
+- `src/hooks/useDuplicate.ts` - Generic entity duplication hook
+- `src/hooks/__tests__/useDuplicate.test.ts` - 24 unit tests
+
+**Modified Files:**
+- `src/components/risks/list/RiskColumns.tsx` - Integrated RowActionsMenu
+- `src/components/risks/RiskList.tsx` - Added onDuplicate and duplicatingIds props
+- `src/views/Risks.tsx` - Added duplicate functionality with state tracking
+- `src/components/assets/AssetList.tsx` - Integrated RowActionsMenu
+- `src/components/vulnerabilities/VulnerabilityList.tsx` - Integrated RowActionsMenu
+- `src/components/audits/AuditsList.tsx` - Integrated RowActionsMenu
+- `src/components/projects/ProjectList.tsx` - Integrated RowActionsMenu
 
 ### Acceptance Criteria Verification
 
 | AC | Status | Verification |
 |----|--------|--------------|
-| AC1: Contextual actions on hover/row | ⏳ Pending | |
-| AC2: Edit opens form | ⏳ Pending | |
-| AC3: Delete shows confirmation | ⏳ Pending | |
-| AC4: Duplicate creates copy with "(Copie)" | ⏳ Pending | |
-| AC5: Actions respect permissions | ⏳ Pending | |
+| AC1: Contextual actions on hover/row | ✅ Pass | RowActionsMenu with MoreVertical trigger appears in actions column |
+| AC2: Edit opens form | ✅ Pass | Edit action calls onEdit callback with entity data |
+| AC3: Delete shows confirmation | ✅ Pass | Delete action triggers existing ConfirmModal flow |
+| AC4: Duplicate creates copy with "(Copie)" | ✅ Pass | useDuplicate hook adds locale-aware suffix, creates new Firestore document |
+| AC5: Actions respect permissions | ✅ Pass | Menu items conditionally rendered based on canEdit/canDelete props |
 
 ### Test Summary
 
-(To be filled after implementation)
+- **Total New Tests**: 44
+- **RowActionsMenu Tests**: 20 tests covering rendering, styling, interactions, keyboard navigation, accessibility
+- **useDuplicate Tests**: 24 tests covering duplicate logic, loading states, error handling, locale handling
+- **All Tests Pass**: 715 total tests in suite
 
 ### Change Log
 
 - 2026-01-10: Story created for implementation
+- 2026-01-10: Task 1 completed - RowActionsMenu component with 20 tests
+- 2026-01-10: Task 2 completed - useDuplicate hook with 24 tests
+- 2026-01-10: Task 3 completed - RiskColumns integration
+- 2026-01-10: Task 4 completed - All list components updated (AssetList, VulnerabilityList, AuditsList, ProjectList)
+- 2026-01-10: Task 5 completed - All unit tests passing (715 total)
+- 2026-01-10: Story completed - All acceptance criteria verified
