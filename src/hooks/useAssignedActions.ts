@@ -174,19 +174,23 @@ export function useAssignedActions(
     const setupListener = async () => {
       try {
         // Build query - filter by user if provided
+        // Build query - filter by user if provided
+        // Using root 'actions' collection with organizationId
         let actionsQuery;
         if (userId) {
           actionsQuery = query(
-            collection(db, `tenants/${tenantId}/actions`),
+            collection(db, 'actions'),
+            where('organizationId', '==', tenantId),
             where('assigneeId', '==', userId),
             where('status', 'in', PENDING_ACTION_STATUSES),
             orderBy('dueDate', 'asc'),
             limit(maxItems)
           );
         } else {
-          // If no userId, get all pending actions
+          // If no userId, get all pending actions for the org
           actionsQuery = query(
-            collection(db, `tenants/${tenantId}/actions`),
+            collection(db, 'actions'),
+            where('organizationId', '==', tenantId),
             where('status', 'in', PENDING_ACTION_STATUSES),
             orderBy('dueDate', 'asc'),
             limit(maxItems)

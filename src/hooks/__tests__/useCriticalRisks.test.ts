@@ -41,7 +41,15 @@ describe('useCriticalRisks', () => {
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
       // Simulate snapshot with 3 critical risks
       setTimeout(() => {
-        (onNext as (snapshot: { size: number }) => void)({ size: 3 });
+        const mockSnapshot = {
+          size: 3,
+          docs: [
+            { data: () => ({ impact: 5, probability: 4 }) }, // score: 20 (critical)
+            { data: () => ({ impact: 4, probability: 4 }) }, // score: 16 (critical)
+            { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
+          ]
+        };
+        (onNext as (snapshot: any) => void)(mockSnapshot);
       }, 0);
       return mockUnsubscribe;
     });
@@ -52,13 +60,23 @@ describe('useCriticalRisks', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.count).toBe(3);
+    expect(result.current.count).toBe(2); // Only 2 critical risks (score >= 15)
   });
 
   it('should set initial trend to stable', async () => {
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
       setTimeout(() => {
-        (onNext as (snapshot: { size: number }) => void)({ size: 5 });
+        const mockSnapshot = {
+          size: 5,
+          docs: [
+            { data: () => ({ impact: 5, probability: 4 }) }, // score: 20 (critical)
+            { data: () => ({ impact: 4, probability: 4 }) }, // score: 16 (critical)
+            { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
+            { data: () => ({ impact: 2, probability: 2 }) }, // score: 4 (not critical)
+            { data: () => ({ impact: 1, probability: 1 }) }, // score: 1 (not critical)
+          ]
+        };
+        (onNext as (snapshot: any) => void)(mockSnapshot);
       }, 0);
       return () => {};
     });
@@ -106,7 +124,13 @@ describe('useCriticalRisks', () => {
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
       callCount++;
       setTimeout(() => {
-        (onNext as (snapshot: { size: number }) => void)({ size: callCount });
+        const mockSnapshot = {
+          size: callCount,
+          docs: Array(callCount).fill(null).map(() => ({
+            data: () => ({ impact: 5, probability: 4 }) // score: 20 (critical)
+          }))
+        };
+        (onNext as (snapshot: any) => void)(mockSnapshot);
       }, 0);
       return () => {};
     });
@@ -128,7 +152,14 @@ describe('useCriticalRisks', () => {
   it('should return zero count when no critical risks', async () => {
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
       setTimeout(() => {
-        (onNext as (snapshot: { size: number }) => void)({ size: 0 });
+        const mockSnapshot = {
+          size: 2,
+          docs: [
+            { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
+            { data: () => ({ impact: 2, probability: 2 }) }, // score: 4 (not critical)
+          ]
+        };
+        (onNext as (snapshot: any) => void)(mockSnapshot);
       }, 0);
       return () => {};
     });
@@ -139,6 +170,6 @@ describe('useCriticalRisks', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.count).toBe(0);
+    expect(result.current.count).toBe(0); // No critical risks (all scores < 15)
   });
 });

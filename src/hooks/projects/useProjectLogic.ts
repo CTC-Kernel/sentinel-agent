@@ -264,7 +264,7 @@ export const useProjectLogic = () => {
 
             // 2. Create Milestones
             milestones.forEach((m) => {
-                const newMilestoneRef = doc(collection(db, 'milestones'));
+                const newMilestoneRef = doc(collection(db, 'project_milestones'));
                 batch.set(newMilestoneRef, sanitizeData({
                     ...m,
                     projectId: newProjectRef.id,

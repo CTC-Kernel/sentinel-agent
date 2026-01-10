@@ -552,6 +552,19 @@ service cloud.firestore {
       allow update: if canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
       allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
     }
+
+    // Actions
+    match /actions/{actionId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (canWrite(request.resource.data.organizationId) || isProjectManager());
+      // Allow update by Admin/Owner/PM OR the assignee (e.g. to mark as complete)
+      allow update: if canWrite(resource.data.organizationId) || 
+        (isProjectManager() && belongsToOrganization(resource.data.organizationId)) ||
+        (isAuthenticated() && resource.data.assigneeId == request.auth.uid && belongsToOrganization(resource.data.organizationId));
+      allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
+    }
     
     // System Logs (Immutable)
     match /system_logs/{logId} {

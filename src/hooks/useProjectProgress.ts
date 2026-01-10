@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   collection,
   query,
+  where,
   getDocs,
   onSnapshot,
   type Unsubscribe,
@@ -187,11 +188,13 @@ export function useProjectProgress(
     const fetchProgress = async () => {
       try {
         // Fetch all collections in parallel for initial data
+        // Fetch all collections in parallel for initial data
+        // ALL queries must use root collections with organizationId filter
         const [controlsSnap, documentsSnap, actionsSnap, milestonesSnap] = await Promise.all([
-          getDocs(collection(db, `tenants/${tenantId}/controls`)),
-          getDocs(collection(db, `tenants/${tenantId}/documents`)),
-          getDocs(collection(db, `tenants/${tenantId}/actions`)),
-          getDocs(collection(db, `tenants/${tenantId}/milestones`)),
+          getDocs(query(collection(db, 'controls'), where('organizationId', '==', tenantId))),
+          getDocs(query(collection(db, 'documents'), where('organizationId', '==', tenantId))),
+          getDocs(query(collection(db, 'actions'), where('organizationId', '==', tenantId))),
+          getDocs(query(collection(db, 'project_milestones'), where('organizationId', '==', tenantId))),
         ]);
 
         // Calculate controls progress
@@ -286,7 +289,8 @@ export function useProjectProgress(
 
         // Set up real-time listener for actions (most frequently changing)
         const actionsQuery = query(
-          collection(db, `tenants/${tenantId}/actions`)
+          collection(db, 'actions'),
+          where('organizationId', '==', tenantId)
         );
 
         const unsubscribe = onSnapshot(actionsQuery, () => {
