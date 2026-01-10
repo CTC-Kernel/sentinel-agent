@@ -183,6 +183,7 @@ describe('score.types', () => {
         history: [],
         loading: true,
         error: null,
+        refetch: () => {},
       };
       expect(hookResult.loading).toBe(true);
       expect(hookResult.score).toBeNull();
@@ -215,6 +216,7 @@ describe('score.types', () => {
         ],
         loading: false,
         error: null,
+        refetch: () => {},
       };
       expect(hookResult.loading).toBe(false);
       expect(hookResult.score?.global).toBe(75);

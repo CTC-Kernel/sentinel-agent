@@ -48,6 +48,12 @@ export function useComplianceScore(
   const [history, setHistory] = useState<ScoreHistory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refetchCounter, setRefetchCounter] = useState<number>(0);
+
+  // Refetch function to manually trigger data reload
+  const refetch = useCallback(() => {
+    setRefetchCounter((prev) => prev + 1);
+  }, []);
 
 
 
@@ -121,7 +127,7 @@ export function useComplianceScore(
         isMounted = false;
       };
     }
-  }, [organizationId, realtime, historyDays]);
+  }, [organizationId, realtime, historyDays, refetchCounter]);
 
   // Memoized breakdown
   const breakdown = useMemo<ScoreBreakdown | null>(() => {
@@ -142,8 +148,9 @@ export function useComplianceScore(
       history,
       loading,
       error,
+      refetch,
     }),
-    [score, breakdown, trend, history, loading, error]
+    [score, breakdown, trend, history, loading, error, refetch]
   );
 }
 

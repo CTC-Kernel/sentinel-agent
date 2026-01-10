@@ -106,6 +106,8 @@ export interface ComplianceScoreHookResult {
   loading: boolean;
   /** Error if any */
   error: Error | null;
+  /** Function to manually trigger a refetch */
+  refetch: () => void;
 }
 
 /**
