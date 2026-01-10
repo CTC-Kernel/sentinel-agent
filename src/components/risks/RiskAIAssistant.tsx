@@ -135,6 +135,18 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                         justification: response.justification as string
                     });
                 }
+            } else if (mode === 'mitigate' && Array.isArray(response.measures)) {
+                // Get existing measures or empty array
+                const currentMeasures = risk.treatment?.measures || [];
+                // Merge new measures (avoiding duplicates if possible, though simple append is safer for now)
+                const newMeasures = [...new Set([...currentMeasures, ...response.measures.map(String)])];
+
+                await onUpdate({
+                    treatment: {
+                        ...risk.treatment,
+                        measures: newMeasures
+                    }
+                });
             } else if (mode === 'improve' && typeof response.threat === 'string' && typeof response.vulnerability === 'string') {
                 await onUpdate({
                     threat: response.threat,
@@ -234,7 +246,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                         {typeof response.text === 'string' && <p>{response.text}</p>}
                     </div>
 
-                    {onUpdate && mode !== 'mitigate' && !response.text && (
+                    {onUpdate && !response.text && (
                         <button
                             onClick={handleApply}
                             disabled={applying}

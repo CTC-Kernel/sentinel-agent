@@ -5,6 +5,7 @@ interface DialogProps {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  className?: string; // z-index customization
 }
 
 interface DialogContentProps {
@@ -22,9 +23,9 @@ interface DialogTitleProps {
   className?: string;
 }
 
-export const Dialog: React.FC<DialogProps> = ({ open, onClose, children }) => {
+export const Dialog: React.FC<DialogProps> = ({ open, onClose, children, className = 'relative z-[150]' }) => {
   return (
-    <HeadlessDialog open={open} onClose={onClose} className="relative z-50">
+    <HeadlessDialog open={open} onClose={onClose} className={className}>
       {children}
     </HeadlessDialog>
   );

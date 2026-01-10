@@ -256,6 +256,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                             risk={risk}
                             onUpdate={handleTreatmentUpdate}
                             users={usersList}
+                            controls={controls}
                         />
                     )}
 

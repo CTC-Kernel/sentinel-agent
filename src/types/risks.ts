@@ -106,6 +106,7 @@ export interface RiskTreatment {
     status?: 'Planifié' | 'En cours' | 'Terminé' | 'Retard';
     slaStatus?: 'On Track' | 'At Risk' | 'Breached';
     estimatedCost?: number;
+    measures?: string[]; // AI generated or manual measures
 }
 
 export interface RiskRecommendation {

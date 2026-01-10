@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { Risk, RiskTreatment, Criticality } from '../../types';
-import { Calendar, AlertTriangle, CheckCircle2, Clock, User } from '../ui/Icons';
+import { Risk, RiskTreatment, Criticality, Control } from '../../types';
+import { Calendar, AlertTriangle, CheckCircle2, Clock, User, Shield, Sparkles, Plus, X } from '../ui/Icons';
 import { format, addDays, isAfter, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface RiskTreatmentPlanProps {
     risk: Risk;
     onUpdate: (treatment: RiskTreatment) => void;
+    onRiskUpdate?: (updates: Partial<Risk>) => void;
     users: { uid: string; displayName: string }[];
+    controls?: Control[];
 }
 
-export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUpdate, users }) => {
+import { Button } from '../ui/button';
+
+export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUpdate, onRiskUpdate, users, controls = [] }) => {
     // Default SLAs (in days)
     const SLA_DAYS = {
         [Criticality.CRITICAL]: 7,
@@ -85,126 +89,226 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         onUpdate(updated);
     };
 
+    const toggleControl = (controlId: string) => {
+        if (!onRiskUpdate) return;
+        const currentIds = risk.mitigationControlIds || [];
+        const newIds = currentIds.includes(controlId)
+            ? currentIds.filter(id => id !== controlId)
+            : [...currentIds, controlId];
+        onRiskUpdate({ mitigationControlIds: newIds });
+    };
+
+    const removeMeasure = (index: number) => {
+        const currentMeasures = treatment.measures || [];
+        const newMeasures = currentMeasures.filter((_, i) => i !== index);
+        handleChange('measures' as any, newMeasures as any); // Cast because handleChange expects string|number, but we updating array. Should refactor handle change ideally.
+        // Actually, let's just do manual update
+        const updated = { ...treatment, measures: newMeasures };
+        setTreatment(updated);
+        onUpdate(updated);
+    };
+
     return (
-        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-6">
-            <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-brand-500" />
-                    Plan de Traitement
-                </h3>
-                {treatment.slaStatus === 'Breached' && (
-                    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1 border border-red-200">
-                        <AlertTriangle className="h-3 w-3" /> SLA Dépassé
-                    </span>
-                )}
-                {treatment.slaStatus === 'At Risk' && (
-                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold flex items-center gap-1 border border-orange-200">
-                        <Clock className="h-3 w-3" /> SLA À Risque
-                    </span>
-                )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Strategy */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Stratégie</label>
-                    <div className="relative group">
-                        <select
-                            value={treatment.strategy}
-                            onChange={(e) => handleChange('strategy', e.target.value)}
-                            className="w-full appearance-none rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none"
-                        >
-                            <option value="Atténuer">Atténuer (Réduire)</option>
-                            <option value="Transférer">Transférer (Assurance/Sous-traitance)</option>
-                            <option value="Éviter">Éviter (Supprimer l'activité)</option>
-                            <option value="Accepter">Accepter (Risque résiduel)</option>
-                        </select>
-                        <AlertTriangle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none group-hover:text-brand-500 transition-colors" />
-                    </div>
-                </div>
-
-                {/* Status */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Statut</label>
-                    <div className="relative group">
-                        <select
-                            value={treatment.status}
-                            onChange={(e) => handleChange('status', e.target.value)}
-                            className="w-full appearance-none rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none"
-                        >
-                            <option value="Planifié">Planifié</option>
-                            <option value="En cours">En cours</option>
-                            <option value="Terminé">Terminé</option>
-                            <option value="Retard">En retard</option>
-                        </select>
-                        <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none group-hover:text-brand-500 transition-colors" />
-                    </div>
-                </div>
-
-                {/* Owner */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Responsable</label>
-                    <div className="relative group">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
-                        <select
-                            value={treatment.ownerId || ''}
-                            onChange={(e) => handleChange('ownerId', e.target.value)}
-                            className="w-full pl-10 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none appearance-none"
-                        >
-                            <option value="">Sélectionner un responsable</option>
-                            {users.map(u => (
-                                <option key={u.uid} value={u.uid}>{u.displayName}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {/* Due Date */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Échéance (SLA)</label>
-                    <div className="relative group">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
-                        <input value={treatment.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)}
-                            type="date"
-                            className={`w-full pl-10 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none ${treatment.slaStatus === 'Breached' ? 'border-red-500 text-red-600' : ''
-                                }`}
-                        />
-                    </div>
-                    {treatment.dueDate && (
-                        <p className="text-xs text-slate-500 ml-1 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {format(parseISO(treatment.dueDate), 'dd MMMM yyyy', { locale: fr })}
-                        </p>
+        <div className="space-y-6">
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-6">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-brand-500" />
+                        Plan de Traitement
+                    </h3>
+                    {treatment.slaStatus === 'Breached' && (
+                        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1 border border-red-200">
+                            <AlertTriangle className="h-3 w-3" /> SLA Dépassé
+                        </span>
+                    )}
+                    {treatment.slaStatus === 'At Risk' && (
+                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold flex items-center gap-1 border border-orange-200">
+                            <Clock className="h-3 w-3" /> SLA À Risque
+                        </span>
                     )}
                 </div>
 
-                {/* Estimated Cost */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Coût Estimé (€)</label>
-                    <div className="relative group">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold group-focus-within:text-brand-500 transition-colors">€</span>
-                        <input value={treatment.estimatedCost || ''} onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
-                            type="number"
-                            className="w-full pl-8 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-slate-400"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                        />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Strategy */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Stratégie</label>
+                        <div className="relative group">
+                            <select
+                                value={treatment.strategy}
+                                onChange={(e) => handleChange('strategy', e.target.value)}
+                                className="w-full appearance-none rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none"
+                            >
+                                <option value="Atténuer">Atténuer (Réduire)</option>
+                                <option value="Transférer">Transférer (Assurance/Sous-traitance)</option>
+                                <option value="Éviter">Éviter (Supprimer l'activité)</option>
+                                <option value="Accepter">Accepter (Risque résiduel)</option>
+                            </select>
+                            <AlertTriangle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none group-hover:text-brand-500 transition-colors" />
+                        </div>
+                    </div>
+
+                    {/* Status */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Statut</label>
+                        <div className="relative group">
+                            <select
+                                value={treatment.status}
+                                onChange={(e) => handleChange('status', e.target.value)}
+                                className="w-full appearance-none rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none"
+                            >
+                                <option value="Planifié">Planifié</option>
+                                <option value="En cours">En cours</option>
+                                <option value="Terminé">Terminé</option>
+                                <option value="Retard">En retard</option>
+                            </select>
+                            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none group-hover:text-brand-500 transition-colors" />
+                        </div>
+                    </div>
+
+                    {/* Owner */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Responsable</label>
+                        <div className="relative group">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <select
+                                value={treatment.ownerId || ''}
+                                onChange={(e) => handleChange('ownerId', e.target.value)}
+                                className="w-full pl-10 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none appearance-none"
+                            >
+                                <option value="">Sélectionner un responsable</option>
+                                {users.map(u => (
+                                    <option key={u.uid} value={u.uid}>{u.displayName}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Due Date */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Échéance (SLA)</label>
+                        <div className="relative group">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <input value={treatment.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)}
+                                type="date"
+                                className={`w-full pl-10 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none ${treatment.slaStatus === 'Breached' ? 'border-red-500 text-red-600' : ''
+                                    }`}
+                            />
+                        </div>
+                        {treatment.dueDate && (
+                            <p className="text-xs text-slate-500 ml-1 flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {format(parseISO(treatment.dueDate), 'dd MMMM yyyy', { locale: fr })}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Estimated Cost */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Coût Estimé (€)</label>
+                        <div className="relative group">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold group-focus-within:text-brand-500 transition-colors">€</span>
+                            <input value={treatment.estimatedCost || ''} onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
+                                type="number"
+                                className="w-full pl-8 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-slate-400"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                            />
+                        </div>
                     </div>
                 </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Description du plan</label>
+                    <textarea
+                        value={treatment.description}
+                        onChange={(e) => handleChange('description', e.target.value)}
+                        rows={4}
+                        className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-4 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-slate-400 resize-none"
+                        placeholder="Détaillez les actions à entreprendre pour traiter ce risque..."
+                    />
+                </div>
+
             </div>
 
-            {/* Description */}
-            <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Description du plan</label>
-                <textarea
-                    value={treatment.description}
-                    onChange={(e) => handleChange('description', e.target.value)}
-                    rows={4}
-                    className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-4 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-slate-400 resize-none"
-                    placeholder="Détaillez les actions à entreprendre pour traiter ce risque..."
-                />
-            </div>
+            {/* AI Generated Measures */}
+            {treatment.measures && treatment.measures.length > 0 && (
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-purple-500" />
+                        Mesures suggérées (IA)
+                    </h3>
+                    <div className="grid gap-2">
+                        {treatment.measures.map((measure, idx) => (
+                            <div key={idx} className="flex items-start justify-between p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30">
+                                <p className="text-sm text-slate-700 dark:text-slate-300">{measure}</p>
+                                <button onClick={() => removeMeasure(idx)} className="text-slate-400 hover:text-red-500 p-1">
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Linked Controls */}
+            {onRiskUpdate && (
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-brand-500" />
+                        Contrôles liés
+                    </h3>
+
+                    <div className="space-y-2">
+                        {/* List active controls */}
+                        {risk.mitigationControlIds?.map(id => {
+                            const ctrl = controls.find(c => c.id === id);
+                            if (!ctrl) return null;
+                            return (
+                                <div key={id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <Shield className={`h-4 w-4 ${ctrl.status === 'Implémenté' ? 'text-green-500' : 'text-slate-400'}`} />
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{ctrl.code} - {ctrl.name}</p>
+                                            <p className="text-xs text-slate-500">{ctrl.framework || 'Contrôle'}</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" size="sm" onClick={() => toggleControl(id)} className="text-red-500 hover:bg-red-50 hover:text-red-600">
+                                        Détacher
+                                    </Button>
+                                </div>
+                            );
+                        })}
+
+                        {/* Add Control Button/Dropdown simplified */}
+                        <div className="relative group pt-4">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1 mb-2 block">Lier un nouveau contrôle</label>
+                            <select
+                                aria-label="Lier un nouveau contrôle"
+                                className="w-full appearance-none rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none"
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        toggleControl(e.target.value);
+                                        e.target.value = ""; // Reset
+                                    }
+                                }}
+                                value=""
+                            >
+                                <option value="">Sélectionner pour ajouter...</option>
+                                {controls
+                                    .filter(c => !risk.mitigationControlIds?.includes(c.id))
+                                    .map(c => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.code} - {c.name}
+                                        </option>
+                                    ))}
+                            </select>
+                            <Plus className="absolute right-3 bottom-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
