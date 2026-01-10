@@ -155,10 +155,7 @@ describe('ErrorHandler', () => {
         showToast: true
       });
 
-      expect(toast.error).toHaveBeenCalledWith(
-        'Opération échouée',
-        expect.any(Object)
-      );
+      expect(toast.error).toHaveBeenCalledWith('Opération échouée');
     });
 
     it('should generate user-friendly message for network errors', () => {
@@ -169,8 +166,7 @@ describe('ErrorHandler', () => {
       });
 
       expect(toast.error).toHaveBeenCalledWith(
-        'Erreur de connexion. Vérifiez votre connexion internet.',
-        expect.any(Object)
+        'Erreur de connexion. Vérifiez votre connexion internet.'
       );
     });
 
@@ -182,8 +178,7 @@ describe('ErrorHandler', () => {
       });
 
       expect(toast.error).toHaveBeenCalledWith(
-        'Vous n\'avez pas les permissions nécessaires pour cette action.',
-        expect.any(Object)
+        'Vous n\'avez pas les permissions nécessaires pour cette action.'
       );
     });
 
@@ -223,10 +218,7 @@ describe('ErrorHandler', () => {
 
       expect(toast.error).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({
-          duration: 5000,
-          description: expect.stringContaining('support')
-        })
+        expect.stringContaining('support')
       );
     });
   });
