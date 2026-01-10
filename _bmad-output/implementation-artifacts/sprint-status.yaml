@@ -54,9 +54,9 @@ development_status:
   epic-2: in-progress
   2-1-global-compliance-score-calculation: done
   2-2-apple-health-style-score-gauge: done
-  2-3-executive-kpi-cards: backlog
-  2-4-rssi-risk-incident-view: backlog
-  2-5-project-manager-progress-view: backlog
+  2-3-executive-kpi-cards: done
+  2-4-rssi-risk-incident-view: done
+  2-5-project-manager-progress-view: done
   2-6-configurable-dashboard-widgets: backlog
   epic-2-retrospective: optional
 
