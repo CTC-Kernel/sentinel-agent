@@ -167,7 +167,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 {loading ? (
                                                     <div className="h-6 w-12 bg-slate-700 rounded animate-pulse" />
                                                 ) : (
-                                                    <p className="text-2xl font-bold text-white">{stats?.userCount || 0}</p>
+                                                    <p className="text-2xl font-bold text-white">{(stats?.userCount as number) || 0}</p>
                                                 )}
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
@@ -177,7 +177,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 {loading ? (
                                                     <div className="h-6 w-12 bg-slate-700 rounded animate-pulse" />
                                                 ) : (
-                                                    <p className="text-2xl font-bold text-white">{stats?.projectCount || 0}</p>
+                                                    <p className="text-2xl font-bold text-white">{(stats?.projectCount as number) || 0}</p>
                                                 )}
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">

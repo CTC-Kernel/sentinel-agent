@@ -9,6 +9,7 @@ import { EmptyState } from '../ui/EmptyState';
 import { AlertOctagon, Download, Plus, Upload } from 'lucide-react';
 import { BusinessProcess, BcpDrill, Asset, UserProfile } from '../../types';
 import { TlptCampaign } from '../../types/tlpt';
+import { TlptDashboard } from './tlpt/TlptDashboard';
 import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { useTranslation } from 'react-i18next';
 
@@ -156,6 +157,17 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
 
                 {activeTab === 'crisis' && (
                     <ContinuityCrisis users={users} />
+                )}
+
+                {activeTab === 'tlpt' && (
+                    <TlptDashboard
+                        campaigns={_tlptCampaigns || []}
+                        loading={loading}
+                        onAdd={_onAddTlpt}
+                        onUpdate={_onUpdateTlpt}
+                        onDelete={_onDeleteTlpt}
+                        canEdit={canCreate}
+                    />
                 )}
             </motion.div>
         </AnimatePresence>

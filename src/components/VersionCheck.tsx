@@ -24,14 +24,7 @@ export const VersionCheck = () => {
                     setCurrentVersion(data.version);
                 } else if (currentVersion !== data.version) {
                     // New version detected
-                    toast.info("Une nouvelle version est disponible", {
-                        description: "L'application va se recharger pour appliquer la mise à jour.",
-                        duration: Infinity,
-                        action: {
-                            label: "Mettre à jour",
-                            onClick: () => window.location.reload(),
-                        },
-                    });
+                    toast.info("Une nouvelle version est disponible", "L'application va se recharger pour appliquer la mise à jour.");
                 }
             } catch (error) {
                 ErrorLogger.warn('Failed to check version', 'VersionCheck', { metadata: { error } });

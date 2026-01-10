@@ -135,9 +135,7 @@ const Assets: React.FC = () => {
     // Handlers
     const handleOpenInspector = React.useCallback((asset?: Asset) => {
         if (!asset && reachedAssetLimit) {
-            toast.info(t('assets.limitReached', { count: assets.length, max: limits.maxAssets }).split(':')[0], {
-                description: t('assets.contactSupport')
-            });
+            toast.info(t('assets.limitReached', { count: assets.length, max: limits.maxAssets }).split(':')[0], t('assets.contactSupport'));
             return;
         }
         setSelectedAsset(asset || null);
@@ -183,9 +181,7 @@ const Assets: React.FC = () => {
     const handleGenerateKioskLink = React.useCallback(() => {
         const url = `${window.location.origin}/intake`;
         navigator.clipboard.writeText(url);
-        toast.success(t('assets.kioskCopied'), {
-            description: t('assets.kioskCopiedDesc')
-        });
+        toast.success(t('assets.kioskCopied'), t('assets.kioskCopiedDesc'));
     }, [t]);
 
     const handleExportCSV = React.useCallback(() => {
@@ -219,7 +215,7 @@ const Assets: React.FC = () => {
 
             const prompt = `${t('assets.aiPrompt', { count: filteredAssets.length })}\n\nDATA:\n${JSON.stringify(assetsData)}`;
             const analysis = await aiService.chatWithAI(prompt);
-            toast.info(t('assets.analysisComplete'), { description: analysis, duration: 10000 });
+            toast.info(t('assets.analysisComplete'), analysis);
         } catch {
             toast.error(t('assets.analysisError'));
         } finally {
@@ -325,9 +321,7 @@ const Assets: React.FC = () => {
         }
 
         if (errors.length > 0) {
-            toast.warning(t('common.import.partialErrors'), {
-                description: `${errors.length} erreurs: ` + errors.slice(0, 3).join(', ') + (errors.length > 3 ? '...' : '')
-            });
+            toast.warning(t('common.import.partialErrors'), `${errors.length} erreurs: ` + errors.slice(0, 3).join(', ') + (errors.length > 3 ? '...' : ''));
         }
 
         if (successCount === 0 && errors.length === 0) {

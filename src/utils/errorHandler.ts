@@ -206,16 +206,13 @@ export class ErrorHandler {
     switch (severity) {
       case ErrorSeverity.CRITICAL:
       case ErrorSeverity.HIGH:
-        toast.error(message, {
-          duration: 5000,
-          description: 'Veuillez réessayer ou contacter le support si le problème persiste.'
-        });
+        toast.error(message, 'Veuillez réessayer ou contacter le support si le problème persiste.');
         break;
       case ErrorSeverity.MEDIUM:
-        toast.error(message, { duration: 4000 });
+        toast.error(message);
         break;
       case ErrorSeverity.LOW:
-        toast.warning(message, { duration: 3000 });
+        toast.warning(message);
         break;
       default:
         toast.error(message);

@@ -52,8 +52,8 @@ export function createDraftSchema<T extends z.ZodRawShape>(
   options: DraftSchemaOptions
 ): z.ZodObject<{
   [K in keyof T]: K extends (typeof options.requiredFields)[number]
-    ? T[K]
-    : z.ZodOptional<T[K]>;
+  ? T[K]
+  : z.ZodOptional<T[K]>;
 }> {
   const { requiredFields, locale = 'fr' } = options;
   const messages = getZodMessages(locale);
@@ -66,10 +66,10 @@ export function createDraftSchema<T extends z.ZodRawShape>(
 
     if (requiredFields.includes(keyStr)) {
       // Keep required fields as-is, but ensure they have localized error message
-      newShape[keyStr] = wrapWithLocalizedRequired(fieldSchema, messages.required);
+      newShape[keyStr] = wrapWithLocalizedRequired(fieldSchema as unknown as z.ZodTypeAny, messages.required);
     } else {
       // Make non-required fields optional
-      newShape[keyStr] = makeOptional(fieldSchema);
+      newShape[keyStr] = makeOptional(fieldSchema as unknown as z.ZodTypeAny);
     }
   }
 
@@ -93,10 +93,10 @@ function makeOptional<T extends z.ZodTypeAny>(schema: T): z.ZodOptional<T> | T {
 
   // Handle default schemas - make the inner type optional
   if (schema instanceof z.ZodDefault) {
-    return schema._def.innerType.optional();
+    return (schema._def.innerType as z.ZodTypeAny).optional() as unknown as z.ZodOptional<T> | T;
   }
 
-  return schema.optional();
+  return (schema as z.ZodTypeAny).optional() as unknown as z.ZodOptional<T> | T;
 }
 
 /**
@@ -108,15 +108,25 @@ function wrapWithLocalizedRequired<T extends z.ZodTypeAny>(
 ): T {
   // For string schemas, ensure min(1) validation for "required"
   if (schema instanceof z.ZodString) {
-    // Check if there's already a min constraint
-    const checks = schema._def.checks;
-    const hasMinCheck = checks.some(
-      (check: { kind: string }) => check.kind === 'min'
-    );
+    // Note: We access Zod's internal _def.checks array to inspect existing validations.
+    // This is necessary because Zod doesn't expose a public API to check if min() was called.
+    // The 'any' casts are required because _def is not part of Zod's public TypeScript types.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const checks = (schema as any)._def.checks || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hasMinCheck = checks.some((check: any) => check.kind === 'min');
 
     if (!hasMinCheck) {
       // Add min(1) with localized message
-      return schema.min(1, requiredMessage) as T;
+      return (schema as z.ZodString).min(1, requiredMessage) as unknown as T;
+    } else {
+      // Replace existing min(1) error message with localized version
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const firstMinCheck = checks.find((check: any) => check.kind === 'min' && check.value === 1);
+      if (firstMinCheck) {
+        // Schema already has min(1), redefine with localized message
+        return (schema as z.ZodString).min(1, requiredMessage) as unknown as T;
+      }
     }
   }
 
@@ -183,15 +193,19 @@ export function createDraftableSchemas<T extends z.ZodRawShape>(
   fullSchema: z.ZodObject<T>;
   draftSchema: z.ZodObject<{
     [K in keyof T]: K extends (typeof draftRequiredFields)[number]
-      ? T[K]
-      : z.ZodOptional<T[K]>;
+    ? T[K]
+    : z.ZodOptional<T[K]>;
   }>;
 } {
   const fullSchema = z.object(baseShape);
   const draftSchema = createDraftSchema(fullSchema, {
     requiredFields: draftRequiredFields as string[],
     locale,
-  });
+  }) as unknown as z.ZodObject<{
+    [K in keyof T]: K extends (typeof draftRequiredFields)[number]
+    ? T[K]
+    : z.ZodOptional<T[K]>;
+  }>;
 
   return { fullSchema, draftSchema };
 }

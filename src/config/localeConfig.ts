@@ -9,6 +9,7 @@
 
 import { format, parse, isValid } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 import { z } from 'zod';
 
 /**
@@ -488,10 +489,11 @@ export function createLocalizedNumberSchema(
   const config = localeConfig[locale];
   const { required = true, min, max, integer = false } = options ?? {};
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let schema = z.number({
     required_error: config.zodMessages.required,
     invalid_type_error: config.zodMessages.invalidNumber,
-  });
+  } as any);
 
   if (integer) {
     schema = schema.int();

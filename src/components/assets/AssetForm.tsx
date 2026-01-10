@@ -90,9 +90,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
     const onInvalid = (errors: FieldErrors<AssetFormData>) => {
         const missingFields = Object.keys(errors).map(field => t(`common.fields.${field}`) || field).join(', ');
-        toast.error(t('common.formInvalid'), {
-            description: t('common.checkFields', { fields: missingFields })
-        });
+        toast.error(t('common.formInvalid'), t('common.checkFields', { fields: missingFields }));
     };
     const { addToast, t } = useStore();
     const [suggestingField, setSuggestingField] = React.useState<string | null>(null);

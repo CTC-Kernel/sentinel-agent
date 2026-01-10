@@ -1,4 +1,5 @@
 import { useMemo, useCallback } from 'react';
+import { type Locale } from 'date-fns';
 import { useStore } from '../store';
 import {
   type SupportedLocale,

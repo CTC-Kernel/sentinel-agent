@@ -102,7 +102,7 @@ export const SupplierAssessmentModal: React.FC<Props> = ({ isOpen, onClose, supp
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onClose={onClose}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export const SupplierAssessmentModal: React.FC<Props> = ({ isOpen, onClose, supp
                             <CustomSelect
                                 options={templates.map(t => ({ value: t.id, label: t.title }))}
                                 value={selectedTemplateId}
-                                onChange={setSelectedTemplateId}
+                                onChange={(val) => setSelectedTemplateId(val as string)}
                                 placeholder="Sélectionner un modèle..."
                             />
                         )}

@@ -7,12 +7,12 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { useForm, UseFormProps, UseFormReturn, FieldValues } from 'react-hook-form';
+import { useForm, UseFormProps, UseFormReturn, FieldValues, FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useLocale } from './useLocale';
 import { createLocalizedErrorMap } from '../utils/zodErrorMap';
-import { canSaveAsDraft, DRAFT_STATUS } from '../utils/draftSchema';
+import { DRAFT_STATUS } from '../utils/draftSchema';
 import type { SupportedLocale } from '../config/localeConfig';
 
 /**
@@ -21,7 +21,7 @@ import type { SupportedLocale } from '../config/localeConfig';
 export interface UseDraftModeOptions<
   TFullSchema extends z.ZodSchema,
   TDraftSchema extends z.ZodSchema
-> extends Omit<UseFormProps<z.infer<TFullSchema>>, 'resolver'> {
+> extends Omit<UseFormProps<z.infer<TFullSchema> & FieldValues>, 'resolver'> {
   /** The complete validation schema for publishing */
   fullSchema: TFullSchema;
   /** The relaxed schema for draft saving (only required fields validated) */
@@ -101,7 +101,7 @@ export function useDraftMode<
   TDraftSchema extends z.ZodSchema
 >(
   options: UseDraftModeOptions<TFullSchema, TDraftSchema>
-): UseDraftModeReturn<z.infer<TFullSchema>> {
+): UseDraftModeReturn<z.infer<TFullSchema> & FieldValues> {
   const {
     fullSchema,
     draftSchema,
@@ -117,13 +117,15 @@ export function useDraftMode<
   const resolver = useMemo(() => {
     const errorMap = createLocalizedErrorMap(locale);
     const schema = isDraft ? draftSchema : fullSchema;
-    return zodResolver(schema, { errorMap });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return zodResolver(schema as any, { errorMap } as any);
   }, [isDraft, draftSchema, fullSchema, locale]);
 
   // Initialize form with current resolver
-  const form = useForm<z.infer<TFullSchema>>({
+  const form = useForm<z.infer<TFullSchema> & FieldValues>({
     ...formOptions,
-    resolver,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: resolver as any,
   });
 
   // Get the appropriate draft status value
@@ -160,7 +162,8 @@ export function useDraftMode<
 
   // Save as draft with relaxed validation
   const saveAsDraft = useCallback(
-    async (onSave: (data: z.infer<TFullSchema>) => Promise<void>) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async (onSave: (data: any) => Promise<void>) => {
       // Temporarily switch to draft mode for validation
       const wasInDraft = isDraft;
       if (!wasInDraft) {
@@ -173,9 +176,11 @@ export function useDraftMode<
 
       if (!result.success) {
         // Set errors on the form
+        // Note: Zod issue paths are dynamic, so we cast to FieldPath which is the
+        // proper react-hook-form type for dot-notation paths like "address.street"
         for (const issue of result.error.issues) {
-          const path = issue.path.join('.') as keyof z.infer<TFullSchema>;
-          form.setError(path as string, {
+          const path = issue.path.join('.') as FieldPath<z.infer<TFullSchema> & FieldValues>;
+          form.setError(path, {
             type: 'manual',
             message: issue.message,
           });
@@ -195,7 +200,8 @@ export function useDraftMode<
 
   // Publish with full validation
   const publish = useCallback(
-    async (onPublish: (data: z.infer<TFullSchema>) => Promise<void>) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async (onPublish: (data: any) => Promise<void>) => {
       // Switch to full validation mode
       if (isDraft) {
         setIsDraft(false);

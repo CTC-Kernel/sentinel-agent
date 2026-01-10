@@ -16,7 +16,7 @@ import { createLocalizedErrorMap } from '../utils/zodErrorMap';
  * Options for useZodForm hook
  */
 export interface UseZodFormOptions<TSchema extends z.ZodSchema>
-  extends Omit<UseFormProps<z.infer<TSchema>>, 'resolver'> {
+  extends Omit<UseFormProps<z.infer<TSchema> & FieldValues>, 'resolver'> {
   /** Zod schema for validation */
   schema: TSchema;
 }
@@ -56,15 +56,16 @@ export interface UseZodFormOptions<TSchema extends z.ZodSchema>
  */
 export function useZodForm<TSchema extends z.ZodSchema>(
   options: UseZodFormOptions<TSchema>
-): UseFormReturn<z.infer<TSchema>> {
+): UseFormReturn<z.infer<TSchema> & FieldValues> {
   const { schema, ...formOptions } = options;
   const { locale } = useLocale();
 
   const errorMap = createLocalizedErrorMap(locale);
 
-  return useForm<z.infer<TSchema>>({
+  return useForm<z.infer<TSchema> & FieldValues>({
     ...formOptions,
-    resolver: zodResolver(schema, { errorMap }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema as any, { errorMap } as any),
   });
 }
 
@@ -89,5 +90,6 @@ export function createLocalizedResolver<TSchema extends z.ZodSchema>(
   locale: 'fr' | 'en'
 ) {
   const errorMap = createLocalizedErrorMap(locale);
-  return zodResolver(schema, { errorMap });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return zodResolver(schema as any, { errorMap } as any);
 }

@@ -52,7 +52,8 @@ export function getLocalizedMessages(locale: SupportedLocale): ZodMessages {
 export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap {
   const messages = getZodMessages(locale);
 
-  return (issue, ctx) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return ((issue: any, ctx: any) => {
     // Handle specific error codes with localized messages
     switch (issue.code) {
       case z.ZodIssueCode.invalid_type:
@@ -94,7 +95,8 @@ export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap 
         }
         break;
 
-      case z.ZodIssueCode.invalid_string:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      case (z.ZodIssueCode as any).invalid_string:
         if (issue.validation === 'email') {
           return { message: messages.invalidEmail };
         }
@@ -109,10 +111,12 @@ export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap 
         }
         return { message: messages.invalidString };
 
-      case z.ZodIssueCode.invalid_date:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      case (z.ZodIssueCode as any).invalid_date:
         return { message: messages.invalidDate };
 
-      case z.ZodIssueCode.invalid_enum_value:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      case (z.ZodIssueCode as any).invalid_enum_value:
         return { message: messages.invalidEnum(issue.options as string[]) };
 
       case z.ZodIssueCode.custom:
@@ -121,7 +125,7 @@ export function createLocalizedErrorMap(locale: SupportedLocale): z.ZodErrorMap 
 
     // Fall back to default message
     return { message: ctx.defaultError };
-  };
+  }) as any;
 }
 
 /**
@@ -141,7 +145,8 @@ export function createLocalizedString(
   let schema = z.string({
     required_error: messages.required,
     invalid_type_error: messages.invalidString,
-  });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any);
 
   if (min !== undefined) {
     schema = schema.min(min, min === 1 ? messages.required : messages.tooShort(min));
@@ -169,7 +174,8 @@ export function createLocalizedEmail(
 
   const schema = z.string({
     required_error: messages.required,
-  }).email(messages.invalidEmail);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any).email(messages.invalidEmail);
 
   if (!required) {
     return schema.optional();
@@ -189,7 +195,8 @@ export function createLocalizedUrl(
 
   const schema = z.string({
     required_error: messages.required,
-  }).url(messages.invalidUrl);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any).url(messages.invalidUrl);
 
   if (!required) {
     return schema.optional();
@@ -217,7 +224,8 @@ export function createLocalizedNumber(
   let schema = z.number({
     required_error: messages.required,
     invalid_type_error: messages.invalidNumber,
-  });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any);
 
   if (integer) {
     schema = schema.int(messages.notInteger);

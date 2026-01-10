@@ -300,10 +300,10 @@ export const Continuity: React.FC = () => {
                 onSetSelectedProcess={setSelectedProcess}
                 onOpenDrillModal={handleOpenDrillModal}
                 onDeleteDrill={handleDeleteDrill}
-                tlptCampaigns={tlptCampaigns}
-                onAddTlpt={async (data) => { await addTlptCampaign(data as Partial<TlptCampaign>); }}
-                onUpdateTlpt={(id, data) => updateTlptCampaign(id, data as Partial<TlptCampaign>)}
-                onDeleteTlpt={deleteTlptCampaign}
+                _tlptCampaigns={tlptCampaigns}
+                _onAddTlpt={async (data) => { await addTlptCampaign(data as Partial<TlptCampaign>); }}
+                _onUpdateTlpt={(id, data) => updateTlptCampaign(id, data as Partial<TlptCampaign>)}
+                _onDeleteTlpt={deleteTlptCampaign}
             />
 
             {/* Modals */}

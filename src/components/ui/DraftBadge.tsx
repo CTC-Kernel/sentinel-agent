@@ -6,10 +6,11 @@
  * @module DraftBadge
  */
 
-import React from 'react';
 import { Badge } from './Badge';
 import { useLocale } from '../../hooks/useLocale';
-import { FileEdit } from '../ui/Icons';
+import { getDraftLabel } from '../../hooks/useDraftMode';
+import { DRAFT_STATUS } from '../../utils/draftSchema';
+import { Edit } from '../ui/Icons';
 
 interface DraftBadgeProps {
   /** Size variant */
@@ -55,8 +56,8 @@ export const DraftBadge: React.FC<DraftBadgeProps> = ({
 }) => {
   const { locale } = useLocale();
 
-  // Localized label
-  const draftLabel = label ?? (locale === 'fr' ? 'Brouillon' : 'Draft');
+  // Localized label - reuse getDraftLabel for consistency
+  const draftLabel = label ?? getDraftLabel(locale);
 
   return (
     <Badge
@@ -64,7 +65,7 @@ export const DraftBadge: React.FC<DraftBadgeProps> = ({
       variant={variant}
       size={size}
       className={className}
-      icon={showIcon ? FileEdit : undefined}
+      icon={showIcon ? Edit : undefined}
     >
       {draftLabel}
     </Badge>
@@ -81,11 +82,11 @@ export const DraftBadge: React.FC<DraftBadgeProps> = ({
 export function isDraftStatus(status: string | undefined | null): boolean {
   if (!status) return false;
 
+  // Use DRAFT_STATUS values to stay synchronized with draftSchema.ts
+  // Also include lowercase variants for case-insensitive matching
   const draftValues = [
-    'draft',
-    'Draft',
-    'Brouillon',
-    'brouillon',
+    ...Object.values(DRAFT_STATUS),
+    ...Object.values(DRAFT_STATUS).map((v) => v.toLowerCase()),
   ];
 
   return draftValues.includes(status);

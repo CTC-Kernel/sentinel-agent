@@ -14,7 +14,6 @@ import {
   createOptionalLocalizedDateSchema,
   createLocalizedNumberSchema,
   zodDateSchemas,
-  type SupportedLocale,
 } from '../localeConfig';
 import { fr, enUS } from 'date-fns/locale';
 

@@ -77,13 +77,11 @@ export const useErrorHandler = () => {
 
     // Afficher un toast si demandé
     if (showToast) {
-      toast(structuredError.userMessage, {
-        duration: structuredError.type === ErrorType.NETWORK ? 6000 : 4000,
-        action: structuredError.type === ErrorType.NETWORK ? {
-          label: 'Réessayer',
-          onClick: () => window.location.reload()
-        } : undefined
-      });
+      if (structuredError.type === ErrorType.NETWORK) {
+        toast.error(structuredError.userMessage, 'Veuillez vérifier votre connexion.');
+      } else {
+        toast.error(structuredError.userMessage);
+      }
     }
 
     // Callback personnalisé

@@ -65,7 +65,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                     </select>
                 ) : (
                     <span className="px-3 py-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg text-xs font-bold">
-                        {getRoleName(user.role)}
+                        {getRoleName(user.role as Role)}
                     </span>
                 )}
             </td>
@@ -98,7 +98,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                     </div>
                 ) : (
                     <button
-                        onClick={() => onEditStart(user.uid, user.role)}
+                        onClick={() => onEditStart(user.uid, user.role as Role)}
                         disabled={user.uid === currentUser?.uid}
                         className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Modifier le rôle"
