@@ -9,25 +9,25 @@ export const useContinuityActions = () => {
 
   const { data: strategies, loading: loadingStrategies, add: addStrategyRaw, remove: removeStrategy } = useFirestoreCollection<Strategy>(
     'bcp_strategies',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId)],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
   const { data: drills, loading: loadingDrills } = useFirestoreCollection<import('../../types').BcpDrill>(
     'drills',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId)],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
   const { data: warRoomSessions, loading: loadingWarRoom } = useFirestoreCollection<import('../../types').WarRoomSession>(
     'war_room_sessions',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId)],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
   const { data: processes, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
     'business_processes',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId)],
     { enabled: !!user?.organizationId }
   );
 

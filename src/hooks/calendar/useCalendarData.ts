@@ -8,19 +8,19 @@ export const useCalendarData = () => {
 
   const { data: events, loading: loadingEvents } = useFirestoreCollection(
     'calendar_events',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId)],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
   const { data: assets, loading: loadingAssets } = useFirestoreCollection<Asset>(
     'assets',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId)],
     { enabled: !!user?.organizationId }
   );
 
   const { data: risks, loading: loadingRisks } = useFirestoreCollection<Risk>(
     'risks',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    [where('organizationId', '==', user?.organizationId)],
     { enabled: !!user?.organizationId }
   );
 

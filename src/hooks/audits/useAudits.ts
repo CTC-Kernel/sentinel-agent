@@ -1,7 +1,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
-import { where, collection, addDoc, updateDoc, doc, arrayUnion, limit } from 'firebase/firestore';
+import { where, collection, addDoc, updateDoc, doc, arrayUnion } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Audit, Control, Asset, Risk, UserProfile, Document, Project, Finding, AuditChecklist } from '../../types';
@@ -33,28 +33,28 @@ export const useAudits = () => {
 
     // Firestore Data (Disabled in Demo Mode)
     const { data: firestoreAudits, loading: firestoreAuditsLoading, refresh: refreshFirestoreAudits } = useFirestoreCollection<Audit>(
-        'audits', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true, enabled: !isDemo }
+        'audits', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
     const { data: firestoreControls, loading: firestoreControlsLoading } = useFirestoreCollection<Control>(
-        'controls', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(1000)], { logError: true, realtime: true, enabled: !isDemo }
+        'controls', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
     const { data: firestoreAssets, loading: firestoreAssetsLoading } = useFirestoreCollection<Asset>(
-        'assets', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true, enabled: !isDemo }
+        'assets', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
     const { data: firestoreRisks, loading: firestoreRisksLoading } = useFirestoreCollection<Risk>(
-        'risks', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true, enabled: !isDemo }
+        'risks', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
     const { data: firestoreUsers, loading: firestoreUsersLoading } = useFirestoreCollection<UserProfile>(
-        'users', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(100)], { logError: true, realtime: true, enabled: !isDemo }
+        'users', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
     const { data: firestoreDocs, loading: firestoreDocsLoading } = useFirestoreCollection<Document>(
-        'documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(200)], { logError: true, realtime: true, enabled: !isDemo }
+        'documents', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
     const { data: firestoreProjects, loading: firestoreProjectsLoading } = useFirestoreCollection<Project>(
-        'projects', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(100)], { logError: true, realtime: true, enabled: !isDemo }
+        'projects', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
     const { data: firestoreFindings, loading: firestoreFindingsLoading } = useFirestoreCollection<Finding>(
-        'findings', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true, enabled: !isDemo }
+        'findings', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
 
     // Mock Data State

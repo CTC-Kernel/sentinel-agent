@@ -15,13 +15,13 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
     const { data: processes, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId)],
-        { realtime: true }
+        { realtime: true, enabled: !!user?.organizationId }
     );
 
     const { data: drills, loading: loadingDrills } = useFirestoreCollection<BcpDrill>(
         'bcp_drills',
         [where('organizationId', '==', user?.organizationId), orderBy('date', 'desc'), limit(1)],
-        { realtime: true }
+        { realtime: true, enabled: !!user?.organizationId }
     );
 
     const stats = useMemo(() => {
