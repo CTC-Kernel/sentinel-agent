@@ -140,9 +140,9 @@ export const useDashboardData = (): DashboardData => {
     const needsSuppliers = isAdmin || isDirection;
 
     // Hooks - Conditional Fetching (Only if NOT demoMode)
-    const { data: controlsData, loading: controlsLoading } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && needsGlobalStats });
-    const { data: recentActivityData, loading: logsLoading } = useFirestoreCollection<SystemLog>('system_logs', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('timestamp', 'desc'), limit(10)], { logError: true, realtime: true, enabled: !demoMode && needsLogs });
-    const { data: historyStatsData, loading: historyLoading } = useFirestoreCollection<StatsHistoryEntry>('stats_history', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && (needsGlobalStats || isAuditor) });
+    const { data: controlsData, loading: controlsLoading } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && needsGlobalStats && !!user?.organizationId });
+    const { data: recentActivityData, loading: logsLoading } = useFirestoreCollection<SystemLog>('system_logs', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('timestamp', 'desc'), limit(10)], { logError: true, realtime: true, enabled: !demoMode && needsLogs && !!user?.organizationId });
+    const { data: historyStatsData, loading: historyLoading } = useFirestoreCollection<StatsHistoryEntry>('stats_history', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && (needsGlobalStats || isAuditor) && !!user?.organizationId });
 
     // Optimizations: Fetch only user's risks or limit to top/recent if needed.
     // For global lists (allRisks), we now rely on aggregated stats for numbers, and only fetch a small subset for "Top Risks" display if really needed.
@@ -152,23 +152,23 @@ export const useDashboardData = (): DashboardData => {
         where('score', '>=', 8), // Optimization: Only fetch significant risks
         orderBy('score', 'desc'),
         limit(20)
-    ], { logError: true, realtime: false, enabled: !demoMode });
+    ], { logError: true, realtime: false, enabled: !demoMode && !!user?.organizationId });
 
     // For Assets, we typically don't show a list of 1000 assets on dashboard, just the count and maybe top value. 
     // We'll limit this too.
     const { data: topAssetsData, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [
         where('organizationId', '==', user?.organizationId || 'ignore'),
         limit(20) // Only fetch a few for display if needed
-    ], { logError: true, realtime: false, enabled: !demoMode && needsAssets });
+    ], { logError: true, realtime: false, enabled: !demoMode && needsAssets && !!user?.organizationId });
 
     // Suppliers - limit
-    const { data: allSuppliersData, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(20)], { logError: true, realtime: false, enabled: !demoMode && needsSuppliers });
+    const { data: allSuppliersData, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(20)], { logError: true, realtime: false, enabled: !demoMode && needsSuppliers && !!user?.organizationId });
 
     // Personal/Role specific data
-    const { data: allProjectsData, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isPM || isAdmin) });
-    const { data: allAuditsData, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isAuditor || isAdmin) });
-    const { data: allDocumentsData, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(50)], { logError: true, realtime: true, enabled: !demoMode });
-    const { data: allIncidentsData, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '!=', 'Fermé'), limit(20)], { logError: true, realtime: true, enabled: !demoMode });
+    const { data: allProjectsData, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isPM || isAdmin) && !!user?.organizationId });
+    const { data: allAuditsData, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isAuditor || isAdmin) && !!user?.organizationId });
+    const { data: allDocumentsData, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(50)], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId });
+    const { data: allIncidentsData, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '!=', 'Fermé'), limit(20)], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId });
 
     // Unified Data Sources
     const controls = demoMode ? mockData.controls : controlsData;

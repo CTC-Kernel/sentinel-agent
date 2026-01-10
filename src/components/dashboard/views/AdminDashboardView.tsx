@@ -43,9 +43,10 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
     const { user } = useStore();
 
     // Default Admin Layout - Radar at Top!
+    // Default Admin Layout - AI Stats First, then Maturity Radar
     const defaultLayout: WidgetLayout[] = [
-        { id: 'maturity-1', widgetId: 'maturity-radar', colSpan: 1 }, // Top Left
-        { id: 'stats-1', widgetId: 'stats-overview', colSpan: 2 }, // Top Right (Spans 2)
+        { id: 'stats-1', widgetId: 'stats-overview', colSpan: 2 }, // Top Left (First module - AI Summary)
+        { id: 'maturity-1', widgetId: 'maturity-radar', colSpan: 1 }, // Top Right (Next to it)
         { id: 'workspace-1', widgetId: 'my-workspace', colSpan: 2 }, // Row 2 Left
         { id: 'risks-1', widgetId: 'priority-risks', colSpan: 1 }, // Row 2 Right
         { id: 'history-1', widgetId: 'compliance-evolution', colSpan: 2 }, // Row 3 Left
@@ -53,7 +54,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
         { id: 'nis2-1', widgetId: 'nis2-dora-kpi', colSpan: 1 }, // Row 4
     ];
 
-    const { layout, updateLayout, resetLayout } = useDashboardPreferences(user?.uid, 'admin', defaultLayout);
+    const { layout, updateLayout, resetLayout } = useDashboardPreferences(user?.uid, user?.organizationId, 'admin', defaultLayout);
     const [isAddWidgetModalOpen, setIsAddWidgetModalOpen] = React.useState(false);
 
     const handleAddWidget = (widgetId: WidgetId) => {

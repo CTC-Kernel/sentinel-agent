@@ -15,6 +15,7 @@ interface MetricInputs {
         highRisks: number;
         totalAssets: number;
     } | null;
+    externalComplianceScore?: number | null;
 }
 
 export const useDashboardMetrics = ({
@@ -26,7 +27,8 @@ export const useDashboardMetrics = ({
     openAuditsCount,
     myProjectsLength,
     userOrgId,
-    aggregatedStats
+    aggregatedStats,
+    externalComplianceScore
 }: MetricInputs) => {
 
     // History Data Mapping
@@ -64,7 +66,11 @@ export const useDashboardMetrics = ({
     const { stats, radarData, complianceScore } = useMemo(() => {
         const implemented = controls.filter(c => c.status === 'Implémenté').length;
         const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
-        const compScore = actionable > 0 ? Math.round((implemented / actionable) * 100) : 0;
+
+        // Use external source of truth if available, otherwise fallback to local calculation
+        const compScore = (externalComplianceScore !== undefined && externalComplianceScore !== null)
+            ? externalComplianceScore
+            : (actionable > 0 ? Math.round((implemented / actionable) * 100) : 0);
 
         const domains = { 'Org.': { total: 0, implemented: 0, prefix: 'A.5' }, 'Humain': { total: 0, implemented: 0, prefix: 'A.6' }, 'Physique': { total: 0, implemented: 0, prefix: 'A.7' }, 'Techno': { total: 0, implemented: 0, prefix: 'A.8' } };
         controls.forEach(c => {
@@ -150,7 +156,7 @@ export const useDashboardMetrics = ({
             radarData: rData,
             complianceScore: compScore
         };
-    }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount, myProjectsLength, aggregatedStats]);
+    }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount, myProjectsLength, aggregatedStats, externalComplianceScore]);
 
     const scoreGrade = useMemo(() => {
         if (!Number.isFinite(complianceScore) || complianceScore < 0) return undefined;

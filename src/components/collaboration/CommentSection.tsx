@@ -28,7 +28,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
         [orderBy('createdAt', 'asc')],
         {
             realtime: true,
-            enabled: !!documentId
+            enabled: !!documentId && !!user?.organizationId
         }
     );
 

@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { useAIGemini } from '../../../hooks/useAIGemini';
 import { useAIAnalysisPersistence } from '../../../hooks/dashboard/useAIAnalysisPersistence';
 import { useNavigate } from 'react-router-dom';
+import { AI_PROMPTS } from '../../../config/prompts';
 
 interface DashboardStatsProps {
     stats: {
@@ -37,21 +38,14 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     const { storedSummary, saveSummary, clearSummary } = useAIAnalysisPersistence();
 
     // Memoize the prompt to avoid effect loops/re-runs when array references change
-    const prompt = React.useMemo(() => `
-            Analyse cette posture de cybersécurité pour un rapport exécutif (synthèse courte, max 3-4 phrases percutantes) :
-            - Score Global : ${effectiveComplianceScore}%
-            - Incidents Actifs : ${activeIncidentsCount}
-            - Risques Critiques : ${topRisks.length} (Top: ${topRisks.map(r => r.name).join(', ')})
-            - Risque Financier : ${stats.financialRisk}€
-            - Incidents récents : ${activeIncidents?.map(i => i.title).join(', ') || 'Aucun'}
-
-            Format attendu : Markdown riche (gras, puces).
-            Ton : Professionnel, direct, orienté action.
-            Structure :
-            1. **État Global** : Résumé en 1 phrase.
-            2. **Priorités** : 2 points d'attention majeurs.
-            3. **Recommandation** : 1 action immédiate.
-        `, [effectiveComplianceScore, activeIncidentsCount, topRisks, stats.financialRisk, activeIncidents]);
+    const prompt = React.useMemo(() => AI_PROMPTS.dashboard_executive_summary({
+        score: effectiveComplianceScore,
+        incidents: activeIncidentsCount,
+        risks: topRisks.length,
+        topRisks: topRisks.map(r => r.name),
+        financial: stats.financialRisk,
+        recentIncidents: activeIncidents?.map(i => i.title).join(', ') || 'Aucun'
+    }), [effectiveComplianceScore, activeIncidentsCount, topRisks, stats.financialRisk, activeIncidents]);
 
     // Effect to handle generation logic
     React.useEffect(() => {
@@ -255,7 +249,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 <div className="text-xl font-bold text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
                                     {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
                                 </div>
-                                <span className="text-xs font-medium text-blue-500">Exposition estimée</span>
+                                <span className="text-xs font-medium text-blue-500 cursor-help" title="Calculé sur la base des 5 risques les plus critiques et de la valeur des actifs associés.">* Exposition estimée</span>
                             </div>
                             <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden">
                                 <div

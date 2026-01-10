@@ -1,4 +1,4 @@
-import { collection, query, where, getCountFromServer, getDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, getCountFromServer, getDoc, doc, setDoc, Query, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 
@@ -77,54 +77,63 @@ export class DashboardService {
         totalAssets: number;
         controlsStats: { implemented: number; actionable: number; total: number };
     }> {
+        // Helper to safely get count or return 0 on error
+        const safeCount = async (q: Query<DocumentData>, label: string) => {
+            try {
+                const snap = await getCountFromServer(q);
+                return snap.data().count;
+            } catch (error) {
+                console.warn(`[DashboardService] Failed to fetch ${label} count:`, error);
+                // Don't throw, just return 0 to keep dashboard alive
+                return 0;
+            }
+        };
+
         try {
-            // Parallel execution of count queries
+            // queries
+            const qTotalRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId));
+            const qHighRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 10));
+            // Firestore composite index might be needed for range queries with other filters
+            // We split medium risks query if it fails often, but let's try safe execution first
+            const qMediumRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 5), where('score', '<', 10));
+            const qLowRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '<', 5));
+            const qAssets = query(collection(db, 'assets'), where('organizationId', '==', organizationId));
+            const qControlsImpl = query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('status', '==', 'Implémenté'));
+            const qControlsTotal = query(collection(db, 'controls'), where('organizationId', '==', organizationId));
+
             const [
-                totalRisksSnap,
-                highRisksSnap,
-                mediumRisksSnap,
-                lowRisksSnap,
-                assetsSnap,
-                // Controls might be needed in full for detailed compliance, but we can count for quick stats
-                // We'll trust the caller to fetch controls if they need the full radar
-                controlsImplementedSnap,
-                controlsTotalSnap
+                totalRisks,
+                highRisks,
+                mediumRisks,
+                lowRisks,
+                totalAssets,
+                implemented,
+                totalControls
             ] = await Promise.all([
-                // Total Risks
-                getCountFromServer(query(collection(db, 'risks'), where('organizationId', '==', organizationId))),
-                // High Risks (Score >= 10)
-                getCountFromServer(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 10))),
-                // Medium Risks (5 <= Score < 10) - Firestore doesn't support multiple inequalities well, so we might approx or just range
-                // Actually, let's just count Critical/High (>=10) vs others for now as that's the main KPI
-                getCountFromServer(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 5), where('score', '<', 10))),
-                // Low Risks (Score < 5)
-                getCountFromServer(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '<', 5))),
-
-                // Assets
-                getCountFromServer(query(collection(db, 'assets'), where('organizationId', '==', organizationId))),
-
-                // Controls
-                getCountFromServer(query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('status', '==', 'Implémenté'))),
-                getCountFromServer(query(collection(db, 'controls'), where('organizationId', '==', organizationId)))
+                safeCount(qTotalRisks, 'totalRisks'),
+                safeCount(qHighRisks, 'highRisks'),
+                safeCount(qMediumRisks, 'mediumRisks'),
+                safeCount(qLowRisks, 'lowRisks'),
+                safeCount(qAssets, 'totalAssets'),
+                safeCount(qControlsImpl, 'controlsImpl'),
+                safeCount(qControlsTotal, 'controlsTotal')
             ]);
 
             return {
-                totalRisks: totalRisksSnap.data().count,
-                highRisks: highRisksSnap.data().count,
-                mediumRisks: mediumRisksSnap.data().count,
-                lowRisks: lowRisksSnap.data().count,
-                totalAssets: assetsSnap.data().count,
+                totalRisks,
+                highRisks,
+                mediumRisks,
+                lowRisks,
+                totalAssets,
                 controlsStats: {
-                    implemented: controlsImplementedSnap.data().count,
-                    // Approximation for actionable without fetching all status types
-                    actionable: controlsTotalSnap.data().count,
-                    total: controlsTotalSnap.data().count
+                    implemented,
+                    actionable: totalControls, // Approx
+                    total: totalControls
                 }
             };
 
         } catch (_error) {
             ErrorLogger.error(_error, 'DashboardService.getAggregatedStats');
-            // Fallback to zeros to prevent UI crash
             return {
                 totalRisks: 0,
                 highRisks: 0,

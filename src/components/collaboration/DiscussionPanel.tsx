@@ -2,8 +2,8 @@ import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { orderBy, serverTimestamp, where } from 'firebase/firestore';
 import { useStore } from '../../store';
 import { Comment } from '../../types';
-import { 
-    Send, MessageSquare, Reply, Search, Filter, Download, 
+import {
+    Send, MessageSquare, Reply, Search, Filter, Download,
     Bell, Users, ChevronDown, ChevronUp, X
 } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -54,7 +54,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
     const [highlightedComment, setHighlightedComment] = useState<string | null>(null);
-    
+
     const { user } = useStore();
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,12 +62,13 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
 
     const { data: comments, add: addRaw, loading } = useFirestoreCollection<Comment>(
         `${collectionName}/${documentId}/comments`,
-        filterBy === 'myComments' && user 
+        filterBy === 'myComments' && user
             ? [where('userId', '==', user.uid), orderBy('createdAt', 'asc')]
             : [orderBy('createdAt', 'asc')],
         {
             realtime: true,
-            enabled: !!documentId
+            enabled: !!documentId && !!user?.organizationId
+
         }
     );
 
@@ -85,7 +86,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
         // Search filtering
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            filteredComments = filteredComments.filter(c => 
+            filteredComments = filteredComments.filter(c =>
                 c.content.toLowerCase().includes(query) ||
                 c.userName.toLowerCase().includes(query) ||
                 c.mentions?.some(m => m.toLowerCase().includes(query))
@@ -94,7 +95,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
 
         // Mention filtering
         if (filterBy === 'mentions' && user) {
-            filteredComments = filteredComments.filter(c => 
+            filteredComments = filteredComments.filter(c =>
                 c.mentions?.some(m => m.toLowerCase() === user.displayName?.toLowerCase() || m.toLowerCase() === user.email?.split('@')[0])
             );
         }
@@ -112,7 +113,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
     // Sorting logic
     const sortedComments = useMemo(() => {
         const sorted = [...processedComments];
-        
+
         switch (sortBy) {
             case 'oldest':
                 return sorted.reverse();
@@ -132,14 +133,14 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
         const totalReplies = comments.filter(c => c.parentId).length;
         const uniqueUsers = new Set(comments.map(c => c.userId)).size;
         const myComments = user ? comments.filter(c => c.userId === user.uid).length : 0;
-        
+
         return {
             totalComments,
             totalReplies,
             uniqueUsers,
             myComments,
-            unreadCount: comments.filter(c => 
-                !c.readBy?.includes(user?.uid || '') && 
+            unreadCount: comments.filter(c =>
+                !c.readBy?.includes(user?.uid || '') &&
                 c.userId !== user?.uid
             ).length
         };
@@ -188,13 +189,13 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
 
             reset();
             setReplyTo(null);
-            
+
             // Highlight new comment
             if (typeof newComment === 'string') {
                 setHighlightedComment(newComment);
                 setTimeout(() => setHighlightedComment(null), 3000);
             }
-            
+
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'DiscussionPanel.handleSubmit', 'CREATE_FAILED');
         }
@@ -251,8 +252,8 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
         const isMe = comment.userId === user?.uid;
 
         return (
-            <div 
-                key={comment.id} 
+            <div
+                key={comment.id}
                 className={cn(
                     "flex gap-3 transition-all duration-300",
                     isReply && `ml-${Math.min(level * 8, 24)}`,
@@ -268,7 +269,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                         {comment.userName.charAt(0).toUpperCase()}
                     </div>
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                     <div className={cn(
                         "rounded-xl px-4 py-3 border transition-all hover:shadow-sm",
@@ -306,7 +307,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                 )}
                             </div>
                         </div>
-                        
+
                         <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                             {comment.content.split(' ').map((word, i) => {
                                 if (word.startsWith('@')) {
@@ -316,7 +317,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                             })}
                         </p>
                     </div>
-                    
+
                     {!isReply && (
                         <div className="flex items-center gap-3 mt-2 px-2">
                             <button
@@ -324,8 +325,8 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                 onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
                                 className={cn(
                                     "text-xs font-medium flex items-center gap-1 transition-all px-2 py-1 rounded",
-                                    replyTo === comment.id 
-                                        ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300" 
+                                    replyTo === comment.id
+                                        ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300"
                                         : "text-slate-500 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 )}
                             >
@@ -353,15 +354,15 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                 <span>{stats.uniqueUsers} participants</span>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                             {enableNotifications && (
                                 <button
                                     onClick={() => setNotificationsEnabled(!notificationsEnabled)}
                                     className={cn(
                                         "p-2 rounded-lg transition-colors",
-                                        notificationsEnabled 
-                                            ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300" 
+                                        notificationsEnabled
+                                            ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300"
                                             : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-700"
                                     )}
                                     title={notificationsEnabled ? "Désactiver les notifications" : "Activer les notifications"}
@@ -369,7 +370,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                     {notificationsEnabled ? <Bell className="h-4 w-4" /> : <Bell className="h-4 w-4 opacity-50" />}
                                 </button>
                             )}
-                            
+
                             {enableExport && (
                                 <button
                                     onClick={handleExport}
@@ -475,7 +476,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
             )}
 
             {/* Comments List */}
-            <div 
+            <div
                 className={cn(
                     "flex-1 overflow-y-auto space-y-1 p-2 custom-scrollbar",
                     loading && "opacity-50"
@@ -506,7 +507,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                     sortedComments.map((root) => (
                         <div key={root.id}>
                             {renderComment(root)}
-                            {expandedComments.has(root.id) && (root as Comment & { replies?: Comment[] }).replies?.map((reply: Comment) => 
+                            {expandedComments.has(root.id) && (root as Comment & { replies?: Comment[] }).replies?.map((reply: Comment) =>
                                 renderComment(reply, true, 1)
                             )}
                         </div>
@@ -522,9 +523,9 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                             <Reply className="h-4 w-4" />
                             <span>Réponse à un commentaire</span>
                         </div>
-                        <button 
-                            type="button" 
-                            onClick={() => setReplyTo(null)} 
+                        <button
+                            type="button"
+                            onClick={() => setReplyTo(null)}
                             className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
                         >
                             <X className="h-4 w-4" />
@@ -541,8 +542,8 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                             placeholder={replyTo ? "Votre réponse..." : "Ajouter un commentaire... @mentionner quelqu'un"}
                             className={cn(
                                 "flex-1 pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm resize-none",
-                                errors.content 
-                                    ? "border-red-500 focus:border-red-500" 
+                                errors.content
+                                    ? "border-red-500 focus:border-red-500"
                                     : "border-slate-200 dark:border-slate-700"
                             )}
                         />

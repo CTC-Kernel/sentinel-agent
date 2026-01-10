@@ -7,6 +7,7 @@ import { useDashboardReports } from '../hooks/dashboard/useDashboardReports';
 import { useDashboardStatsHistory } from '../hooks/dashboard/useDashboardStatsHistory';
 import { useDashboardMetrics } from '../hooks/dashboard/useDashboardMetrics';
 import { useDashboardInsights } from '../hooks/dashboard/useDashboardInsights';
+import { useComplianceScore } from '../hooks/useComplianceScore';
 
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { hasPermission } from '../utils/permissions';
@@ -90,6 +91,9 @@ export const Dashboard: React.FC = () => {
         return () => clearTimeout(timer);
     }, [fetchedOrgName, fetchedOrgLogo, dataError]);
 
+    // Fetch unified compliance score
+    const { score: scoreData } = useComplianceScore(user?.organizationId, { realtime: true });
+
     const { historyData, topRisks, stats, radarData, complianceScore, scoreGrade } = useDashboardMetrics({
         controls,
         allRisks,
@@ -99,7 +103,8 @@ export const Dashboard: React.FC = () => {
         openAuditsCount,
         myProjectsLength: myProjects.length,
         userOrgId: user?.organizationId,
-        aggregatedStats // Passed from useDashboardData
+        aggregatedStats, // Passed from useDashboardData
+        externalComplianceScore: scoreData?.global // Use unified source of truth
     });
 
     // Personalized Risks
@@ -379,6 +384,11 @@ export const DashboardWithQuickActions: React.FC = () => {
         return () => clearTimeout(timer);
     }, [fetchedOrgName, fetchedOrgLogo, dataError]);
 
+
+
+    // Fetch unified compliance score
+    const { score: scoreData } = useComplianceScore(user?.organizationId, { realtime: true });
+
     const { historyData, topRisks, stats, radarData, complianceScore, scoreGrade } = useDashboardMetrics({
         controls,
         allRisks,
@@ -388,7 +398,8 @@ export const DashboardWithQuickActions: React.FC = () => {
         openAuditsCount,
         myProjectsLength: myProjects.length,
         userOrgId: user?.organizationId,
-        aggregatedStats // Passed from useDashboardData
+        aggregatedStats, // Passed from useDashboardData
+        externalComplianceScore: scoreData?.global // Use unified source of truth
     });
 
     const myRisksList = React.useMemo(() => {
