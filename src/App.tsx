@@ -156,10 +156,6 @@ const AppLayout: React.FC = () => {
                 <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             </div>
 
-            <div>
-                <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-            </div>
-
             <SEO
                 title="Tableau de bord"
                 description="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité."
