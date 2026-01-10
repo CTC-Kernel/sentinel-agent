@@ -35,14 +35,14 @@ So that **I can work more efficiently without navigating to detail pages**.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Create RowActionsMenu component** (AC: 1, 5)
-  - [ ] 1.1 Create `src/components/ui/RowActionsMenu.tsx` using Headless UI Menu
-  - [ ] 1.2 Implement three-dot (MoreVertical) trigger button
-  - [ ] 1.3 Define menu items type: { label, icon, onClick, variant, disabled }
-  - [ ] 1.4 Style dropdown with glass-premium aesthetic matching existing components
-  - [ ] 1.5 Support variant colors (default, danger for delete)
-  - [ ] 1.6 Add keyboard navigation (Escape to close, arrow keys)
-  - [ ] 1.7 Handle click-outside-to-close
+- [x] **Task 1: Create RowActionsMenu component** (AC: 1, 5)
+  - [x] 1.1 Create `src/components/ui/RowActionsMenu.tsx` using Headless UI Menu
+  - [x] 1.2 Implement three-dot (MoreVertical) trigger button
+  - [x] 1.3 Define menu items type: { label, icon, onClick, variant, disabled }
+  - [x] 1.4 Style dropdown with glass-premium aesthetic matching existing components
+  - [x] 1.5 Support variant colors (default, danger for delete)
+  - [x] 1.6 Add keyboard navigation (Escape to close, arrow keys)
+  - [x] 1.7 Handle click-outside-to-close
 
 - [ ] **Task 2: Implement Duplicate functionality** (AC: 4)
   - [ ] 2.1 Create `useDuplicate` hook in `src/hooks/useDuplicate.ts`
