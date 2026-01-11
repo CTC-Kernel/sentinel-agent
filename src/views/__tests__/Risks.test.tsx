@@ -71,6 +71,7 @@ vi.mock('../../components/ui/Icons', () => ({
     Copy: () => <span data-testid="icon-copy" />,
     FolderKanban: () => <span data-testid="icon-folder" />,
     Network: () => <span data-testid="icon-network" />,
+    Circle: () => <span data-testid="icon-circle" />,
     CheckCircle2: () => <span data-testid="icon-check-circle" />,
     CalendarDays: () => <span data-testid="icon-calendar" />,
     Download: () => <span data-testid="icon-download" />,

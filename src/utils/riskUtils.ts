@@ -1,4 +1,99 @@
-import { Risk } from '../types';
+import { Risk, Control } from '../types';
+
+/**
+ * Control status weight map for mitigation calculations
+ */
+export const CONTROL_STATUS_WEIGHTS: Record<string, number> = {
+    'Implémenté': 1.0,
+    'Actif': 1.0,
+    'Partiel': 0.5,
+    'En cours': 0.3,
+    'En revue': 0.2,
+    'Non commencé': 0.1,
+    'Non applicable': 0,
+    'Exclu': 0,
+    'Inactif': 0,
+    'Non appliqué': 0
+};
+
+/**
+ * Calculate mitigation percentage based on linked controls
+ */
+export function calculateMitigationPercentage(linkedControls: Control[]): number {
+    if (linkedControls.length === 0) return 0;
+
+    const effectiveScore = linkedControls.reduce((sum, ctrl) => {
+        return sum + (CONTROL_STATUS_WEIGHTS[ctrl.status] ?? 0);
+    }, 0);
+
+    // Each fully implemented control contributes up to 15% mitigation, capped at 80%
+    const maxMitigation = Math.min(linkedControls.length * 15, 80);
+    return Math.min(Math.round((effectiveScore / linkedControls.length) * maxMitigation), 80);
+}
+
+/**
+ * Calculate suggested residual risk values based on linked controls
+ *
+ * Returns suggested residual probability and impact based on:
+ * - Number of linked controls
+ * - Implementation status of controls
+ * - Original risk score
+ */
+export function calculateSuggestedResidualRisk(
+    probability: number,
+    impact: number,
+    linkedControls: Control[]
+): {
+    suggestedProbability: number;
+    suggestedImpact: number;
+    mitigationPercentage: number;
+    explanation: string;
+} {
+    const mitigationPercentage = calculateMitigationPercentage(linkedControls);
+
+    if (mitigationPercentage === 0) {
+        return {
+            suggestedProbability: probability,
+            suggestedImpact: impact,
+            mitigationPercentage: 0,
+            explanation: 'Aucun contrôle implémenté - le risque résiduel reste identique au risque brut.'
+        };
+    }
+
+    // Calculate reduction factor (e.g., 60% mitigation = 0.4 remaining)
+    const reductionFactor = 1 - (mitigationPercentage / 100);
+
+    // Primarily reduce probability (controls reduce likelihood of occurrence)
+    // Impact reduction is smaller (controls may limit but not eliminate damage)
+    const probabilityReduction = reductionFactor;
+    const impactReduction = 1 - ((mitigationPercentage / 100) * 0.3); // Max 24% impact reduction
+
+    const suggestedProbability = Math.max(1, Math.round(probability * probabilityReduction));
+    const suggestedImpact = Math.max(1, Math.round(impact * impactReduction));
+
+    const implementedCount = linkedControls.filter(c =>
+        c.status === 'Implémenté' || c.status === 'Actif'
+    ).length;
+    const partialCount = linkedControls.filter(c =>
+        c.status === 'Partiel' || c.status === 'En cours'
+    ).length;
+
+    let explanation = `Basé sur ${linkedControls.length} contrôle(s) lié(s): `;
+    if (implementedCount > 0) {
+        explanation += `${implementedCount} implémenté(s)`;
+    }
+    if (partialCount > 0) {
+        explanation += `${implementedCount > 0 ? ', ' : ''}${partialCount} partiellement implémenté(s)`;
+    }
+    explanation += `. Réduction estimée: ${mitigationPercentage}%.`;
+
+    return {
+        suggestedProbability,
+        suggestedImpact,
+        mitigationPercentage,
+        explanation
+    };
+}
 
 export const getRiskLevel = (score: number) => {
     if (score >= 15) return { label: 'Critique', status: 'error' as const };

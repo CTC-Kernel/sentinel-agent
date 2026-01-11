@@ -1,0 +1,239 @@
+/**
+ * RiskLinkedControls - Displays linked controls in risk inspector (Story 3.3)
+ *
+ * Shows linked security controls with their implementation status,
+ * framework, and calculates aggregate mitigation coverage.
+ */
+
+import React, { useMemo } from 'react';
+import { Shield, ExternalLink, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Risk, Control } from '../../../types';
+import { Badge } from '../../ui/Badge';
+import { Button } from '../../ui/button';
+
+interface RiskLinkedControlsProps {
+    risk: Risk;
+    controls: Control[];
+}
+
+/**
+ * Calculate mitigation coverage percentage based on control implementation status
+ */
+export function calculateMitigationCoverage(linkedControls: Control[]): number {
+    if (linkedControls.length === 0) return 0;
+
+    const statusWeightMap: Record<string, number> = {
+        'Implémenté': 1.0,
+        'Actif': 1.0,
+        'Partiel': 0.5,
+        'En cours': 0.3,
+        'En revue': 0.2,
+        'Non commencé': 0.1,
+        'Non applicable': 0,
+        'Exclu': 0,
+        'Inactif': 0,
+        'Non appliqué': 0
+    };
+
+    const effectiveScore = linkedControls.reduce((sum, ctrl) => {
+        return sum + (statusWeightMap[ctrl.status] ?? 0);
+    }, 0);
+
+    return Math.min(Math.round((effectiveScore / linkedControls.length) * 100), 100);
+}
+
+/**
+ * Get control status icon and color
+ */
+function getControlStatusStyle(status: string): { icon: React.ReactNode; color: string } {
+    const isImplemented = status === 'Implémenté' || status === 'Actif';
+    const isPartial = status === 'Partiel' || status === 'En cours';
+
+    if (isImplemented) {
+        return {
+            icon: <CheckCircle2 className="h-4 w-4" />,
+            color: 'text-emerald-500'
+        };
+    }
+    if (isPartial) {
+        return {
+            icon: <Clock className="h-4 w-4" />,
+            color: 'text-amber-500'
+        };
+    }
+    return {
+        icon: <AlertTriangle className="h-4 w-4" />,
+        color: 'text-slate-400'
+    };
+}
+
+export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
+    risk,
+    controls
+}) => {
+    const navigate = useNavigate();
+
+    // Get linked controls with full details
+    const linkedControls = useMemo(() => {
+        return (risk.mitigationControlIds || [])
+            .map(id => controls.find(c => c.id === id))
+            .filter((c): c is Control => c !== undefined);
+    }, [risk.mitigationControlIds, controls]);
+
+    // Calculate mitigation coverage
+    const mitigationCoverage = useMemo(() =>
+        calculateMitigationCoverage(linkedControls),
+        [linkedControls]
+    );
+
+    // Count by status
+    const statusCounts = useMemo(() => {
+        const counts = { implemented: 0, partial: 0, notStarted: 0 };
+        linkedControls.forEach(ctrl => {
+            if (ctrl.status === 'Implémenté' || ctrl.status === 'Actif') {
+                counts.implemented++;
+            } else if (ctrl.status === 'Partiel' || ctrl.status === 'En cours') {
+                counts.partial++;
+            } else {
+                counts.notStarted++;
+            }
+        });
+        return counts;
+    }, [linkedControls]);
+
+    // Navigate to control
+    const handleControlClick = (controlId: string) => {
+        navigate(`/compliance?control=${controlId}`);
+    };
+
+    if (linkedControls.length === 0) {
+        return (
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+                    <Shield className="h-4 w-4 text-brand-500" />
+                    Contrôles Liés
+                </h3>
+                <div className="text-center py-8">
+                    <Shield className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-slate-500">Aucun contrôle de sécurité lié</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                        Ajoutez des contrôles dans l'onglet Traitement pour réduire le risque résiduel
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-brand-500" />
+                    Contrôles Liés ({linkedControls.length})
+                </h3>
+            </div>
+
+            {/* Coverage Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                {/* Mitigation Coverage */}
+                <div className="sm:col-span-2 p-4 bg-white/50 dark:bg-black/20 rounded-xl border border-slate-200 dark:border-white/10">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Couverture de Mitigation
+                        </span>
+                        <span className={`text-lg font-black ${
+                            mitigationCoverage >= 80 ? 'text-emerald-600' :
+                            mitigationCoverage >= 50 ? 'text-amber-600' : 'text-red-600'
+                        }`}>
+                            {mitigationCoverage}%
+                        </span>
+                    </div>
+                    <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full rounded-full transition-all ${
+                                mitigationCoverage >= 80 ? 'bg-emerald-500' :
+                                mitigationCoverage >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${mitigationCoverage}%` }}
+                        />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                        Basé sur le statut d'implémentation des contrôles liés
+                    </p>
+                </div>
+
+                {/* Status Counts */}
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-900/30 text-center">
+                    <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                        {statusCounts.implemented}
+                    </div>
+                    <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Implémentés</div>
+                </div>
+
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-900/30 text-center">
+                    <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
+                        {statusCounts.partial + statusCounts.notStarted}
+                    </div>
+                    <div className="text-xs font-medium text-amber-700 dark:text-amber-300">En attente</div>
+                </div>
+            </div>
+
+            {/* Controls List */}
+            <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Détail des Contrôles
+                </h4>
+                <div className="space-y-2">
+                    {linkedControls.map(ctrl => {
+                        const { icon, color } = getControlStatusStyle(ctrl.status);
+                        const isImplemented = ctrl.status === 'Implémenté' || ctrl.status === 'Actif';
+                        const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
+
+                        return (
+                            <div
+                                key={ctrl.id}
+                                className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm group hover:shadow-md transition-all"
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className={color}>{icon}</div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                            {ctrl.code} - {ctrl.name}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                            {ctrl.framework && (
+                                                <span className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                                    {ctrl.framework}
+                                                </span>
+                                            )}
+                                            <Badge
+                                                status={isImplemented ? 'success' : isPartial ? 'warning' : 'info'}
+                                                variant="soft"
+                                                size="sm"
+                                            >
+                                                {ctrl.status}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleControlClick(ctrl.id)}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    aria-label={`Voir le contrôle ${ctrl.name}`}
+                                >
+                                    <ExternalLink className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default RiskLinkedControls;

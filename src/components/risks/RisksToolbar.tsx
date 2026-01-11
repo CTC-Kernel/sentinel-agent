@@ -33,6 +33,7 @@ interface RisksToolbarProps {
     filteredRisks: Risk[];
     handleCommonExport: () => void;
     exportCSV: (risks: Risk[]) => void;
+    onExportExcel?: () => void;
 
     // Commands
     setImportModalOpen: (open: boolean) => void;
@@ -58,6 +59,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
     filteredRisks,
     handleCommonExport,
     exportCSV,
+    onExportExcel,
     setImportModalOpen,
     setIsTemplateModalOpen,
     handleStartAiAnalysis,
@@ -133,6 +135,15 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                             </button>
                                         )}
                                     </Menu.Item>
+                                    {onExportExcel && (
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button onClick={onExportExcel} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> {t('risks.exportExcel') || 'Export Excel'}
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                    )}
                                     <Menu.Item>
                                         {({ active }) => (
                                             <button onClick={() => exportCSV(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>

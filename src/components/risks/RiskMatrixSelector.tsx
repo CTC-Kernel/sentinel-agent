@@ -1,19 +1,144 @@
-import React from 'react';
+/**
+ * RiskMatrixSelector - Interactive 5x5 risk evaluation matrix (Story 3.2)
+ *
+ * Displays a visual matrix for selecting impact and probability values.
+ * Supports showing both initial and residual risk positions.
+ *
+ * @module RiskMatrixSelector
+ */
 
-interface RiskMatrixSelectorProps {
-    probability: number;
-    impact: number;
-    onChange: (probability: number, impact: number) => void;
-    label?: string;
+import React, { useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+/**
+ * Risk level classification based on score
+ */
+export interface RiskLevel {
+    label: string;
+    color: string;
+    bgColor: string;
+    textColor: string;
 }
 
+/**
+ * Get risk level based on score (impact × probability)
+ */
+export function getRiskLevelFromScore(score: number): RiskLevel {
+    if (score >= 15) {
+        return {
+            label: 'Critique',
+            color: 'rose',
+            bgColor: 'bg-rose-500',
+            textColor: 'text-rose-600 dark:text-rose-400'
+        };
+    }
+    if (score >= 10) {
+        return {
+            label: 'Élevé',
+            color: 'orange',
+            bgColor: 'bg-orange-500',
+            textColor: 'text-orange-600 dark:text-orange-400'
+        };
+    }
+    if (score >= 5) {
+        return {
+            label: 'Moyen',
+            color: 'amber',
+            bgColor: 'bg-amber-400',
+            textColor: 'text-amber-600 dark:text-amber-400'
+        };
+    }
+    return {
+        label: 'Faible',
+        color: 'emerald',
+        bgColor: 'bg-emerald-500',
+        textColor: 'text-emerald-600 dark:text-emerald-400'
+    };
+}
+
+/**
+ * Calculate risk score from impact and probability
+ */
+export function calculateRiskScore(impact: number, probability: number): number {
+    return impact * probability;
+}
+
+interface RiskMatrixSelectorProps {
+    /** Current probability value (1-5) */
+    probability: number;
+    /** Current impact value (1-5) */
+    impact: number;
+    /** Callback when values change */
+    onChange: (probability: number, impact: number) => void;
+    /** Optional label for the matrix */
+    label?: string;
+    /** Residual probability for comparison display */
+    residualProbability?: number;
+    /** Residual impact for comparison display */
+    residualImpact?: number;
+    /** Whether the matrix is read-only */
+    readOnly?: boolean;
+    /** Whether to show the legend */
+    showLegend?: boolean;
+    /** Whether to show score comparison when residual values exist */
+    showComparison?: boolean;
+    /** Compact mode for smaller displays */
+    compact?: boolean;
+}
+
+/**
+ * RiskMatrixSelector component for visual risk evaluation.
+ *
+ * Displays a 5x5 grid where:
+ * - Y-axis represents Probability (1-5, bottom to top)
+ * - X-axis represents Impact (1-5, left to right)
+ * - Colors indicate risk severity (green → red)
+ *
+ * @example
+ * ```tsx
+ * <RiskMatrixSelector
+ *   probability={3}
+ *   impact={4}
+ *   onChange={(p, i) => setValues({ probability: p, impact: i })}
+ *   residualProbability={2}
+ *   residualImpact={3}
+ *   showLegend
+ * />
+ * ```
+ */
 export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
     probability,
     impact,
     onChange,
-    label = "Évaluation du Risque"
+    label = "Évaluation du Risque",
+    residualProbability,
+    residualImpact,
+    readOnly = false,
+    showLegend = true,
+    showComparison = true,
+    compact = false
 }) => {
-    const getCellColor = (p: number, i: number) => {
+    // Calculate scores
+    const currentScore = useMemo(() =>
+        calculateRiskScore(impact, probability),
+        [impact, probability]
+    );
+
+    const residualScore = useMemo(() =>
+        residualProbability && residualImpact
+            ? calculateRiskScore(residualImpact, residualProbability)
+            : null,
+        [residualImpact, residualProbability]
+    );
+
+    const currentLevel = useMemo(() => getRiskLevelFromScore(currentScore), [currentScore]);
+    const residualLevel = useMemo(() =>
+        residualScore ? getRiskLevelFromScore(residualScore) : null,
+        [residualScore]
+    );
+
+    // Get cell color based on position
+    const getCellColor = (p: number, i: number): string => {
         const score = p * i;
         if (score >= 15) return 'bg-rose-500';
         if (score >= 10) return 'bg-orange-500';
@@ -21,63 +146,141 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
         return 'bg-emerald-500';
     };
 
-    const currentScore = probability * impact;
-    const getRiskLevel = (score: number) => {
-        if (score >= 15) return { label: 'Critique', color: 'text-rose-600' };
-        if (score >= 10) return { label: 'Élevé', color: 'text-orange-600' };
-        if (score >= 5) return { label: 'Moyen', color: 'text-amber-600' };
-        return { label: 'Faible', color: 'text-emerald-600' };
+    // Check if this cell is the current selection
+    const isCurrentPosition = (p: number, i: number): boolean =>
+        probability === p && impact === i;
+
+    // Check if this cell is the residual position
+    const isResidualPosition = (p: number, i: number): boolean =>
+        !!(residualProbability && residualImpact &&
+            residualProbability === p && residualImpact === i);
+
+    // Handle cell click
+    const handleCellClick = (p: number, i: number) => {
+        if (!readOnly) {
+            onChange(p, i);
+        }
     };
 
-    const level = getRiskLevel(currentScore);
+    // Grid size classes
+    const gridSize = compact ? 'max-w-[220px]' : 'max-w-[300px]';
+    const cellGap = compact ? 'gap-1' : 'gap-1.5';
 
     return (
         <div className="space-y-4">
+            {/* Header with label and score */}
             <div className="flex justify-between items-end">
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">
                     {label}
                 </label>
                 <div className="text-right">
-                    <span className="text-xs font-medium text-slate-500 block">Score: {currentScore}</span>
-                    <span className={`text-sm font-black uppercase ${level.color}`}>{level.label}</span>
+                    <div className="flex items-center gap-2">
+                        {/* Current score */}
+                        <div>
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block">
+                                {residualScore !== null ? 'Brut' : 'Score'}: {currentScore}
+                            </span>
+                            <span className={`text-sm font-black uppercase ${currentLevel.textColor}`}>
+                                {currentLevel.label}
+                            </span>
+                        </div>
+
+                        {/* Residual score (if exists) */}
+                        {showComparison && residualScore !== null && residualLevel && (
+                            <>
+                                <span className="text-slate-300 dark:text-slate-600">→</span>
+                                <div>
+                                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block">
+                                        Résiduel: {residualScore}
+                                    </span>
+                                    <span className={`text-sm font-black uppercase ${residualLevel.textColor}`}>
+                                        {residualLevel.label}
+                                    </span>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
+            {/* Matrix Grid */}
             <div className="relative">
-                {/* Labels */}
-                <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                {/* Y-axis label (Probability) */}
+                <div className="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap">
                     Probabilité
                 </div>
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+
+                {/* X-axis label (Impact) */}
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                     Impact
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-rows-5 gap-1.5 w-full aspect-square max-w-[300px] mx-auto">
+                <div className={`grid grid-rows-5 ${cellGap} w-full aspect-square ${gridSize} mx-auto`}>
                     {[5, 4, 3, 2, 1].map(p => (
-                        <div key={p} className="grid grid-cols-5 gap-1.5">
+                        <div key={p} className={`grid grid-cols-5 ${cellGap}`}>
                             {[1, 2, 3, 4, 5].map(i => {
-                                const isSelected = probability === p && impact === i;
+                                const isCurrent = isCurrentPosition(p, i);
+                                const isResidual = isResidualPosition(p, i);
+                                const score = p * i;
 
                                 return (
                                     <button
                                         key={`${p}-${i}`}
                                         type="button"
-                                        onClick={() => onChange(p, i)}
+                                        onClick={() => handleCellClick(p, i)}
+                                        disabled={readOnly}
+                                        aria-label={`Probabilité ${p}, Impact ${i}, Score ${score}`}
+                                        aria-pressed={isCurrent}
                                         className={`
-                                            w-full h-full rounded-lg transition-all duration-300 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500
+                                            w-full h-full rounded-lg transition-all duration-300 relative
+                                            focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500
                                             ${getCellColor(p, i)}
-                                            ${isSelected
+                                            ${isCurrent
                                                 ? 'ring-4 ring-offset-2 ring-slate-900/10 dark:ring-white/20 scale-110 z-10 shadow-xl'
-                                                : 'opacity-40 hover:opacity-100 hover:scale-105 hover:shadow-md'}
+                                                : isResidual
+                                                    ? 'ring-2 ring-offset-1 ring-blue-500/50 dark:ring-blue-400/50 opacity-80'
+                                                    : 'opacity-40 hover:opacity-100 hover:scale-105 hover:shadow-md'}
+                                            ${readOnly ? 'cursor-default' : 'cursor-pointer'}
                                         `}
-                                        title={`Probabilité: ${p}, Impact: ${i}, Score: ${p * i}`}
+                                        title={`Probabilité: ${p}, Impact: ${i}, Score: ${score}`}
                                     >
-                                        {isSelected && (
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-2 h-2 bg-white rounded-full shadow-sm animate-pulse" />
-                                            </div>
-                                        )}
+                                        {/* Current position marker */}
+                                        <AnimatePresence>
+                                            {isCurrent && (
+                                                <motion.div
+                                                    initial={{ scale: 0, opacity: 0 }}
+                                                    animate={{ scale: 1, opacity: 1 }}
+                                                    exit={{ scale: 0, opacity: 0 }}
+                                                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                                    className="absolute inset-0 flex items-center justify-center"
+                                                >
+                                                    <div className="w-3 h-3 bg-white rounded-full shadow-md animate-pulse" />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {/* Residual position marker (if different from current) */}
+                                        <AnimatePresence>
+                                            {isResidual && !isCurrent && (
+                                                <motion.div
+                                                    initial={{ scale: 0, opacity: 0 }}
+                                                    animate={{ scale: 1, opacity: 1 }}
+                                                    exit={{ scale: 0, opacity: 0 }}
+                                                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                                    className="absolute inset-0 flex items-center justify-center"
+                                                >
+                                                    <div className="w-2.5 h-2.5 bg-blue-500 dark:bg-blue-400 rounded-full shadow-md ring-2 ring-white" />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {/* Score tooltip on hover */}
+                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                            <span className="text-[10px] font-bold text-white drop-shadow-md">
+                                                {score}
+                                            </span>
+                                        </div>
                                     </button>
                                 );
                             })}
@@ -85,11 +288,44 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                     ))}
                 </div>
             </div>
-            {/* Legend/Helper */}
-            <div className="flex justify-between items-center text-[10px] text-slate-500 px-2 mt-2">
-                <span>Faible (1-4)</span>
-                <span>Critique (15-25)</span>
-            </div>
+
+            {/* Legend */}
+            {showLegend && (
+                <div className="flex justify-center items-center gap-3 text-[10px] text-slate-600 dark:text-slate-400 mt-4">
+                    <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded bg-emerald-500" />
+                        <span>Faible (1-4)</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded bg-amber-400" />
+                        <span>Moyen (5-9)</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded bg-orange-500" />
+                        <span>Élevé (10-14)</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded bg-rose-500" />
+                        <span>Critique (15-25)</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Position markers legend (when residual exists) */}
+            {residualScore !== null && (
+                <div className="flex justify-center items-center gap-4 text-[10px] text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 bg-white rounded-full shadow ring-2 ring-slate-300" />
+                        <span>Position brute</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full ring-2 ring-white" />
+                        <span>Position résiduelle</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
+
+export default RiskMatrixSelector;

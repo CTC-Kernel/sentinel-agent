@@ -22,6 +22,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 
 // Sub-components
 import { RiskGeneralDetails } from './inspector/RiskGeneralDetails';
+import { RiskLinkedControls } from './inspector/RiskLinkedControls';
 import { RiskLinkedProjects } from './inspector/RiskLinkedProjects';
 import { RiskLinkedAudits } from './inspector/RiskLinkedAudits';
 import { RiskMitreThreats } from './inspector/RiskMitreThreats';
@@ -238,17 +239,24 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             ) : (
                 <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">
                     {inspectorTab === 'details' && (
-                        <RiskGeneralDetails
-                            risk={risk}
-                            assetName={getAssetName(risk.assetId)}
-                            canEdit={canEdit}
-                            updating={updating}
-                            onStatusChangeRequest={handleStatusChangeRequest}
-                            onStatusChange={handleStatusChange}
-                            onReview={handleReview}
-                            onAIAssistantUpdate={handleAIAssistantUpdate}
-                            getOwnerName={getOwnerName}
-                        />
+                        <div className="space-y-8">
+                            <RiskGeneralDetails
+                                risk={risk}
+                                assetName={getAssetName(risk.assetId)}
+                                canEdit={canEdit}
+                                updating={updating}
+                                onStatusChangeRequest={handleStatusChangeRequest}
+                                onStatusChange={handleStatusChange}
+                                onReview={handleReview}
+                                onAIAssistantUpdate={handleAIAssistantUpdate}
+                                getOwnerName={getOwnerName}
+                            />
+                            {/* Linked Controls Summary */}
+                            <RiskLinkedControls
+                                risk={risk}
+                                controls={controls}
+                            />
+                        </div>
                     )}
 
                     {inspectorTab === 'treatment' && (

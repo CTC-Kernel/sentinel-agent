@@ -48,7 +48,7 @@ describe('RiskTreatmentPlan', () => {
         expect(screen.getByText('Measure 2')).toBeInTheDocument();
     });
 
-    it('renders linked controls', () => {
+    it('renders linked controls with count', () => {
         render(
             <RiskTreatmentPlan
                 risk={mockRisk}
@@ -59,7 +59,8 @@ describe('RiskTreatmentPlan', () => {
             />
         );
 
-        expect(screen.getByText('Contrôles liés')).toBeInTheDocument();
+        // Header now includes count
+        expect(screen.getByText('Contrôles liés (1)')).toBeInTheDocument();
         expect(screen.getByText('C1 - MFA')).toBeInTheDocument();
     });
 
@@ -75,7 +76,8 @@ describe('RiskTreatmentPlan', () => {
             />
         );
 
-        const detachButton = screen.getByText('Détacher');
+        // Button now has aria-label
+        const detachButton = screen.getByLabelText('Détacher le contrôle MFA');
         fireEvent.click(detachButton);
 
         expect(onRiskUpdate).toHaveBeenCalledWith({ mitigationControlIds: [] });
@@ -93,8 +95,10 @@ describe('RiskTreatmentPlan', () => {
             />
         );
 
-        const select = screen.getByRole('combobox', { name: /lier un nouveau contrôle/i });
-        fireEvent.change(select, { target: { value: 'ctrl-2' } });
+        // Controls are now added via button click in the list, not a select dropdown
+        // Find the available control button (C2 - Firewall)
+        const addControlButton = screen.getByRole('button', { name: /C2 - Firewall/i });
+        fireEvent.click(addControlButton);
 
         expect(onRiskUpdate).toHaveBeenCalledWith({ mitigationControlIds: ['ctrl-1', 'ctrl-2'] });
     });
@@ -112,13 +116,6 @@ describe('RiskTreatmentPlan', () => {
         );
 
         // Find the "X" button for the first measure (Measure 1)
-        // Since there are multiple "X" icons (User icon, Close icon), we need to be specific.
-        // In the component, the remove button has no aria-label, but it contains an X icon.
-        // Let's rely on the button structure or add aria-labels in the component if needed, 
-        // but for now let's try to find it by proximity to the text.
-
-        // Actually the code uses <X> icon inside a button. 
-        // Let's click the first button within the measures section.
         const measureElement = screen.getByText('Measure 1').closest('div');
         const removeButton = measureElement?.querySelector('button');
 

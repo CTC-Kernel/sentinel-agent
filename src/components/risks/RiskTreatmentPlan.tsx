@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { Risk, RiskTreatment, Criticality, Control } from '../../types';
-import { Calendar, AlertTriangle, CheckCircle2, Clock, User, Shield, Sparkles, Plus, X } from '../ui/Icons';
+import React, { useState, useMemo } from 'react';
+import { Risk, RiskTreatment, Criticality, Control, TreatmentAction } from '../../types';
+import { Calendar, AlertTriangle, CheckCircle2, Clock, User, Shield, Sparkles, Plus, X, Search, Filter } from '../ui/Icons';
 import { format, addDays, isAfter, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/button';
+import { TreatmentActionsList } from './TreatmentActionsList';
 
 interface RiskTreatmentPlanProps {
     risk: Risk;
@@ -11,8 +14,6 @@ interface RiskTreatmentPlanProps {
     users: { uid: string; displayName: string }[];
     controls?: Control[];
 }
-
-import { Button } from '../ui/button';
 
 export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUpdate, onRiskUpdate, users, controls = [] }) => {
     // Default SLAs (in days)
@@ -41,6 +42,67 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         }
         return 'On Track';
     };
+
+    // Control search and filter state
+    const [controlSearch, setControlSearch] = useState('');
+    const [frameworkFilter, setFrameworkFilter] = useState<string>('');
+
+    // Get unique frameworks from controls
+    const availableFrameworks = useMemo(() => {
+        const frameworks = new Set(controls.map(c => c.framework).filter(Boolean));
+        return Array.from(frameworks).sort();
+    }, [controls]);
+
+    // Filter controls based on search and framework
+    const filteredControls = useMemo(() => {
+        return controls.filter(c => {
+            // Exclude already linked controls
+            if (risk.mitigationControlIds?.includes(c.id)) return false;
+
+            // Apply search filter
+            const searchLower = controlSearch.toLowerCase();
+            const matchesSearch = !controlSearch ||
+                c.name.toLowerCase().includes(searchLower) ||
+                c.code?.toLowerCase().includes(searchLower) ||
+                c.description?.toLowerCase().includes(searchLower);
+
+            // Apply framework filter
+            const matchesFramework = !frameworkFilter || c.framework === frameworkFilter;
+
+            return matchesSearch && matchesFramework;
+        });
+    }, [controls, risk.mitigationControlIds, controlSearch, frameworkFilter]);
+
+    // Get linked controls with details
+    const linkedControls = useMemo(() => {
+        return (risk.mitigationControlIds || [])
+            .map(id => controls.find(c => c.id === id))
+            .filter((c): c is Control => c !== undefined);
+    }, [risk.mitigationControlIds, controls]);
+
+    // Calculate mitigation coverage based on control implementation status
+    const mitigationCoverage = useMemo(() => {
+        if (linkedControls.length === 0) return 0;
+
+        const statusWeightMap: Record<string, number> = {
+            'Implémenté': 1.0,
+            'Actif': 1.0,
+            'Partiel': 0.5,
+            'En cours': 0.3,
+            'En revue': 0.2,
+            'Non commencé': 0.1,
+            'Non applicable': 0,
+            'Exclu': 0,
+            'Inactif': 0,
+            'Non appliqué': 0
+        };
+
+        const effectiveScore = linkedControls.reduce((sum, ctrl) => {
+            return sum + (statusWeightMap[ctrl.status] ?? 0);
+        }, 0);
+
+        return Math.min(Math.round((effectiveScore / linkedControls.length) * 100), 100);
+    }, [linkedControls]);
 
     const [treatment, setTreatment] = useState<RiskTreatment>(() => {
         const initial: RiskTreatment = risk.treatment ? { ...risk.treatment } : {
@@ -106,6 +168,33 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         const updated = { ...treatment, measures: newMeasures };
         setTreatment(updated);
         onUpdate(updated);
+    };
+
+    // Treatment Actions handlers
+    const handleAddAction = (actionData: Omit<TreatmentAction, 'id' | 'createdAt'>) => {
+        if (!onRiskUpdate) return;
+        const newAction: TreatmentAction = {
+            ...actionData,
+            id: `action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            createdAt: new Date().toISOString()
+        };
+        const currentActions = risk.treatmentActions || [];
+        onRiskUpdate({ treatmentActions: [...currentActions, newAction] });
+    };
+
+    const handleUpdateAction = (updatedAction: TreatmentAction) => {
+        if (!onRiskUpdate) return;
+        const currentActions = risk.treatmentActions || [];
+        const newActions = currentActions.map(a =>
+            a.id === updatedAction.id ? updatedAction : a
+        );
+        onRiskUpdate({ treatmentActions: newActions });
+    };
+
+    const handleDeleteAction = (actionId: string) => {
+        if (!onRiskUpdate) return;
+        const currentActions = risk.treatmentActions || [];
+        onRiskUpdate({ treatmentActions: currentActions.filter(a => a.id !== actionId) });
     };
 
     return (
@@ -252,62 +341,176 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                 </div>
             )}
 
-            {/* Linked Controls */}
+            {/* Linked Controls - Enhanced with search and filters */}
             {onRiskUpdate && (
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-4">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-brand-500" />
-                        Contrôles liés
-                    </h3>
-
-                    <div className="space-y-2">
-                        {/* List active controls */}
-                        {risk.mitigationControlIds?.map(id => {
-                            const ctrl = controls.find(c => c.id === id);
-                            if (!ctrl) return null;
-                            return (
-                                <div key={id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                                    <div className="flex items-center gap-3">
-                                        <Shield className={`h-4 w-4 ${ctrl.status === 'Implémenté' ? 'text-green-500' : 'text-slate-400'}`} />
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{ctrl.code} - {ctrl.name}</p>
-                                            <p className="text-xs text-slate-500">{ctrl.framework || 'Contrôle'}</p>
-                                        </div>
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <Shield className="h-4 w-4 text-brand-500" />
+                            Contrôles liés ({linkedControls.length})
+                        </h3>
+                        {linkedControls.length > 0 && (
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium text-slate-500">Couverture:</span>
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-16 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all ${
+                                                mitigationCoverage >= 80 ? 'bg-emerald-500' :
+                                                mitigationCoverage >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                            }`}
+                                            style={{ width: `${mitigationCoverage}%` }}
+                                        />
                                     </div>
-                                    <Button variant="ghost" size="sm" onClick={() => toggleControl(id)} className="text-red-500 hover:bg-red-50 hover:text-red-600">
-                                        Détacher
-                                    </Button>
+                                    <span className={`text-xs font-bold ${
+                                        mitigationCoverage >= 80 ? 'text-emerald-600' :
+                                        mitigationCoverage >= 50 ? 'text-amber-600' : 'text-red-600'
+                                    }`}>
+                                        {mitigationCoverage}%
+                                    </span>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        )}
+                    </div>
 
-                        {/* Add Control Button/Dropdown simplified */}
-                        <div className="relative group pt-4">
-                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1 mb-2 block">Lier un nouveau contrôle</label>
-                            <select
-                                aria-label="Lier un nouveau contrôle"
-                                className="w-full appearance-none rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none"
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        toggleControl(e.target.value);
-                                        e.target.value = ""; // Reset
-                                    }
-                                }}
-                                value=""
-                            >
-                                <option value="">Sélectionner pour ajouter...</option>
-                                {controls
-                                    .filter(c => !risk.mitigationControlIds?.includes(c.id))
-                                    .map(c => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.code} - {c.name}
-                                        </option>
-                                    ))}
-                            </select>
-                            <Plus className="absolute right-3 bottom-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+                    {/* Linked Controls List */}
+                    <div className="space-y-2">
+                        {linkedControls.length === 0 ? (
+                            <p className="text-sm text-slate-500 italic py-4 text-center">
+                                Aucun contrôle lié. Ajoutez des contrôles pour réduire le risque résiduel.
+                            </p>
+                        ) : (
+                            linkedControls.map(ctrl => {
+                                const isImplemented = ctrl.status === 'Implémenté' || ctrl.status === 'Actif';
+                                const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
+                                return (
+                                    <div key={ctrl.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm group hover:shadow-md transition-shadow">
+                                        <div className="flex items-center gap-3">
+                                            <Shield className={`h-4 w-4 ${isImplemented ? 'text-emerald-500' : isPartial ? 'text-amber-500' : 'text-slate-400'}`} />
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{ctrl.code} - {ctrl.name}</p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className="text-xs text-slate-500">{ctrl.framework || 'Contrôle'}</span>
+                                                    <Badge
+                                                        status={isImplemented ? 'success' : isPartial ? 'warning' : 'info'}
+                                                        variant="soft"
+                                                        size="sm"
+                                                    >
+                                                        {ctrl.status}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => toggleControl(ctrl.id)}
+                                            className="text-red-500 hover:bg-red-50 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            aria-label={`Détacher le contrôle ${ctrl.name}`}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    {/* Add Control Section - Enhanced with search and filter */}
+                    <div className="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                            <Plus className="h-3.5 w-3.5" />
+                            Lier un nouveau contrôle
+                        </label>
+
+                        {/* Search and Filter Row */}
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Rechercher un contrôle..."
+                                    value={controlSearch}
+                                    onChange={(e) => setControlSearch(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-slate-400"
+                                />
+                            </div>
+                            {availableFrameworks.length > 1 && (
+                                <div className="relative">
+                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <select
+                                        value={frameworkFilter}
+                                        onChange={(e) => setFrameworkFilter(e.target.value)}
+                                        className="pl-9 pr-8 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none appearance-none cursor-pointer"
+                                        aria-label="Filtrer par framework"
+                                    >
+                                        <option value="">Tous</option>
+                                        {availableFrameworks.map(fw => (
+                                            <option key={fw} value={fw}>{fw}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Available Controls List */}
+                        <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white/30 dark:bg-black/10 p-2">
+                            {filteredControls.length === 0 ? (
+                                <p className="text-xs text-slate-500 text-center py-3">
+                                    {controlSearch || frameworkFilter
+                                        ? 'Aucun contrôle correspondant'
+                                        : 'Tous les contrôles sont déjà liés'}
+                                </p>
+                            ) : (
+                                filteredControls.slice(0, 20).map(ctrl => {
+                                    const isImplemented = ctrl.status === 'Implémenté' || ctrl.status === 'Actif';
+                                    const isPartial = ctrl.status === 'Partiel' || ctrl.status === 'En cours';
+                                    return (
+                                        <button
+                                            key={ctrl.id}
+                                            type="button"
+                                            onClick={() => toggleControl(ctrl.id)}
+                                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors text-left group"
+                                        >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <Shield className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                                                    {ctrl.code} - {ctrl.name}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <Badge
+                                                    status={isImplemented ? 'success' : isPartial ? 'warning' : 'info'}
+                                                    variant="soft"
+                                                    size="sm"
+                                                >
+                                                    {ctrl.status}
+                                                </Badge>
+                                                <Plus className="h-4 w-4 text-brand-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                        </button>
+                                    );
+                                })
+                            )}
+                            {filteredControls.length > 20 && (
+                                <p className="text-xs text-slate-500 text-center py-1">
+                                    +{filteredControls.length - 20} autres contrôles...
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Treatment Actions */}
+            {onRiskUpdate && (
+                <TreatmentActionsList
+                    actions={risk.treatmentActions || []}
+                    users={users}
+                    onAdd={handleAddAction}
+                    onUpdate={handleUpdateAction}
+                    onDelete={handleDeleteAction}
+                />
             )}
         </div>
     );

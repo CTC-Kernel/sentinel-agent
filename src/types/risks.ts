@@ -75,7 +75,7 @@ export interface Risk {
     mitreTechniques?: MitreTechnique[];
     previousScore?: number;
     strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
-    status: 'Ouvert' | 'En cours' | 'Fermé' | 'En attente de validation';
+    status: 'Brouillon' | 'Ouvert' | 'En cours' | 'Fermé' | 'En attente de validation';
     owner: string;
     ownerId?: string;
     mitigationControlIds?: string[];
@@ -86,6 +86,7 @@ export interface Risk {
     relatedProjectIds?: string[];
     history?: RiskHistory[];
     treatment?: RiskTreatment;
+    treatmentActions?: TreatmentAction[];
     isSecureStorage?: boolean;
     // V2: SLA & Treatment
     treatmentDeadline?: string;
@@ -107,6 +108,20 @@ export interface RiskTreatment {
     slaStatus?: 'On Track' | 'At Risk' | 'Breached';
     estimatedCost?: number;
     measures?: string[]; // AI generated or manual measures
+}
+
+export type TreatmentActionStatus = 'À faire' | 'En cours' | 'Terminé';
+
+export interface TreatmentAction {
+    id: string;
+    title: string;
+    description?: string;
+    ownerId?: string;
+    deadline?: string;
+    status: TreatmentActionStatus;
+    createdAt: string;
+    updatedAt?: string;
+    completedAt?: string;
 }
 
 export interface RiskRecommendation {

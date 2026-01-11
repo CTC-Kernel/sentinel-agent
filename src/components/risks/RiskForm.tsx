@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm, Controller, useWatch, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/lib/toast';
@@ -14,6 +14,14 @@ import { RiskMatrixSelector } from './RiskMatrixSelector';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { Button } from '../ui/button';
+import { DraftBadge } from '../ui/DraftBadge';
+import { AutoSaveIndicator } from '../ui/AutoSaveIndicator';
+import { useAutoSave } from '../../hooks/useAutoSave';
+import { useRiskDraftPersistence } from '../../hooks/risks/useRiskDraftPersistence';
+import { useUnsavedChangesWarning } from '../../hooks/useUnsavedChangesWarning';
+import { canSaveRiskAsDraft, RISK_DRAFT_STATUS } from '../../utils/riskDraftSchema';
+import { useAuth } from '../../hooks/useAuth';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { STANDARD_THREATS } from '../../data/riskConstants';
@@ -27,6 +35,9 @@ import { RiskRemediationService } from '../../services/RiskRemediationService';
 
 interface RiskFormProps {
     onSubmit: (data: RiskFormData) => Promise<void>;
+    onSaveDraft?: (data: Partial<RiskFormData>) => Promise<void>;
+    onPublishDraft?: (data: RiskFormData) => Promise<void>;
+    onAutoSave?: (data: Partial<RiskFormData>) => Promise<void>;
     onCancel: () => void;
     existingRisk?: Risk | null;
     assets: Asset[];
@@ -38,6 +49,9 @@ interface RiskFormProps {
     isEditing?: boolean;
     isLoading?: boolean;
     readOnly?: boolean;
+    isDraftMode?: boolean;
+    enableAutoSave?: boolean;
+    autoSaveDebounceMs?: number;
 }
 
 const TABS = [
@@ -50,6 +64,9 @@ const TABS = [
 
 export const RiskForm: React.FC<RiskFormProps> = ({
     onSubmit,
+    onSaveDraft,
+    onPublishDraft,
+    onAutoSave,
     onCancel,
     existingRisk,
     assets,
@@ -60,10 +77,36 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     initialData,
     isEditing = false,
     isLoading = false,
-    readOnly = false
+    readOnly = false,
+    isDraftMode: initialDraftMode = false,
+    enableAutoSave = true,
+    autoSaveDebounceMs = 30000
 }) => {
+    // Draft mode state - true if editing a draft or explicitly set
+    const [isDraft, setIsDraft] = useState(() =>
+        initialDraftMode || (existingRisk?.status === RISK_DRAFT_STATUS)
+    );
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [activeTab, setActiveTab] = useState('context');
-    const { control, handleSubmit, reset, formState: { errors }, setValue, getValues } = useForm<RiskFormData>({
+    const [showDraftRecoveryBanner, setShowDraftRecoveryBanner] = useState(false);
+
+    // Get current user for organization ID
+    const { user } = useAuth();
+
+    // Local storage draft persistence (for new risks only)
+    const {
+        savedDraft,
+        saveDraft: persistDraft,
+        clearDraft: clearPersistedDraft,
+        hasDraft: hasPersistedDraft
+    } = useRiskDraftPersistence({
+        organizationId: user?.organizationId || '',
+        riskId: existingRisk?.id,
+        enabled: !isEditing && !readOnly && !!user?.organizationId,
+    });
+
+    // Form setup
+    const { control, handleSubmit, reset, formState: { errors, isDirty }, setValue, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
         mode: 'onBlur',
         shouldUnregister: false,
@@ -139,6 +182,48 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const strategy = useWatch({ control, name: 'strategy' });
     const assetId = useWatch({ control, name: 'assetId' });
 
+    // Watch all form values for auto-save
+    const watchedFormValues = useWatch({ control });
+
+    // Auto-save configuration - only enabled for drafts when editing and onAutoSave is provided
+    const shouldAutoSave = enableAutoSave && isDraft && isEditing && !!onAutoSave && !readOnly;
+
+    // Auto-save callback - validates draft requirements before saving
+    const handleAutoSave = useCallback(async (data: Partial<RiskFormData>) => {
+        if (!onAutoSave) return;
+
+        // Only auto-save if draft requirements are met (threat is required)
+        const { canSave } = canSaveRiskAsDraft(data as Record<string, unknown>);
+        if (canSave) {
+            await onAutoSave(data);
+        }
+    }, [onAutoSave]);
+
+    // Auto-save hook with deep equality check
+    const {
+        status: autoSaveStatus,
+        lastSavedAt: autoSaveLastSavedAt,
+        error: autoSaveError,
+        retry: autoSaveRetry
+    } = useAutoSave({
+        data: watchedFormValues as Partial<RiskFormData>,
+        onSave: handleAutoSave,
+        enabled: shouldAutoSave,
+        debounceMs: autoSaveDebounceMs,
+        isEqual: (a, b) => JSON.stringify(a) === JSON.stringify(b)
+    });
+
+    // Navigation warning when form has unsaved changes
+    const {
+        isBlocked: isNavigationBlocked,
+        proceed: proceedNavigation,
+        cancel: cancelNavigation,
+        bypass: bypassNavigation
+    } = useUnsavedChangesWarning({
+        hasUnsavedChanges: isDirty && !readOnly,
+        enabled: !readOnly,
+    });
+
     const mapCriticalityToImpact = (crit: Criticality): number => {
         switch (crit) {
             case Criticality.CRITICAL: return 5;
@@ -200,6 +285,45 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         if (t.field) setValue('scenario', `${t.scenario}\n\nDomaine: ${t.field}`, { shouldDirty: true });
         setShowLibraryModal(false);
     };
+
+    // Handle save as draft action
+    const handleSaveAsDraft = useCallback(async () => {
+        if (!onSaveDraft) return;
+
+        const data = getValues();
+        const { canSave, errors: draftErrors } = canSaveRiskAsDraft(data as Record<string, unknown>);
+
+        if (!canSave) {
+            // Show validation errors for draft required fields
+            if (draftErrors.threat) {
+                toast.error('La menace est requise pour enregistrer un brouillon');
+                setActiveTab('identification');
+            }
+            return;
+        }
+
+        setIsSavingDraft(true);
+        try {
+            await onSaveDraft(data);
+            setIsDraft(true);
+            clearPersistedDraft(); // Clear localStorage after successful save to server
+            bypassNavigation(); // Allow navigation without warning after successful save
+        } finally {
+            setIsSavingDraft(false);
+        }
+    }, [onSaveDraft, getValues, clearPersistedDraft, bypassNavigation]);
+
+    // Handle publish draft action (full validation required)
+    const handlePublishDraft = useCallback(async () => {
+        if (!onPublishDraft) return;
+        // Use handleSubmit to trigger full validation
+        handleSubmit(async (validData) => {
+            await onPublishDraft(validData);
+            setIsDraft(false);
+            clearPersistedDraft(); // Clear localStorage after successful publish
+            bypassNavigation(); // Allow navigation without warning after successful publish
+        }, onInvalid)();
+    }, [onPublishDraft, handleSubmit, clearPersistedDraft, bypassNavigation]);
 
     const handleAutoGenerate = async () => {
         const currentThreat = getValues('threat');
@@ -285,6 +409,39 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
     }, [assetId, assets, getValues, isEditing, setValue]);
 
+    // Check for saved draft on mount (for new risks only)
+    useEffect(() => {
+        if (!isEditing && hasPersistedDraft && savedDraft && !existingRisk) {
+            setShowDraftRecoveryBanner(true);
+        }
+    }, [isEditing, hasPersistedDraft, savedDraft, existingRisk]);
+
+    // Persist form data to localStorage as it changes (for new risks)
+    useEffect(() => {
+        if (!isEditing && isDirty && watchedFormValues) {
+            persistDraft(watchedFormValues as Partial<RiskFormData>);
+        }
+    }, [isEditing, isDirty, watchedFormValues, persistDraft]);
+
+    // Handler to restore saved draft
+    const handleRestoreDraft = useCallback(() => {
+        if (savedDraft) {
+            reset({
+                ...getValues(),
+                ...savedDraft
+            });
+            setShowDraftRecoveryBanner(false);
+            toast.success('Brouillon restauré');
+        }
+    }, [savedDraft, reset, getValues]);
+
+    // Handler to discard saved draft
+    const handleDiscardDraft = useCallback(() => {
+        clearPersistedDraft();
+        setShowDraftRecoveryBanner(false);
+        toast.info('Brouillon supprimé');
+    }, [clearPersistedDraft]);
+
     const filteredLibraryThreats = (libraryThreats || []).filter(t =>
         t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.threat.toLowerCase().includes(searchTerm.toLowerCase())
@@ -299,10 +456,18 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
     };
 
+    // Wrapped onSubmit that clears persisted draft after successful save
+    const handleFormSubmit = useCallback(async (data: RiskFormData) => {
+        await onSubmit(data);
+        clearPersistedDraft(); // Clear localStorage after successful submit
+        bypassNavigation(); // Allow navigation without warning after successful save
+    }, [onSubmit, clearPersistedDraft, bypassNavigation]);
+
     return (
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="flex flex-col h-full bg-transparent">
+        <form onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="flex flex-col h-full bg-transparent">
             {/* Header Tabs */}
-            <div className="flex border-b border-slate-200 dark:border-white/10 bg-white dark:bg-transparent px-6 pt-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 bg-white dark:bg-transparent px-6 pt-4">
+                <div className="flex">
                 {TABS.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -321,10 +486,60 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         </button>
                     );
                 })}
+                </div>
+                {/* Draft Badge and Auto-Save Indicator */}
+                <div className="flex items-center gap-3 pb-3">
+                    {isDraft && <DraftBadge showIcon size="md" />}
+                    {shouldAutoSave && (
+                        <AutoSaveIndicator
+                            status={autoSaveStatus}
+                            lastSavedAt={autoSaveLastSavedAt}
+                            error={autoSaveError}
+                            onRetry={autoSaveRetry}
+                            compact={false}
+                        />
+                    )}
+                </div>
             </div>
 
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Draft Recovery Banner */}
+                {showDraftRecoveryBanner && (
+                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-between animate-fade-in">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-amber-100 dark:bg-amber-800/50 rounded-full">
+                                <History className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <div>
+                                <p className="font-medium text-amber-800 dark:text-amber-200">
+                                    Brouillon non enregistré détecté
+                                </p>
+                                <p className="text-sm text-amber-600 dark:text-amber-400">
+                                    Un brouillon de ce formulaire a été trouvé. Voulez-vous le restaurer ?
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={handleDiscardDraft}
+                                className="text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-800/30"
+                            >
+                                Ignorer
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={handleRestoreDraft}
+                                className="bg-amber-600 hover:bg-amber-700 text-white"
+                            >
+                                Restaurer
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
                 {!isEditing && activeTab === 'context' && (
                     <AIAssistantHeader
                         templates={RISK_TEMPLATES.filter(t => !t.framework || t.framework === (framework || 'ISO27005'))}
@@ -496,15 +711,22 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 <Activity className="h-5 w-5 text-brand-500" /> Évaluation par Matrices
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                {/* Initial Risk Matrix - shows residual as reference */}
                                 <RiskMatrixSelector
                                     label="Évaluation du Risque Brut (Inhérent)"
                                     probability={probability}
                                     impact={impact}
+                                    residualProbability={residualProbability}
+                                    residualImpact={residualImpact}
                                     onChange={(p, i) => {
                                         setValue('probability', p, { shouldDirty: true });
                                         setValue('impact', i, { shouldDirty: true });
                                     }}
+                                    showLegend={true}
+                                    showComparison={true}
+                                    readOnly={readOnly}
                                 />
+                                {/* Residual Risk Matrix - shows initial as reference */}
                                 <RiskMatrixSelector
                                     label="Objectif / Risque Résiduel (Cible)"
                                     probability={residualProbability || probability}
@@ -513,6 +735,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                         setValue('residualProbability', p, { shouldDirty: true });
                                         setValue('residualImpact', i, { shouldDirty: true });
                                     }}
+                                    showLegend={false}
+                                    showComparison={false}
+                                    readOnly={readOnly}
                                 />
                             </div>
 
@@ -664,15 +889,44 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             }}>Suivant</Button>
                         ) : (
                             <div className="flex gap-2">
+                                {/* Save as Draft button - only shown when not editing or editing a draft */}
+                                {onSaveDraft && (!isEditing || isDraft) && (
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={handleSaveAsDraft}
+                                        isLoading={isSavingDraft}
+                                        disabled={isSavingDraft || isLoading}
+                                        className="px-6 py-3 border border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl font-medium text-sm"
+                                    >
+                                        Enregistrer brouillon
+                                    </Button>
+                                )}
 
-                                <Button
-                                    type="submit"
-                                    isLoading={isLoading}
-                                    disabled={isLoading}
-                                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
-                                >
-                                    {isEditing ? 'Sauvegarder' : 'Créer le Risque'}
-                                </Button>
+                                {/* Publish Draft button - shown when editing an existing draft */}
+                                {isDraft && isEditing && onPublishDraft && (
+                                    <Button
+                                        type="button"
+                                        onClick={handlePublishDraft}
+                                        isLoading={isLoading}
+                                        disabled={isLoading || isSavingDraft}
+                                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-green-500/20 font-bold text-sm"
+                                    >
+                                        Publier le Risque
+                                    </Button>
+                                )}
+
+                                {/* Standard Create/Save button - shown when not a draft or creating new */}
+                                {(!isDraft || !isEditing) && (
+                                    <Button
+                                        type="submit"
+                                        isLoading={isLoading}
+                                        disabled={isLoading || isSavingDraft}
+                                        className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
+                                    >
+                                        {isEditing ? 'Sauvegarder' : 'Créer le Risque'}
+                                    </Button>
+                                )}
                             </div>
                         )}
                     </div>
@@ -720,6 +974,18 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     </div>
                 </div>
             </Modal>
+
+            {/* Navigation Blocking Confirmation Modal */}
+            <ConfirmModal
+                isOpen={isNavigationBlocked}
+                onClose={cancelNavigation}
+                onConfirm={proceedNavigation}
+                title="Modifications non enregistrées"
+                message="Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter cette page ?"
+                type="warning"
+                confirmText="Quitter sans enregistrer"
+                cancelText="Rester sur la page"
+            />
         </form >
     );
 };

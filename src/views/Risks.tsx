@@ -7,10 +7,12 @@ import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
 import { PageHeader } from '../components/ui/PageHeader';
 // PremiumPageControl removed
-import { AdvancedSearch } from '../components/ui/AdvancedSearch';
+// AdvancedSearch replaced by RiskAdvancedFilters
+import { RiskAdvancedFilters } from '../components/risks/RiskAdvancedFilters';
 // Tooltip removed
 // ObsidianService removed
 import { RisksToolbar } from '../components/risks/RisksToolbar';
+import { exportRisksToExcel } from '../utils/riskExportUtils';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserProfile, Risk } from '../types';
@@ -125,7 +127,8 @@ export const Risks: React.FC = () => {
         filteredRisks,
         showAdvancedSearch, setShowAdvancedSearch,
         frameworkFilter, setFrameworkFilter,
-        matrixFilter, setMatrixFilter
+        matrixFilter, setMatrixFilter,
+        availableCategories
     } = useRiskFilters(risks);
 
     // URL Params
@@ -249,6 +252,20 @@ export const Risks: React.FC = () => {
             setIsGeneratingReport(false);
         }
     }, [filteredRisks, t, user, setIsGeneratingReport]);
+
+    const handleExportExcel = useCallback(async () => {
+        try {
+            await exportRisksToExcel({
+                risks: filteredRisks,
+                assets,
+                users: usersList,
+                organizationName: user?.organizationName || 'Sentinel GRC'
+            });
+            toast.success(t('risks.exportSuccess') || 'Export Excel réussi');
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleExportExcel', 'EXCEL_EXPORT_FAILED');
+        }
+    }, [filteredRisks, assets, usersList, user?.organizationName, t]);
 
     const handleStartAiAnalysis = useCallback(async () => {
         setIsAnalyzing(true);
@@ -405,6 +422,7 @@ export const Risks: React.FC = () => {
                         filteredRisks={filteredRisks}
                         handleCommonExport={handleCommonExport}
                         exportCSV={exportCSV}
+                        onExportExcel={handleExportExcel}
                         setImportModalOpen={setImportModalOpen}
                         setIsTemplateModalOpen={setIsTemplateModalOpen}
                         handleStartAiAnalysis={handleStartAiAnalysis}
@@ -418,7 +436,16 @@ export const Risks: React.FC = () => {
             <AnimatePresence>
                 {showAdvancedSearch && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                        <AdvancedSearch onSearch={(filters) => { setActiveFilters(prev => ({ ...prev, query: filters.query })); setShowAdvancedSearch(false); }} onClose={() => setShowAdvancedSearch(false)} />
+                        <RiskAdvancedFilters
+                            statusFilter={activeFilters.status || ''}
+                            onStatusFilterChange={(status) => setActiveFilters(prev => ({ ...prev, status: status || null }))}
+                            categoryFilter={activeFilters.category || ''}
+                            onCategoryFilterChange={(category) => setActiveFilters(prev => ({ ...prev, category: category || null }))}
+                            criticalityFilter={activeFilters.criticality || ''}
+                            onCriticalityFilterChange={(criticality) => setActiveFilters(prev => ({ ...prev, criticality: criticality || null }))}
+                            availableCategories={availableCategories}
+                            onClose={() => setShowAdvancedSearch(false)}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -1,3 +1,5 @@
+import { Framework } from './common';
+
 export type PlanType = 'discovery' | 'professional' | 'enterprise';
 
 export interface PlanLimits {
@@ -5,6 +7,7 @@ export interface PlanLimits {
     maxProjects: number;
     maxAssets: number;
     maxStorageGB: number;
+    maxFrameworks: number;
     features: {
         apiAccess: boolean;
         sso: boolean;
@@ -44,6 +47,7 @@ export interface Organization {
         language?: 'fr' | 'en';
         enableSecNumCloudStorage?: boolean;
     };
+    enabledFrameworks?: Framework[];
 }
 
 export interface JoinRequest {
