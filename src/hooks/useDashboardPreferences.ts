@@ -230,6 +230,7 @@ export const useDashboardPreferences = (
         clearTimeout(saveTimeoutRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- saveToFirestore is stable (useCallback) but adding it would cause infinite loops
   }, [userId, tenantId, role, effectiveDefaultLayout]);
 
   /**

@@ -20,6 +20,7 @@ interface RiskLinkedControlsProps {
 /**
  * Calculate mitigation coverage percentage based on control implementation status
  */
+// eslint-disable-next-line react-refresh/only-export-components -- Utility function co-located with component for API cohesion
 export function calculateMitigationCoverage(linkedControls: Control[]): number {
     if (linkedControls.length === 0) return 0;
 

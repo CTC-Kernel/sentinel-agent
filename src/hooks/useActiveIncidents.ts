@@ -239,6 +239,7 @@ export function useActiveIncidents(
         unsubscribe();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trend is intentionally excluded to prevent re-subscription on trend changes
   }, [tenantId, maxItems, refreshKey]);
 
   return {

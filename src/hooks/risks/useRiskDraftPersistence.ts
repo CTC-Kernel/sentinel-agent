@@ -91,41 +91,57 @@ export function getRiskDraftStorageKey(organizationId: string, riskId?: string):
  * };
  * ```
  */
+/**
+ * Helper to load draft from localStorage
+ */
+function loadDraftFromStorage(
+  storageKey: string,
+  enabled: boolean,
+  organizationId: string
+): { draft: Partial<RiskFormData> | null; savedAt: Date | null } {
+  if (!enabled || !organizationId) {
+    return { draft: null, savedAt: null };
+  }
+
+  try {
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === 'object') {
+        const { canSave } = canSaveRiskAsDraft(parsed.data || {});
+        if (canSave || parsed.data?.threat) {
+          return {
+            draft: parsed.data,
+            savedAt: parsed.savedAt ? new Date(parsed.savedAt) : null
+          };
+        }
+      }
+    }
+  } catch (error) {
+    ErrorLogger.warn('Error loading risk draft from localStorage', 'useRiskDraftPersistence', {
+      metadata: { error, key: storageKey }
+    });
+  }
+
+  return { draft: null, savedAt: null };
+}
+
 export function useRiskDraftPersistence({
   organizationId,
   riskId,
   enabled = true,
   debounceMs = 1000,
 }: UseRiskDraftPersistenceOptions): UseRiskDraftPersistenceReturn {
-  const [savedDraft, setSavedDraft] = useState<Partial<RiskFormData> | null>(null);
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
-  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const storageKey = getRiskDraftStorageKey(organizationId, riskId);
 
-  // Load saved draft on mount
-  useEffect(() => {
-    if (!enabled || !organizationId) return;
-
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') {
-          // Validate that it has required draft fields
-          const { canSave } = canSaveRiskAsDraft(parsed.data || {});
-          if (canSave || parsed.data?.threat) {
-            setSavedDraft(parsed.data);
-            setLastSavedAt(parsed.savedAt ? new Date(parsed.savedAt) : null);
-          }
-        }
-      }
-    } catch (error) {
-      ErrorLogger.warn('Error loading risk draft from localStorage', 'useRiskDraftPersistence', {
-        metadata: { error, key: storageKey }
-      });
-    }
-  }, [storageKey, enabled, organizationId]);
+  // Use lazy initialization to load from localStorage synchronously on mount
+  const [savedDraft, setSavedDraft] = useState<Partial<RiskFormData> | null>(() => {
+    return loadDraftFromStorage(storageKey, enabled, organizationId).draft;
+  });
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(() => {
+    return loadDraftFromStorage(storageKey, enabled, organizationId).savedAt;
+  });
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
    * Save form data to localStorage (debounced)

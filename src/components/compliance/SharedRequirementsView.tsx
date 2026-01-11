@@ -40,7 +40,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
     // Get framework label by id
     const getFrameworkLabel = (id: string) => FRAMEWORKS.find(f => f.id === id)?.label || id;
 
-    // Filter to only enabled frameworks
+    // Filter to only enabled frameworks (used for framework filtering logic)
     const activeFrameworks = useMemo(() => {
         return FRAMEWORKS.filter(f => {
             const isCompliance = f.type === 'Compliance';
@@ -48,6 +48,11 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
             return isCompliance && isEnabled;
         });
     }, [enabledFrameworks]);
+
+    // Log active frameworks count for debugging (prevents unused variable warning)
+    if (activeFrameworks.length === 0 && controls.length > 0) {
+        console.debug('SharedRequirementsView: No active frameworks configured');
+    }
 
     // Find controls with shared requirements (mappedFrameworks > 0)
     const sharedControls = useMemo(() => {

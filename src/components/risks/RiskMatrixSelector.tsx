@@ -23,6 +23,7 @@ export interface RiskLevel {
 /**
  * Get risk level based on score (impact × probability)
  */
+// eslint-disable-next-line react-refresh/only-export-components -- Utility function co-located with component for API cohesion
 export function getRiskLevelFromScore(score: number): RiskLevel {
     if (score >= 15) {
         return {
@@ -59,6 +60,7 @@ export function getRiskLevelFromScore(score: number): RiskLevel {
 /**
  * Calculate risk score from impact and probability
  */
+// eslint-disable-next-line react-refresh/only-export-components -- Utility function co-located with component for API cohesion
 export function calculateRiskScore(impact: number, probability: number): number {
     return impact * probability;
 }

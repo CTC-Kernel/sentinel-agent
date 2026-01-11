@@ -163,7 +163,8 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
     const removeMeasure = (index: number) => {
         const currentMeasures = treatment.measures || [];
         const newMeasures = currentMeasures.filter((_, i) => i !== index);
-        handleChange('measures' as any, newMeasures as any); // Cast because handleChange expects string|number, but we updating array. Should refactor handle change ideally.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast needed: handleChange expects string|number, but we're updating array
+        handleChange('measures' as any, newMeasures as any);
         // Actually, let's just do manual update
         const updated = { ...treatment, measures: newMeasures };
         setTreatment(updated);
