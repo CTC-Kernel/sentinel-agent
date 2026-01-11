@@ -25,6 +25,7 @@ export const PLANS: Record<PlanType, PlanConfig> = {
       maxProjects: 1,
       maxAssets: 50,
       maxStorageGB: 1,
+      maxFrameworks: 2,
       features: {
         apiAccess: false,
         sso: false,
@@ -54,6 +55,7 @@ export const PLANS: Record<PlanType, PlanConfig> = {
       maxProjects: 10,
       maxAssets: 250,
       maxStorageGB: 10,
+      maxFrameworks: 5,
       features: {
         apiAccess: false,
         sso: false,
@@ -85,6 +87,7 @@ export const PLANS: Record<PlanType, PlanConfig> = {
       maxProjects: 9999,
       maxAssets: 9999,
       maxStorageGB: 100,
+      maxFrameworks: 14, // All frameworks
       features: {
         apiAccess: true,
         sso: true,

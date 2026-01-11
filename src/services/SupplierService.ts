@@ -246,7 +246,7 @@ export class SupplierService {
                         },
                         isICTProvider: false,
                         supportsCriticalFunction: false,
-                        doraCriticality: 'None',
+                        doraCriticality: 'Aucun',
                         owner: userDisplayName || 'Importé',
                         ownerId: userId,
                         createdAt: serverTimestamp() as unknown as string

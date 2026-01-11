@@ -1,3 +1,52 @@
+/**
+ * Unified document status enumeration (French)
+ */
+export const DOCUMENT_STATUSES = [
+    'Brouillon',
+    'En revue',
+    'Approuvé',
+    'Rejeté',
+    'Publié',
+    'Archivé',
+    'Obsolète'
+] as const;
+
+export type DocumentStatus = typeof DOCUMENT_STATUSES[number];
+
+/**
+ * Document workflow steps for history tracking
+ */
+export const WORKFLOW_STEPS = [
+    'Brouillon',
+    'En revue',
+    'Approbation',
+    'Publication',
+    'Archive'
+] as const;
+
+export type WorkflowStep = typeof WORKFLOW_STEPS[number];
+
+/**
+ * Valid document status transitions
+ * Defines the state machine for document workflow
+ */
+export const VALID_DOCUMENT_TRANSITIONS: Record<DocumentStatus, DocumentStatus[]> = {
+    'Brouillon': ['En revue', 'Archivé'],
+    'En revue': ['Approuvé', 'Rejeté', 'Brouillon'],
+    'Approuvé': ['Publié', 'Archivé'],
+    'Rejeté': ['Brouillon', 'Archivé'],
+    'Publié': ['Archivé', 'Obsolète'],
+    'Archivé': [],
+    'Obsolète': []
+};
+
+/**
+ * Check if a document status transition is valid
+ */
+export function isValidDocumentTransition(from: DocumentStatus, to: DocumentStatus): boolean {
+    return VALID_DOCUMENT_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
 export interface Document {
     id: string;
     organizationId: string;
@@ -5,7 +54,8 @@ export interface Document {
     type: 'Politique' | 'Procédure' | 'Preuve' | 'Rapport' | 'Autre';
     description?: string;
     version: string;
-    status: 'Brouillon' | 'En revue' | 'Approuvé' | 'Rejeté' | 'Publié' | 'Archivé' | 'Obsolète';
+    status: DocumentStatus;
+    /** @deprecated Use status instead - unified in French */
     workflowStatus?: 'Draft' | 'Review' | 'Approved' | 'Rejected' | 'Archived';
     reviewers?: string[];
     approvers?: string[];
@@ -56,13 +106,27 @@ export interface DocumentVersion {
     changeLog?: string;
 }
 
+/**
+ * Workflow actions (French)
+ */
+export const WORKFLOW_ACTIONS = [
+    'soumettre',
+    'approuver',
+    'rejeter',
+    'publier',
+    'archiver',
+    'annuler'
+] as const;
+
+export type WorkflowAction = typeof WORKFLOW_ACTIONS[number];
+
 export interface WorkflowHistoryItem {
-    id: string; // uuid
+    id: string;
     date: string;
     userId: string;
-    userName: string; // snapshot of name
-    action: 'submit' | 'approve' | 'reject' | 'publish' | 'archive' | 'revert';
+    userName: string;
+    action: WorkflowAction;
     comment?: string;
     version: string;
-    step: 'Draft' | 'Review' | 'Approval' | 'Publication' | 'Archive';
+    step: WorkflowStep;
 }

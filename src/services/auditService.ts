@@ -67,15 +67,15 @@ export class AuditService {
     }
 
     /**
-     * Check for dependencies (projects and documents linking to this audit)
+     * Check for dependencies (projects, documents, risks, controls linking to this audit)
      */
     static async checkDependencies(
         auditId: string,
         organizationId: string
     ): Promise<AuditDependencies> {
         try {
-            // Check both projects and documents for relatedAuditIds
-            const [projectsSnap, documentsSnap] = await Promise.all([
+            // Check all entity types that can reference audits
+            const [projectsSnap, documentsSnap, risksSnap, controlsSnap] = await Promise.all([
                 getDocs(
                     query(
                         collection(db, 'projects'),
@@ -86,6 +86,20 @@ export class AuditService {
                 getDocs(
                     query(
                         collection(db, 'documents'),
+                        where('organizationId', '==', organizationId),
+                        where('relatedAuditIds', 'array-contains', auditId)
+                    )
+                ),
+                getDocs(
+                    query(
+                        collection(db, 'risks'),
+                        where('organizationId', '==', organizationId),
+                        where('relatedAuditIds', 'array-contains', auditId)
+                    )
+                ),
+                getDocs(
+                    query(
+                        collection(db, 'controls'),
                         where('organizationId', '==', organizationId),
                         where('relatedAuditIds', 'array-contains', auditId)
                     )
@@ -102,6 +116,16 @@ export class AuditService {
                     id: d.id,
                     name: d.data().title || 'Document',
                     type: 'Document'
+                })),
+                ...risksSnap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().threat || 'Risque',
+                    type: 'Risque'
+                })),
+                ...controlsSnap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().name || 'Contrôle',
+                    type: 'Contrôle'
                 }))
             ];
 
@@ -126,7 +150,7 @@ export class AuditService {
             // 1. Check dependencies
             const { hasDependencies, dependencies } = await this.checkDependencies(auditId, organizationId);
 
-            // 2. Cleanup all dependencies (projects and documents)
+            // 2. Cleanup all dependencies (projects, documents, risks, controls)
             if (hasDependencies && dependencies.length > 0) {
                 const cleanupPromises: Promise<void>[] = [];
 
@@ -150,6 +174,30 @@ export class AuditService {
                             relatedAuditIds: arrayRemove(auditId)
                         }).catch((err: unknown) => {
                             ErrorLogger.warn(`Failed to remove audit from document ${dep.id}: ${String(err)}`, 'AuditService.deleteAuditWithCascade');
+                        })
+                    );
+                });
+
+                // Cleanup risk references
+                const riskDeps = dependencies.filter(d => d.type === 'Risque');
+                riskDeps.forEach(dep => {
+                    cleanupPromises.push(
+                        updateDoc(doc(db, 'risks', dep.id), {
+                            relatedAuditIds: arrayRemove(auditId)
+                        }).catch((err: unknown) => {
+                            ErrorLogger.warn(`Failed to remove audit from risk ${dep.id}: ${String(err)}`, 'AuditService.deleteAuditWithCascade');
+                        })
+                    );
+                });
+
+                // Cleanup control references
+                const controlDeps = dependencies.filter(d => d.type === 'Contrôle');
+                controlDeps.forEach(dep => {
+                    cleanupPromises.push(
+                        updateDoc(doc(db, 'controls', dep.id), {
+                            relatedAuditIds: arrayRemove(auditId)
+                        }).catch((err: unknown) => {
+                            ErrorLogger.warn(`Failed to remove audit from control ${dep.id}: ${String(err)}`, 'AuditService.deleteAuditWithCascade');
                         })
                     );
                 });

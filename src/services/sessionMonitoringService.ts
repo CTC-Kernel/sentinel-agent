@@ -378,7 +378,9 @@ class SessionMonitoringService {
     // Si anomalie critique, envoyer une notification
     if (anomaly.severity === 'critical') {
       // TODO: Envoyer une notification push ou email
-      console.error('⚠️ ANOMALIE CRITIQUE DE SESSION:', anomaly);
+      ErrorLogger.error(new Error('ANOMALIE CRITIQUE DE SESSION'), 'SessionMonitoring.recordAnomaly', {
+        metadata: { anomaly }
+      });
     }
   }
 

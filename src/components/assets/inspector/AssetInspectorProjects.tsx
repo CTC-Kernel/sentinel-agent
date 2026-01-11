@@ -1,11 +1,11 @@
 import React from 'react';
 import { FolderKanban } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
-import { Asset } from '../../../types';
+import type { Asset, Project } from '../../../types';
 
 interface AssetInspectorProjectsProps {
     selectedAsset: Asset;
-    linkedProjects: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+    linkedProjects: Project[];
 }
 
 export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({

@@ -21,8 +21,15 @@ service cloud.firestore {
       return isAuthenticated() && getUserData().role == role;
     }
 
-    function isAdmin() { return request.auth.token.role == 'admin' || request.auth.token.superAdmin == true; }
+    // --- ADMIN ROLE SEMANTICS ---
+    // isOrgAdmin(): True if user has 'admin' role for their organization
+    // isSuperAdmin(): True if user has system-wide super-admin privileges
+    // isAdmin(): Returns true for EITHER org admin OR super admin
+    //            IMPORTANT: Always use with belongsToOrganization() for write operations
+    //            to ensure proper tenant isolation. Super-admin alone does NOT bypass org checks.
+    function isOrgAdmin() { return request.auth.token.role == 'admin'; }
     function isSuperAdmin() { return request.auth.token.superAdmin == true; }
+    function isAdmin() { return isOrgAdmin() || isSuperAdmin(); }
     function isRSSI() { return hasRole('rssi'); }
     function isAuditor() { return hasRole('auditor'); }
     function isProjectManager() { return hasRole('project_manager'); }
@@ -50,11 +57,9 @@ service cloud.firestore {
     function isValidIncidentStatus(status) {
       return status in ['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé'];
     }
-    
-    function isValidIncidentSeverity(severity) {
-      return severity in ['Critical', 'High', 'Medium', 'Low', 'Info'];
-    }
 
+    // UNIFIED: Use French Criticality values for all severity fields
+    // Matches TypeScript Criticality type: 'Faible' | 'Moyenne' | 'Élevée' | 'Critique'
     function isValidCriticality(val) {
       return val in ['Faible', 'Moyenne', 'Élevée', 'Critique'];
     }
@@ -429,12 +434,12 @@ service cloud.firestore {
         (!('title' in request.resource.data) || isValidString(request.resource.data.title, 1, 200)) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
         (!('status' in request.resource.data) || isValidIncidentStatus(request.resource.data.status)) &&
-        (!('severity' in request.resource.data) || isValidIncidentSeverity(request.resource.data.severity)); // Users can report incidents
+        (!('severity' in request.resource.data) || isValidCriticality(request.resource.data.severity)); // Users can report incidents
       allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
         (!('title' in request.resource.data) || isValidString(request.resource.data.title, 1, 200)) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
         (!('status' in request.resource.data) || isValidIncidentStatus(request.resource.data.status)) &&
-        (!('severity' in request.resource.data) || isValidIncidentSeverity(request.resource.data.severity));
+        (!('severity' in request.resource.data) || isValidCriticality(request.resource.data.severity));
       allow delete: if false;
     }
 

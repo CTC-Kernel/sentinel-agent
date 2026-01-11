@@ -8,6 +8,7 @@ import { hybridService } from '../services/hybridService';
 import { logAction } from '../services/logger';
 import { IncidentService } from '../services/incidentService';
 import { Incident, Criticality } from '../types';
+import { IncidentStatus, isValidIncidentTransition } from '../types/incidents';
 import { IncidentFormData, incidentSchema } from '../schemas/incidentSchema';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { SecurityEvent } from '../services/integrationService';
@@ -72,6 +73,22 @@ export const useIncidents = () => {
                 const errorMessage = validationResult.error.issues[0]?.message || t('common.invalidData');
                 addToast(errorMessage, "error");
                 return;
+            }
+
+            // Validate status transition if status is being changed
+            if (data.status && currentIncident?.status && data.status !== currentIncident.status) {
+                const isValid = isValidIncidentTransition(
+                    currentIncident.status as IncidentStatus,
+                    data.status as IncidentStatus
+                );
+                if (!isValid) {
+                    addToast(
+                        `Transition de statut invalide: ${currentIncident.status} → ${data.status}`,
+                        "error"
+                    );
+                    setLoading(false);
+                    return;
+                }
             }
 
             const incidentData = sanitizeData({ ...data });

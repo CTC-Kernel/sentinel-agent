@@ -72,7 +72,8 @@ export function createRiskDraftSchema(locale: SupportedLocale = 'fr') {
     relatedProjectIds: z.array(z.string()).optional(),
     treatmentDeadline: z.string().optional(),
     treatmentOwnerId: z.string().optional(),
-    treatmentStatus: z.enum(['Pending', 'In Progress', 'Done', 'Overdue']).optional(),
+    /** @deprecated Use treatment.status instead */
+    treatmentStatus: z.enum(['Planifié', 'En cours', 'Terminé', 'Retard']).optional(),
     treatment: z.object({
       strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']).optional(),
       description: z.string().optional(),
@@ -87,7 +88,7 @@ export function createRiskDraftSchema(locale: SupportedLocale = 'fr') {
     isSecureStorage: z.boolean().optional(),
     aiAnalysis: z.object({
       type: z.string(),
-      response: z.record(z.string(), z.any()),
+      response: z.record(z.string(), z.unknown()),
       timestamp: z.string()
     }).optional().nullable(),
   };

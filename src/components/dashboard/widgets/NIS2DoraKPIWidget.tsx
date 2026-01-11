@@ -24,7 +24,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
     // DORA Metrics
     const doraMetrics = useMemo(() => {
         const ictProviders = suppliers.filter(s => s.isICTProvider);
-        const critical = ictProviders.filter(s => s.doraCriticality === 'Critical');
+        const critical = ictProviders.filter(s => s.doraCriticality === 'Critique');
         const totalICT = ictProviders.length;
 
         // Avg Score of Critical ICT Providers

@@ -1,11 +1,11 @@
 import React from 'react';
 import { Shield, HeartPulse } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
-import { Asset, BusinessProcess } from '../../../types';
+import type { Asset, BusinessProcess, Control } from '../../../types';
 
 interface AssetInspectorComplianceProps {
     selectedAsset: Asset;
-    linkedControls: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+    linkedControls: Control[];
     processes: BusinessProcess[];
 }
 

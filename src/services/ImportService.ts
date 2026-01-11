@@ -394,7 +394,7 @@ export class ImportService {
             "Type Service": s.serviceType || 'N/A',
             "Prestataire TIC": s.isICTProvider ? 'OUI' : 'NON',
             "Fonction Critique": s.supportsCriticalFunction ? 'OUI' : 'NON',
-            "Criticité DORA": s.doraCriticality || 'None',
+            "Criticité DORA": s.doraCriticality || 'Aucun',
             "Localisation Données": 'UE (Simulé)', // Placeholder
             "Date Contrat": s.contractEnd ? new Date(s.contractEnd as string).toLocaleDateString() : ''
         }));

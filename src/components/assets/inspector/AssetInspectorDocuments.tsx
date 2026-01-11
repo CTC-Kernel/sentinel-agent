@@ -2,9 +2,10 @@ import React from 'react';
 import { FileText, ExternalLink } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
+import type { Document } from '../../../types';
 
 interface AssetInspectorDocumentsProps {
-    linkedDocuments: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+    linkedDocuments: Document[];
 }
 
 export const AssetInspectorDocuments: React.FC<AssetInspectorDocumentsProps> = ({

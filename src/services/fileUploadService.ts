@@ -121,27 +121,135 @@ export const generateFilePath = (
 };
 
 /**
- * Validate file before upload
+ * Dangerous file extensions that should never be uploaded
+ */
+const BLOCKED_EXTENSIONS = [
+    '.exe', '.bat', '.cmd', '.sh', '.ps1', '.vbs', '.js', '.jar',
+    '.msi', '.dll', '.scr', '.com', '.pif', '.hta', '.cpl',
+    '.reg', '.inf', '.lnk', '.url', '.iso', '.dmg', '.app'
+];
+
+/**
+ * Safe file extensions for GRC documents
+ */
+export const ALLOWED_EXTENSIONS = {
+    documents: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp', '.txt', '.rtf', '.csv'],
+    images: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico'],
+    archives: ['.zip', '.rar', '.7z', '.tar', '.gz'],
+    evidence: ['.pdf', '.png', '.jpg', '.jpeg', '.doc', '.docx', '.xls', '.xlsx', '.csv', '.txt', '.eml', '.msg']
+};
+
+/**
+ * MIME types mapping for validation
+ */
+const MIME_TYPE_MAP: Record<string, string[]> = {
+    'application/pdf': ['.pdf'],
+    'application/msword': ['.doc'],
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+    'application/vnd.ms-excel': ['.xls'],
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+    'application/vnd.ms-powerpoint': ['.ppt'],
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+    'text/plain': ['.txt'],
+    'text/csv': ['.csv'],
+    'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+    'image/gif': ['.gif'],
+    'image/webp': ['.webp'],
+    'image/svg+xml': ['.svg'],
+    'application/zip': ['.zip'],
+    'application/x-rar-compressed': ['.rar'],
+    'application/x-7z-compressed': ['.7z']
+};
+
+/**
+ * Validate file before upload with enhanced security
  * @param file File to validate
- * @param maxSizeMB Maximum file size in MB
- * @param allowedTypes Allowed MIME types
+ * @param options Validation options
  * @returns Validation result
  */
 export const validateFile = (
     file: File,
-    maxSizeMB: number = 10,
-    allowedTypes: string[] = ['image/*', 'application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+    options: {
+        maxSizeMB?: number;
+        allowedTypes?: string[];
+        allowedExtensions?: string[];
+        category?: 'documents' | 'images' | 'archives' | 'evidence';
+    } = {}
 ): { valid: boolean; error?: string } => {
-    // Check file size
+    const {
+        maxSizeMB = 10,
+        allowedTypes = ['image/*', 'application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        allowedExtensions,
+        category
+    } = options;
+
+    // 1. Check file name for path traversal attacks
+    if (file.name.includes('..') || file.name.includes('/') || file.name.includes('\\')) {
+        return {
+            valid: false,
+            error: 'Nom de fichier invalide',
+        };
+    }
+
+    // 2. Get file extension
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+
+    // 3. Block dangerous extensions
+    if (BLOCKED_EXTENSIONS.includes(ext)) {
+        return {
+            valid: false,
+            error: 'Type de fichier non autorisé pour des raisons de sécurité',
+        };
+    }
+
+    // 4. Check file size
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     if (file.size > maxSizeBytes) {
         return {
             valid: false,
-            error: `File size exceeds ${maxSizeMB}MB limit`,
+            error: `La taille du fichier dépasse la limite de ${maxSizeMB} Mo`,
         };
     }
 
-    // Check file type
+    // 5. Check file size minimum (empty files)
+    if (file.size === 0) {
+        return {
+            valid: false,
+            error: 'Le fichier est vide',
+        };
+    }
+
+    // 6. Check extension against category if provided
+    if (category && ALLOWED_EXTENSIONS[category]) {
+        if (!ALLOWED_EXTENSIONS[category].includes(ext)) {
+            return {
+                valid: false,
+                error: `Extension non autorisée pour cette catégorie. Extensions acceptées: ${ALLOWED_EXTENSIONS[category].join(', ')}`,
+            };
+        }
+    }
+
+    // 7. Check extension against explicit list if provided
+    if (allowedExtensions && !allowedExtensions.includes(ext)) {
+        return {
+            valid: false,
+            error: `Extension non autorisée. Extensions acceptées: ${allowedExtensions.join(', ')}`,
+        };
+    }
+
+    // 8. Validate MIME type matches extension (prevent spoofing)
+    if (file.type && MIME_TYPE_MAP[file.type]) {
+        const expectedExtensions = MIME_TYPE_MAP[file.type];
+        if (!expectedExtensions.includes(ext)) {
+            return {
+                valid: false,
+                error: 'Le type de fichier ne correspond pas à son extension',
+            };
+        }
+    }
+
+    // 9. Check MIME type against allowed types
     const isAllowed = allowedTypes.some(type => {
         if (type.endsWith('/*')) {
             const category = type.split('/')[0];
@@ -150,14 +258,36 @@ export const validateFile = (
         return file.type === type;
     });
 
-    if (!isAllowed) {
+    if (!isAllowed && file.type) {
         return {
             valid: false,
-            error: 'File type not allowed',
+            error: 'Type de fichier non autorisé',
         };
     }
 
     return { valid: true };
+};
+
+/**
+ * Validate file with strict security for user uploads
+ */
+export const validateSecureUpload = (
+    file: File,
+    maxSizeMB: number = 5
+): { valid: boolean; error?: string } => {
+    return validateFile(file, {
+        maxSizeMB,
+        category: 'evidence',
+        allowedTypes: [
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/plain',
+            'text/csv'
+        ]
+    });
 };
 
 /**

@@ -1,12 +1,69 @@
 import { Criticality } from './common';
 
+/**
+ * Unified incident status enumeration (French)
+ */
+export const INCIDENT_STATUSES = [
+    'Nouveau',
+    'Analyse',
+    'Contenu',
+    'Résolu',
+    'Fermé'
+] as const;
+
+export type IncidentStatus = typeof INCIDENT_STATUSES[number];
+
+/**
+ * Supplier incident status (French)
+ */
+export const SUPPLIER_INCIDENT_STATUSES = [
+    'Ouvert',
+    'En investigation',
+    'Contenu',
+    'Résolu',
+    'Fermé'
+] as const;
+
+export type SupplierIncidentStatus = typeof SUPPLIER_INCIDENT_STATUSES[number];
+
+/**
+ * Valid incident status transitions
+ */
+export const VALID_INCIDENT_TRANSITIONS: Record<IncidentStatus, IncidentStatus[]> = {
+    'Nouveau': ['Analyse'],
+    'Analyse': ['Contenu', 'Résolu'],
+    'Contenu': ['Résolu'],
+    'Résolu': ['Fermé'],
+    'Fermé': []
+};
+
+/**
+ * Check if an incident status transition is valid
+ */
+export function isValidIncidentTransition(from: IncidentStatus, to: IncidentStatus): boolean {
+    return VALID_INCIDENT_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+/**
+ * Impact levels (French) for supplier incidents
+ */
+export const IMPACT_LEVELS = [
+    'Aucun',
+    'Mineur',
+    'Modéré',
+    'Majeur',
+    'Critique'
+] as const;
+
+export type ImpactLevel = typeof IMPACT_LEVELS[number];
+
 export interface Incident {
     id: string;
     organizationId: string;
     title: string;
     description: string;
     severity: Criticality;
-    status: 'Nouveau' | 'Analyse' | 'Contenu' | 'Résolu' | 'Fermé';
+    status: IncidentStatus;
     category?: 'Ransomware' | 'Phishing' | 'Vol Matériel' | 'Indisponibilité' | 'Fuite de Données' | 'Autre';
     playbookStepsCompleted?: string[];
     affectedAssetId?: string;
@@ -33,18 +90,31 @@ export interface Incident {
     playbookId?: string;
 }
 
+/**
+ * Supplier incident categories (French)
+ */
+export const SUPPLIER_INCIDENT_CATEGORIES = [
+    'Sécurité',
+    'Disponibilité',
+    'Données',
+    'Conformité',
+    'Autre'
+] as const;
+
+export type SupplierIncidentCategory = typeof SUPPLIER_INCIDENT_CATEGORIES[number];
+
 export interface SupplierIncident {
     id: string;
     supplierId: string;
     organizationId: string;
     title: string;
     description: string;
-    severity: 'Low' | 'Medium' | 'High' | 'Critical';
-    category: 'Security' | 'Availability' | 'Data' | 'Compliance' | 'Other';
+    severity: Criticality;
+    category: SupplierIncidentCategory;
     impact: {
-        operational: 'None' | 'Minor' | 'Moderate' | 'Major' | 'Critical';
+        operational: ImpactLevel;
         financial: number;
-        reputational: 'None' | 'Minor' | 'Moderate' | 'Major' | 'Critical';
+        reputational: ImpactLevel;
     };
     timeline: {
         detected: string;
@@ -56,7 +126,7 @@ export interface SupplierIncident {
     rootCause: string;
     lessonsLearned: string[];
     preventiveActions: string[];
-    status: 'Open' | 'Investigating' | 'Contained' | 'Resolved' | 'Closed';
+    status: SupplierIncidentStatus;
     assignedTo?: string;
     createdAt: string;
     updatedAt: string;

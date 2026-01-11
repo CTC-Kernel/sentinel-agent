@@ -1,20 +1,56 @@
 import { z } from 'zod';
 import { Criticality } from '../types';
 
+/**
+ * Supplier categories (French)
+ */
+export const SUPPLIER_CATEGORIES = [
+    'SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'
+] as const;
+
+/**
+ * Supplier statuses (French)
+ */
+export const SUPPLIER_STATUSES = ['Actif', 'En cours', 'Terminé', 'Suspendu'] as const;
+
+/**
+ * DORA criticality levels (French)
+ */
+export const DORA_CRITICALITY_LEVELS = ['Critique', 'Important', 'Aucun'] as const;
+
+/**
+ * Service types for suppliers
+ */
+export const SERVICE_TYPES = [
+    'SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security'
+] as const;
+
+/**
+ * Supplier validation schema
+ * Validates supplier forms for create/update operations
+ */
 export const supplierSchema = z.object({
-    name: z.string().min(1, "Le nom est requis"),
-    category: z.enum(['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre']),
+    name: z.string()
+        .min(1, "Le nom est requis")
+        .max(200, "Le nom ne peut pas dépasser 200 caractères"),
+    category: z.enum(SUPPLIER_CATEGORIES),
     criticality: z.nativeEnum(Criticality),
-    contactName: z.string().optional(),
-    contactEmail: z.string().email("Email invalide").optional().or(z.literal('')),
-    vatNumber: z.string().optional(),
-    status: z.enum(['Actif', 'En cours', 'Terminé']),
-    owner: z.string().optional(),
+    contactName: z.string().max(100).optional(),
+    contactEmail: z.string()
+        .max(254)
+        .refine(
+            (val) => !val || val === '' || z.string().email().safeParse(val).success,
+            { message: "Email invalide" }
+        )
+        .optional(),
+    vatNumber: z.string().max(50).optional(),
+    status: z.enum(SUPPLIER_STATUSES),
+    owner: z.string().max(100).optional(),
     ownerId: z.string().optional(),
-    description: z.string().optional(),
+    description: z.string().max(5000, "La description ne peut pas dépasser 5000 caractères").optional(),
     contractDocumentId: z.string().optional(),
     contractEnd: z.string().optional(),
-    securityScore: z.number().optional(),
+    securityScore: z.number().min(0).max(100).optional(),
     assessment: z.object({
         hasIso27001: z.boolean().optional(),
         hasGdprPolicy: z.boolean().optional(),
@@ -34,12 +70,12 @@ export const supplierSchema = z.object({
     }).optional(),
     isICTProvider: z.boolean().optional(),
     supportsCriticalFunction: z.boolean().optional(),
-    doraCriticality: z.enum(['Critical', 'Important', 'None']).optional(),
-    serviceType: z.enum(['SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security']).optional(),
-    supportedProcessIds: z.array(z.string()).optional(),
-    relatedAssetIds: z.array(z.string()).optional(),
-    relatedRiskIds: z.array(z.string()).optional(),
-    relatedProjectIds: z.array(z.string()).optional(),
+    doraCriticality: z.enum(DORA_CRITICALITY_LEVELS).optional(),
+    serviceType: z.enum(SERVICE_TYPES).optional(),
+    supportedProcessIds: z.array(z.string()).max(50).optional(),
+    relatedAssetIds: z.array(z.string()).max(100).optional(),
+    relatedRiskIds: z.array(z.string()).max(100).optional(),
+    relatedProjectIds: z.array(z.string()).max(50).optional(),
 });
 
 export type SupplierFormData = z.infer<typeof supplierSchema>;

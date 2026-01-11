@@ -26,7 +26,15 @@ export interface ActionItem {
     link: string;
 }
 
-export type Framework = 'ISO27001' | 'ISO22301' | 'ISO27005' | 'NIS2' | 'DORA' | 'GDPR' | 'SOC2' | 'HDS' | 'PCI_DSS' | 'NIST_CSF' | 'OWASP' | 'EBIOS' | 'COBIT' | 'ITIL';
+/**
+ * Supported compliance frameworks
+ */
+export const FRAMEWORKS = [
+    'ISO27001', 'ISO22301', 'ISO27005', 'NIS2', 'DORA', 'GDPR',
+    'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL'
+] as const;
+
+export type Framework = typeof FRAMEWORKS[number];
 
 export interface AIAnalysisResult {
     type: string;

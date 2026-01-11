@@ -8,7 +8,7 @@ export interface Supplier {
     criticality: Criticality;
     contactName?: string;
     contactEmail?: string;
-    status: 'Actif' | 'En cours' | 'Terminé';
+    status: 'Actif' | 'En cours' | 'Terminé' | 'Suspendu';
     owner?: string;
     ownerId?: string;
     description?: string;
@@ -35,7 +35,7 @@ export interface Supplier {
     };
     isICTProvider?: boolean;
     supportsCriticalFunction?: boolean;
-    doraCriticality?: 'Critical' | 'Important' | 'None';
+    doraCriticality?: 'Critique' | 'Important' | 'Aucun';
     serviceType?: 'SaaS' | 'Cloud' | 'Software' | 'Hardware' | 'Consulting' | 'Network' | 'Security';
     relatedAssetIds?: string[];
     relatedRiskIds?: string[];

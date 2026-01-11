@@ -1,11 +1,21 @@
 
 import { AssetService } from '../assetService';
-import { UserProfile } from '../../types';
+import { UserProfile, Criticality } from '../../types';
+import { AssetFormData } from '../../schemas/assetSchema';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, FieldValue } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { logAction } from '../logger';
-import { canEditResource, canDeleteResource, hasPermission } from '../../utils/permissions'; // Added hasPermission
+import { canEditResource, canDeleteResource, hasPermission } from '../../utils/permissions';
+
+/** Risk update fields for Firestore */
+interface RiskUpdateFields {
+    updatedAt: FieldValue;
+    status?: string;
+    probability?: number;
+    impact?: number;
+    description?: string;
+}
 
 export enum AIActionType {
     CREATE_ASSET = 'CREATE_ASSET',
@@ -60,18 +70,16 @@ export const ActionRegistry: Record<AIActionType, AIActionDefinition> = {
             }
 
             const data = CreateAssetSchema.parse(payload);
-            /* eslint-disable @typescript-eslint/no-explicit-any */
-            const assetData: any = {
+            const criticality = (data.criticality || 'Moyenne') as Criticality;
+            const assetData: AssetFormData = {
                 name: data.name,
                 type: data.type,
-                confidentiality: data.criticality,
-                integrity: data.criticality,
-                availability: data.criticality,
+                confidentiality: criticality,
+                integrity: criticality,
+                availability: criticality,
                 owner: user.email || 'Admin',
                 location: 'Siège',
-                organizationId: user.organizationId,
-                department: 'IT',
-                status: 'En service'
+                department: 'IT'
             };
 
             await AssetService.create(assetData, user);
@@ -93,7 +101,7 @@ export const ActionRegistry: Record<AIActionType, AIActionDefinition> = {
             const data = UpdateRiskSchema.parse(payload);
             const riskRef = doc(db, 'risks', data.id);
 
-            const updates: any = {
+            const updates: RiskUpdateFields = {
                 updatedAt: serverTimestamp()
             };
             if (data.status) updates.status = data.status;

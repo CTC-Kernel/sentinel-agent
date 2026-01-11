@@ -63,7 +63,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             contractDocumentId: '',
             contractEnd: '',
             assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false },
-            isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'None', serviceType: 'SaaS',
+            isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'Aucun', serviceType: 'SaaS',
             relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []
         }
     });

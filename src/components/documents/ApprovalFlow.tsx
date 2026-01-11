@@ -160,15 +160,15 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                 )}
                 {history.map((item) => (
                     <div key={item.id} className="relative">
-                        <div className={`absolute -left-[31px] w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${item.action === 'approve' || item.action === 'publish' ? 'bg-emerald-500' :
-                            item.action === 'reject' ? 'bg-red-500' : 'bg-brand-500'
+                        <div className={`absolute -left-[31px] w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${item.action === 'approuver' || item.action === 'publier' ? 'bg-emerald-500' :
+                            item.action === 'rejeter' ? 'bg-red-500' : 'bg-brand-500'
                             }`}></div>
 
                         <div className="flex items-start justify-between">
                             <div>
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${item.action === 'approve' ? 'bg-emerald-100 text-emerald-700' :
-                                    item.action === 'publish' ? 'bg-blue-100 text-blue-700' :
-                                        item.action === 'reject' ? 'bg-red-100 text-red-700' :
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${item.action === 'approuver' ? 'bg-emerald-100 text-emerald-700' :
+                                    item.action === 'publier' ? 'bg-blue-100 text-blue-700' :
+                                        item.action === 'rejeter' ? 'bg-red-100 text-red-700' :
                                             'bg-slate-100 text-slate-700'
                                     }`}>
                                     {item.action.toUpperCase()}

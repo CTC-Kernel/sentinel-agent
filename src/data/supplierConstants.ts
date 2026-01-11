@@ -1,3 +1,6 @@
+/**
+ * Supplier categories (French)
+ */
 export const SUPPLIER_CATEGORIES = [
     'SaaS',
     'Hébergement',
@@ -6,12 +9,19 @@ export const SUPPLIER_CATEGORIES = [
     'Autre'
 ] as const;
 
+/**
+ * Supplier statuses (French)
+ */
 export const SUPPLIER_STATUSES = [
     'Actif',
     'En cours',
-    'Terminé'
+    'Terminé',
+    'Suspendu'
 ] as const;
 
+/**
+ * DORA service types
+ */
 export const DORA_SERVICE_TYPES = [
     'SaaS',
     'Cloud',
@@ -22,8 +32,11 @@ export const DORA_SERVICE_TYPES = [
     'Security'
 ] as const;
 
+/**
+ * DORA criticality levels (French)
+ */
 export const DORA_CRITICALITIES = [
-    'None',
+    'Aucun',
     'Important',
-    'Critical'
+    'Critique'
 ] as const;

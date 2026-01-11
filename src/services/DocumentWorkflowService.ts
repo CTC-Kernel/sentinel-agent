@@ -1,27 +1,22 @@
 import { db } from '../firebase';
 import { doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { Document, UserProfile, WorkflowHistoryItem } from '../types';
+import { DocumentStatus, isValidDocumentTransition } from '../types/documents';
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
 
-// Complete document workflow states
-export enum DocumentStatus {
-    DRAFT = 'Brouillon',
-    IN_REVIEW = 'En revue',
-    APPROVED = 'Approuvé',
-    PUBLISHED = 'Publié',
-    REJECTED = 'Rejeté',
-    ARCHIVED = 'Archivé'
-}
-
-// Valid workflow transitions
-const VALID_TRANSITIONS: Record<DocumentStatus, DocumentStatus[]> = {
-    [DocumentStatus.DRAFT]: [DocumentStatus.IN_REVIEW, DocumentStatus.ARCHIVED],
-    [DocumentStatus.IN_REVIEW]: [DocumentStatus.APPROVED, DocumentStatus.REJECTED, DocumentStatus.DRAFT],
-    [DocumentStatus.APPROVED]: [DocumentStatus.PUBLISHED, DocumentStatus.ARCHIVED],
-    [DocumentStatus.PUBLISHED]: [DocumentStatus.ARCHIVED],
-    [DocumentStatus.REJECTED]: [DocumentStatus.DRAFT, DocumentStatus.ARCHIVED],
-    [DocumentStatus.ARCHIVED]: [] // Final state
+/**
+ * Document status constants for workflow operations
+ * Uses the unified DocumentStatus type from types/documents.ts
+ */
+const Status = {
+    DRAFT: 'Brouillon' as DocumentStatus,
+    IN_REVIEW: 'En revue' as DocumentStatus,
+    APPROVED: 'Approuvé' as DocumentStatus,
+    PUBLISHED: 'Publié' as DocumentStatus,
+    REJECTED: 'Rejeté' as DocumentStatus,
+    ARCHIVED: 'Archivé' as DocumentStatus,
+    OBSOLETE: 'Obsolète' as DocumentStatus
 };
 
 export class DocumentWorkflowService {
@@ -36,16 +31,17 @@ export class DocumentWorkflowService {
     }
 
     private static validateTransition(currentStatus: string, newStatus: string): boolean {
-        const current = currentStatus as DocumentStatus;
-        const next = newStatus as DocumentStatus;
-        return VALID_TRANSITIONS[current]?.includes(next) || false;
+        return isValidDocumentTransition(
+            currentStatus as DocumentStatus,
+            newStatus as DocumentStatus
+        );
     }
 
     static async submitForReview(document: Document, user: UserProfile, reviewers: string[], comment?: string) {
         try {
             // Validate transition
-            if (!this.validateTransition(document.status || DocumentStatus.DRAFT, DocumentStatus.IN_REVIEW)) {
-                throw new Error(`Transition invalide de ${document.status} vers ${DocumentStatus.IN_REVIEW}`);
+            if (!this.validateTransition(document.status || Status.DRAFT, Status.IN_REVIEW)) {
+                throw new Error(`Transition invalide de ${document.status} vers ${Status.IN_REVIEW}`);
             }
 
             const sanitizedReviewers = this.sanitizeReviewers(document, reviewers, user.uid);
@@ -54,14 +50,14 @@ export class DocumentWorkflowService {
                 date: new Date().toISOString(),
                 userId: user.uid,
                 userName: user.displayName || user.email || 'Unknown',
-                action: 'submit',
+                action: 'soumettre',
                 comment: comment || 'Soumis pour revue',
                 version: document.version,
-                step: 'Review'
+                step: 'En revue'
             };
 
             await updateDoc(doc(db, 'documents', document.id), {
-                status: DocumentStatus.IN_REVIEW,
+                status: Status.IN_REVIEW,
                 workflowStatus: 'Review',
                 reviewers: sanitizedReviewers,
                 workflowHistory: arrayUnion(historyItem),
@@ -78,8 +74,8 @@ export class DocumentWorkflowService {
     static async approveDocument(document: Document, user: UserProfile, comment?: string) {
         try {
             // Validate transition
-            if (!this.validateTransition(document.status || DocumentStatus.IN_REVIEW, DocumentStatus.APPROVED)) {
-                throw new Error(`Transition invalide de ${document.status} vers ${DocumentStatus.APPROVED}`);
+            if (!this.validateTransition(document.status || Status.IN_REVIEW, Status.APPROVED)) {
+                throw new Error(`Transition invalide de ${document.status} vers ${Status.APPROVED}`);
             }
 
             const historyItem: WorkflowHistoryItem = {
@@ -87,14 +83,14 @@ export class DocumentWorkflowService {
                 date: new Date().toISOString(),
                 userId: user.uid,
                 userName: user.displayName || user.email || 'Unknown',
-                action: 'approve',
+                action: 'approuver',
                 comment: comment || 'Approuvé',
                 version: document.version,
-                step: 'Approval'
+                step: 'Approbation'
             };
 
             await updateDoc(doc(db, 'documents', document.id), {
-                status: DocumentStatus.APPROVED,
+                status: Status.APPROVED,
                 workflowStatus: 'Approved',
                 workflowHistory: arrayUnion(historyItem),
                 updatedAt: serverTimestamp()
@@ -112,8 +108,8 @@ export class DocumentWorkflowService {
 
         try {
             // Validate transition
-            if (!this.validateTransition(document.status || DocumentStatus.IN_REVIEW, DocumentStatus.REJECTED)) {
-                throw new Error(`Transition invalide de ${document.status} vers ${DocumentStatus.REJECTED}`);
+            if (!this.validateTransition(document.status || Status.IN_REVIEW, Status.REJECTED)) {
+                throw new Error(`Transition invalide de ${document.status} vers ${Status.REJECTED}`);
             }
 
             const historyItem: WorkflowHistoryItem = {
@@ -121,14 +117,14 @@ export class DocumentWorkflowService {
                 date: new Date().toISOString(),
                 userId: user.uid,
                 userName: user.displayName || user.email || 'Unknown',
-                action: 'reject',
+                action: 'rejeter',
                 comment: comment,
                 version: document.version,
-                step: 'Review'
+                step: 'En revue'
             };
 
             await updateDoc(doc(db, 'documents', document.id), {
-                status: DocumentStatus.REJECTED,
+                status: Status.REJECTED,
                 workflowStatus: 'Rejected',
                 workflowHistory: arrayUnion(historyItem),
                 updatedAt: serverTimestamp()
@@ -144,8 +140,8 @@ export class DocumentWorkflowService {
     static async publishDocument(document: Document, user: UserProfile) {
         try {
             // Validate transition
-            if (!this.validateTransition(document.status || DocumentStatus.APPROVED, DocumentStatus.PUBLISHED)) {
-                throw new Error(`Transition invalide de ${document.status} vers ${DocumentStatus.PUBLISHED}`);
+            if (!this.validateTransition(document.status || Status.APPROVED, Status.PUBLISHED)) {
+                throw new Error(`Transition invalide de ${document.status} vers ${Status.PUBLISHED}`);
             }
 
             const historyItem: WorkflowHistoryItem = {
@@ -153,14 +149,14 @@ export class DocumentWorkflowService {
                 date: new Date().toISOString(),
                 userId: user.uid,
                 userName: user.displayName || user.email || 'Unknown',
-                action: 'publish',
+                action: 'publier',
                 comment: 'Publication officielle',
                 version: document.version,
                 step: 'Publication'
             };
 
             await updateDoc(doc(db, 'documents', document.id), {
-                status: DocumentStatus.PUBLISHED,
+                status: Status.PUBLISHED,
                 workflowStatus: 'Approved',
                 publishedAt: serverTimestamp(),
                 workflowHistory: arrayUnion(historyItem),
@@ -186,14 +182,14 @@ export class DocumentWorkflowService {
                 date: new Date().toISOString(),
                 userId: user.uid,
                 userName: user.displayName || user.email || 'Unknown',
-                action: 'archive',
+                action: 'archiver',
                 comment: reason || 'Archivé',
                 version: document.version,
                 step: 'Archive'
             };
 
             await updateDoc(doc(db, 'documents', document.id), {
-                status: DocumentStatus.ARCHIVED,
+                status: Status.ARCHIVED,
                 workflowStatus: 'Archived',
                 archivedAt: serverTimestamp(),
                 workflowHistory: arrayUnion(historyItem),
@@ -210,7 +206,7 @@ export class DocumentWorkflowService {
     static async revertToDraft(document: Document, user: UserProfile, reason?: string) {
         try {
             // Only allow revert from Rejected or In Review
-            if (![DocumentStatus.REJECTED, DocumentStatus.IN_REVIEW].includes(document.status as DocumentStatus)) {
+            if (![Status.REJECTED, Status.IN_REVIEW].includes(document.status as DocumentStatus)) {
                 throw new Error(`Impossible de revenir en brouillon depuis ${document.status}`);
             }
 
@@ -219,14 +215,14 @@ export class DocumentWorkflowService {
                 date: new Date().toISOString(),
                 userId: user.uid,
                 userName: user.displayName || user.email || 'Unknown',
-                action: 'revert',
+                action: 'annuler',
                 comment: reason || 'Revenu en brouillon',
                 version: document.version,
-                step: 'Draft'
+                step: 'Brouillon'
             };
 
             await updateDoc(doc(db, 'documents', document.id), {
-                status: DocumentStatus.DRAFT,
+                status: Status.DRAFT,
                 workflowStatus: 'Draft',
                 reviewers: [],
                 workflowHistory: arrayUnion(historyItem),
