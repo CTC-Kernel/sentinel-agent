@@ -137,7 +137,10 @@ export function DataTable<TData extends { id: string }, TValue>({
         link.click();
     };
 
-    const selectedIds = Object.keys(rowSelection).filter(id => rowSelection[id]);
+    const selectedIds = React.useMemo(
+        () => Object.keys(rowSelection).filter(id => rowSelection[id]),
+        [rowSelection]
+    );
 
     return (
         <div className={cn("space-y-4 min-w-0", className)}>

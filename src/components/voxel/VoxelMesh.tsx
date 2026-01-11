@@ -6,7 +6,7 @@ import { animated, useSpring, config } from '@react-spring/three';
 import { VoxelNode, Risk, Project, Incident } from '../../types';
 import { VoxelDetailOverlay } from '../VoxelDetailOverlay';
 import { useModelLibrary } from '../../hooks/useModelLibrary';
-import { MODEL_LIBRARY_CONFIG } from '../../context/modelLibraryConstants';
+import { MODEL_LIBRARY_CONFIG } from '../../contexts/modelLibraryConstants';
 import { GlassMaterial, EdgesWithColor } from './VoxelMaterials';
 
 // Helper functions for LOD calculations

@@ -1,6 +1,6 @@
 import { useContext } from 'react';
-import { ModelLibraryContext } from '../context/ModelLibraryContextDefinition';
-import { ModelLibrary } from '../context/modelLibraryConstants';
+import { ModelLibraryContext } from '../contexts/ModelLibraryContextDefinition';
+import { ModelLibrary } from '../contexts/modelLibraryConstants';
 
 export const useModelLibrary = (): ModelLibrary => {
     const context = useContext(ModelLibraryContext);

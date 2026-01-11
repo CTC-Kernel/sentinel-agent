@@ -29,7 +29,7 @@ interface IncidentKanbanProps {
     loading?: boolean;
 }
 
-export const IncidentKanban: React.FC<IncidentKanbanProps> = ({ incidents, onSelect, onEdit, onDelete, canEdit, loading }) => {
+export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incidents, onSelect, onEdit, onDelete, canEdit, loading }) => {
 
     // Group incidents by status
     const groupedIncidents = React.useMemo(() => {
@@ -103,6 +103,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = ({ incidents, onSel
                                         {canEdit && onEdit && (
                                             <CustomTooltip content="Modifier">
                                                 <button
+                                                    aria-label={`Modifier l'incident ${incident.title}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         onEdit(incident);
@@ -116,6 +117,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = ({ incidents, onSel
                                         {canEdit && onDelete && (
                                             <CustomTooltip content="Supprimer">
                                                 <button
+                                                    aria-label={`Supprimer l'incident ${incident.title}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         onDelete(incident.id);
@@ -169,4 +171,6 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = ({ incidents, onSel
             ))}
         </div>
     );
-};
+});
+
+IncidentKanban.displayName = 'IncidentKanban';

@@ -5,7 +5,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import { UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { WarRoomModal } from './WarRoomModal';
-import { useCrisis } from '../../context/CrisisContext';
+import { useCrisis } from '../../contexts/CrisisContext';
 
 interface ContinuityCrisisProps {
     users: UserProfile[];

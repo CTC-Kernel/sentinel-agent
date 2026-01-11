@@ -11,7 +11,8 @@ import { ErrorLogger } from '../services/errorLogger';
 import { hasPermission } from '../utils/permissions';
 
 import { VoxelGuide } from '../components/VoxelGuide';
-import { VoxelStudio } from '../components/VoxelStudio';
+// Lazy-loaded 3D component (heavy - Three.js ~500KB)
+const VoxelStudio = React.lazy(() => import('../components/VoxelStudio').then(m => ({ default: m.VoxelStudio })));
 import { PageHeader } from '../components/ui/PageHeader';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -842,38 +843,40 @@ export const VoxelView: React.FC = () => {
             </div>
           </div>
         )}
-        <VoxelStudio
-          assets={assets}
-          risks={risks}
-          projects={projects}
-          audits={audits}
-          incidents={incidents}
-          suppliers={suppliers}
-          controls={controls}
-          onNodeClick={handleNodeClick}
-          className="w-full h-full"
-          visibleTypes={activeLayers}
-          focusNodeId={focusedNodeId}
-          highlightCritical={heatmapEnabled}
-          xRayMode={xRayEnabled}
-          autoRotatePreference={autoRotateEnabled}
-          presentationMode={presentationMode}
+        <React.Suspense fallback={<LoadingScreen message="Chargement du studio 3D..." />}>
+          <VoxelStudio
+            assets={assets}
+            risks={risks}
+            projects={projects}
+            audits={audits}
+            incidents={incidents}
+            suppliers={suppliers}
+            controls={controls}
+            onNodeClick={handleNodeClick}
+            className="w-full h-full"
+            visibleTypes={activeLayers}
+            focusNodeId={focusedNodeId}
+            highlightCritical={heatmapEnabled}
+            xRayMode={xRayEnabled}
+            autoRotatePreference={autoRotateEnabled}
+            presentationMode={presentationMode}
 
 
-          releaseToken={releaseToken}
-          suggestedLinks={suggestedLinks}
+            releaseToken={releaseToken}
+            suggestedLinks={suggestedLinks}
 
-          // Overlay props
-          selectedNodeDetails={selectedNodeDetails}
-          isDetailMinimized={isDetailMinimized}
-          setIsDetailMinimized={setIsDetailMinimized}
-          handleSelectionClear={handleSelectionClear}
-          relatedElements={relatedElements}
-          applyFocus={applyFocus}
-          handleOpenSelected={handleOpenSelected}
-          impactMode={impactMode}
-          setImpactMode={setImpactMode}
-        />
+            // Overlay props
+            selectedNodeDetails={selectedNodeDetails}
+            isDetailMinimized={isDetailMinimized}
+            setIsDetailMinimized={setIsDetailMinimized}
+            handleSelectionClear={handleSelectionClear}
+            relatedElements={relatedElements}
+            applyFocus={applyFocus}
+            handleOpenSelected={handleOpenSelected}
+            impactMode={impactMode}
+            setImpactMode={setImpactMode}
+          />
+        </React.Suspense>
 
         {/* AI Insights Panel */}
         {showInsights && aiInsights.length > 0 && (

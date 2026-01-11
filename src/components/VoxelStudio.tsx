@@ -8,7 +8,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, AISuggestedLink } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 import { VoxelMesh } from './voxel/VoxelMesh';
-import { ModelLibraryProvider } from '../context/ModelLibraryContext';
+import { ModelLibraryProvider } from '../contexts/ModelLibraryContext';
 
 
 // Helper for CSS Variables

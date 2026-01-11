@@ -5,7 +5,7 @@ import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'r
 
 // Contexts & Hooks
 import { AuthProvider } from './contexts/AuthContext';
-import { CrisisProvider } from './context/CrisisContext';
+import { CrisisProvider } from './contexts/CrisisContext';
 import { useStore } from './store';
 import { useAuth } from './hooks/useAuth';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
@@ -48,7 +48,8 @@ import { NavigationLoader } from './components/ui/NavigationLoader';
 // Features
 import { NotificationProvider } from './components/ui/NotificationSystem';
 import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
-import { GeminiAssistant } from './components/ai/GeminiAssistant';
+// Lazy-loaded AI component (heavy - ~50KB)
+const GeminiAssistant = React.lazy(() => import('./components/ai/GeminiAssistant').then(m => ({ default: m.GeminiAssistant })));
 import { VersionCheck } from './components/VersionCheck';
 
 const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
@@ -161,7 +162,9 @@ const AppLayout: React.FC = () => {
                 description="Plateforme de gouvernance, risques et conformité (GRC) pour piloter votre cybersécurité."
             />
             <CommandPalette />
-            <GeminiAssistant />
+            <React.Suspense fallback={null}>
+                <GeminiAssistant />
+            </React.Suspense>
 
             {!isOnline && (
                 <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-tooltip glass-panel px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 shadow-lg animate-slide-up border border-slate-200">
