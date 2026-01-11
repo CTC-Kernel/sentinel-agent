@@ -8,7 +8,7 @@ import { ChartTooltip } from '../../ui/ChartTooltip';
 import { slideUpVariants } from '../../ui/animationVariants';
 import { BusinessProcess, BcpDrill } from '../../../types';
 import { EmptyChartState } from '../../ui/EmptyChartState';
-import { SEVERITY_COLORS } from '../../../theme/chartTheme';
+import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../../theme/chartTheme';
 
 interface ContinuityChartsProps {
     processes: BusinessProcess[];
@@ -42,9 +42,9 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
             else if (d.result === 'Échec') counts.Échec++;
         });
         return [
-            { name: 'Succès', value: counts.Succès, color: '#10b981' },
-            { name: 'Partiel', value: counts.Partiel, color: '#f59e0b' },
-            { name: 'Échec', value: counts.Échec, color: '#ef4444' }
+            { name: 'Succès', value: counts.Succès, color: SENTINEL_PALETTE.success },
+            { name: 'Partiel', value: counts.Partiel, color: SENTINEL_PALETTE.warning },
+            { name: 'Échec', value: counts.Échec, color: SEVERITY_COLORS.critical }
         ];
     }, [drills]);
 
@@ -180,12 +180,12 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
                             <BarChart data={drillsEvolutionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="gradientSuccess" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
-                                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
+                                        <stop offset="0%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0.3} />
                                     </linearGradient>
                                     <linearGradient id="gradientFail" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8} />
-                                        <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3} />
+                                        <stop offset="0%" stopColor={SEVERITY_COLORS.critical} stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor={SEVERITY_COLORS.critical} stopOpacity={0.3} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.3)" />

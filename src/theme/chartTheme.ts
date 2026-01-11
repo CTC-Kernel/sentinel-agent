@@ -95,3 +95,18 @@ export const SCORE_GRADIENT_COLORS = {
     warning: { start: '#fdba74', end: '#f97316' },  // orange-300 to orange-500
     good: { start: '#86efac', end: '#22c55e' },     // green-300 to green-500
 } as const;
+
+// Finding type colors for audit charts
+export const FINDING_COLORS = {
+    majeure: '#EF4444',      // Red-500
+    mineure: '#F59E0B',      // Amber-500
+    observation: '#3B82F6',  // Blue-500
+    opportunite: '#10B981',  // Emerald-500
+} as const;
+
+// Chart axis and grid colors
+export const CHART_AXIS_COLORS = {
+    grid: '#94a3b8',         // Slate-400
+    tick: '#94a3b8',         // Slate-400
+    gridOpacity: 0.1,
+} as const;

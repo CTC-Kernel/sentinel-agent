@@ -10,6 +10,7 @@ import {
 import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
+import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../theme/chartTheme';
 
 interface ProjectDashboardProps {
     project: Project;
@@ -56,8 +57,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
         const tasks = project.tasks || [];
         return [
             { name: 'À faire', value: tasks.filter(t => t.status === 'A faire').length, color: 'hsl(var(--muted-foreground) / 0.55)' },
-            { name: 'En cours', value: tasks.filter(t => t.status === 'En cours').length, color: '#3b82f6' },
-            { name: 'Terminé', value: tasks.filter(t => t.status === 'Terminé').length, color: '#10b981' }
+            { name: 'En cours', value: tasks.filter(t => t.status === 'En cours').length, color: SENTINEL_PALETTE.series2 },
+            { name: 'Terminé', value: tasks.filter(t => t.status === 'Terminé').length, color: SENTINEL_PALETTE.success }
         ];
     }, [project.tasks]);
 
@@ -65,9 +66,9 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
     const tasksByPriority = useMemo(() => {
         const tasks = project.tasks || [];
         return [
-            { name: 'Haute', value: tasks.filter(t => t.priority === 'high').length, color: '#ef4444' },
-            { name: 'Moyenne', value: tasks.filter(t => t.priority === 'medium').length, color: '#f59e0b' },
-            { name: 'Faible', value: tasks.filter(t => t.priority === 'low').length, color: '#3b82f6' }
+            { name: 'Haute', value: tasks.filter(t => t.priority === 'high').length, color: SEVERITY_COLORS.critical },
+            { name: 'Moyenne', value: tasks.filter(t => t.priority === 'medium').length, color: SEVERITY_COLORS.medium },
+            { name: 'Faible', value: tasks.filter(t => t.priority === 'low').length, color: SEVERITY_COLORS.info }
         ];
     }, [project.tasks]);
 

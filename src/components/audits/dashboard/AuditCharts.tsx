@@ -5,6 +5,7 @@ import { PieChart as PieChartIcon, BarChart3 as BarChartIcon } from '../../ui/Ic
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { EmptyChartState } from '../../ui/EmptyChartState';
 import { slideUpVariants } from '../../ui/animationVariants';
+import { FINDING_COLORS, CHART_AXIS_COLORS } from '../../../theme/chartTheme';
 
 interface AuditChartsProps {
     statusData: Array<{ name: string; value: number; color: string }>;
@@ -85,23 +86,23 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
                         />
                     ) : (
                         <BarChart data={findingsByType} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={'#94a3b8'} strokeOpacity={0.1} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_AXIS_COLORS.grid} strokeOpacity={CHART_AXIS_COLORS.gridOpacity} />
                             <XAxis
                                 dataKey="name"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 10 }}
                                 dy={10}
                             />
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 10 }}
                             />
                             <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                             <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={30}>
                                 {findingsByType.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.name === 'Majeure' ? '#EF4444' : entry.name === 'Mineure' ? '#F59E0B' : '#3B82F6'} />
+                                    <Cell key={`cell-${index}`} fill={entry.name === 'Majeure' ? FINDING_COLORS.majeure : entry.name === 'Mineure' ? FINDING_COLORS.mineure : FINDING_COLORS.observation} />
                                 ))}
                             </Bar>
                         </BarChart>

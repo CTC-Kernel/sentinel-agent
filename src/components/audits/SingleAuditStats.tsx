@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
+import { FINDING_COLORS } from '../../theme/chartTheme';
 
 interface SingleAuditStatsProps {
     audit: Audit;
@@ -19,10 +20,10 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
     const completionRate = totalFindings > 0 ? Math.round((closedFindings / totalFindings) * 100) : 100;
 
     const findingsByType = [
-        { name: 'Majeure', value: findings.filter(f => f.type === 'Majeure').length, color: '#EF4444' },
-        { name: 'Mineure', value: findings.filter(f => f.type === 'Mineure').length, color: '#F59E0B' },
-        { name: 'Observation', value: findings.filter(f => f.type === 'Observation').length, color: '#3B82F6' },
-        { name: 'Opportunité', value: findings.filter(f => f.type === 'Opportunité').length, color: '#10B981' },
+        { name: 'Majeure', value: findings.filter(f => f.type === 'Majeure').length, color: FINDING_COLORS.majeure },
+        { name: 'Mineure', value: findings.filter(f => f.type === 'Mineure').length, color: FINDING_COLORS.mineure },
+        { name: 'Observation', value: findings.filter(f => f.type === 'Observation').length, color: FINDING_COLORS.observation },
+        { name: 'Opportunité', value: findings.filter(f => f.type === 'Opportunité').length, color: FINDING_COLORS.opportunite },
     ].filter(d => d.value > 0);
 
     return (

@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { AlertTriangle, Shield, Activity } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
+import { SENTINEL_PALETTE, SEVERITY_COLORS, CHART_AXIS_COLORS } from '../../theme/chartTheme';
 
 interface ThreatDashboardProps {
     threats: Threat[];
@@ -152,18 +153,18 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={typeData} layout="vertical" margin={{ left: 40, right: 20 }}>
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(255,255,255,0.1)" />
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={`rgba(255,255,255,${CHART_AXIS_COLORS.gridOpacity})`} />
                                     <XAxis type="number" hide />
                                     <YAxis
                                         dataKey="name"
                                         type="category"
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: '#94a3b8', fontSize: 12 }}
+                                        tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }}
                                         width={100}
                                     />
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
+                                    <Bar dataKey="value" fill={SENTINEL_PALETTE.info} radius={[0, 4, 4, 0]} barSize={20} />
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
@@ -185,15 +186,15 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                                 <AreaChart data={activityData}>
                                     <defs>
                                         <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                            <stop offset="5%" stopColor={SEVERITY_COLORS.critical} stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor={SEVERITY_COLORS.critical} stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
-                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={`rgba(255,255,255,${CHART_AXIS_COLORS.gridOpacity})`} />
+                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} />
                                     <Tooltip content={<ChartTooltip />} />
-                                    <Area type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorActivity)" />
+                                    <Area type="monotone" dataKey="value" stroke={SEVERITY_COLORS.critical} strokeWidth={3} fillOpacity={1} fill="url(#colorActivity)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         )}
