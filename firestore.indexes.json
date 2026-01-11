@@ -605,6 +605,104 @@
                     "order": "DESCENDING"
                 }
             ]
+        },
+        {
+            "collectionGroup": "findings",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "severity",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "findings",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "risks",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "mitigationControlIds",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "audits",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "relatedControlIds",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "projects",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "relatedAuditIds",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "documents",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "relatedAuditIds",
+                    "arrayConfig": "CONTAINS"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "audit_checklists",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "auditId",
+                    "order": "ASCENDING"
+                }
+            ]
         }
     ],
     "fieldOverrides": []

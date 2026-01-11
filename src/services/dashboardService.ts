@@ -83,7 +83,7 @@ export class DashboardService {
                 const snap = await getCountFromServer(q);
                 return snap.data().count;
             } catch (error) {
-                console.warn(`[DashboardService] Failed to fetch ${label} count:`, error);
+                ErrorLogger.warn(`Failed to fetch ${label} count`, `DashboardService.getAggregatedStats`, { error });
                 // Don't throw, just return 0 to keep dashboard alive
                 return 0;
             }

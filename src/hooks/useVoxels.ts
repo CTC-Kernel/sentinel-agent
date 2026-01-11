@@ -73,8 +73,7 @@ export const useVoxels = () => {
                 return snap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as T[];
             } catch (error) {
                 // Log silently to avoid spamming user, but ensure we return empty array
-                console.warn(`[useVoxels] Failed to fetch ${collectionName}`, error);
-                ErrorLogger.error(error as Error, `useVoxels.fetchCollection.${collectionName}`);
+                ErrorLogger.warn(`Failed to fetch ${collectionName}`, `useVoxels.fetchCollection.${collectionName}`, { error });
                 return [];
             }
         };

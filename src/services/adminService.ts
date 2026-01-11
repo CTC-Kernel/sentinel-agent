@@ -23,7 +23,7 @@ export const AdminService = {
         try {
             const currentUser = auth.currentUser;
             if (!currentUser) {
-                console.warn('Attempted to log admin action without authenticated user');
+                ErrorLogger.warn('Attempted to log admin action without authenticated user', 'AdminService.logAction');
                 return;
             }
 
@@ -37,7 +37,6 @@ export const AdminService = {
             });
         } catch (error) {
             // We log the error but don't throw to avoid blocking the main action
-            console.error('Failed to write audit log', error);
             ErrorLogger.error(error as Error, 'AdminService.logAction');
         }
     },

@@ -1,6 +1,7 @@
 import { db, storage } from '../firebase';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { ref, listAll } from 'firebase/storage';
+import { ErrorLogger } from './errorLogger';
 
 export interface ServiceHealth {
     name: string;
@@ -28,7 +29,7 @@ export const ConnectivityService = {
                 latency
             };
         } catch (error) {
-            console.error('Firestore check failed', error);
+            ErrorLogger.warn('Firestore check failed', 'ConnectivityService.checkFirestore', { error });
             return {
                 name: 'Firestore Database',
                 status: 'outage',

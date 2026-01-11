@@ -14,7 +14,7 @@ const getJwtSecret = (): string => {
   if (!secret) {
     // In development/demo mode, use a default secret with warning
     if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
-      console.warn('[TokenService] JWT_SECRET not configured. Using default for development only.');
+      ErrorLogger.warn('JWT_SECRET not configured. Using default for development only.', 'TokenService.getJwtSecret');
       return 'SENTINEL_DEV_JWT_SECRET_NOT_FOR_PRODUCTION';
     }
     throw new Error('JWT_SECRET must be configured in production environment');
