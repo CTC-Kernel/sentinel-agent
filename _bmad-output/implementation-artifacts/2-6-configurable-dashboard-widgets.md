@@ -1,6 +1,6 @@
 # Story 2.6: Configurable Dashboard Widgets
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -32,61 +32,61 @@ So that **I see the information most relevant to me**.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Register new widgets in WidgetRegistry** (AC: 2)
-  - [ ] 1.1 Add `compliance-score` widget (ComplianceScoreWidget from Story 2-2)
-  - [ ] 1.2 Add `executive-kpi` widget (ExecutiveKPIWidget from Story 2-3)
-  - [ ] 1.3 Add `rssi-critical-risks` widget (RSSICriticalRisksWidget from Story 2-4)
-  - [ ] 1.4 Add `rssi-incidents` widget (RSSIIncidentsWidget from Story 2-4)
-  - [ ] 1.5 Add `rssi-actions` widget (RSSIActionsWidget from Story 2-4)
-  - [ ] 1.6 Add `pm-actions-overdue` widget (PMActionsOverdueWidget from Story 2-5)
-  - [ ] 1.7 Add `pm-timeline` widget (PMTimelineWidget from Story 2-5)
-  - [ ] 1.8 Add `pm-progress` widget (PMProgressWidget from Story 2-5)
-  - [ ] 1.9 Export i18n translation keys for new widgets
+- [x] **Task 1: Register new widgets in WidgetRegistry** (AC: 2)
+  - [x] 1.1 Add `compliance-score` widget (ComplianceScoreWidget from Story 2-2)
+  - [x] 1.2 Add `executive-kpi` widget (ExecutiveKPIWidget from Story 2-3)
+  - [x] 1.3 Add `rssi-critical-risks` widget (RSSICriticalRisksWidget from Story 2-4)
+  - [x] 1.4 Add `rssi-incidents` widget (RSSIIncidentsWidget from Story 2-4)
+  - [x] 1.5 Add `rssi-actions` widget (RSSIActionsWidget from Story 2-4)
+  - [x] 1.6 Add `pm-actions-overdue` widget (PMActionsOverdueWidget from Story 2-5)
+  - [x] 1.7 Add `pm-timeline` widget (PMTimelineWidget from Story 2-5)
+  - [x] 1.8 Add `pm-progress` widget (PMProgressWidget from Story 2-5)
+  - [x] 1.9 Export i18n translation keys for new widgets
 
-- [ ] **Task 2: Create role-based default layouts config** (AC: 5)
-  - [ ] 2.1 Create `src/config/dashboardDefaults.ts` per ADR-004
-  - [ ] 2.2 Define direction defaults: compliance-score, executive-kpi, health-check
-  - [ ] 2.3 Define rssi defaults: rssi-critical-risks, rssi-incidents, rssi-actions, risk-heatmap
-  - [ ] 2.4 Define project_manager defaults: pm-actions-overdue, pm-timeline, pm-progress
-  - [ ] 2.5 Define auditor defaults: audits-donut, compliance-progress, documents-stats
-  - [ ] 2.6 Define default layout for other roles (user, admin)
+- [x] **Task 2: Create role-based default layouts config** (AC: 5)
+  - [x] 2.1 Create `src/config/dashboardDefaults.ts` per ADR-004
+  - [x] 2.2 Define direction defaults: compliance-score, executive-kpi, health-check
+  - [x] 2.3 Define rssi defaults: rssi-critical-risks, rssi-incidents, rssi-actions, risk-heatmap
+  - [x] 2.4 Define project_manager defaults: pm-actions-overdue, pm-timeline, pm-progress
+  - [x] 2.5 Define auditor defaults: audits-donut, compliance-progress, documents-stats
+  - [x] 2.6 Define default layout for other roles (user, admin)
 
-- [ ] **Task 3: Implement Firestore persistence** (AC: 4)
-  - [ ] 3.1 Create `tenants/{tenantId}/dashboardConfigs/{userId}` Firestore document structure
-  - [ ] 3.2 Update `useDashboardPreferences.ts` to use Firestore with localStorage fallback
-  - [ ] 3.3 Add real-time sync with `onSnapshot` for cross-device updates
-  - [ ] 3.4 Add debounced auto-save on layout change (1 second delay)
-  - [ ] 3.5 Handle offline mode with localStorage queue
+- [x] **Task 3: Implement Firestore persistence** (AC: 4)
+  - [x] 3.1 Create `tenants/{tenantId}/dashboardConfigs/{userId}` Firestore document structure
+  - [x] 3.2 Update `useDashboardPreferences.ts` to use Firestore with localStorage fallback
+  - [x] 3.3 Add real-time sync with `onSnapshot` for cross-device updates
+  - [x] 3.4 Add debounced auto-save on layout change (1 second delay)
+  - [x] 3.5 Handle offline mode with localStorage queue
 
-- [ ] **Task 4: Create DashboardEditModeToggle component** (AC: 1, 5)
-  - [ ] 4.1 Create `src/components/dashboard/DashboardEditModeToggle.tsx`
-  - [ ] 4.2 Add "Personnaliser" button that activates edit mode
-  - [ ] 4.3 Add "Terminer" button to exit edit mode
-  - [ ] 4.4 Add "Reinitialiser" button to reset to role defaults
-  - [ ] 4.5 Show edit mode indicator (visual feedback)
+- [x] **Task 4: Create DashboardEditModeToggle component** (AC: 1, 5)
+  - [x] 4.1 Create `src/components/dashboard/DashboardEditModeToggle.tsx`
+  - [x] 4.2 Add "Personnaliser" button that activates edit mode
+  - [x] 4.3 Add "Terminer" button to exit edit mode
+  - [x] 4.4 Add "Reinitialiser" button to reset to role defaults
+  - [x] 4.5 Show edit mode indicator (visual feedback)
 
-- [ ] **Task 5: Create ConfigurableDashboard page integration** (AC: 1, 2, 3, 4, 5)
-  - [ ] 5.1 Create `src/components/dashboard/ConfigurableDashboard.tsx`
-  - [ ] 5.2 Integrate role-based default layouts from dashboardDefaults
-  - [ ] 5.3 Wire up edit mode toggle with ConfigurableDashboardGrid
-  - [ ] 5.4 Wire up AddWidgetModal with updated WidgetRegistry
-  - [ ] 5.5 Integrate Firestore persistence via useDashboardPreferences
-  - [ ] 5.6 Add role detection and apply appropriate defaults
+- [x] **Task 5: Create ConfigurableDashboard page integration** (AC: 1, 2, 3, 4, 5)
+  - [x] 5.1 Create `src/components/dashboard/ConfigurableDashboard.tsx`
+  - [x] 5.2 Integrate role-based default layouts from dashboardDefaults
+  - [x] 5.3 Wire up edit mode toggle with ConfigurableDashboardGrid
+  - [x] 5.4 Wire up AddWidgetModal with updated WidgetRegistry
+  - [x] 5.5 Integrate Firestore persistence via useDashboardPreferences
+  - [x] 5.6 Add role detection and apply appropriate defaults
 
-- [ ] **Task 6: Update AddWidgetModal with categories** (AC: 2)
-  - [ ] 6.1 Categorize widgets: "Score & KPI", "Risques", "Actions", "Audits", "Autres"
-  - [ ] 6.2 Add search/filter functionality in modal
-  - [ ] 6.3 Show widget preview on hover
-  - [ ] 6.4 Prevent adding duplicate widgets (except multi-instance widgets)
+- [x] **Task 6: Update AddWidgetModal with categories** (AC: 2)
+  - [x] 6.1 Categorize widgets: "Score & KPI", "Risques", "Actions", "Audits", "Autres"
+  - [x] 6.2 Add search/filter functionality in modal
+  - [x] 6.3 Show widget preview on hover
+  - [x] 6.4 Prevent adding duplicate widgets (except multi-instance widgets)
 
-- [ ] **Task 7: Write unit tests** (AC: all)
-  - [ ] 7.1 Test WidgetRegistry has all new widgets
-  - [ ] 7.2 Test dashboardDefaults returns correct layouts per role
-  - [ ] 7.3 Test useDashboardPreferences Firestore save/load
-  - [ ] 7.4 Test DashboardEditModeToggle states
-  - [ ] 7.5 Test ConfigurableDashboard role detection
-  - [ ] 7.6 Test AddWidgetModal filtering and selection
-  - [ ] 7.7 Test resetLayout restores role defaults
+- [x] **Task 7: Write unit tests** (AC: all)
+  - [x] 7.1 Test WidgetRegistry has all new widgets
+  - [x] 7.2 Test dashboardDefaults returns correct layouts per role
+  - [x] 7.3 Test useDashboardPreferences Firestore save/load
+  - [x] 7.4 Test DashboardEditModeToggle states
+  - [x] 7.5 Test ConfigurableDashboard role detection
+  - [x] 7.6 Test AddWidgetModal filtering and selection
+  - [x] 7.7 Test resetLayout restores role defaults
 
 ## Dev Notes
 
@@ -283,8 +283,38 @@ function getUserDashboardRole(user: UserWithRole): string {
 ## Dev Agent Record
 
 ### Agent Model Used
+Claude Opus 4.5
 
 ### Completion Notes List
+1. **Task 1 (Widget Registration)**: Added all 8 new widgets from Stories 2-2 to 2-5 to WidgetRegistry.tsx. Each widget includes id, component, titleKey, and defaultColSpan. Updated i18n translations for FR/EN.
+
+2. **Task 2 (Role-based Defaults)**: Created dashboardDefaults.ts with ROLE_DEFAULT_LAYOUTS for direction, rssi, project_manager, auditor, admin, and user roles. Includes getDefaultLayoutForRole(), getDashboardRole(), getWidgetCategory(), and WIDGET_CATEGORIES mapping.
+
+3. **Task 3 (Firestore Persistence)**: Rewrote useDashboardPreferences.ts to use Firestore with localStorage fallback. Implemented onSnapshot real-time sync, 1-second debounced auto-save, and offline queue for failed saves.
+
+4. **Task 4 (Edit Mode Toggle)**: Created DashboardEditModeToggle.tsx with "Personnaliser"/"Terminer" buttons, visual edit mode indicator, and reset confirmation dialog with accessibility support.
+
+5. **Task 5 (ConfigurableDashboard Integration)**: Created ConfigurableDashboard.tsx as main integration component. Implements role detection, wires up all components, and handles empty/loading states.
+
+6. **Task 6 (AddWidgetModal Categories)**: Updated AddWidgetModal.tsx with 5 categories (Score & KPI, Risques, Actions, Audits, Autres), search functionality, category icons/colors, and duplicate prevention.
+
+7. **Task 7 (Unit Tests)**: Created 120 unit tests across 6 test files covering all acceptance criteria. All tests pass.
 
 ### File List
+**Created:**
+- src/config/dashboardDefaults.ts (role-based default layouts)
+- src/components/dashboard/DashboardEditModeToggle.tsx (edit mode UI)
+- src/components/dashboard/ConfigurableDashboard.tsx (main integration)
+- src/config/__tests__/dashboardDefaults.test.ts (24 tests)
+- src/components/dashboard/__tests__/DashboardEditModeToggle.test.tsx (15 tests)
+- src/components/dashboard/__tests__/ConfigurableDashboard.test.tsx (14 tests)
+- src/hooks/__tests__/useDashboardPreferences.test.ts (20 tests)
+- src/components/dashboard/configurable/__tests__/WidgetRegistry.test.ts (24 tests)
+- src/components/dashboard/configurable/__tests__/AddWidgetModal.test.tsx (23 tests)
+
+**Modified:**
+- src/components/dashboard/configurable/WidgetRegistry.tsx (added 8 widget registrations)
+- src/hooks/useDashboardPreferences.ts (Firestore persistence rewrite)
+- src/components/dashboard/configurable/AddWidgetModal.tsx (categories, search, filtering)
+- src/i18n/translations.ts (new widget and category translation keys)
 

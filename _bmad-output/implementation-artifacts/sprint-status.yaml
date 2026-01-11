@@ -51,27 +51,27 @@ development_status:
   epic-1-retrospective: done
 
   # Epic 2: Compliance Score Dashboard (P1 - MVP Core)
-  epic-2: in-progress
+  epic-2: done
   2-1-global-compliance-score-calculation: done
   2-2-apple-health-style-score-gauge: done
   2-3-executive-kpi-cards: done
   2-4-rssi-risk-incident-view: done
   2-5-project-manager-progress-view: done
-  2-6-configurable-dashboard-widgets: in-progress
-  epic-2-retrospective: optional
+  2-6-configurable-dashboard-widgets: done
+  epic-2-retrospective: done
 
   # Epic 3: Risk Management Enhancement (P1 - Core)
-  epic-3: backlog
-  3-1-enhanced-risk-creation-form: backlog
-  3-2-risk-evaluation-matrix: backlog
-  3-3-link-risks-to-controls: backlog
-  3-4-risk-treatment-actions: backlog
-  3-5-risk-register-view: backlog
+  epic-3: done
+  3-1-enhanced-risk-creation-form: done
+  3-2-risk-evaluation-matrix: done
+  3-3-link-risks-to-controls: done
+  3-4-risk-treatment-actions: done
+  3-5-risk-register-view: done
   epic-3-retrospective: optional
 
   # Epic 4: Multi-Framework Compliance Engine (P1 - Differenciateur EU)
-  epic-4: backlog
-  4-1-framework-activation: backlog
+  epic-4: in-progress
+  4-1-framework-activation: in-progress
   4-2-cross-framework-control-mapping: backlog
   4-3-shared-requirements-view: backlog
   4-4-statement-of-applicability-soa-generation: backlog
