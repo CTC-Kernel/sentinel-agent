@@ -7,6 +7,7 @@
 import { useState, useMemo } from 'react';
 import { cn } from '../../lib/utils';
 import { getScoreTextColor, getScoreLevel } from '../../utils/scoreUtils';
+import { SCORE_GRADIENT_COLORS } from '../../theme/chartTheme';
 
 export type ScoreGaugeSize = 'sm' | 'md' | 'lg';
 
@@ -34,14 +35,8 @@ const SIZE_CONFIG: Record<ScoreGaugeSize, { diameter: number; strokeWidth: numbe
   lg: { diameter: 180, strokeWidth: 10, fontSize: 'text-4xl' },
 };
 
-/**
- * Gradient color stops for each score level
- */
-const GRADIENT_COLORS = {
-  critical: { start: '#fca5a5', end: '#ef4444' }, // red-300 to red-500
-  warning: { start: '#fdba74', end: '#f97316' },  // orange-300 to orange-500
-  good: { start: '#86efac', end: '#22c55e' },     // green-300 to green-500
-} as const;
+// Use centralized gradient colors from chartTheme
+const GRADIENT_COLORS = SCORE_GRADIENT_COLORS;
 
 /**
  * ScoreGauge - Circular progress gauge component

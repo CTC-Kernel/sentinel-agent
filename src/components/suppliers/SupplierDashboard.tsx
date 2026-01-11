@@ -8,6 +8,7 @@ import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
+import { SEVERITY_COLORS } from '../../theme/chartTheme';
 
 interface SupplierDashboardProps {
     suppliers: Supplier[];
@@ -24,12 +25,12 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
     const expiredContracts = suppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < new Date()).length;
     const compliantSuppliers = suppliers.filter(s => (s.securityScore || 0) >= 80).length;
 
-    // Chart Data
+    // Chart Data - using design tokens from chartTheme
     const criticalityData = [
-        { name: 'Critique', value: suppliers.filter(s => s.criticality === Criticality.CRITICAL).length, color: '#ef4444' }, // Red-500
-        { name: 'Élevée', value: suppliers.filter(s => s.criticality === Criticality.HIGH).length, color: '#f97316' },   // Orange-500
-        { name: 'Moyenne', value: suppliers.filter(s => s.criticality === Criticality.MEDIUM).length, color: '#eab308' }, // Yellow-500
-        { name: 'Faible', value: suppliers.filter(s => s.criticality === Criticality.LOW).length, color: '#22c55e' },    // Green-500
+        { name: 'Critique', value: suppliers.filter(s => s.criticality === Criticality.CRITICAL).length, color: SEVERITY_COLORS.critical },
+        { name: 'Élevée', value: suppliers.filter(s => s.criticality === Criticality.HIGH).length, color: SEVERITY_COLORS.high },
+        { name: 'Moyenne', value: suppliers.filter(s => s.criticality === Criticality.MEDIUM).length, color: SEVERITY_COLORS.medium },
+        { name: 'Faible', value: suppliers.filter(s => s.criticality === Criticality.LOW).length, color: SEVERITY_COLORS.low },
     ].filter(d => d.value > 0);
 
     const categoryData = Object.entries(

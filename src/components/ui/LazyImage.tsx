@@ -63,12 +63,14 @@ export const LazyImage: React.FC<LazyImageProps> = ({
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      {/* Placeholder */}
+      {/* Placeholder - decorative image during loading */}
       {!isLoaded && !isError && (
         <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 animate-pulse">
           <img
             src={placeholder}
             alt=""
+            role="presentation"
+            aria-hidden="true"
             className="w-full h-full object-cover opacity-50"
           />
         </div>

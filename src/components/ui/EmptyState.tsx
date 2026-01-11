@@ -14,9 +14,9 @@ interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, actionLabel, onAction, color = 'slate', compact = false, className = '' }) => {
     const colorStyles = {
-        slate: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-        blue: 'bg-blue-50 dark:bg-slate-900 text-blue-600 dark:bg-slate-900/20 dark:text-blue-400',
-        indigo: 'bg-indigo-50 dark:bg-slate-900 text-indigo-600 dark:bg-slate-900/20 dark:text-indigo-400',
+        slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+        blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+        indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400',
         rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400',
         amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
         emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',

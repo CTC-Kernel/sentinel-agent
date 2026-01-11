@@ -5,6 +5,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { Button } from '../components/ui/button';
 import { useIncidentsActions } from '../hooks/incidents/useIncidentsActions';
 import {
   AlertTriangle,
@@ -401,13 +402,14 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                           </div>
 
                           {/* Complete Step Button */}
-                          <button
+                          <Button
                             onClick={() => handleStepComplete(step.id)}
-                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+                            className="w-full"
+                            size="sm"
                             aria-label={`Valider l'étape ${step.title}`}
                           >
                             Valider l'étape
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>

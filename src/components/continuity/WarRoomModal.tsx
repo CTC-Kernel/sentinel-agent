@@ -192,7 +192,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                             autoFocus
                                             {...register('content')}
                                         />
-                                        <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50">
+                                        <Button type="submit" disabled={loading} isLoading={loading} size="icon">
                                             <Send className="w-4 h-4" />
                                         </Button>
                                     </form>

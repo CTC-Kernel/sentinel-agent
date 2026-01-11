@@ -243,7 +243,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     {!uploading && (
                         <Button
                             onClick={handleUpload}
-                            className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md font-medium"
+                            className="mt-3 w-full"
                         >
                             <Upload className="h-4 w-4 mr-2" />
                             Téléverser

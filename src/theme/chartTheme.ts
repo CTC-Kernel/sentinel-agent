@@ -88,3 +88,10 @@ export const ChartGradients = {
     amber: { id: 'gradientAmber', from: '#f59e0b', to: '#fcd34d' },
     rose: { id: 'gradientRose', from: '#f43f5e', to: '#fda4af' },
 };
+
+// Score gauge gradient colors (for circular progress indicators)
+export const SCORE_GRADIENT_COLORS = {
+    critical: { start: '#fca5a5', end: '#ef4444' }, // red-300 to red-500
+    warning: { start: '#fdba74', end: '#f97316' },  // orange-300 to orange-500
+    good: { start: '#86efac', end: '#22c55e' },     // green-300 to green-500
+} as const;
