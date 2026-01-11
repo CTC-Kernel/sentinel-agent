@@ -12,7 +12,7 @@ export class E2EAuthService {
 
   static isE2EMode(): boolean {
     const plain = localStorage.getItem(this.E2E_USER_KEY);
-    console.log(`E2E Debug: Check. Dev=\${import.meta.env.DEV}, User=\${plain !== null}, Key=\${this.E2E_USER_KEY}, Value=\${plain ? plain.substring(0, 20) : 'null'}`);
+    ErrorLogger.debug(`E2E Check: Dev=${import.meta.env.DEV}, HasUser=${plain !== null}`, 'E2EAuthService.isE2EMode');
     return import.meta.env.DEV && (plain !== null || SecureStorage.getSecureItem(this.E2E_USER_KEY) !== null);
   }
 

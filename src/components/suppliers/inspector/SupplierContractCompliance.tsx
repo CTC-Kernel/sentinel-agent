@@ -3,6 +3,7 @@ import { Supplier } from '../../../types';
 import { SupplierFormData } from '../../../schemas/supplierSchema';
 import { Check, ShieldCheck, AlertTriangle, FileText, Scale, Siren, LogOut, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 interface Props {
     supplier: Supplier;
@@ -39,7 +40,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
                 doraContractClauses: newClauses
             } as unknown as SupplierFormData);
         } catch (error) {
-            console.error("Failed to update clauses", error);
+            ErrorLogger.error(error, 'SupplierContractCompliance.handleClauseToggle');
             // Revert on error
             setClauses(clauses);
         } finally {

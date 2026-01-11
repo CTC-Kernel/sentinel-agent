@@ -8,6 +8,7 @@ import { Supplier } from '../../types';
 import { AlertCircle, FileText, Play } from '../ui/Icons';
 import { toast } from '@/lib/toast';
 import { SupplierService } from '../../services/SupplierService';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface Props {
     isOpen: boolean;
@@ -94,7 +95,7 @@ export const SupplierAssessmentModal: React.FC<Props> = ({ isOpen, onClose, supp
             onAssessmentCreated(assessmentId);
             onClose();
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'SupplierAssessmentModal.handleCreate');
             toast.error("Erreur lors de la création de l'évaluation");
         } finally {
             setIsSubmitting(false);

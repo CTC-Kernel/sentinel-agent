@@ -1,11 +1,8 @@
-
 import React, { useState } from 'react';
 import { Check, Loader2, ShieldAlert } from 'lucide-react';
 import { AIActionType, AIActionExecutor, ActionRegistry } from '../../services/ai/actionRegistry';
 import { useAuth } from '../../hooks/useAuth';
-
-
-
+import { ErrorLogger } from '../../services/errorLogger';
 import { motion } from 'framer-motion';
 
 interface ActionCardProps {
@@ -31,7 +28,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
             setMessage(typeof resultMsg === 'string' ? resultMsg : "Action effectuée avec succès.");
             onComplete(typeof resultMsg === 'string' ? resultMsg : "Action effectuée avec succès.");
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'ActionCard.handleConfirm');
             setStatus('error');
             setMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
         }

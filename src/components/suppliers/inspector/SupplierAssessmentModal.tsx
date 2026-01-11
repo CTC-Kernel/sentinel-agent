@@ -4,6 +4,7 @@ import { DORA_QUESTIONNAIRE_SECTIONS } from '../../../constants/doraQuestionnair
 import { SupplierQuestionnaireResponse } from '../../../types';
 import { Check, AlertTriangle, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from '@/lib/toast';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 interface Props {
     isOpen: boolean;
@@ -99,7 +100,7 @@ export const SupplierAssessmentModal: React.FC<Props> = ({
             onClose();
             toast.success('Évaluation enregistrée avec succès');
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'SupplierAssessmentModal.handleSubmit');
             toast.error("Erreur lors de l'enregistrement");
         } finally {
             setIsSubmitting(false);
