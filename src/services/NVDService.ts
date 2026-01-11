@@ -3,10 +3,10 @@ import { db } from '../firebase';
 import { Vulnerability } from '../types';
 import { ErrorLogger } from './errorLogger';
 
-// NVD API Configuration
-const NVD_API_KEY = '394afc4d-c77d-4bd0-8f83-28cc2593cf18';
+// NVD API Configuration - API key should be set via environment variable
+const NVD_API_KEY = import.meta.env.VITE_NVD_API_KEY || '';
 const NVD_API_BASE_URL = 'https://services.nvd.nist.gov/rest/json';
-const NVD_API_DELAY = 6; // seconds between requests
+const NVD_API_DELAY = 6; // seconds between requests (required without API key)
 const NVD_API_RESULTS_PER_PAGE = 2000;
 
 interface NVDVulnerability {
