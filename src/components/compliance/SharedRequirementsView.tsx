@@ -10,6 +10,7 @@ import { FRAMEWORKS } from '../../data/frameworks';
 import { Check, TrendingUp, Layers, Clock, Target, ChevronRight } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../lib/utils';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface SharedRequirementsViewProps {
     controls: Control[];
@@ -51,7 +52,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
 
     // Log active frameworks count for debugging (prevents unused variable warning)
     if (activeFrameworks.length === 0 && controls.length > 0) {
-        console.debug('SharedRequirementsView: No active frameworks configured');
+        ErrorLogger.debug('No active frameworks configured', 'SharedRequirementsView');
     }
 
     // Find controls with shared requirements (mappedFrameworks > 0)

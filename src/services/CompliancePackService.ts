@@ -2,6 +2,7 @@
 import JSZip from 'jszip';
 import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import DOMPurify from 'dompurify';
 import { PdfService } from './PdfService';
 import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset, Project } from '../types';
 import { format } from 'date-fns';
@@ -300,10 +301,10 @@ L'intégrité de ces données est garantie par le système.
                 data.documents.forEach(docItem => {
                     if (docItem.content && docItem.status === 'Publié') {
                         try {
-                            // Strip HTML for PDF text safety (basic implementation)
+                            // Strip HTML for PDF text safety - sanitize first to prevent XSS
                             const tempDiv = document.createElement("div");
-                            tempDiv.innerHTML = docItem.content;
-                            const plainText = tempDiv.textContent || docItem.content || '';
+                            tempDiv.innerHTML = DOMPurify.sanitize(docItem.content, { ALLOWED_TAGS: [] });
+                            const plainText = tempDiv.textContent || '';
 
                             const policyPdf = PdfService.generateExecutiveReport(
                                 {
