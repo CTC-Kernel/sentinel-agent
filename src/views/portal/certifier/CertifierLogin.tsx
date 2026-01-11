@@ -9,6 +9,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import { MasterpieceBackground } from '../../../components/ui/MasterpieceBackground';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 const loginSchema = z.object({
     email: z.string().email('Email invalide'),
@@ -33,7 +34,7 @@ export const CertifierLogin: React.FC = () => {
             toast.success('Connexion réussie', 'Bienvenue sur le portail certificateur');
             navigate('/portal/dashboard');
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'CertifierLogin.handleLogin');
             toast.error('Erreur', 'Identifiants invalides ou erreur de connexion');
         } finally {
             setIsLoading(false);

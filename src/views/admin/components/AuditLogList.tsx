@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AdminService, AuditLog } from '../../../services/adminService';
 import { Search, User, Clock, Info, Download } from 'lucide-react';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 export const AuditLogList: React.FC = () => {
     const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -17,7 +18,7 @@ export const AuditLogList: React.FC = () => {
             const data = await AdminService.getAuditLogs();
             setLogs(data);
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'AuditLogList.fetchLogs');
         } finally {
             setLoading(false);
         }

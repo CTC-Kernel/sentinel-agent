@@ -112,8 +112,7 @@ export const UserManagement: React.FC = () => {
                                                     await signInWithCustomToken(auth, token);
                                                     window.location.href = '/dashboard';
                                                 } catch (err) {
-                                                    // toast.error("Impersonation failed"); // Uncomment when toast is imported
-                                                    console.error(err);
+                                                    ErrorLogger.error(err, 'UserManagement.impersonate');
                                                     alert("Impersonation failed: " + (err as Error).message);
                                                 }
                                             }

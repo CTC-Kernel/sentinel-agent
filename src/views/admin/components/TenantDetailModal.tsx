@@ -4,6 +4,7 @@ import { X, Users, Database, Shield, AlertTriangle, CreditCard, Save } from 'luc
 import { Organization, PlanType } from '../../../types';
 import { AdminService } from '../../../services/adminService';
 import { toast } from '../../../lib/toast';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 interface TenantDetailModalProps {
     isOpen: boolean;
@@ -28,8 +29,8 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
         try {
             const data = await AdminService.getTenantStats(tenant.id);
             setStats(data);
-        } catch (_error) {
-            console.error(_error);
+        } catch (error) {
+            ErrorLogger.error(error, 'TenantDetailModal.loadStats');
             toast.error("Failed to load stats");
         } finally {
             setLoading(false);

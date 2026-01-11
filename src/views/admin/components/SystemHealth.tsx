@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { CheckCircle, AlertTriangle, XCircle, Server, Database, Cloud, Activity, RefreshCw } from 'lucide-react';
 import { ConnectivityService, ServiceHealth } from '../../../services/connectivityService';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 const ServiceStatus: React.FC<{
     name: string;
@@ -79,7 +80,7 @@ export const SystemHealth: React.FC = () => {
             ]);
             setLastUpdate(new Date());
         } catch (error) {
-            console.error("Health Check failed", error);
+            ErrorLogger.error(error, 'SystemHealth.checkHealth');
         } finally {
             setLoading(false);
         }
