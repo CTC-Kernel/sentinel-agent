@@ -1,5 +1,54 @@
 import { Framework } from './common';
 
+/**
+ * Unified audit status enumeration
+ */
+export const AUDIT_STATUSES = [
+    'Planifié',
+    'En cours',
+    'Terminé',
+    'Validé'
+] as const;
+
+export type AuditStatus = typeof AUDIT_STATUSES[number];
+
+/**
+ * Finding types (category of finding)
+ */
+export const FINDING_TYPES = [
+    'Majeure',
+    'Mineure',
+    'Observation',
+    'Opportunité'
+] as const;
+
+export type FindingType = typeof FINDING_TYPES[number];
+
+/**
+ * Finding severity levels (independent of type for filtering)
+ */
+export const FINDING_SEVERITIES = [
+    'Critique',
+    'Haute',
+    'Moyenne',
+    'Faible',
+    'Info'
+] as const;
+
+export type FindingSeverity = typeof FINDING_SEVERITIES[number];
+
+/**
+ * Finding status enumeration
+ */
+export const FINDING_STATUSES = [
+    'Ouvert',
+    'En cours',
+    'Fermé',
+    'Accepté'
+] as const;
+
+export type FindingStatus = typeof FINDING_STATUSES[number];
+
 export interface Audit {
     id: string;
     organizationId: string;
@@ -7,7 +56,7 @@ export interface Audit {
     type: 'Interne' | 'Externe' | 'Certification' | 'Fournisseur';
     auditor: string;
     dateScheduled: string;
-    status: 'Planifié' | 'En cours' | 'Terminé' | 'Validé';
+    status: AuditStatus;
     findingsCount: number;
     description?: string;
     scope?: string;
@@ -48,11 +97,16 @@ export interface Finding {
     organizationId: string;
     auditId: string;
     description: string;
-    type: 'Majeure' | 'Mineure' | 'Observation' | 'Opportunité';
-    status: 'Ouvert' | 'Fermé';
+    type: FindingType;
+    severity: FindingSeverity;
+    status: FindingStatus;
     relatedControlId?: string;
     evidenceIds?: string[];
+    ownerId?: string;
+    dueDate?: string;
+    recommendation?: string;
     createdAt: string;
+    updatedAt?: string;
 }
 
 export interface AuditQuestion {

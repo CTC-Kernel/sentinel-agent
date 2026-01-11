@@ -67,27 +67,43 @@ export class AuditService {
     }
 
     /**
-     * Check for dependencies (projects linking to this audit)
+     * Check for dependencies (projects and documents linking to this audit)
      */
     static async checkDependencies(
         auditId: string,
         organizationId: string
     ): Promise<AuditDependencies> {
         try {
-            // Projects have relatedAuditIds
-            const projectsSnap = await getDocs(
-                query(
-                    collection(db, 'projects'),
-                    where('organizationId', '==', organizationId),
-                    where('relatedAuditIds', 'array-contains', auditId)
+            // Check both projects and documents for relatedAuditIds
+            const [projectsSnap, documentsSnap] = await Promise.all([
+                getDocs(
+                    query(
+                        collection(db, 'projects'),
+                        where('organizationId', '==', organizationId),
+                        where('relatedAuditIds', 'array-contains', auditId)
+                    )
+                ),
+                getDocs(
+                    query(
+                        collection(db, 'documents'),
+                        where('organizationId', '==', organizationId),
+                        where('relatedAuditIds', 'array-contains', auditId)
+                    )
                 )
-            );
+            ]);
 
-            const dependencies: AuditDependency[] = projectsSnap.docs.map(d => ({
-                id: d.id,
-                name: d.data().name || 'Projet',
-                type: 'Projet'
-            }));
+            const dependencies: AuditDependency[] = [
+                ...projectsSnap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().name || 'Projet',
+                    type: 'Projet'
+                })),
+                ...documentsSnap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().title || 'Document',
+                    type: 'Document'
+                }))
+            ];
 
             return {
                 hasDependencies: dependencies.length > 0,
@@ -110,14 +126,34 @@ export class AuditService {
             // 1. Check dependencies
             const { hasDependencies, dependencies } = await this.checkDependencies(auditId, organizationId);
 
-            // 2. Cleanup project dependencies
+            // 2. Cleanup all dependencies (projects and documents)
             if (hasDependencies && dependencies.length > 0) {
+                const cleanupPromises: Promise<void>[] = [];
+
+                // Cleanup project references
                 const projectDeps = dependencies.filter(d => d.type === 'Projet');
-                const cleanupPromises = projectDeps.map(dep =>
-                    updateDoc(doc(db, 'projects', dep.id), {
-                        relatedAuditIds: arrayRemove(auditId)
-                    })
-                );
+                projectDeps.forEach(dep => {
+                    cleanupPromises.push(
+                        updateDoc(doc(db, 'projects', dep.id), {
+                            relatedAuditIds: arrayRemove(auditId)
+                        }).catch((err: unknown) => {
+                            ErrorLogger.warn(`Failed to remove audit from project ${dep.id}: ${String(err)}`, 'AuditService.deleteAuditWithCascade');
+                        })
+                    );
+                });
+
+                // Cleanup document references
+                const documentDeps = dependencies.filter(d => d.type === 'Document');
+                documentDeps.forEach(dep => {
+                    cleanupPromises.push(
+                        updateDoc(doc(db, 'documents', dep.id), {
+                            relatedAuditIds: arrayRemove(auditId)
+                        }).catch((err: unknown) => {
+                            ErrorLogger.warn(`Failed to remove audit from document ${dep.id}: ${String(err)}`, 'AuditService.deleteAuditWithCascade');
+                        })
+                    );
+                });
+
                 await Promise.all(cleanupPromises);
             }
 
@@ -133,7 +169,19 @@ export class AuditService {
             );
             await Promise.all(findingsDeletions);
 
-            // 4. Delete the audit itself
+            // 4. Cascade delete audit checklist
+            const checklistQ = query(
+                collection(db, 'audit_checklists'),
+                where('organizationId', '==', organizationId),
+                where('auditId', '==', auditId)
+            );
+            const checklistSnap = await getDocs(checklistQ);
+            const checklistDeletions = checklistSnap.docs.map(d =>
+                deleteDoc(doc(db, 'audit_checklists', d.id))
+            );
+            await Promise.all(checklistDeletions);
+
+            // 5. Delete the audit itself
             await deleteDoc(doc(db, 'audits', auditId));
 
         } catch (error) {

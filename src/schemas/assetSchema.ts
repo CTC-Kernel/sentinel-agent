@@ -33,7 +33,7 @@ export const assetSchema = z.object({
     department: z.string().optional(),
     aiAnalysis: z.object({
         type: z.string(),
-        response: z.record(z.string(), z.any()),
+        response: z.record(z.string(), z.unknown()),
         timestamp: z.string()
     }).optional().nullable(),
     // Specialized details

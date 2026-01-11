@@ -36,7 +36,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
 
     const findingForm = useForm<FindingFormData>({
         resolver: zodResolver(findingSchema),
-        defaultValues: { description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] }
+        defaultValues: { description: '', type: 'Mineure', severity: 'Moyenne', status: 'Ouvert', relatedControlId: '', evidenceIds: [] }
     });
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, findingId: string) => {
@@ -82,11 +82,19 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                 rows={3}
                             />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <select {...findingForm.register('type')} className="input-field">
                                 <option value="Mineure">{t('audits.findingsSection.form.type.minor')}</option>
                                 <option value="Majeure">{t('audits.findingsSection.form.type.major')}</option>
+                                <option value="Observation">{t('audits.findingsSection.form.type.observation')}</option>
                                 <option value="Opportunité">{t('audits.findingsSection.form.type.opportunity')}</option>
+                            </select>
+                            <select {...findingForm.register('severity')} className="input-field">
+                                <option value="Critique">{t('audits.findingsSection.form.severity.critical')}</option>
+                                <option value="Haute">{t('audits.findingsSection.form.severity.high')}</option>
+                                <option value="Moyenne">{t('audits.findingsSection.form.severity.medium')}</option>
+                                <option value="Faible">{t('audits.findingsSection.form.severity.low')}</option>
+                                <option value="Info">{t('audits.findingsSection.form.severity.info')}</option>
                             </select>
                             <select {...findingForm.register('relatedControlId')} className="input-field">
                                 <option value="">{t('audits.findingsSection.form.linkControl')}</option>
@@ -119,6 +127,17 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                     <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-red-100 text-red-700' : f.type === 'Opportunité' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
                                         {f.type}
                                     </span>
+                                    {f.severity && (
+                                        <span className={`px-2 py-0.5 text-xs font-bold rounded ${
+                                            f.severity === 'Critique' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' :
+                                            f.severity === 'Haute' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+                                            f.severity === 'Moyenne' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
+                                            f.severity === 'Faible' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
+                                            'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                        }`}>
+                                            {f.severity}
+                                        </span>
+                                    )}
                                     <span className="text-xs text-slate-400">{new Date(f.createdAt || '').toLocaleDateString()}</span>
                                 </div>
                                 <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{f.description}</p>

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import i18n from '../i18n';
+import { RISK_STATUSES, TREATMENT_STATUSES } from '../types/risks';
 
 export const riskSchema = z.object({
     assetId: z.string().optional(),
@@ -18,7 +19,7 @@ export const riskSchema = z.object({
         description: z.string()
     })).optional(),
     strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']),
-    status: z.enum(['Brouillon', 'Ouvert', 'En cours', 'Fermé', 'En attente de validation']),
+    status: z.enum(RISK_STATUSES),
     owner: z.string().optional(),
     ownerId: z.string().optional(),
     mitigationControlIds: z.array(z.string()).optional(),
@@ -29,7 +30,8 @@ export const riskSchema = z.object({
     // V2: SLA & Treatment (Root Level for indexing)
     treatmentDeadline: z.string().optional(),
     treatmentOwnerId: z.string().optional(),
-    treatmentStatus: z.enum(['Pending', 'In Progress', 'Done', 'Overdue']).optional(),
+    /** @deprecated Use treatment.status instead */
+    treatmentStatus: z.enum(TREATMENT_STATUSES).optional(),
 
     treatment: z.object({
         strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']).optional(),
@@ -37,7 +39,7 @@ export const riskSchema = z.object({
         ownerId: z.string().optional(),
         dueDate: z.string().optional(),
         completedDate: z.string().optional(),
-        status: z.enum(['Planifié', 'En cours', 'Terminé', 'Retard']).optional(),
+        status: z.enum(TREATMENT_STATUSES).optional(),
         slaStatus: z.enum(['On Track', 'At Risk', 'Breached']).optional(),
         estimatedCost: z.number().optional()
     }).optional(),
@@ -45,7 +47,7 @@ export const riskSchema = z.object({
     isSecureStorage: z.boolean().optional(),
     aiAnalysis: z.object({
         type: z.string(),
-        response: z.record(z.string(), z.any()),
+        response: z.record(z.string(), z.unknown()),
         timestamp: z.string()
     }).optional().nullable(),
 }).refine((data) => {

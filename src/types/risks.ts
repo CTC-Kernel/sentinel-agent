@@ -1,5 +1,50 @@
 import { Framework, AIAnalysisResult } from './common';
 
+/**
+ * Unified risk status enumeration
+ */
+export const RISK_STATUSES = [
+    'Brouillon',
+    'Ouvert',
+    'En cours',
+    'En attente de validation',
+    'Fermé'
+] as const;
+
+export type RiskStatus = typeof RISK_STATUSES[number];
+
+/**
+ * Risk status state machine - defines valid transitions
+ * Prevents invalid state changes (e.g., Fermé → Ouvert)
+ */
+export const VALID_RISK_TRANSITIONS: Record<RiskStatus, RiskStatus[]> = {
+    'Brouillon': ['Ouvert'],
+    'Ouvert': ['En cours', 'Fermé'],
+    'En cours': ['En attente de validation', 'Fermé'],
+    'En attente de validation': ['En cours', 'Fermé'],
+    'Fermé': [] // Terminal state - no transitions allowed
+};
+
+/**
+ * Check if a risk status transition is valid
+ */
+export function isValidRiskTransition(from: RiskStatus, to: RiskStatus): boolean {
+    return VALID_RISK_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+/**
+ * Unified treatment status enumeration (French)
+ * Replaces dual English/French fields
+ */
+export const TREATMENT_STATUSES = [
+    'Planifié',
+    'En cours',
+    'Terminé',
+    'Retard'
+] as const;
+
+export type TreatmentStatus = typeof TREATMENT_STATUSES[number];
+
 export interface MitreTechnique {
     id: string;
     name: string;
@@ -75,7 +120,7 @@ export interface Risk {
     mitreTechniques?: MitreTechnique[];
     previousScore?: number;
     strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
-    status: 'Brouillon' | 'Ouvert' | 'En cours' | 'Fermé' | 'En attente de validation';
+    status: RiskStatus;
     owner: string;
     ownerId?: string;
     mitigationControlIds?: string[];
@@ -91,7 +136,8 @@ export interface Risk {
     // V2: SLA & Treatment
     treatmentDeadline?: string;
     treatmentOwnerId?: string;
-    treatmentStatus?: 'Pending' | 'In Progress' | 'Done' | 'Overdue';
+    /** @deprecated Use treatment.status instead - unified in French */
+    treatmentStatus?: TreatmentStatus;
     category?: string;
     updatedAt?: string;
     justification?: string;
@@ -104,7 +150,7 @@ export interface RiskTreatment {
     ownerId?: string;
     dueDate?: string;
     completedDate?: string;
-    status?: 'Planifié' | 'En cours' | 'Terminé' | 'Retard';
+    status?: TreatmentStatus;
     slaStatus?: 'On Track' | 'At Risk' | 'Breached';
     estimatedCost?: number;
     measures?: string[]; // AI generated or manual measures
@@ -168,7 +214,7 @@ export interface ThreatTemplate {
     treatment?: {
         strategy: 'Accepter' | 'Éviter' | 'Transférer' | 'Atténuer';
         description: string;
-        status: 'Planifié' | 'En cours' | 'Terminé' | 'Annulé';
+        status: TreatmentStatus;
         estimatedCost: number;
         dueDate: string;
     };

@@ -1,5 +1,24 @@
 import { Framework } from './common';
 
+/**
+ * Unified control status enumeration
+ * Used consistently across types and schemas
+ */
+export const CONTROL_STATUSES = [
+    'Non commencé',
+    'En cours',
+    'Implémenté',
+    'Partiel',
+    'Non applicable',
+    'Exclu',
+    'En revue',
+    'Actif',
+    'Inactif',
+    'Non conforme'
+] as const;
+
+export type ControlStatus = typeof CONTROL_STATUSES[number];
+
 export interface AutomatedEvidence {
     id: string;
     providerId: string;
@@ -19,7 +38,7 @@ export interface Control {
     mappedFrameworks?: Framework[]; // Additional frameworks this control satisfies (cross-framework mapping)
     description?: string;
     type?: 'Préventif' | 'Détectif' | 'Correctif';
-    status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu' | 'En revue' | 'Actif' | 'Inactif' | 'En cours' | 'Non appliqué'; // Merged statuses to be safe
+    status: ControlStatus;
     applicability?: 'Applicable' | 'Non applicable';
     justification?: string;
     evidenceIds?: string[];
