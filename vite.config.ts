@@ -113,21 +113,37 @@ export default defineConfig({
           "  }\n" +
           "})();",
         manualChunks: {
+          // Core React
           vendor: ['react', 'react-dom', 'react-router-dom'],
+          // Firebase - split by service
           firebase: ['firebase/app'],
           firebase_auth: ['firebase/auth'],
           firebase_firestore: ['firebase/firestore'],
           firebase_storage: ['firebase/storage'],
           firebase_functions: ['firebase/functions'],
           firebase_analytics: ['firebase/analytics'],
-          ui: ['clsx', 'tailwind-merge'],
-          charts: ['recharts'],
+          // State management
+          state: ['zustand', '@tanstack/react-query'],
+          // UI utilities
+          ui: ['clsx', 'tailwind-merge', 'framer-motion'],
+          // Charts & visualization
+          charts: ['recharts', 'd3-scale', 'd3-shape', 'd3-color', 'd3-interpolate', 'd3-path'],
+          // Date & validation
           utils: ['date-fns', 'zod'],
+          // PDF generation (heavy)
           pdf: ['jspdf', 'jspdf-autotable', 'pdf-lib', 'html2canvas'],
+          // Rich text editor
           editor: ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-link', '@tiptap/extension-text-align', '@tiptap/extension-underline'],
+          // Timeline visualization
           timeline: ['vis-data', 'vis-timeline'],
+          // 3D engine (very heavy)
           three: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
-          excel: ['exceljs']
+          // Excel export
+          excel: ['exceljs'],
+          // Sanitization & security
+          security: ['dompurify', 'jszip'],
+          // Icons
+          icons: ['lucide-react']
         }
       }
     }
