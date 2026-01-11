@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Download, ExternalLink, FileText, File } from '../ui/Icons';
+import { Button } from './button';
 
 interface FilePreviewProps {
     url: string;
@@ -103,15 +104,16 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                             <p className="text-slate-600 dark:text-slate-400">
                                 Aperçu non disponible pour ce type de fichier
                             </p>
-                            <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-                            >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Ouvrir le fichier
-                            </a>
+                            <Button asChild>
+                                <a
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    Ouvrir le fichier
+                                </a>
+                            </Button>
                         </div>
                     )}
                 </div>

@@ -23,7 +23,9 @@ const ToolbarButton = ({ onClick, isActive, disabled, children, title }: { onCli
         onClick={onClick}
         disabled={disabled}
         title={title}
-        className={`p-1.5 rounded-lg transition-colors ${isActive
+        aria-label={title}
+        aria-pressed={isActive}
+        className={`p-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isActive
             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
             } disabled:opacity-50 disabled:cursor-not-allowed`}

@@ -57,7 +57,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
     return (
         <AnimatePresence>
             {isOpen && (
-                <Dialog static open={isOpen} onClose={onClose} className="relative z-[200]">
+                <Dialog static open={isOpen} onClose={onClose} className="relative z-modal">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -73,7 +73,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                             className="bg-slate-900 w-full max-w-6xl h-[85vh] rounded-3xl border border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.2)] flex overflow-hidden flex-col md:flex-row relative"
                         >
                             {/* CRT/Scanline Overlay */}
-                            <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.1)_3px)] opacity-50 z-50 mix-blend-overlay" />
+                            <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.1)_3px)] opacity-50 z-decorator mix-blend-overlay" />
 
                             {/* Left Panel: Context & Docs */}
                             <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-white/10 bg-black/20 flex flex-col">

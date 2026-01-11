@@ -1,12 +1,12 @@
 import React, { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { X, Send, Mail, User, MessageSquare, Loader2 } from 'lucide-react';
+import { X, Send, Mail, User, MessageSquare } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { sendEmail } from '../../services/emailService';
 import { getContactMessageTemplate } from '../../services/emailTemplates';
-
+import { Button } from './button';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 
@@ -183,21 +183,15 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                     </div>
 
                                     <div className="pt-2">
-                                        <button
+                                        <Button
                                             type="submit"
-                                            disabled={isSubmitting}
-                                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            isLoading={isSubmitting}
+                                            className="w-full"
                                             aria-label="Envoyer le message"
                                         >
-                                            {isSubmitting ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <Send className="w-4 h-4" />
-                                                    Envoyer le message
-                                                </>
-                                            )}
-                                        </button>
+                                            <Send className="w-4 h-4 mr-2" />
+                                            Envoyer le message
+                                        </Button>
                                     </div>
                                 </form>
                             </Dialog.Panel>

@@ -212,7 +212,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
-                                                "px-3 py-4 sm:px-6 sm:py-5 text-left text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap transition-colors",
+                                                "px-3 py-4 sm:px-6 sm:py-5 text-left text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 whitespace-nowrap transition-colors",
                                                 header.column.getCanSort() && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 hover:text-brand-600 dark:hover:text-brand-400",
                                                 header.id === 'select' && "w-[50px] px-2 sm:px-4"
                                             )}
