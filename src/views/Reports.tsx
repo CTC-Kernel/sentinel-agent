@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PdfService } from '../services/PdfService';
 import { ReportEnrichmentService } from '../services/ReportEnrichmentService';
+import { ScheduledReportsService } from '../services/scheduledReportsService';
 import { jsPDF } from 'jspdf';
 import { useStore } from '../store';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -14,7 +15,14 @@ import {
     History,
     Settings,
     Lock,
-    Archive
+    Archive,
+    Calendar,
+    Play,
+    Pause,
+    Trash2,
+    Plus,
+    Mail,
+    Clock
 } from 'lucide-react';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { CompliancePackService } from '../services/CompliancePackService';
@@ -24,14 +32,36 @@ import { usePlanLimits } from '../hooks/usePlanLimits';
 import { useReportsData } from '../hooks/reports/useReportsData';
 import { Button } from '../components/ui/button';
 import { SEO } from '../components/SEO';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 import { ReportConfigurationModal, ReportConfig } from '../components/reports/ReportConfigurationModal';
+import { ScheduleReportModal } from '../components/reports/ScheduleReportModal';
+import {
+    ScheduledReport,
+    ScheduledReportFormData,
+    ReportTemplateId,
+    frequencyLabels
+} from '../types/reports';
+
+const templateLabels: Record<ReportTemplateId, string> = {
+    iso27001: 'Pack ISO 27001',
+    gdpr: 'Pack RGPD',
+    custom: 'Rapport Exécutif'
+};
 
 export const Reports: React.FC = () => {
     const { user, t, organization, addToast } = useStore();
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
     const [showConfigModal, setShowConfigModal] = useState(false);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
+    const [scheduleTemplateId, setScheduleTemplateId] = useState<ReportTemplateId>('custom');
+    const [scheduledReports, setScheduledReports] = useState<ScheduledReport[]>([]);
+    const [loadingScheduled, setLoadingScheduled] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; reportId: string | null }>({
+        isOpen: false,
+        reportId: null
+    });
 
     const TABS = [
         { id: 'templates', label: t('reports.templates'), icon: FileText },
@@ -52,6 +82,77 @@ export const Reports: React.FC = () => {
     } = useReportsData(user?.organizationId);
 
     const { checkLimit } = usePlanLimits();
+
+    // Fetch scheduled reports
+    const fetchScheduledReports = useCallback(async () => {
+        if (!user?.organizationId) return;
+        setLoadingScheduled(true);
+        try {
+            const reports = await ScheduledReportsService.getScheduledReports(user.organizationId);
+            setScheduledReports(reports);
+        } catch (error) {
+            ErrorLogger.error('Failed to fetch scheduled reports', 'Reports.fetchScheduledReports', { metadata: { error } });
+        } finally {
+            setLoadingScheduled(false);
+        }
+    }, [user?.organizationId]);
+
+    useEffect(() => {
+        if (activeTab === 'scheduled') {
+            fetchScheduledReports();
+        }
+    }, [activeTab, fetchScheduledReports]);
+
+    const handleScheduleReport = async (data: ScheduledReportFormData) => {
+        if (!user?.organizationId || !user?.uid) return;
+
+        try {
+            await ScheduledReportsService.createScheduledReport(
+                user.organizationId,
+                user.uid,
+                user.displayName || user.email || 'Unknown',
+                data
+            );
+            addToast('Rapport planifié avec succès', 'success');
+            fetchScheduledReports();
+        } catch (error) {
+            ErrorLogger.error('Failed to schedule report', 'Reports.handleScheduleReport', { metadata: { error } });
+            throw error;
+        }
+    };
+
+    const handleToggleStatus = async (report: ScheduledReport) => {
+        try {
+            await ScheduledReportsService.toggleScheduledReportStatus(report.id, report.status);
+            addToast(
+                report.status === 'active' ? 'Rapport mis en pause' : 'Rapport réactivé',
+                'success'
+            );
+            fetchScheduledReports();
+        } catch (error) {
+            ErrorLogger.error('Failed to toggle report status', 'Reports.handleToggleStatus', { metadata: { error } });
+            addToast('Erreur lors de la mise à jour', 'error');
+        }
+    };
+
+    const handleDeleteReport = async () => {
+        if (!deleteConfirm.reportId) return;
+
+        try {
+            await ScheduledReportsService.deleteScheduledReport(deleteConfirm.reportId);
+            addToast('Rapport planifié supprimé', 'success');
+            setDeleteConfirm({ isOpen: false, reportId: null });
+            fetchScheduledReports();
+        } catch (error) {
+            ErrorLogger.error('Failed to delete scheduled report', 'Reports.handleDeleteReport', { metadata: { error } });
+            addToast('Erreur lors de la suppression', 'error');
+        }
+    };
+
+    const openScheduleModal = (templateId: ReportTemplateId) => {
+        setScheduleTemplateId(templateId);
+        setShowScheduleModal(true);
+    };
 
     const generatePDF = async (templateId: string, title: string, config?: ReportConfig) => {
         if (!checkLimit('reports')) return; // reports feature check
@@ -210,9 +311,9 @@ export const Reports: React.FC = () => {
                     title={t('reports.title')}
                     subtitle={t('reports.subtitle')}
                     icon={
-                    <img 
-                        src="/images/pilotage.png" 
-                        alt="PILOTAGE" 
+                    <img
+                        src="/images/pilotage.png"
+                        alt="PILOTAGE"
                         className="w-full h-full object-contain"
                     />
                 }
@@ -237,18 +338,7 @@ export const Reports: React.FC = () => {
                             {t('reports.categories.compliance')}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div
-                                className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group relative overflow-hidden"
-                                onClick={() => generatePDF('iso27001', t('reports.templateCards.iso27001.title'))}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        generatePDF('iso27001', t('reports.templateCards.iso27001.title'));
-                                    }
-                                }}
-                            >
+                            <div className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -265,27 +355,27 @@ export const Reports: React.FC = () => {
                                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
                                         {t('reports.templateCards.iso27001.desc')}
                                     </p>
-                                    <Button
-                                        className="w-full justify-center group-hover:bg-brand-600 group-hover:text-white dark:group-hover:text-white transition-colors"
-                                        variant="outline"
-                                    >
-                                        {t('reports.templateCards.iso27001.action')}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            className="flex-1 justify-center group-hover:bg-brand-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+                                            variant="outline"
+                                            onClick={() => generatePDF('iso27001', t('reports.templateCards.iso27001.title'))}
+                                        >
+                                            {t('reports.templateCards.iso27001.action')}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => openScheduleModal('iso27001')}
+                                            title="Planifier ce rapport"
+                                        >
+                                            <Calendar className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div
-                                className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-blue-500 transition-all cursor-pointer group relative overflow-hidden"
-                                onClick={() => generatePDF('gdpr', t('reports.templateCards.gdpr.title'))}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        generatePDF('gdpr', t('reports.templateCards.gdpr.title'));
-                                    }
-                                }}
-                            >
+                            <div className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-blue-500 transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -299,12 +389,23 @@ export const Reports: React.FC = () => {
                                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
                                         {t('reports.templateCards.gdpr.desc')}
                                     </p>
-                                    <Button
-                                        className="w-full justify-center group-hover:bg-blue-600 group-hover:text-white dark:group-hover:text-white transition-colors"
-                                        variant="outline"
-                                    >
-                                        {t('reports.templateCards.gdpr.action')}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            className="flex-1 justify-center group-hover:bg-blue-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+                                            variant="outline"
+                                            onClick={() => generatePDF('gdpr', t('reports.templateCards.gdpr.title'))}
+                                        >
+                                            {t('reports.templateCards.gdpr.action')}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => openScheduleModal('gdpr')}
+                                            title="Planifier ce rapport"
+                                        >
+                                            <Calendar className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -317,18 +418,7 @@ export const Reports: React.FC = () => {
                             {t('reports.categories.executive')}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div
-                                className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-purple-500 transition-all cursor-pointer group relative overflow-hidden"
-                                onClick={() => setShowConfigModal(true)}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        generatePDF('custom', t('reports.templateCards.custom.title'));
-                                    }
-                                }}
-                            >
+                            <div className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-purple-500 transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -345,12 +435,23 @@ export const Reports: React.FC = () => {
                                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
                                         {t('reports.templateCards.custom.desc')}
                                     </p>
-                                    <Button
-                                        className="w-full justify-center group-hover:bg-purple-600 group-hover:text-white dark:group-hover:text-white transition-colors"
-                                        variant="outline"
-                                    >
-                                        {t('reports.templateCards.custom.action')}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            className="flex-1 justify-center group-hover:bg-purple-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+                                            variant="outline"
+                                            onClick={() => setShowConfigModal(true)}
+                                        >
+                                            {t('reports.templateCards.custom.action')}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => openScheduleModal('custom')}
+                                            title="Planifier ce rapport"
+                                        >
+                                            <Calendar className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -391,13 +492,122 @@ export const Reports: React.FC = () => {
             )}
 
             {activeTab === 'scheduled' && (
-                <div className="text-center py-16 text-slate-500 font-medium glass-panel rounded-3xl border-dashed">
-                    <History className="h-16 w-16 mx-auto mb-6 opacity-20" />
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun rapport planifié</h3>
-                    <p className="max-w-md mx-auto mb-6">Automatisez la génération de vos rapports pour recevoir des mises à jour régulières directement dans votre boîte mail.</p>
-                    <Button variant="outline" disabled>
-                        Planifier un rapport (Bientôt)
-                    </Button>
+                <div className="space-y-6">
+                    {/* Header with Add Button */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Rapports planifiés</h2>
+                            <p className="text-sm text-slate-500">Recevez vos rapports automatiquement par email</p>
+                        </div>
+                        <Button onClick={() => openScheduleModal('custom')} className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            Planifier un rapport
+                        </Button>
+                    </div>
+
+                    {loadingScheduled ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="glass-premium p-6 rounded-2xl animate-pulse">
+                                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-4"></div>
+                                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-2"></div>
+                                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : scheduledReports.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {scheduledReports.map(report => (
+                                <div
+                                    key={report.id}
+                                    className={`glass-premium p-6 rounded-2xl border transition-all ${
+                                        report.status === 'active'
+                                            ? 'border-emerald-200 dark:border-emerald-800'
+                                            : 'border-slate-200 dark:border-slate-700 opacity-60'
+                                    }`}
+                                >
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                                            <Calendar className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                                        </div>
+                                        <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
+                                            report.status === 'active'
+                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                                        }`}>
+                                            {report.status === 'active' ? 'Actif' : 'En pause'}
+                                        </span>
+                                    </div>
+
+                                    <h3 className="font-bold text-slate-900 dark:text-white mb-2 truncate" title={report.name}>
+                                        {report.name}
+                                    </h3>
+
+                                    <div className="space-y-2 text-sm text-slate-500 mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <FileText className="h-4 w-4" />
+                                            <span>{templateLabels[report.templateId]}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4" />
+                                            <span>{frequencyLabels[report.frequency]}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Mail className="h-4 w-4" />
+                                            <span className="truncate">{report.recipients.length} destinataire{report.recipients.length > 1 ? 's' : ''}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-xs text-slate-400 mb-4">
+                                        Prochaine exécution: {new Date(report.nextRunAt).toLocaleDateString('fr-FR', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            year: 'numeric'
+                                        })}
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="flex-1"
+                                            onClick={() => handleToggleStatus(report)}
+                                        >
+                                            {report.status === 'active' ? (
+                                                <>
+                                                    <Pause className="h-4 w-4 mr-1" />
+                                                    Pause
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Play className="h-4 w-4 mr-1" />
+                                                    Activer
+                                                </>
+                                            )}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                            onClick={() => setDeleteConfirm({ isOpen: true, reportId: report.id })}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-16 text-slate-500 font-medium glass-panel rounded-3xl border-dashed">
+                            <History className="h-16 w-16 mx-auto mb-6 opacity-20" />
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun rapport planifié</h3>
+                            <p className="max-w-md mx-auto mb-6">Automatisez la génération de vos rapports pour recevoir des mises à jour régulières directement dans votre boîte mail.</p>
+                            <Button onClick={() => openScheduleModal('custom')}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Planifier un rapport
+                            </Button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -406,6 +616,21 @@ export const Reports: React.FC = () => {
                 onClose={() => setShowConfigModal(false)}
                 onGenerate={(config) => generatePDF('custom', config.title, config)}
                 defaultTitle={t('reports.templateCards.custom.title')}
+            />
+
+            <ScheduleReportModal
+                isOpen={showScheduleModal}
+                onClose={() => setShowScheduleModal(false)}
+                onSchedule={handleScheduleReport}
+                defaultTemplateId={scheduleTemplateId}
+            />
+
+            <ConfirmModal
+                isOpen={deleteConfirm.isOpen}
+                onClose={() => setDeleteConfirm({ isOpen: false, reportId: null })}
+                onConfirm={handleDeleteReport}
+                title="Supprimer le rapport planifié"
+                message="Êtes-vous sûr de vouloir supprimer ce rapport planifié ? Cette action est irréversible."
             />
         </motion.div>
     );

@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
-import { Control, UserProfile } from '../../../types';
+import { Control, UserProfile, Framework } from '../../../types';
 import { Button } from '../../ui/button';
 import { CustomSelect } from '../../ui/CustomSelect';
-import { User, Loader2 } from '../../ui/Icons';
+import { User, Loader2, X, Plus, Layers } from '../../ui/Icons';
 import { ComplianceAIAssistant } from '../ComplianceAIAssistant';
+import { FRAMEWORKS } from '../../../data/frameworks';
 
 interface ComplianceDetailsProps {
     control: Control;
     canEdit: boolean;
     usersList: UserProfile[];
+    enabledFrameworks?: Framework[];
     handlers: {
         updating: boolean;
         handleStatusChange: (c: Control, s: Control['status']) => Promise<void>;
         handleAssign: (c: Control, uid: string) => Promise<void>;
         updateJustification: (c: Control, text: string) => Promise<void>;
+        handleMapFramework?: (c: Control, f: Framework) => Promise<void>;
+        handleUnmapFramework?: (c: Control, f: Framework) => Promise<void>;
     };
 }
 
@@ -21,9 +25,21 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
     control,
     canEdit,
     usersList,
+    enabledFrameworks,
     handlers
 }) => {
-    const { updating, handleStatusChange, handleAssign, updateJustification } = handlers;
+    const { updating, handleStatusChange, handleAssign, updateJustification, handleMapFramework, handleUnmapFramework } = handlers;
+
+    // Get available frameworks for mapping (exclude primary and already mapped)
+    const availableFrameworks = FRAMEWORKS.filter(f => {
+        const isEnabled = !enabledFrameworks || enabledFrameworks.includes(f.id as Framework);
+        const isPrimary = f.id === control.framework;
+        const isAlreadyMapped = control.mappedFrameworks?.includes(f.id as Framework);
+        return isEnabled && !isPrimary && !isAlreadyMapped;
+    });
+
+    // Get framework label by id
+    const getFrameworkLabel = (id: string) => FRAMEWORKS.find(f => f.id === id)?.label || id;
 
     // Local state for justification text area
     const [justification, setJustification] = useState(control.justification || '');
@@ -100,6 +116,73 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Framework Mapping Section */}
+            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <Layers className="h-4 w-4 text-slate-500" />
+                        <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest">Référentiels Satisfaits</h3>
+                    </div>
+                    <span className="text-xs text-slate-400">
+                        {1 + (control.mappedFrameworks?.length || 0)} référentiel(s)
+                    </span>
+                </div>
+
+                {/* Primary Framework Badge */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                    {control.framework && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                            {getFrameworkLabel(control.framework)}
+                            <span className="text-[10px] text-brand-500 ml-1">(principal)</span>
+                        </span>
+                    )}
+
+                    {/* Mapped Framework Badges */}
+                    {control.mappedFrameworks?.map(fw => (
+                        <span
+                            key={fw}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                        >
+                            {getFrameworkLabel(fw)}
+                            {canEdit && handleUnmapFramework && (
+                                <button
+                                    onClick={() => handleUnmapFramework(control, fw)}
+                                    className="ml-1 p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                                    disabled={updating}
+                                    aria-label={`Retirer ${getFrameworkLabel(fw)}`}
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            )}
+                        </span>
+                    ))}
+                </div>
+
+                {/* Add Framework Mapping */}
+                {canEdit && handleMapFramework && availableFrameworks.length > 0 && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <Plus className="h-4 w-4 text-slate-400" />
+                        <CustomSelect
+                            label=""
+                            value=""
+                            onChange={(val) => {
+                                if (val) handleMapFramework(control, val as Framework);
+                            }}
+                            options={availableFrameworks.map(f => ({ value: f.id, label: f.label }))}
+                            placeholder="Ajouter un référentiel..."
+                            disabled={updating}
+                        />
+                    </div>
+                )}
+
+                {availableFrameworks.length === 0 && !control.mappedFrameworks?.length && (
+                    <p className="text-xs text-slate-400 italic mt-2">
+                        Ce contrôle ne satisfait que son référentiel principal.
+                    </p>
+                )}
             </div>
 
             {/* Justification Area */}

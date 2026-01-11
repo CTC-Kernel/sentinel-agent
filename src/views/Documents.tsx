@@ -20,6 +20,8 @@ import { DocumentForm } from '../components/documents/DocumentForm';
 import { FolderTree } from '../components/documents/FolderTree';
 import { DocumentInspector } from '../components/documents/DocumentInspector';
 import { DocumentSignature } from '../components/documents/DocumentSignature';
+import { DocumentTemplateModal } from '../components/documents/DocumentTemplateModal';
+import { DocumentTemplate } from '../data/documentTemplates';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useDocumentWorkflow } from '../hooks/documents/useDocumentWorkflow';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
@@ -87,6 +89,8 @@ export const Documents: React.FC = () => {
     const [isDigitalSafeMode, setIsDigitalSafeMode] = useState(false);
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [templateData, setTemplateData] = useState<DocumentTemplate | null>(null);
 
     // --- Hooks Integration ---
     const {
@@ -251,6 +255,17 @@ export const Documents: React.FC = () => {
     const handleCloseDrawer = React.useCallback(() => {
         setShowCreateModal(false);
         setIsEditing(false);
+        setTemplateData(null);
+    }, []);
+
+    const handleOpenTemplateModal = useCallback(() => {
+        setShowTemplateModal(true);
+    }, []);
+
+    const handleTemplateSelect = useCallback((template: DocumentTemplate) => {
+        setTemplateData(template);
+        setShowTemplateModal(false);
+        setShowCreateModal(true);
     }, []);
 
     const handleFormSubmit = useCallback(async (data: DocumentFormPayload) => {
@@ -469,16 +484,29 @@ export const Documents: React.FC = () => {
                                             </Menu>
 
                                             {canCreate && (
-                                                <CustomTooltip content={t('documents.newDocument')}>
-                                                    <Button
-                                                        aria-label={t('documents.newDocument')}
-                                                        onClick={handleCreateClick}
-                                                        className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
-                                                    >
-                                                        <Plus className="h-4 w-4" />
-                                                        {t('documents.newDocument')}
-                                                    </Button>
-                                                </CustomTooltip>
+                                                <>
+                                                    <CustomTooltip content="Créer depuis un modèle">
+                                                        <Button
+                                                            aria-label="Créer depuis un modèle"
+                                                            onClick={handleOpenTemplateModal}
+                                                            variant="outline"
+                                                            className="gap-2"
+                                                        >
+                                                            <FileText className="h-4 w-4" />
+                                                            Modèles
+                                                        </Button>
+                                                    </CustomTooltip>
+                                                    <CustomTooltip content={t('documents.newDocument')}>
+                                                        <Button
+                                                            aria-label={t('documents.newDocument')}
+                                                            onClick={handleCreateClick}
+                                                            className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+                                                        >
+                                                            <Plus className="h-4 w-4" />
+                                                            {t('documents.newDocument')}
+                                                        </Button>
+                                                    </CustomTooltip>
+                                                </>
                                             )}
                                         </div>
                                     }
@@ -564,14 +592,26 @@ export const Documents: React.FC = () => {
             <Drawer
                 isOpen={showCreateModal || (isEditing && !!selectedDocument)}
                 onClose={handleCloseDrawer}
-                title={isEditing ? "Modifier le document" : "Nouveau Document"}
-                subtitle={isEditing && selectedDocument ? selectedDocument.title : "Créer un nouveau document"}
+                title={isEditing ? "Modifier le document" : templateData ? "Nouveau Document depuis Modèle" : "Nouveau Document"}
+                subtitle={isEditing && selectedDocument ? selectedDocument.title : templateData ? templateData.title : "Créer un nouveau document"}
                 width="max-w-6xl"
                 disableScroll={true}
             >
                 <div className="h-full overflow-y-auto px-6 py-8 custom-scrollbar">
                     <DocumentForm
-                        initialData={isEditing ? selectedDocument! : undefined}
+                        initialData={isEditing ? selectedDocument! : templateData ? {
+                            id: '',
+                            organizationId: user?.organizationId || '',
+                            title: templateData.title,
+                            type: templateData.type,
+                            description: templateData.description,
+                            content: templateData.content,
+                            version: '1.0',
+                            status: 'Brouillon',
+                            owner: user?.displayName || '',
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        } as Document : undefined}
                         onCancel={handleCloseDrawer}
                         onSubmit={handleFormSubmit}
                         isLoading={isSubmitting}
@@ -592,6 +632,12 @@ export const Documents: React.FC = () => {
                 guidelines={documentGuidelines}
                 onImport={handleImportCsvFile}
                 onDownloadTemplate={handleDownloadTemplate}
+            />
+
+            <DocumentTemplateModal
+                isOpen={showTemplateModal}
+                onClose={() => setShowTemplateModal(false)}
+                onSelect={handleTemplateSelect}
             />
         </motion.div >
     );

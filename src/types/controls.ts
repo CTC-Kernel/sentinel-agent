@@ -16,6 +16,7 @@ export interface Control {
     code: string;
     name: string;
     framework?: Framework;
+    mappedFrameworks?: Framework[]; // Additional frameworks this control satisfies (cross-framework mapping)
     description?: string;
     type?: 'Préventif' | 'Détectif' | 'Correctif';
     status: 'Non commencé' | 'Implémenté' | 'Partiel' | 'Non applicable' | 'Exclu' | 'En revue' | 'Actif' | 'Inactif' | 'En cours' | 'Non appliqué'; // Merged statuses to be safe
@@ -32,4 +33,33 @@ export interface Control {
     relatedSupplierIds?: string[];
     relatedProjectIds?: string[];
     maturity?: number; // Added for SoA reporting
+}
+
+// SoA Version for tracking Statement of Applicability history
+export interface SoAControlSnapshot {
+    code: string;
+    name: string;
+    applicability: string;
+    justification: string;
+    status: string;
+    risksCount: number;
+    evidenceCount: number;
+}
+
+export interface SoAVersion {
+    id: string;
+    organizationId: string;
+    framework: Framework;
+    version: number;
+    generatedAt: string;
+    generatedBy: string;
+    generatedByName: string;
+    notes?: string;
+    controlsSnapshot: SoAControlSnapshot[];
+    stats: {
+        totalControls: number;
+        applicableControls: number;
+        implementedControls: number;
+        partialControls: number;
+    };
 }

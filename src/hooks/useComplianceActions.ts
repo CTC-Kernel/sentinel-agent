@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { doc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Control, UserProfile } from '../types';
+import { Control, UserProfile, Framework } from '../types';
 import { logAction } from '../services/logger';
 import { toast } from '@/lib/toast';
 import { controlSchema } from '../schemas/controlSchema';
@@ -144,6 +144,37 @@ export const useComplianceActions = (user: UserProfile | null) => {
         }
     };
 
+    // Cross-framework mapping handlers
+    const handleMapFramework = async (control: Control, frameworkId: Framework) => {
+        // Don't map if it's the primary framework or already mapped
+        if (control.framework === frameworkId) {
+            toast.info("Ce référentiel est déjà le référentiel principal");
+            return;
+        }
+        if (control.mappedFrameworks?.includes(frameworkId)) {
+            toast.info("Ce référentiel est déjà mappé");
+            return;
+        }
+
+        const success = await updateControl(control.id, {
+            mappedFrameworks: arrayUnion(frameworkId) as unknown as Framework[]
+        }, "Référentiel mappé", true);
+
+        if (success) {
+            logAction(user, 'MAP_FRAMEWORK', 'control', `Mapped framework ${frameworkId}`, undefined, control.id);
+        }
+    };
+
+    const handleUnmapFramework = async (control: Control, frameworkId: Framework) => {
+        const success = await updateControl(control.id, {
+            mappedFrameworks: arrayRemove(frameworkId) as unknown as Framework[]
+        }, "Mapping supprimé", true);
+
+        if (success) {
+            logAction(user, 'UNMAP_FRAMEWORK', 'control', `Unmapped framework ${frameworkId}`, undefined, control.id);
+        }
+    };
+
     const createRisk = async (riskData: Record<string, unknown>) => {
         setUpdating(true);
         try {
@@ -202,6 +233,8 @@ export const useComplianceActions = (user: UserProfile | null) => {
         handleUnlinkDocument,
         updateJustification,
         handleApplicabilityChange,
+        handleMapFramework,
+        handleUnmapFramework,
         createRisk,
         createAudit,
         updateControl

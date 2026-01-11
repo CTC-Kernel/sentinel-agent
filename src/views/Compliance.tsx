@@ -18,7 +18,9 @@ import { useDocumentsData } from '../hooks/documents/useDocumentsData';
 import { FRAMEWORKS } from '../data/frameworks';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
 import { ComplianceList } from '../components/compliance/ComplianceList';
-import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText, AlertTriangle } from '../components/ui/Icons';
+import { FrameworkMappingMatrix } from '../components/compliance/FrameworkMappingMatrix';
+import { SharedRequirementsView } from '../components/compliance/SharedRequirementsView';
+import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText, AlertTriangle, Layers, Link, Archive } from '../components/ui/Icons';
 import { toast } from '@/lib/toast';
 import { SoAView } from '../components/compliance/SoAView';
 import { Button } from '../components/ui/button';
@@ -31,9 +33,10 @@ import { DocumentUploadWizard } from '../components/documents/DocumentUploadWiza
 // Form validation: useForm with required fields
 
 import { OnboardingService } from '../services/onboardingService';
+import { EvidenceDossierService } from '../services/EvidenceDossierService';
 
 export const Compliance: React.FC = () => {
-    const { user, addToast, t } = useStore();
+    const { user, addToast, t, organization } = useStore();
     const location = useLocation();
     const canEdit = canEditResource(user, 'Control');
 
@@ -45,15 +48,40 @@ export const Compliance: React.FC = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    // UI State
+    // Filter frameworks by organization's enabled frameworks
+    const enabledComplianceFrameworks = useMemo(() => {
+        const complianceFrameworks = FRAMEWORKS.filter(f => f.type === 'Compliance');
+        const enabled = organization?.enabledFrameworks;
+
+        // If no frameworks enabled, show all compliance frameworks (fallback for new orgs)
+        if (!enabled || enabled.length === 0) {
+            return complianceFrameworks;
+        }
+
+        // Filter to only show enabled compliance frameworks
+        return complianceFrameworks.filter(f => enabled.includes(f.id as Framework));
+    }, [organization?.enabledFrameworks]);
+
+    // UI State - default to first enabled framework
     const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');
-    const [activeTab, setActiveTab] = useState<'overview' | 'controls' | 'soa'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'controls' | 'mapping' | 'shared' | 'soa'>('overview');
+
+    // Ensure current framework is valid when enabled frameworks change
+    useEffect(() => {
+        if (enabledComplianceFrameworks.length > 0) {
+            const isCurrentValid = enabledComplianceFrameworks.some(f => f.id === currentFramework);
+            if (!isCurrentValid) {
+                setCurrentFramework(enabledComplianceFrameworks[0].id as Framework);
+            }
+        }
+    }, [enabledComplianceFrameworks, currentFramework]);
     const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [filter, setFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState<string | null>(null);
     const [showMissingEvidence, setShowMissingEvidence] = useState(false);
     const [uploadWizardOpen, setUploadWizardOpen] = useState(false);
+    const [generatingDossier, setGeneratingDossier] = useState(false);
 
     // Initial Link State (from navigation)
     const initialState = (location.state || {}) as { createForProject?: string; projectName?: string };
@@ -191,6 +219,32 @@ export const Compliance: React.FC = () => {
 
     const selectedControl = frameworkControls.find((c: import('../types').Control) => c.id === selectedControlId);
 
+    // Generate Evidence Dossier
+    const handleGenerateEvidenceDossier = async () => {
+        if (frameworkControls.length === 0) {
+            toast.warning(t('compliance.noControlsForDossier') || 'Aucun contrôle disponible pour générer le dossier');
+            return;
+        }
+
+        setGeneratingDossier(true);
+        try {
+            EvidenceDossierService.generateEvidenceDossier(
+                frameworkControls,
+                documents,
+                {
+                    framework: currentFramework,
+                    organizationName: organization?.name,
+                    generatedBy: user?.displayName || user?.email || undefined
+                }
+            );
+            toast.success(t('compliance.dossierGenerated') || 'Dossier de preuves généré avec succès');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error as Error, 'Compliance.handleGenerateEvidenceDossier');
+        } finally {
+            setGeneratingDossier(false);
+        }
+    };
+
     return (
         <>
             <MasterpieceBackground />
@@ -211,9 +265,9 @@ export const Compliance: React.FC = () => {
                         actions={undefined}
                     />
 
-                    {/* Framework Selector (Top Level) */}
+                    {/* Framework Selector (Top Level) - filtered by enabled frameworks */}
                     <ScrollableTabs
-                        tabs={FRAMEWORKS.filter((f: { type: string, id: string }) => f.type === 'Compliance').map((f: { id: string }) => ({
+                        tabs={enabledComplianceFrameworks.map((f) => ({
                             id: f.id,
                             label: t(`frameworks.${f.id}`),
                         }))}
@@ -227,10 +281,12 @@ export const Compliance: React.FC = () => {
                             tabs={[
                                 { id: 'overview', label: t('compliance.overview'), icon: LayoutDashboard },
                                 { id: 'controls', label: t('compliance.controls'), icon: ListChecks },
+                                { id: 'mapping', label: t('compliance.mapping') || 'Mapping', icon: Layers },
+                                { id: 'shared', label: t('compliance.shared') || 'Partagées', icon: Link },
                                 { id: 'soa', label: t('compliance.soa'), icon: FileText }
                             ]}
                             activeTab={activeTab}
-                            onTabChange={(id) => setActiveTab(id as 'overview' | 'controls' | 'soa')}
+                            onTabChange={(id) => setActiveTab(id as 'overview' | 'controls' | 'mapping' | 'shared' | 'soa')}
                         />
                     </div>
 
@@ -255,6 +311,14 @@ export const Compliance: React.FC = () => {
                                 actions={
                                     canEdit && (
                                         <div className="flex gap-2">
+                                            <Button
+                                                variant="secondary"
+                                                onClick={handleGenerateEvidenceDossier}
+                                                disabled={generatingDossier || frameworkControls.length === 0}
+                                            >
+                                                <Archive className="h-4 w-4 mr-2" />
+                                                {generatingDossier ? 'Génération...' : (t('compliance.generateDossier') || 'Dossier Preuves')}
+                                            </Button>
                                             <Button
                                                 variant="secondary"
                                                 onClick={() => toast.info(t('compliance.exportInfo'))}
@@ -317,11 +381,32 @@ export const Compliance: React.FC = () => {
                         </div>
                     )}
 
+                    {activeTab === 'mapping' && (
+                        <div className="animate-fade-in space-y-6">
+                            <FrameworkMappingMatrix
+                                controls={frameworkControls}
+                                enabledFrameworks={organization?.enabledFrameworks}
+                                onControlClick={handleSelectControl}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'shared' && (
+                        <div className="animate-fade-in space-y-6">
+                            <SharedRequirementsView
+                                controls={frameworkControls}
+                                enabledFrameworks={organization?.enabledFrameworks}
+                                onControlClick={handleSelectControl}
+                            />
+                        </div>
+                    )}
+
                     {activeTab === 'soa' && (
                         <div className="animate-fade-in space-y-6">
                             <SoAView
                                 controls={filteredControls}
                                 risks={risks}
+                                framework={currentFramework}
                                 handlers={complianceActions}
                                 onSeed={() => seedControls(currentFramework)}
                             />
@@ -352,6 +437,7 @@ export const Compliance: React.FC = () => {
                 onProjectSubmit={handleProjectCreation}
                 actions={complianceActions}
                 onUploadEvidence={() => setUploadWizardOpen(true)}
+                enabledFrameworks={organization?.enabledFrameworks}
             />
 
             <DocumentUploadWizard

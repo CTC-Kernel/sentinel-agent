@@ -9,7 +9,7 @@ import { RiskForm } from '../risks/RiskForm';
 import { AuditForm } from '../audits/AuditForm';
 import { ComplianceInspector } from './ComplianceInspector';
 import { ProjectFormData } from '../../schemas/projectSchema';
-import { Control, Risk, Project, Asset, Supplier, UserProfile, Document, Finding } from '../../types';
+import { Control, Risk, Project, Asset, Supplier, UserProfile, Document, Finding, Framework } from '../../types';
 
 interface ComplianceActions {
     updating: boolean;
@@ -25,6 +25,8 @@ interface ComplianceActions {
     handleUnlinkDocument: (control: Control, documentId: string) => Promise<void>;
     updateJustification: (control: Control, text: string) => Promise<void>;
     handleApplicabilityChange: (control: Control, isApplicable: boolean) => Promise<void>;
+    handleMapFramework?: (control: Control, frameworkId: Framework) => Promise<void>;
+    handleUnmapFramework?: (control: Control, frameworkId: Framework) => Promise<void>;
     createRisk: (riskData: Record<string, unknown>) => Promise<string | null>;
     createAudit: (auditData: Record<string, unknown>) => Promise<string | null>;
     updateControl: (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation?: boolean) => Promise<boolean>;
@@ -52,6 +54,7 @@ interface ComplianceDrawerProps {
     onProjectSubmit: (data: ProjectFormData) => Promise<void>;
     actions: ComplianceActions;
     onUploadEvidence: () => void;
+    enabledFrameworks?: Framework[];
 }
 
 export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
@@ -75,7 +78,8 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
     projectInitialData,
     onProjectSubmit,
     actions,
-    onUploadEvidence
+    onUploadEvidence,
+    enabledFrameworks
 }) => {
     const { t } = useStore();
 
@@ -180,6 +184,7 @@ export const ComplianceDrawer: React.FC<ComplianceDrawerProps> = ({
                     findings={findings}
                     linkingToProjectId={linkingToProjectId}
                     linkingToProjectName={linkingToProjectName}
+                    enabledFrameworks={enabledFrameworks}
                     handlers={{
                         ...actions,
                         onUploadEvidence: onUploadEvidence

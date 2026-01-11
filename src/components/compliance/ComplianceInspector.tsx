@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/ui/button';
-import { Control, UserProfile, Asset, Supplier, Risk, Project, Document, Finding } from '../../types';
+import { Control, UserProfile, Asset, Supplier, Risk, Project, Document, Finding, Framework } from '../../types';
 import { ScrollableTabs } from '../../components/ui/ScrollableTabs';
 import { Loader2, Link, FileText, Paperclip, MessageSquare } from '../../components/ui/Icons';
 import { DiscussionPanel } from '../collaboration/DiscussionPanel';
@@ -21,6 +21,7 @@ interface ComplianceInspectorProps {
     findings: Finding[];
     linkingToProjectId?: string | null;
     linkingToProjectName?: string | null;
+    enabledFrameworks?: Framework[];
     handlers: {
         updating: boolean;
         handleStatusChange: (c: Control, s: Control['status']) => Promise<void>;
@@ -35,6 +36,8 @@ interface ComplianceInspectorProps {
         handleUnlinkDocument: (c: Control, did: string) => Promise<void>;
         updateJustification: (c: Control, text: string) => Promise<void>;
         onUploadEvidence: (c: Control) => void;
+        handleMapFramework?: (c: Control, f: Framework) => Promise<void>;
+        handleUnmapFramework?: (c: Control, f: Framework) => Promise<void>;
     };
 }
 
@@ -50,6 +53,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
     findings,
     linkingToProjectId,
     linkingToProjectName,
+    enabledFrameworks,
     handlers
 }) => {
     type InspectorTabId = 'details' | 'evidence' | 'comments' | 'history' | 'linkedItems';
@@ -99,6 +103,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         control={control}
                         canEdit={canEdit}
                         usersList={usersList}
+                        enabledFrameworks={enabledFrameworks}
                         handlers={handlers}
                     />
                 )}
