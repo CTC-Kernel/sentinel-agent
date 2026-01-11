@@ -12,6 +12,7 @@ import {
   where,
   getDocs,
   onSnapshot,
+  limit,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -191,10 +192,10 @@ export function useProjectProgress(
         // Fetch all collections in parallel for initial data
         // ALL queries must use root collections with organizationId filter
         const [controlsSnap, documentsSnap, actionsSnap, milestonesSnap] = await Promise.all([
-          getDocs(query(collection(db, 'controls'), where('organizationId', '==', tenantId))),
-          getDocs(query(collection(db, 'documents'), where('organizationId', '==', tenantId))),
-          getDocs(query(collection(db, 'actions'), where('organizationId', '==', tenantId))),
-          getDocs(query(collection(db, 'project_milestones'), where('organizationId', '==', tenantId))),
+          getDocs(query(collection(db, 'controls'), where('organizationId', '==', tenantId), limit(1000))),
+          getDocs(query(collection(db, 'documents'), where('organizationId', '==', tenantId), limit(1000))),
+          getDocs(query(collection(db, 'actions'), where('organizationId', '==', tenantId), limit(1000))),
+          getDocs(query(collection(db, 'project_milestones'), where('organizationId', '==', tenantId), limit(500))),
         ]);
 
         // Calculate controls progress

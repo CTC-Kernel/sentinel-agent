@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { collection, addDoc, deleteDoc, doc, getDocs, query, where, QueryDocumentSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, getDocs, query, where, limit, QueryDocumentSnapshot, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { useStore } from '../store';
@@ -75,8 +75,8 @@ export const useReports = () => {
         setLoading(true);
         try {
             const [incidentsSnap, allDocsSnap] = await Promise.all([
-                getDocs(query(collection(db, 'incidents'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'incidents'), where('organizationId', '==', user.organizationId), limit(500))),
+                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId), limit(1000)))
             ]);
 
             const mapDoc = <T>(d: QueryDocumentSnapshot) => ({ id: d.id, ...d.data() } as T);

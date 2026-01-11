@@ -1,6 +1,6 @@
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 export interface Dependency {
     id: string;
@@ -29,9 +29,9 @@ export class DependencyService {
 
         try {
             const [controlsSnap, projectsSnap, auditsSnap] = await Promise.all([
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId))),
-                getDocs(query(collection(db, 'projects'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId))),
-                getDocs(query(collection(db, 'audits'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId)))
+                getDocs(query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId), limit(100))),
+                getDocs(query(collection(db, 'projects'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId), limit(100))),
+                getDocs(query(collection(db, 'audits'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId), limit(100)))
             ]);
 
             const dependencies: Dependency[] = [
@@ -100,7 +100,7 @@ export class DependencyService {
 
         try {
             // Check Risks linked to this asset
-            const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('assetId', '==', assetId)));
+            const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('assetId', '==', assetId), limit(100)));
 
             const dependencies: Dependency[] = risksSnap.docs.map(d => ({
                 id: d.id,
@@ -131,8 +131,8 @@ export class DependencyService {
 
         try {
             const [risksSnap, auditsSnap] = await Promise.all([
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('mitigationControlIds', 'array-contains', controlId))),
-                getDocs(query(collection(db, 'audits'), where('organizationId', '==', organizationId), where('relatedControlIds', 'array-contains', controlId)))
+                getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('mitigationControlIds', 'array-contains', controlId), limit(100))),
+                getDocs(query(collection(db, 'audits'), where('organizationId', '==', organizationId), where('relatedControlIds', 'array-contains', controlId), limit(100)))
             ]);
 
             const dependencies: Dependency[] = [
