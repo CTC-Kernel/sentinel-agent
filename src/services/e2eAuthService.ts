@@ -11,9 +11,23 @@ export class E2EAuthService {
   private static readonly E2E_USER_KEY = 'E2E_TEST_USER';
 
   static isE2EMode(): boolean {
+    // SECURITY: E2E mode requires EXPLICIT environment variable AND dev mode
+    // This prevents any bypass in production builds even if localStorage is manipulated
+    const isE2EEnabled = import.meta.env.VITE_ENABLE_E2E_MODE === 'true';
+    const isDevMode = import.meta.env.DEV === true;
+
+    // Double-check: Never allow E2E mode in production builds
+    if (import.meta.env.PROD) {
+      return false;
+    }
+
+    if (!isDevMode || !isE2EEnabled) {
+      return false;
+    }
+
     const plain = localStorage.getItem(this.E2E_USER_KEY);
-    ErrorLogger.debug(`E2E Check: Dev=${import.meta.env.DEV}, HasUser=${plain !== null}`, 'E2EAuthService.isE2EMode');
-    return import.meta.env.DEV && (plain !== null || SecureStorage.getSecureItem(this.E2E_USER_KEY) !== null);
+    ErrorLogger.debug(`E2E Check: Dev=${isDevMode}, E2EEnabled=${isE2EEnabled}, HasUser=${plain !== null}`, 'E2EAuthService.isE2EMode');
+    return plain !== null || SecureStorage.getSecureItem(this.E2E_USER_KEY) !== null;
   }
 
   static getE2EUser(): UserProfile | null {

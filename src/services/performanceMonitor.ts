@@ -34,7 +34,9 @@ class PerformanceMonitor {
     private metrics: Partial<PerformanceMetrics> = {};
     private alerts: PerformanceAlert[] = [];
     private observers: PerformanceObserver[] = [];
-    
+    private engagementIntervalId: ReturnType<typeof setInterval> | null = null;
+    private eventListenerCleanup: (() => void)[] = [];
+
     constructor() {
         this.initializeWebVitals();
         this.initializeCustomMetrics();
@@ -153,22 +155,28 @@ class PerformanceMonitor {
     private monitorUserEngagement(): void {
         let engagementTime = 0;
         let interactions = 0;
-        
+
         const updateEngagement = () => {
             if (document.hidden) return;
-            
+
             engagementTime += 100; // Update every 100ms
             interactions++;
-            
+
             this.updateMetric('userEngagement', interactions / (engagementTime / 1000) || 0);
         };
-        
-        // Track user interactions
-        ['click', 'scroll', 'keydown', 'mousemove'].forEach(event => {
+
+        // Track user interactions with proper cleanup
+        const events = ['click', 'scroll', 'keydown', 'mousemove'] as const;
+        events.forEach(event => {
             document.addEventListener(event, updateEngagement, { passive: true });
+            // Store cleanup function for later
+            this.eventListenerCleanup.push(() => {
+                document.removeEventListener(event, updateEngagement);
+            });
         });
-        
-        setInterval(updateEngagement, 100);
+
+        // Store interval reference for cleanup
+        this.engagementIntervalId = setInterval(updateEngagement, 100);
     }
     
     private updateMetric(metric: keyof PerformanceMetrics, value: number): void {
@@ -279,8 +287,19 @@ class PerformanceMonitor {
     }
     
     public destroy(): void {
+        // Clean up PerformanceObservers
         this.observers.forEach(observer => observer.disconnect());
         this.observers = [];
+
+        // Clean up engagement interval
+        if (this.engagementIntervalId !== null) {
+            clearInterval(this.engagementIntervalId);
+            this.engagementIntervalId = null;
+        }
+
+        // Clean up event listeners
+        this.eventListenerCleanup.forEach(cleanup => cleanup());
+        this.eventListenerCleanup = [];
     }
 }
 
