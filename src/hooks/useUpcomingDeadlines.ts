@@ -16,6 +16,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
 
 /**
@@ -278,14 +279,14 @@ export function useUpcomingDeadlines(
             setIsRefetching(false);
           },
           (err) => {
-            console.error('Error fetching upcoming deadlines:', err);
+            ErrorLogger.error(err, 'useUpcomingDeadlines.onSnapshot');
             setError(err as Error);
             setFetchedTenantId(tenantId);
             setIsRefetching(false);
           }
         );
       } catch (err) {
-        console.error('Error setting up deadlines listener:', err);
+        ErrorLogger.error(err, 'useUpcomingDeadlines.setupListener');
         setError(err as Error);
         setFetchedTenantId(tenantId);
         setIsRefetching(false);

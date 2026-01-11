@@ -16,6 +16,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
 import type { Criticality } from '../types/common';
 
@@ -218,14 +219,14 @@ export function useActiveIncidents(
             setIsRefetching(false);
           },
           (err) => {
-            console.error('Error fetching active incidents:', err);
+            ErrorLogger.error(err, 'useActiveIncidents.onSnapshot');
             setError(err as Error);
             setFetchedTenantId(tenantId);
             setIsRefetching(false);
           }
         );
       } catch (err) {
-        console.error('Error setting up active incidents listener:', err);
+        ErrorLogger.error(err, 'useActiveIncidents.setupListener');
         setError(err as Error);
         setFetchedTenantId(tenantId);
         setIsRefetching(false);

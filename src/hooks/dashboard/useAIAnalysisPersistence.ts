@@ -29,7 +29,7 @@ export const useAIAnalysisPersistence = () => {
                 }
             }
         } catch (error) {
-            console.error('Error reading AI summary from storage:', error);
+            ErrorLogger.error(error, 'useAIAnalysisPersistence.getStoredSummary');
         }
         return null;
     });

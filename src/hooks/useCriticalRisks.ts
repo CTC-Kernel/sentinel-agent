@@ -13,6 +13,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
 
 /**
@@ -141,14 +142,14 @@ export function useCriticalRisks(tenantId: string | undefined): CriticalRisksRes
             setIsRefetching(false);
           },
           (err) => {
-            console.error('Error fetching critical risks:', err);
+            ErrorLogger.error(err, 'useCriticalRisks.onSnapshot');
             setError(err as Error);
             setFetchedTenantId(tenantId);
             setIsRefetching(false);
           }
         );
       } catch (err) {
-        console.error('Error setting up critical risks listener:', err);
+        ErrorLogger.error(err, 'useCriticalRisks.setupListener');
         setError(err as Error);
         setFetchedTenantId(tenantId);
         setIsRefetching(false);

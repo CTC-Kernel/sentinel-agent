@@ -13,6 +13,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
 
 /**
@@ -123,14 +124,14 @@ export function useOngoingAudits(tenantId: string | undefined): OngoingAuditsRes
             setIsRefetching(false);
           },
           (err) => {
-            console.error('Error fetching ongoing audits:', err);
+            ErrorLogger.error(err, 'useOngoingAudits.onSnapshot');
             setError(err as Error);
             setFetchedTenantId(tenantId);
             setIsRefetching(false);
           }
         );
       } catch (err) {
-        console.error('Error setting up ongoing audits listener:', err);
+        ErrorLogger.error(err, 'useOngoingAudits.setupListener');
         setError(err as Error);
         setFetchedTenantId(tenantId);
         setIsRefetching(false);

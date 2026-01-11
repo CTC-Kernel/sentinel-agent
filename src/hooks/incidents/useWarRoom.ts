@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { orderBy, limit, Timestamp } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 export interface WarRoomMessage {
     id: string;
@@ -53,7 +54,7 @@ export const useWarRoom = (incidentId: string) => {
                 isSystem: false
             });
         } catch (error) {
-            console.error("Error sending war room message:", error);
+            ErrorLogger.error(error, 'useWarRoom.sendMessage');
             throw error;
         }
     };

@@ -16,6 +16,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
 
 /**
@@ -301,7 +302,7 @@ export function useProjectProgress(
 
         unsubscribes.push(unsubscribe);
       } catch (err) {
-        console.error('Error fetching project progress:', err);
+        ErrorLogger.error(err, 'useProjectProgress.fetchProgress');
         setError(err as Error);
         setFetchedTenantId(tenantId);
         setIsRefetching(false);

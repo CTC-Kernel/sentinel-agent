@@ -16,6 +16,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { ErrorLogger } from '../services/errorLogger';
 import type { TrendType } from '../types/score.types';
 
 /**
@@ -250,14 +251,14 @@ export function useAssignedActions(
             setIsRefetching(false);
           },
           (err) => {
-            console.error('Error fetching assigned actions:', err);
+            ErrorLogger.error(err, 'useAssignedActions.onSnapshot');
             setError(err as Error);
             setFetchedTenantId(tenantId);
             setIsRefetching(false);
           }
         );
       } catch (err) {
-        console.error('Error setting up assigned actions listener:', err);
+        ErrorLogger.error(err, 'useAssignedActions.setupListener');
         setError(err as Error);
         setFetchedTenantId(tenantId);
         setIsRefetching(false);

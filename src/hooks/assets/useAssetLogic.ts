@@ -13,6 +13,7 @@ import { toast } from '@/lib/toast';
 import { AssetFormData } from '../../schemas/assetSchema';
 import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
+import { ErrorLogger } from '../../services/errorLogger';
 
 export const useAssetLogic = () => {
     const { user } = useAuth();
@@ -86,7 +87,7 @@ export const useAssetLogic = () => {
                 return { success: false, error: 'LIMIT_REACHED' };
             }
         } catch (err) {
-            console.error('Error checking asset limits:', err);
+            ErrorLogger.error(err, 'useAssetLogic.checkAssetLimits');
             // Fail safe: if check fails, maybe allow or block? Blocking is safer for quotas.
             return { success: false, error: 'LIMIT_CHECK_FAILED' };
         }
