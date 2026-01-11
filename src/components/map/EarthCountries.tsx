@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
+import { ErrorLogger } from '../../services/errorLogger';
 
 // Constants
 const GEOJSON_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson';
@@ -27,7 +28,7 @@ export const EarthCountries: React.FC<EarthCountriesProps> = ({ color = '#38bdf8
         fetch(GEOJSON_URL)
             .then(res => res.json())
             .then(data => setGeoJson(data))
-            .catch(err => console.error("Failed to load country data", err));
+            .catch(err => ErrorLogger.error(err, 'EarthCountries.loadGeoJson'));
     }, []);
 
     const geometry = useMemo(() => {

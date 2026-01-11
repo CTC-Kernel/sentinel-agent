@@ -10,6 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useWarRoom } from '../../hooks/incidents/useWarRoom';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface WarRoomModalProps {
     isOpen: boolean;
@@ -49,7 +50,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
             reset();
         } catch (error) {
             // Toast error handled globally or we can add local error state
-            console.error(error);
+            ErrorLogger.error(error, 'WarRoomModal.onSubmit');
         }
     };
 

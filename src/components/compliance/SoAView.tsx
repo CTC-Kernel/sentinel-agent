@@ -9,6 +9,7 @@ import { useStore } from '../../store';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { cn } from '../../lib/utils';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface SoAViewProps {
     controls: Control[];
@@ -55,7 +56,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             })) as SoAVersion[];
             setVersions(loadedVersions);
         } catch (error) {
-            console.error('Error loading SoA versions:', error);
+            ErrorLogger.error(error, 'SoAView.loadVersions');
         } finally {
             setLoadingVersions(false);
         }
@@ -101,7 +102,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             addToast('Version SoA sauvegardée', 'success');
             await loadVersions(); // Refresh the list
         } catch (error) {
-            console.error('Error saving SoA version:', error);
+            ErrorLogger.error(error, 'SoAView.saveVersion');
             addToast('Erreur lors de la sauvegarde', 'error');
         } finally {
             setSavingVersion(false);

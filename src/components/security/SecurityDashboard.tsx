@@ -14,6 +14,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { SessionMonitor } from '../../services/sessionMonitoringService';
+import { ErrorLogger } from '../../services/errorLogger';
 import { Shield, AlertTriangle, Activity, Clock, Users } from 'lucide-react';
 
 interface SecurityMetrics {
@@ -104,7 +105,7 @@ export const SecurityDashboard: React.FC = () => {
 
       setLoading(false);
     } catch (error) {
-      console.error('Erreur lors du chargement des métriques:', error);
+      ErrorLogger.error(error, 'SecurityDashboard.loadMetrics');
       setLoading(false);
     }
   }, [calculateHealthScore]);

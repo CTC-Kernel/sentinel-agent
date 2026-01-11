@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 // Test guard that bypasses authentication in test mode
 export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -23,7 +24,7 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
                     try {
                         setUser(JSON.parse(e2eUser));
                     } catch (e) {
-                        console.error('Failed to parse E2E_TEST_USER', e);
+                        ErrorLogger.error(e, 'TestGuards.parseE2EUser');
                     }
                 } else {
                     // Fallback hardcoded user for robustness
