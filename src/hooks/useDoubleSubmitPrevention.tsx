@@ -69,9 +69,9 @@ export const useDoubleSubmitPrevention = () => {
 
 /**
  * Hook pour la protection des formulaires avec validation
+ * Generic constraint allows any object type for form data
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const useFormProtection = <T extends Record<string, any>>(initialData: T) => {
+export const useFormProtection = <T extends Record<string, unknown>>(initialData: T) => {
   const [formData, setFormData] = useState<T>(initialData);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({});
@@ -80,8 +80,7 @@ export const useFormProtection = <T extends Record<string, any>>(initialData: T)
 
   const { handleSubmit } = useDoubleSubmitPrevention();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const validateField = useCallback((_name: keyof T, value: any) => {
+  const validateField = useCallback((_name: keyof T, value: unknown) => {
     // Validation basique - à personnaliser selon les besoins
     // Si une fonction de validation personnalisée est fournie via les options (à ajouter plus tard si besoin), l'utiliser ici.
     // Pour l'instant, on rend la validation moins stricte par défaut :
@@ -104,8 +103,7 @@ export const useFormProtection = <T extends Record<string, any>>(initialData: T)
     return null;
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setFieldValue = useCallback((name: keyof T, value: any) => {
+  const setFieldValue = useCallback((name: keyof T, value: T[keyof T]) => {
     setFormData(prev => ({ ...prev, [name]: value }));
 
     // Valider le champ s'il a déjà été touché

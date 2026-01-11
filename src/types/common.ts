@@ -41,3 +41,61 @@ export interface AIAnalysisResult {
     response: Record<string, unknown>;
     timestamp: string;
 }
+
+/**
+ * Interface for Firestore Timestamp-like objects
+ * Handles both native Firestore Timestamps and serialized versions
+ */
+export interface FirestoreTimestampLike {
+    toDate?: () => Date;
+    toMillis?: () => number;
+    seconds?: number;
+    nanoseconds?: number;
+}
+
+/**
+ * Type guard to check if a value is a Firestore Timestamp-like object
+ */
+export function isFirestoreTimestamp(value: unknown): value is FirestoreTimestampLike {
+    if (!value || typeof value !== 'object') return false;
+    const obj = value as Record<string, unknown>;
+    return (
+        typeof obj.toDate === 'function' ||
+        typeof obj.toMillis === 'function' ||
+        typeof obj.seconds === 'number'
+    );
+}
+
+/**
+ * Safely converts a Firestore timestamp or date-like value to milliseconds
+ */
+export function timestampToMillis(timestamp: unknown): number {
+    if (!timestamp) return 0;
+    if (timestamp instanceof Date) return timestamp.getTime();
+    if (typeof timestamp === 'number') return timestamp;
+    if (typeof timestamp === 'string') return new Date(timestamp).getTime();
+
+    if (isFirestoreTimestamp(timestamp)) {
+        if (timestamp.toMillis) return timestamp.toMillis();
+        if (timestamp.toDate) return timestamp.toDate().getTime();
+        if (timestamp.seconds !== undefined) return timestamp.seconds * 1000;
+    }
+
+    return 0;
+}
+
+/**
+ * Safely converts a Firestore timestamp or date-like value to ISO string
+ */
+export function timestampToISOString(timestamp: unknown): string | null {
+    if (!timestamp) return null;
+    if (timestamp instanceof Date) return timestamp.toISOString();
+    if (typeof timestamp === 'string') return timestamp;
+
+    if (isFirestoreTimestamp(timestamp)) {
+        if (timestamp.toDate) return timestamp.toDate().toISOString();
+        if (timestamp.seconds !== undefined) return new Date(timestamp.seconds * 1000).toISOString();
+    }
+
+    return null;
+}

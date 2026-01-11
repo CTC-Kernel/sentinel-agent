@@ -4,7 +4,7 @@ import { Activity, Globe, User } from 'lucide-react';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { SystemLog } from '../../types';
+import { SystemLog, timestampToMillis } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../ui/EmptyState';
@@ -25,25 +25,9 @@ export const UserActivityLog: React.FC = () => {
             filtered = filtered.filter(log => log.userId === user.uid);
         }
 
-        // Sort by timestamp descending
+        // Sort by timestamp descending using type-safe utility
         const sorted = [...filtered].sort((a, b) => {
-            const getMillis = (timestamp: unknown) => {
-                if (!timestamp) return 0;
-                if (timestamp instanceof Date) return timestamp.getTime();
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if (typeof timestamp === 'object' && timestamp && 'toMillis' in timestamp && typeof (timestamp as any).toMillis === 'function') {
-                    return (timestamp as { toMillis: () => number }).toMillis();
-                }
-                if (typeof timestamp === 'object' && timestamp && 'seconds' in timestamp) {
-                    return (timestamp as { seconds: number }).seconds * 1000;
-                }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if (typeof timestamp === 'object' && timestamp && 'toDate' in timestamp && typeof (timestamp as any).toDate === 'function') {
-                    return (timestamp as { toDate: () => Date }).toDate().getTime();
-                }
-                return new Date(timestamp as string | number).getTime();
-            };
-            return getMillis(b.timestamp) - getMillis(a.timestamp);
+            return timestampToMillis(b.timestamp) - timestampToMillis(a.timestamp);
         });
 
         // Limit results
@@ -59,22 +43,12 @@ export const UserActivityLog: React.FC = () => {
                     const val = row.original.timestamp;
                     if (!val) return '-';
 
-                    let date: Date;
-
                     try {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        if ((val as any) instanceof Date) {
-                            date = val as unknown as Date;
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        } else if (typeof val === 'object' && val && 'toDate' in val && typeof (val as any).toDate === 'function') {
-                            date = (val as { toDate: () => Date }).toDate();
-                        } else if (typeof val === 'object' && val && 'seconds' in val) {
-                            date = new Date((val as { seconds: number }).seconds * 1000);
-                        } else {
-                            date = new Date(val as string | number);
-                        }
+                        // Use type-safe utility for timestamp conversion
+                        const millis = timestampToMillis(val);
+                        if (!millis) return '-';
 
-                        // Check if date is valid
+                        const date = new Date(millis);
                         if (isNaN(date.getTime())) return '-';
                         return format(date, 'Pp', { locale: fr });
                     } catch {

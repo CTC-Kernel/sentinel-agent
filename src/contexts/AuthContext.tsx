@@ -21,7 +21,7 @@ import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { AccountService } from '../services/accountService';
 import { E2EAuthService } from '../services/e2eAuthService';
-import { UserProfile, Organization } from '../types';
+import { UserProfile, Organization, timestampToISOString } from '../types';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 
 import { AuthContext } from './AuthContextDefinition';
@@ -229,15 +229,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     if (snapshot.exists()) {
                         const rawData = snapshot.data();
-                        // Convert Timestamps to strings/dates
+                        // Convert Timestamps to strings/dates using type-safe utility
                         const userData = {
                             ...(rawData as UserProfile),
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            createdAt: (rawData.createdAt as any)?.toDate?.().toISOString() || rawData.createdAt,
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            lastLogin: (rawData.lastLogin as any)?.toDate?.().toISOString() || rawData.lastLogin,
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            lastActive: (rawData.lastActive as any)?.toDate?.().toISOString() || rawData.lastActive,
+                            createdAt: timestampToISOString(rawData.createdAt) || rawData.createdAt,
+                            lastLogin: timestampToISOString(rawData.lastLogin) || rawData.lastLogin,
+                            lastActive: timestampToISOString(rawData.lastActive) || rawData.lastActive,
                             emailVerified: u?.emailVerified
                         } as UserProfile;
 
