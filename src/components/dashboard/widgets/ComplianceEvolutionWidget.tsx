@@ -15,7 +15,7 @@ interface ComplianceEvolutionWidgetProps {
     theme: string;
 }
 
-export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = ({ historyData, loading, t, theme }) => {
+export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = React.memo(({ historyData, loading, t, theme }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [timeRange, setTimeRange] = useState<'30d' | '90d' | '1y' | 'all'>('30d');
     const gradientId = useId();
@@ -138,4 +138,6 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
             </div>
         </DashboardCard>
     );
-};
+});
+
+ComplianceEvolutionWidget.displayName = 'ComplianceEvolutionWidget';

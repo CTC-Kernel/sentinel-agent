@@ -21,7 +21,7 @@ interface MyWorkspaceWidgetProps {
     t: (key: string) => string;
 }
 
-export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionItems, loading, navigate, t }) => {
+export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = React.memo(({ myActionItems, loading, navigate, t }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handleItemClick = useCallback((link: string) => {
@@ -104,4 +104,6 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
             )}
         </DashboardCard>
     );
-};
+});
+
+MyWorkspaceWidget.displayName = 'MyWorkspaceWidget';

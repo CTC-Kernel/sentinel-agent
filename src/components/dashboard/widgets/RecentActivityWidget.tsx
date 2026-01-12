@@ -12,7 +12,7 @@ interface RecentActivityWidgetProps {
     t: (key: string) => string;
 }
 
-export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ recentActivity, loading, t }) => {
+export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.memo(({ recentActivity, loading, t }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     type ActivityFilter = 'All' | 'Risk' | 'Incident' | 'Asset';
     const [filter, setFilter] = useState<ActivityFilter>('All');
@@ -136,4 +136,6 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
             </div>
         </DashboardCard>
     );
-};
+});
+
+RecentActivityWidget.displayName = 'RecentActivityWidget';

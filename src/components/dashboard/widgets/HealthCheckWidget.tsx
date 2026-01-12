@@ -20,7 +20,7 @@ interface HealthCheckWidgetProps {
     t: (key: string) => string;
 }
 
-export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = ({ healthIssues, loading, navigate, t }) => {
+export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = React.memo(({ healthIssues, loading, navigate, t }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const displayIssues = isExpanded ? healthIssues : healthIssues.slice(0, 3);
@@ -93,4 +93,6 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = ({ healthIssu
             </div>
         </DashboardCard>
     );
-};
+});
+
+HealthCheckWidget.displayName = 'HealthCheckWidget';

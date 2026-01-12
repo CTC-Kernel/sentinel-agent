@@ -14,7 +14,7 @@ interface PriorityRisksWidgetProps {
     title?: string;
 }
 
-export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = ({ topRisks, loading, navigate, t, title }) => {
+export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = React.memo(({ topRisks, loading, navigate, t, title }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const displayRisks = isExpanded ? topRisks : topRisks.slice(0, 3);
@@ -79,4 +79,6 @@ export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = ({ topRis
             </DashboardCard>
         </div>
     );
-};
+});
+
+PriorityRisksWidget.displayName = 'PriorityRisksWidget';
