@@ -74,6 +74,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleDeleteClick(strategy.id)}
+                                aria-label="Supprimer la stratégie"
                                 className="absolute top-4 right-4 text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
                             >
                                 <Trash2 className="h-4 w-4" />

@@ -182,7 +182,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                 {/* Input Area */}
                                 <div className="p-4 border-t border-white/10 bg-black/20">
                                     <form onSubmit={handleSubmit(onSubmit)} className="flex gap-4">
-                                        <Button type="button" variant="ghost" className="text-slate-400 hover:text-white">
+                                        <Button type="button" variant="ghost" className="text-slate-400 hover:text-white" aria-label="Joindre un fichier">
                                             <Paperclip className="w-5 h-5" />
                                         </Button>
                                         <input
@@ -192,7 +192,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                             autoFocus
                                             {...register('content')}
                                         />
-                                        <Button type="submit" disabled={loading} isLoading={loading} size="icon">
+                                        <Button type="submit" disabled={loading} isLoading={loading} size="icon" aria-label="Envoyer le message">
                                             <Send className="w-4 h-4" />
                                         </Button>
                                     </form>

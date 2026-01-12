@@ -100,7 +100,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                     <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
 
                     <CustomTooltip content={t('risks.startTour')}>
-                        <Button variant="outline" size="icon" onClick={() => OnboardingService.startRisksTour()}>
+                        <Button variant="outline" size="icon" onClick={() => OnboardingService.startRisksTour()} aria-label={t('risks.startTour')}>
                             <HelpCircle className="h-5 w-5" />
                         </Button>
                     </CustomTooltip>
@@ -113,6 +113,8 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                             size="icon"
                             data-tour="risks-filters"
                             onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                            aria-label={t('assets.advancedFilters')}
+                            aria-expanded={showAdvancedSearch}
                             className={showAdvancedSearch ? 'bg-brand-50 text-brand-600 border-brand-100' : ''}
                         >
                             <Filter className="h-5 w-5" />

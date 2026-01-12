@@ -58,7 +58,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
             actions={
                 <>
                     <Menu as="div" className="relative inline-block text-left">
-                        <Menu.Button as={Button} variant="ghost" size="icon" className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm h-9 w-9">
+                        <Menu.Button as={Button} variant="ghost" size="icon" aria-label="Plus d'actions" className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm h-9 w-9">
                             <MoreVertical className="h-5 w-5" />
                         </Menu.Button>
                         <Transition

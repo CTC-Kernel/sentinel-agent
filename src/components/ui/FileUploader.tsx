@@ -199,6 +199,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 onClick={handleCancel}
                                 variant="ghost"
                                 size="icon"
+                                aria-label="Annuler le téléversement"
                                 className="ml-2 py-0 h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                                 <X className="h-4 w-4" />
