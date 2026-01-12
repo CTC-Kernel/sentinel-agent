@@ -8,15 +8,32 @@
 
 ## RESUME EXECUTIF
 
-| Catégorie | Score | Statut |
-|-----------|-------|--------|
-| Architecture | 6/10 | Refactoring nécessaire |
-| Sécurité | 5/10 | **ATTENTION IMMEDIATE REQUISE** |
-| Performance | 6/10 | Améliorations possibles |
-| Qualité du Code | 6/10 | Dette technique modérée |
-| UI/UX & Accessibilité | 5/10 | Inconsistances majeures |
-| Dépendances | 6/10 | 47 packages à mettre à jour |
-| **SCORE GLOBAL** | **5.7/10** | **Action requise** |
+| Catégorie | Score Initial | Score Actuel | Statut |
+|-----------|---------------|--------------|--------|
+| Architecture | 6/10 | 7/10 | Amélioré (dossiers fusionnés) |
+| Sécurité | 5/10 | 7/10 | **Amélioré** (secrets retirés, auth durci) |
+| Performance | 6/10 | 7.5/10 | Amélioré (React.memo, lazy loading) |
+| Qualité du Code | 6/10 | 6.5/10 | Améliorations mineures |
+| UI/UX & Accessibilité | 5/10 | 6/10 | Amélioré (aria-labels) |
+| Dépendances | 6/10 | 7/10 | Amélioré (12 packages mis à jour, 0 CVE) |
+| **SCORE GLOBAL** | **5.7/10** | **6.8/10** | **En amélioration** |
+
+### CORRECTIONS APPLIQUEES (12 Jan 2026)
+
+| Fix | Commit | Impact |
+|-----|--------|--------|
+| Suppression token App Check hardcodé | `22d9462e` | Sécurité |
+| Fix fuite mémoire performanceMonitor | `22d9462e` | Performance |
+| Durcissement auth bypass E2E | `22d9462e` | Sécurité |
+| Mise à jour jspdf 2.5.2 → 4.0.0 (CVE) | `22d9462e` | Sécurité |
+| Fix XSS react-router | `22d9462e` | Sécurité |
+| Fusion dossiers context/ → contexts/ | `4f246fbe` | Architecture |
+| Fusion dossiers audit/ → audits/ | `4f246fbe` | Architecture |
+| React.memo sur IncidentKanban, Badge, StatCard, KPICard, EmptyState | `4f246fbe`, `1ea0124d` | Performance |
+| useMemo sur DataTable selectedIds | `4f246fbe` | Performance |
+| Lazy loading GeminiAssistant, VoxelStudio | `4f246fbe` | Performance |
+| aria-labels sur boutons (Kanban, ActionCard, Toolbar) | `4f246fbe`, `1ea0124d` | Accessibilité |
+| Mise à jour 12 packages (tiptap, tanstack, framer-motion, etc.) | `1ea0124d` | Dépendances |
 
 ---
 
@@ -24,44 +41,50 @@
 
 ### 1.1 SECURITE - CREDENTIALS EXPOSES
 
-**CRITIQUE - Rotation immédiate requise**
+~~**CRITIQUE - Rotation immédiate requise**~~ **PARTIELLEMENT CORRIGE**
 
-| Fichier | Secret exposé | Risque |
-|---------|---------------|--------|
-| `functions/.env:9` | SMTP Password: `Al21689a!` | Email spoofing |
-| `.env.local:1` | Gemini API Key: `AIzaSyA4JM...` | Abus API Google |
-| `.env.local:5` | Shodan API Key: `2W4CIeERQ...` | Accès réseau |
-| `.env.local:10` | NVD API Key: `394afc4d-...` | Quotas CVE |
-| `src/firebase.ts:43` | App Check Debug Token hardcodé | Bypass sécurité |
+| Fichier | Secret exposé | Risque | Statut |
+|---------|---------------|--------|--------|
+| `functions/.env:9` | SMTP Password | Email spoofing | ⚠️ Nécessite rotation |
+| `.env.local:1` | Gemini API Key | Abus API Google | ⚠️ Nécessite rotation |
+| `.env.local:5` | Shodan API Key | Accès réseau | ⚠️ Nécessite rotation |
+| `.env.local:10` | NVD API Key | Quotas CVE | ⚠️ Nécessite rotation |
+| `src/firebase.ts:43` | App Check Debug Token hardcodé | Bypass sécurité | ✅ **CORRIGE** |
 
-**Actions:**
-1. Faire tourner TOUS les secrets immédiatement
-2. Migrer vers Firebase Secrets Manager
-3. Vérifier `.gitignore` pour `.env*`
+**Actions restantes:**
+1. ⚠️ Faire tourner les secrets dans les fichiers .env
+2. ✅ Les fichiers .env sont maintenant ignorés par git
 
 ### 1.2 VULNERABILITES DEPENDANCES
 
-| Package | Version | Sévérité | Fix |
-|---------|---------|----------|-----|
-| **jspdf** | 2.5.2 | CRITIQUE (DoS, ReDoS) | 4.0.0 |
-| **@remix-run/router** | ≤1.23.1 | HAUTE (XSS) | 1.23.2+ |
-| **dompurify** (in jspdf) | <3.2.4 | HAUTE (XSS) | Update jspdf |
+| Package | Version | Sévérité | Fix | Statut |
+|---------|---------|----------|-----|--------|
+| **jspdf** | ~~2.5.2~~ 4.0.0 | CRITIQUE (DoS, ReDoS) | 4.0.0 | ✅ **CORRIGE** |
+| **@remix-run/router** | ~~≤1.23.1~~ 1.23.2+ | HAUTE (XSS) | 1.23.2+ | ✅ **CORRIGE** |
+| **dompurify** (in jspdf) | ~~<3.2.4~~ | HAUTE (XSS) | Update jspdf | ✅ **CORRIGE** |
+
+**npm audit:** 0 vulnérabilités
 
 ### 1.3 AUTH BYPASS EN PRODUCTION
 
-**Fichier:** `src/contexts/AuthContext.tsx:183-196`
+**Fichier:** `src/services/e2eAuthService.ts`
+
+~~**PROBLEME:** Test mode bypass pouvait être activé en prod~~ **CORRIGE**
 
 ```typescript
-// PROBLEME: Test mode bypass peut être activé en prod
-if (isTestMode) {
-    const e2eUser = localStorage.getItem('E2E_TEST_USER');
-    if (e2eUser) {
-        setUser(JSON.parse(e2eUser)); // Bypass complet!
-    }
+// SOLUTION APPLIQUEE: E2E mode nécessite maintenant:
+// 1. VITE_ENABLE_E2E_MODE=true (variable explicite)
+// 2. import.meta.env.DEV === true (mode dev uniquement)
+// 3. import.meta.env.PROD === false (jamais en production)
+static isE2EMode(): boolean {
+    if (import.meta.env.PROD) return false;
+    const isE2EEnabled = import.meta.env.VITE_ENABLE_E2E_MODE === 'true';
+    const isDevMode = import.meta.env.DEV === true;
+    return isDevMode && isE2EEnabled && /* ... */;
 }
 ```
 
-**Solution:** Supprimer le code de test du build de production.
+✅ **Le bypass E2E est maintenant sécurisé.**
 
 ---
 
@@ -69,12 +92,12 @@ if (isTestMode) {
 
 ### 2.1 Problèmes Critiques
 
-| Problème | Location | Impact |
-|----------|----------|--------|
-| **Dossiers context dupliqués** | `/src/context/` ET `/src/contexts/` | Confusion des imports |
-| **Dossiers audit dupliqués** | `/src/components/audit/` ET `/src/components/audits/` | Incohérence |
-| **Composants géants** | `RiskForm.tsx` (992 lignes), `VoxelStudio.tsx` (794 lignes) | Maintenabilité |
-| **Vues monolithiques** | `Dashboard.tsx` (25,269 lignes!) | Performance |
+| Problème | Location | Impact | Statut |
+|----------|----------|--------|--------|
+| **Dossiers context dupliqués** | `/src/context/` ET `/src/contexts/` | Confusion des imports | ✅ **CORRIGE** - Fusionné dans contexts/ |
+| **Dossiers audit dupliqués** | `/src/components/audit/` ET `/src/components/audits/` | Incohérence | ✅ **CORRIGE** - Fusionné dans audits/ |
+| **Composants géants** | `RiskForm.tsx` (992 lignes), `VoxelStudio.tsx` (794 lignes) | Maintenabilité | ⚠️ En attente |
+| **Vues monolithiques** | `Dashboard.tsx` (25,269 lignes!) | Performance | ⚠️ En attente |
 
 ### 2.2 State Management Fragmenté
 
@@ -103,32 +126,38 @@ L'application utilise 5 approches différentes:
 
 **Fichier:** `src/services/performanceMonitor.ts`
 
+~~**PROBLEME:** Intervalle et event listeners jamais nettoyés~~ ✅ **CORRIGE**
+
 ```typescript
-// LIGNE 171 - Intervalle jamais nettoyé!
-setInterval(updateEngagement, 100);
-
-// LIGNES 167-169 - Event listeners jamais retirés!
-['click', 'scroll', 'keydown', 'mousemove'].forEach(event => {
-    document.addEventListener(event, updateEngagement, { passive: true });
-});
+// SOLUTION APPLIQUEE: destroy() method avec cleanup complet
+public destroy(): void {
+    this.observers.forEach(observer => observer.disconnect());
+    if (this.engagementIntervalId !== null) {
+        clearInterval(this.engagementIntervalId);
+    }
+    this.eventListenerCleanup.forEach(cleanup => cleanup());
+}
 ```
-
-**Impact:** 4 event listeners s'accumulent à chaque mount + intervalle permanent
 
 ### 3.2 Re-renders Inutiles
 
-| Composant | Problème | Fix |
-|-----------|----------|-----|
-| `IncidentKanban.tsx` | Pas de React.memo | Wrapper avec memo() |
-| `DataTable.tsx:140` | `selectedIds` recalculé à chaque render | useMemo() |
-| `VoxelMesh.tsx:92-96` | Calcul distance dans render loop 3D | Memoizer |
+| Composant | Problème | Fix | Statut |
+|-----------|----------|-----|--------|
+| `IncidentKanban.tsx` | Pas de React.memo | Wrapper avec memo() | ✅ **CORRIGE** |
+| `DataTable.tsx:140` | `selectedIds` recalculé à chaque render | useMemo() | ✅ **CORRIGE** |
+| `Badge.tsx` | Pas de React.memo | Wrapper avec memo() | ✅ **CORRIGE** |
+| `StatCard.tsx` | Pas de React.memo | Wrapper avec memo() | ✅ **CORRIGE** |
+| `KPICard.tsx` | Pas de React.memo | Wrapper avec memo() | ✅ **CORRIGE** |
+| `EmptyState.tsx` | Pas de React.memo | Wrapper avec memo() | ✅ **CORRIGE** |
+| `VoxelMesh.tsx:92-96` | Calcul distance dans render loop 3D | Memoizer | ⚠️ En attente |
 
 ### 3.3 Lazy Loading Manquant
 
-Composants lourds non lazy-loaded:
-- `GeminiAssistant.tsx` - AI/LLM (~50KB)
-- `VoxelStudio.tsx` - Three.js 3D (~500KB)
-- `ThreatPlanet.tsx` - Visualisation 3D
+| Composant | Taille | Statut |
+|-----------|--------|--------|
+| `GeminiAssistant.tsx` | AI/LLM (~50KB) | ✅ **CORRIGE** - React.lazy |
+| `VoxelStudio.tsx` | Three.js 3D (~500KB) | ✅ **CORRIGE** - React.lazy |
+| `ThreatPlanet.tsx` | Visualisation 3D | ⚠️ En attente |
 
 ---
 
