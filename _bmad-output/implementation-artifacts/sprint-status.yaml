@@ -153,10 +153,10 @@ development_status:
 
   # Epic 13: Technical Excellence & Quality Improvements (P1 - Quality)
   # Source: Comprehensive Application Audit (2026-01-12)
-  epic-13: backlog
+  epic-13: in-progress
   13-1-refactor-dashboard: backlog
-  13-2-eliminate-any-types: backlog
-  13-3-centralize-colors: backlog
+  13-2-eliminate-any-types: done
+  13-3-centralize-colors: in-progress
   13-4-test-coverage: backlog
   13-5-refactor-riskform: backlog
   13-6-dependency-updates: backlog
