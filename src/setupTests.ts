@@ -16,7 +16,7 @@ global.ResizeObserver = class ResizeObserver {
 // Mock TextEncoder/TextDecoder for JSDOM
 import { TextEncoder, TextDecoder } from 'util';
 global.TextEncoder = TextEncoder;
-// @ts-ignore
+// @ts-expect-error
 global.TextDecoder = TextDecoder;
 
 // Mock Firebase
