@@ -160,6 +160,6 @@ development_status:
   13-4-test-coverage: backlog
   13-5-refactor-riskform: backlog
   13-6-dependency-updates: done
-  13-7-component-performance: backlog
+  13-7-component-performance: done
   13-8-accessibility: backlog
   epic-13-retrospective: optional
