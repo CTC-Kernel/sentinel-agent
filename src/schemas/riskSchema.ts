@@ -1,12 +1,13 @@
 import { z } from 'zod';
 import i18n from '../i18n';
 import { RISK_STATUSES, TREATMENT_STATUSES } from '../types/risks';
+import { FRAMEWORKS } from '../constants/frameworks';
 
 export const riskSchema = z.object({
     assetId: z.string().optional(),
     threat: z.string().min(3, i18n.t('validation.minLength', { min: 3 })).max(500, i18n.t('validation.maxLength', { max: 500 })),
     scenario: z.string().max(5000, i18n.t('validation.maxLength', { max: 5000 })).optional(),
-    framework: z.enum(['ISO27001', 'ISO22301', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL']).optional(),
+    framework: z.enum(FRAMEWORKS).optional(),
     vulnerability: z.string().min(3, i18n.t('validation.minLength', { min: 3 })).max(500, i18n.t('validation.maxLength', { max: 500 })),
     probability: z.number().min(1).max(5),
     impact: z.number().min(1).max(5),

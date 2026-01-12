@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, List, Grid3x3, ShieldAlert
 } from 'lucide-react';
@@ -29,6 +29,7 @@ import { useRiskDependencies } from '../hooks/risks/useRiskDependencies';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
 import { useRiskFilters } from '../hooks/risks/useRiskFilters';
 import { RiskCalculator } from '../utils/RiskCalculator';
+import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
 
 import { RiskFormData } from '../schemas/riskSchema';
 import { RiskList } from '../components/risks/RiskList';
@@ -132,40 +133,26 @@ export const Risks: React.FC = () => {
     } = useRiskFilters(risks);
 
     // URL Params
-    const [searchParams, setSearchParams] = useSearchParams();
+    // searchParams handled by hook
     const navigate = useNavigate();
     const location = useLocation();
-    const deepLinkRiskId = searchParams.get('id');
-    const deepLinkAction = searchParams.get('action');
-    const deepLinkAssetId = searchParams.get('createForAsset');
 
-    // Deep Link Logic
-    useEffect(() => {
-        if (loading) return;
-
-        if (deepLinkRiskId && risks.length > 0) {
-            const risk = risks.find(r => r.id === deepLinkRiskId);
-            if (risk && selectedRisk?.id !== risk.id) {
-                setSelectedRisk(risk);
-            }
-        } else if (deepLinkAction === 'create' && !creationMode) {
+    // Deep Link Hook
+    useDeepLinkAction({
+        data: risks,
+        loading,
+        currentSelection: selectedRisk,
+        isCreationMode: creationMode,
+        onOpen: setSelectedRisk,
+        onCreate: () => {
             setInitialFormData(undefined);
             setCreationMode(true);
-            setSearchParams(params => { params.delete('action'); return params; }, { replace: true });
-        } else if (deepLinkAssetId && !creationMode) {
-            setInitialFormData({ assetId: deepLinkAssetId });
+        },
+        onCreateWithPreset: (preset) => {
+            setInitialFormData({ assetId: preset.assetId });
             setCreationMode(true);
-            setSearchParams(params => { params.delete('createForAsset'); return params; }, { replace: true });
         }
-    }, [loading, deepLinkRiskId, deepLinkAction, deepLinkAssetId, risks, creationMode, selectedRisk, setSearchParams]);
-
-    // Cleanup ID param
-    useEffect(() => {
-        if (loading) return;
-        if (!selectedRisk && deepLinkRiskId) {
-            setSearchParams(params => { params.delete('id'); return params; }, { replace: true });
-        }
-    }, [selectedRisk, deepLinkRiskId, setSearchParams, loading]);
+    });
 
     // Legacy State Support (Asset Inspector)
     useEffect(() => {
@@ -263,7 +250,7 @@ export const Risks: React.FC = () => {
             });
             toast.success(t('risks.exportSuccess') || 'Export Excel réussi');
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Risks.handleExportExcel', 'EXCEL_EXPORT_FAILED');
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleExportExcel', 'UNKNOWN_ERROR');
         }
     }, [filteredRisks, assets, usersList, user?.organizationName, t]);
 
@@ -443,7 +430,7 @@ export const Risks: React.FC = () => {
                             onCategoryFilterChange={(category) => setActiveFilters(prev => ({ ...prev, category: category || null }))}
                             criticalityFilter={activeFilters.criticality || ''}
                             onCriticalityFilterChange={(criticality) => setActiveFilters(prev => ({ ...prev, criticality: criticality || null }))}
-                            availableCategories={availableCategories}
+                            availableCategories={availableCategories.filter((c): c is string => !!c)}
                             onClose={() => setShowAdvancedSearch(false)}
                         />
                     </motion.div>

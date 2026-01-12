@@ -39,21 +39,27 @@ export class DashboardService {
      */
     static async getDashboardCounts(organizationId: string): Promise<DashboardCounts> {
         try {
+            const incQuery = query(
+                collection(db, 'incidents'),
+                where('organizationId', '==', organizationId),
+                where('status', '!=', 'Fermé')
+            );
+
+            const auditQuery = query(
+                collection(db, 'audits'),
+                where('organizationId', '==', organizationId),
+                where('status', 'in', ['Planifié', 'En cours'])
+            );
+
             const [incCount, auditCount] = await Promise.all([
-                getCountFromServer(
-                    query(
-                        collection(db, 'incidents'),
-                        where('organizationId', '==', organizationId),
-                        where('status', '!=', 'Fermé')
-                    )
-                ),
-                getCountFromServer(
-                    query(
-                        collection(db, 'audits'),
-                        where('organizationId', '==', organizationId),
-                        where('status', 'in', ['Planifié', 'En cours'])
-                    )
-                )
+                getCountFromServer(incQuery).catch(error => {
+                    ErrorLogger.warn('Failed to count incidents', 'DashboardService.getDashboardCounts', { error });
+                    return { data: () => ({ count: 0 }) };
+                }),
+                getCountFromServer(auditQuery).catch(error => {
+                    ErrorLogger.warn('Failed to count audits', 'DashboardService.getDashboardCounts', { error });
+                    return { data: () => ({ count: 0 }) };
+                })
             ]);
 
             return {
@@ -62,7 +68,7 @@ export class DashboardService {
             };
         } catch (_error) {
             ErrorLogger.error(_error, 'DashboardService.getDashboardCounts');
-            throw _error;
+            return { activeIncidentsCount: 0, openAuditsCount: 0 };
         }
     }
     /**

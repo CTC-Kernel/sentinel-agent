@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+// React Router imports removed as handled by hooks
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -8,26 +8,24 @@ import { motion } from 'framer-motion';
 import { useAudits } from '../hooks/audits/useAudits';
 import { AuditsList } from '../components/audits/AuditsList';
 import { AuditsDrawer } from '../components/audits/AuditsDrawer';
+import { AuditsToolbar } from '../components/audits/AuditsToolbar';
+import { AuditInspector } from '../components/audits/AuditInspector';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
-import { PremiumPageControl } from '../components/ui/PremiumPageControl';
-import { Menu, Transition } from '@headlessui/react';
-import { Calendar as CalendarIcon, Download, BrainCircuit, Plus, LayoutDashboard, List, ClipboardCheck, MoreVertical, Trash2 } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { Calendar as CalendarIcon, List, LayoutDashboard, ClipboardCheck } from 'lucide-react';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
 import { AuditCalendar } from '../components/audits/AuditCalendar';
 import { FindingsList } from '../components/audits/FindingsList';
 
-import { CustomSelect } from '../components/ui/CustomSelect';
 import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
-import { Upload } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
+import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
 
 export const Audits: React.FC = () => {
     const { user, t } = useStore();
@@ -71,42 +69,20 @@ export const Audits: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState('');
 
     // URL Params for Deep Linking
-    const [searchParams, setSearchParams] = useSearchParams();
-    const deepLinkAuditId = searchParams.get('id');
-    const deepLinkAction = searchParams.get('action');
+    // searchParams handled by hook
 
-    // Deep Linking Effect
-    React.useEffect(() => {
-        if (loading) return;
-
-        if (deepLinkAuditId && audits.length > 0) {
-            const audit = audits.find(a => a.id === deepLinkAuditId);
-            if (audit) {
-                setSelectedAudit(audit);
-            }
-        } else if (deepLinkAction === 'create' && !creationMode) {
+    // Deep Link Hook
+    useDeepLinkAction({
+        data: audits,
+        loading,
+        currentSelection: selectedAudit,
+        isCreationMode: creationMode,
+        onOpen: setSelectedAudit,
+        onCreate: () => {
             setEditingAudit(null);
             setCreationMode(true);
-            // Consume action immediately
-            setSearchParams(params => {
-                params.delete('action');
-                return params;
-            }, { replace: true });
         }
-    }, [loading, deepLinkAuditId, deepLinkAction, audits, creationMode, setSearchParams]);
-
-    // Cleanup Effect
-    React.useEffect(() => {
-        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
-        if (loading) return;
-
-        if (!selectedAudit && deepLinkAuditId) {
-            setSearchParams(params => {
-                params.delete('id');
-                return params;
-            }, { replace: true });
-        }
-    }, [selectedAudit, deepLinkAuditId, setSearchParams, loading]);
+    });
 
     const tabs = [
         { id: 'overview', label: t('audits.dashboard'), icon: LayoutDashboard },
@@ -235,118 +211,28 @@ export const Audits: React.FC = () => {
                 />
             </div>
 
-            <PremiumPageControl
+            <AuditsToolbar
                 searchQuery={filter}
                 onSearchChange={setFilter}
-                searchPlaceholder={t('audits.searchPlaceholder')}
-                actions={
-                    <div className="flex gap-2 items-center">
-                        <div className="hidden md:block w-40">
-                            <CustomSelect
-                                value={statusFilter}
-                                onChange={(val) => setStatusFilter(val as string)}
-                                options={[
-                                    { value: '', label: t('audits.allStatuses') },
-                                    { value: 'Planifié', label: t('audits.status.planned') },
-                                    { value: 'En cours', label: t('audits.status.inProgress') },
-                                    { value: 'Terminé', label: t('audits.status.finished') },
-                                    { value: 'Validé', label: t('audits.status.validated') }
-                                ]}
-                                placeholder="Statut"
-                            />
-                        </div>
-                        <div className="hidden md:block w-40 mr-2">
-                            <CustomSelect
-                                value={typeFilter}
-                                onChange={(val) => setTypeFilter(val as string)}
-                                options={[
-                                    { value: '', label: t('audits.allTypes') },
-                                    { value: 'Interne', label: t('audits.type.internal') },
-                                    { value: 'Externe', label: t('audits.type.external') },
-                                    { value: 'Certification', label: t('audits.type.certification') }
-                                ]}
-                                placeholder="Type"
-                            />
-                        </div>
-                        <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
-
-                        {/* Actions Menu (Mobile & Desktop consolidated for specific secondary actions) */}
-                        <Menu as="div" className="relative inline-block text-left">
-                            <Menu.Button className="p-2 h-10 w-10 flex items-center justify-center bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                <MoreVertical className="h-5 w-5" />
-                            </Menu.Button>
-                            <Transition
-                                as={React.Fragment}
-                                enter="transition ease-out duration-100"
-                                enterFrom="transform opacity-0 scale-95"
-                                enterTo="transform opacity-100 scale-100"
-                                leave="transition ease-in duration-75"
-                                leaveFrom="transform opacity-100 scale-100"
-                                leaveTo="transform opacity-0 scale-95"
-                            >
-                                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                    <div className="p-1">
-                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('audits.exports')}</div>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button aria-label={t('audits.exportCalendar')} onClick={handleExportCalendar} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
-                                                    <CalendarIcon className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCalendar')}
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button aria-label={t('audits.exportCsv')} onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
-                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCSV')}
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                    </div>
-                                    <div className="p-1 border-t border-slate-100 dark:border-white/10">
-                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.import')}</div>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button onClick={() => setImportModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
-                                                    <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('common.importCsv')}
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                    </div>
-                                </Menu.Items>
-                            </Transition>
-                        </Menu>
-                        {selectedAudits.length > 0 && canDelete && (
-                            <Button
-                                onClick={handleBulkDelete}
-                                variant="destructive"
-                                className="gap-2"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                                <span className="hidden sm:inline">{t('audits.deleteBulk', { count: selectedAudits.length })}</span>
-                            </Button>
-                        )}
-                        {canEdit && (
-                            <>
-                                <Button
-                                    onClick={handleGeneratePlan}
-                                    variant="outline"
-                                    className="gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium"
-                                >
-                                    <BrainCircuit className="w-4 h-4" />
-                                    <span className="hidden sm:inline">{t('audits.aiAssistant')}</span>
-                                </Button>
-                                <Button
-                                    onClick={() => { setEditingAudit(null); setCreationMode(true); }}
-                                    className="gap-2 bg-brand-600 text-white hover:bg-brand-700 font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all"
-                                    data-tour="audits-new"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    <span className="hidden sm:inline">{t('audits.newAudit')}</span>
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                }
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                typeFilter={typeFilter}
+                setTypeFilter={setTypeFilter}
+                activeTab={activeTab}
+                onTabChange={(id) => setActiveTab(id)}
+                selectedAudits={selectedAudits}
+                handleBulkDelete={handleBulkDelete}
+                handleExportCalendar={handleExportCalendar}
+                handleExportCSV={handleExportCSV}
+                setImportModalOpen={setImportModalOpen}
+                handleGeneratePlan={handleGeneratePlan}
+                handleCreateAudit={() => {
+                    setEditingAudit(null);
+                    setCreationMode(true);
+                }}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                loading={loading}
             />
 
             {
@@ -412,15 +298,13 @@ export const Audits: React.FC = () => {
                 )
             }
 
-            {/* Creation/Edit/Inspection Drawer */}
+            {/* Creation/Edit Drawer */}
             <AuditsDrawer
                 creationMode={creationMode}
                 editingAudit={editingAudit}
-                selectedAudit={selectedAudit}
                 onClose={() => {
                     setCreationMode(false);
                     setEditingAudit(null);
-                    setSelectedAudit(null);
                 }}
                 onFormSubmit={onFormSubmit}
                 isLoading={loading}
@@ -429,11 +313,24 @@ export const Audits: React.FC = () => {
                 controls={controls}
                 projects={projects}
                 usersList={usersList}
-                refreshAudits={refreshAudits}
-                canEdit={canEdit}
-                onDelete={handleDelete}
-                documents={documents}
             />
+
+            {/* Inspector (separat from Drawer) */}
+            {selectedAudit && (
+                <AuditInspector
+                    audit={selectedAudit}
+                    onClose={() => setSelectedAudit(null)}
+                    controls={controls}
+                    documents={documents}
+                    assets={assets}
+                    risks={risks}
+                    projects={projects}
+                    usersList={usersList}
+                    refreshAudits={refreshAudits}
+                    canEdit={canEdit}
+                    onDelete={(id, name) => handleDelete({ id, name } as Audit)}
+                />
+            )}
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}
