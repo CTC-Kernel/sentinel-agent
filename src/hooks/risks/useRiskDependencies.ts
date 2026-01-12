@@ -66,49 +66,49 @@ export const useRiskDependencies = (options: UseRiskDependenciesOptions = {}) =>
     const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
         shouldFetch(fetchAssets) ? [where('organizationId', '==', user?.organizationId), limit(500)] : undefined,
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: shouldFetch(fetchAssets) }
     );
 
     const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
         'controls',
         shouldFetch(fetchControls) ? [where('organizationId', '==', user?.organizationId), limit(1000)] : undefined,
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: shouldFetch(fetchControls) }
     );
 
     const { data: rawProcesses, loading: loadingProcesses } = useFirestoreCollection<Process>(
         'business_processes',
         shouldFetch(fetchProcesses) ? [where('organizationId', '==', user?.organizationId), limit(200)] : undefined,
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: shouldFetch(fetchProcesses) }
     );
 
     const { data: rawSuppliers, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
         'suppliers',
         shouldFetch(fetchSuppliers) ? [where('organizationId', '==', user?.organizationId), limit(200)] : undefined,
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: shouldFetch(fetchSuppliers) }
     );
 
     const { data: rawIncidents, loading: loadingIncidents } = useFirestoreCollection<Incident>(
         'incidents',
         shouldFetch(fetchIncidents) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: shouldFetch(fetchIncidents) }
     );
 
     const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>(
         'audits',
         shouldFetch(fetchAudits) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: shouldFetch(fetchAudits) }
     );
 
     const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>(
         'projects',
         shouldFetch(fetchProjects) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: shouldFetch(fetchProjects) }
     );
 
     const { data: rawUsers, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
         shouldFetch(fetchUsers) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
-        { logError: true, realtime: true }
+        { logError: true, realtime: true, enabled: shouldFetch(fetchUsers) }
     );
 
     // Processed Data
