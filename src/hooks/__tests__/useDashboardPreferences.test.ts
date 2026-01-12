@@ -77,15 +77,12 @@ describe('useDashboardPreferences', () => {
     // Clear mock localStorage
     Object.keys(mockLocalStorage).forEach((key) => delete mockLocalStorage[key]);
 
-    // Default onSnapshot mock - immediately calls callback with empty doc
+    // Default onSnapshot mock - synchronized to avoid act() warnings
     mockOnSnapshot.mockImplementation((_docRef, onNext, _onError) => {
-      // Simulate async behavior
-      setTimeout(() => {
-        onNext({
-          exists: () => false,
-          data: () => null,
-        });
-      }, 0);
+      onNext({
+        exists: () => false,
+        data: () => null,
+      });
       return mockUnsubscribe;
     });
 
@@ -120,6 +117,19 @@ describe('useDashboardPreferences', () => {
     });
 
     it('should load from localStorage when Firestore doc does not exist', async () => {
+      vi.useFakeTimers();
+
+      // Override mock to be async for this test
+      mockOnSnapshot.mockImplementation((_docRef, onNext) => {
+        setTimeout(() => {
+          onNext({
+            exists: () => false,
+            data: () => null,
+          });
+        }, 100);
+        return mockUnsubscribe;
+      });
+
       const storedLayout: WidgetLayout[] = [
         { id: 'stored-1', widgetId: 'custom-widget', colSpan: 2 },
       ];
@@ -133,9 +143,14 @@ describe('useDashboardPreferences', () => {
         useDashboardPreferences('user-123', 'tenant-123', 'rssi')
       );
 
-      // Initial state should include localStorage data
+      // Initial state should include localStorage data (before Firestore responds)
       expect(result.current.layout.some((w) => w.widgetId === 'custom-widget')).toBe(true);
       expect(result.current.isCustomized).toBe(true);
+
+      // Flush timers to handle the delayed snapshot update and avoid act() warnings
+      await act(async () => {
+        vi.runAllTimers();
+      });
     });
   });
 
