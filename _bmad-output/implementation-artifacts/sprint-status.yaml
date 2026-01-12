@@ -150,3 +150,16 @@ development_status:
   12-4-time-to-certification-estimate: done # Brownfield - projectTemplates.ts with ISO 27001 milestones
   12-5-sector-based-control-suggestions: done # Brownfield - Industry selection in Step 1 + framework mapping
   epic-12-retrospective: optional
+
+  # Epic 13: Technical Excellence & Quality Improvements (P1 - Quality)
+  # Source: Comprehensive Application Audit (2026-01-12)
+  epic-13: backlog
+  13-1-refactor-dashboard: backlog
+  13-2-eliminate-any-types: backlog
+  13-3-centralize-colors: backlog
+  13-4-test-coverage: backlog
+  13-5-refactor-riskform: backlog
+  13-6-dependency-updates: backlog
+  13-7-component-performance: backlog
+  13-8-accessibility: backlog
+  epic-13-retrospective: optional
