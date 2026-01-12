@@ -163,3 +163,12 @@ development_status:
   13-7-component-performance: done
   13-8-accessibility: done
   epic-13-retrospective: done
+
+  # Epic 14: Advanced Technical Improvements (P1 - Quality & Security)
+  # Focus: Test coverage, security hardening, documentation, performance
+  epic-14: in-progress
+  14-1-test-coverage-50-percent: in-progress
+  14-2-security-audit: backlog
+  14-3-technical-documentation: backlog
+  14-4-performance-optimization: backlog
+  epic-14-retrospective: optional
