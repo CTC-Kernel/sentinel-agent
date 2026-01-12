@@ -131,10 +131,18 @@ workflow_status:
           validation: "passed"
       - id: "test-design"
         name: "Test Design"
-        status: optional
+        status: "_bmad-output/planning-artifacts/test-design-system.md"
         agent: "tea"
         command: "/bmad:bmm:workflows:testarch-test-design"
-        output: "System-level testability review"
+        completed: "2026-01-12"
+        outputs:
+          - "_bmad-output/planning-artifacts/test-design-system.md"
+        results:
+          mode: "system-level"
+          testability: "PASS (with concerns)"
+          asrs_high_priority: 5
+          asrs_medium_priority: 4
+          test_gap: "~133 tests needed"
       - id: "implementation-readiness"
         name: "Implementation Readiness Check"
         status: "_bmad-output/planning-artifacts/implementation-readiness-report-2026-01-10.md"
