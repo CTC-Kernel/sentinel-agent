@@ -1,5 +1,6 @@
 
 import { Risk } from '../types';
+import { RISK_COLORS, STATUS_COLORS } from '../constants/colors';
 
 export const RiskCalculator = {
     /**
@@ -43,10 +44,10 @@ export const RiskCalculator = {
      * Returns the hex color for charts/matrices
      */
     getScoreHexColor: (score: number): string => {
-        if (score >= 16) return '#ef4444'; // red-500
-        if (score >= 10) return '#f97316'; // orange-500
-        if (score >= 5) return '#f59e0b'; // amber-500
-        return '#10b981'; // emerald-500
+        if (score >= 16) return RISK_COLORS.critical;
+        if (score >= 10) return RISK_COLORS.high;
+        if (score >= 5) return STATUS_COLORS.warning;
+        return STATUS_COLORS.success;
     },
 
     /**

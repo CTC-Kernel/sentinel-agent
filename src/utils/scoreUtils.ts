@@ -4,6 +4,8 @@
  * Implements ADR-003: Score de Conformité Global
  */
 
+import { SCORE_COLORS } from '../constants/colors';
+
 export type ScoreLevel = 'critical' | 'warning' | 'good';
 
 /**
@@ -103,11 +105,11 @@ export function getScoreHexColor(score: number): string {
   const level = getScoreLevel(score);
   switch (level) {
     case 'critical':
-      return '#ef4444'; // red-500
+      return SCORE_COLORS.bad;
     case 'warning':
-      return '#f97316'; // orange-500
+      return SCORE_COLORS.warning;
     case 'good':
-      return '#22c55e'; // green-500
+      return SCORE_COLORS.good;
   }
 }
 

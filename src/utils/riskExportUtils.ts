@@ -9,6 +9,7 @@ import { PdfService } from '../services/PdfService';
 import { getRiskLevel } from './riskUtils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { RISK_COLORS, STATUS_COLORS } from '../constants/colors';
 
 interface RiskExportContext {
     risks: Risk[];
@@ -120,10 +121,10 @@ export function getRiskSummaryStats(risks: Risk[]): {
     const total = risks.length;
 
     const byCriticality = [
-        { label: 'Critique', count: risks.filter(r => r.score >= 15).length, color: '#EF4444' },
-        { label: 'Élevé', count: risks.filter(r => r.score >= 10 && r.score < 15).length, color: '#F59E0B' },
-        { label: 'Moyen', count: risks.filter(r => r.score >= 5 && r.score < 10).length, color: '#3B82F6' },
-        { label: 'Faible', count: risks.filter(r => r.score < 5).length, color: '#10B981' }
+        { label: 'Critique', count: risks.filter(r => r.score >= 15).length, color: RISK_COLORS.critical },
+        { label: 'Élevé', count: risks.filter(r => r.score >= 10 && r.score < 15).length, color: RISK_COLORS.high },
+        { label: 'Moyen', count: risks.filter(r => r.score >= 5 && r.score < 10).length, color: RISK_COLORS.medium },
+        { label: 'Faible', count: risks.filter(r => r.score < 5).length, color: STATUS_COLORS.success }
     ];
 
     const byStatus = [

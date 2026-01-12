@@ -41,6 +41,31 @@
   --color-slate-800: 30 41 59;
   --color-slate-900: 15 23 42;
   --color-slate-950: 2 6 23;
+
+  /* Risk Level Colors (semantic) */
+  --color-risk-critical: 239 68 68;     /* red-500 #ef4444 */
+  --color-risk-high: 249 115 22;        /* orange-500 #f97316 */
+  --color-risk-medium: 234 179 8;       /* yellow-500 #eab308 */
+  --color-risk-low: 34 197 94;          /* green-500 #22c55e */
+
+  /* Score Colors (semantic) */
+  --color-score-bad: 239 68 68;         /* red-500 #ef4444 */
+  --color-score-warning: 249 115 22;    /* orange-500 #f97316 */
+  --color-score-good: 34 197 94;        /* green-500 #22c55e */
+
+  /* Status Colors (semantic) */
+  --color-status-success: 16 185 129;   /* emerald-500 #10b981 */
+  --color-status-error: 239 68 68;      /* red-500 #ef4444 */
+  --color-status-warning: 245 158 11;   /* amber-500 #f59e0b */
+  --color-status-info: 59 130 246;      /* blue-500 #3b82f6 */
+
+  /* Chart Colors (for data visualization) */
+  --color-chart-1: 59 130 246;          /* blue-500 #3b82f6 */
+  --color-chart-2: 139 92 246;          /* violet-500 #8b5cf6 */
+  --color-chart-3: 236 72 153;          /* pink-500 #ec4899 */
+  --color-chart-4: 245 158 11;          /* amber-500 #f59e0b */
+  --color-chart-5: 16 185 129;          /* emerald-500 #10b981 */
+  --color-chart-6: 99 102 241;          /* indigo-500 #6366f1 */
   
   /* Standardized Spacing Scale */
   --spacing-0: 0;

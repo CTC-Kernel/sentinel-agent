@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getRiskSummaryStats } from '../riskExportUtils';
 import { Risk } from '../../types';
+import { RISK_COLORS, STATUS_COLORS } from '../../constants/colors';
 
 // Mock ExcelExportService
 vi.mock('../../services/excelExportService', () => ({
@@ -96,10 +97,10 @@ describe('riskExportUtils', () => {
             const medium = result.byCriticality.find(c => c.label === 'Moyen');
             const low = result.byCriticality.find(c => c.label === 'Faible');
 
-            expect(critical?.color).toBe('#EF4444');
-            expect(elevated?.color).toBe('#F59E0B');
-            expect(medium?.color).toBe('#3B82F6');
-            expect(low?.color).toBe('#10B981');
+            expect(critical?.color).toBe(RISK_COLORS.critical);
+            expect(elevated?.color).toBe(RISK_COLORS.high);
+            expect(medium?.color).toBe(RISK_COLORS.medium);
+            expect(low?.color).toBe(STATUS_COLORS.success);
         });
 
         it('should categorize risks by status', () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { BRAND_COLORS } from '../../constants/colors';
 
 interface ProgressRingProps {
     progress: number; // 0-100
@@ -15,7 +16,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     progress,
     size = 120,
     strokeWidth = 8,
-    color = '#3b82f6',
+    color = BRAND_COLORS[500],
     backgroundColor = 'hsl(var(--border) / 0.6)',
     showLabel = true,
     label,

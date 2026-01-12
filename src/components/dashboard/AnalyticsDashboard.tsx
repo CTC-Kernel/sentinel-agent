@@ -34,6 +34,7 @@ import { StatsService } from '../../services/statsService';
 import { OnboardingService } from '../../services/onboardingService';
 import { useLayoutData } from '../../hooks/layout/useLayoutData';
 import { useComplianceData } from '../../hooks/useComplianceData';
+import { CHART_COLORS, RISK_COLORS, STATUS_COLORS, SLATE_COLORS } from '../../constants/colors';
 
 interface TrendData {
     date: string;
@@ -160,12 +161,10 @@ export const AnalyticsDashboard: React.FC = () => {
             categories[category] = (categories[category] || 0) + 1;
         });
 
-        const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'];
-
         return Object.entries(categories).map(([name, value], idx) => ({
             name,
             value,
-            color: colors[idx % colors.length]
+            color: CHART_COLORS[idx % CHART_COLORS.length]
         }));
     }, [risks]);
 
@@ -339,12 +338,12 @@ export const AnalyticsDashboard: React.FC = () => {
                                     <AreaChart data={trendData}>
                                         <defs>
                                             <linearGradient id="colorRisks" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                                <stop offset="5%" stopColor={RISK_COLORS.critical} stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor={RISK_COLORS.critical} stopOpacity={0} />
                                             </linearGradient>
                                             <linearGradient id="colorIncidents" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                                                <stop offset="5%" stopColor={STATUS_COLORS.warning} stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor={STATUS_COLORS.warning} stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.3} vertical={false} />
@@ -371,17 +370,17 @@ export const AnalyticsDashboard: React.FC = () => {
                                                 boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
                                                 backdropFilter: 'blur(12px)',
                                                 padding: '12px 16px',
-                                                color: '#1e293b'
+                                                color: SLATE_COLORS[800]
                                             }}
                                             itemStyle={{ fontSize: '12px', fontWeight: 600, padding: '2px 0' }}
-                                            labelStyle={{ color: '#64748b', fontSize: '11px', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                                            cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                            labelStyle={{ color: SLATE_COLORS[500], fontSize: '11px', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                                            cursor={{ stroke: SLATE_COLORS[400], strokeWidth: 1, strokeDasharray: '4 4' }}
                                         />
                                         <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                                         <Area
                                             type="monotone"
                                             dataKey="risks"
-                                            stroke="#ef4444"
+                                            stroke={RISK_COLORS.critical}
                                             strokeWidth={3}
                                             fillOpacity={1}
                                             fill="url(#colorRisks)"
@@ -391,7 +390,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                         <Area
                                             type="monotone"
                                             dataKey="incidents"
-                                            stroke="#f59e0b"
+                                            stroke={STATUS_COLORS.warning}
                                             strokeWidth={3}
                                             fillOpacity={1}
                                             fill="url(#colorIncidents)"
@@ -417,7 +416,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                 progress={metrics.complianceRate}
                                 size={220}
                                 strokeWidth={16}
-                                color="#10b981"
+                                color={STATUS_COLORS.success}
                                 label="Conformité"
                             />
                         </div>
@@ -481,7 +480,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                             boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
                                             backdropFilter: 'blur(12px)',
                                             padding: '12px 16px',
-                                            color: '#1e293b'
+                                            color: SLATE_COLORS[800]
                                         }}
                                         itemStyle={{ fontSize: '12px', fontWeight: 600 }}
                                     />
