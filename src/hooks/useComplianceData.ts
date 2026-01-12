@@ -1,125 +1,113 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useStore } from '../store';
 import { useComplianceActions } from './useComplianceActions';
 import { Control, Risk, Finding, Framework, Document, UserProfile, Asset, Supplier, Project } from '../types';
-import { MockDataService } from '../services/mockDataService';
+import { useFirestoreCollection } from './useFirestore';
+import { where, limit } from 'firebase/firestore';
 
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
+interface UseComplianceDataOptions {
+    fetchRisks?: boolean;
+    fetchAssets?: boolean;
+    fetchDocuments?: boolean;
+    fetchUsers?: boolean;
+    fetchSuppliers?: boolean;
+    fetchProjects?: boolean;
+}
 
-export const useComplianceData = (currentFramework?: Framework) => {
+export const useComplianceData = (currentFramework?: Framework, options: UseComplianceDataOptions = {}) => {
     const { user, demoMode } = useStore();
-    const [controls, setControls] = useState<Control[]>([]);
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [findings, setFindings] = useState<Finding[]>([]);
-    const [documents, setDocuments] = useState<Document[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
+    const {
+        fetchRisks = false,
+        fetchAssets = false,
+        fetchDocuments = false,
+        fetchUsers = false,
+        fetchSuppliers = false,
+        fetchProjects = false
+    } = options;
 
-    const [loading, setLoading] = useState(true);
+    const shouldFetch = (flag: boolean) => !!user?.organizationId && !demoMode && flag;
+    const shouldFetchCore = !!user?.organizationId && !demoMode; // Controls are always fetched
 
+    // 1. Controls (Core - Always Fetched if not demo)
+    const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
+        'controls',
+        shouldFetchCore ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchCore }
+    );
+
+    // 2. Risks
+    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
+        'risks',
+        shouldFetch(fetchRisks) ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch(fetchRisks) }
+    );
+
+    // 3. Assets
+    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
+        'assets',
+        shouldFetch(fetchAssets) ? [where('organizationId', '==', user?.organizationId), limit(500)] : undefined, // Limit for perf
+        { logError: true, realtime: true, enabled: shouldFetch(fetchAssets) }
+    );
+
+    // 4. Documents
+    const { data: rawDocuments, loading: loadingDocuments } = useFirestoreCollection<Document>(
+        'documents',
+        shouldFetch(fetchDocuments) ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch(fetchDocuments) }
+    );
+
+    // 5. Users
+    const { data: rawUsers, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
+        'users',
+        shouldFetch(fetchUsers) ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch(fetchUsers) }
+    );
+
+    // 6. Suppliers
+    const { data: rawSuppliers, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
+        'suppliers',
+        shouldFetch(fetchSuppliers) ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch(fetchSuppliers) }
+    );
+
+    // 7. Projects
+    const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>(
+        'projects',
+        shouldFetch(fetchProjects) ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch(fetchProjects) }
+    );
+
+    // Actions
     const complianceActions = useComplianceActions(user);
 
-    useEffect(() => {
-        if (!user?.organizationId) {
-            setTimeout(() => setLoading(false), 0);
-            return;
-        }
+    // Filter Controls by Framework (Simulated client-side filtering or framework specific logic)
+    const filteredControls = useMemo(() => {
+        if (!rawControls) return [];
+        return currentFramework
+            ? rawControls.filter(c => c.framework === currentFramework)
+            : rawControls;
+    }, [rawControls, currentFramework]);
 
-        // Defer loading state update to avoid synchronous render warning
-        setTimeout(() => setLoading(true), 0);
+    const loading = loadingControls ||
+        (fetchRisks && loadingRisks) ||
+        (fetchAssets && loadingAssets) ||
+        (fetchDocuments && loadingDocuments) ||
+        (fetchUsers && loadingUsers) ||
+        (fetchSuppliers && loadingSuppliers) ||
+        (fetchProjects && loadingProjects);
 
-        // Robustly check for demo mode from multiple sources
-        const storedDemo = typeof window !== 'undefined' ? (() => { try { return localStorage.getItem('demoMode') } catch { return 'false' } })() : 'false';
-        const isDemo = demoMode || storedDemo === 'true' || (typeof window !== 'undefined' && !!((window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__));
-
-
-
-        if (isDemo) {
-
-            setTimeout(() => {
-                setControls(MockDataService.getCollection('controls') as unknown as Control[]);
-                setRisks(MockDataService.getCollection('risks') as unknown as Risk[]);
-                setDocuments(MockDataService.getCollection('documents') as unknown as Document[]);
-                setUsersList(MockDataService.getCollection('users') as unknown as UserProfile[]);
-                setAssets(MockDataService.getCollection('assets') as unknown as Asset[]);
-                setSuppliers(MockDataService.getCollection('suppliers') as unknown as Supplier[]);
-                setProjects(MockDataService.getCollection('projects') as unknown as Project[]);
-                setFindings([]);
-                setLoading(false);
-            }, 0);
-            return;
-        }
-
-        // 1. Controls Listener
-        const controlsQuery = query(
-            collection(db, 'controls'),
-            where('organizationId', '==', user.organizationId)
-        );
-
-        const unsubControls = onSnapshot(controlsQuery, (snapshot) => {
-            const fetchedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control));
-            setControls(fetchedControls);
-        });
-
-        // 2. Risks Listener
-        const risksQuery = query(collection(db, 'risks'), where('organizationId', '==', user.organizationId));
-        const unsubRisks = onSnapshot(risksQuery, (snapshot) => {
-            const fetchedRisks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk));
-            setRisks(fetchedRisks);
-        });
-
-        // 3. Other Collections
-        const docsQuery = query(collection(db, 'documents'), where('organizationId', '==', user.organizationId));
-        const unsubDocs = onSnapshot(docsQuery, (s) => setDocuments(s.docs.map(d => ({ id: d.id, ...d.data() } as Document))));
-
-        const usersQuery = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
-        const unsubUsers = onSnapshot(usersQuery, (s) => setUsersList(s.docs.map(d => ({ id: d.id, ...d.data() } as unknown as UserProfile))));
-
-        const assetsQuery = query(collection(db, 'assets'), where('organizationId', '==', user.organizationId));
-        const unsubAssets = onSnapshot(assetsQuery, (s) => setAssets(s.docs.map(d => ({ id: d.id, ...d.data() } as Asset))));
-
-        const suppQuery = query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId));
-        const unsubSupp = onSnapshot(suppQuery, (s) => setSuppliers(s.docs.map(d => ({ id: d.id, ...d.data() } as Supplier))));
-
-        const projQuery = query(collection(db, 'projects'), where('organizationId', '==', user.organizationId));
-        const unsubProj = onSnapshot(projQuery, (s) => setProjects(s.docs.map(d => ({ id: d.id, ...d.data() } as Project))));
-
-        // 4. Findings Listener (Simulated for now)
-        setTimeout(() => {
-            setFindings([]);
-            setLoading(false);
-        }, 0);
-
-        return () => {
-            unsubControls();
-            unsubRisks();
-            unsubDocs();
-            unsubUsers();
-            unsubAssets();
-            unsubSupp();
-            unsubProj();
-        };
-    }, [user?.organizationId, demoMode]);
-
-    // Framework filtering
-    const filteredControls = currentFramework
-        ? controls.filter(c => c.framework === currentFramework)
-        : controls;
-
+    // Default empty arrays if not fetched
     return {
-        controls,
-        filteredControls,
-        risks,
-        findings,
+        controls: rawControls || [],
+        filteredControls: filteredControls,
+        risks: rawRisks || [],
+        findings: [] as Finding[], // Findings logic tbd
+        documents: rawDocuments || [],
+        usersList: rawUsers || [],
+        assets: rawAssets || [],
+        suppliers: rawSuppliers || [],
+        projects: rawProjects || [],
         loading,
-        complianceActions,
-        documents,
-        usersList,
-        assets,
-        suppliers,
-        projects
+        ...complianceActions
     };
 };

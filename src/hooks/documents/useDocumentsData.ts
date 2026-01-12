@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect } from 'react';
 import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { Document, UserProfile, DocumentFolder } from '../../types';
-import { EncryptionService } from '../../services/encryptionService';
 import { useStore } from '../../store';
 import { MockDataService } from '../../services/mockDataService';
 
@@ -56,12 +55,7 @@ export const useDocumentsData = (organizationId?: string) => {
 
     const effectiveDocuments = useMemo(() => {
         const source = (demoMode && mockData ? mockData.documents : rawDocuments) || [];
-        return [...source]
-            .sort((a, b) => a.title.localeCompare(b.title))
-            .map(doc => ({
-                ...doc,
-                description: EncryptionService.decrypt(doc.description || '')
-            }));
+        return [...source].sort((a, b) => a.title.localeCompare(b.title));
     }, [rawDocuments, mockData, demoMode]);
 
     const effectiveFolders = useMemo(() => {

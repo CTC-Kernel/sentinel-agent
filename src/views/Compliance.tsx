@@ -97,7 +97,15 @@ export const Compliance: React.FC = () => {
     const [projectContext, setProjectContext] = useState<{ type: 'risk' | 'control' | 'asset' | 'audit', id: string } | null>(null);
 
     // Data Hooks
-    const { filteredControls: frameworkControls, risks, findings, documents, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
+    const needsDependencies = activeTab === 'controls' || activeTab === 'mapping';
+    const { filteredControls: frameworkControls, risks, findings, documents, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework, {
+        fetchRisks: needsDependencies,
+        fetchAssets: needsDependencies,
+        fetchDocuments: needsDependencies,
+        fetchUsers: needsDependencies,
+        fetchSuppliers: needsDependencies,
+        fetchProjects: needsDependencies
+    });
     const { folders } = useDocumentsData(user?.organizationId);
     const complianceActions = useComplianceActions(user);
     const documentActions = useDocumentActions(usersList);
