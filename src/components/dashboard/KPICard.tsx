@@ -5,7 +5,7 @@
  * Per FR7: Uses simple language without ISO jargon
  */
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../lib/utils';
 import type { TrendType } from '../../types/score.types';
 import {
@@ -150,7 +150,7 @@ const SIZE_CONFIG = {
  * />
  * ```
  */
-export function KPICard({
+export const KPICard = React.memo(function KPICard({
   title,
   value,
   subtitle,
@@ -277,6 +277,6 @@ export function KPICard({
       </div>
     </div>
   );
-}
+});
 
 export default KPICard;

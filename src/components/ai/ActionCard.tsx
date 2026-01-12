@@ -99,6 +99,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
                     <button
                         onClick={handleCancel}
                         disabled={status === 'loading'}
+                        aria-label={`Refuser l'action: ${actionDef.label}`}
                         className="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                     >
                         Refuser
@@ -106,6 +107,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
                     <button
                         onClick={handleConfirm}
                         disabled={status === 'loading'}
+                        aria-label={`Confirmer l'action: ${actionDef.label}`}
                         className="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center gap-1.5"
                     >
                         {status === 'loading' && <Loader2 className="h-3 w-3 animate-spin" />}

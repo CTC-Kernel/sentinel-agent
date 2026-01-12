@@ -21,7 +21,7 @@ interface StatCardProps {
     ariaLabel?: string;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({
+export const StatCard: React.FC<StatCardProps> = React.memo(({
     title,
     value,
     icon: Icon,
@@ -128,4 +128,6 @@ export const StatCard: React.FC<StatCardProps> = ({
             </div>
         </motion.div>
     );
-};
+});
+
+StatCard.displayName = 'StatCard';

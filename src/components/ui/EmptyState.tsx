@@ -12,7 +12,7 @@ interface EmptyStateProps {
     className?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, actionLabel, onAction, color = 'slate', compact = false, className = '' }) => {
+export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, title, description, actionLabel, onAction, color = 'slate', compact = false, className = '' }) => {
     const colorStyles = {
         slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
         blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
@@ -44,6 +44,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
             {actionLabel && onAction && (
                 <button
                     onClick={onAction}
+                    aria-label={actionLabel}
                     className="px-8 py-3.5 bg-primary text-primary-foreground rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:scale-105 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                 >
                     {actionLabel}
@@ -51,4 +52,6 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
             )}
         </div>
     );
-};
+});
+
+EmptyState.displayName = 'EmptyState';

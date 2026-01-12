@@ -11,7 +11,7 @@ interface BadgeProps {
     icon?: BadgeIconComponent;
 }
 
-export const Badge: React.FC<BadgeProps> = ({
+export const Badge: React.FC<BadgeProps> = React.memo(({
     children,
     variant = 'soft',
     status = 'neutral',
@@ -76,4 +76,6 @@ export const Badge: React.FC<BadgeProps> = ({
             {children}
         </span>
     );
-};
+});
+
+Badge.displayName = 'Badge';
