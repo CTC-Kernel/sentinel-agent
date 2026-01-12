@@ -50,16 +50,19 @@ export const Compliance: React.FC = () => {
 
     // Filter frameworks by organization's enabled frameworks
     const enabledComplianceFrameworks = useMemo(() => {
-        const complianceFrameworks = FRAMEWORKS.filter(f => f.type === 'Compliance');
+        // We now want to show ALL framework types (Risk, Governance, Compliance) in this view
+        // so the user has a central place to see all their chosen standards.
+        const allFrameworks = FRAMEWORKS;
         const enabled = organization?.enabledFrameworks;
 
-        // If no frameworks enabled, show all compliance frameworks (fallback for new orgs)
+        // If no frameworks enabled, show all default compliance frameworks (fallback for new orgs)
         if (!enabled || enabled.length === 0) {
-            return complianceFrameworks;
+            return allFrameworks.filter(f => f.type === 'Compliance');
         }
 
-        // Filter to only show enabled compliance frameworks
-        return complianceFrameworks.filter(f => enabled.includes(f.id as Framework));
+        // Filter to only show enabled frameworks (ANY type)
+        // We filter FRAMEWORKS array to preserve order and metadata
+        return allFrameworks.filter(f => enabled.includes(f.id as Framework));
     }, [organization?.enabledFrameworks]);
 
     // UI State - default to first enabled framework

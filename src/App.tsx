@@ -238,6 +238,11 @@ const AppInner: React.FC = () => {
                                 <Login />
                             </PublicOnlyRoute>
                         } />
+                        <Route path="/register" element={
+                            <PublicOnlyRoute>
+                                <Login />
+                            </PublicOnlyRoute>
+                        } />
                         <Route path="/onboarding" element={
                             <AuthGuard requireOnboarding={false}>
                                 <Onboarding />

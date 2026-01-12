@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { LandingMap } from '../components/landing/LandingMap';
+import { useLocation } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
@@ -25,7 +26,8 @@ const GoogleIcon = () => (
 );
 
 export const Login: React.FC<{ skipBoot?: boolean }> = () => {
-    const [isLogin, setIsLogin] = useState(true);
+    const location = useLocation();
+    const [isLogin, setIsLogin] = useState(!location.pathname.includes('/register'));
     const { t } = useStore();
 
     // Auth Actions Hook

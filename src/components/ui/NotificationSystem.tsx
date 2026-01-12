@@ -135,7 +135,7 @@ const NotificationContainer: React.FC = () => {
 
   return (
     <div
-      className="fixed top-4 right-4 z-50 space-y-2 max-w-sm"
+      className="fixed top-4 right-4 z-[200] space-y-2 max-w-sm"
       role="region"
       aria-label="Notifications"
       aria-live="polite"

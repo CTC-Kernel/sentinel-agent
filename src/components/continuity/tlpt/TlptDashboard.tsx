@@ -3,7 +3,7 @@ import { TlptCampaign } from '../../../types/tlpt';
 import { Button } from '../../ui/button';
 import { Plus, Shield, Calendar, Users, Target } from 'lucide-react';
 import { EmptyState } from '../../ui/EmptyState';
-import { TlptCampaignModal } from './TlptCampaignModal';
+import { TLPTInspector } from './TLPTInspector';
 
 interface Props {
     campaigns: TlptCampaign[];
@@ -110,13 +110,15 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
                 </div>
             )}
 
-            <TlptCampaignModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleSubmit}
-                initialData={selectedCampaign || undefined}
-                onDelete={onDelete}
-            />
+            {isModalOpen && (
+                <TLPTInspector
+                    onClose={() => setIsModalOpen(false)}
+                    onUpdate={handleSubmit}
+                    campaign={selectedCampaign || undefined}
+                    onDelete={onDelete}
+                    canEdit={canEdit}
+                />
+            )}
         </div>
     );
 };

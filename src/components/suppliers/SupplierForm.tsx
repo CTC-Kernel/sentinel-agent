@@ -52,20 +52,30 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     readOnly = false
 }) => {
     const { addToast, demoMode } = useStore();
+    const defaultData: SupplierFormData = {
+        name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
+        owner: '', ownerId: '', vatNumber: '',
+        description: '',
+        contactName: '', contactEmail: '',
+        contractDocumentId: '',
+        contractEnd: '',
+        assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false },
+        isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'Aucun', serviceType: 'SaaS',
+        relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []
+    };
+
     const { register, handleSubmit, control, setValue, formState: { errors }, getValues } = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
         shouldUnregister: true,
-        defaultValues: initialData || {
-            name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
-            owner: '', ownerId: '', vatNumber: '',
-            description: '',
-            contactName: '', contactEmail: '',
-            contractDocumentId: '',
-            contractEnd: '',
-            assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false },
-            isICTProvider: false, supportsCriticalFunction: false, doraCriticality: 'Aucun', serviceType: 'SaaS',
-            relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []
-        }
+        defaultValues: initialData ? {
+            ...defaultData,
+            ...initialData,
+            // Ensure enum fields have valid values if they are missing or invalid in initialData
+            doraCriticality: initialData.doraCriticality ?? 'Aucun',
+            serviceType: initialData.serviceType ?? 'SaaS',
+            category: initialData.category ?? 'SaaS',
+            status: initialData.status ?? 'Actif',
+        } : defaultData
     });
 
     const onInvalid = (errors: FieldErrors<SupplierFormData>) => {

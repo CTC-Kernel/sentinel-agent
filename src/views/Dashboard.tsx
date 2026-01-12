@@ -56,6 +56,7 @@ export const Dashboard: React.FC = () => {
         recentActivity,
         historyStats,
         allRisks,
+        myRisks,
         allAssets,
         allSuppliers,
         myProjects,
@@ -108,10 +109,8 @@ export const Dashboard: React.FC = () => {
     });
 
     // Personalized Risks
-    const myRisksList = React.useMemo(() => {
-        if (!user) return [];
-        return allRisks.filter(r => r.ownerId === user.uid).sort((a, b) => b.score - a.score).slice(0, 5);
-    }, [allRisks, user]);
+    // Personalized Risks - Directly from hook (optimized query)
+    const myRisksList = myRisks;
 
     const projectRisks = React.useMemo(() => {
         if (!user || user.role !== 'project_manager') return [];
@@ -337,6 +336,7 @@ export const DashboardWithQuickActions: React.FC = () => {
         recentActivity,
         historyStats,
         allRisks,
+        myRisks,
         allAssets,
         allSuppliers,
         myProjects,
@@ -402,10 +402,8 @@ export const DashboardWithQuickActions: React.FC = () => {
         externalComplianceScore: scoreData?.global // Use unified source of truth
     });
 
-    const myRisksList = React.useMemo(() => {
-        if (!user) return [];
-        return allRisks.filter(r => r.ownerId === user.uid).sort((a, b) => b.score - a.score).slice(0, 5);
-    }, [allRisks, user]);
+    // Personalized Risks - Directly from hook (optimized query)
+    const myRisksList = myRisks;
 
     const projectRisks = React.useMemo(() => {
         if (!user || user.role !== 'project_manager') return [];

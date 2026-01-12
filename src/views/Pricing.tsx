@@ -11,14 +11,21 @@ import { ContactModal } from '../components/ui/ContactModal';
 import { LegalModal } from '../components/ui/LegalModal';
 import { PLANS } from '../config/plans';
 
+import { useStore } from '../store';
+import { SubscriptionService } from '../services/subscriptionService';
+import { PlanType } from '../types';
+import { toast } from '../lib/toast';
+
 const Pricing = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useStore();
   const [isAnnual, setIsAnnual] = useState(true);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [legalTab, setLegalTab] = useState<'privacy' | 'terms' | 'mentions' | 'cgv'>('terms');
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['pilotage', 'operations']); // Default open high-impact categories
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['pilotage', 'operations']);
+  const [isLoading, setIsLoading] = useState<string | null>(null);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev =>
@@ -99,9 +106,24 @@ const Pricing = () => {
     }
   ];
 
-  const handleSelectPlan = (planId: string) => {
-    // Navigate to registration with plan selection
-    navigate(`/register?plan=${planId}&period=${isAnnual ? 'annual' : 'monthly'}`);
+  const handleSelectPlan = async (planId: string) => {
+    if (user && user.organizationId) {
+      try {
+        setIsLoading(planId);
+        await SubscriptionService.startSubscription(
+          user.organizationId,
+          planId as PlanType,
+          isAnnual ? 'year' : 'month'
+        );
+      } catch (error) {
+        console.error('Failed to start subscription:', error);
+        toast.error("Erreur lors de l'initialisation du paiement. Veuillez réessayer.");
+        setIsLoading(null);
+      }
+    } else {
+      // Navigate to registration with plan selection if not logged in
+      navigate(`/register?plan=${planId}&period=${isAnnual ? 'annual' : 'monthly'}`);
+    }
   };
 
   const renderFeatureValue = (value: string | boolean) => {
@@ -202,12 +224,14 @@ const Pricing = () => {
 
                 <Button
                   onClick={() => handleSelectPlan(plan.id)}
+                  isLoading={isLoading === plan.id}
+                  disabled={!!isLoading}
                   className={`w-full h-12 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 ${isPopular
                     ? 'bg-white text-slate-900 hover:bg-slate-100 hover:scale-[1.02]'
                     : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-[1.02]'
                     }`}
                 >
-                  Commencer
+                  {isLoading === plan.id ? 'Chargement...' : 'Commencer'}
                 </Button>
 
                 <div className="mt-8 space-y-4">

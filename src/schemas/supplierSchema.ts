@@ -1,34 +1,11 @@
 import { z } from 'zod';
 import { Criticality } from '../types';
+import { SUPPLIER_CATEGORIES, SUPPLIER_STATUSES, DORA_CRITICALITIES, DORA_SERVICE_TYPES } from '../data/supplierConstants';
 
-/**
- * Supplier categories (French)
- */
-export const SUPPLIER_CATEGORIES = [
-    'SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'
-] as const;
-
-/**
- * Supplier statuses (French)
- */
-export const SUPPLIER_STATUSES = ['Actif', 'En cours', 'Terminé', 'Suspendu'] as const;
-
-/**
- * DORA criticality levels (French)
- */
-export const DORA_CRITICALITY_LEVELS = ['Critique', 'Important', 'Aucun'] as const;
-
-/**
- * Service types for suppliers
- */
 export const SERVICE_TYPES = [
     'SaaS', 'Cloud', 'Software', 'Hardware', 'Consulting', 'Network', 'Security'
 ] as const;
 
-/**
- * Supplier validation schema
- * Validates supplier forms for create/update operations
- */
 export const supplierSchema = z.object({
     name: z.string()
         .min(1, "Le nom est requis")
@@ -70,8 +47,8 @@ export const supplierSchema = z.object({
     }).optional(),
     isICTProvider: z.boolean().optional(),
     supportsCriticalFunction: z.boolean().optional(),
-    doraCriticality: z.enum(DORA_CRITICALITY_LEVELS).optional(),
-    serviceType: z.enum(SERVICE_TYPES).optional(),
+    doraCriticality: z.enum(DORA_CRITICALITIES).optional(),
+    serviceType: z.enum(DORA_SERVICE_TYPES).optional(),
     supportedProcessIds: z.array(z.string()).max(50).optional(),
     relatedAssetIds: z.array(z.string()).max(100).optional(),
     relatedRiskIds: z.array(z.string()).max(100).optional(),

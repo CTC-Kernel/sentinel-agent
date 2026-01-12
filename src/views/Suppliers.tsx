@@ -196,6 +196,10 @@ export const Suppliers: React.FC = () => {
         try {
             await updateSupplier(id, data);
             // Close inspector? No, usually stays open or updates
+        } catch (error) {
+            console.error("Supplier update failed", error);
+            // ErrorLogger handled in hook? If not, valid to log here but likely hook does.
+            // hook usually shows toast.
         } finally {
             setIsSubmitting(false);
         }

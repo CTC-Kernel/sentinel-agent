@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { where, orderBy, limit } from 'firebase/firestore';
-import { Risk, Control, Audit, Project, StatsHistoryEntry, Document, Asset, SystemLog, Supplier, Incident } from '../../types';
+import { Risk, Control, Audit, Project, StatsHistoryEntry, Document as AppDocument, Asset, SystemLog, Supplier, Incident } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { DashboardService } from '../../services/dashboardService';
 
@@ -11,13 +11,14 @@ export interface DashboardData {
     recentActivity: SystemLog[];
     historyStats: StatsHistoryEntry[];
     allRisks: Risk[];
+    myRisks: Risk[];
     allAssets: Asset[];
     allSuppliers: Supplier[];
     myProjects: Project[];
     myAudits: Audit[];
-    myDocs: Document[];
-    publishedDocs: Document[];
-    pendingReviews: Document[];
+    myDocs: AppDocument[];
+    publishedDocs: AppDocument[];
+    pendingReviews: AppDocument[];
     myIncidents: Incident[];
     activeIncidents: Incident[];
     activeIncidentsCount: number;
@@ -78,17 +79,19 @@ export const useDashboardData = (): DashboardData => {
         controls: Control[];
         loading: boolean;
         risks: Risk[];
+        myRisks: Risk[];
         assets: Asset[];
         suppliers: Supplier[];
         projects: Project[];
         audits: Audit[];
-        documents: Document[];
+        documents: AppDocument[];
         incidents: Incident[];
         logs: SystemLog[];
     }>({
         controls: [],
         loading: true,
         risks: [],
+        myRisks: [],
         assets: [],
         suppliers: [],
         projects: [],
@@ -107,11 +110,12 @@ export const useDashboardData = (): DashboardData => {
                     controls: MockDataService.getCollection('controls') as Control[],
                     loading: false,
                     risks: MockDataService.getCollection('risks') as Risk[],
+                    myRisks: (MockDataService.getCollection('risks') as Risk[]).slice(0, 5),
                     assets: MockDataService.getCollection('assets') as Asset[],
                     suppliers: MockDataService.getCollection('suppliers') as Supplier[],
                     projects: MockDataService.getCollection('projects') as unknown as Project[],
                     audits: MockDataService.getCollection('audits') as Audit[],
-                    documents: MockDataService.getCollection('documents') as Document[],
+                    documents: MockDataService.getCollection('documents') as AppDocument[],
                     incidents: MockDataService.getCollection('incidents') as Incident[],
                     logs: MockDataService.getCollection('system_logs') as SystemLog[]
                 });
@@ -154,6 +158,14 @@ export const useDashboardData = (): DashboardData => {
         limit(20)
     ], { logError: true, realtime: false, enabled: !demoMode && !!user?.organizationId });
 
+    // Specific query for "My Risks" to ensure user sees their own critical risks even if not in global top 20
+    const { data: myRisksData, loading: myRisksLoading } = useFirestoreCollection<Risk>('risks', [
+        where('organizationId', '==', user?.organizationId || 'ignore'),
+        where('ownerId', '==', user?.uid || 'ignore'),
+        orderBy('score', 'desc'),
+        limit(5)
+    ], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId && !!user?.uid });
+
     // For Assets, we typically don't show a list of 1000 assets on dashboard, just the count and maybe top value. 
     // We'll limit this too.
     const { data: topAssetsData, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [
@@ -167,7 +179,7 @@ export const useDashboardData = (): DashboardData => {
     // Personal/Role specific data
     const { data: allProjectsData, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isPM || isAdmin) && !!user?.organizationId });
     const { data: allAuditsData, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isAuditor || isAdmin) && !!user?.organizationId });
-    const { data: allDocumentsData, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(50)], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId });
+    const { data: allDocumentsData, loading: myDocsLoading } = useFirestoreCollection<AppDocument>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(50)], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId });
     const { data: allIncidentsData, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '!=', 'Fermé'), limit(20)], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId });
 
     // Unified Data Sources
@@ -177,6 +189,7 @@ export const useDashboardData = (): DashboardData => {
     // Map optimized data to "allRisks" etc. Note: "allRisks" is now partial, but sufficient for Top Risks list.
     // We need to inject the TRUE counts from AggregatedService separately for the Stats Cards.
     const allRisks = demoMode ? mockData.risks : topRisksData;
+    const myRisks = demoMode ? mockData.myRisks : myRisksData;
     const allAssets = demoMode ? mockData.assets : topAssetsData;
     const allSuppliers = demoMode ? mockData.suppliers : allSuppliersData;
     const allProjects = demoMode ? mockData.projects : allProjectsData;
@@ -232,7 +245,7 @@ export const useDashboardData = (): DashboardData => {
         return allIncidents.filter(i => i.status !== 'Fermé');
     }, [allIncidents]);
 
-    const loading = demoMode ? mockData.loading : (manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || myIncidentsLoading);
+    const loading = demoMode ? mockData.loading : (manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || myIncidentsLoading || myRisksLoading);
 
     // New State for Aggregated Stats
     const [aggregatedStats, setAggregatedStats] = useState<{
@@ -311,6 +324,7 @@ export const useDashboardData = (): DashboardData => {
         recentActivity,
         historyStats,
         allRisks,
+        myRisks,
         allAssets,
         allSuppliers,
         myProjects,
