@@ -17,12 +17,31 @@ import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { NotificationService } from '../../services/notificationService';
 import { CsvParser } from '../../utils/csvUtils';
 
-export const useAudits = () => {
+export interface UseAuditsOptions {
+    fetchControls?: boolean;
+    fetchAssets?: boolean;
+    fetchRisks?: boolean;
+    fetchUsers?: boolean;
+    fetchDocuments?: boolean;
+    fetchProjects?: boolean;
+    fetchFindings?: boolean;
+}
+
+export const useAudits = (options: UseAuditsOptions = {}) => {
     const { user, addToast, demoMode } = useStore();
     const canEdit = canEditResource(user, 'Audit');
     const canDelete = canDeleteResource(user, 'Audit');
 
-    // --- Data Fetching ---
+    const {
+        fetchControls = false,
+        fetchAssets = false,
+        fetchRisks = false,
+        fetchUsers = false,
+        fetchDocuments = false,
+        fetchProjects = false,
+        fetchFindings = false
+    } = options;
+
     // --- Data Fetching ---
 
     // Harden demoMode detection
@@ -32,29 +51,44 @@ export const useAudits = () => {
     ));
 
     // Firestore Data (Disabled in Demo Mode)
+    // Core collection 'audits' is always fetched (unless strict optimization needed later)
     const { data: firestoreAudits, loading: firestoreAuditsLoading, refresh: refreshFirestoreAudits } = useFirestoreCollection<Audit>(
         'audits', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
     );
     const { data: firestoreControls, loading: firestoreControlsLoading } = useFirestoreCollection<Control>(
-        'controls', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
+        'controls',
+        fetchControls ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchControls }
     );
     const { data: firestoreAssets, loading: firestoreAssetsLoading } = useFirestoreCollection<Asset>(
-        'assets', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
+        'assets',
+        fetchAssets ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchAssets }
     );
     const { data: firestoreRisks, loading: firestoreRisksLoading } = useFirestoreCollection<Risk>(
-        'risks', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
+        'risks',
+        fetchRisks ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchRisks }
     );
     const { data: firestoreUsers, loading: firestoreUsersLoading } = useFirestoreCollection<UserProfile>(
-        'users', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
+        'users',
+        fetchUsers ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchUsers }
     );
     const { data: firestoreDocs, loading: firestoreDocsLoading } = useFirestoreCollection<Document>(
-        'documents', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
+        'documents',
+        fetchDocuments ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchDocuments }
     );
     const { data: firestoreProjects, loading: firestoreProjectsLoading } = useFirestoreCollection<Project>(
-        'projects', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
+        'projects',
+        fetchProjects ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchProjects }
     );
     const { data: firestoreFindings, loading: firestoreFindingsLoading } = useFirestoreCollection<Finding>(
-        'findings', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId }
+        'findings',
+        fetchFindings ? [where('organizationId', '==', user?.organizationId)] : undefined,
+        { logError: true, realtime: true, enabled: !isDemo && !!user?.organizationId && fetchFindings }
     );
 
     // Mock Data State

@@ -30,12 +30,6 @@ import { Upload } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
 
 export const Audits: React.FC = () => {
-    const {
-        audits, loading, canEdit, canDelete, controls, documents, assets, risks, usersList, projects,
-        handleDeleteAudit, handleGeneratePlan, handleCreateAudit, handleUpdateAudit,
-        refreshAudits, handleExportCSV, handleExportCalendar, bulkDeleteAudits, checkDependencies, importAudits
-    } = useAudits();
-
     const { user, t } = useStore();
 
     // Start module tour
@@ -46,11 +40,30 @@ export const Audits: React.FC = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    // Local UI State
+    // Local UI State (Hoisted to top for useAudits)
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'calendar' | 'findings'>('audits-active-tab', 'overview');
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
+
+    // Optimized Data Fetching
+    const needsDependencies = creationMode || !!editingAudit || !!selectedAudit;
+    const isListView = activeTab === 'list';
+    const isFindingsView = activeTab === 'findings';
+
+    const {
+        audits, loading, canEdit, canDelete, controls, documents, assets, risks, usersList, projects,
+        handleDeleteAudit, handleGeneratePlan, handleCreateAudit, handleUpdateAudit,
+        refreshAudits, handleExportCSV, handleExportCalendar, bulkDeleteAudits, checkDependencies, importAudits
+    } = useAudits({
+        fetchUsers: needsDependencies || isListView, // Users needed for list avatars and forms
+        fetchControls: needsDependencies,
+        fetchAssets: needsDependencies,
+        fetchRisks: needsDependencies,
+        fetchProjects: needsDependencies,
+        fetchDocuments: needsDependencies,
+        fetchFindings: isFindingsView // Only load all findings if viewing the findings tab
+    });
     const [selectedAudits, setSelectedAudits] = useState<string[]>([]);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [filter, setFilter] = useState('');
