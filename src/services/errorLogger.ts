@@ -12,6 +12,7 @@ interface ErrorContext {
   userId?: string;
   organizationId?: string;
   metadata?: Record<string, unknown>;
+  error?: unknown;
 }
 
 class ErrorLoggerService {
