@@ -174,14 +174,17 @@ export const AssetService = {
                 return s.docs.map(d => ({ id: d.id, ...d.data() } as T));
             } catch (error: unknown) {
                 // Fallback to client-side filtering if index is missing
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if ((error as any).code === 'failed-precondition') {
+                const firebaseError = error as { code?: string } | null;
+                if (firebaseError?.code === 'failed-precondition') {
                     ErrorLogger.warn(`Index manquant pour ${col}, utilisation du fallback côté client`, 'assetService.getCollection');
                     const fallbackQ = query(collection(db, col), where('organizationId', '==', organizationId));
                     const fallbackSnap = await getDocs(fallbackQ);
-                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                    return fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() } as any))
-                        .filter(doc => doc[field] && Array.isArray(doc[field]) && doc[field].includes(assetId)) as T[];
+                    return fallbackSnap.docs
+                        .map(d => ({ id: d.id, ...d.data() } as unknown as T & { [key: string]: unknown }))
+                        .filter(doc => {
+                            const fieldValue = doc[field];
+                            return fieldValue && Array.isArray(fieldValue) && fieldValue.includes(assetId);
+                        }) as T[];
                 }
                 throw error;
             }

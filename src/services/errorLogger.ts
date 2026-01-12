@@ -44,8 +44,7 @@ class ErrorLoggerService {
             component: additionalContext?.component,
             action: additionalContext?.action
           },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          extra: additionalContext as any
+          extra: additionalContext as Record<string, unknown> | undefined
         });
       } catch {
         // Fail silently si Sentry n'est pas disponible

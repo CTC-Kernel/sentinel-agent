@@ -180,6 +180,11 @@ export const PrivacyService = {
     },
 
     async findDPIAResponseId(activityId: string): Promise<string | null> {
+        interface DPIAResponseDoc {
+            id: string;
+            sentDate: string;
+        }
+
         const q = query(
             collection(db, 'questionnaire_responses'),
             where('supplierId', '==', activityId),
@@ -187,9 +192,11 @@ export const PrivacyService = {
         );
         const snapshot = await getDocs(q);
         if (!snapshot.empty) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
-            docs.sort((a: { sentDate: string }, b: { sentDate: string }) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
+            const docs: DPIAResponseDoc[] = snapshot.docs.map(d => ({
+                id: d.id,
+                sentDate: (d.data() as { sentDate?: string }).sentDate || ''
+            }));
+            docs.sort((a, b) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
             return docs[0].id;
         }
         return null;

@@ -66,9 +66,8 @@ export const logAuthAuditEvent = async (payload: AuthAuditPayload) => {
             errorCode: payload.errorCode || null,
             metadata: payload.metadata || null
         });
-    } catch (error) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const err = error as any;
+    } catch (error: unknown) {
+        const err = error as { code?: string; message?: string } | null;
         if (err?.code === 'not-found' || err?.message?.includes('404')) {
             // Silently ignore 404/not-found to prevent console noise if function is missing
             ErrorLogger.debug('Auth audit function not found (expected in local dev)', 'Logger.logAuthAuditEvent');

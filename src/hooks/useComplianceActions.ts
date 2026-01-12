@@ -46,10 +46,9 @@ export const useComplianceActions = (user: UserProfile | null) => {
             return true;
         } catch (_error) {
             if (_error instanceof z.ZodError) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const zodError = _error as any;
-                if (zodError.errors && zodError.errors.length > 0) {
-                    toast.error(zodError.errors[0].message);
+                const zodError = _error;
+                if (zodError.issues && zodError.issues.length > 0) {
+                    toast.error(zodError.issues[0].message);
                 } else {
                     toast.error("Erreur de validation");
                 }

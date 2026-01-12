@@ -82,10 +82,11 @@ export class DashboardService {
             try {
                 const snap = await getCountFromServer(q);
                 return snap.data().count;
-            } catch (error: any) {
+            } catch (error: unknown) {
+                const err = error as { message?: string } | null;
                 // Log the full error to see the "create index" link if missing
                 console.error(`[DashboardService] Failed to fetch ${label} count:`, error);
-                ErrorLogger.warn(`Failed to fetch ${label} count: ${error?.message || 'Unknown error'}`, `DashboardService.getAggregatedStats`, { error });
+                ErrorLogger.warn(`Failed to fetch ${label} count: ${err?.message || 'Unknown error'}`, `DashboardService.getAggregatedStats`, { error });
                 // Don't throw, just return 0 to keep dashboard alive
                 return 0;
             }

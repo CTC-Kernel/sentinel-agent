@@ -162,8 +162,7 @@ export function useDraftMode<
 
   // Save as draft with relaxed validation
   const saveAsDraft = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async (onSave: (data: any) => Promise<void>) => {
+    async (onSave: (data: z.infer<TFullSchema> & FieldValues) => Promise<void>) => {
       // Temporarily switch to draft mode for validation
       const wasInDraft = isDraft;
       if (!wasInDraft) {
@@ -193,15 +192,14 @@ export function useDraftMode<
         ...data,
         status: draftStatusValue,
         isDraft: true,
-      } as z.infer<TFullSchema>);
+      } as z.infer<TFullSchema> & FieldValues);
     },
     [isDraft, form, draftSchema, draftStatusValue]
   );
 
   // Publish with full validation
   const publish = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async (onPublish: (data: any) => Promise<void>) => {
+    async (onPublish: (data: z.infer<TFullSchema> & FieldValues) => Promise<void>) => {
       // Switch to full validation mode
       if (isDraft) {
         setIsDraft(false);
