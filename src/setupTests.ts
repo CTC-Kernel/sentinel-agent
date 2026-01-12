@@ -16,7 +16,7 @@ global.ResizeObserver = class ResizeObserver {
 // Mock TextEncoder/TextDecoder for JSDOM
 import { TextEncoder, TextDecoder } from 'util';
 global.TextEncoder = TextEncoder;
-// @ts-expect-error
+// @ts-expect-error -- TextDecoder is not defined in the global type definition for Node environment
 global.TextDecoder = TextDecoder;
 
 // Mock Firebase
