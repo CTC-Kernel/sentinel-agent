@@ -156,7 +156,7 @@ development_status:
   epic-13: in-progress
   13-1-refactor-dashboard: backlog
   13-2-eliminate-any-types: done
-  13-3-centralize-colors: in-progress
+  13-3-centralize-colors: done
   13-4-test-coverage: backlog
   13-5-refactor-riskform: backlog
   13-6-dependency-updates: backlog
