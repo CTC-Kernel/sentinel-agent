@@ -86,11 +86,14 @@ if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test') {
         })();
       }
     } else {
+      // Graceful fallback: disable App Check if site key is missing
+      // This prevents 403 errors during development
       if (import.meta.env.PROD) {
         throw new Error('Missing required environment variable: VITE_RECAPTCHA_ENTERPRISE_KEY');
       }
       if (import.meta.env.MODE !== 'test') {
-        ErrorLogger.warn('App Check site key missing', 'firebase.ts');
+        ErrorLogger.warn('App Check disabled - site key missing. Set VITE_RECAPTCHA_ENTERPRISE_KEY to enable.', 'firebase.ts');
+        isAppCheckFailed = true;
       }
     }
   } catch (error) {
