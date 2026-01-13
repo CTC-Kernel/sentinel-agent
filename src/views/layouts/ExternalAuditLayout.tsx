@@ -36,7 +36,7 @@ export const ExternalAuditLayout: React.FC = () => {
             {/* Simple Footer */}
             <footer className="border-t border-slate-200 dark:border-white/10 mt-auto bg-white dark:bg-slate-950 py-6">
                 <div className="container mx-auto px-4 text-center text-xs text-slate-400">
-                    <p>&copy; {new Date().getFullYear()} Sentinel GRC. Accès restreint et monitoré.</p>
+                    <p>&copy; 2022 Sentinel GRC. Accès restreint et monitoré.</p>
                 </div>
             </footer>
         </div>

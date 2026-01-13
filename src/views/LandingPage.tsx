@@ -99,7 +99,7 @@ export const LandingPage: React.FC = () => {
                     <p className="text-xs font-bold font-mono text-slate-500 uppercase tracking-widest">Opérationnel dans toute l'Europe</p>
 
                     <p className="text-[10px] text-slate-400 font-mono">
-                        © 2024 SENTINEL GRC. CYBER THREAT CONSULTING.
+                        © 2022 SENTINEL GRC. CYBER THREAT CONSULTING.
                     </p>
                 </div>
             </footer>
