@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ConnectivityService, ServiceHealth } from '../connectivityService';
+import { ConnectivityService } from '../connectivityService';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({

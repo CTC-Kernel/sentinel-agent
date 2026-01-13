@@ -892,7 +892,7 @@ describe('NVDService', () => {
                 json: () => Promise.resolve(createMockNVDResponse())
             });
 
-            const startTime = Date.now();
+
 
             // Advance timers during the await
             const fetchPromise = NVDService.fetchVulnerabilities({});

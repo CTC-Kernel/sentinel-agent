@@ -18,6 +18,8 @@ const mockUser = {
     role: 'rssi',
 };
 
+import { AppState } from '../../store';
+
 const mockStoreState = {
     user: mockUser,
     addToast: mockAddToast,
@@ -94,8 +96,8 @@ describe('usePrivacy', () => {
 
         // Reset store mock
         vi.mocked(useStore).mockImplementation((selector) => {
-            if (selector) return selector(mockStoreState);
-            return mockStoreState;
+            if (selector) return selector(mockStoreState as unknown as AppState);
+            return mockStoreState as unknown as AppState;
         });
         (useStore as unknown as { getState: () => typeof mockStoreState }).getState = () => mockStoreState;
     });
@@ -179,12 +181,12 @@ describe('usePrivacy', () => {
         it('should not fetch when no organizationId and not demo mode', async () => {
             const noOrgState = { ...mockStoreState, user: { ...mockUser, organizationId: undefined } };
             vi.mocked(useStore).mockImplementation((selector) => {
-                if (selector) return selector(noOrgState);
-                return noOrgState;
+                if (selector) return selector(noOrgState as unknown as AppState);
+                return noOrgState as unknown as AppState;
             });
             (useStore as unknown as { getState: () => typeof noOrgState }).getState = () => noOrgState;
 
-            const { result } = renderHook(() => usePrivacy());
+            renderHook(() => usePrivacy());
 
             // Should still be loading or finished without fetching
             expect(mockFetchActivities).not.toHaveBeenCalled();
@@ -216,8 +218,8 @@ describe('usePrivacy', () => {
         it('should deny creation for non-authorized roles', async () => {
             const viewerState = { ...mockStoreState, user: { ...mockUser, role: 'user' } };
             vi.mocked(useStore).mockImplementation((selector) => {
-                if (selector) return selector(viewerState);
-                return viewerState;
+                if (selector) return selector(viewerState as unknown as AppState);
+                return viewerState as unknown as AppState;
             });
             (useStore as unknown as { getState: () => typeof viewerState }).getState = () => viewerState;
 
@@ -240,8 +242,8 @@ describe('usePrivacy', () => {
         it('should not create when no organizationId', async () => {
             const noOrgState = { ...mockStoreState, user: { ...mockUser, organizationId: undefined } };
             vi.mocked(useStore).mockImplementation((selector) => {
-                if (selector) return selector(noOrgState);
-                return noOrgState;
+                if (selector) return selector(noOrgState as unknown as AppState);
+                return noOrgState as unknown as AppState;
             });
 
             const { result } = renderHook(() => usePrivacy());
@@ -296,8 +298,8 @@ describe('usePrivacy', () => {
         it('should deny update for non-authorized roles', async () => {
             const viewerState = { ...mockStoreState, user: { ...mockUser, role: 'user' } };
             vi.mocked(useStore).mockImplementation((selector) => {
-                if (selector) return selector(viewerState);
-                return viewerState;
+                if (selector) return selector(viewerState as unknown as AppState);
+                return viewerState as unknown as AppState;
             });
             (useStore as unknown as { getState: () => typeof viewerState }).getState = () => viewerState;
 
@@ -362,8 +364,8 @@ describe('usePrivacy', () => {
         it('should deny delete for non-authorized roles', async () => {
             const pmState = { ...mockStoreState, user: { ...mockUser, role: 'project_manager' } };
             vi.mocked(useStore).mockImplementation((selector) => {
-                if (selector) return selector(pmState);
-                return pmState;
+                if (selector) return selector(pmState as unknown as AppState);
+                return pmState as unknown as AppState;
             });
             (useStore as unknown as { getState: () => typeof pmState }).getState = () => pmState;
 

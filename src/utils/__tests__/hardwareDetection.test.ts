@@ -12,7 +12,7 @@ vi.mock('../../services/errorLogger', () => ({
     }
 }));
 
-import { detectHardware, HardwareInfo } from '../hardwareDetection';
+import { detectHardware } from '../hardwareDetection';
 
 describe('detectHardware', () => {
     const originalNavigator = global.navigator;

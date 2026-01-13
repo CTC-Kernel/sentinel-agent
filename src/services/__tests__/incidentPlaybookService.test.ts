@@ -60,7 +60,7 @@ vi.mock('../../data/playbookTemplates', () => ({
 
 const mockPlaybook = {
     id: 'playbook-123',
-    category: 'DATA_BREACH',
+    category: 'Ransomware' as any,
     title: 'Data Breach Response',
     description: 'Standard procedure for handling data breaches',
     severity: 'High' as const,
@@ -123,7 +123,7 @@ describe('IncidentPlaybookService', () => {
         it('should create a new playbook', async () => {
             mockAddDoc.mockResolvedValue({ id: 'new-playbook-123' });
 
-            const { id: _id, ...playbookData } = mockPlaybook;
+            const playbookData = { ...mockPlaybook, id: undefined }; // Remove id for creation
             const result = await IncidentPlaybookService.createPlaybook(playbookData, 'org-123');
 
             expect(mockAddDoc).toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe('IncidentPlaybookService', () => {
                 ]
             });
 
-            const result = await IncidentPlaybookService.getPlaybooks('org-123', 'DATA_BREACH');
+            const result = await IncidentPlaybookService.getPlaybooks('org-123', 'DATA_BREACH' as any);
 
             expect(result).toHaveLength(1);
         });

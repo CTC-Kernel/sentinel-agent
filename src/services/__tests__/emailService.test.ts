@@ -3,7 +3,7 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { sendEmail, sendBulkEmail, scheduleEmail, EmailPayload, EmailType } from '../emailService';
 
 // Mock Firebase
@@ -33,7 +33,7 @@ describe('sendEmail', () => {
     it('should send email via Cloud Function', async () => {
         const { httpsCallable } = await import('firebase/functions');
         const mockCallable = vi.fn(() => Promise.resolve());
-        vi.mocked(httpsCallable).mockReturnValue(mockCallable as ReturnType<typeof httpsCallable>);
+        vi.mocked(httpsCallable).mockReturnValue(mockCallable as unknown as ReturnType<typeof httpsCallable>);
 
         const user = { uid: 'user-1', email: 'sender@test.com' };
         const payload: EmailPayload = {
@@ -78,7 +78,7 @@ describe('sendEmail', () => {
     it('should return false on error', async () => {
         const { httpsCallable } = await import('firebase/functions');
         vi.mocked(httpsCallable).mockReturnValue(
-            vi.fn().mockRejectedValueOnce(new Error('Function error')) as ReturnType<typeof httpsCallable>
+            vi.fn().mockRejectedValueOnce(new Error('Function error')) as unknown as ReturnType<typeof httpsCallable>
         );
 
         const payload: EmailPayload = {
@@ -96,7 +96,7 @@ describe('sendEmail', () => {
     it('should log errors', async () => {
         const { httpsCallable } = await import('firebase/functions');
         vi.mocked(httpsCallable).mockReturnValue(
-            vi.fn().mockRejectedValueOnce(new Error('Function error')) as ReturnType<typeof httpsCallable>
+            vi.fn().mockRejectedValueOnce(new Error('Function error')) as unknown as ReturnType<typeof httpsCallable>
         );
         const { ErrorLogger } = await import('../errorLogger');
 
@@ -137,7 +137,7 @@ describe('sendEmail', () => {
     it('should include metadata in payload', async () => {
         const { httpsCallable } = await import('firebase/functions');
         const mockCallable = vi.fn(() => Promise.resolve());
-        vi.mocked(httpsCallable).mockReturnValue(mockCallable as ReturnType<typeof httpsCallable>);
+        vi.mocked(httpsCallable).mockReturnValue(mockCallable as unknown as ReturnType<typeof httpsCallable>);
 
         const payload: EmailPayload = {
             to: 'recipient@test.com',
@@ -163,7 +163,7 @@ describe('sendBulkEmail', () => {
     it('should send email to multiple recipients', async () => {
         const { httpsCallable } = await import('firebase/functions');
         const mockCallable = vi.fn(() => Promise.resolve());
-        vi.mocked(httpsCallable).mockReturnValue(mockCallable as ReturnType<typeof httpsCallable>);
+        vi.mocked(httpsCallable).mockReturnValue(mockCallable as unknown as ReturnType<typeof httpsCallable>);
 
         const user = { uid: 'user-1', email: 'sender@test.com' };
         const recipients = ['a@test.com', 'b@test.com', 'c@test.com'];
@@ -212,7 +212,7 @@ describe('sendBulkEmail', () => {
                     return Promise.reject(new Error('Error'));
                 }
                 return Promise.resolve();
-            }) as ReturnType<typeof httpsCallable>
+            }) as unknown as ReturnType<typeof httpsCallable>
         );
 
         // sendBulkEmail returns true because sendEmail catches errors internally
@@ -234,7 +234,7 @@ describe('scheduleEmail', () => {
     it('should schedule email via Cloud Function', async () => {
         const { httpsCallable } = await import('firebase/functions');
         const mockCallable = vi.fn(() => Promise.resolve());
-        vi.mocked(httpsCallable).mockReturnValue(mockCallable as ReturnType<typeof httpsCallable>);
+        vi.mocked(httpsCallable).mockReturnValue(mockCallable as unknown as ReturnType<typeof httpsCallable>);
 
         const user = { uid: 'user-1', email: 'sender@test.com' };
         const payload: EmailPayload = {
@@ -279,7 +279,7 @@ describe('scheduleEmail', () => {
     it('should return false on error', async () => {
         const { httpsCallable } = await import('firebase/functions');
         vi.mocked(httpsCallable).mockReturnValue(
-            vi.fn().mockRejectedValueOnce(new Error('Error')) as ReturnType<typeof httpsCallable>
+            vi.fn().mockRejectedValueOnce(new Error('Error')) as unknown as ReturnType<typeof httpsCallable>
         );
 
         const payload: EmailPayload = {
@@ -297,7 +297,7 @@ describe('scheduleEmail', () => {
     it('should log errors', async () => {
         const { httpsCallable } = await import('firebase/functions');
         vi.mocked(httpsCallable).mockReturnValue(
-            vi.fn().mockRejectedValueOnce(new Error('Error')) as ReturnType<typeof httpsCallable>
+            vi.fn().mockRejectedValueOnce(new Error('Error')) as unknown as ReturnType<typeof httpsCallable>
         );
         const { ErrorLogger } = await import('../errorLogger');
 

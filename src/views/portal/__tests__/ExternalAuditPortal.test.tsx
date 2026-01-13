@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter, MemoryRouter, Route, Routes } from 'react-router-dom';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ExternalAuditPortal } from '../ExternalAuditPortal';
 
 // Mock react-i18next
@@ -106,7 +106,7 @@ describe('ExternalAuditPortal', () => {
 
     describe('Loading State', () => {
         it('should show loading spinner initially', () => {
-            mockGetSharedAuditData.mockImplementation(() => new Promise(() => {})); // Never resolves
+            mockGetSharedAuditData.mockImplementation(() => new Promise(() => { })); // Never resolves
 
             renderWithRouter();
 

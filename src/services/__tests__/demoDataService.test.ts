@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DemoDataService } from '../demoDataService';
 
 // Mock Firebase
-const mockWriteBatch = vi.fn();
+
 const mockBatchSet = vi.fn();
 const mockBatchCommit = vi.fn();
 

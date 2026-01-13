@@ -112,38 +112,41 @@ describe('ThreatRegistry', () => {
             language: 'fr',
         } as unknown as ReturnType<typeof useStore>);
 
-// Mock useLocale to provide the required locale data
-vi.mock('../../hooks/useLocale', () => ({
-    useLocale: () => ({
-        locale: 'fr',
-        dateFnsLocale: require('date-fns/locale/fr'),
-        zodMessages: {
-            required: 'Ce champ est requis',
-            invalidType: 'Type de valeur invalide',
-            invalidString: 'Ce champ doit être du texte',
-            tooShort: (min: number) => `Minimum ${min} caractères requis`,
-            tooLong: (max: number) => `Maximum ${max} caractères autorisés`,
-            invalidEmail: 'Adresse email invalide',
-            invalidUrl: 'URL invalide',
-            invalidUuid: 'Identifiant invalide',
-            invalidRegex: 'Format invalide',
-            invalidNumber: 'Veuillez entrer un nombre valide',
-            notInteger: 'Veuillez entrer un nombre entier',
-            tooSmall: (min: number) => `La valeur doit être au moins ${min}`,
-            tooBig: (max: number) => `La valeur doit être au maximum ${max}`,
-            notPositive: 'La valeur doit être positive',
-            notNegative: 'La valeur doit être négative',
-            notNonNegative: 'La valeur ne peut pas être négative',
-            invalidDate: 'Date invalide',
-            arrayTooShort: (min: number) => `Sélectionnez au moins ${min} élément${min > 1 ? 's' : ''}`,
-            arrayTooLong: (max: number) => `Maximum ${max} élément${max > 1 ? 's' : ''} autorisé${max > 1 ? 's' : ''}`,
-            invalidEnum: (options: string[]) => `Valeur invalide. Options: ${options.join(', ')}`,
-            custom: 'Valeur invalide',
-        },
-        formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
-        formatNumber: (num: number) => num.toLocaleString('fr-FR'),
-    }),
-}));
+        // Mock useLocale to provide the required locale data
+        vi.mock('../../hooks/useLocale', async () => {
+            const { fr } = await import('date-fns/locale');
+            return {
+                useLocale: () => ({
+                    locale: 'fr',
+                    dateFnsLocale: fr,
+                    zodMessages: {
+                        required: 'Ce champ est requis',
+                        invalidType: 'Type de valeur invalide',
+                        invalidString: 'Ce champ doit être du texte',
+                        tooShort: (min: number) => `Minimum ${min} caractères requis`,
+                        tooLong: (max: number) => `Maximum ${max} caractères autorisés`,
+                        invalidEmail: 'Adresse email invalide',
+                        invalidUrl: 'URL invalide',
+                        invalidUuid: 'Identifiant invalide',
+                        invalidRegex: 'Format invalide',
+                        invalidNumber: 'Veuillez entrer un nombre valide',
+                        notInteger: 'Veuillez entrer un nombre entier',
+                        tooSmall: (min: number) => `La valeur doit être au moins ${min}`,
+                        tooBig: (max: number) => `La valeur doit être au maximum ${max}`,
+                        notPositive: 'La valeur doit être positive',
+                        notNegative: 'La valeur doit être négative',
+                        notNonNegative: 'La valeur ne peut pas être négative',
+                        invalidDate: 'Date invalide',
+                        arrayTooShort: (min: number) => `Sélectionnez au moins ${min} élément${min > 1 ? 's' : ''}`,
+                        arrayTooLong: (max: number) => `Maximum ${max} élément${max > 1 ? 's' : ''} autorisé${max > 1 ? 's' : ''}`,
+                        invalidEnum: (options: string[]) => `Valeur invalide. Options: ${options.join(', ')}`,
+                        custom: 'Valeur invalide',
+                    },
+                    formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+                    formatNumber: (num: number) => num.toLocaleString('fr-FR'),
+                }),
+            };
+        });
 
         vi.mocked(useThreats).mockReturnValue({
             threats: mockThreats,
@@ -238,7 +241,6 @@ vi.mock('../../hooks/useLocale', () => ({
         renderWithRouter(<ThreatRegistry />);
 
         // Check for seed/initialize button
-        const seedButton = screen.queryByText(/Initialiser/i);
         // Button may or may not exist depending on implementation
     });
 

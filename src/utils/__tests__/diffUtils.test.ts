@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { getDiff, DiffChange } from '../diffUtils';
+import { getDiff } from '../diffUtils';
 
 describe('Diff Utils', () => {
     describe('getDiff', () => {

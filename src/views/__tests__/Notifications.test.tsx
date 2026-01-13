@@ -25,8 +25,7 @@ vi.mock('../../store', () => ({
 }));
 
 // Mock NotificationService
-const mockMarkAsRead = vi.fn();
-const mockMarkAllAsRead = vi.fn();
+// Mock NotificationService
 
 vi.mock('../../services/notificationService', () => ({
     NotificationService: {
@@ -35,7 +34,7 @@ vi.mock('../../services/notificationService', () => ({
                 { id: 'notif-1', title: 'Test Notification', message: 'Test message', type: 'info', read: false, createdAt: '2024-01-01' },
                 { id: 'notif-2', title: 'Warning', message: 'Warning message', type: 'warning', read: true, createdAt: '2024-01-02' }
             ]);
-            return () => {};
+            return () => { };
         },
         markAsRead: vi.fn().mockResolvedValue(undefined),
         markAllAsRead: vi.fn().mockResolvedValue(undefined)

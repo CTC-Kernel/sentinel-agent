@@ -13,7 +13,7 @@ vi.mock('crypto-js', () => ({
                 toString: () => `encrypted_${data}`
             })),
             decrypt: vi.fn((data: string) => ({
-                toString: (encoding: unknown) => data.replace('encrypted_', '')
+                toString: (_encoding: unknown) => data.replace('encrypted_', '')
             }))
         },
         enc: {
@@ -30,7 +30,7 @@ vi.mock('../errorLogger', () => ({
 }));
 
 // Mock import.meta.env
-const originalEnv = import.meta.env;
+
 
 describe('EncryptionService', () => {
     beforeEach(async () => {

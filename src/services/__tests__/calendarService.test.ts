@@ -3,10 +3,9 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock URL.createObjectURL
-const originalCreateObjectURL = URL.createObjectURL;
 URL.createObjectURL = vi.fn(() => 'blob:test-url');
 
 // Mock firebase/firestore

@@ -9,7 +9,7 @@ export interface ToastMessage {
   message: string;
 }
 
-interface AppState {
+export interface AppState {
   user: UserProfile | null;
   organization: Organization | null;
   customRoles: CustomRole[];

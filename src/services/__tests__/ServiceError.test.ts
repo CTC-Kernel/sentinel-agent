@@ -3,7 +3,7 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
     ServiceError,
     toServiceError,

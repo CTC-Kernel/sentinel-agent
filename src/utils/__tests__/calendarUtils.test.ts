@@ -3,7 +3,7 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { generateICS, mapAuditsToEvents, mapTasksToEvents, CalendarEvent } from '../calendarUtils';
 
 // Mock crypto.randomUUID
@@ -122,8 +122,9 @@ describe('Calendar Utils', () => {
                     organizationId: 'org-1',
                     type: 'Interne' as const,
                     status: 'Planifié' as const,
-                    framework: 'ISO27001',
+                    framework: 'ISO27001' as const,
                     auditor: 'John Doe',
+                    findingsCount: 0,
                     createdAt: '2024-01-01',
                     updatedAt: '2024-01-01',
                 },
@@ -146,8 +147,9 @@ describe('Calendar Utils', () => {
                     organizationId: 'org-1',
                     type: 'Interne' as const,
                     status: 'Planifié' as const,
-                    framework: 'ISO27001',
+                    framework: 'ISO27001' as const,
                     auditor: 'John Doe',
+                    findingsCount: 0,
                     createdAt: '2024-01-01',
                     updatedAt: '2024-01-01',
                 },
@@ -167,8 +169,9 @@ describe('Calendar Utils', () => {
                     organizationId: 'org-1',
                     type: 'Interne' as const,
                     status: 'Planifié' as const,
-                    framework: 'ISO27001',
+                    framework: 'ISO27001' as const,
                     auditor: 'John Doe',
+                    findingsCount: 0,
                     createdAt: '2024-01-01',
                     updatedAt: '2024-01-01',
                 },
@@ -190,7 +193,7 @@ describe('Calendar Utils', () => {
                     description: 'Review all documents',
                     startDate: '2024-01-15T09:00:00Z',
                     dueDate: '2024-01-15T17:00:00Z',
-                    status: 'pending' as const,
+                    status: 'A faire' as const,
                     projectId: 'proj-1',
                     createdAt: '2024-01-01',
                     updatedAt: '2024-01-01',
@@ -209,9 +212,10 @@ describe('Calendar Utils', () => {
                 {
                     id: 'task-1',
                     title: 'Task with dates',
+                    description: 'Review all documents',
                     startDate: '2024-01-15T09:00:00Z',
                     dueDate: '2024-01-15T17:00:00Z',
-                    status: 'pending' as const,
+                    status: 'A faire' as const,
                     projectId: 'proj-1',
                     createdAt: '2024-01-01',
                     updatedAt: '2024-01-01',
@@ -219,7 +223,7 @@ describe('Calendar Utils', () => {
                 {
                     id: 'task-2',
                     title: 'Task without dates',
-                    status: 'pending' as const,
+                    status: 'A faire' as const,
                     projectId: 'proj-1',
                     createdAt: '2024-01-01',
                     updatedAt: '2024-01-01',
@@ -235,11 +239,11 @@ describe('Calendar Utils', () => {
         it('should handle empty description', () => {
             const tasks = [
                 {
-                    id: 'task-1',
+                    id: 'task-3',
                     title: 'Simple Task',
                     startDate: '2024-01-15T09:00:00Z',
                     dueDate: '2024-01-15T17:00:00Z',
-                    status: 'pending' as const,
+                    status: 'A faire' as const,
                     projectId: 'proj-1',
                     createdAt: '2024-01-01',
                     updatedAt: '2024-01-01',

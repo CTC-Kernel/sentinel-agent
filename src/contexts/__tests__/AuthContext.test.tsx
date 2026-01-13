@@ -13,8 +13,7 @@ import { AuthContext } from '../AuthContextDefinition';
 const mockOnIdTokenChanged = vi.fn();
 const mockSignOut = vi.fn();
 const mockSignInWithPopup = vi.fn();
-const mockGetIdToken = vi.fn();
-const mockGetIdTokenResult = vi.fn();
+
 
 vi.mock('firebase/auth', () => ({
     onIdTokenChanged: (...args: unknown[]) => mockOnIdTokenChanged(...args),

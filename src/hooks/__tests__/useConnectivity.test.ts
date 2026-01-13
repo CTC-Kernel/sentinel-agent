@@ -10,11 +10,13 @@ import { useConnectivity } from '../useConnectivity';
 // Mock Firebase
 vi.mock('firebase/auth', () => ({
     getAuth: vi.fn(() => ({})),
-    onAuthStateChanged: vi.fn((auth, callback, errorCallback) => {
+    onAuthStateChanged: vi.fn((_auth, callback) => {
         // Simulate successful auth state change
         callback(null);
         return vi.fn(); // unsubscribe function
     })
+    // If the intent was to add a new mock or modify it differently,
+    // the instruction needs to provide a syntactically valid code snippet.
 }));
 
 vi.mock('firebase/firestore', () => ({

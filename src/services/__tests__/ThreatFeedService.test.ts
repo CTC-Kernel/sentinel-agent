@@ -343,7 +343,7 @@ describe('ThreatFeedService', () => {
                 .mockResolvedValueOnce({ data: { urls: [] } })
                 .mockResolvedValueOnce({ data: { vulnerabilities: [] } });
 
-            const result = await ThreatFeedService.seedLiveThreats('org-123');
+            await ThreatFeedService.seedLiveThreats('org-123');
 
             // Should have fallen back to simulation
             expect(mockAddDoc).toHaveBeenCalled();

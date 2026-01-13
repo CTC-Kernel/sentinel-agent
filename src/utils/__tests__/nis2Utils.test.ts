@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getIncidentDeadlines, DeadlineStatus, DeadlineInfo } from '../nis2Utils';
+import { getIncidentDeadlines, DeadlineStatus } from '../nis2Utils';
 import { Incident } from '../../types';
 
 describe('NIS2 Utils', () => {
@@ -12,13 +12,13 @@ describe('NIS2 Utils', () => {
         id: 'incident-1',
         title: 'Test Incident',
         description: 'Test description',
-        severity: 'high',
-        status: 'open',
+        severity: 'Haute' as any,
+        status: 'Nouveau' as any,
         dateReported: '2024-01-15T10:00:00Z',
         organizationId: 'org-1',
-        createdAt: '2024-01-15T10:00:00Z',
         updatedAt: '2024-01-15T10:00:00Z',
         isSignificant: true,
+        reporter: 'user-1',
         ...overrides,
     });
 

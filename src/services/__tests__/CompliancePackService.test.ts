@@ -11,7 +11,12 @@ import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset } from '
 const mockZipFile = vi.fn();
 const mockGenerateAsync = vi.fn();
 
-const createMockFolder = (): { file: typeof mockZipFile; folder: () => ReturnType<typeof createMockFolder> } => ({
+interface MockFolder {
+    file: typeof mockZipFile;
+    folder: () => MockFolder;
+}
+
+const createMockFolder = (): MockFolder => ({
     file: mockZipFile,
     folder: () => createMockFolder()
 });
@@ -41,7 +46,7 @@ vi.mock('dompurify', () => ({
 }));
 
 // Mock PdfService
-const mockPdfOutput = vi.fn().mockReturnValue(new Blob(['pdf content']));
+// Mock PdfService
 vi.mock('../PdfService', () => ({
     PdfService: {
         generateExecutiveReport: vi.fn().mockReturnValue({
@@ -95,24 +100,24 @@ const createMockRisk = (overrides: Partial<Risk> = {}): Risk => ({
     description: 'Test description',
     probability: 3,
     impact: 4,
-    category: 'Opérationnel',
-    status: 'Identifié',
+    category: 'Opérationnel' as any,
+    status: 'Identifié' as any,
     threat: 'Data Breach',
     assetId: 'asset-123',
     score: 12,
     residualScore: 6,
-    strategy: 'Atténuation',
+    strategy: 'Atténuation' as any,
     treatmentDeadline: new Date('2024-12-31').toISOString(),
     treatment: {
         strategy: 'Atténuation',
         status: 'En cours',
         plan: 'Treatment plan'
-    },
+    } as any,
     organizationId: 'org-123',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides
-});
+} as any);
 
 const createMockControl = (overrides: Partial<Control> = {}): Control => ({
     id: 'control-123',
@@ -312,7 +317,7 @@ describe('CompliancePackService', () => {
         });
 
         it('should throw error if root folder creation fails', async () => {
-            mockZipFolder.mockReturnValueOnce(null);
+            mockZipFolder.mockReturnValueOnce(null as any);
 
             await expect(CompliancePackService.generatePack(mockData)).rejects.toThrow(
                 'Failed to create root folder in ZIP'
