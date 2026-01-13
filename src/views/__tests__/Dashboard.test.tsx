@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { Dashboard } from '../Dashboard';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -143,25 +143,29 @@ describe('Dashboard View', () => {
         vi.clearAllMocks();
     });
 
-    it('renders the dashboard with header and default widgets', () => {
+    it('renders the dashboard with header and default widgets', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Dashboard />
             </MemoryRouter>
         );
 
-        expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
+        });
         expect(screen.getByTestId('quick-actions')).toBeInTheDocument();
         expect(screen.getByTestId('getting-started-widget')).toBeInTheDocument();
     });
 
-    it('renders the admin view when user has permission', () => {
+    it('renders the admin view when user has permission', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Dashboard />
             </MemoryRouter>
         );
 
-        expect(screen.getByTestId('admin-dashboard-view')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId('admin-dashboard-view')).toBeInTheDocument();
+        });
     });
 });

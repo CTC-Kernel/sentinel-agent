@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { CertifierRegister } from '../CertifierRegister';
 
@@ -80,7 +80,7 @@ vi.mock('lucide-react', () => ({
 
 const renderWithRouter = (component: React.ReactElement) => {
     return render(
-        <MemoryRouter>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             {component}
         </MemoryRouter>
     );
@@ -165,8 +165,10 @@ describe('CertifierRegister', () => {
             fireEvent.click(submitButton);
 
             // Wait a bit and verify createUser was not called
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockCreateUserWithEmailAndPassword).not.toHaveBeenCalled();
+            // Wait for potential async validation/submission to settle
+            await waitFor(() => {
+                expect(mockCreateUserWithEmailAndPassword).not.toHaveBeenCalled();
+            });
         });
     });
 

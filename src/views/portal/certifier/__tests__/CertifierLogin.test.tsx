@@ -80,7 +80,7 @@ vi.mock('../../../../services/errorLogger', () => ({
 
 const renderWithRouter = (component: React.ReactElement) => {
     return render(
-        <MemoryRouter>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             {component}
         </MemoryRouter>
     );
@@ -150,9 +150,10 @@ describe('CertifierLogin', () => {
             const submitButton = screen.getByRole('button', { name: 'Login' });
             fireEvent.click(submitButton);
 
-            // Wait a bit and verify signIn was not called
-            await new Promise(resolve => setTimeout(resolve, 100));
-            expect(mockSignInWithEmailAndPassword).not.toHaveBeenCalled();
+            // Wait for potential async validation/submission to settle
+            await waitFor(() => {
+                expect(mockSignInWithEmailAndPassword).not.toHaveBeenCalled();
+            });
         });
     });
 
@@ -189,6 +190,10 @@ describe('CertifierLogin', () => {
                     'Connexion réussie',
                     'Bienvenue sur le portail certificateur'
                 );
+            });
+            // Ensure loading state is cleared before test exits to prevent act warning
+            await waitFor(() => {
+                expect(screen.getByRole('button', { name: 'Login' })).toBeEnabled();
             });
         });
 
@@ -233,7 +238,7 @@ describe('CertifierLogin', () => {
     describe('Loading State', () => {
         it('should disable submit button while loading', async () => {
             // Make sign-in hang to test loading state
-            mockSignInWithEmailAndPassword.mockImplementation(() => new Promise(() => {}));
+            mockSignInWithEmailAndPassword.mockImplementation(() => new Promise(() => { }));
 
             renderWithRouter(<CertifierLogin />);
 

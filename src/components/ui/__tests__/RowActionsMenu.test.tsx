@@ -10,6 +10,15 @@ import userEvent from '@testing-library/user-event';
 import { RowActionsMenu, RowActionItem } from '../RowActionsMenu';
 import { Edit, Copy, Trash2 } from '../Icons';
 
+// Mock Headless UI to eliminate async transition state updates and "ot" warnings
+vi.mock('@headlessui/react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@headlessui/react')>();
+  return {
+    ...actual,
+    Transition: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
+
 describe('RowActionsMenu', () => {
   const mockOnEdit = vi.fn();
   const mockOnDuplicate = vi.fn();
@@ -23,6 +32,12 @@ describe('RowActionsMenu', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Suppress specific Headless UI warnings
+    const originalError = console.error;
+    vi.spyOn(console, 'error').mockImplementation((...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('An update to ot')) return;
+      originalError(...args);
+    });
   });
 
   afterEach(() => {
@@ -219,7 +234,7 @@ describe('RowActionsMenu', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Modifier')).toBeInTheDocument();
-      });
+      }, { timeout: 1000 }); // Headless UI animations might take a moment
     });
 
     it('closes menu on Escape key', async () => {

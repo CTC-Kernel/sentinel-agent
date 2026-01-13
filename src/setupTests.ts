@@ -106,25 +106,30 @@ vi.mock('firebase/app-check', () => ({
     getToken: vi.fn(),
 }));
 
+// Mock getAnimations which is missing in JSDOM
+if (typeof Element !== 'undefined' && !Element.prototype.getAnimations) {
+    Element.prototype.getAnimations = () => [];
+}
+
 // Mock framer-motion for all tests
 vi.mock('framer-motion', () => ({
     motion: {
-        div: React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ children, className, ...props }, ref) =>
+        div: React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { layoutId?: string }>(({ children, className, layoutId, ...props }, ref) =>
             React.createElement('div', { className, ref, ...props }, children)
         ),
-        button: React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(({ children, className, ...props }, ref) =>
+        button: React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { layoutId?: string }>(({ children, className, layoutId, ...props }, ref) =>
             React.createElement('button', { className, ref, ...props }, children)
         ),
-        svg: React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGSVGElement>>(({ children, className, ...props }, ref) =>
+        svg: React.forwardRef<SVGSVGElement, React.SVGAttributes<SVGSVGElement> & { layoutId?: string }>(({ children, className, layoutId, ...props }, ref) =>
             React.createElement('svg', { className, ref, ...props }, children)
         ),
-        li: React.forwardRef<HTMLLIElement, React.LiHTMLAttributes<HTMLLIElement>>(({ children, className, ...props }, ref) =>
+        li: React.forwardRef<HTMLLIElement, React.LiHTMLAttributes<HTMLLIElement> & { layoutId?: string }>(({ children, className, layoutId, ...props }, ref) =>
             React.createElement('li', { className, ref, ...props }, children)
         ),
-        ul: React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>(({ children, className, ...props }, ref) =>
+        ul: React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement> & { layoutId?: string }>(({ children, className, layoutId, ...props }, ref) =>
             React.createElement('ul', { className, ref, ...props }, children)
         ),
-        span: React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>(({ children, className, ...props }, ref) =>
+        span: React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement> & { layoutId?: string }>(({ children, className, layoutId, ...props }, ref) =>
             React.createElement('span', { className, ref, ...props }, children)
         ),
     },

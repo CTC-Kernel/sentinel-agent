@@ -70,7 +70,7 @@ describe('Audits View', () => {
 
     it('renders the dashboard by default', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Audits />
             </MemoryRouter>
         );
@@ -81,7 +81,7 @@ describe('Audits View', () => {
 
     it('renders the list view when tab is switched', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Audits />
             </MemoryRouter>
         );
@@ -100,7 +100,7 @@ describe('Audits View', () => {
 
     it('opens creation drawer when "New Audit" is clicked', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Audits />
             </MemoryRouter>
         );
@@ -114,7 +114,7 @@ describe('Audits View', () => {
 
     it('filters audits correctly', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Audits />
             </MemoryRouter>
         );
