@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { SystemHealth } from '../SystemHealth';
 
 // Mock ConnectivityService
@@ -40,14 +40,22 @@ describe('SystemHealth', () => {
         vi.clearAllMocks();
     });
 
-    it('should render the component title', () => {
+    it('should render the component title', async () => {
         render(<SystemHealth />);
         expect(screen.getByText('System Status')).toBeInTheDocument();
+        // Wait for loading to finish to prevent act warnings
+        await waitFor(() => {
+            expect(screen.queryByText('Checking system connectivity...')).not.toBeInTheDocument();
+        });
     });
 
-    it('should show loading state initially', () => {
+    it('should show loading state initially', async () => {
         render(<SystemHealth />);
         expect(screen.getByText('Checking system connectivity...')).toBeInTheDocument();
+        // Wait for loading to finish to prevent act warnings from subsequent state updates
+        await waitFor(() => {
+            expect(screen.queryByText('Checking system connectivity...')).not.toBeInTheDocument();
+        });
     });
 
     it('should display services after loading', async () => {
@@ -132,7 +140,10 @@ describe('SystemHealth', () => {
         }, { timeout: 10000 });
 
         const checkNowButton = screen.getByText('Check Now');
-        fireEvent.click(checkNowButton);
+
+        await act(async () => {
+            fireEvent.click(checkNowButton);
+        });
 
         // Verify the mock was called
         await waitFor(() => {
@@ -148,6 +159,10 @@ describe('SystemHealth - Latency Colors', () => {
 
     it('should display green color for fast latency', async () => {
         render(<SystemHealth />);
+
+        await waitFor(() => {
+            expect(screen.queryByText('Checking system connectivity...')).not.toBeInTheDocument();
+        });
 
         await waitFor(() => {
             const latency45 = screen.getByText('45ms');
