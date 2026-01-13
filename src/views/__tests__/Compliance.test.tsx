@@ -24,11 +24,7 @@ vi.mock('../../store', () => {
     const mockGetState = vi.fn(() => ({
         customRoles: [],
         user: { organizationId: 'test-org', role: 'rssi', uid: 'test-user' },
-        language: 'fr'
-    }));
-
-    const useStore = vi.fn(() => ({
-        user: mockGetState().user,
+        language: 'fr',
         addToast: vi.fn(),
         t: (key: string): string => {
             const translations: Record<string, string> = {
@@ -45,6 +41,11 @@ vi.mock('../../store', () => {
             return translations[key] || key;
         }
     }));
+
+    const useStore = vi.fn((selector) => {
+        const state = mockGetState();
+        return selector ? selector(state) : state;
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (useStore as any).getState = mockGetState;
