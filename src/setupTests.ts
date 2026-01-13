@@ -168,3 +168,8 @@ if (!i18n.isInitialized) {
 vi.mock('./i18n', () => ({
     default: i18n,
 }));
+
+// Global cleanup
+afterEach(() => {
+    cleanup();
+});
