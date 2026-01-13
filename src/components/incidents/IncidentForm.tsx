@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useForm, SubmitHandler, useWatch, Controller, FieldErrors } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { SubmitHandler, useWatch, Controller, FieldErrors } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { toast } from '@/lib/toast';
 import { incidentSchema, IncidentFormData } from '../../schemas/incidentSchema';
 import { Criticality, UserProfile, BusinessProcess, Asset, Risk } from '../../types';
@@ -38,8 +38,9 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     isLoading = false
 }) => {
     const { addToast } = useStore();
-    const { register, handleSubmit, setValue, control, getValues, formState: { errors } } = useForm<IncidentFormData>({
-        resolver: zodResolver(incidentSchema),
+    const { register, handleSubmit, setValue, control, getValues, formState: { errors } } = useZodForm<typeof incidentSchema>({
+        schema: incidentSchema,
+        mode: 'onChange',
         shouldUnregister: true,
         defaultValues: {
             title: '',

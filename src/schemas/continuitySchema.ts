@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
 export const businessProcessSchema = z.object({
-    name: z.string().min(1, "Le nom est requis"),
-    description: z.string().min(1, "La description est requise"),
-    owner: z.string().min(1, "Le responsable est requis"),
-    rto: z.string().min(1, "Le RTO est requis"),
-    rpo: z.string().min(1, "Le RPO est requis"),
+    name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom est trop long"),
+    description: z.string().trim().min(1, "La description est requise").max(2000, "La description est trop longue"),
+    owner: z.string().trim().min(1, "Le responsable est requis"),
+    rto: z.string().trim().min(1, "Le RTO est requis").max(20),
+    rpo: z.string().trim().min(1, "Le RPO est requis").max(20),
     priority: z.enum(['Critique', 'Élevée', 'Moyenne', 'Faible']),
     supportingAssetIds: z.array(z.string()).optional(),
     drpDocumentId: z.string().optional(),
@@ -14,10 +14,10 @@ export const businessProcessSchema = z.object({
     supplierIds: z.array(z.string()).optional(),
     recoveryTasks: z.array(z.object({
         id: z.string(),
-        title: z.string().min(1, "Le titre est requis"),
-        description: z.string().optional(),
-        owner: z.string().min(1, "Le responsable est requis"),
-        duration: z.string().min(1, "La durée est requise"),
+        title: z.string().trim().min(1, "Le titre est requis").max(100),
+        description: z.string().trim().optional(),
+        owner: z.string().trim().min(1, "Le responsable est requis"),
+        duration: z.string().trim().min(1, "La durée est requise"),
         order: z.number()
     })).optional()
 });
@@ -27,20 +27,26 @@ export type BusinessProcessFormData = z.infer<typeof businessProcessSchema>;
 export const bcpDrillSchema = z.object({
     processId: z.string().min(1, "Le processus est requis"),
     date: z.string().min(1, "La date est requise"),
-    type: z.enum(['Tabletop', 'Simulation', 'Bascule réelle']),
+    type: z.enum(['Tabletop', 'Simulation', 'Bascule réelle', 'Full Scale', 'Call Tree']),
     result: z.enum(['Succès', 'Succès partiel', 'Échec']),
-    notes: z.string().optional(),
+    notes: z.string().trim().optional(),
 });
 
 export type BcpDrillFormData = z.infer<typeof bcpDrillSchema>;
 
 export const strategySchema = z.object({
-    title: z.string().min(1, 'Titre requis').max(100, 'Titre trop long'),
+    title: z.string().trim().min(1, 'Titre requis').max(100, 'Titre trop long'),
     type: z.enum(['Active-Active', 'Active-Passive', 'Cold Standby', 'Cloud DR']),
-    rto: z.string().min(1, 'RTO requis').max(20, 'RTO trop long'),
-    rpo: z.string().min(1, 'RPO requis').max(20, 'RPO trop long'),
-    description: z.string().optional(),
+    rto: z.string().trim().min(1, 'RTO requis').max(20, 'RTO trop long'),
+    rpo: z.string().trim().min(1, 'RPO requis').max(20, 'RPO trop long'),
+    description: z.string().trim().optional(),
     linkedAssets: z.array(z.string()).optional()
 });
 
 export type StrategyFormData = z.infer<typeof strategySchema>;
+
+export const warRoomMessageSchema = z.object({
+    content: z.string().trim().min(1, "Le message ne peut pas être vide")
+});
+
+export type WarRoomMessageFormData = z.infer<typeof warRoomMessageSchema>;

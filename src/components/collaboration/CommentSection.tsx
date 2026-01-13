@@ -8,8 +8,8 @@ import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../../utils/cn';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useZodForm } from '../../hooks/useZodForm';
+import { SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 
 interface CommentSectionProps {
@@ -50,14 +50,15 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
     }, [comments]);
 
     const commentSchema = z.object({
-        content: z.string().min(1, 'Le commentaire ne peut pas être vide').max(1000)
+        content: z.string().trim().min(1, 'Le commentaire ne peut pas être vide').max(1000)
     });
 
     type CommentFormData = z.infer<typeof commentSchema>;
 
-    const { register, handleSubmit, reset, formState: { isValid, isSubmitting, errors } } = useForm<CommentFormData>({
-        resolver: zodResolver(commentSchema),
-        defaultValues: { content: '' }
+    const { register, handleSubmit, reset, formState: { isValid, isSubmitting, errors } } = useZodForm({
+        schema: commentSchema,
+        defaultValues: { content: '' },
+        mode: 'onChange'
     });
 
     const onSubmit: SubmitHandler<CommentFormData> = async (data) => {

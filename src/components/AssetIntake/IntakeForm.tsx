@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useZodForm } from '../../hooks/useZodForm'; // Hook for localized validation
 import { z } from 'zod';
 import { HardwareInfo } from '../../utils/hardwareDetection';
 import { Laptop, Save, AlertTriangle, User, Server, Database } from '../ui/Icons';
@@ -25,18 +24,19 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
     const [users, setUsers] = useState<UserProfile[]>([]);
 
     const intakeSchema = z.object({
-        name: z.string().min(1, "Le nom de l'équipement est requis"),
-        serialNumber: z.string().min(1, "Le numéro de série est requis"),
+        name: z.string().trim().min(1, "Le nom de l'équipement est requis"),
+        serialNumber: z.string().trim().min(1, "Le numéro de série est requis"),
         userId: z.string().optional(),
         projectId: z.string().optional(),
-        notes: z.string().optional(),
+        notes: z.string().trim().optional(),
         hardwareType: z.string().min(1)
     });
 
     type IntakeFormData = z.infer<typeof intakeSchema>;
 
-    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<IntakeFormData>({
-        resolver: zodResolver(intakeSchema),
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useZodForm({
+        schema: intakeSchema,
+        mode: 'onChange',
         defaultValues: {
             name: '',
             serialNumber: '',

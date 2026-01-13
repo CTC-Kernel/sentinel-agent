@@ -1,7 +1,7 @@
 import { toast } from '@/lib/toast';
 import React, { useEffect } from 'react';
-import { useForm, Controller, SubmitHandler, useWatch, FieldErrors } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, SubmitHandler, useWatch, FieldErrors } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { supplierSchema, SupplierFormData } from '../../schemas/supplierSchema';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -64,8 +64,9 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []
     };
 
-    const { register, handleSubmit, control, setValue, formState: { errors }, getValues } = useForm<SupplierFormData>({
-        resolver: zodResolver(supplierSchema),
+    const { register, handleSubmit, control, setValue, formState: { errors }, getValues } = useZodForm<typeof supplierSchema>({
+        schema: supplierSchema,
+        mode: 'onChange',
         shouldUnregister: true,
         defaultValues: initialData ? {
             ...defaultData,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { businessProcessSchema, BusinessProcessFormData } from '../../schemas/continuitySchema';
 import { Modal } from '../ui/Modal';
 import { aiService } from '../../services/aiService';
@@ -41,8 +41,9 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
     const { addToast, t } = useStore();
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const { handleSubmit, control, watch, setValue, formState: { errors, isSubmitting } } = useForm<BusinessProcessFormData>({
-        resolver: zodResolver(businessProcessSchema),
+    const { handleSubmit, control, watch, setValue, formState: { errors, isSubmitting } } = useZodForm({
+        schema: businessProcessSchema,
+        mode: 'onChange',
         defaultValues: {
             name: initialData?.name || '',
             description: initialData?.description || '',

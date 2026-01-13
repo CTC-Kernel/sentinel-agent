@@ -1,6 +1,6 @@
 import React from 'react';
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, SubmitHandler } from 'react-hook-form';
+import { useZodForm } from '../../../hooks/useZodForm';
 import { TlptCampaign } from '../../../types';
 import { tlptSchema, TlptFormData } from '../../../schemas/tlptSchema';
 import { Button } from '../../ui/button';
@@ -46,8 +46,9 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
         notes: ''
     };
 
-    const { control, handleSubmit, formState: { errors } } = useForm<TlptFormData>({
-        resolver: zodResolver(tlptSchema),
+    const { control, handleSubmit, formState: { errors } } = useZodForm<typeof tlptSchema>({
+        schema: tlptSchema,
+        mode: 'onChange',
         defaultValues
     });
 

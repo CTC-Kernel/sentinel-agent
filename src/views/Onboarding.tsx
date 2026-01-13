@@ -10,8 +10,8 @@ import { OnboardingService, SearchResult } from '../services/onboardingService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ErrorLogger } from '../services/errorLogger';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { SubmitHandler, Controller } from 'react-hook-form';
+import { useZodForm } from '../hooks/useZodForm';
 import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchema';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
@@ -35,8 +35,9 @@ export const Onboarding: React.FC = () => {
     const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState<PlanType>('discovery');
 
-    const form = useForm<OnboardingFormData>({
-        resolver: zodResolver(onboardingSchema),
+    const form = useZodForm({
+        schema: onboardingSchema,
+        mode: 'onChange',
         defaultValues: {
             organizationName: user?.organizationName || '',
             displayName: user?.displayName || '',

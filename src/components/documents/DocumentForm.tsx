@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useForm, useWatch, Controller, Resolver, FieldErrors } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useWatch, Controller, FieldErrors } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { documentSchema, DocumentFormData } from '../../schemas/documentSchema';
 import { UserProfile, Control, Asset, Audit, Document, DocumentFolder, Risk } from '../../types';
 import { Button } from '../ui/button';
@@ -48,8 +48,9 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     const [uploadedFileHash, setUploadedFileHash] = useState<string>(initialData?.hash || '');
     const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(initialData?.isSecure || false);
 
-    const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<DocumentFormData>({
-        resolver: zodResolver(documentSchema) as Resolver<DocumentFormData>,
+    const { register, handleSubmit, control, setValue, formState: { errors } } = useZodForm<typeof documentSchema>({
+        schema: documentSchema,
+        mode: 'onChange',
         shouldUnregister: true,
         defaultValues: {
             title: initialData?.title || '',

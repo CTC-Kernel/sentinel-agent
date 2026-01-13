@@ -9,11 +9,11 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { SubmitHandler, Controller } from 'react-hook-form';
+import { useZodForm } from '../hooks/useZodForm';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { Button } from '../components/ui/button';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
 
 import { RoleManager } from '../components/team/RoleManager';
@@ -79,13 +79,15 @@ const Team: React.FC = () => {
 
     const canAdmin = hasPermission(user, 'User', 'manage');
 
-    const inviteForm = useForm<UserFormData>({
-        resolver: zodResolver(userSchema),
-        defaultValues: { role: 'user' }
+    const inviteForm = useZodForm({
+        schema: userSchema,
+        defaultValues: { role: 'user' },
+        mode: 'onChange'
     });
 
-    const editForm = useForm<UserFormData>({
-        resolver: zodResolver(userSchema)
+    const editForm = useZodForm({
+        schema: userSchema,
+        mode: 'onChange'
     });
 
     const handleOpenInviteModal = React.useCallback(() => {

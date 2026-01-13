@@ -195,8 +195,12 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                         value={justification}
                         onChange={(e) => setJustification(e.target.value)}
                         onBlur={saveJustification}
+                        maxLength={2000}
                         disabled={!canEdit || updating || isSaving}
                     />
+                    <div className="text-[10px] text-right text-slate-400 mt-1">
+                        {justification.length}/2000
+                    </div>
                 ) : (
                     <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                         {control.justification || <span className="text-slate-400 italic">Aucune justification fournie.</span>}

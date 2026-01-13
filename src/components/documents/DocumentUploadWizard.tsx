@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, useWatch, Controller, SubmitHandler } from 'react-hook-form'; // Added SubmitHandler
+import { useWatch, Controller, SubmitHandler } from 'react-hook-form'; // Added SubmitHandler
 import type { FieldPath } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useZodForm } from '../../hooks/useZodForm';
 import { documentSchema, DocumentFormData } from '../../schemas/documentSchema';
 import { UserProfile, Control, Asset, DocumentFolder, Risk } from '../../types'; // Removed Audit
 import { Button } from '../ui/button';
@@ -57,8 +57,9 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
     const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(false);
     const [fileName, setFileName] = useState<string>('');
 
-    const { register, handleSubmit, control, setValue, getValues, trigger, formState: { errors } } = useForm<DocumentFormData>({
-        resolver: zodResolver(documentSchema) as unknown as never,
+    const { register, handleSubmit, control, setValue, getValues, trigger, formState: { errors } } = useZodForm({
+        schema: documentSchema,
+        mode: 'onChange',
         defaultValues: {
             title: '',
             type: 'Politique',

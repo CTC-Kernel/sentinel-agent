@@ -3,8 +3,8 @@ import { useStore } from '../../store';
 import { Building, Users, FileSpreadsheet, Search } from '../ui/Icons';
 import { useNavigate } from 'react-router-dom';
 
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { SubmitHandler } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { organizationSchema, OrganizationFormData } from '../../schemas/settingsSchema';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -40,8 +40,9 @@ export const OrganizationSettings: React.FC = () => {
     const usersList = hookUsers;
     const currentOrg = organization;
 
-    const orgForm = useForm<OrganizationFormData>({
-        resolver: zodResolver(organizationSchema),
+    const orgForm = useZodForm<typeof organizationSchema>({
+        schema: organizationSchema,
+        mode: 'onChange',
         defaultValues: { orgName: '', address: '', vatNumber: '', contactEmail: '' }
     });
 

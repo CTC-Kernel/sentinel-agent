@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useForm, Resolver, Controller, FieldErrors } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, FieldErrors } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
 import { Asset, UserProfile, Supplier, Criticality } from '../../types';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -51,10 +51,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     isLoading = false,
     readOnly = false
 }) => {
-    const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues, register } = useForm<AssetFormData>({
-        resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
-        mode: 'onBlur', // Enable validation on blur for better UX
-        shouldUnregister: true, // IMPORTANT: Remove hidden fields from data to avoid validation errors on invisible fields
+    const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues, register } = useZodForm<typeof assetSchema>({
+        schema: assetSchema,
+        mode: 'onChange', // Changed to onChange for immediate feedback
+        shouldUnregister: true,
         defaultValues: {
             name: '',
             type: 'Matériel',

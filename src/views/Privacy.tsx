@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 
-import { useForm, FieldErrors } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { FieldErrors } from 'react-hook-form';
+import { useZodForm } from '../hooks/useZodForm';
 import { processingActivitySchema, ProcessingActivityFormData } from '../schemas/privacySchema';
 import { ProcessingActivity } from '../types';
 import { Plus, Fingerprint, Trash2, Edit, FileSpreadsheet, Upload, X, Save } from '../components/ui/Icons';
@@ -64,9 +64,9 @@ export const Privacy: React.FC = () => {
     // Forms
     // const createActivityForm removed (moved to component)
 
-    const editActivityForm = useForm<ProcessingActivityFormData>({
-        resolver: zodResolver(processingActivitySchema),
-        shouldUnregister: true
+    const editActivityForm = useZodForm({
+        schema: processingActivitySchema,
+        mode: 'onChange'
     });
 
     const onInvalid = (errors: FieldErrors<ProcessingActivityFormData>) => {

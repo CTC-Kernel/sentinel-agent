@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../../store';
 import { BrainCircuit, Key, Calendar, CheckCircle2, Download, LogOut, ShieldCheck } from '../ui/Icons';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { SubmitHandler } from 'react-hook-form';
 import { httpsCallable, getFunctions } from 'firebase/functions';
+import { useZodForm } from '../../hooks/useZodForm';
+import { aiSettingsSchema, AISettingsFormData } from '../../schemas/settingsSchema';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useGoogleLogin } from '@react-oauth/google';
 import { mapAuditsToEvents, mapTasksToEvents, generateICS, downloadICS } from '../../utils/calendarUtils';
@@ -48,13 +50,15 @@ export const IntegrationSettings: React.FC = () => {
     }, [googleAccessToken, googleTokenExpiry]);
 
     // AI Keys Form
-    const { register, handleSubmit } = useForm({
+    const { register, handleSubmit } = useZodForm<typeof aiSettingsSchema>({
+        schema: aiSettingsSchema,
+        mode: 'onChange',
         defaultValues: {
             geminiCredential: user?.hasGeminiKey ? '' : '',
         }
     });
 
-    const handleUpdateKeys: SubmitHandler<{ geminiCredential: string }> = async (data) => {
+    const handleUpdateKeys: SubmitHandler<AISettingsFormData> = async (data) => {
         if (!user) return;
         setSavingKeys(true);
         try {

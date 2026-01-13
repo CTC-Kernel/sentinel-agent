@@ -3,15 +3,15 @@ import i18n from '../i18n';
 import { Criticality } from '../types';
 
 export const assetSchema = z.object({
-    name: z.string().min(1, i18n.t('validation.required')).max(200, i18n.t('validation.maxLength', { max: 200 })),
+    name: z.string().trim().min(1, i18n.t('validation.required')).max(200, i18n.t('validation.maxLength', { max: 200 })),
     type: z.enum(['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'], {
         error: i18n.t('validation.required'),
     }),
-    owner: z.string().min(1, i18n.t('validation.required')),
+    owner: z.string().trim().min(1, i18n.t('validation.required')),
     confidentiality: z.nativeEnum(Criticality),
     integrity: z.nativeEnum(Criticality),
     availability: z.nativeEnum(Criticality),
-    location: z.string().min(1, i18n.t('validation.required')),
+    location: z.string().trim().min(1, i18n.t('validation.required')),
     purchaseDate: z.string().optional(),
     purchasePrice: z.coerce.number().min(0).optional(),
     currentValue: z.coerce.number().min(0).optional(),
@@ -22,15 +22,15 @@ export const assetSchema = z.object({
     relatedProjectIds: z.array(z.string()).optional(),
     scope: z.array(z.enum(['NIS2', 'DORA', 'PCI_DSS', 'HDS', 'ISO27001', 'SOC2'])).optional(),
     supplierId: z.string().optional(),
-    ipAddress: z.string().regex(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/, i18n.t('validation.ip')).or(z.literal('')).optional(),
-    notes: z.string().optional(),
+    ipAddress: z.string().trim().regex(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/, i18n.t('validation.ip')).or(z.literal('')).optional(),
+    notes: z.string().trim().optional(),
     // Software specific
-    version: z.string().optional(),
+    version: z.string().trim().optional(),
     licenseExpiry: z.string().optional(),
     // People specific
-    email: z.string().email(i18n.t('validation.email')).or(z.literal('')).optional(),
-    role: z.string().optional(),
-    department: z.string().optional(),
+    email: z.string().trim().email(i18n.t('validation.email')).or(z.literal('')).optional(),
+    role: z.string().trim().optional(),
+    department: z.string().trim().optional(),
     aiAnalysis: z.object({
         type: z.string(),
         response: z.record(z.string(), z.unknown()),
@@ -39,16 +39,16 @@ export const assetSchema = z.object({
     // Specialized details
     dataDetails: z.object({
         format: z.enum(['Numérique', 'Physique', 'Hybride']),
-        retentionPeriod: z.string().optional(),
+        retentionPeriod: z.string().trim().optional(),
         hasWorm: z.boolean().optional(),
         isEncrypted: z.boolean().optional(),
         dataCategory: z.enum(['Client', 'Employé', 'Financier', 'Propriété Intellectuelle', 'Autre']).optional(),
     }).optional(),
     serviceDetails: z.object({
-        providerUrl: z.string().url(i18n.t('validation.url')).optional().or(z.literal('')),
-        sla: z.string().optional(),
-        supportContact: z.string().optional(),
-        hostingLocation: z.string().optional(),
+        providerUrl: z.string().trim().url(i18n.t('validation.url')).optional().or(z.literal('')),
+        sla: z.string().trim().optional(),
+        supportContact: z.string().trim().optional(),
+        hostingLocation: z.string().trim().optional(),
     }).optional(),
 });
 

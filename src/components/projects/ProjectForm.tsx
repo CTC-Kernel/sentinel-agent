@@ -3,8 +3,8 @@ import { Project, Risk, Control, Asset, UserProfile } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
-import { useForm, Controller, useWatch, FieldErrors, DefaultValues } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useWatch, FieldErrors } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelSelect } from '../ui/FloatingLabelSelect';
@@ -67,10 +67,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             label: u.displayName || u.email || 'Utilisateur'
         })), [usersList]);
 
-    const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<ProjectFormData>({
-        // @ts-expect-error - Resolver type mismatch with RHF version
-        resolver: zodResolver(projectSchema),
-        mode: 'onBlur',
+    const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useZodForm<typeof projectSchema>({
+        schema: projectSchema,
+        mode: 'onChange',
         defaultValues: {
             name: initialData?.name || '',
             description: initialData?.description || '',
@@ -85,7 +84,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             relatedAuditIds: initialData?.relatedAuditIds || [],
             members: initialData?.members || [],
             framework: initialData?.framework,
-        } as DefaultValues<ProjectFormData>
+        }
     });
 
     const scrollToFirstError = (fieldErrors: FieldErrors<ProjectFormData>) => {
@@ -207,7 +206,11 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const submitHandler = handleSubmit(onFormSubmit as any, onInvalid);
+
+
+    // ...
+
+    const submitHandler = handleSubmit(onFormSubmit, onInvalid);
 
     return (
         <form ref={formRef} onSubmit={submitHandler} className="space-y-8 animate-fade-in relative">

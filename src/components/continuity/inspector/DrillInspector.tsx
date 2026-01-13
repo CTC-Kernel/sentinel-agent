@@ -1,7 +1,7 @@
 import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { Controller } from 'react-hook-form';
+import { useZodForm } from '../../../hooks/useZodForm';
+import { bcpDrillSchema, BcpDrillFormData } from '../../schemas/continuitySchema';
 import { BusinessProcess, BcpDrill } from '../../../types';
 import { Loader2, Zap, Save, Calendar } from 'lucide-react';
 import { InspectorLayout } from '../../ui/InspectorLayout';
@@ -18,16 +18,6 @@ interface DrillInspectorProps {
     isLoading?: boolean;
 }
 
-const drillSchema = z.object({
-    processId: z.string().min(1, 'Ce champ est requis'),
-    type: z.enum(["Tabletop", "Simulation", "Bascule réelle", "Full Scale", "Call Tree"]),
-    date: z.string().min(1, 'Une date est requise'),
-    result: z.enum(["Succès", "Succès partiel", "Échec"]),
-    notes: z.string().optional()
-});
-
-type DrillFormData = z.infer<typeof drillSchema>;
-
 export const DrillInspector: React.FC<DrillInspectorProps> = ({
     isOpen,
     onClose,
@@ -35,11 +25,12 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
     processes,
     isLoading
 }) => {
-    const { handleSubmit, control, formState: { errors, isSubmitting } } = useForm<DrillFormData>({
-        resolver: zodResolver(drillSchema)
+    const { handleSubmit, control, formState: { errors, isSubmitting } } = useZodForm({
+        schema: bcpDrillSchema,
+        mode: 'onChange'
     });
 
-    const handleFormSubmit = async (data: DrillFormData) => {
+    const handleFormSubmit = async (data: BcpDrillFormData) => {
         await onSubmit(data);
         onClose();
     };
@@ -79,7 +70,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
 
                 <form className="space-y-6">
                     <div>
-                        <Controller<DrillFormData>
+                        <Controller<BcpDrillFormData>
                             name="processId"
                             control={control}
                             render={({ field }) => (
@@ -95,7 +86,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Controller<DrillFormData>
+                        <Controller<BcpDrillFormData>
                             name="type"
                             control={control}
                             render={({ field }) => (
@@ -114,7 +105,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
                             )}
                         />
 
-                        <Controller<DrillFormData>
+                        <Controller<BcpDrillFormData>
                             name="date"
                             control={control}
                             render={({ field }) => (
@@ -129,7 +120,7 @@ export const DrillInspector: React.FC<DrillInspectorProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Controller<DrillFormData>
+                        <Controller<BcpDrillFormData>
                             name="result"
                             control={control}
                             render={({ field }) => (

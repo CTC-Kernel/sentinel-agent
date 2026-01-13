@@ -9,8 +9,8 @@ import { Button } from '../components/ui/button';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { useStore } from '../store';
 import { LegalModal } from '../components/ui/LegalModal';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { SubmitHandler } from 'react-hook-form';
+import { useZodForm } from '../hooks/useZodForm';
 import { loginSchema, registerSchema, resetPasswordSchema, LoginFormData, RegisterFormData, ResetPasswordFormData } from '../schemas/authSchema';
 import { useAuthActions } from '../hooks/useAuthActions';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
@@ -47,17 +47,18 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
     } = useAuthActions();
 
     // Main Auth Form
-    const { register, handleSubmit, formState: { errors }, clearErrors } = useForm<LoginFormData | RegisterFormData>({
-        resolver: zodResolver(isLogin ? loginSchema : registerSchema),
-        mode: 'onSubmit'
+    const { register, handleSubmit, formState: { errors }, clearErrors } = useZodForm({
+        schema: isLogin ? loginSchema : registerSchema,
+        mode: 'onChange'
     });
 
     // Reset Password Form
     const [showResetModal, setShowResetModal] = useState(false);
     const [resetSent, setResetSent] = useState(false);
 
-    const resetForm = useForm<ResetPasswordFormData>({
-        resolver: zodResolver(resetPasswordSchema)
+    const resetForm = useZodForm({
+        schema: resetPasswordSchema,
+        mode: 'onChange'
     });
 
     // Legal Modal State

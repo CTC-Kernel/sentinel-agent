@@ -20,18 +20,18 @@ import { ConfirmModal } from '../components/ui/ConfirmModal'; // Keyboard: Escap
 
 import { hasPermission } from '../utils/permissions';
 
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { SubmitHandler } from 'react-hook-form';
+import { useZodForm } from '../hooks/useZodForm';
 import { z } from 'zod';
 
 const threatSchema = z.object({
-    name: z.string().min(1, 'Le titre est requis'),
-    description: z.string().min(1, 'La description est requise'),
-    framework: z.string().min(1, 'Le cadre est requis'),
-    field: z.string().min(1, 'Le domaine est requis'),
-    threat: z.string().min(1, 'La menace est requise'),
-    vulnerability: z.string().min(1, 'La vulnérabilité est requise'),
-    scenario: z.string().min(1, 'Le scénario est requis'),
+    name: z.string().trim().min(1, 'Le titre est requis').max(100),
+    description: z.string().trim().min(1, 'La description est requise'),
+    framework: z.string().trim().min(1, 'Le cadre est requis'),
+    field: z.string().trim().min(1, 'Le domaine est requis'),
+    threat: z.string().trim().min(1, 'La menace est requise'),
+    vulnerability: z.string().trim().min(1, 'La vulnérabilité est requise'),
+    scenario: z.string().trim().min(1, 'Le scénario est requis'),
     probability: z.number().min(1).max(5),
     impact: z.number().min(1).max(5),
     strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter'] as const)
@@ -50,8 +50,9 @@ export const ThreatRegistry: React.FC = () => {
     // Modal State
     const [showModal, setShowModal] = useState(false);
 
-    const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ThreatFormData>({
-        resolver: zodResolver(threatSchema),
+    const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useZodForm({
+        schema: threatSchema,
+        mode: 'onChange',
         defaultValues: {
             probability: 3,
             impact: 3,

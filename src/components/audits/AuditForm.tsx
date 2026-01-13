@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { useForm, Controller, useWatch, FieldErrors } from 'react-hook-form';
+import { Controller, useWatch, FieldErrors } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { AddToCalendar } from '../ui/AddToCalendar';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { auditSchema, AuditFormData } from '../../schemas/auditSchema';
 import { Audit, Control, Asset, Risk, UserProfile, Project } from '../../types';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -62,9 +62,9 @@ export const AuditForm: React.FC<AuditFormProps> = ({
         { name: 'Review Accès Logiques', description: t('audits.form.templates.access', { defaultValue: 'Revue trimestrielle des comptes à privilèges.' }), type: 'Interne', standard: 'Interne', scope: 'IT / IAM' },
     ];
 
-    const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<AuditFormData>({
-        resolver: zodResolver(auditSchema),
-        mode: 'onBlur',
+    const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useZodForm<typeof auditSchema>({
+        schema: auditSchema,
+        mode: 'onChange',
         shouldUnregister: true,
         defaultValues: {
             // ...

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller } from 'react-hook-form';
+import { useZodForm } from '../../../hooks/useZodForm';
 import { InspectorLayout } from '../../ui/InspectorLayout';
 import { Asset } from '../../../types';
 import { Loader2, Save, Clock, ShieldCheck, Server } from 'lucide-react';
@@ -32,8 +32,9 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
     isEditing,
     isLoading
 }) => {
-    const { handleSubmit, control, setValue, formState: { errors, isSubmitting } } = useForm<StrategyFormData>({
-        resolver: zodResolver(strategySchema),
+    const { handleSubmit, control, setValue, formState: { errors, isSubmitting } } = useZodForm<typeof strategySchema>({
+        schema: strategySchema,
+        mode: 'onChange',
         defaultValues: {
             title: initialData?.title || '',
             type: initialData?.type || undefined,

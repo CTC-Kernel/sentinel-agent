@@ -6,9 +6,8 @@ import {
 import { Dialog } from '@headlessui/react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useZodForm } from '../../hooks/useZodForm';
+import { warRoomMessageSchema, WarRoomMessageFormData } from '../../schemas/continuitySchema';
 import { useWarRoom } from '../../hooks/incidents/useWarRoom';
 import { ErrorLogger } from '../../services/errorLogger';
 
@@ -30,20 +29,14 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
         }
     }, [messages, isOpen]);
 
-    const messageSchema = z.object({
-        content: z.string().min(1, "Le message ne peut pas être vide")
-    });
-
-    type MessageFormData = z.infer<typeof messageSchema>;
-
-    const { register, handleSubmit, reset } = useForm<MessageFormData>({
-        resolver: zodResolver(messageSchema),
+    const { register, handleSubmit, reset } = useZodForm({
+        schema: warRoomMessageSchema,
         defaultValues: {
             content: ''
         }
     });
 
-    const onSubmit = async (data: MessageFormData) => {
+    const onSubmit = async (data: WarRoomMessageFormData) => {
         if (!data.content.trim()) return;
         try {
             await sendMessage(data.content);

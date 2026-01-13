@@ -7,9 +7,9 @@ import { Save, RotateCcw, Clock, AlertTriangle, FileText, Shield, Users, Databas
 import { Button } from '../components/ui/button';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { SubmitHandler, Controller } from 'react-hook-form';
+import { useZodForm } from '../hooks/useZodForm';
 import { Switch } from '../components/ui/Switch';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { backupConfigSchema, restoreConfigSchema, BackupConfigFormData, RestoreConfigFormData } from '../schemas/backupSchema';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -57,8 +57,8 @@ export const BackupRestore: React.FC = () => {
   });
 
   // Backup Form
-  const backupForm = useForm<BackupConfigFormData>({
-    resolver: zodResolver(backupConfigSchema),
+  const backupForm = useZodForm({
+    schema: backupConfigSchema,
     defaultValues: {
       includeDocuments: true,
       includeAssets: true,
@@ -74,8 +74,8 @@ export const BackupRestore: React.FC = () => {
   });
 
   // Restore Form
-  const restoreForm = useForm<RestoreConfigFormData>({
-    resolver: zodResolver(restoreConfigSchema),
+  const restoreForm = useZodForm({
+    schema: restoreConfigSchema,
     defaultValues: {
       backupId: '',
       collections: [],

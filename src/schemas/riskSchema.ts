@@ -5,10 +5,10 @@ import { FRAMEWORKS } from '../constants/frameworks';
 
 export const riskSchema = z.object({
     assetId: z.string().optional(),
-    threat: z.string().min(3, i18n.t('validation.minLength', { min: 3 })).max(500, i18n.t('validation.maxLength', { max: 500 })),
-    scenario: z.string().max(5000, i18n.t('validation.maxLength', { max: 5000 })).optional(),
+    threat: z.string().trim().min(3, i18n.t('validation.minLength', { min: 3 })).max(500, i18n.t('validation.maxLength', { max: 500 })),
+    scenario: z.string().trim().max(5000, i18n.t('validation.maxLength', { max: 5000 })).optional(),
     framework: z.enum(FRAMEWORKS).optional(),
-    vulnerability: z.string().min(3, i18n.t('validation.minLength', { min: 3 })).max(500, i18n.t('validation.maxLength', { max: 500 })),
+    vulnerability: z.string().trim().min(3, i18n.t('validation.minLength', { min: 3 })).max(500, i18n.t('validation.maxLength', { max: 500 })),
     probability: z.number().min(1).max(5),
     impact: z.number().min(1).max(5),
     residualProbability: z.number().optional(),
@@ -36,7 +36,7 @@ export const riskSchema = z.object({
 
     treatment: z.object({
         strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']).optional(),
-        description: z.string().optional(),
+        description: z.string().trim().optional(),
         ownerId: z.string().optional(),
         dueDate: z.string().optional(),
         completedDate: z.string().optional(),
@@ -44,7 +44,7 @@ export const riskSchema = z.object({
         slaStatus: z.enum(['On Track', 'At Risk', 'Breached']).optional(),
         estimatedCost: z.number().optional()
     }).optional(),
-    justification: z.string().optional(),
+    justification: z.string().trim().optional(),
     isSecureStorage: z.boolean().optional(),
     aiAnalysis: z.object({
         type: z.string(),

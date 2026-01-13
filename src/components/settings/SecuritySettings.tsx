@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { Key, ShieldAlert } from '../ui/Icons';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { SubmitHandler } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { passwordSchema, PasswordFormData } from '../../schemas/settingsSchema';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -15,14 +15,14 @@ import { SSOPlaceholder } from './SSOPlaceholder';
 
 export const SecuritySettings: React.FC = () => {
     const { addToast, t } = useStore();
-    
+
     // Try to use Auth hook, but provide fallback
     const [authFunctions, setAuthFunctions] = React.useState<{
         enrollMFA?: (() => Promise<string>);
         verifyMFA?: ((verificationId: string, code: string) => Promise<void>);
         unenrollMFA?: (() => Promise<void>);
     }>({});
-    
+
     // Initialize auth functions safely
     const initializeAuthFunctions = React.useCallback(() => {
         // For now, we'll disable MFA features if AuthContext is not available
@@ -30,7 +30,7 @@ export const SecuritySettings: React.FC = () => {
         // In a proper implementation, the AuthContext should be available at all times
         setAuthFunctions({});
     }, []);
-    
+
     // Initialize auth functions on mount
     React.useEffect(() => {
         initializeAuthFunctions();
@@ -38,8 +38,9 @@ export const SecuritySettings: React.FC = () => {
 
     // Password State
     const [changingPassword, setChangingPassword] = useState(false);
-    const passwordForm = useForm<PasswordFormData>({
-        resolver: zodResolver(passwordSchema),
+    const passwordForm = useZodForm<typeof passwordSchema>({
+        schema: passwordSchema,
+        mode: 'onChange',
         defaultValues: { newPassword: '', confirmPassword: '' }
     });
 
@@ -73,7 +74,7 @@ export const SecuritySettings: React.FC = () => {
             addToast("Fonctionnalité MFA non disponible", "error");
             return;
         }
-        
+
         try {
             setIsEnrollingMFA(true);
             const uri = await authFunctions.enrollMFA();
@@ -101,7 +102,7 @@ export const SecuritySettings: React.FC = () => {
             addToast("Fonctionnalité MFA non disponible", "error");
             return;
         }
-        
+
         setVerifyingMFA(true);
         try {
             await authFunctions.verifyMFA('Sentinel Authenticator', mfaCode);
@@ -121,7 +122,7 @@ export const SecuritySettings: React.FC = () => {
             addToast("Fonctionnalité MFA non disponible", "error");
             return;
         }
-        
+
         try {
             await authFunctions.unenrollMFA();
             addToast(t('settings.mfaDisabled'), "success");

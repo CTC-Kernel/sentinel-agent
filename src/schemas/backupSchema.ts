@@ -14,8 +14,8 @@ export const backupConfigSchema = z.object({
 });
 
 export const restoreConfigSchema = z.object({
-    backupId: z.string().min(1, 'Veuillez sélectionner une sauvegarde'),
-    collections: z.array(z.string()).min(1, 'Veuillez sélectionner au moins une collection'),
+    backupId: z.string().trim().min(1, 'Veuillez sélectionner une sauvegarde'),
+    collections: z.array(z.string().trim()).min(1, 'Veuillez sélectionner au moins une collection'),
     overwriteExisting: z.boolean(),
     dryRun: z.boolean()
 });

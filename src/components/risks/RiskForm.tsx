@@ -5,8 +5,8 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useForm, useWatch, FieldErrors } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useWatch, FieldErrors } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { toast } from '@/lib/toast';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality, ThreatTemplate } from '../../types';
@@ -107,9 +107,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     });
 
     // Form setup
-    const { control, handleSubmit, reset, formState: { errors, isDirty }, setValue, getValues } = useForm<RiskFormData>({
-        resolver: zodResolver(riskSchema),
-        mode: 'onBlur',
+    const { control, handleSubmit, reset, formState: { errors, isDirty }, setValue, getValues } = useZodForm<typeof riskSchema>({
+        schema: riskSchema,
+        mode: 'onChange', // Changed from onBlur for immediate feedback
         shouldUnregister: false,
         defaultValues: {
             assetId: initialData?.assetId || '',
@@ -223,7 +223,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
     const handlePublishDraft = useCallback(async () => {
         if (!onPublishDraft) return;
-        handleSubmit(async (validData) => { await onPublishDraft(validData); setIsDraft(false); clearPersistedDraft(); bypassNavigation(); }, onInvalid)();
+        handleSubmit(async (validData: RiskFormData) => { await onPublishDraft(validData); setIsDraft(false); clearPersistedDraft(); bypassNavigation(); }, onInvalid)();
     }, [onPublishDraft, handleSubmit, clearPersistedDraft, bypassNavigation]);
 
     const handleAutoGenerate = async () => {

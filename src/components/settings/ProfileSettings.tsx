@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { useStore } from '../../store';
 import { Camera, ShieldAlert, Trash2, AlertTriangle } from '../ui/Icons';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { SubmitHandler, Controller } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { profileSchema, ProfileFormData } from '../../schemas/settingsSchema';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -30,8 +30,9 @@ export const ProfileSettings: React.FC = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const profileForm = useForm<ProfileFormData>({
-        resolver: zodResolver(profileSchema),
+    const profileForm = useZodForm<typeof profileSchema>({
+        schema: profileSchema,
+        mode: 'onChange',
         defaultValues: {
             displayName: user?.displayName || '',
             department: user?.department || '',

@@ -1,5 +1,5 @@
-import { useForm, FieldErrors, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { FieldErrors, useWatch } from 'react-hook-form';
+import { useZodForm } from '../../hooks/useZodForm';
 import { UserProfile, Asset, Risk } from '../../types';
 import { processingActivitySchema, ProcessingActivityFormData } from '../../schemas/privacySchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -25,8 +25,9 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
 }) => {
     const { user } = useStore();
 
-    const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<ProcessingActivityFormData>({
-        resolver: zodResolver(processingActivitySchema),
+    const { register, handleSubmit, control, setValue, formState: { errors } } = useZodForm<typeof processingActivitySchema>({
+        schema: processingActivitySchema,
+        mode: 'onChange',
         defaultValues: {
             name: '',
             purpose: '',
