@@ -1,10 +1,11 @@
 /**
- * VoxelView Tests
- * Epic 14-1: Test Coverage Improvement
+ * Epic 14 - 1: Test Coverage Improvement
  */
 
+import React from 'react';
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { VoxelView } from '../VoxelView';
 
@@ -210,7 +211,7 @@ describe('VoxelView', () => {
 
             await waitFor(() => {
                 // Look for maximize/fullscreen button
-                const fullscreenButton = screen.queryByRole('button', { name: /fullscreen|maximize/i });
+                screen.queryByRole('button', { name: /fullscreen|maximize/i });
                 // Button may exist depending on render
             });
         });
@@ -220,7 +221,7 @@ describe('VoxelView', () => {
 
             await waitFor(() => {
                 // Look for refresh functionality
-                const refreshButton = screen.queryByRole('button', { name: /refresh|actualiser/i });
+                screen.queryByRole('button', { name: /refresh|actualiser/i });
             });
         });
     });
