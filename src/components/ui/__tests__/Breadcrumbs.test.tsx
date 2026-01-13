@@ -17,7 +17,7 @@ vi.mock('lucide-react', () => ({
 
 const renderWithRouter = (initialRoute: string) => {
     return render(
-        React.createElement(MemoryRouter, { initialEntries: [initialRoute] },
+        React.createElement(MemoryRouter, { initialEntries: [initialRoute], future: { v7_startTransition: true, v7_relativeSplatPath: true } },
             React.createElement(Breadcrumbs)
         )
     );

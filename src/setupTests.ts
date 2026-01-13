@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom';
 
 import React from 'react';
-import { vi } from 'vitest';
+import { vi, afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
 
 // Global mocks if needed
 global.React = React;

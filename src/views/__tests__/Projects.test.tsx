@@ -138,7 +138,7 @@ describe('Projects View', () => {
     it('renders the projects dashboard (overview by default)', () => {
         render(
             <QueryClientProvider client={queryClient}>
-                <MemoryRouter>
+                <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                     <Projects />
                 </MemoryRouter>
             </QueryClientProvider>
@@ -155,7 +155,7 @@ describe('Projects View', () => {
 
         render(
             <QueryClientProvider client={queryClient}>
-                <MemoryRouter>
+                <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                     <Projects />
                 </MemoryRouter>
             </QueryClientProvider>

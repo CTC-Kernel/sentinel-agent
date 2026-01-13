@@ -82,7 +82,7 @@ describe('Settings View', () => {
 
     it('renders profile settings by default', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Settings />
             </MemoryRouter>
         );
@@ -92,7 +92,7 @@ describe('Settings View', () => {
 
     it('switches to organization settings', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Settings />
             </MemoryRouter>
         );

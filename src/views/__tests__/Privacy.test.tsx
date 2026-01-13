@@ -225,7 +225,7 @@ describe('Privacy View', () => {
 
     it('renders the privacy dashboard with activities', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Privacy />
             </MemoryRouter>
         );
@@ -264,7 +264,7 @@ describe('Privacy View', () => {
         });
 
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Privacy />
             </MemoryRouter>
         );
@@ -276,7 +276,7 @@ describe('Privacy View', () => {
 
     it('filters activities', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Privacy />
             </MemoryRouter>
         );

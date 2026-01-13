@@ -146,6 +146,12 @@ describe('TenantDetailModal', () => {
         vi.spyOn(window, 'confirm').mockReturnValue(true);
     });
 
+    // Helper to wrap interactions
+    const clickButton = async (name: string) => {
+        const button = screen.getByText(name);
+        await fireEvent.click(button);
+    };
+
     describe('Rendering', () => {
         it('should not render when isOpen is false', () => {
             render(<TenantDetailModal {...defaultProps} isOpen={false} />);
@@ -248,8 +254,7 @@ describe('TenantDetailModal', () => {
         it('should call toggleTenantStatus when suspend button clicked', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
-            const suspendButton = screen.getByText('Suspend');
-            fireEvent.click(suspendButton);
+            await clickButton('Suspend');
 
             await waitFor(() => {
                 expect(mockToggleTenantStatus).toHaveBeenCalledWith('tenant-123', false);
@@ -259,8 +264,7 @@ describe('TenantDetailModal', () => {
         it('should show success toast after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
-            const suspendButton = screen.getByText('Suspend');
-            fireEvent.click(suspendButton);
+            await clickButton('Suspend');
 
             await waitFor(() => {
                 expect(mockToastSuccess).toHaveBeenCalledWith('Tenant suspended successfully');
@@ -270,8 +274,7 @@ describe('TenantDetailModal', () => {
         it('should call onUpdate after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
-            const suspendButton = screen.getByText('Suspend');
-            fireEvent.click(suspendButton);
+            await clickButton('Suspend');
 
             await waitFor(() => {
                 expect(mockOnUpdate).toHaveBeenCalled();
@@ -281,8 +284,7 @@ describe('TenantDetailModal', () => {
         it('should call onClose after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
-            const suspendButton = screen.getByText('Suspend');
-            fireEvent.click(suspendButton);
+            await clickButton('Suspend');
 
             await waitFor(() => {
                 expect(mockOnClose).toHaveBeenCalled();
@@ -294,8 +296,7 @@ describe('TenantDetailModal', () => {
 
             render(<TenantDetailModal {...defaultProps} />);
 
-            const suspendButton = screen.getByText('Suspend');
-            fireEvent.click(suspendButton);
+            await clickButton('Suspend');
 
             expect(mockToggleTenantStatus).not.toHaveBeenCalled();
         });
@@ -305,8 +306,7 @@ describe('TenantDetailModal', () => {
 
             render(<TenantDetailModal {...defaultProps} />);
 
-            const suspendButton = screen.getByText('Suspend');
-            fireEvent.click(suspendButton);
+            await clickButton('Suspend');
 
             await waitFor(() => {
                 expect(mockToastError).toHaveBeenCalledWith('Status update failed');

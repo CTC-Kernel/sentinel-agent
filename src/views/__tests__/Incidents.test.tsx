@@ -63,7 +63,7 @@ describe('Incidents View', () => {
 
     it('renders the dashboard with incidents', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Incidents />
             </MemoryRouter>
         );
@@ -76,7 +76,7 @@ describe('Incidents View', () => {
 
     it('switches to Kanban view', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Incidents />
             </MemoryRouter>
         );
@@ -93,7 +93,7 @@ describe('Incidents View', () => {
 
     it('opens declaration form', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Incidents />
             </MemoryRouter>
         );

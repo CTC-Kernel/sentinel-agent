@@ -339,7 +339,7 @@ describe('useDashboardPreferences', () => {
       expect(result.current.isCustomized).toBe(true);
 
       // Reset
-      act(() => {
+      await act(async () => {
         result.current.resetLayout();
       });
 
@@ -357,7 +357,7 @@ describe('useDashboardPreferences', () => {
         expect(result.current.hasLoaded).toBe(true);
       });
 
-      act(() => {
+      await act(async () => {
         result.current.resetLayout();
       });
 
@@ -411,7 +411,7 @@ describe('useDashboardPreferences', () => {
       });
 
       // Reset
-      act(() => {
+      await act(async () => {
         result.current.resetLayout();
       });
 

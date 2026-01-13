@@ -32,11 +32,11 @@ vi.mock('../../components/ui/PremiumPageControl', () => ({
     PremiumPageControl: ({ children }: { children: React.ReactNode }) => <div data-testid="premium-page-control">{children}</div>
 }));
 vi.mock('../../components/ui/button', () => ({
-    Button: ({ children, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode; className?: string }) => 
+    Button: ({ children, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode; className?: string }) =>
         <button className={className} {...props}>{children}</button>
 }));
 vi.mock('../../components/ui/ConfirmModal', () => ({
-    ConfirmModal: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => 
+    ConfirmModal: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
         isOpen ? <div data-testid="confirm-modal">{children}</div> : null
 }));
 vi.mock('../../components/ui/Skeleton', () => ({
@@ -55,7 +55,7 @@ vi.mock('../../components/ui/MasterpieceBackground', () => ({
     MasterpieceBackground: () => <div data-testid="masterpiece-background" />
 }));
 vi.mock('../../components/ui/ImportGuidelinesModal', () => ({
-    ImportGuidelinesModal: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => 
+    ImportGuidelinesModal: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
         isOpen ? <div data-testid="import-guidelines-modal">{children}</div> : null
 }));
 vi.mock('../../components/suppliers/QuestionnaireBuilder', () => ({
@@ -79,9 +79,9 @@ vi.mock('../../services/onboardingService', () => ({
     OnboardingService: {}
 }));
 vi.mock('../../components/ui/Icons', () => {
-    const createMockIcon = (name: string) => ({ className }: { className?: string }) => 
+    const createMockIcon = (name: string) => ({ className }: { className?: string }) =>
         <div data-testid={`${name.toLowerCase()}-icon`} className={className} />;
-    
+
     return {
         Building: createMockIcon('Building'),
         Plus: createMockIcon('Plus'),
@@ -359,7 +359,7 @@ describe('Suppliers View', () => {
 
     it('renders the suppliers table with correct data', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Suppliers />
             </MemoryRouter>
         );
@@ -371,7 +371,7 @@ describe('Suppliers View', () => {
 
     it('displays DORA ICT badge for relevant suppliers', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Suppliers />
             </MemoryRouter>
         );
@@ -384,7 +384,7 @@ describe('Suppliers View', () => {
 
     it('calculates and displays security score colors', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Suppliers />
             </MemoryRouter>
         );

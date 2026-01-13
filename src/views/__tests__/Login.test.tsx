@@ -155,7 +155,7 @@ describe('Login View', () => {
 
     it('renders login form by default', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Login skipBoot={true} />
             </MemoryRouter>
         );
@@ -172,7 +172,7 @@ describe('Login View', () => {
 
     it('switches to signup form', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Login skipBoot={true} />
             </MemoryRouter>
         );
@@ -190,7 +190,7 @@ describe('Login View', () => {
 
     it('submits login form with valid data', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Login skipBoot={true} />
             </MemoryRouter>
         );
@@ -209,7 +209,7 @@ describe('Login View', () => {
 
     it('submits signup form with valid data', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Login skipBoot={true} />
             </MemoryRouter>
         );
@@ -234,7 +234,7 @@ describe('Login View', () => {
 
     it('opens reset password modal', async () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Login skipBoot={true} />
             </MemoryRouter>
         );

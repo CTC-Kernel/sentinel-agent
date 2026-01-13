@@ -208,7 +208,7 @@ describe('Continuity View', () => {
 
     it('renders the continuity dashboard by default', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Continuity />
             </MemoryRouter>
         );
@@ -219,7 +219,7 @@ describe('Continuity View', () => {
 
     it('switches to BIA tab and renders processes', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Continuity />
             </MemoryRouter>
         );

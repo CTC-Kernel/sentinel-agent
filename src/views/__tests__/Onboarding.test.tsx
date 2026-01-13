@@ -192,7 +192,7 @@ vi.mock('../../components/ui/CustomSelect', () => ({
 }));
 
 vi.mock('../../components/ui/FloatingLabelInput', () => ({
-    FloatingLabelInput: ({ label, value, onChange, ...props }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => (
+    FloatingLabelInput: ({ label, value, onChange, icon, isLoading, ...props }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; icon?: unknown; isLoading?: boolean }) => (
         <div>
             <label>{label}</label>
             <input value={value} onChange={onChange} aria-label={label} {...props} />

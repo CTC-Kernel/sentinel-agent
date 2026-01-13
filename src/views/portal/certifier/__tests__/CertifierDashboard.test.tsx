@@ -123,7 +123,7 @@ const mockDashboardData = {
 
 const renderWithRouter = (component: React.ReactElement) => {
     return render(
-        <MemoryRouter>
+        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             {component}
         </MemoryRouter>
     );
@@ -139,7 +139,7 @@ describe('CertifierDashboard', () => {
     describe('Loading State', () => {
         it('should show loading spinner initially', () => {
             // Make the call hang
-            mockGetCertifierDashboard.mockImplementation(() => new Promise(() => {}));
+            mockGetCertifierDashboard.mockImplementation(() => new Promise(() => { }));
 
             renderWithRouter(<CertifierDashboard />);
 

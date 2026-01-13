@@ -184,7 +184,7 @@ describe('Documents View', () => {
 
     it('renders the documents dashboard', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Documents />
             </MemoryRouter>
         );
@@ -201,7 +201,7 @@ describe('Documents View', () => {
         }));
 
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Documents />
             </MemoryRouter>
         );
@@ -224,7 +224,7 @@ describe('Documents View', () => {
 
     it('renders filter input', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Documents />
             </MemoryRouter>
         );

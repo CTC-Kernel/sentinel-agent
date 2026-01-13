@@ -3,7 +3,7 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DashboardService, DashboardCounts, OrganizationDetails } from '../dashboardService';
 
 // Mock Firebase
@@ -42,6 +42,13 @@ vi.mock('../errorLogger', () => ({
 describe('DashboardService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // Suppress console.error/warn for cleaner test output
+        vi.spyOn(console, 'error').mockImplementation(() => { });
+        vi.spyOn(console, 'warn').mockImplementation(() => { });
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     describe('getOrganizationDetails', () => {
