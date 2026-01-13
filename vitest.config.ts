@@ -7,6 +7,13 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
+    logHeapUsage: true,
+    poolOptions: {
+      threads: {
+        singleThread: true,
+        isolate: false
+      }
+    },
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [
