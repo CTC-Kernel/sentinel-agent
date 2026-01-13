@@ -6,7 +6,8 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { RiskLinkedControls, calculateMitigationCoverage } from '../RiskLinkedControls';
+import { RiskLinkedControls } from '../RiskLinkedControls';
+import { calculateMitigationCoverage } from '../../../../utils/riskEvaluation';
 import { Risk, Control } from '../../../../types';
 
 // Wrapper for router
@@ -95,7 +96,7 @@ describe('RiskLinkedControls', () => {
         id: 'ctrl-1',
         code: 'ISO-001',
         name: 'Access Control',
-        framework: 'ISO 27001',
+        framework: 'ISO27001',
         status: 'Implémenté'
       })
     ];
@@ -103,7 +104,7 @@ describe('RiskLinkedControls', () => {
     renderWithRouter(<RiskLinkedControls risk={risk} controls={controls} />);
 
     expect(screen.getByText('ISO-001 - Access Control')).toBeInTheDocument();
-    expect(screen.getByText('ISO 27001')).toBeInTheDocument();
+    expect(screen.getByText('ISO27001')).toBeInTheDocument();
     expect(screen.getByText('Implémenté')).toBeInTheDocument();
   });
 

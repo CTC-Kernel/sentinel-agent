@@ -23,7 +23,8 @@ vi.mock('react-router-dom', () => ({
 vi.mock('../../store', () => {
     const mockGetState = vi.fn(() => ({
         customRoles: [],
-        user: { organizationId: 'test-org', role: 'rssi', uid: 'test-user' }
+        user: { organizationId: 'test-org', role: 'rssi', uid: 'test-user' },
+        language: 'fr'
     }));
 
     const useStore = vi.fn(() => ({

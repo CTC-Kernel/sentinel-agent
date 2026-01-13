@@ -25,7 +25,7 @@ vi.mock('../../config/localeConfig', () => ({
         currencySymbol: '€'
     })),
     getDateFnsLocale: vi.fn(() => ({})),
-    formatDate: vi.fn((_locale: string, date: Date, _includeTime?: boolean) => date.toISOString()),
+    formatDate: vi.fn((_locale: string, _date: Date, _includeTime?: boolean) => '15/01/2024'),
     formatLocalizedDate: vi.fn((date: Date | string | null, _locale: string, _includeTime?: boolean) =>
         date ? '15/01/2024' : '-'
     ),
