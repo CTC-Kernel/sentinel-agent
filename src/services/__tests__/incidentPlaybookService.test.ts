@@ -124,6 +124,7 @@ describe('IncidentPlaybookService', () => {
             mockAddDoc.mockResolvedValue({ id: 'new-playbook-123' });
 
             const { id, ...playbookData } = mockPlaybook;
+            void id; // Mark as used
             const result = await IncidentPlaybookService.createPlaybook(playbookData, 'org-123');
 
             expect(mockAddDoc).toHaveBeenCalled();
@@ -134,8 +135,10 @@ describe('IncidentPlaybookService', () => {
             const { logAction } = await import('../logger');
             mockAddDoc.mockResolvedValue({ id: 'new-playbook-123' });
 
-            const { id: _ignored, ...playbookData } = mockPlaybook;
-            await IncidentPlaybookService.createPlaybook(playbookData, 'org-123');
+            const playbookData = { ...mockPlaybook };
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id, ...data } = playbookData;
+            await IncidentPlaybookService.createPlaybook(data, 'org-123');
 
             expect(logAction).toHaveBeenCalledWith(
                 expect.objectContaining({ organizationId: 'org-123' }),
@@ -149,9 +152,11 @@ describe('IncidentPlaybookService', () => {
             const { ErrorLogger } = await import('../errorLogger');
             mockAddDoc.mockRejectedValue(new Error('Create failed'));
 
-            const { id: _ignored, ...playbookData } = mockPlaybook;
+            const playbookData = { ...mockPlaybook };
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id, ...data } = playbookData;
             await expect(
-                IncidentPlaybookService.createPlaybook(playbookData, 'org-123')
+                IncidentPlaybookService.createPlaybook(data, 'org-123')
             ).rejects.toThrow('Create failed');
 
             expect(ErrorLogger.error).toHaveBeenCalled();
