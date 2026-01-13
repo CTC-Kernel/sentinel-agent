@@ -5,7 +5,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { IncidentPlaybookService, IncidentPlaybook } from '../incidentPlaybookService';
-import { Incident } from '../../types';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
@@ -135,7 +134,7 @@ describe('IncidentPlaybookService', () => {
             const { logAction } = await import('../logger');
             mockAddDoc.mockResolvedValue({ id: 'new-playbook-123' });
 
-            const { id: _id, ...playbookData } = mockPlaybook;
+            const { id: _ignored, ...playbookData } = mockPlaybook;
             await IncidentPlaybookService.createPlaybook(playbookData, 'org-123');
 
             expect(logAction).toHaveBeenCalledWith(
@@ -150,7 +149,7 @@ describe('IncidentPlaybookService', () => {
             const { ErrorLogger } = await import('../errorLogger');
             mockAddDoc.mockRejectedValue(new Error('Create failed'));
 
-            const { id: _id, ...playbookData } = mockPlaybook;
+            const { id: _ignored, ...playbookData } = mockPlaybook;
             await expect(
                 IncidentPlaybookService.createPlaybook(playbookData, 'org-123')
             ).rejects.toThrow('Create failed');
@@ -177,11 +176,11 @@ describe('IncidentPlaybookService', () => {
         it('should filter by category when provided', async () => {
             mockGetDocs.mockResolvedValue({
                 docs: [
-                    { id: 'pb-1', data: () => ({ title: 'Data Breach', category: 'DATA_BREACH' }) }
+                    { id: 'pb-1', data: () => ({ title: 'Data Breach', category: 'Fuite de Données' }) }
                 ]
             });
 
-            const result = await IncidentPlaybookService.getPlaybooks('org-123', 'DATA_BREACH' as Incident['category']);
+            const result = await IncidentPlaybookService.getPlaybooks('org-123', 'Fuite de Données');
 
             expect(result).toHaveLength(1);
         });

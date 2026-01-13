@@ -323,7 +323,7 @@ describe('CompliancePackService', () => {
         });
 
         it('should throw error if root folder creation fails', async () => {
-            mockZipFolder.mockReturnValueOnce(null as any);
+            mockZipFolder.mockReturnValueOnce(null as unknown as MockFolder);
 
             await expect(CompliancePackService.generatePack(mockData)).rejects.toThrow(
                 'Failed to create root folder in ZIP'

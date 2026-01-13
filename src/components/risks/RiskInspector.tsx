@@ -58,7 +58,6 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         activeTab,
         setActiveTab,
         isEditing,
-        // toggleEditMode, // Unused
         enterEditMode,
         exitEditMode,
         saving: updating, // Map hook's saving to component's updating

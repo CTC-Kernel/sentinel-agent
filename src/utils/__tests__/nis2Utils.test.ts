@@ -22,7 +22,7 @@ describe('NIS2 Utils', () => {
         isSignificant: true,
         reporter: 'user-1',
         ...overrides,
-    });
+    } as Incident);
 
     describe('getIncidentDeadlines', () => {
         beforeEach(() => {
