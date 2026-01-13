@@ -93,15 +93,17 @@ export class ScoreService {
       const historySnap = await getDocs(historyQuery);
       const history: ScoreHistory[] = [];
 
-      historySnap.forEach((docSnap) => {
-        const data = docSnap.data();
-        history.push({
-          date: docSnap.id, // Document ID is the date (YYYY-MM-DD)
-          global: data.global ?? 0,
-          byFramework: data.byFramework,
-          breakdown: data.breakdown,
+      if (historySnap && typeof historySnap.forEach === 'function') {
+        historySnap.forEach((docSnap) => {
+          const data = docSnap.data();
+          history.push({
+            date: docSnap.id, // Document ID is the date (YYYY-MM-DD)
+            global: data.global ?? 0,
+            byFramework: data.byFramework,
+            breakdown: data.breakdown,
+          });
         });
-      });
+      }
 
       // Sort ascending by date for charting
       return history.sort((a, b) => a.date.localeCompare(b.date));
