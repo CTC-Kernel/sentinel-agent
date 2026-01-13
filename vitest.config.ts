@@ -9,10 +9,11 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     logHeapUsage: true,
     fileParallelism: false, // Run tests sequentially to avoid high memory pressure
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        maxThreads: 1,
-        minThreads: 1,
+      forks: {
+        maxForks: 1,
+        minForks: 1,
         isolate: true // Ensure fresh environment for each test file to clean up memory
       }
     },
