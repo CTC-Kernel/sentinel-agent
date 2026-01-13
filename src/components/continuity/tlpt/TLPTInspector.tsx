@@ -45,7 +45,7 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
             subtitle={campaign?.provider ? `Prestataire: ${campaign.provider}` : undefined}
             tabs={tabs}
             activeTab={activeTab}
-            onTabChange={(id) => setActiveTab(id as any)}
+            onTabChange={(id) => setActiveTab(id as 'details' | 'findings' | 'report')}
             width="max-w-4xl"
             actions={
                 <div className="flex items-center gap-2">

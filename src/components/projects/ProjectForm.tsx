@@ -205,9 +205,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         });
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
-
     // ...
 
     const submitHandler = handleSubmit(onFormSubmit, onInvalid);

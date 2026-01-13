@@ -53,7 +53,7 @@ export const useDeepLinkAction = <T extends { id: string }>({
                 return params;
             }, { replace: true });
         }
-    }, [loading, deepLinkId, deepLinkAction, deepLinkAssetId, data, isCreationMode, currentSelection]); // Ensure searchParams is stable or excluded if it causes loops
+    }, [loading, deepLinkId, deepLinkAction, deepLinkAssetId, data, isCreationMode, currentSelection, onCreate, onCreateWithPreset, onOpen, setSearchParams]); // Ensure searchParams is stable or excluded if it causes loops
 
     // Cleanup ID param when closing
     useEffect(() => {
@@ -65,5 +65,5 @@ export const useDeepLinkAction = <T extends { id: string }>({
                 return params;
             }, { replace: true });
         }
-    }, [currentSelection, deepLinkId, loading]);
+    }, [currentSelection, deepLinkId, loading, setSearchParams]);
 };
