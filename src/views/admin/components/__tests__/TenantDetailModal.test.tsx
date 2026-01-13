@@ -157,35 +157,41 @@ describe('TenantDetailModal', () => {
             expect(screen.queryByTestId('dialog-title')).not.toBeInTheDocument();
         });
 
-        it('should render when isOpen is true and tenant exists', () => {
+        it('should render when isOpen is true and tenant exists', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByTestId('dialog')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display tenant name in title', () => {
+        it('should display tenant name in title', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Acme Corporation')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display tenant ID', () => {
+        it('should display tenant ID', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('tenant-123')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display Active status for active tenant', () => {
+        it('should display Active status for active tenant', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Active')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display Suspended status for inactive tenant', () => {
+        it('should display Suspended status for inactive tenant', async () => {
             const inactiveTenant = { ...mockTenant, isActive: false };
             render(<TenantDetailModal {...defaultProps} tenant={inactiveTenant} />);
             expect(screen.getByText('Suspended')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display tenant initials avatar', () => {
+        it('should display tenant initials avatar', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('AC')).toBeInTheDocument();
+            await screen.findByText('8');
         });
     });
 
@@ -226,15 +232,17 @@ describe('TenantDetailModal', () => {
     });
 
     describe('Toggle Status', () => {
-        it('should show Suspend button for active tenant', () => {
+        it('should show Suspend button for active tenant', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Suspend')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should show Activate button for suspended tenant', () => {
+        it('should show Activate button for suspended tenant', async () => {
             const inactiveTenant = { ...mockTenant, isActive: false };
             render(<TenantDetailModal {...defaultProps} tenant={inactiveTenant} />);
             expect(screen.getByText('Activate')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
         it('should call toggleTenantStatus when suspend button clicked', async () => {
@@ -307,22 +315,25 @@ describe('TenantDetailModal', () => {
     });
 
     describe('Subscription Form', () => {
-        it('should display plan selector label', () => {
+        it('should display plan selector label', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Current Plan')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display max users label', () => {
+        it('should display max users label', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Max Users')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display max projects label', () => {
+        it('should display max projects label', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Max Projects')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should initialize form with tenant subscription values', () => {
+        it('should initialize form with tenant subscription values', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
             // Find by role - there's one select (plan) and two number inputs
@@ -335,18 +346,20 @@ describe('TenantDetailModal', () => {
             expect(numberInputs.length).toBe(2);
             expect((numberInputs[0] as HTMLInputElement).value).toBe('10');
             expect((numberInputs[1] as HTMLInputElement).value).toBe('5');
+            await screen.findByText('8');
         });
 
-        it('should update plan when changed', () => {
+        it('should update plan when changed', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
             const planSelect = screen.getAllByRole('combobox')[0];
             fireEvent.change(planSelect, { target: { value: 'enterprise' } });
 
             expect((planSelect as HTMLSelectElement).value).toBe('enterprise');
+            await screen.findByText('8');
         });
 
-        it('should update max users when changed', () => {
+        it('should update max users when changed', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
             const numberInputs = screen.getAllByRole('spinbutton');
@@ -354,6 +367,7 @@ describe('TenantDetailModal', () => {
             fireEvent.change(maxUsersInput, { target: { value: '20' } });
 
             expect((maxUsersInput as HTMLInputElement).value).toBe('20');
+            await screen.findByText('8');
         });
 
         it('should save subscription when save button clicked', async () => {
@@ -408,43 +422,49 @@ describe('TenantDetailModal', () => {
     });
 
     describe('Close Button', () => {
-        it('should render close button', () => {
+        it('should render close button', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByTestId('icon-x')).toBeInTheDocument();
+            await screen.findByText('8');
         });
     });
 
     describe('Tabs', () => {
-        it('should render Overview tab', () => {
+        it('should render Overview tab', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Overview')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should render Subscription tab', () => {
+        it('should render Subscription tab', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Subscription')).toBeInTheDocument();
+            await screen.findByText('8');
         });
     });
 
     describe('Danger Zone', () => {
-        it('should display danger zone section', () => {
+        it('should display danger zone section', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Danger Zone')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display suspend organization text', () => {
+        it('should display suspend organization text', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Suspend Organization')).toBeInTheDocument();
+            await screen.findByText('8');
         });
 
-        it('should display warning text', () => {
+        it('should display warning text', async () => {
             render(<TenantDetailModal {...defaultProps} />);
             expect(screen.getByText('Stop all access immediately.')).toBeInTheDocument();
+            await screen.findByText('8');
         });
     });
 
     describe('Default values', () => {
-        it('should use default values when customLimits are missing', () => {
+        it('should use default values when customLimits are missing', async () => {
             const tenantWithoutLimits = {
                 ...mockTenant,
                 subscription: {
@@ -460,6 +480,7 @@ describe('TenantDetailModal', () => {
             expect(numberInputs.length).toBe(2);
             expect((numberInputs[0] as HTMLInputElement).value).toBe('5'); // Default maxUsers
             expect((numberInputs[1] as HTMLInputElement).value).toBe('1'); // Default maxProjects
+            await waitFor(() => expect(mockGetTenantStats).toHaveBeenCalled());
         });
     });
 });

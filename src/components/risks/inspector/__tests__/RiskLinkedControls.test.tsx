@@ -11,7 +11,7 @@ import { Risk, Control } from '../../../../types';
 
 // Wrapper for router
 const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<BrowserRouter>{ui}</BrowserRouter>);
+  return render(<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{ui}</BrowserRouter>);
 };
 
 const createRisk = (overrides: Partial<Risk> = {}): Risk => ({

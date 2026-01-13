@@ -31,7 +31,7 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <RoleGuard allowedRoles={['manager', 'admin']}>
                     <div data-testid="protected-content">Protected</div>
                 </RoleGuard>
@@ -47,7 +47,7 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <RoleGuard allowedRoles={['manager']}>
                     <div data-testid="protected-content">Protected</div>
                 </RoleGuard>
@@ -79,7 +79,7 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <RoleGuard allowedRoles={['admin', 'manager']}>
                     <div>Protected</div>
                 </RoleGuard>
@@ -96,7 +96,7 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <RoleGuard allowedRoles={['user']}>
                     <div data-testid="protected-content">Protected</div>
                 </RoleGuard>
@@ -112,7 +112,7 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <RoleGuard allowedRoles={['admin']}>
                     <div>Protected</div>
                 </RoleGuard>

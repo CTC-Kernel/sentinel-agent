@@ -82,7 +82,7 @@ describe('SystemHealth', () => {
 
     const renderComponent = () => {
         return render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <SystemHealth />
             </BrowserRouter>
         );
@@ -166,7 +166,7 @@ describe('SystemHealth service status colors', () => {
 
     it('should display operational status for services', () => {
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <SystemHealth />
             </BrowserRouter>
         );
@@ -178,7 +178,7 @@ describe('SystemHealth service status colors', () => {
 
     it('should display uptime percentages', () => {
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <SystemHealth />
             </BrowserRouter>
         );

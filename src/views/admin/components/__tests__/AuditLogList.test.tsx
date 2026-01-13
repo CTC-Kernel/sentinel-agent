@@ -85,6 +85,8 @@ describe('AuditLogList', () => {
         vi.clearAllMocks();
         // Reset to default successful response
         mockGetAuditLogs.mockResolvedValue(mockLogs);
+        // Mock anchor click to prevent JSDOM navigation error
+        vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => { });
     });
 
     describe('Rendering', () => {
@@ -108,12 +110,17 @@ describe('AuditLogList', () => {
             });
         });
 
-        it('should show loading skeleton initially', () => {
+        it('should show loading skeleton initially', async () => {
             render(<AuditLogList />);
 
             // Loading skeletons should be present
             const loadingRows = document.querySelectorAll('.animate-pulse');
             expect(loadingRows.length).toBeGreaterThan(0);
+
+            // Wait for loading to finish to avoid act warning
+            await waitFor(() => {
+                expect(screen.getAllByText('admin@example.com').length).toBeGreaterThan(0);
+            });
         });
 
         it('should display audit logs after loading', async () => {

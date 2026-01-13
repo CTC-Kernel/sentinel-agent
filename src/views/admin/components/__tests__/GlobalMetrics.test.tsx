@@ -50,6 +50,18 @@ vi.mock('lucide-react', () => ({
 describe('GlobalMetrics', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+
+        // Suppress known SVG casing warnings from React/JSDOM interaction
+        const originalError = console.error;
+        vi.spyOn(console, 'error').mockImplementation((...args) => {
+            if (typeof args[0] === 'string' &&
+                (args[0].includes('using incorrect casing') ||
+                    args[0].includes('unrecognized in this browser'))) {
+                return;
+            }
+            originalError(...args);
+        });
+
         // Default mock returning stats
         mockGetCountFromServer
             .mockResolvedValueOnce({ data: () => ({ count: 15 }) }) // tenants
@@ -61,7 +73,7 @@ describe('GlobalMetrics', () => {
         it('should render loading state initially', () => {
             // Make the mock hang to test loading state
             mockGetCountFromServer.mockReset();
-            mockGetCountFromServer.mockImplementation(() => new Promise(() => {}));
+            mockGetCountFromServer.mockImplementation(() => new Promise(() => { }));
 
             render(<GlobalMetrics />);
 

@@ -66,7 +66,7 @@ describe('Help', () => {
 
     const renderComponent = () => {
         return render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Help />
             </BrowserRouter>
         );

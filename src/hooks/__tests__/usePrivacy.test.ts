@@ -588,6 +588,8 @@ describe('usePrivacy', () => {
 
             await waitFor(() => {
                 expect(mockFetchActivityHistory).toHaveBeenCalled();
+                // Wait for the state update to be processed
+                expect(result.current.activityHistory).toHaveLength(1);
             });
         });
     });
@@ -649,13 +651,15 @@ describe('usePrivacy', () => {
                 result.current.handleFileUpload(event);
             });
 
-            // Wait for FileReader to process
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Should have tried to import
+            // Wait for import to be called
             await waitFor(() => {
                 expect(mockImportActivities).toHaveBeenCalled();
-            }, { timeout: 2000 });
+            });
+
+            // Wait for data reload triggered by import
+            await waitFor(() => {
+                expect(mockFetchActivities).toHaveBeenCalled();
+            });
         });
 
         it('should not process empty files', async () => {

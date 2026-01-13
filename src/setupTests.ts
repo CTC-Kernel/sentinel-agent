@@ -136,20 +136,22 @@ vi.mock('framer-motion', () => ({
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-i18n
-    .use(initReactI18next)
-    .init({
-        lng: 'en',
-        fallbackLng: 'en',
-        ns: ['translation'],
-        defaultNS: 'translation',
-        debug: false,
-        interpolation: {
-            escapeValue: false,
-        },
-        resources: {
-            en: {
-                translation: {}
+if (!i18n.isInitialized) {
+    i18n
+        .use(initReactI18next)
+        .init({
+            lng: 'en',
+            fallbackLng: 'en',
+            ns: ['translation'],
+            defaultNS: 'translation',
+            debug: false,
+            interpolation: {
+                escapeValue: false,
+            },
+            resources: {
+                en: {
+                    translation: {}
+                }
             }
-        }
-    });
+        });
+}

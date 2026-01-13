@@ -38,7 +38,7 @@ describe('AuthGuard', () => {
 
     it('should render children in test mode', () => {
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <AuthGuard>
                     <div data-testid="protected-content">Protected</div>
                 </AuthGuard>
@@ -51,7 +51,7 @@ describe('AuthGuard', () => {
 
     it('should accept requireOnboarding prop', () => {
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <AuthGuard requireOnboarding={false}>
                     <div data-testid="protected-content">Protected</div>
                 </AuthGuard>
@@ -63,7 +63,7 @@ describe('AuthGuard', () => {
 
     it('should render with default requireOnboarding as true', () => {
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <AuthGuard>
                     <div data-testid="protected-content">Protected</div>
                 </AuthGuard>

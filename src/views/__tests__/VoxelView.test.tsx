@@ -139,7 +139,7 @@ describe('VoxelView', () => {
 
     const renderComponent = () => {
         return render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <React.Suspense fallback={<div>Loading...</div>}>
                     <VoxelView />
                 </React.Suspense>

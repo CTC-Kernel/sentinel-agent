@@ -57,7 +57,7 @@ describe('VerifyEmail', () => {
 
     const renderComponent = () => {
         return render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <VerifyEmail />
             </BrowserRouter>
         );
@@ -154,7 +154,7 @@ describe('VerifyEmail error handling', () => {
         mockSendVerificationEmail.mockRejectedValueOnce(new Error('Failed'));
 
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <VerifyEmail />
             </BrowserRouter>
         );
@@ -172,7 +172,7 @@ describe('VerifyEmail error handling', () => {
         mockCheckEmailVerification.mockRejectedValueOnce(new Error('Failed'));
 
         render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <VerifyEmail />
             </BrowserRouter>
         );

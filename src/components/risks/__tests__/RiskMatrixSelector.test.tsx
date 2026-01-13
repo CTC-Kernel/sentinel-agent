@@ -12,11 +12,8 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import {
-  RiskMatrixSelector,
-  getRiskLevelFromScore,
-  calculateRiskScore
-} from '../RiskMatrixSelector';
+import { RiskMatrixSelector } from '../RiskMatrixSelector';
+import { getRiskLevelFromScore, calculateRiskScore } from '../../../utils/riskEvaluation';
 
 describe('calculateRiskScore', () => {
   it('should calculate score as impact × probability', () => {

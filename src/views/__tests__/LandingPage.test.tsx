@@ -40,7 +40,7 @@ describe('LandingPage', () => {
 
     const renderComponent = () => {
         return render(
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <LandingPage />
             </BrowserRouter>
         );
