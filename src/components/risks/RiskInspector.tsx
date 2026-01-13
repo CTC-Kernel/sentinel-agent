@@ -20,6 +20,8 @@ import { toast } from '@/lib/toast';
 import { Button } from '../ui/button';
 import { ConfirmModal } from '../ui/ConfirmModal';
 
+import { useInspector } from '../../hooks/useInspector';
+
 // Sub-components
 import { RiskGeneralDetails } from './inspector/RiskGeneralDetails';
 import { RiskLinkedControls } from './inspector/RiskLinkedControls';
@@ -51,10 +53,45 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
 }) => {
     const navigate = useNavigate();
 
-    // Internal State
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'audits' | 'history' | 'comments' | 'graph' | 'threats'>('details');
-    const [isEditing, setIsEditing] = useState(false);
-    const [updating, setUpdating] = useState(false);
+    // Use standardized hook
+    const {
+        activeTab,
+        setActiveTab,
+        isEditing,
+        toggleEditMode,
+        enterEditMode,
+        exitEditMode,
+        saving: updating, // Map hook's saving to component's updating
+        handleUpdate: handleHookUpdate,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        handleDelete: handleHookDelete
+    } = useInspector({
+        entity: risk,
+        // Define tabs configuration
+        tabs: [
+            { id: 'details', label: 'Détails', icon: ShieldAlert },
+            { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
+            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+            { id: 'projects', label: 'Projets', icon: FolderKanban },
+            { id: 'audits', label: 'Audits', icon: CheckCircle2 },
+            { id: 'history', label: 'Historique', icon: History },
+            { id: 'comments', label: 'Discussion', icon: MessageSquare },
+            { id: 'graph', label: 'Graphe', icon: Network },
+            { id: 'threats', label: 'Menaces', icon: ShieldAlert }
+        ],
+        moduleName: 'Risk',
+        actions: {
+            onUpdate: async (id, data) => {
+                // Bridge between hook's expect (boolean|string) and prop's (boolean)
+                const success = await onUpdate(id, data as Partial<Risk>);
+                return success;
+            },
+            onDelete: async (id, name) => onDelete(id, name)
+        },
+        getEntityName: (r) => r.threat
+    });
+
+    // Internal State for specific UI logic not covered by hook
     const [mitreQuery, setMitreQuery] = useState('');
     const [mitreResults, setMitreResults] = useState<MitreTechnique[]>([]);
     const [confirmClose, setConfirmClose] = useState(false);
@@ -62,14 +99,17 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
 
     // Reset state when risk changes
     const handleClose = React.useCallback(() => {
-        setInspectorTab('details');
-        setIsEditing(false);
         setMitreQuery('');
         setMitreResults([]);
         setConfirmClose(false);
         setPendingStatus(null);
+        if (isEditing) exitEditMode();
+        // Reset tab if needed or let logic persist
+        setActiveTab('details');
         onClose();
-    }, [onClose]);
+        // Note: useInspector hook does not auto-reset on Close when controlled externally, 
+        // so we manually reset tab/edit mode here.
+    }, [onClose, isEditing, exitEditMode, setActiveTab]);
 
     const getAssetName = React.useCallback((id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu', [assets]);
 
@@ -82,11 +122,10 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
 
     const handleLocalUpdate = React.useCallback(async (updates: Partial<Risk>) => {
         if (!risk) return;
-        setUpdating(true);
-        const success = await onUpdate(risk.id, updates);
-        setUpdating(false);
-        if (success && isEditing) setIsEditing(false);
-    }, [risk, onUpdate, isEditing]);
+        // setUpdating is handled by hook (mapped to saving)
+        await handleHookUpdate(updates);
+        if (isEditing) exitEditMode();
+    }, [risk, handleHookUpdate, isEditing, exitEditMode]);
 
     const handleStatusChangeRequest = (status: Risk['status']) => {
         if (status === 'Fermé') {
@@ -127,10 +166,10 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     const linkedProjects = React.useMemo(() => !risk ? [] : projects.filter(p => p.relatedRiskIds?.includes(risk.id)), [projects, risk]);
     const linkedAudits = React.useMemo(() => !risk ? [] : audits.filter(a => a.relatedRiskIds?.includes(risk.id)), [audits, risk]);
 
-    const handleTabChange = React.useCallback((id: string) => setInspectorTab(id as typeof inspectorTab), []);
+    const handleTabChange = setActiveTab;
     const handleDuplicate = React.useCallback(() => risk && onDuplicate(risk), [onDuplicate, risk]);
-    const handleEditStart = React.useCallback(() => setIsEditing(true), []);
-    const handleEditCancel = React.useCallback(() => setIsEditing(false), []);
+    const handleEditStart = enterEditMode;
+    const handleEditCancel = exitEditMode;
     const handleDeleteRisk = React.useCallback(() => risk && onDelete(risk.id, risk.threat), [onDelete, risk]);
 
     // Use imported RiskFormData or define it if import fails
@@ -180,7 +219,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                 </Badge>
             }
             tabs={isEditing ? [] : tabs}
-            activeTab={inspectorTab}
+            activeTab={activeTab}
             onTabChange={handleTabChange}
             actions={
                 !isEditing && canEdit ? (
@@ -238,7 +277,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                 />
             ) : (
                 <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">
-                    {inspectorTab === 'details' && (
+                    {activeTab === 'details' && (
                         <div className="space-y-8">
                             <RiskGeneralDetails
                                 risk={risk}
@@ -259,7 +298,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         </div>
                     )}
 
-                    {inspectorTab === 'treatment' && (
+                    {activeTab === 'treatment' && (
                         <RiskTreatmentPlan
                             risk={risk}
                             onUpdate={handleTreatmentUpdate}
@@ -268,9 +307,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         />
                     )}
 
-                    {inspectorTab === 'dashboard' && <RiskDashboard risks={[risk]} />}
+                    {activeTab === 'dashboard' && <RiskDashboard risks={[risk]} />}
 
-                    {inspectorTab === 'projects' && (
+                    {activeTab === 'projects' && (
                         <RiskLinkedProjects
                             linkedProjects={linkedProjects}
                             canEdit={canEdit}
@@ -278,7 +317,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         />
                     )}
 
-                    {inspectorTab === 'audits' && (
+                    {activeTab === 'audits' && (
                         <RiskLinkedAudits
                             linkedAudits={linkedAudits}
                             canEdit={canEdit}
@@ -286,13 +325,13 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         />
                     )}
 
-                    {inspectorTab === 'history' && (
+                    {activeTab === 'history' && (
                         <div className="space-y-6">
                             <TimelineView resourceId={risk.id} resourceType="Risk" />
                         </div>
                     )}
 
-                    {inspectorTab === 'comments' && (
+                    {activeTab === 'comments' && (
                         <div className="h-full">
                             <DiscussionPanel
                                 collectionName="risks"
@@ -306,9 +345,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         </div>
                     )}
 
-                    {inspectorTab === 'graph' && <div className="h-[500px]"><RelationshipGraph rootId={risk.id} rootType="Risk" /></div>}
+                    {activeTab === 'graph' && <div className="h-[500px]"><RelationshipGraph rootId={risk.id} rootType="Risk" /></div>}
 
-                    {inspectorTab === 'threats' && (
+                    {activeTab === 'threats' && (
                         <RiskMitreThreats
                             risk={risk}
                             mitreQuery={mitreQuery}

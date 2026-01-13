@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { InspectorLayout } from '../ui/InspectorLayout';
+import { useInspector } from '../../hooks/useInspector';
 import { Asset, UserProfile, Supplier, BusinessProcess } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
 import { AssetForm } from './AssetForm';
@@ -66,7 +67,64 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
     };
 
     const navigate = useNavigate();
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'compliance' | 'projects' | 'audits' | 'documents' | 'history' | 'graph' | 'intelligence' | 'comments'>('details');
+
+    // Use standardized Inspector hook
+    const {
+        activeTab,
+        setActiveTab,
+        handleUpdate: handleHookUpdate,
+        handleCreate: handleHookCreate
+    } = useInspector({
+        entity: selectedAsset || null,
+        tabs: [
+            { id: 'details', label: 'Détails', icon: LayoutDashboard },
+            ...(selectedAsset ? [
+                { id: 'lifecycle', label: 'Cycle de Vie', icon: RefreshCw },
+                { id: 'security', label: 'Sécurité', icon: ShieldAlert },
+                { id: 'compliance', label: 'Conformité', icon: Shield },
+                { id: 'projects', label: 'Projets', icon: FolderKanban },
+                { id: 'audits', label: 'Audits', icon: CheckSquare },
+                { id: 'documents', label: 'Documents', icon: FileText },
+                { id: 'history', label: 'Historique', icon: History },
+                { id: 'graph', label: 'Graphe', icon: Network },
+                { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+                { id: 'comments', label: 'Discussion', icon: MessageSquare }
+            ] : [])
+        ],
+        moduleName: 'Asset',
+        actions: {
+            onUpdate: async (id, data) => {
+                const result = await onUpdate(id, data as AssetFormData);
+                return result;
+            },
+            onCreate: async (data) => {
+                const result = await onCreate(data as AssetFormData);
+                if (result === true) onClose();
+                return result;
+            },
+            onDelete: async (id, name) => onDelete(id, name)
+        },
+        getEntityName: (asset) => asset.name
+    });
+
+    // Determine tabs for Layout (needs to match hook configuration logic or pass from hook if exposed, 
+    // but hook doesn't return computed tabs yet, only takes them. 
+    // We can reuse the same array definition or just trust current activeTab state for rendering content)
+    const tabs = [
+        { id: 'details', label: 'Détails', icon: LayoutDashboard },
+        ...(selectedAsset ? [
+            { id: 'lifecycle', label: 'Cycle de Vie', icon: RefreshCw },
+            { id: 'security', label: 'Sécurité', icon: ShieldAlert },
+            { id: 'compliance', label: 'Conformité', icon: Shield },
+            { id: 'projects', label: 'Projets', icon: FolderKanban },
+            { id: 'audits', label: 'Audits', icon: CheckSquare },
+            { id: 'documents', label: 'Documents', icon: FileText },
+            { id: 'history', label: 'Historique', icon: History },
+            { id: 'graph', label: 'Graphe', icon: Network },
+            { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+            { id: 'comments', label: 'Discussion', icon: MessageSquare }
+        ] : [])
+    ];
     const {
         maintenanceRecords,
         linkedRisks,
@@ -87,21 +145,8 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         createRiskFromVuln
     } = useAssetSecurity(selectedAsset || null);
 
-    const tabs = [
-        { id: 'details', label: 'Détails', icon: LayoutDashboard },
-        ...(selectedAsset ? [
-            { id: 'lifecycle', label: 'Cycle de Vie', icon: RefreshCw },
-            { id: 'security', label: 'Sécurité', icon: ShieldAlert },
-            { id: 'compliance', label: 'Conformité', icon: Shield },
-            { id: 'projects', label: 'Projets', icon: FolderKanban },
-            { id: 'audits', label: 'Audits', icon: CheckSquare },
-            { id: 'documents', label: 'Documents', icon: FileText },
-            { id: 'history', label: 'Historique', icon: History },
-            { id: 'graph', label: 'Graphe', icon: Network },
-            { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-            { id: 'comments', label: 'Discussion', icon: MessageSquare }
-        ] : [])
-    ];
+    // Tabs defined above for both hook and render
+
 
     return (
         <InspectorLayout
@@ -147,21 +192,20 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                 </div>
             ) : null}
             tabs={tabs}
-            activeTab={inspectorTab}
-            onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
         >
 
             <div className="space-y-8 max-w-7xl mx-auto">
-                {inspectorTab === 'details' && (
+                {activeTab === 'details' && (
                     <div className="space-y-8">
                         <AssetForm
                             initialData={selectedAsset || undefined}
                             onSubmit={async (data) => {
                                 if (selectedAsset) {
-                                    await onUpdate(selectedAsset.id, data);
+                                    await handleHookUpdate(data);
                                 } else {
-                                    await onCreate(data);
-                                    onClose();
+                                    await handleHookCreate(data);
                                 }
                             }}
                             usersList={users}
@@ -174,7 +218,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     </div>
                 )}
 
-                {inspectorTab === 'lifecycle' && selectedAsset && (
+                {activeTab === 'lifecycle' && selectedAsset && (
                     <AssetInspectorLifecycle
                         selectedAsset={selectedAsset}
                         maintenanceRecords={maintenanceRecords}
@@ -183,7 +227,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     />
                 )}
 
-                {inspectorTab === 'security' && selectedAsset && (
+                {activeTab === 'security' && selectedAsset && (
                     <AssetInspectorSecurity
                         selectedAsset={selectedAsset}
                         scanning={scanning}
@@ -198,7 +242,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     />
                 )}
 
-                {inspectorTab === 'compliance' && selectedAsset && (
+                {activeTab === 'compliance' && selectedAsset && (
                     <AssetInspectorCompliance
                         selectedAsset={selectedAsset}
                         linkedControls={linkedControls}
@@ -206,47 +250,47 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     />
                 )}
 
-                {inspectorTab === 'projects' && selectedAsset && (
+                {activeTab === 'projects' && selectedAsset && (
                     <AssetInspectorProjects
                         selectedAsset={selectedAsset}
                         linkedProjects={linkedProjects}
                     />
                 )}
 
-                {inspectorTab === 'audits' && selectedAsset && (
+                {activeTab === 'audits' && selectedAsset && (
                     <AssetInspectorAudits
                         linkedAudits={linkedAudits}
                     />
                 )}
 
-                {inspectorTab === 'documents' && selectedAsset && (
+                {activeTab === 'documents' && selectedAsset && (
                     <AssetInspectorDocuments
                         linkedDocuments={linkedDocuments}
                     />
                 )}
 
-                {inspectorTab === 'history' && selectedAsset && (
+                {activeTab === 'history' && selectedAsset && (
                     <AssetInspectorHistory
                         selectedAsset={selectedAsset}
                     />
                 )}
 
-                {inspectorTab === 'graph' && selectedAsset && (
+                {activeTab === 'graph' && selectedAsset && (
                     <div className="h-[500px]">
                         <RelationshipGraph rootId={selectedAsset.id} rootType="Asset" />
                     </div>
                 )}
 
-                {inspectorTab === 'intelligence' && selectedAsset && (
+                {activeTab === 'intelligence' && selectedAsset && (
                     <div className="h-full overflow-y-auto p-6">
                         <AssetAIAssistant
                             asset={selectedAsset}
-                            onUpdate={(updates) => onUpdate(selectedAsset.id, { ...selectedAsset, ...updates } as unknown as AssetFormData)}
+                            onUpdate={(updates) => handleHookUpdate(updates)}
                         />
                     </div>
                 )}
 
-                {inspectorTab === 'comments' && selectedAsset && (
+                {activeTab === 'comments' && selectedAsset && (
                     <div className="h-full">
                         <DiscussionPanel
                             collectionName="assets"

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Command, Clock, TrendingUp, FileText, Users, Shield, Database } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { useDebounce } from '../../hooks/useDebounce';
+import { useDebounce } from '../../hooks/utils/useDebounce';
 
 interface SearchResult {
   id: string;

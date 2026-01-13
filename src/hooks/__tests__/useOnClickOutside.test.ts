@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useOnClickOutside } from '../useOnClickOutside';
+import { useOnClickOutside } from '../utils/useOnClickOutside';
 
 describe('useOnClickOutside', () => {
     let container: HTMLDivElement;

@@ -104,6 +104,12 @@ export interface UseInspectorReturn {
 
   /** Nom de l'entité */
   entityName: string | null;
+
+  /** Mode édition actif (pour update) */
+  isEditing: boolean;
+  toggleEditMode: () => void;
+  enterEditMode: () => void;
+  exitEditMode: () => void;
 }
 
 /**
@@ -159,6 +165,12 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
   // État
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Toggle edit state
+  const toggleEditMode = useCallback(() => setIsEditing(prev => !prev), []);
+  const enterEditMode = useCallback(() => setIsEditing(true), []);
+  const exitEditMode = useCallback(() => setIsEditing(false), []);
 
   // Mode création
   const isCreateMode = !entity || !entity.id;
@@ -392,7 +404,11 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
     handleDelete,
     breadcrumbs,
     isCreateMode,
-    entityName
+    entityName,
+    isEditing,
+    toggleEditMode,
+    enterEditMode,
+    exitEditMode
   };
 }
 
@@ -408,7 +424,7 @@ export function useInspectorReadOnly<T extends { id?: string }>(
     syncWithUrl?: boolean;
     getEntityName?: (entity: T) => string;
   }
-): Pick<UseInspectorReturn, 'activeTab' | 'setActiveTab' | 'breadcrumbs' | 'entityName'> {
+): Pick<UseInspectorReturn, 'activeTab' | 'setActiveTab' | 'breadcrumbs' | 'entityName' | 'isEditing' | 'toggleEditMode' | 'enterEditMode' | 'exitEditMode'> {
   const inspector = useInspector<T, never>({
     entity,
     tabs,
@@ -423,6 +439,10 @@ export function useInspectorReadOnly<T extends { id?: string }>(
     activeTab: inspector.activeTab,
     setActiveTab: inspector.setActiveTab,
     breadcrumbs: inspector.breadcrumbs,
-    entityName: inspector.entityName
+    entityName: inspector.entityName,
+    isEditing: false,
+    toggleEditMode: () => { },
+    enterEditMode: () => { },
+    exitEditMode: () => { }
   };
 }

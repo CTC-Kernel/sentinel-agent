@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useMediaQuery } from '../useMediaQuery';
+import { useMediaQuery } from '../utils/useMediaQuery';
 
 describe('useMediaQuery', () => {
     const originalMatchMedia = window.matchMedia;

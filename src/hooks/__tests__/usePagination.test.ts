@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { usePagination } from '../usePagination';
+import { usePagination } from '../utils/usePagination';
 
 describe('usePagination', () => {
     const createItems = (count: number) =>

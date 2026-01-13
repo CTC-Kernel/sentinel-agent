@@ -12,7 +12,7 @@ import { slideUpVariants, staggerContainerVariants } from '../components/ui/anim
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Button } from '../components/ui/button';
 import { Pagination } from '../components/ui/Pagination';
-import { usePagination } from '../hooks/usePagination';
+import { usePagination } from '../hooks/utils/usePagination';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { PageHeader } from '../components/ui/PageHeader';
 import { AssetList } from '../components/assets/AssetList';
