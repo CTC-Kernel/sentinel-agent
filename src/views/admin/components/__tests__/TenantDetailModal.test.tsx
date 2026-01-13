@@ -32,6 +32,13 @@ vi.mock('../../../../lib/toast', () => ({
     },
 }));
 
+// Mock store
+vi.mock('../../../../store', () => ({
+    useStore: () => ({
+        language: 'fr',
+    }),
+}));
+
 // Mock ErrorLogger
 vi.mock('../../../../services/errorLogger', () => ({
     ErrorLogger: {
@@ -99,16 +106,22 @@ describe('TenantDetailModal', () => {
     const mockTenant: Organization = {
         id: 'tenant-123',
         name: 'Acme Corporation',
+        slug: 'acme-corp',
+        ownerId: 'user-123',
         isActive: true,
-        createdAt: Date.now(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         subscription: {
             planId: 'professional',
+            status: 'active',
+            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            cancelAtPeriodEnd: false,
             customLimits: {
                 maxUsers: 10,
                 maxProjects: 5,
             },
         },
-    } as Organization;
+    };
 
     const mockOnClose = vi.fn();
     const mockOnUpdate = vi.fn();

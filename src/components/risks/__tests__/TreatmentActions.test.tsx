@@ -4,10 +4,17 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TreatmentActionForm } from '../TreatmentActionForm';
 import { TreatmentActionsList } from '../TreatmentActionsList';
 import { TreatmentAction } from '../../../types';
+
+// Mock store
+vi.mock('../../../store', () => ({
+    useStore: () => ({
+        language: 'fr',
+    }),
+}));
 
 const mockUsers = [
     { uid: 'user-1', displayName: 'Jean Dupont' },
@@ -63,7 +70,7 @@ describe('TreatmentActionForm', () => {
         expect(screen.getByText('Enregistrer')).toBeInTheDocument();
     });
 
-    it('should show validation error when title is empty', () => {
+    it('should show validation error when title is empty', async () => {
         const onSave = vi.fn();
         const onCancel = vi.fn();
 
@@ -77,11 +84,13 @@ describe('TreatmentActionForm', () => {
 
         fireEvent.click(screen.getByText('Ajouter'));
 
-        expect(screen.getByText('Le titre est requis')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Le titre est requis')).toBeInTheDocument();
+        });
         expect(onSave).not.toHaveBeenCalled();
     });
 
-    it('should call onSave with action data when form is valid', () => {
+    it('should call onSave with action data when form is valid', async () => {
         const onSave = vi.fn();
         const onCancel = vi.fn();
 
@@ -99,12 +108,14 @@ describe('TreatmentActionForm', () => {
 
         fireEvent.click(screen.getByText('Ajouter'));
 
-        expect(onSave).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: 'New Action Title',
-                status: 'À faire'
-            })
-        );
+        await waitFor(() => {
+            expect(onSave).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: 'New Action Title',
+                    status: 'À faire'
+                })
+            );
+        });
     });
 
     it('should call onCancel when cancel button is clicked', () => {

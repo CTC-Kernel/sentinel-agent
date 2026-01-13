@@ -23,6 +23,13 @@ vi.mock('../../../hooks/useAuth', () => ({
   }),
 }));
 
+// Mock store
+vi.mock('../../../store', () => ({
+  useStore: () => ({
+    language: 'fr',
+  }),
+}));
+
 // Mock useDashboardPreferences
 const mockUpdateLayout = vi.fn();
 const mockResetLayout = vi.fn();
