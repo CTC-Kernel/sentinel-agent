@@ -330,4 +330,414 @@ describe('NotificationService', () => {
             expect(addDoc).toHaveBeenCalled();
         });
     });
+
+    describe('createForOrganization', () => {
+        it('should create notifications for all users in organization', async () => {
+            const { getDocs, addDoc } = await import('firebase/firestore');
+
+            vi.mocked(getDocs).mockResolvedValueOnce({
+                docs: [
+                    { id: 'user-1', data: () => ({ uid: 'user-1', organizationId: 'org-123' }) },
+                    { id: 'user-2', data: () => ({ uid: 'user-2', organizationId: 'org-123' }) }
+                ]
+            } as never);
+
+            await NotificationService.createForOrganization(
+                'org-123',
+                'info',
+                'Org Notification',
+                'Message for all'
+            );
+
+            expect(addDoc).toHaveBeenCalledTimes(2);
+        });
+
+        it('should filter users based on notification preferences', async () => {
+            const { getDocs, addDoc } = await import('firebase/firestore');
+
+            vi.mocked(getDocs).mockResolvedValueOnce({
+                docs: [
+                    { id: 'user-1', data: () => ({ uid: 'user-1', organizationId: 'org-123', notificationPreferences: { system: { inApp: true } } }) },
+                    { id: 'user-2', data: () => ({ uid: 'user-2', organizationId: 'org-123', notificationPreferences: { system: { inApp: false } } }) }
+                ]
+            } as never);
+
+            await NotificationService.createForOrganization(
+                'org-123',
+                'info',
+                'Org Notification',
+                'Message for all',
+                undefined,
+                'system'
+            );
+
+            // Only user-1 should get notification
+            expect(addDoc).toHaveBeenCalledTimes(1);
+        });
+
+        it('should handle errors gracefully', async () => {
+            const { getDocs } = await import('firebase/firestore');
+            const { ErrorLogger } = await import('../errorLogger');
+
+            vi.mocked(getDocs).mockRejectedValueOnce(new Error('DB Error'));
+
+            await NotificationService.createForOrganization(
+                'org-123',
+                'info',
+                'Test',
+                'Test message'
+            );
+
+            expect(ErrorLogger.error).toHaveBeenCalled();
+        });
+    });
+
+    describe('getUnread', () => {
+        it('should return unread notifications for a user', async () => {
+            const { getDocs } = await import('firebase/firestore');
+
+            vi.mocked(getDocs).mockResolvedValueOnce({
+                docs: [
+                    {
+                        id: 'notif-1',
+                        data: () => ({
+                            type: 'info',
+                            title: 'Test',
+                            message: 'Test message',
+                            read: false,
+                            createdAt: { toDate: () => new Date() }
+                        })
+                    },
+                    {
+                        id: 'notif-2',
+                        data: () => ({
+                            type: 'warning',
+                            title: 'Warning',
+                            message: 'Warning message',
+                            read: false,
+                            createdAt: { seconds: Date.now() / 1000 }
+                        })
+                    }
+                ]
+            } as never);
+
+            const notifications = await NotificationService.getUnread('user-123');
+
+            expect(notifications).toHaveLength(2);
+            expect(notifications[0].id).toBe('notif-1');
+        });
+
+        it('should return empty array on error', async () => {
+            const { getDocs } = await import('firebase/firestore');
+            const { ErrorLogger } = await import('../errorLogger');
+
+            vi.mocked(getDocs).mockRejectedValueOnce(new Error('DB Error'));
+
+            const notifications = await NotificationService.getUnread('user-123');
+
+            expect(notifications).toEqual([]);
+            expect(ErrorLogger.error).toHaveBeenCalled();
+        });
+
+        it('should handle createdAt as string', async () => {
+            const { getDocs } = await import('firebase/firestore');
+
+            vi.mocked(getDocs).mockResolvedValueOnce({
+                docs: [
+                    {
+                        id: 'notif-1',
+                        data: () => ({
+                            type: 'info',
+                            title: 'Test',
+                            message: 'Test message',
+                            read: false,
+                            createdAt: '2026-01-10T10:00:00Z'
+                        })
+                    }
+                ]
+            } as never);
+
+            const notifications = await NotificationService.getUnread('user-123');
+
+            expect(notifications).toHaveLength(1);
+        });
+    });
+
+    describe('getAll', () => {
+        it('should return all notifications with default limit', async () => {
+            const { getDocs } = await import('firebase/firestore');
+
+            vi.mocked(getDocs).mockResolvedValueOnce({
+                docs: [
+                    {
+                        id: 'notif-1',
+                        data: () => ({
+                            type: 'info',
+                            title: 'Test 1',
+                            message: 'Message 1',
+                            read: true,
+                            createdAt: { toDate: () => new Date() }
+                        })
+                    },
+                    {
+                        id: 'notif-2',
+                        data: () => ({
+                            type: 'info',
+                            title: 'Test 2',
+                            message: 'Message 2',
+                            read: false,
+                            createdAt: { toDate: () => new Date() }
+                        })
+                    }
+                ]
+            } as never);
+
+            const notifications = await NotificationService.getAll('user-123');
+
+            expect(notifications).toHaveLength(2);
+        });
+
+        it('should accept custom limit', async () => {
+            const { getDocs, limit } = await import('firebase/firestore');
+
+            vi.mocked(getDocs).mockResolvedValueOnce({ docs: [] } as never);
+
+            await NotificationService.getAll('user-123', 10);
+
+            expect(limit).toHaveBeenCalledWith(10);
+        });
+
+        it('should return empty array on error', async () => {
+            const { getDocs } = await import('firebase/firestore');
+
+            vi.mocked(getDocs).mockRejectedValueOnce(new Error('DB Error'));
+
+            const notifications = await NotificationService.getAll('user-123');
+
+            expect(notifications).toEqual([]);
+        });
+    });
+
+    describe('markAsRead', () => {
+        it('should mark a notification as read', async () => {
+            const { updateDoc, doc } = await import('firebase/firestore');
+
+            await NotificationService.markAsRead('notif-123');
+
+            expect(doc).toHaveBeenCalledWith(expect.anything(), 'notifications', 'notif-123');
+            expect(updateDoc).toHaveBeenCalledWith(expect.anything(), { read: true });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const { updateDoc } = await import('firebase/firestore');
+            const { ErrorLogger } = await import('../errorLogger');
+
+            vi.mocked(updateDoc).mockRejectedValueOnce(new Error('Update failed'));
+
+            await NotificationService.markAsRead('notif-123');
+
+            expect(ErrorLogger.error).toHaveBeenCalled();
+        });
+    });
+
+    describe('markAllAsRead', () => {
+        it('should mark all unread notifications as read for a user', async () => {
+            const { getDocs, updateDoc } = await import('firebase/firestore');
+
+            vi.mocked(getDocs).mockResolvedValueOnce({
+                docs: [
+                    { id: 'notif-1', ref: { id: 'notif-1' } },
+                    { id: 'notif-2', ref: { id: 'notif-2' } },
+                    { id: 'notif-3', ref: { id: 'notif-3' } }
+                ]
+            } as never);
+
+            await NotificationService.markAllAsRead('user-123');
+
+            expect(updateDoc).toHaveBeenCalledTimes(3);
+        });
+
+        it('should handle individual update failures gracefully', async () => {
+            const { getDocs, updateDoc } = await import('firebase/firestore');
+            const { ErrorLogger } = await import('../errorLogger');
+
+            vi.mocked(getDocs).mockResolvedValueOnce({
+                docs: [
+                    { id: 'notif-1', ref: { id: 'notif-1' } },
+                    { id: 'notif-2', ref: { id: 'notif-2' } }
+                ]
+            } as never);
+
+            vi.mocked(updateDoc)
+                .mockResolvedValueOnce(undefined)
+                .mockRejectedValueOnce(new Error('Update failed'));
+
+            await NotificationService.markAllAsRead('user-123');
+
+            // Should log error for failed update
+            expect(ErrorLogger.error).toHaveBeenCalled();
+        });
+
+        it('should handle query errors gracefully', async () => {
+            const { getDocs } = await import('firebase/firestore');
+            const { ErrorLogger } = await import('../errorLogger');
+
+            vi.mocked(getDocs).mockRejectedValueOnce(new Error('Query failed'));
+
+            await NotificationService.markAllAsRead('user-123');
+
+            expect(ErrorLogger.error).toHaveBeenCalled();
+        });
+    });
+
+    describe('subscribeToNotifications', () => {
+        it('should set up real-time subscription', async () => {
+            const { onSnapshot } = await import('firebase/firestore');
+
+            const mockUnsubscribe = vi.fn();
+            vi.mocked(onSnapshot).mockReturnValueOnce(mockUnsubscribe);
+
+            const callback = vi.fn();
+            const unsubscribe = NotificationService.subscribeToNotifications('user-123', callback);
+
+            expect(onSnapshot).toHaveBeenCalled();
+            expect(typeof unsubscribe).toBe('function');
+        });
+
+        it('should call callback with parsed notifications', async () => {
+            const { onSnapshot } = await import('firebase/firestore');
+
+            let snapshotCallback: ((snapshot: unknown) => void) | undefined;
+            vi.mocked(onSnapshot).mockImplementation((_q, cb) => {
+                snapshotCallback = cb as (snapshot: unknown) => void;
+                return vi.fn();
+            });
+
+            const callback = vi.fn();
+            NotificationService.subscribeToNotifications('user-123', callback);
+
+            // Simulate snapshot
+            if (snapshotCallback) {
+                snapshotCallback({
+                    docs: [
+                        {
+                            id: 'notif-1',
+                            data: () => ({
+                                type: 'info',
+                                title: 'Real-time notification',
+                                message: 'Test',
+                                createdAt: { toDate: () => new Date() }
+                            })
+                        }
+                    ]
+                });
+            }
+
+            expect(callback).toHaveBeenCalledWith(
+                expect.arrayContaining([
+                    expect.objectContaining({ id: 'notif-1' })
+                ])
+            );
+        });
+
+        it('should return no-op function on error during setup', async () => {
+            const { onSnapshot } = await import('firebase/firestore');
+
+            // Simulate onSnapshot throwing an error during setup
+            vi.mocked(onSnapshot).mockImplementationOnce(() => {
+                throw new Error('Snapshot error');
+            });
+
+            const callback = vi.fn();
+            const unsubscribe = NotificationService.subscribeToNotifications('user-123', callback);
+
+            expect(typeof unsubscribe).toBe('function');
+            // Should not throw when called
+            unsubscribe();
+        });
+    });
+
+    describe('checkUpcomingAudits', () => {
+        it('should check for audits scheduled within 7 days', async () => {
+            const { getDocs } = await import('firebase/firestore');
+
+            // Mock audits query
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 3); // 3 days from now
+
+            vi.mocked(getDocs)
+                .mockResolvedValueOnce({
+                    docs: [
+                        {
+                            id: 'audit-1',
+                            data: () => ({
+                                id: 'audit-1',
+                                dateScheduled: futureDate.toISOString(),
+                                auditor: 'John Doe',
+                                organizationId: 'org-123',
+                                status: 'Planifié'
+                            })
+                        }
+                    ]
+                } as never)
+                // Mock auditor lookup
+                .mockResolvedValueOnce({
+                    empty: false,
+                    docs: [{ id: 'auditor-123' }]
+                } as never)
+                // Mock existing notification check
+                .mockResolvedValueOnce({ empty: true } as never);
+
+            await NotificationService.checkUpcomingAudits('org-123');
+
+            expect(getDocs).toHaveBeenCalled();
+        });
+
+        it('should not create duplicate notifications', async () => {
+            const { getDocs, addDoc } = await import('firebase/firestore');
+
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 3);
+
+            vi.mocked(getDocs)
+                .mockResolvedValueOnce({
+                    docs: [
+                        {
+                            id: 'audit-1',
+                            data: () => ({
+                                id: 'audit-1',
+                                dateScheduled: futureDate.toISOString(),
+                                auditor: 'John Doe',
+                                organizationId: 'org-123'
+                            })
+                        }
+                    ]
+                } as never)
+                .mockResolvedValueOnce({
+                    empty: false,
+                    docs: [{ id: 'auditor-123' }]
+                } as never)
+                // Existing notification found
+                .mockResolvedValueOnce({
+                    empty: false,
+                    docs: [{ id: 'existing-notif' }]
+                } as never);
+
+            await NotificationService.checkUpcomingAudits('org-123');
+
+            // Should not create new notification since one exists
+            expect(addDoc).not.toHaveBeenCalled();
+        });
+
+        it('should handle errors gracefully', async () => {
+            const { getDocs } = await import('firebase/firestore');
+            const { ErrorLogger } = await import('../errorLogger');
+
+            vi.mocked(getDocs).mockRejectedValueOnce(new Error('Query failed'));
+
+            await NotificationService.checkUpcomingAudits('org-123');
+
+            expect(ErrorLogger.error).toHaveBeenCalled();
+        });
+    });
 });

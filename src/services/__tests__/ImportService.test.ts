@@ -317,4 +317,167 @@ describe('ImportService', () => {
             expect(resolveLifecycleStatus(undefined)).toBeUndefined();
         });
     });
+
+    describe('ImportService Class Methods', () => {
+        // Import the actual service after mocks
+        const getService = async () => {
+            const { ImportService } = await import('../ImportService');
+            return ImportService;
+        };
+
+        describe('parseCSV', () => {
+            it('should parse simple CSV content', async () => {
+                const ImportService = await getService();
+                const csvContent = 'name,value\nTest,123\nAnother,456';
+
+                const result = ImportService.parseCSV(csvContent);
+
+                expect(result).toHaveLength(2);
+                expect(result[0]).toEqual({ name: 'Test', value: '123' });
+                expect(result[1]).toEqual({ name: 'Another', value: '456' });
+            });
+
+            it('should return empty array for empty CSV', async () => {
+                const ImportService = await getService();
+
+                const result = ImportService.parseCSV('');
+
+                expect(result).toEqual([]);
+            });
+
+            it('should return empty array for CSV with only headers', async () => {
+                const ImportService = await getService();
+                const csvContent = 'header1,header2';
+
+                const result = ImportService.parseCSV(csvContent);
+
+                expect(result).toEqual([]);
+            });
+
+            it('should handle quoted values', async () => {
+                const ImportService = await getService();
+                const csvContent = 'name,description\n"Test Item","Description with, comma"';
+
+                const result = ImportService.parseCSV(csvContent);
+
+                expect(result).toHaveLength(1);
+                expect(result[0].name).toBe('Test Item');
+            });
+
+            it('should strip quotes from header names', async () => {
+                const ImportService = await getService();
+                const csvContent = '"quoted_header","another"\nvalue1,value2';
+
+                const result = ImportService.parseCSV(csvContent);
+
+                expect(result).toHaveLength(1);
+                expect(result[0]).toHaveProperty('quoted_header');
+            });
+
+            it('should skip empty lines', async () => {
+                const ImportService = await getService();
+                const csvContent = 'name,value\n\nTest,123\n\nAnother,456';
+
+                const result = ImportService.parseCSV(csvContent);
+
+                expect(result).toHaveLength(2);
+            });
+        });
+
+        describe('parseRisks', () => {
+            it('should parse valid risk CSV', async () => {
+                const ImportService = await getService();
+                const csvContent = 'threat,vulnerability,probability,impact,strategy,status,framework\n' +
+                    '"Data Breach","Weak password",3,4,Atténuer,Ouvert,ISO27001';
+
+                const result = ImportService.parseRisks(csvContent);
+
+                expect(result.data).toHaveLength(1);
+                expect(result.data[0]).toMatchObject({
+                    threat: 'Data Breach',
+                    vulnerability: 'Weak password',
+                    probability: 3,
+                    impact: 4
+                });
+                expect(result.errors).toHaveLength(0);
+            });
+
+            it('should handle French column headers', async () => {
+                const ImportService = await getService();
+                const csvContent = 'menace,vulnerabilite,probabilite,gravite,strategie,statut,reference\n' +
+                    'Intrusion,Configuration,2,5,Eviter,En cours,ISO27001';
+
+                const result = ImportService.parseRisks(csvContent);
+
+                expect(result.data).toHaveLength(1);
+                expect(result.data[0].threat).toBe('Intrusion');
+            });
+
+            it('should normalize probability and impact values', async () => {
+                const ImportService = await getService();
+                const csvContent = 'threat,probability,impact\n' +
+                    'Risk 1,10,0'; // Out of bounds values
+
+                const result = ImportService.parseRisks(csvContent);
+
+                expect(result.data).toHaveLength(1);
+                expect(result.data[0].probability).toBe(5); // Max
+                expect(result.data[0].impact).toBe(1); // Min
+            });
+
+            it('should handle multiple rows correctly', async () => {
+                const ImportService = await getService();
+                const csvContent = 'threat,probability,impact\n' +
+                    '"Risk One",2,3\n' +
+                    '"Risk Two",4,5';
+
+                const result = ImportService.parseRisks(csvContent);
+
+                expect(result.data).toHaveLength(2);
+                expect(result.data[0].threat).toBe('Risk One');
+                expect(result.data[1].threat).toBe('Risk Two');
+            });
+        });
+
+        describe('downloadCSV', () => {
+            beforeEach(() => {
+                // Mock DOM methods for download
+                const mockCreateElement = vi.spyOn(document, 'createElement');
+                const mockLink = {
+                    setAttribute: vi.fn(),
+                    style: { visibility: '' },
+                    click: vi.fn(),
+                    download: 'test'
+                };
+                mockCreateElement.mockReturnValue(mockLink as unknown as HTMLAnchorElement);
+
+                vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as never);
+                vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as never);
+
+                // Mock URL methods
+                global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+                global.URL.revokeObjectURL = vi.fn();
+            });
+
+            it('should not download if data is empty', async () => {
+                const ImportService = await getService();
+
+                ImportService.downloadCSV([], 'test.csv');
+
+                expect(document.createElement).not.toHaveBeenCalled();
+            });
+
+            it('should create download link for valid data', async () => {
+                const ImportService = await getService();
+                const data = [
+                    { name: 'Item 1', value: 100 },
+                    { name: 'Item 2', value: 200 }
+                ];
+
+                ImportService.downloadCSV(data, 'test.csv');
+
+                expect(document.createElement).toHaveBeenCalledWith('a');
+            });
+        });
+    });
 });
