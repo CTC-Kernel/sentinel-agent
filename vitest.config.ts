@@ -8,10 +8,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
     logHeapUsage: true,
+    fileParallelism: false, // Run tests sequentially to avoid high memory pressure
     poolOptions: {
       threads: {
-        singleThread: true,
-        isolate: false
+        maxThreads: 1,
+        minThreads: 1,
+        isolate: true // Ensure fresh environment for each test file to clean up memory
       }
     },
     coverage: {
