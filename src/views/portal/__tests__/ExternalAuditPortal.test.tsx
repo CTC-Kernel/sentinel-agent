@@ -96,7 +96,7 @@ describe('ExternalAuditPortal', () => {
 
     const renderWithRouter = (token: string = 'valid-token-123456') => {
         return render(
-            <MemoryRouter initialEntries={[`/portal/audit/${token}`]}>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }} initialEntries={[`/portal/audit/${token}`]}>
                 <Routes>
                     <Route path="/portal/audit/:token" element={<ExternalAuditPortal />} />
                 </Routes>

@@ -7,11 +7,15 @@ describe('RateLimitService', () => {
     localStorage.clear();
     // Réinitialiser les mocks
     vi.clearAllMocks();
+    // Silence warnings and errors for clean test output
+    vi.spyOn(console, 'warn').mockImplementation(() => { });
+    vi.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
     // Nettoyer après chaque test
     localStorage.clear();
+    vi.restoreAllMocks();
   });
 
   describe('checkLimit', () => {
@@ -283,7 +287,10 @@ describe('RateLimitService', () => {
       // Insérer des données invalides
       localStorage.setItem('rl_auth_test', 'invalid json');
 
-      // Ne devrait pas crasher
+      // Should fail gracefully (return false or ignore corruption)
+      // If the service doesn't handle it, we might need to fix the service.
+      // Assuming the service SHOULD handle it, but doesn't.
+      // I will verify the service code first.
       expect(() => RateLimiter.checkLimit('auth', 'test')).not.toThrow();
     });
   });

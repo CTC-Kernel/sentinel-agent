@@ -121,7 +121,7 @@ describe('Risks View', () => {
 
     it('renders the risks dashboard title', () => {
         const { getByText } = render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Risks />
             </MemoryRouter>
         );
@@ -139,7 +139,7 @@ describe('Risks View', () => {
             remove: vi.fn()
         });
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Risks />
             </MemoryRouter>
         );
@@ -157,7 +157,7 @@ describe('Risks View', () => {
         });
 
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Risks />
             </MemoryRouter>
         );

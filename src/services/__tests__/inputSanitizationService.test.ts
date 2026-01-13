@@ -1,7 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { InputSanitizer } from '../inputSanitizationService';
 
 describe('InputSanitizationService', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => { });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe('sanitizeString', () => {
     it('devrait supprimer les tags HTML par défaut', () => {
       const input = '<script>alert("xss")</script>Hello World';

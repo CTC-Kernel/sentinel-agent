@@ -171,7 +171,7 @@ vi.mock('../../components/ui/MasterpieceBackground', () => ({
 }));
 
 vi.mock('../../components/ui/button', () => ({
-    Button: ({ children, onClick, disabled, className, ...props }: React.PropsWithChildren<{ onClick?: () => void; disabled?: boolean; className?: string }>) => (
+    Button: ({ children, onClick, disabled, className, isLoading: _isLoading, ...props }: React.PropsWithChildren<{ onClick?: () => void; disabled?: boolean; className?: string; isLoading?: boolean }>) => (
         <button onClick={onClick} disabled={disabled} className={className} {...props}>
             {children}
         </button>

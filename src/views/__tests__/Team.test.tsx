@@ -166,7 +166,7 @@ describe('Team View', () => {
         } as unknown as ReturnType<typeof useTeamManagement>);
 
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Team />
             </MemoryRouter>
         );
@@ -192,7 +192,7 @@ describe('Team View', () => {
         vi.mocked(usePersistedState).mockReturnValue(['roles', vi.fn()]);
 
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Team />
             </MemoryRouter>
         );

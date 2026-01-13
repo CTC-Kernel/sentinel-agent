@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { hasPermission, canEditResource, canDeleteResource, Role, ResourceType } from '../permissions';
 import { useStore } from '../../store';
 
@@ -12,11 +12,17 @@ vi.mock('../../store', () => ({
 describe('RBAC Permissions System', () => {
     beforeEach(() => {
         vi.resetAllMocks();
+        vi.spyOn(console, 'warn').mockImplementation(() => { });
+
         // Default store state - using casting to unknown then to expected shape to bypass lint "no-explicit-any" 
         // while mocking partial state
         vi.mocked(useStore.getState).mockReturnValue({
             customRoles: [],
         } as unknown as ReturnType<typeof useStore.getState>);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     const createMockUser = (role: Role, uid = 'user-123', orgId = 'org-123') => ({

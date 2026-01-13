@@ -35,7 +35,8 @@ describe('RowActionsMenu', () => {
     // Suppress specific Headless UI warnings
     const originalError = console.error;
     vi.spyOn(console, 'error').mockImplementation((...args) => {
-      if (typeof args[0] === 'string' && args[0].includes('An update to ot')) return;
+      const msg = args.join(' ');
+      if (typeof msg === 'string' && msg.includes('An update to ot')) return;
       originalError(...args);
     });
   });

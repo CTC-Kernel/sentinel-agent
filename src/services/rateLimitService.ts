@@ -272,12 +272,12 @@ export const useRateLimit = (operation: string, userId?: string): boolean => {
  *   // Search logic
  * });
  */
-export const withRateLimit = <T extends (...args: unknown[]) => unknown>(
+export const withRateLimit = <T extends (...args: any[]) => any>(
   operation: string,
   fn: T,
   userId?: string
 ): T => {
-  return ((...args: unknown[]) => {
+  return ((...args: any[]) => {
     if (!RateLimiter.checkLimit(operation, userId)) {
       const waitTime = RateLimiter.getWaitTime(operation, userId);
       throw new Error(`Rate limit exceeded. Please wait ${Math.ceil(waitTime / 1000)} seconds.`);

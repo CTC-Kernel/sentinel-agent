@@ -103,6 +103,7 @@ const mockUrlHausResponse = {
 
 describe('ThreatFeedService', () => {
     beforeEach(() => {
+        vi.useFakeTimers();
         vi.clearAllMocks();
         ThreatFeedService.useSimulation = false;
         mockAddDoc.mockResolvedValue({ id: 'new-doc-id' });
@@ -117,6 +118,7 @@ describe('ThreatFeedService', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+        vi.useRealTimers();
     });
 
     describe('fetchCisaKev', () => {
@@ -295,7 +297,10 @@ describe('ThreatFeedService', () => {
             // First call returns empty (no duplicates)
             mockGetDocs.mockResolvedValue({ empty: true, docs: [] });
 
-            await ThreatFeedService.seedLiveThreats('org-123');
+            const promise = ThreatFeedService.seedLiveThreats('org-123');
+            // Allow potential simulated data fallback or internal timeouts
+            await vi.advanceTimersByTimeAsync(2000);
+            await promise;
 
             // At least some addDoc calls should be made
             expect(mockAddDoc).toHaveBeenCalled();
@@ -312,7 +317,9 @@ describe('ThreatFeedService', () => {
                 docs: [{ id: 'existing-1', data: () => ({}) }]
             });
 
-            const result = await ThreatFeedService.seedLiveThreats('org-123');
+            const promise = ThreatFeedService.seedLiveThreats('org-123');
+            await vi.advanceTimersByTimeAsync(2000);
+            const result = await promise;
 
             expect(result.vulns).toBe(0);
         });
@@ -323,7 +330,9 @@ describe('ThreatFeedService', () => {
                 configurable: true
             });
 
-            const result = await ThreatFeedService.seedLiveThreats('org-123');
+            const promise = ThreatFeedService.seedLiveThreats('org-123');
+            await vi.advanceTimersByTimeAsync(2000);
+            const result = await promise;
 
             // Should have seeded simulated data
             expect(result.threats).toBeGreaterThan(0);
@@ -332,7 +341,9 @@ describe('ThreatFeedService', () => {
         it('should fallback to simulation when useSimulation is true', async () => {
             ThreatFeedService.useSimulation = true;
 
-            const result = await ThreatFeedService.seedLiveThreats('org-123');
+            const promise = ThreatFeedService.seedLiveThreats('org-123');
+            await vi.advanceTimersByTimeAsync(2000);
+            const result = await promise;
 
             // Should have seeded simulated data
             expect(result.threats).toBeGreaterThan(0);
@@ -343,7 +354,9 @@ describe('ThreatFeedService', () => {
                 .mockResolvedValueOnce({ data: { urls: [] } })
                 .mockResolvedValueOnce({ data: { vulnerabilities: [] } });
 
-            await ThreatFeedService.seedLiveThreats('org-123');
+            const promise = ThreatFeedService.seedLiveThreats('org-123');
+            await vi.advanceTimersByTimeAsync(2000);
+            await promise;
 
             // Should have fallen back to simulation
             expect(mockAddDoc).toHaveBeenCalled();
@@ -353,7 +366,9 @@ describe('ThreatFeedService', () => {
             mockFetchThreatFeed.mockRejectedValue(new Error('Network error'));
             mockFetch.mockRejectedValue(new Error('Network error'));
 
-            const result = await ThreatFeedService.seedLiveThreats('org-123');
+            const promise = ThreatFeedService.seedLiveThreats('org-123');
+            await vi.advanceTimersByTimeAsync(2000);
+            const result = await promise;
 
             // Should have fallen back to simulation
             expect(result.threats).toBeGreaterThan(0);
@@ -362,14 +377,18 @@ describe('ThreatFeedService', () => {
 
     describe('seedSimulatedData', () => {
         it('should seed mock threats', async () => {
-            const result = await ThreatFeedService.seedSimulatedData('org-123');
+            const promise = ThreatFeedService.seedSimulatedData('org-123');
+            await vi.advanceTimersByTimeAsync(1000);
+            const result = await promise;
 
             expect(result.threats).toBeGreaterThan(0);
             expect(mockAddDoc).toHaveBeenCalled();
         });
 
         it('should seed mock vulnerabilities', async () => {
-            const result = await ThreatFeedService.seedSimulatedData('org-123');
+            const promise = ThreatFeedService.seedSimulatedData('org-123');
+            await vi.advanceTimersByTimeAsync(1000);
+            const result = await promise;
 
             expect(result.vulns).toBeGreaterThan(0);
         });
@@ -380,14 +399,18 @@ describe('ThreatFeedService', () => {
                 .mockResolvedValueOnce({ empty: false, docs: [{ id: 'existing-1' }] })
                 .mockResolvedValue({ empty: true, docs: [] });
 
-            await ThreatFeedService.seedSimulatedData('org-123');
+            const promise = ThreatFeedService.seedSimulatedData('org-123');
+            await vi.advanceTimersByTimeAsync(1000);
+            await promise;
 
             // Should still have added some vulns (those that didn't exist)
             expect(mockAddDoc).toHaveBeenCalled();
         });
 
         it('should use default org ID if not provided', async () => {
-            await ThreatFeedService.seedSimulatedData('');
+            const promise = ThreatFeedService.seedSimulatedData('');
+            await vi.advanceTimersByTimeAsync(1000);
+            await promise;
 
             expect(mockAddDoc).toHaveBeenCalledWith(
                 'mock-collection',
@@ -401,7 +424,9 @@ describe('ThreatFeedService', () => {
             const { ErrorLogger } = await import('../errorLogger');
             mockAddDoc.mockRejectedValue(new Error('Firestore error'));
 
-            const result = await ThreatFeedService.seedSimulatedData('org-123');
+            const promise = ThreatFeedService.seedSimulatedData('org-123');
+            await vi.advanceTimersByTimeAsync(1000);
+            const result = await promise;
 
             // Should not throw, but log error
             expect(ErrorLogger.error).toHaveBeenCalled();
@@ -409,7 +434,9 @@ describe('ThreatFeedService', () => {
         });
 
         it('should include all required threat fields', async () => {
-            await ThreatFeedService.seedSimulatedData('org-123');
+            const promise = ThreatFeedService.seedSimulatedData('org-123');
+            await vi.advanceTimersByTimeAsync(1000);
+            await promise;
 
             expect(mockAddDoc).toHaveBeenCalledWith(
                 'mock-collection',
