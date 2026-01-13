@@ -65,6 +65,7 @@ vi.mock('../../store', () => ({
     useStore: vi.fn().mockReturnValue({
         addToast: vi.fn(),
         t: (k: string) => k,
+        language: 'fr',
     }),
 }));
 

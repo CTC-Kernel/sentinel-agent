@@ -94,6 +94,7 @@ vi.mock('../../store', () => ({
         setUser: mockSetUser,
         addToast: mockAddToast,
         t: mockT,
+        language: 'fr',
     }),
 }));
 

@@ -109,6 +109,7 @@ describe('ThreatRegistry', () => {
             user: mockUser,
             addToast: vi.fn(),
             t: (key: string) => key,
+            language: 'fr',
         } as unknown as ReturnType<typeof useStore>);
 
         vi.mocked(useThreats).mockReturnValue({

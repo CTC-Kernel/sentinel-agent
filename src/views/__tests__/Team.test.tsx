@@ -14,6 +14,7 @@ vi.mock('../../store', () => ({
         user: { uid: 'test-user', organizationId: 'test-org', role: 'admin' },
         addToast: vi.fn(),
         t: (k: string) => k,
+        language: 'fr',
     }),
 }));
 

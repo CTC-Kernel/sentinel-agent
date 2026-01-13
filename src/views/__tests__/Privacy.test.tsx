@@ -12,7 +12,8 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('../../store', () => ({
     useStore: vi.fn().mockReturnValue({
         user: { uid: 'test-user', displayName: 'Test User', role: 'admin' },
-        addToast: vi.fn()
+        addToast: vi.fn(),
+        language: 'fr',
     }),
 }));
 
