@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useOngoingAudits } from '../useOngoingAudits';
 
 // Mock Firebase
@@ -29,7 +29,7 @@ describe('useOngoingAudits', () => {
   });
 
   it('should set loading to true initially', () => {
-    vi.mocked(onSnapshot).mockImplementation(() => () => {});
+    vi.mocked(onSnapshot).mockImplementation(() => () => { });
 
     const { result } = renderHook(() => useOngoingAudits('tenant-123'));
 
@@ -39,9 +39,7 @@ describe('useOngoingAudits', () => {
   it('should return count from snapshot', async () => {
     const mockUnsubscribe = vi.fn();
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
-      setTimeout(() => {
-        (onNext as (snapshot: { size: number }) => void)({ size: 2 });
-      }, 0);
+      (onNext as (snapshot: { size: number }) => void)({ size: 2 });
       return mockUnsubscribe;
     });
 
@@ -56,10 +54,8 @@ describe('useOngoingAudits', () => {
 
   it('should set initial trend to stable', async () => {
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
-      setTimeout(() => {
-        (onNext as (snapshot: { size: number }) => void)({ size: 4 });
-      }, 0);
-      return () => {};
+      (onNext as (snapshot: { size: number }) => void)({ size: 4 });
+      return () => { };
     });
 
     const { result } = renderHook(() => useOngoingAudits('tenant-123'));
@@ -73,11 +69,10 @@ describe('useOngoingAudits', () => {
 
   it('should handle errors', async () => {
     const mockError = new Error('Test error');
-    vi.mocked(onSnapshot).mockImplementation((_, __, onError) => {
-      setTimeout(() => {
-        (onError as (error: Error) => void)(mockError);
-      }, 0);
-      return () => {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(onSnapshot).mockImplementation((_query: any, _next: any, onError: any) => {
+      onError(mockError);
+      return () => { };
     });
 
     const { result } = renderHook(() => useOngoingAudits('tenant-123'));
@@ -104,10 +99,8 @@ describe('useOngoingAudits', () => {
     let callCount = 0;
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
       callCount++;
-      setTimeout(() => {
-        (onNext as (snapshot: { size: number }) => void)({ size: callCount });
-      }, 0);
-      return () => {};
+      (onNext as (snapshot: { size: number }) => void)({ size: callCount });
+      return () => { };
     });
 
     const { result } = renderHook(() => useOngoingAudits('tenant-123'));
@@ -117,7 +110,9 @@ describe('useOngoingAudits', () => {
     });
 
     // Call refetch
-    result.current.refetch();
+    act(() => {
+      result.current.refetch();
+    });
 
     await waitFor(() => {
       expect(callCount).toBeGreaterThan(1);
@@ -126,10 +121,8 @@ describe('useOngoingAudits', () => {
 
   it('should return zero count when no ongoing audits', async () => {
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
-      setTimeout(() => {
-        (onNext as (snapshot: { size: number }) => void)({ size: 0 });
-      }, 0);
-      return () => {};
+      (onNext as (snapshot: { size: number }) => void)({ size: 0 });
+      return () => { };
     });
 
     const { result } = renderHook(() => useOngoingAudits('tenant-123'));

@@ -155,3 +155,7 @@ if (!i18n.isInitialized) {
             }
         });
 }
+// Mock project i18n configuration to prevent double initialization
+vi.mock('./i18n', () => ({
+    default: i18n,
+}));
