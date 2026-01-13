@@ -46,6 +46,11 @@ export interface Organization {
         theme?: 'light' | 'dark' | 'system';
         language?: 'fr' | 'en';
         enableSecNumCloudStorage?: boolean;
+        aiSettings?: {
+            enabled: boolean;
+            consentGiven: boolean;
+            dataSanitization: boolean;
+        };
     };
     enabledFrameworks?: Framework[];
 }

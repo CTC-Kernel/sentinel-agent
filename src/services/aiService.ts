@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
+import { aiPrivacyService } from "./aiPrivacyService";
 
 export interface ChatMessage {
     id: string;
@@ -104,12 +105,15 @@ export const aiService = {
             // Prepare a summarized version of the data to avoid token limits if necessary
             // For now, we send the raw data assuming it fits within the context window of 1.5 Flash (1M tokens).
             // We strip unnecessary fields to be efficient.
+            // Privacy: Anonymize data before sending to AI
+            const sanitizedData = aiPrivacyService.anonymizeData(data) as GraphData;
+
             const promptData = {
-                assets: data.assets.map(a => ({ id: a.id, name: a.name, type: a.type, criticality: a.confidentiality })),
-                risks: data.risks.map(r => ({ id: r.id, threat: r.threat, score: r.score, assetId: r.assetId })),
-                projects: data.projects.map(p => ({ id: p.id, name: p.name, status: p.status })),
-                incidents: data.incidents.map(i => ({ id: i.id, title: i.title, severity: i.severity, affectedAssetId: i.affectedAssetId })),
-                controls: data.controls.map(c => ({ id: c.id, name: c.name, status: c.status, type: c.type })),
+                assets: sanitizedData.assets.map(a => ({ id: a.id, name: a.name, type: a.type, criticality: a.confidentiality })),
+                risks: sanitizedData.risks.map(r => ({ id: r.id, threat: r.threat, score: r.score, assetId: r.assetId })),
+                projects: sanitizedData.projects.map(p => ({ id: p.id, name: p.name, status: p.status })),
+                incidents: sanitizedData.incidents.map(i => ({ id: i.id, title: i.title, severity: i.severity, affectedAssetId: i.affectedAssetId })),
+                controls: sanitizedData.controls.map(c => ({ id: c.id, name: c.name, status: c.status, type: c.type })),
             };
 
             const prompt = `
@@ -179,7 +183,7 @@ export const aiService = {
                 - location (Localisation)
 
                 CSV Preview:
-                ${csvPreview}
+                ${aiPrivacyService.sanitizeInput(csvPreview)}
 
                 Return JSON: { "mappings": { "csv_col_name": "internal_field_name" }, "confidence": 0-1 }
                 Only map if confident.
@@ -249,7 +253,7 @@ export const aiService = {
             Si aucune action n'est requise, réponds simplement en texte Markdown normal sans JSON.
 
             Contexte actuel :
-            ${context ? JSON.stringify(context) : 'Aucun contexte spécifique.'}`;
+            ${context ? JSON.stringify(aiPrivacyService.anonymizeData(context)) : 'Aucun contexte spécifique.'}`;
 
         try {
             return await runChatSafe(systemPrompt, message, FAST_MODEL);

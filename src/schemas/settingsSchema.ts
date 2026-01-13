@@ -31,7 +31,12 @@ export const organizationSchema = z.object({
     orgName: z.string().trim().min(1, 'Le nom de l\'organisation est requis').max(100, 'Le nom est trop long'),
     address: z.string().trim().optional(),
     vatNumber: z.string().trim().optional(),
-    contactEmail: z.string().trim().email("Email invalide").optional().or(z.literal(''))
+    contactEmail: z.string().trim().email("Email invalide").optional().or(z.literal('')),
+    aiSettings: z.object({
+        enabled: z.boolean(),
+        consentGiven: z.boolean(),
+        dataSanitization: z.boolean()
+    }).optional()
 });
 
 export type OrganizationFormData = z.infer<typeof organizationSchema>;

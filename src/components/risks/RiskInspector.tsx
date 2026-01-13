@@ -58,13 +58,11 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         activeTab,
         setActiveTab,
         isEditing,
-        toggleEditMode,
+        // toggleEditMode, // Unused
         enterEditMode,
         exitEditMode,
         saving: updating, // Map hook's saving to component's updating
-        handleUpdate: handleHookUpdate,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        handleDelete: handleHookDelete
+        handleUpdate: handleHookUpdate
     } = useInspector({
         entity: risk,
         // Define tabs configuration

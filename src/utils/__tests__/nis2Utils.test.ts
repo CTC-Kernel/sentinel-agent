@@ -6,14 +6,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getIncidentDeadlines, DeadlineStatus } from '../nis2Utils';
 import { Incident } from '../../types';
+import { Criticality } from '../../types/common';
+import { IncidentStatus } from '../../types/incidents';
 
 describe('NIS2 Utils', () => {
     const createIncident = (overrides: Partial<Incident> = {}): Incident => ({
         id: 'incident-1',
         title: 'Test Incident',
         description: 'Test description',
-        severity: 'Haute' as any,
-        status: 'Nouveau' as any,
+        severity: Criticality.HIGH,
+        status: 'Nouveau' as IncidentStatus,
         dateReported: '2024-01-15T10:00:00Z',
         organizationId: 'org-1',
         updatedAt: '2024-01-15T10:00:00Z',

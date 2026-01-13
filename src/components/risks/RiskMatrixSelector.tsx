@@ -9,61 +9,9 @@
 
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getRiskLevelFromScore, calculateRiskScore } from '../../utils/riskEvaluation';
 
-/**
- * Risk level classification based on score
- */
-export interface RiskLevel {
-    label: string;
-    color: string;
-    bgColor: string;
-    textColor: string;
-}
-
-/**
- * Get risk level based on score (impact × probability)
- */
-// eslint-disable-next-line react-refresh/only-export-components -- Utility function co-located with component for API cohesion
-export function getRiskLevelFromScore(score: number): RiskLevel {
-    if (score >= 15) {
-        return {
-            label: 'Critique',
-            color: 'rose',
-            bgColor: 'bg-rose-500',
-            textColor: 'text-rose-600 dark:text-rose-400'
-        };
-    }
-    if (score >= 10) {
-        return {
-            label: 'Élevé',
-            color: 'orange',
-            bgColor: 'bg-orange-500',
-            textColor: 'text-orange-600 dark:text-orange-400'
-        };
-    }
-    if (score >= 5) {
-        return {
-            label: 'Moyen',
-            color: 'amber',
-            bgColor: 'bg-amber-400',
-            textColor: 'text-amber-600 dark:text-amber-400'
-        };
-    }
-    return {
-        label: 'Faible',
-        color: 'emerald',
-        bgColor: 'bg-emerald-500',
-        textColor: 'text-emerald-600 dark:text-emerald-400'
-    };
-}
-
-/**
- * Calculate risk score from impact and probability
- */
-// eslint-disable-next-line react-refresh/only-export-components -- Utility function co-located with component for API cohesion
-export function calculateRiskScore(impact: number, probability: number): number {
-    return impact * probability;
-}
+export type { RiskLevel } from '../../utils/riskEvaluation';
 
 interface RiskMatrixSelectorProps {
     /** Current probability value (1-5) */

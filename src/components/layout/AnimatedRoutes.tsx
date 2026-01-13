@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { AnimatedPage } from './AnimatedPage';
 import { RoleGuard } from '../auth/RoleGuard';
 import { TestRoleGuard } from '../auth/TestGuards';
+import { Role } from '../../utils/permissions';
 
 // Lazy Imports (Copied from App.tsx)
 const DashboardWithQuickActions = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.DashboardWithQuickActions })));
@@ -47,28 +48,30 @@ export const AnimatedRoutes: React.FC = () => {
     const isTestMode = import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true';
     const RoleGuardComponent = isTestMode ? TestRoleGuard : RoleGuard;
 
+    const allRoles: Role[] = ['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user'];
+
     return (
         <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<AnimatedPage><DashboardWithQuickActions /></AnimatedPage>} />
-                <Route path="/analytics" element={<AnimatedPage><AnalyticsDashboard /></AnimatedPage>} />
-                <Route path="/timeline" element={<AnimatedPage><InteractiveTimeline /></AnimatedPage>} />
-                <Route path="/audit-trail" element={<AnimatedPage><ActivityLogs /></AnimatedPage>} />
-                <Route path="/incidents" element={<AnimatedPage><Incidents /></AnimatedPage>} />
-                <Route path="/projects" element={<AnimatedPage><Projects /></AnimatedPage>} />
-                <Route path="/assets" element={<AnimatedPage><Assets /></AnimatedPage>} />
-                <Route path="/risks" element={<AnimatedPage><Risks /></AnimatedPage>} />
-                <Route path="/vulnerabilities" element={<AnimatedPage><Vulnerabilities /></AnimatedPage>} />
-                <Route path="/threat-library" element={<AnimatedPage><ThreatRegistry /></AnimatedPage>} />
-                <Route path="/threat-intelligence" element={<AnimatedPage><ThreatIntelligence /></AnimatedPage>} />
-                <Route path="/reports" element={<AnimatedPage><Reports /></AnimatedPage>} />
-                <Route path="/compliance" element={<AnimatedPage><Compliance /></AnimatedPage>} />
+                <Route path="/" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><DashboardWithQuickActions /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/analytics" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><AnalyticsDashboard /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/timeline" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><InteractiveTimeline /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/audit-trail" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ActivityLogs /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/incidents" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Incidents /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/projects" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Projects /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/assets" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Assets /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/risks" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Risks /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/vulnerabilities" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Vulnerabilities /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/threat-library" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatRegistry /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/threat-intelligence" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatIntelligence /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/reports" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Reports /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/compliance" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Compliance /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/documents" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user']}>
                         <AnimatedPage><Documents /></AnimatedPage>
                     </RoleGuardComponent>
                 } />
-                <Route path="/audits" element={<AnimatedPage><Audits /></AnimatedPage>} />
+                <Route path="/audits" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Audits /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/team" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
                         <AnimatedPage><Team /></AnimatedPage>
@@ -79,17 +82,16 @@ export const AnimatedRoutes: React.FC = () => {
                         <AnimatedPage><Settings /></AnimatedPage>
                     </RoleGuardComponent>
                 } />
-                <Route path="/suppliers" element={<AnimatedPage><Suppliers /></AnimatedPage>} />
-                <Route path="/privacy" element={<AnimatedPage><Privacy /></AnimatedPage>} />
-                <Route path="/continuity" element={<AnimatedPage><Continuity /></AnimatedPage>} />
-                {/* Voxel View might have its own canvas/context needs, but wrapping in AnimatedPage usually fine */}
-                <Route path="/ctc-engine" element={<AnimatedPage><VoxelView /></AnimatedPage>} />
-                <Route path="/notifications" element={<AnimatedPage><Notifications /></AnimatedPage>} />
-                <Route path="/search" element={<AnimatedPage><Search /></AnimatedPage>} />
-                <Route path="/help" element={<AnimatedPage><Help /></AnimatedPage>} />
-                <Route path="/intake" element={<AnimatedPage><KioskPage /></AnimatedPage>} />
-                <Route path="/calendar" element={<AnimatedPage><CalendarView /></AnimatedPage>} />
-                <Route path="/pricing" element={<AnimatedPage><Pricing /></AnimatedPage>} />
+                <Route path="/suppliers" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Suppliers /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Privacy /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Continuity /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><VoxelView /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/notifications" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Notifications /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/search" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Search /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/help" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Help /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/intake" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><KioskPage /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/calendar" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><CalendarView /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/pricing" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Pricing /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/system-health" element={
                     <RoleGuardComponent allowedRoles={['admin']}>
                         <AnimatedPage><SystemHealth /></AnimatedPage>

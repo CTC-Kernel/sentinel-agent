@@ -204,8 +204,8 @@ export function useCriticalRisksList(
               if (prevCount !== newCount) {
                 setPreviousCount(prevCount);
                 setTrend(calculateTrend(newCount, prevCount));
-              } else if (trend === null) {
-                setTrend('stable');
+              } else {
+                setTrend(prevTrend => prevTrend === null ? 'stable' : prevTrend);
               }
               return newCount;
             });
@@ -236,7 +236,6 @@ export function useCriticalRisksList(
         unsubscribe();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- trend is intentionally excluded to prevent re-subscription on trend changes
   }, [tenantId, maxItems, refreshKey]);
 
   return {

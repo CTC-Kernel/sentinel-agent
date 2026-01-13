@@ -4,7 +4,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { IncidentPlaybookService } from '../incidentPlaybookService';
+import { IncidentPlaybookService, IncidentPlaybook } from '../incidentPlaybookService';
+import { Incident } from '../../types';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
@@ -58,12 +59,12 @@ vi.mock('../../data/playbookTemplates', () => ({
     PLAYBOOK_TEMPLATES: []
 }));
 
-const mockPlaybook = {
+const mockPlaybook: IncidentPlaybook = {
     id: 'playbook-123',
-    category: 'Ransomware' as any,
+    category: 'Ransomware',
     title: 'Data Breach Response',
     description: 'Standard procedure for handling data breaches',
-    severity: 'High' as const,
+    severity: 'High',
     estimatedDuration: '2-4 hours',
     requiredResources: ['Security Team', 'Legal'],
     steps: [
@@ -72,7 +73,7 @@ const mockPlaybook = {
             order: 1,
             title: 'Identify Breach',
             description: 'Determine the scope of the breach',
-            type: 'detection' as const,
+            type: 'detection',
             estimatedTime: '30 minutes',
             requiredRole: 'security-analyst'
         }
@@ -87,7 +88,7 @@ const mockPlaybook = {
             title: 'Verify breach',
             description: 'Confirm the breach occurred',
             required: true,
-            category: 'detection' as const
+            category: 'detection'
         }
     ],
     postIncidentActions: [
@@ -95,7 +96,7 @@ const mockPlaybook = {
             id: 'action-1',
             title: 'Post-mortem meeting',
             description: 'Conduct team review',
-            priority: 'High' as const,
+            priority: 'High',
             dueDate: '+7 days'
         }
     ],
@@ -123,7 +124,7 @@ describe('IncidentPlaybookService', () => {
         it('should create a new playbook', async () => {
             mockAddDoc.mockResolvedValue({ id: 'new-playbook-123' });
 
-            const playbookData = { ...mockPlaybook, id: undefined }; // Remove id for creation
+            const { id, ...playbookData } = mockPlaybook;
             const result = await IncidentPlaybookService.createPlaybook(playbookData, 'org-123');
 
             expect(mockAddDoc).toHaveBeenCalled();
@@ -180,7 +181,7 @@ describe('IncidentPlaybookService', () => {
                 ]
             });
 
-            const result = await IncidentPlaybookService.getPlaybooks('org-123', 'DATA_BREACH' as any);
+            const result = await IncidentPlaybookService.getPlaybooks('org-123', 'DATA_BREACH' as Incident['category']);
 
             expect(result).toHaveLength(1);
         });

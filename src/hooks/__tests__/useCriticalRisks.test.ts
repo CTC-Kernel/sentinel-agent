@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- Test mocks require flexible typing */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useCriticalRisks } from '../useCriticalRisks';
@@ -15,7 +14,7 @@ vi.mock('../../firebase', () => ({
   db: {},
 }));
 
-import { onSnapshot } from 'firebase/firestore';
+import { onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
 
 describe('useCriticalRisks', () => {
   beforeEach(() => {
@@ -30,7 +29,7 @@ describe('useCriticalRisks', () => {
   });
 
   it('should set loading to true initially', () => {
-    vi.mocked(onSnapshot).mockImplementation(() => () => {});
+    vi.mocked(onSnapshot).mockImplementation(() => () => { });
 
     const { result } = renderHook(() => useCriticalRisks('tenant-123'));
 
@@ -50,7 +49,7 @@ describe('useCriticalRisks', () => {
             { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
           ]
         };
-        (onNext as (snapshot: any) => void)(mockSnapshot);
+        (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
       }, 0);
       return mockUnsubscribe;
     });
@@ -77,9 +76,9 @@ describe('useCriticalRisks', () => {
             { data: () => ({ impact: 1, probability: 1 }) }, // score: 1 (not critical)
           ]
         };
-        (onNext as (snapshot: any) => void)(mockSnapshot);
+        (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
       }, 0);
-      return () => {};
+      return () => { };
     });
 
     const { result } = renderHook(() => useCriticalRisks('tenant-123'));
@@ -95,9 +94,9 @@ describe('useCriticalRisks', () => {
     const mockError = new Error('Test error');
     vi.mocked(onSnapshot).mockImplementation((_, __, onError) => {
       setTimeout(() => {
-        (onError as (error: Error) => void)(mockError);
+        (onError as unknown as (error: Error) => void)(mockError);
       }, 0);
-      return () => {};
+      return () => { };
     });
 
     const { result } = renderHook(() => useCriticalRisks('tenant-123'));
@@ -131,9 +130,9 @@ describe('useCriticalRisks', () => {
             data: () => ({ impact: 5, probability: 4 }) // score: 20 (critical)
           }))
         };
-        (onNext as (snapshot: any) => void)(mockSnapshot);
+        (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
       }, 0);
-      return () => {};
+      return () => { };
     });
 
     const { result } = renderHook(() => useCriticalRisks('tenant-123'));
@@ -160,9 +159,9 @@ describe('useCriticalRisks', () => {
             { data: () => ({ impact: 2, probability: 2 }) }, // score: 4 (not critical)
           ]
         };
-        (onNext as (snapshot: any) => void)(mockSnapshot);
+        (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
       }, 0);
-      return () => {};
+      return () => { };
     });
 
     const { result } = renderHook(() => useCriticalRisks('tenant-123'));

@@ -6,6 +6,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CompliancePackService } from '../CompliancePackService';
 import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset } from '../../types';
+import { Criticality } from '../../types/common';
+import { RiskStatus, TreatmentStatus } from '../../types/risks';
+import { IncidentStatus } from '../../types/incidents';
+import { ControlStatus } from '../../types/controls';
 
 // Mock JSZip
 const mockZipFile = vi.fn();
@@ -97,42 +101,42 @@ vi.mock('../ReportEnrichmentService', () => ({
 const createMockRisk = (overrides: Partial<Risk> = {}): Risk => ({
     id: 'risk-123',
     name: 'Test Risk',
-    description: 'Test description',
+    assetId: 'asset-123',
+    threat: 'Data Breach',
+    vulnerability: 'Weak Password',
     probability: 3,
     impact: 4,
-    category: 'Opérationnel' as any,
-    status: 'Identifié' as any,
-    threat: 'Data Breach',
-    assetId: 'asset-123',
     score: 12,
     residualScore: 6,
-    strategy: 'Atténuation' as any,
+    strategy: 'Atténuer',
+    category: 'Opérationnel',
+    status: 'Ouvert' as RiskStatus,
     treatmentDeadline: new Date('2024-12-31').toISOString(),
     treatment: {
-        strategy: 'Atténuation',
-        status: 'En cours',
-        plan: 'Treatment plan'
-    } as any,
+        strategy: 'Atténuer',
+        status: 'En cours' as TreatmentStatus,
+        description: 'Treatment plan'
+    },
     organizationId: 'org-123',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    owner: 'John Doe',
     ...overrides
-} as any);
+} as Risk);
 
 const createMockControl = (overrides: Partial<Control> = {}): Control => ({
     id: 'control-123',
-    reference: 'A.5.1',
+    reference: 'A.5.1', // Assuming reference matches code
     code: 'A.5.1',
     name: 'Test Control',
-    title: 'Test Control Title',
     description: 'Test description',
-    status: 'Implémenté',
+    status: 'Implémenté' as ControlStatus,
     applicability: 'Applicable',
     maturity: 4,
-    category: 'Organisationnel',
+    type: 'Préventif', // Changed from category to type
     organizationId: 'org-123',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    lastUpdated: new Date().toISOString(), // Changed from updatedAt
     ...overrides
 } as Control);
 
@@ -165,11 +169,13 @@ const createMockAudit = (overrides: Partial<Audit> = {}): Audit => ({
 const createMockIncident = (overrides: Partial<Incident> = {}): Incident => ({
     id: 'incident-123',
     title: 'Security Incident',
-    severity: 'High',
-    status: 'Open',
+    description: 'Incident desc',
+    severity: Criticality.HIGH,
+    status: 'Nouveau' as IncidentStatus,
     dateReported: new Date('2024-03-15').toISOString(),
-    impact: 'Medium business impact',
+    impact: 'Majeur',
     organizationId: 'org-123',
+    reporter: 'Jane Doe',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides
@@ -179,7 +185,7 @@ const createMockAsset = (overrides: Partial<Asset> = {}): Asset => ({
     id: 'asset-123',
     name: 'Production Server',
     type: 'Server',
-    confidentiality: 'High',
+    confidentiality: 'Confidentiel', // Assuming 'Confidentiel' matches confidentiality type or string
     owner: 'IT Department',
     organizationId: 'org-123',
     createdAt: new Date().toISOString(),

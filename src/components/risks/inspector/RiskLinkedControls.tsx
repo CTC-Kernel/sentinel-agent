@@ -11,37 +11,11 @@ import { useNavigate } from 'react-router-dom';
 import { Risk, Control } from '../../../types';
 import { Badge } from '../../ui/Badge';
 import { Button } from '../../ui/button';
+import { calculateMitigationCoverage } from '../../../utils/riskEvaluation';
 
 interface RiskLinkedControlsProps {
     risk: Risk;
     controls: Control[];
-}
-
-/**
- * Calculate mitigation coverage percentage based on control implementation status
- */
-// eslint-disable-next-line react-refresh/only-export-components -- Utility function co-located with component for API cohesion
-export function calculateMitigationCoverage(linkedControls: Control[]): number {
-    if (linkedControls.length === 0) return 0;
-
-    const statusWeightMap: Record<string, number> = {
-        'Implémenté': 1.0,
-        'Actif': 1.0,
-        'Partiel': 0.5,
-        'En cours': 0.3,
-        'En revue': 0.2,
-        'Non commencé': 0.1,
-        'Non applicable': 0,
-        'Exclu': 0,
-        'Inactif': 0,
-        'Non appliqué': 0
-    };
-
-    const effectiveScore = linkedControls.reduce((sum, ctrl) => {
-        return sum + (statusWeightMap[ctrl.status] ?? 0);
-    }, 0);
-
-    return Math.min(Math.round((effectiveScore / linkedControls.length) * 100), 100);
 }
 
 /**
@@ -144,19 +118,17 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                             Couverture de Mitigation
                         </span>
-                        <span className={`text-lg font-black ${
-                            mitigationCoverage >= 80 ? 'text-emerald-600' :
-                            mitigationCoverage >= 50 ? 'text-amber-600' : 'text-red-600'
-                        }`}>
+                        <span className={`text-lg font-black ${mitigationCoverage >= 80 ? 'text-emerald-600' :
+                                mitigationCoverage >= 50 ? 'text-amber-600' : 'text-red-600'
+                            }`}>
                             {mitigationCoverage}%
                         </span>
                     </div>
                     <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div
-                            className={`h-full rounded-full transition-all ${
-                                mitigationCoverage >= 80 ? 'bg-emerald-500' :
-                                mitigationCoverage >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                            }`}
+                            className={`h-full rounded-full transition-all ${mitigationCoverage >= 80 ? 'bg-emerald-500' :
+                                    mitigationCoverage >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                }`}
                             style={{ width: `${mitigationCoverage}%` }}
                         />
                     </div>

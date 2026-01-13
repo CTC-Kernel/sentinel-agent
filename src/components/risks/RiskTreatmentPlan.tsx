@@ -136,14 +136,14 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
         return initial;
     });
 
-    const handleChange = (field: keyof RiskTreatment, value: string | number) => {
+    const handleChange = (field: keyof RiskTreatment, value: string | number | string[]) => {
         const updated = { ...treatment, [field]: value };
 
         // Recalculate SLA if relevant fields change
-        if (field === 'dueDate' || field === 'status') {
+        if ((field === 'dueDate' || field === 'status') && typeof value === 'string') {
             updated.slaStatus = calculateSLAStatus(
-                field === 'dueDate' ? String(value) : treatment.dueDate,
-                field === 'status' ? String(value) : (treatment.status || 'Planifié')
+                field === 'dueDate' ? value : treatment.dueDate,
+                field === 'status' ? value : (treatment.status || 'Planifié')
             );
         }
 
@@ -163,8 +163,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
     const removeMeasure = (index: number) => {
         const currentMeasures = treatment.measures || [];
         const newMeasures = currentMeasures.filter((_, i) => i !== index);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cast needed: handleChange expects string|number, but we're updating array
-        handleChange('measures' as any, newMeasures as any);
+        handleChange('measures', newMeasures);
         // Actually, let's just do manual update
         const updated = { ...treatment, measures: newMeasures };
         setTreatment(updated);
@@ -356,17 +355,15 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 <div className="flex items-center gap-1.5">
                                     <div className="w-16 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                         <div
-                                            className={`h-full rounded-full transition-all ${
-                                                mitigationCoverage >= 80 ? 'bg-emerald-500' :
+                                            className={`h-full rounded-full transition-all ${mitigationCoverage >= 80 ? 'bg-emerald-500' :
                                                 mitigationCoverage >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                            }`}
+                                                }`}
                                             style={{ width: `${mitigationCoverage}%` }}
                                         />
                                     </div>
-                                    <span className={`text-xs font-bold ${
-                                        mitigationCoverage >= 80 ? 'text-emerald-600' :
+                                    <span className={`text-xs font-bold ${mitigationCoverage >= 80 ? 'text-emerald-600' :
                                         mitigationCoverage >= 50 ? 'text-amber-600' : 'text-red-600'
-                                    }`}>
+                                        }`}>
                                         {mitigationCoverage}%
                                     </span>
                                 </div>

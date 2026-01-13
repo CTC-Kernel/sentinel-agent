@@ -19,6 +19,7 @@ import { UserProfile } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 import { UserRow } from './UserRow';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
+import { Switch } from '../ui/Switch';
 
 const SECONDS_TO_MS = 1000;
 
@@ -43,7 +44,17 @@ export const OrganizationSettings: React.FC = () => {
     const orgForm = useZodForm<typeof organizationSchema>({
         schema: organizationSchema,
         mode: 'onChange',
-        defaultValues: { orgName: '', address: '', vatNumber: '', contactEmail: '' }
+        defaultValues: {
+            orgName: '',
+            address: '',
+            vatNumber: '',
+            contactEmail: '',
+            aiSettings: {
+                enabled: true,
+                consentGiven: false,
+                dataSanitization: true
+            }
+        }
     });
 
     // Sync form with organization data
@@ -53,7 +64,12 @@ export const OrganizationSettings: React.FC = () => {
                 orgName: organization.name || '',
                 address: organization.address || '',
                 vatNumber: organization.vatNumber || '',
-                contactEmail: organization.contactEmail || ''
+                contactEmail: organization.contactEmail || '',
+                aiSettings: organization.settings?.aiSettings || {
+                    enabled: true,
+                    consentGiven: false,
+                    dataSanitization: true
+                }
             });
         }
     }, [organization, orgForm]);
@@ -67,7 +83,11 @@ export const OrganizationSettings: React.FC = () => {
                 name: data.orgName,
                 address: data.address,
                 vatNumber: data.vatNumber,
-                contactEmail: data.contactEmail
+                contactEmail: data.contactEmail,
+                settings: {
+                    ...currentOrg?.settings,
+                    aiSettings: data.aiSettings
+                }
             }));
 
             if (currentOrg?.name !== data.orgName) {
@@ -308,6 +328,64 @@ export const OrganizationSettings: React.FC = () => {
                                     {...orgForm.register('vatNumber')}
                                 />
                             </div>
+
+                            {/* AI & Privacy Section */}
+                            <div className="pt-6 border-t border-white/10">
+                                <h4 className="text-md font-semibold text-slate-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                                    <span className="text-brand-500">✨</span> {t('settings.aiPrivacyTitle', { defaultValue: 'Sentinel AI & Confidentialité' })}
+                                </h4>
+                                <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                                                {t('settings.enableAI', { defaultValue: 'Activer Sentinel AI' })}
+                                            </label>
+                                            <p className="text-xs text-slate-500 dark:text-gray-400 max-w-md">
+                                                {t('settings.enableAIDesc', { defaultValue: 'Permet l\'utilisation des fonctionnalités d\'intelligence artificielle pour l\'analyse de risques et la génération de contenu.' })}
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={!!orgForm.watch('aiSettings.enabled')}
+                                            onChange={(checked: boolean) => orgForm.setValue('aiSettings.enabled', checked, { shouldDirty: true })}
+                                        />
+                                    </div>
+
+                                    {orgForm.watch('aiSettings.enabled') && (
+                                        <>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                                                        {t('settings.dataSanitization', { defaultValue: 'Anonymisation des Données' })}
+                                                    </label>
+                                                    <p className="text-xs text-slate-500 dark:text-gray-400 max-w-md">
+                                                        {t('settings.dataSanitizationDesc', { defaultValue: 'Supprime automatiquement les noms, emails et numéros de téléphone avant l\'envoi aux modèles IA.' })}
+                                                    </p>
+                                                </div>
+                                                <Switch
+                                                    checked={!!orgForm.watch('aiSettings.dataSanitization')}
+                                                    onChange={(checked: boolean) => orgForm.setValue('aiSettings.dataSanitization', checked, { shouldDirty: true })}
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center justify-between opacity-80">
+                                                <div>
+                                                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                                                        {t('settings.aiConsent', { defaultValue: 'Consentement d\'analyse' })}
+                                                    </label>
+                                                    <p className="text-xs text-slate-500 dark:text-gray-400 max-w-md">
+                                                        {t('settings.aiConsentDesc', { defaultValue: 'J\'autorise Sentinel à traiter les données (anonymisées si activé) pour fournir des analyses.' })}
+                                                    </p>
+                                                </div>
+                                                <Switch
+                                                    checked={!!orgForm.watch('aiSettings.consentGiven')}
+                                                    onChange={(checked: boolean) => orgForm.setValue('aiSettings.consentGiven', checked, { shouldDirty: true })}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="flex justify-end pt-2">
                                 <Button type="submit" isLoading={savingOrg} disabled={savingOrg} className="min-w-[140px] shadow-lg shadow-brand-500/20">
                                     {t('settings.saveChanges')}
@@ -366,4 +444,3 @@ export const OrganizationSettings: React.FC = () => {
         </div>
     );
 };
-
