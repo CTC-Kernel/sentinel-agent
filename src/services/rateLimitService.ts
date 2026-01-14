@@ -183,7 +183,9 @@ class RateLimitService {
         return parsed;
       }
     } catch (error) {
-      ErrorLogger.error(error, 'RateLimitService.getBucket');
+      ErrorLogger.error(error, 'RateLimitService.getBucket - Corrupted data found, resetting bucket');
+      // If parsing fails, remove the corrupted key to prevent future errors
+      localStorage.removeItem(key);
     }
 
     // Initialiser un nouveau bucket

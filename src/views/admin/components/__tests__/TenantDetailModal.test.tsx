@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { TenantDetailModal } from '../TenantDetailModal';
 import { Organization } from '../../../../types';
 
@@ -254,7 +254,9 @@ describe('TenantDetailModal', () => {
         it('should call toggleTenantStatus when suspend button clicked', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
-            await clickButton('Suspend');
+            await act(async () => {
+                await clickButton('Suspend');
+            });
 
             await waitFor(() => {
                 expect(mockToggleTenantStatus).toHaveBeenCalledWith('tenant-123', false);
@@ -264,7 +266,9 @@ describe('TenantDetailModal', () => {
         it('should show success toast after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
-            await clickButton('Suspend');
+            await act(async () => {
+                await clickButton('Suspend');
+            });
 
             await waitFor(() => {
                 expect(mockToastSuccess).toHaveBeenCalledWith('Tenant suspended successfully');
@@ -274,7 +278,9 @@ describe('TenantDetailModal', () => {
         it('should call onUpdate after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
-            await clickButton('Suspend');
+            await act(async () => {
+                await clickButton('Suspend');
+            });
 
             await waitFor(() => {
                 expect(mockOnUpdate).toHaveBeenCalled();
@@ -284,7 +290,9 @@ describe('TenantDetailModal', () => {
         it('should call onClose after status toggle', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
-            await clickButton('Suspend');
+            await act(async () => {
+                await clickButton('Suspend');
+            });
 
             await waitFor(() => {
                 expect(mockOnClose).toHaveBeenCalled();
@@ -296,7 +304,9 @@ describe('TenantDetailModal', () => {
 
             render(<TenantDetailModal {...defaultProps} />);
 
-            await clickButton('Suspend');
+            await act(async () => {
+                await clickButton('Suspend');
+            });
 
             expect(mockToggleTenantStatus).not.toHaveBeenCalled();
         });
@@ -306,7 +316,9 @@ describe('TenantDetailModal', () => {
 
             render(<TenantDetailModal {...defaultProps} />);
 
-            await clickButton('Suspend');
+            await act(async () => {
+                await clickButton('Suspend');
+            });
 
             await waitFor(() => {
                 expect(mockToastError).toHaveBeenCalledWith('Status update failed');
@@ -374,7 +386,9 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
 
             const saveButton = screen.getByText('Save Changes');
-            fireEvent.click(saveButton);
+            await act(async () => {
+                fireEvent.click(saveButton);
+            });
 
             await waitFor(() => {
                 expect(mockUpdateTenantSubscription).toHaveBeenCalledWith(
@@ -389,7 +403,9 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
 
             const saveButton = screen.getByText('Save Changes');
-            fireEvent.click(saveButton);
+            await act(async () => {
+                fireEvent.click(saveButton);
+            });
 
             await waitFor(() => {
                 expect(mockToastSuccess).toHaveBeenCalledWith('Subscription updated successfully');
@@ -400,7 +416,9 @@ describe('TenantDetailModal', () => {
             render(<TenantDetailModal {...defaultProps} />);
 
             const saveButton = screen.getByText('Save Changes');
-            fireEvent.click(saveButton);
+            await act(async () => {
+                fireEvent.click(saveButton);
+            });
 
             await waitFor(() => {
                 expect(mockOnUpdate).toHaveBeenCalled();

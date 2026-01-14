@@ -52,13 +52,14 @@ describe('ModelLibraryContext', () => {
         it('should provide model library context', async () => {
             const { result } = renderHook(() => useModelLibrary(), { wrapper });
 
-            // Initial state has Group instances
-            expect(result.current).toBeDefined();
-            expect(result.current.asset).toBeDefined();
-            expect(result.current.risk).toBeDefined();
-            expect(result.current.incident).toBeDefined();
-            expect(result.current.supplier).toBeDefined();
-            expect(result.current.project).toBeDefined();
+            await waitFor(() => {
+                expect(result.current).toBeDefined();
+                expect(result.current!.asset).toBeDefined();
+                expect(result.current!.risk).toBeDefined();
+                expect(result.current!.incident).toBeDefined();
+                expect(result.current!.supplier).toBeDefined();
+                expect(result.current!.project).toBeDefined();
+            });
         });
 
         it('should load all 5 models', async () => {
@@ -140,8 +141,10 @@ describe('ModelLibraryContext', () => {
             const { result } = renderHook(() => useModelLibrary(), { wrapper });
 
             // Should have initial state regardless
-            expect(result.current).toBeDefined();
-            expect(result.current.asset).toBeDefined();
+            await waitFor(() => {
+                expect(result.current).toBeDefined();
+                expect(result.current!.asset).toBeDefined();
+            });
         });
     });
 
@@ -149,31 +152,41 @@ describe('ModelLibraryContext', () => {
         it('should have asset property', async () => {
             const { result } = renderHook(() => useModelLibrary(), { wrapper });
 
-            expect(result.current).toHaveProperty('asset');
+            await waitFor(() => {
+                expect(result.current!.asset).toBeDefined();
+            });
         });
 
         it('should have risk property', async () => {
             const { result } = renderHook(() => useModelLibrary(), { wrapper });
 
-            expect(result.current).toHaveProperty('risk');
+            await waitFor(() => {
+                expect(result.current!.risk).toBeDefined();
+            });
         });
 
         it('should have incident property', async () => {
             const { result } = renderHook(() => useModelLibrary(), { wrapper });
 
-            expect(result.current).toHaveProperty('incident');
+            await waitFor(() => {
+                expect(result.current!.incident).toBeDefined();
+            });
         });
 
         it('should have supplier property', async () => {
             const { result } = renderHook(() => useModelLibrary(), { wrapper });
 
-            expect(result.current).toHaveProperty('supplier');
+            await waitFor(() => {
+                expect(result.current!.supplier).toBeDefined();
+            });
         });
 
         it('should have project property', async () => {
             const { result } = renderHook(() => useModelLibrary(), { wrapper });
 
-            expect(result.current).toHaveProperty('project');
+            await waitFor(() => {
+                expect(result.current!.project).toBeDefined();
+            });
         });
     });
 });

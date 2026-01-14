@@ -52,15 +52,24 @@ describe('useComplianceScore', () => {
     vi.restoreAllMocks();
   });
 
-  it('should return loading state initially', () => {
+  it('should return loading state initially', async () => {
     const unsubscribe = vi.fn();
     vi.mocked(ScoreService.subscribeToScore).mockImplementation(() => unsubscribe);
-    vi.mocked(ScoreService.getScoreHistory).mockResolvedValue([]);
+    const mockInitialHistory = [{ date: '2026-01-01', global: 50 }];
+    vi.mocked(ScoreService.getScoreHistory).mockResolvedValue(mockInitialHistory);
 
     const { result } = renderHook(() => useComplianceScore('org-123'));
 
     expect(result.current.loading).toBe(true);
     expect(result.current.score).toBeNull();
+
+    // Wait for history fetch to complete to avoid act() warning
+    await waitFor(() => {
+      expect(result.current.history).toEqual(mockInitialHistory);
+    });
+
+    // Loading should still be true because we haven't received the score update yet
+    expect(result.current.loading).toBe(true);
   });
 
   it('should return null values when organizationId is undefined', async () => {
@@ -114,7 +123,7 @@ describe('useComplianceScore', () => {
     const unsubscribe = vi.fn();
     let capturedCallback: ((score: ComplianceScore | null) => void) | null = null;
 
-    vi.mocked(ScoreService.subscribeToScore).mockImplementation((orgId, callback) => {
+    vi.mocked(ScoreService.subscribeToScore).mockImplementation((_orgId, callback) => {
       capturedCallback = callback;
       return unsubscribe;
     });
@@ -143,7 +152,7 @@ describe('useComplianceScore', () => {
     const unsubscribe = vi.fn();
     const error = new Error('Subscription failed');
 
-    vi.mocked(ScoreService.subscribeToScore).mockImplementation((orgId, callback) => {
+    vi.mocked(ScoreService.subscribeToScore).mockImplementation((_orgId, callback) => {
       callback(null, error);
       return unsubscribe;
     });
@@ -214,7 +223,9 @@ describe('useComplianceScore', () => {
 
     expect(ScoreService.subscribeToScore).toHaveBeenCalledTimes(1);
 
-    rerender({ orgId: 'org-456' });
+    await act(async () => {
+      rerender({ orgId: 'org-456' });
+    });
 
     expect(unsubscribe).toHaveBeenCalled();
     expect(ScoreService.subscribeToScore).toHaveBeenCalledTimes(2);

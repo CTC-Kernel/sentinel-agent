@@ -154,7 +154,7 @@ describe('Reports View', () => {
     it('renders generation tab by default', () => {
         render(
             <HelmetProvider>
-                <MemoryRouter>
+                <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                     <Reports />
                 </MemoryRouter>
             </HelmetProvider>
@@ -167,7 +167,7 @@ describe('Reports View', () => {
 
     it('renders history tab', () => {
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Reports />
             </MemoryRouter>
         );
