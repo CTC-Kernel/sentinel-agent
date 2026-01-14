@@ -6,7 +6,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { RoleGuard } from '../RoleGuard';
 
 // Mock store
@@ -15,9 +14,16 @@ vi.mock('../../../store', () => ({
     useStore: () => mockUseStore()
 }));
 
-// Mock ContentBlockerError
 vi.mock('../../ui/ContentBlockerError', () => ({
     ContentBlockerError: () => React.createElement('div', { 'data-testid': 'content-blocker-error' }, 'Access Denied')
+}));
+
+// Mock react-router-dom to avoid routing hangs
+vi.mock('react-router-dom', () => ({
+    Navigate: ({ to }: { to: string }) => <div data-testid="navigate" data-to={to} />,
+    Outlet: () => <div data-testid="outlet" />,
+    useLocation: () => ({ pathname: '/test' }),
+    useNavigate: () => vi.fn()
 }));
 
 describe('RoleGuard', () => {
@@ -27,15 +33,13 @@ describe('RoleGuard', () => {
 
     it('should render children when user has allowed role', () => {
         mockUseStore.mockReturnValue({
-            user: { id: 'user-1', role: 'manager' }
+            user: { id: 'user-1', role: 'project_manager' }
         });
 
         render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <RoleGuard allowedRoles={['manager', 'admin']}>
-                    <div data-testid="protected-content">Protected</div>
-                </RoleGuard>
-            </BrowserRouter>
+            <RoleGuard allowedRoles={['project_manager', 'admin']}>
+                <div data-testid="protected-content">Protected</div>
+            </RoleGuard>
         );
 
         expect(screen.getByTestId('protected-content')).toBeInTheDocument();
@@ -47,11 +51,9 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <RoleGuard allowedRoles={['manager']}>
-                    <div data-testid="protected-content">Protected</div>
-                </RoleGuard>
-            </BrowserRouter>
+            <RoleGuard allowedRoles={['project_manager']}>
+                <div data-testid="protected-content">Protected</div>
+            </RoleGuard>
         );
 
         expect(screen.getByTestId('protected-content')).toBeInTheDocument();
@@ -63,14 +65,12 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <MemoryRouter initialEntries={['/admin']}>
-                <RoleGuard allowedRoles={['admin']}>
-                    <div>Protected</div>
-                </RoleGuard>
-            </MemoryRouter>
+            <RoleGuard allowedRoles={['admin']}>
+                <div>Protected</div>
+            </RoleGuard>
         );
 
-        expect(screen.queryByText('Protected')).not.toBeInTheDocument();
+        expect(screen.getByTestId('navigate')).toHaveAttribute('data-to', '/login');
     });
 
     it('should show access denied when user role not allowed', () => {
@@ -79,11 +79,9 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <RoleGuard allowedRoles={['admin', 'manager']}>
-                    <div>Protected</div>
-                </RoleGuard>
-            </BrowserRouter>
+            <RoleGuard allowedRoles={['admin', 'project_manager']}>
+                <div>Protected</div>
+            </RoleGuard>
         );
 
         expect(screen.getByTestId('content-blocker-error')).toBeInTheDocument();
@@ -96,11 +94,9 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <RoleGuard allowedRoles={['user']}>
-                    <div data-testid="protected-content">Protected</div>
-                </RoleGuard>
-            </BrowserRouter>
+            <RoleGuard allowedRoles={['user']}>
+                <div data-testid="protected-content">Protected</div>
+            </RoleGuard>
         );
 
         expect(screen.getByTestId('protected-content')).toBeInTheDocument();
@@ -112,11 +108,9 @@ describe('RoleGuard', () => {
         });
 
         render(
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <RoleGuard allowedRoles={['admin']}>
-                    <div>Protected</div>
-                </RoleGuard>
-            </BrowserRouter>
+            <RoleGuard allowedRoles={['admin']}>
+                <div>Protected</div>
+            </RoleGuard>
         );
 
         expect(screen.getByTestId('content-blocker-error')).toBeInTheDocument();
