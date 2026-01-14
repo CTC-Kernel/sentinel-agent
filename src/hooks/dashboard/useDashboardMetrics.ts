@@ -12,6 +12,7 @@ interface MetricInputs {
     userOrgId: string | undefined;
     aggregatedStats?: {
         totalRisks: number;
+        criticalRisks: number;
         highRisks: number;
         totalAssets: number;
     } | null;
@@ -134,14 +135,15 @@ export const useDashboardMetrics = ({
 
         // Use aggregated counts if available
         const totalRisksCount = aggregatedStats?.totalRisks ?? allRisks.length;
-        const criticalRisksCount = aggregatedStats?.highRisks ?? allRisks.filter(r => r.score >= 10).length;
+        const criticalRisksCount = aggregatedStats?.criticalRisks ?? allRisks.filter(r => r.score >= 15).length;
+        const highRisksCount = aggregatedStats?.highRisks ?? allRisks.filter(r => r.score >= 10 && r.score < 15).length;
 
         return {
             stats: {
                 risks: totalRisksCount,
                 assets: trueTotalAssets,
                 compliance: compScore,
-                highRisks: criticalRisksCount,
+                highRisks: highRisksCount,
                 auditsOpen: openAuditsCount,
                 activeIncidents: activeIncidentsCount,
                 assetValue: totalAssetValue,

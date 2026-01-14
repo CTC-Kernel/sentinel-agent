@@ -289,6 +289,30 @@
     }
   },
   "dashboard": {
+    "widgetCategories": {
+      "scoreKpi": "Indicateurs & Scores",
+      "risks": "Risques",
+      "actions": "Actions",
+      "audits": "Audits",
+      "other": "Autre"
+    },
+    "statsOverview": "Vue globale des indicateurs clés",
+    "maturityRadar": "Niveau de maturité par domaine",
+    "complianceProgress": "Progression Conformité",
+    "nis2doraConfig": "Configuration NIS2/DORA",
+    "executiveKpi": "KPI Exécutifs",
+    "rssiCriticalRisks": "Risques Critiques RSSI",
+    "rssiActions": "Actions RSSI",
+    "pmActionsOverdue": "Actions en retard",
+    "pmTimeline": "Chronologie",
+    "pmProgress": "Progression",
+    "cyberNews": "Actualités Cyber",
+    "incidentsStats": "Statistiques Incidents",
+    "documentsStats": "Statistiques Documents",
+    "assetStats": "Statistiques Actifs",
+    "suppliersStats": "Statistiques Fournisseurs",
+    "continuityPlans": "Plans de Continuité",
+    "rssiIncidents": "Incidents RSSI",
     "widgets": {
       "stats-overview": {
         "description": "Vue globale des indicateurs clés."
@@ -343,6 +367,33 @@
       },
       "system-health": {
         "description": "État de santé global du système."
+      },
+      "nis2-dora-kpi": {
+        "description": "Configuration des normes NIS2 et DORA."
+      },
+      "compliance-score": {
+        "description": "Score de conformité global."
+      },
+      "executive-kpi": {
+        "description": "KPI Exécutifs pour la direction."
+      },
+      "rssi-critical-risks": {
+        "description": "Focus sur les risques critiques pour le RSSI."
+      },
+      "rssi-incidents": {
+        "description": "Incidents de sécurité récents."
+      },
+      "rssi-actions": {
+        "description": "Actions prioritaires du RSSI."
+      },
+      "pm-actions-overdue": {
+        "description": "Liste des actions projet en retard."
+      },
+      "pm-timeline": {
+        "description": "Chronologie des projets en cours."
+      },
+      "pm-progress": {
+        "description": "État d'avancement global des projets."
       }
     },
     "actions": {

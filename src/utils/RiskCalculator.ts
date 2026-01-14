@@ -24,7 +24,7 @@ export const RiskCalculator = {
      * Scale: 1-25
      */
     getCriticalityLabel: (score: number): 'Faible' | 'Moyen' | 'Élevé' | 'Critique' => {
-        if (score >= 16) return 'Critique';
+        if (score >= 15) return 'Critique';
         if (score >= 10) return 'Élevé';
         if (score >= 5) return 'Moyen';
         return 'Faible';
@@ -34,7 +34,7 @@ export const RiskCalculator = {
      * Returns the color associated with the score.
      */
     getScoreColor: (score: number): string => {
-        if (score >= 16) return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400'; // Critique
+        if (score >= 15) return 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400'; // Critique
         if (score >= 10) return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400'; // Élevé
         if (score >= 5) return 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400'; // Moyen
         return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400'; // Faible
@@ -44,7 +44,7 @@ export const RiskCalculator = {
      * Returns the hex color for charts/matrices
      */
     getScoreHexColor: (score: number): string => {
-        if (score >= 16) return RISK_COLORS.critical;
+        if (score >= 15) return RISK_COLORS.critical;
         if (score >= 10) return RISK_COLORS.high;
         if (score >= 5) return STATUS_COLORS.warning;
         return STATUS_COLORS.success;

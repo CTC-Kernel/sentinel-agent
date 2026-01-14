@@ -54,7 +54,7 @@ export class StatsService {
             // Calculate metrics
             const criticalRisks = risks.filter(r => (r.score || 0) >= 15).length;
             const highRisks = risks.filter(r => (r.score || 0) >= 10 && (r.score || 0) < 15).length;
-            const openIncidents = incidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;
+            const openIncidents = incidents.filter(i => i.status !== 'Fermé').length;
             const activeProjects = projects.filter(p => p.status === 'En cours').length;
 
             const implementedControls = controls.filter(c => c.status === 'Implémenté').length;

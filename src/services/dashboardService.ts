@@ -77,6 +77,7 @@ export class DashboardService {
      */
     static async getAggregatedStats(organizationId: string): Promise<{
         totalRisks: number;
+        criticalRisks: number;
         highRisks: number;
         mediumRisks: number;
         lowRisks: number;
@@ -101,7 +102,8 @@ export class DashboardService {
         try {
             // queries
             const qTotalRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId));
-            const qHighRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 10));
+            const qCriticalRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 15));
+            const qHighRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 10), where('score', '<', 15));
             // Firestore composite index might be needed for range queries with other filters
             // We split medium risks query if it fails often, but let's try safe execution first
             const qMediumRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 5), where('score', '<', 10));
@@ -112,6 +114,7 @@ export class DashboardService {
 
             const [
                 totalRisks,
+                criticalRisks,
                 highRisks,
                 mediumRisks,
                 lowRisks,
@@ -120,6 +123,7 @@ export class DashboardService {
                 totalControls
             ] = await Promise.all([
                 safeCount(qTotalRisks, 'totalRisks'),
+                safeCount(qCriticalRisks, 'criticalRisks'),
                 safeCount(qHighRisks, 'highRisks'),
                 safeCount(qMediumRisks, 'mediumRisks'),
                 safeCount(qLowRisks, 'lowRisks'),
@@ -130,6 +134,7 @@ export class DashboardService {
 
             return {
                 totalRisks,
+                criticalRisks,
                 highRisks,
                 mediumRisks,
                 lowRisks,
@@ -145,6 +150,7 @@ export class DashboardService {
             ErrorLogger.error(_error, 'DashboardService.getAggregatedStats');
             return {
                 totalRisks: 0,
+                criticalRisks: 0,
                 highRisks: 0,
                 mediumRisks: 0,
                 lowRisks: 0,

@@ -44,10 +44,10 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
                 return "bg-amber-500 text-white shadow-sm shadow-amber-500/25";
 
             case 'error':
-                if (variant === 'outline') return "border border-rose-500 text-rose-600 dark:text-rose-400";
-                if (variant === 'glass') return "bg-rose-500/10 backdrop-blur-md text-rose-700 dark:text-rose-300 border border-rose-500/20 shadow-sm";
-                if (variant === 'soft') return "bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 border border-rose-100 dark:border-rose-900/30";
-                return "bg-rose-500 text-white shadow-sm shadow-rose-500/25";
+                if (variant === 'outline') return "border border-red-500 text-red-600 dark:text-red-400";
+                if (variant === 'glass') return "bg-red-500/10 backdrop-blur-md text-red-700 dark:text-red-300 border border-red-500/20 shadow-sm";
+                if (variant === 'soft') return "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-900/30";
+                return "bg-red-500 text-white shadow-sm shadow-red-500/25";
 
             case 'info':
                 if (variant === 'outline') return "border border-sky-500 text-sky-600 dark:text-sky-400";

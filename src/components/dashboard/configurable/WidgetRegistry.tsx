@@ -161,7 +161,7 @@ export const WIDGET_REGISTRY: Record<string, {
     'nis2-dora-kpi': {
         component: NIS2DoraKPIWidget,
         defaultColSpan: 1,
-        titleKey: 'Configuration NIS2/DORA'
+        titleKey: 'dashboard.nis2doraConfig'
     },
     // Story 2-2: Apple Health Style Score Gauge
     'compliance-score': {

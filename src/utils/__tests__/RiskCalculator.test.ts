@@ -52,13 +52,13 @@ describe('RiskCalculator', () => {
             expect(RiskCalculator.getCriticalityLabel(9)).toBe('Moyen');
         });
 
-        it('should return Élevé for score 10-15', () => {
+        it('should return Élevé for score 10-14', () => {
             expect(RiskCalculator.getCriticalityLabel(10)).toBe('Élevé');
-            expect(RiskCalculator.getCriticalityLabel(15)).toBe('Élevé');
+            expect(RiskCalculator.getCriticalityLabel(14)).toBe('Élevé');
         });
 
-        it('should return Critique for score >= 16', () => {
-            expect(RiskCalculator.getCriticalityLabel(16)).toBe('Critique');
+        it('should return Critique for score >= 15', () => {
+            expect(RiskCalculator.getCriticalityLabel(15)).toBe('Critique');
             expect(RiskCalculator.getCriticalityLabel(25)).toBe('Critique');
         });
     });

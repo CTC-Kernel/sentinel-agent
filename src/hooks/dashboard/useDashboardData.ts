@@ -30,6 +30,7 @@ export interface DashboardData {
     refreshCounts: () => Promise<void>;
     aggregatedStats?: {
         totalRisks: number;
+        criticalRisks: number;
         highRisks: number;
         totalAssets: number;
     } | null;
@@ -250,6 +251,7 @@ export const useDashboardData = (): DashboardData => {
     // New State for Aggregated Stats
     const [aggregatedStats, setAggregatedStats] = useState<{
         totalRisks: number;
+        criticalRisks: number;
         highRisks: number;
         totalAssets: number;
     } | null>(null);
@@ -299,6 +301,7 @@ export const useDashboardData = (): DashboardData => {
             setOpenAuditsCount(counts.openAuditsCount);
             setAggregatedStats({
                 totalRisks: stats.totalRisks,
+                criticalRisks: stats.criticalRisks,
                 highRisks: stats.highRisks,
                 totalAssets: stats.totalAssets
             });

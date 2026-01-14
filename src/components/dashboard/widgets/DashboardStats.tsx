@@ -13,8 +13,10 @@ interface DashboardStatsProps {
     stats: {
         totalRisks: number;
         highRisks: number;
+        criticalRisks: number;
         compliance: number;
         financialRisk: number;
+        assetValue: number;
     };
     loading: boolean;
     complianceScore: number;
@@ -187,12 +189,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                             </div>
                             <div className="flex items-end gap-2 mt-auto">
                                 <span className="text-3xl font-bold text-slate-900 dark:text-white">{stats.totalRisks}</span>
-                                <span className="text-xs font-medium text-red-500 mb-1.5">{activeIncidentsCount} critiques</span>
+                                <span className="text-xs font-medium text-red-500 mb-1.5">{stats.criticalRisks} critiques</span>
                             </div>
                             <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden">
                                 <div
-                                    className="bg-orange-500 h-full rounded-full"
-                                    style={{ width: `${Math.min(100, (stats.highRisks / (stats.totalRisks || 1)) * 100)}%` }}
+                                    className="bg-red-500 h-full rounded-full"
+                                    style={{ width: `${Math.min(100, (stats.criticalRisks / (stats.totalRisks || 1)) * 100)}%` }}
                                 />
                             </div>
                         </div>
@@ -249,12 +251,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 <div className="text-xl font-bold text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
                                     {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
                                 </div>
-                                <span className="text-xs font-medium text-blue-500 cursor-help" title="Calculé sur la base des 5 risques les plus critiques et de la valeur des actifs associés.">* Exposition estimée</span>
+                                <span className="text-xs font-medium text-blue-500 cursor-help" title="Calculé sur la base de l'exposition au risque et de la valeur des actifs (Top 20 risques).">* Exposition estimée</span>
                             </div>
                             <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden">
                                 <div
                                     className="bg-blue-500 h-full rounded-full"
-                                    style={{ width: '35%' }} // Mock trend or relative value
+                                    style={{ width: `${Math.min(100, Math.max(5, (stats.financialRisk / (stats.assetValue || 1)) * 100))}%` }}
                                 />
                             </div>
                         </div>
