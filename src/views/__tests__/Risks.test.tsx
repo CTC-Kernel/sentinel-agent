@@ -15,14 +15,7 @@ vi.mock('../../hooks/useFirestore', () => ({
     useFirestoreCollection: vi.fn(),
 }));
 
-vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...props }: { children: React.ReactNode;[key: string]: unknown }) => <div {...props}>{children}</div>,
-        span: ({ children, ...props }: { children: React.ReactNode;[key: string]: unknown }) => <span {...props}>{children}</span>,
-    },
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    useAnimation: () => ({ start: vi.fn() }),
-}));
+
 
 vi.mock('../../components/risks/RiskList', () => ({
     RiskList: () => <div data-testid="risk-list">Aucun risque identifié</div>
