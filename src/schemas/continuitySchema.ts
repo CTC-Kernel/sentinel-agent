@@ -36,7 +36,7 @@ export type BcpDrillFormData = z.infer<typeof bcpDrillSchema>;
 
 export const strategySchema = z.object({
     title: z.string().trim().min(1, 'Titre requis').max(100, 'Titre trop long'),
-    type: z.enum(['Active-Active', 'Active-Passive', 'Cold Standby', 'Cloud DR']),
+    type: z.enum(['Active-Active', 'Active-Passive', 'Cold Standby', 'Cloud DR', 'Backup Only']),
     rto: z.string().trim().min(1, 'RTO requis').max(20, 'RTO trop long'),
     rpo: z.string().trim().min(1, 'RPO requis').max(20, 'RPO trop long'),
     description: z.string().trim().optional(),
