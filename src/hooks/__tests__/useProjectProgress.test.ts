@@ -50,12 +50,15 @@ describe('useProjectProgress', () => {
     vi.clearAllMocks();
   });
 
-  it('should return default progress when no tenantId', () => {
+  it('should return default progress when no tenantId', async () => {
     const { result } = renderHook(() => useProjectProgress(undefined));
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
 
     expect(result.current.progress.overall).toBe(0);
     expect(result.current.progress.controls.total).toBe(0);
-    expect(result.current.loading).toBe(false);
   });
 
   it('should return progress data structure', async () => {

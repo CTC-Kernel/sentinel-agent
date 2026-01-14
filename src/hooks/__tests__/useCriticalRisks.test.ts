@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useCriticalRisks } from '../useCriticalRisks';
 
 // Mock Firebase
@@ -40,17 +40,15 @@ describe('useCriticalRisks', () => {
     const mockUnsubscribe = vi.fn();
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
       // Simulate snapshot with 3 critical risks
-      setTimeout(() => {
-        const mockSnapshot = {
-          size: 3,
-          docs: [
-            { data: () => ({ impact: 5, probability: 4 }) }, // score: 20 (critical)
-            { data: () => ({ impact: 4, probability: 4 }) }, // score: 16 (critical)
-            { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
-          ]
-        };
-        (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
-      }, 0);
+      const mockSnapshot = {
+        size: 3,
+        docs: [
+          { data: () => ({ impact: 5, probability: 4 }) }, // score: 20 (critical)
+          { data: () => ({ impact: 4, probability: 4 }) }, // score: 16 (critical)
+          { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
+        ]
+      };
+      (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
       return mockUnsubscribe;
     });
 
@@ -65,19 +63,17 @@ describe('useCriticalRisks', () => {
 
   it('should set initial trend to stable', async () => {
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
-      setTimeout(() => {
-        const mockSnapshot = {
-          size: 5,
-          docs: [
-            { data: () => ({ impact: 5, probability: 4 }) }, // score: 20 (critical)
-            { data: () => ({ impact: 4, probability: 4 }) }, // score: 16 (critical)
-            { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
-            { data: () => ({ impact: 2, probability: 2 }) }, // score: 4 (not critical)
-            { data: () => ({ impact: 1, probability: 1 }) }, // score: 1 (not critical)
-          ]
-        };
-        (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
-      }, 0);
+      const mockSnapshot = {
+        size: 5,
+        docs: [
+          { data: () => ({ impact: 5, probability: 4 }) }, // score: 20 (critical)
+          { data: () => ({ impact: 4, probability: 4 }) }, // score: 16 (critical)
+          { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
+          { data: () => ({ impact: 2, probability: 2 }) }, // score: 4 (not critical)
+          { data: () => ({ impact: 1, probability: 1 }) }, // score: 1 (not critical)
+        ]
+      };
+      (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
       return () => { };
     });
 
@@ -93,9 +89,7 @@ describe('useCriticalRisks', () => {
   it('should handle errors', async () => {
     const mockError = new Error('Test error');
     vi.mocked(onSnapshot).mockImplementation((_, __, onError) => {
-      setTimeout(() => {
-        (onError as unknown as (error: Error) => void)(mockError);
-      }, 0);
+      (onError as unknown as (error: Error) => void)(mockError);
       return () => { };
     });
 
@@ -123,15 +117,13 @@ describe('useCriticalRisks', () => {
     let callCount = 0;
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
       callCount++;
-      setTimeout(() => {
-        const mockSnapshot = {
-          size: callCount,
-          docs: Array(callCount).fill(null).map(() => ({
-            data: () => ({ impact: 5, probability: 4 }) // score: 20 (critical)
-          }))
-        };
-        (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
-      }, 0);
+      const mockSnapshot = {
+        size: callCount,
+        docs: Array(callCount).fill(null).map(() => ({
+          data: () => ({ impact: 5, probability: 4 }) // score: 20 (critical)
+        }))
+      };
+      (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
       return () => { };
     });
 
@@ -142,7 +134,9 @@ describe('useCriticalRisks', () => {
     });
 
     // Call refetch
-    result.current.refetch();
+    act(() => {
+      result.current.refetch();
+    });
 
     await waitFor(() => {
       expect(callCount).toBeGreaterThan(1);
@@ -151,16 +145,14 @@ describe('useCriticalRisks', () => {
 
   it('should return zero count when no critical risks', async () => {
     vi.mocked(onSnapshot).mockImplementation((_, onNext) => {
-      setTimeout(() => {
-        const mockSnapshot = {
-          size: 2,
-          docs: [
-            { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
-            { data: () => ({ impact: 2, probability: 2 }) }, // score: 4 (not critical)
-          ]
-        };
-        (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
-      }, 0);
+      const mockSnapshot = {
+        size: 2,
+        docs: [
+          { data: () => ({ impact: 3, probability: 3 }) }, // score: 9 (not critical)
+          { data: () => ({ impact: 2, probability: 2 }) }, // score: 4 (not critical)
+        ]
+      };
+      (onNext as (snapshot: QuerySnapshot<DocumentData>) => void)(mockSnapshot as unknown as QuerySnapshot<DocumentData>);
       return () => { };
     });
 
