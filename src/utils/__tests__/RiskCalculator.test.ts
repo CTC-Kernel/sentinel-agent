@@ -110,10 +110,12 @@ describe('RiskCalculator', () => {
     describe('sanitizeRisk', () => {
         const baseRisk: Risk = {
             id: 'risk-1',
-            name: 'Test Risk',
-            description: 'Test description',
+            assetId: 'asset-1',
+            threat: 'Test Threat',
+            vulnerability: 'Test Vulnerability',
+
             category: 'Operational',
-            status: 'Identified',
+            status: 'Ouvert',
             probability: 3,
             impact: 4,
             residualProbability: 2,
@@ -121,7 +123,7 @@ describe('RiskCalculator', () => {
             score: 12,
             residualScore: 6,
             owner: 'John Doe',
-            mitigationStrategy: 'Mitigation',
+            strategy: 'Atténuer',
             organizationId: 'org-1',
             createdAt: '2024-01-15',
             updatedAt: '2024-01-15'
@@ -142,14 +144,14 @@ describe('RiskCalculator', () => {
         });
 
         it('should default invalid probability to 1', () => {
-            const risk = { ...baseRisk, probability: NaN as unknown as Risk['probability'] };
+            const risk = { ...baseRisk, probability: NaN } as unknown as Risk;
             const sanitized = RiskCalculator.sanitizeRisk(risk);
 
             expect(sanitized.probability).toBe(1);
         });
 
         it('should default invalid impact to 1', () => {
-            const risk = { ...baseRisk, impact: undefined as unknown as Risk['impact'] };
+            const risk = { ...baseRisk, impact: undefined } as unknown as Risk;
             const sanitized = RiskCalculator.sanitizeRisk(risk);
 
             expect(sanitized.impact).toBe(1);
@@ -159,8 +161,8 @@ describe('RiskCalculator', () => {
             const risk = {
                 ...baseRisk,
                 probability: 4,
-                residualProbability: NaN as unknown as Risk['probability']
-            };
+                residualProbability: NaN
+            } as unknown as Risk;
             const sanitized = RiskCalculator.sanitizeRisk(risk);
 
             expect(sanitized.residualProbability).toBe(4);
@@ -170,8 +172,8 @@ describe('RiskCalculator', () => {
             const risk = {
                 ...baseRisk,
                 impact: 5,
-                residualImpact: undefined as unknown as Risk['impact']
-            };
+                residualImpact: undefined
+            } as unknown as Risk;
             const sanitized = RiskCalculator.sanitizeRisk(risk);
 
             expect(sanitized.residualImpact).toBe(5);

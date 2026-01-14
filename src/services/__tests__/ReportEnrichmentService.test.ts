@@ -16,16 +16,19 @@ import { Risk, Project, Control } from '../../types';
 // Helper to create mock risks
 const createMockRisk = (overrides: Partial<Risk> = {}): Risk => ({
     id: `risk-${Math.random().toString(36).substr(2, 9)}`,
-    name: 'Test Risk',
-    description: 'Test description',
+    threat: 'Test Risk',
+    assetId: 'asset-123',
+    vulnerability: 'vuln-1',
     probability: 3,
     impact: 3,
+    score: 9,
     category: 'Opérationnel',
-    status: 'Identifié',
+    strategy: 'Atténuer',
+    status: 'Ouvert',
+    owner: 'owner-123',
     treatment: {
-        strategy: 'Atténuation',
-        status: 'Non commencé',
-        plan: ''
+        strategy: 'Atténuer',
+        status: 'Planifié'
     },
     organizationId: 'org-123',
     createdAt: new Date().toISOString(),
@@ -54,7 +57,7 @@ const createMockProject = (overrides: Partial<Project> = {}): Project => ({
 const createMockControl = (overrides: Partial<Control> = {}): Control => ({
     id: 'control-123',
     reference: 'A.5.1',
-    title: 'Test Control',
+    name: 'Test Control',
     description: 'Test description',
     status: 'Implémenté',
     category: 'Organisationnel',
@@ -160,10 +163,10 @@ describe('ReportEnrichmentService', () => {
 
         it('should calculate treated percentage correctly', () => {
             const risks = [
-                createMockRisk({ treatment: { strategy: 'Atténuation', status: 'Terminé', plan: '' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuation', status: 'En cours', plan: '' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuation', status: 'Planifié', plan: '' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuation', status: 'Non commencé', plan: '' } })
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Terminé' } }),
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'En cours' } }),
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }),
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'En cours' } })
             ];
 
             const result = ReportEnrichmentService.calculateMetrics(risks);
@@ -174,8 +177,10 @@ describe('ReportEnrichmentService', () => {
 
         it('should handle risks with missing probability/impact', () => {
             const risks = [
-                createMockRisk({ probability: undefined as unknown as number, impact: 3 }),
-                createMockRisk({ probability: 3, impact: undefined as unknown as number })
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                createMockRisk({ probability: undefined as unknown as any, impact: 3 as 1 | 2 | 3 | 4 | 5 }),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                createMockRisk({ probability: 3 as 1 | 2 | 3 | 4 | 5, impact: undefined as unknown as any })
             ];
 
             const result = ReportEnrichmentService.calculateMetrics(risks);
@@ -206,19 +211,19 @@ describe('ReportEnrichmentService', () => {
 
         it('should return top 5 risks sorted by severity', () => {
             const risks = [
-                createMockRisk({ name: 'Low', probability: 1, impact: 1 }),
-                createMockRisk({ name: 'Critical', probability: 5, impact: 5 }),
-                createMockRisk({ name: 'Medium', probability: 3, impact: 2 }),
-                createMockRisk({ name: 'High', probability: 4, impact: 3 }),
-                createMockRisk({ name: 'Medium2', probability: 2, impact: 3 }),
-                createMockRisk({ name: 'Low2', probability: 2, impact: 1 })
+                createMockRisk({ threat: 'Low', probability: 1, impact: 1 }),
+                createMockRisk({ threat: 'Critical', probability: 5, impact: 5 }),
+                createMockRisk({ threat: 'Medium', probability: 3, impact: 2 }),
+                createMockRisk({ threat: 'High', probability: 4, impact: 3 }),
+                createMockRisk({ threat: 'Medium2', probability: 2, impact: 3 }),
+                createMockRisk({ threat: 'Low2', probability: 2, impact: 1 })
             ];
 
             const result = ReportEnrichmentService.analyzeRiskPortfolio(risks);
 
             expect(result.top_risks).toHaveLength(5);
-            expect(result.top_risks[0].name).toBe('Critical'); // 25
-            expect(result.top_risks[1].name).toBe('High');     // 12
+            expect(result.top_risks[0].threat).toBe('Critical'); // 25
+            expect(result.top_risks[1].threat).toBe('High');     // 12
         });
 
         it('should generate recommendations for critical risks', () => {
@@ -251,10 +256,10 @@ describe('ReportEnrichmentService', () => {
 
         it('should generate recommendations for low treatment coverage', () => {
             const risks = [
-                createMockRisk({ treatment: { strategy: 'Atténuation', status: 'Non commencé', plan: '' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuation', status: 'Non commencé', plan: '' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuation', status: 'Non commencé', plan: '' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuation', status: 'Non commencé', plan: '' } })
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }),
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }),
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }),
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Retard' } })
             ];
 
             const result = ReportEnrichmentService.analyzeRiskPortfolio(risks);

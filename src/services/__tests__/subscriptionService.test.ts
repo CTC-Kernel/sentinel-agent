@@ -186,7 +186,8 @@ describe('SubscriptionService', () => {
                 }),
             });
 
-            const hasCustomReports = await SubscriptionService.hasFeature('org-123', 'customReports');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const hasCustomReports = await SubscriptionService.hasFeature('org-123', 'customReports' as any);
             expect(hasCustomReports).toBe(false);
 
             const hasApiAccess = await SubscriptionService.hasFeature('org-123', 'apiAccess');
@@ -201,7 +202,8 @@ describe('SubscriptionService', () => {
                 }),
             });
 
-            const hasCustomReports = await SubscriptionService.hasFeature('org-123', 'customReports');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const hasCustomReports = await SubscriptionService.hasFeature('org-123', 'customReports' as any);
             expect(hasCustomReports).toBe(true);
 
             const hasApiAccess = await SubscriptionService.hasFeature('org-123', 'apiAccess');
@@ -216,7 +218,8 @@ describe('SubscriptionService', () => {
                 }),
             });
 
-            const hasAdvanced = await SubscriptionService.hasFeature('org-123', 'advancedAnalytics');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const hasAdvanced = await SubscriptionService.hasFeature('org-123', 'advancedAnalytics' as any);
             expect(hasAdvanced).toBe(true);
         });
     });

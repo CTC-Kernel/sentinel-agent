@@ -29,17 +29,11 @@ export function createDocument(options: DocumentFactoryOptions = {}): Document {
         description: `Description for document ${documentCounter}`,
         type: options.type || 'Politique',
         status: options.status || 'Brouillon',
-        category: options.category || 'Security',
         version: options.version || '1.0',
         owner: 'Document Owner',
         ownerId: options.ownerId || 'user-1',
-        fileUrl: `https://storage.example.com/docs/${id}.pdf`,
-        fileName: `document-${documentCounter}.pdf`,
-        fileSize: 1024 * 100, // 100KB
-        mimeType: 'application/pdf',
-        relatedControlIds: [],
+        url: `https://storage.example.com/docs/${id}.pdf`,
         relatedRiskIds: [],
-        tags: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };

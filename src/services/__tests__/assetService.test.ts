@@ -251,7 +251,7 @@ describe('AssetService', () => {
             const result = await AssetService.getAssetHistory('Server 1', 'org-1');
 
             expect(result.logs).toHaveLength(2);
-            expect(result.logs.every(l => l.details.includes('Server 1'))).toBe(true);
+            expect(result.logs.every(l => l.details?.includes('Server 1'))).toBe(true);
         });
 
         it('should return empty array when no logs found', async () => {

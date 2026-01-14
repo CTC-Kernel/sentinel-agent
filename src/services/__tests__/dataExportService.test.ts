@@ -40,7 +40,7 @@ vi.mock('jszip', () => {
         default: vi.fn().mockImplementation(() => ({
             file: vi.fn(),
             generateAsync: vi.fn(() => Promise.resolve(new Blob(['test'], { type: 'application/zip' })))
-        }))
+        } as unknown as any)) // eslint-disable-line @typescript-eslint/no-explicit-any
     };
 });
 
@@ -129,7 +129,7 @@ describe('DataExportService', () => {
             vi.mocked(JSZip).mockImplementationOnce(() => ({
                 file: vi.fn(),
                 generateAsync: vi.fn().mockRejectedValueOnce(new Error('ZIP error'))
-            }));
+            } as unknown as any));
 
             await expect(DataExportService.exportOrganizationData('org-1')).rejects.toThrow();
         });

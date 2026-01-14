@@ -43,7 +43,7 @@ describe('uploadFile', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // Setup default success behavior for upload
-        mockOn.mockImplementation((event, onProgress, onError, onSuccess) => {
+        mockOn.mockImplementation((event, onProgress, _onError, onSuccess) => {
             if (event === 'state_changed') {
                 // Simulate progress
                 onProgress({ bytesTransferred: 50, totalBytes: 100 });
@@ -95,7 +95,7 @@ describe('uploadFile', () => {
     });
 
     it('should reject on upload error', async () => {
-        mockOn.mockImplementation((event, onProgress, onError) => {
+        mockOn.mockImplementation((event, _onProgress, onError) => {
             if (event === 'state_changed') {
                 onError(new Error('Upload failed'));
             }
@@ -110,7 +110,7 @@ describe('uploadFile', () => {
         const { getDownloadURL } = await import('firebase/storage');
         vi.mocked(getDownloadURL).mockRejectedValueOnce(new Error('URL error'));
 
-        mockOn.mockImplementation((event, onProgress, onError, onSuccess) => {
+        mockOn.mockImplementation((event, _onProgress, _onError, onSuccess) => {
             if (event === 'state_changed') {
                 setTimeout(() => onSuccess(), 0);
             }

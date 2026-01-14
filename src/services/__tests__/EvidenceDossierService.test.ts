@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Control, Document } from '../../types';
+import { Control, Document, ControlStatus } from '../../types';
 
 // Mock jsPDF
 const mockSave = vi.fn();
@@ -99,7 +99,7 @@ describe('EvidenceDossierService', () => {
 
     describe('generateEvidenceDossier', () => {
         const mockOptions = {
-            framework: 'ISO 27001' as const,
+            framework: 'ISO27001' as const,
             organizationName: 'Test Organization',
             generatedBy: 'John Doe'
         };
@@ -111,7 +111,7 @@ describe('EvidenceDossierService', () => {
             generateEvidenceDossier(controls, documents, mockOptions);
 
             expect(mockSave).toHaveBeenCalledWith(
-                expect.stringMatching(/Evidence_Dossier_ISO 27001_\d{4}-\d{2}-\d{2}\.pdf/)
+                expect.stringMatching(/Evidence_Dossier_ISO27001_\d{4}-\d{2}-\d{2}\.pdf/)
             );
         });
 
@@ -128,7 +128,7 @@ describe('EvidenceDossierService', () => {
                 expect.any(Object)
             );
             expect(mockText).toHaveBeenCalledWith(
-                'Référentiel: ISO 27001',
+                'Référentiel: ISO27001',
                 expect.any(Number),
                 expect.any(Number),
                 expect.any(Object)
@@ -166,7 +166,7 @@ describe('EvidenceDossierService', () => {
         it('should work without organization name', () => {
             const controls = [createMockControl()];
             const documents: Document[] = [];
-            const options = { framework: 'ISO 27001' as const };
+            const options = { framework: 'ISO27001' as const };
 
             generateEvidenceDossier(controls, documents, options);
 
@@ -368,12 +368,12 @@ describe('EvidenceDossierService', () => {
 
     describe('status text mapping', () => {
         it('should display correct status indicators', () => {
-            const statuses = ['Implémenté', 'Partiel', 'En cours', 'Non commencé', 'Non applicable'];
+            const statuses: ControlStatus[] = ['Implémenté', 'Partiel', 'En cours', 'Non commencé', 'Non applicable'];
 
             statuses.forEach(status => {
                 const controls = [createMockControl({ status })];
                 generateEvidenceDossier(controls, [], {
-                    framework: 'ISO 27001' as const
+                    framework: 'ISO27001' as const
                 });
             });
 
@@ -390,7 +390,7 @@ describe('EvidenceDossierService', () => {
                 createMockControl({ code: 'A.5.2.1' })
             ];
 
-            generateEvidenceDossier(controls, [], { framework: 'ISO 27001' as const });
+            generateEvidenceDossier(controls, [], { framework: 'ISO27001' as const });
 
             // Should group all A.5 controls together
             expect(mockSave).toHaveBeenCalled();
@@ -404,7 +404,7 @@ describe('EvidenceDossierService', () => {
                 createMockControl({ code: 'A.8.1.1' })
             ];
 
-            generateEvidenceDossier(controls, [], { framework: 'ISO 27001' as const });
+            generateEvidenceDossier(controls, [], { framework: 'ISO27001' as const });
 
             // Should create sections for each domain
             expect(mockAddPage).toHaveBeenCalled();
@@ -419,7 +419,7 @@ describe('EvidenceDossierService', () => {
                 createMockControl({ code: 'A.6.1.1' })
             ];
 
-            generateEvidenceDossier(controls, [], { framework: 'ISO 27001' as const });
+            generateEvidenceDossier(controls, [], { framework: 'ISO27001' as const });
 
             expect(mockText).toHaveBeenCalledWith(
                 'Table des Matières',
@@ -436,7 +436,7 @@ describe('EvidenceDossierService', () => {
                 createMockControl({ code: 'A.5.1.2' })
             ];
 
-            generateEvidenceDossier(controls, [], { framework: 'ISO 27001' as const });
+            generateEvidenceDossier(controls, [], { framework: 'ISO27001' as const });
 
             expect(mockText).toHaveBeenCalledWith(
                 'Récapitulatif des Preuves',
@@ -451,7 +451,7 @@ describe('EvidenceDossierService', () => {
                 createMockControl({ name: longName })
             ];
 
-            generateEvidenceDossier(controls, [], { framework: 'ISO 27001' as const });
+            generateEvidenceDossier(controls, [], { framework: 'ISO27001' as const });
 
             expect(mockSave).toHaveBeenCalled();
         });
@@ -469,7 +469,7 @@ describe('EvidenceDossierService', () => {
                 })
             ];
 
-            generateEvidenceDossier(controls, documents, { framework: 'ISO 27001' as const });
+            generateEvidenceDossier(controls, documents, { framework: 'ISO27001' as const });
 
             // Should include formatted date
             expect(mockSave).toHaveBeenCalled();

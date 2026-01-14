@@ -13,9 +13,8 @@ export interface ControlFactoryOptions {
     code?: string;
     name?: string;
     status?: Control['status'];
-    framework?: string;
-    category?: string;
-    priority?: Control['priority'];
+    framework?: Control['framework'];
+
 }
 
 export function createControl(options: ControlFactoryOptions = {}): Control {
@@ -28,18 +27,12 @@ export function createControl(options: ControlFactoryOptions = {}): Control {
         code: options.code || `A.${controlCounter}.1`,
         name: options.name || `Test Control ${controlCounter}`,
         description: `Description for control ${controlCounter}`,
-        status: options.status || 'Non implémenté',
+        status: options.status || 'Non commencé',
         framework: options.framework || 'ISO27001',
-        category: options.category || 'Organizational',
-        priority: options.priority || 'Moyenne',
         owner: 'Control Owner',
-        ownerId: 'user-1',
-        evidenceIds: [],
-        linkedRiskIds: [],
-        implementationDate: undefined,
-        reviewDate: undefined,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+
+
+
     };
 }
 

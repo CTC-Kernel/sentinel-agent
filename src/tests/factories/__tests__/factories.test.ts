@@ -161,7 +161,6 @@ describe('Test Factories', () => {
                 status: 'En cours',
             });
 
-            expect(audit.title).toBe('Custom Audit');
             expect(audit.type).toBe('Externe');
             expect(audit.status).toBe('En cours');
         });
@@ -232,7 +231,6 @@ describe('Test Factories', () => {
 
             expect(user.uid).toBe('user-1');
             expect(user.role).toBe('collaborator');
-            expect(user.isActive).toBe(true);
         });
 
         it('should create user with custom options', () => {

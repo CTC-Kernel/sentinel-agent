@@ -94,8 +94,9 @@ describe('IntakeService', () => {
     describe('submitAsset', () => {
         it('should submit asset data to cloud function', async () => {
             const { httpsCallable } = await import('firebase/functions');
-            const mockCallable = vi.fn(() => Promise.resolve());
-            vi.mocked(httpsCallable).mockReturnValue(mockCallable as ReturnType<typeof httpsCallable>);
+            const mockIdentifyFn = vi.fn().mockResolvedValue({ data: {} });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            vi.mocked(httpsCallable).mockReturnValue(mockIdentifyFn as unknown as any);
 
             const data: AssetSubmissionData = {
                 name: 'Test Asset',
@@ -109,7 +110,7 @@ describe('IntakeService', () => {
                     cpu: 'Intel',
                     memory: '16GB',
                     storage: '512GB'
-                } as AssetSubmissionData['hardware']
+                } as unknown as AssetSubmissionData['hardware']
             };
 
             await IntakeService.submitAsset(data);
@@ -118,13 +119,14 @@ describe('IntakeService', () => {
                 expect.anything(),
                 'submitKioskAsset'
             );
-            expect(mockCallable).toHaveBeenCalledWith(data);
+            expect(mockIdentifyFn).toHaveBeenCalledWith(data);
         });
 
         it('should throw on error', async () => {
             const { httpsCallable } = await import('firebase/functions');
             vi.mocked(httpsCallable).mockReturnValue(
-                vi.fn().mockRejectedValueOnce(new Error('Function error')) as ReturnType<typeof httpsCallable>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                vi.fn().mockRejectedValueOnce(new Error('Function error')) as unknown as any
             );
 
             const data: AssetSubmissionData = {
@@ -144,7 +146,8 @@ describe('IntakeService', () => {
         it('should log errors', async () => {
             const { httpsCallable } = await import('firebase/functions');
             vi.mocked(httpsCallable).mockReturnValue(
-                vi.fn().mockRejectedValueOnce(new Error('Function error')) as ReturnType<typeof httpsCallable>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                vi.fn().mockRejectedValueOnce(new Error('Function error')) as unknown as any
             );
             const { ErrorLogger } = await import('../errorLogger');
 
@@ -198,7 +201,16 @@ describe('AssetSubmissionData interface', () => {
             hardware: {
                 cpu: 'AMD Ryzen',
                 memory: '32GB',
-                storage: '1TB'
+                storage: '1TB',
+                gpu: 'Nvidia',
+                cpuCores: 16,
+                ram: '32GB',
+                os: 'Windows 11',
+                browser: 'Firefox',
+                deviceType: 'Desktop',
+                screenResolution: '2560x1440',
+                isMobile: false,
+                userAgent: 'Mozilla/5.0...'
             } as AssetSubmissionData['hardware']
         };
 

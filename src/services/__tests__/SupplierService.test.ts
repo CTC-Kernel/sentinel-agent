@@ -58,7 +58,9 @@ describe('SupplierService', () => {
         const createTemplate = (sections: QuestionnaireTemplate['sections']): QuestionnaireTemplate => ({
             id: 'template-1',
             organizationId: 'org-1',
-            name: 'Test Template',
+            title: 'Test Template',
+            description: 'Test Description',
+            createdBy: 'user-1',
             sections,
             createdAt: '',
             updatedAt: '',
@@ -71,8 +73,8 @@ describe('SupplierService', () => {
                     title: 'Security',
                     weight: 1,
                     questions: [
-                        { id: 'q1', text: 'Has ISO 27001?', type: 'yes_no', weight: 1 },
-                        { id: 'q2', text: 'Has GDPR policy?', type: 'yes_no', weight: 1 },
+                        { id: 'q1', text: 'Has ISO 27001?', type: 'yes_no', weight: 1, required: true },
+                        { id: 'q2', text: 'Has GDPR policy?', type: 'yes_no', weight: 1, required: true },
                     ],
                 },
             ]);
@@ -85,8 +87,8 @@ describe('SupplierService', () => {
                 templateId: 'template-1',
                 status: 'Submitted',
                 answers: {
-                    q1: { questionId: 'q1', value: true },
-                    q2: { questionId: 'q2', value: false },
+                    q1: { value: true },
+                    q2: { value: false },
                 },
                 overallScore: 0,
                 sentDate: '',
@@ -105,7 +107,7 @@ describe('SupplierService', () => {
                     title: 'Security',
                     weight: 1,
                     questions: [
-                        { id: 'q1', text: 'Rate security', type: 'rating', weight: 1 },
+                        { id: 'q1', text: 'Rate security', type: 'rating', weight: 1, required: true },
                     ],
                 },
             ]);
@@ -118,7 +120,7 @@ describe('SupplierService', () => {
                 templateId: 'template-1',
                 status: 'Submitted',
                 answers: {
-                    q1: { questionId: 'q1', value: 4 }, // 4 out of 5
+                    q1: { value: 4 }, // 4 out of 5
                 },
                 overallScore: 0,
                 sentDate: '',
@@ -136,7 +138,7 @@ describe('SupplierService', () => {
                     title: 'Security',
                     weight: 3, // High weight
                     questions: [
-                        { id: 'q1', text: 'Q1', type: 'yes_no', weight: 1 },
+                        { id: 'q1', text: 'Q1', type: 'yes_no', weight: 1, required: true },
                     ],
                 },
                 {
@@ -144,7 +146,7 @@ describe('SupplierService', () => {
                     title: 'Operations',
                     weight: 1, // Low weight
                     questions: [
-                        { id: 'q2', text: 'Q2', type: 'yes_no', weight: 1 },
+                        { id: 'q2', text: 'Q2', type: 'yes_no', weight: 1, required: true },
                     ],
                 },
             ]);
@@ -157,8 +159,8 @@ describe('SupplierService', () => {
                 templateId: 'template-1',
                 status: 'Submitted',
                 answers: {
-                    q1: { questionId: 'q1', value: true }, // Section 1: 100%
-                    q2: { questionId: 'q2', value: false }, // Section 2: 0%
+                    q1: { value: true }, // Section 1: 100%
+                    q2: { value: false }, // Section 2: 0%
                 },
                 overallScore: 0,
                 sentDate: '',
@@ -177,8 +179,8 @@ describe('SupplierService', () => {
                     title: 'Security',
                     weight: 1,
                     questions: [
-                        { id: 'q1', text: 'Q1', type: 'yes_no', weight: 1 },
-                        { id: 'q2', text: 'Q2', type: 'yes_no', weight: 1 },
+                        { id: 'q1', text: 'Q1', type: 'yes_no', weight: 1, required: true },
+                        { id: 'q2', text: 'Q2', type: 'yes_no', weight: 1, required: true },
                     ],
                 },
             ]);
@@ -191,7 +193,7 @@ describe('SupplierService', () => {
                 templateId: 'template-1',
                 status: 'Draft',
                 answers: {
-                    q1: { questionId: 'q1', value: true },
+                    q1: { value: true },
                     // q2 not answered - skipped in calculation
                 },
                 overallScore: 0,
@@ -212,7 +214,7 @@ describe('SupplierService', () => {
                     title: 'Security',
                     weight: 1,
                     questions: [
-                        { id: 'q1', text: 'Select options', type: 'multiple_choice', weight: 1 },
+                        { id: 'q1', text: 'Select options', type: 'multiple_choice', weight: 1, required: true },
                     ],
                 },
             ]);
@@ -225,7 +227,7 @@ describe('SupplierService', () => {
                 templateId: 'template-1',
                 status: 'Submitted',
                 answers: {
-                    q1: { questionId: 'q1', value: ['option1', 'option2'] },
+                    q1: { value: ['option1', 'option2'] },
                 },
                 overallScore: 0,
                 sentDate: '',
@@ -297,7 +299,9 @@ describe('SupplierService', () => {
             const template: QuestionnaireTemplate = {
                 id: 'template-1',
                 organizationId: 'org-1',
-                name: 'Test Template',
+                title: 'Test Template',
+                description: 'Test Description',
+                createdBy: 'user-1',
                 sections: [],
                 createdAt: '',
                 updatedAt: '',

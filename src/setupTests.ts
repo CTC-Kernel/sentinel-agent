@@ -115,26 +115,26 @@ if (typeof Element !== 'undefined' && !Element.prototype.getAnimations) {
 // Mock framer-motion for all tests
 vi.mock('framer-motion', () => ({
     motion: {
-        div: React.forwardRef<HTMLDivElement, any>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
-            React.createElement('div', { className, ref, ...props }, children)
+        div: React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
+            React.createElement('div', { className, ref, ...props }, children as React.ReactNode)
         ),
-        button: React.forwardRef<HTMLButtonElement, any>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
-            React.createElement('button', { className, ref, ...props }, children)
+        button: React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
+            React.createElement('button', { className, ref, ...props }, children as React.ReactNode)
         ),
-        svg: React.forwardRef<SVGSVGElement, any>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
-            React.createElement('svg', { className, ref, ...props }, children)
+        svg: React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
+            React.createElement('svg', { className, ref, ...props }, children as React.ReactNode)
         ),
-        li: React.forwardRef<HTMLLIElement, any>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
-            React.createElement('li', { className, ref, ...props }, children)
+        li: React.forwardRef<HTMLLIElement, React.HTMLAttributes<HTMLLIElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
+            React.createElement('li', { className, ref, ...props }, children as React.ReactNode)
         ),
-        ul: React.forwardRef<HTMLUListElement, any>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
-            React.createElement('ul', { className, ref, ...props }, children)
+        ul: React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
+            React.createElement('ul', { className, ref, ...props }, children as React.ReactNode)
         ),
-        span: React.forwardRef<HTMLSpanElement, any>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
-            React.createElement('span', { className, ref, ...props }, children)
+        span: React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
+            React.createElement('span', { className, ref, ...props }, children as React.ReactNode)
         ),
-        a: React.forwardRef<HTMLAnchorElement, any>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
-            React.createElement('a', { className, ref, ...props }, children)
+        a: React.forwardRef<HTMLAnchorElement, React.AnchorHTMLAttributes<HTMLAnchorElement> & { [key: string]: unknown }>(({ children, className, layoutId: _layoutId, whileHover: _wh, whileTap: _wt, initial: _i, animate: _a, exit: _e, transition: _t, variants: _v, viewport: _vp, ...props }, ref) =>
+            React.createElement('a', { className, ref, ...props }, children as React.ReactNode)
         ),
     },
     AnimatePresence: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),

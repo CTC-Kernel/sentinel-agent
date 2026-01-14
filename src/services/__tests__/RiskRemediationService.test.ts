@@ -11,25 +11,18 @@ const createControl = (id: string, name: string, description = ''): Control => (
     id,
     name,
     description,
+    code: 'CTRL-123',
     organizationId: 'org-123',
-    framework: 'ISO 27001',
-    clause: 'A.1',
-    status: 'En place',
-    effectiveness: 80,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    framework: 'ISO27001',
+    status: 'Implémenté',
     owner: 'owner-123',
-    verificationMethod: 'Audit',
-    verificationFrequency: 'Annuel',
-    lastVerification: Date.now(),
-    nextVerification: Date.now(),
 });
 
 describe('RiskRemediationService', () => {
     describe('suggestMitigationControls', () => {
         it('should return empty array when risk has no threat or vulnerability', () => {
             const risk: Partial<Risk> = {
-                name: 'Test Risk',
+                threat: 'Test Risk',
             };
             const controls: Control[] = [
                 createControl('c1', 'Backup Control'),

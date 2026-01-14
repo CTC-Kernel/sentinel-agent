@@ -25,13 +25,10 @@ export function createUser(options: UserFactoryOptions = {}): UserProfile {
         organizationId: options.organizationId || 'org-test',
         email: options.email || `user${userCounter}@test.com`,
         displayName: options.displayName || `Test User ${userCounter}`,
-        role: options.role || 'collaborator',
-        isActive: options.isActive ?? true,
+        role: options.role || 'user',
         photoURL: undefined,
-        department: 'IT',
-        jobTitle: 'Analyst',
+
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
     };
 }
 

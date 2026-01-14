@@ -151,7 +151,7 @@ describe('ScoreService', () => {
       const callback = vi.fn();
       const unsubscribe = vi.fn();
 
-      mockOnSnapshot.mockImplementation((ref, onNext) => {
+      mockOnSnapshot.mockImplementation((_ref, onNext) => {
         onNext({ exists: () => false });
         return unsubscribe;
       });
@@ -179,7 +179,7 @@ describe('ScoreService', () => {
         },
       };
 
-      mockOnSnapshot.mockImplementation((ref, onNext) => {
+      mockOnSnapshot.mockImplementation((_ref, onNext) => {
         onNext({
           exists: () => true,
           data: () => mockData,
@@ -199,7 +199,7 @@ describe('ScoreService', () => {
       const callback = vi.fn();
       const error = new Error('Snapshot error');
 
-      mockOnSnapshot.mockImplementation((ref, onNext, onError) => {
+      mockOnSnapshot.mockImplementation((_ref, _onNext, onError) => {
         onError(error);
         return vi.fn();
       });

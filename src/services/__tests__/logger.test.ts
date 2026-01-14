@@ -31,7 +31,7 @@ import { ErrorLogger } from '../errorLogger';
 
 // Get typed mock references
 const mockHttpsCallable = httpsCallable as ReturnType<typeof vi.fn>;
-const mockErrorLogger = ErrorLogger as { error: ReturnType<typeof vi.fn>; warn: ReturnType<typeof vi.fn>; debug: ReturnType<typeof vi.fn> };
+const mockErrorLogger = ErrorLogger as unknown as { error: ReturnType<typeof vi.fn>; warn: ReturnType<typeof vi.fn>; debug: ReturnType<typeof vi.fn> };
 
 describe('Logger', () => {
     beforeEach(() => {

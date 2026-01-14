@@ -306,7 +306,7 @@ describe('ProjectService', () => {
             ];
 
             const result = await ProjectService.importProjectsFromCSV(
-                csvData,
+                csvData as Record<string, string>[],
                 'org-1',
                 'user-1',
                 'John Doe'

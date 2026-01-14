@@ -173,7 +173,7 @@ describe('DocumentService', () => {
             ];
 
             const result = await DocumentService.importDocumentsFromCSV(
-                csvData,
+                csvData as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
                 'org-1',
                 'user-1',
                 'Test User'
@@ -190,7 +190,7 @@ describe('DocumentService', () => {
             ];
 
             const result = await DocumentService.importDocumentsFromCSV(
-                csvData,
+                csvData as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
                 'org-1',
                 'user-1',
                 'Test User'
@@ -206,7 +206,7 @@ describe('DocumentService', () => {
             ];
 
             const result = await DocumentService.importDocumentsFromCSV(
-                csvData,
+                csvData as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
                 'org-1',
                 'user-1',
                 'Test User'

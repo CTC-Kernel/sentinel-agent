@@ -87,7 +87,7 @@ describe('IncidentService', () => {
 
     describe('bulkDeleteIncidents', () => {
         it('should delete multiple incidents', async () => {
-            vi.mocked(FunctionsService.deleteResource).mockResolvedValue(undefined);
+            vi.mocked(FunctionsService.deleteResource).mockResolvedValue(true);
             const incidentIds = ['incident-1', 'incident-2', 'incident-3'];
 
             await IncidentService.bulkDeleteIncidents(
@@ -155,7 +155,7 @@ describe('IncidentService', () => {
             ];
 
             const result = await IncidentService.importIncidentsFromCSV(
-                csvData,
+                csvData as any[], // eslint-disable-line @typescript-eslint/no-explicit-any
                 'org-1',
                 'user-1',
                 'John Doe'

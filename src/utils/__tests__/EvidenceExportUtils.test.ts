@@ -46,13 +46,15 @@ describe('exportEvidenceRequestsZip', () => {
             auditId: 'audit-123',
             title: 'Evidence Request 1',
             description: 'Test description',
-            status: 'pending',
+            status: 'Pending',
             assignedTo: 'user-1',
             dueDate: '2024-06-30',
             relatedControlId: 'ctrl-1',
             documentIds: ['doc-1'],
+            organizationId: 'org-123',
+            requestedBy: 'admin',
             createdAt: '2024-06-01',
-            createdBy: 'admin'
+            updatedAt: '2024-06-01'
         }
     ];
 
@@ -70,13 +72,9 @@ describe('exportEvidenceRequestsZip', () => {
         {
             id: 'ctrl-1',
             code: 'CTL-001',
-            title: 'Test Control',
-            domain: 'Security',
-            status: 'implemented',
-            organizationId: 'org-123',
-            frameworkId: 'fw-1',
-            createdAt: '2024-01-01',
-            updatedAt: '2024-01-01'
+            name: 'Test Control',
+            status: 'Implémenté',
+            organizationId: 'org-123'
         }
     ];
 
@@ -84,11 +82,14 @@ describe('exportEvidenceRequestsZip', () => {
         {
             id: 'doc-1',
             title: 'Test Document',
-            type: 'policy',
+            type: 'Politique',
             url: 'https://example.com/doc.pdf',
             organizationId: 'org-123',
+            version: '1.0',
+            status: 'Publié',
+            owner: 'admin',
             createdAt: '2024-01-01',
-            createdBy: 'admin'
+            updatedAt: '2024-01-01'
         }
     ];
 

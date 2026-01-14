@@ -37,7 +37,9 @@ vi.mock('firebase/firestore', () => ({
     where: vi.fn(() => ({})),
     writeBatch: vi.fn(() => ({
         set: vi.fn(),
-        commit: vi.fn(() => Promise.resolve())
+        commit: vi.fn(() => Promise.resolve()),
+        update: vi.fn(),
+        delete: vi.fn()
     })),
     limit: vi.fn(() => ({})),
     serverTimestamp: vi.fn(() => ({ _serverTimestamp: true }))
@@ -124,7 +126,7 @@ describe('PrivacyService', () => {
                 name: 'New Activity',
                 organizationId: 'org-1',
                 legalBasis: 'consent'
-            } as Omit<ProcessingActivity, 'id'>;
+            } as unknown as Omit<ProcessingActivity, 'id'>;
 
             const id = await PrivacyService.createActivity(activity, mockUser);
 
@@ -138,7 +140,7 @@ describe('PrivacyService', () => {
             const activity: Omit<ProcessingActivity, 'id'> = {
                 name: 'Logged Activity',
                 organizationId: 'org-1'
-            } as Omit<ProcessingActivity, 'id'>;
+            } as unknown as Omit<ProcessingActivity, 'id'>;
 
             await PrivacyService.createActivity(activity, mockUser);
 
@@ -159,7 +161,7 @@ describe('PrivacyService', () => {
             const activity: Omit<ProcessingActivity, 'id'> = {
                 name: 'Error Activity',
                 organizationId: 'org-1'
-            } as Omit<ProcessingActivity, 'id'>;
+            } as unknown as Omit<ProcessingActivity, 'id'>;
 
             await expect(PrivacyService.createActivity(activity, mockUser)).rejects.toThrow();
         });
@@ -236,12 +238,17 @@ describe('PrivacyService', () => {
     describe('importActivities', () => {
         it('should import multiple activities', async () => {
             const { writeBatch } = await import('firebase/firestore');
-            const mockBatch = { set: vi.fn(), commit: vi.fn(() => Promise.resolve()) };
+            const mockBatch = {
+                set: vi.fn(),
+                commit: vi.fn(() => Promise.resolve()),
+                update: vi.fn(),
+                delete: vi.fn()
+            };
             vi.mocked(writeBatch).mockReturnValue(mockBatch as ReturnType<typeof writeBatch>);
 
             const activities: Omit<ProcessingActivity, 'id'>[] = [
-                { name: 'Activity 1', organizationId: 'org-1' } as Omit<ProcessingActivity, 'id'>,
-                { name: 'Activity 2', organizationId: 'org-1' } as Omit<ProcessingActivity, 'id'>
+                { name: 'Activity 1', organizationId: 'org-1' } as unknown as Omit<ProcessingActivity, 'id'>,
+                { name: 'Activity 2', organizationId: 'org-1' } as unknown as Omit<ProcessingActivity, 'id'>
             ];
 
             const count = await PrivacyService.importActivities(activities, mockUser);
@@ -351,7 +358,13 @@ describe('PrivacyService', () => {
             const { getDocs } = await import('firebase/firestore');
             vi.mocked(getDocs).mockResolvedValueOnce({
                 docs: [],
-                empty: true
+                empty: true,
+                metadata: {} as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+                query: {} as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+                size: 0,
+                forEach: vi.fn(),
+                docChanges: vi.fn(),
+                toJSON: vi.fn(),
             } as ReturnType<typeof getDocs> extends Promise<infer T> ? T : never);
 
             const responseId = await PrivacyService.findDPIAResponseId('activity-1');
