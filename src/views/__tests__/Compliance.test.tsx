@@ -113,6 +113,10 @@ vi.mock('../../components/compliance/SoAView', () => ({
     SoAView: vi.fn(() => <div data-testid="soa-view">SoA</div>),
 }));
 
+vi.mock('../../components/documents/DocumentUploadWizard', () => ({
+    DocumentUploadWizard: vi.fn(() => <div data-testid="document-upload-wizard">Wizard</div>),
+}));
+
 describe('Compliance View', () => {
     const queryClient = new QueryClient({
         defaultOptions: {

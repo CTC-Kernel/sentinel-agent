@@ -36,7 +36,7 @@ describe('RowActionsMenu', () => {
     const originalError = console.error;
     vi.spyOn(console, 'error').mockImplementation((...args) => {
       const msg = args.join(' ');
-      if (typeof msg === 'string' && msg.includes('An update to ot')) return;
+      if (typeof msg === 'string' && msg.includes('An update to')) return;
       originalError(...args);
     });
   });

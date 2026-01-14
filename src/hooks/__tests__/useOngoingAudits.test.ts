@@ -69,6 +69,12 @@ describe('useOngoingAudits', () => {
 
   it('should handle errors', async () => {
     const mockError = new Error('Test error');
+    // Suppress expected error logging
+    const originalError = console.error;
+    vi.spyOn(console, 'error').mockImplementation((...args) => {
+      if (args[0] === mockError || args[0]?.message === 'Test error') return;
+      originalError(...args);
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(onSnapshot).mockImplementation((_query: any, _next: any, onError: any) => {
       onError(mockError);

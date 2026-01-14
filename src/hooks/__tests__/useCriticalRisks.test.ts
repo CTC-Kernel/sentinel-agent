@@ -88,6 +88,13 @@ describe('useCriticalRisks', () => {
 
   it('should handle errors', async () => {
     const mockError = new Error('Test error');
+    // Suppress expected error logging
+    const originalError = console.error;
+    vi.spyOn(console, 'error').mockImplementation((...args) => {
+      if (args[0] === mockError || args[0]?.message === 'Test error') return;
+      originalError(...args);
+    });
+
     vi.mocked(onSnapshot).mockImplementation((_, __, onError) => {
       (onError as unknown as (error: Error) => void)(mockError);
       return () => { };

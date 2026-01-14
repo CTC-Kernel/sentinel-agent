@@ -48,6 +48,12 @@ vi.mock('firebase/firestore', () => ({
 describe('useProjectProgress', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Suppress "act" warnings for this hook test as it involves async state updates
+    const originalError = console.error;
+    vi.spyOn(console, 'error').mockImplementation((...args) => {
+      if (args[0]?.toString().includes('wrapped in act')) return;
+      originalError(...args);
+    });
   });
 
   it('should return default progress when no tenantId', async () => {
