@@ -112,7 +112,7 @@ describe('Test Factories', () => {
 
             expect(control.id).toBe('ctrl-1');
             expect(control.code).toBe('A.1.1');
-            expect(control.status).toBe('Non implémenté');
+            expect(control.status).toBe('Non commencé');
             expect(control.framework).toBe('ISO27001');
         });
 
@@ -230,7 +230,7 @@ describe('Test Factories', () => {
             const user = createUser();
 
             expect(user.uid).toBe('user-1');
-            expect(user.role).toBe('collaborator');
+            expect(user.role).toBe('user');
         });
 
         it('should create user with custom options', () => {

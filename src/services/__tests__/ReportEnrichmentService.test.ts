@@ -166,7 +166,7 @@ describe('ReportEnrichmentService', () => {
                 createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Terminé' } }),
                 createMockRisk({ treatment: { strategy: 'Atténuer', status: 'En cours' } }),
                 createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'En cours' } })
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Retard' } })
             ];
 
             const result = ReportEnrichmentService.calculateMetrics(risks);
@@ -256,10 +256,10 @@ describe('ReportEnrichmentService', () => {
 
         it('should generate recommendations for low treatment coverage', () => {
             const risks = [
-                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }),
-                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Retard' } })
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Planifié' } }), // Treated
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Retard' } }), // Untreated
+                createMockRisk({ treatment: { strategy: 'Atténuer' } }), // Untreated (no status)
+                createMockRisk({ treatment: { strategy: 'Atténuer', status: 'Retard' } })        // Untreated
             ];
 
             const result = ReportEnrichmentService.analyzeRiskPortfolio(risks);
