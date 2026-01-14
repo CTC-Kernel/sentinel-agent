@@ -38,18 +38,20 @@ describe('Tooltip', () => {
 
     it('should render children', () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
         expect(screen.getByText('Hover me')).toBeInTheDocument();
     });
 
     it('should show tooltip on hover after delay', async () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -69,9 +71,10 @@ describe('Tooltip', () => {
 
     it('should hide tooltip on mouse leave', async () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -91,9 +94,10 @@ describe('Tooltip', () => {
 
     it('should show tooltip on focus', async () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -108,9 +112,10 @@ describe('Tooltip', () => {
 
     it('should hide tooltip on blur', async () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -126,9 +131,10 @@ describe('Tooltip', () => {
 
     it('should toggle tooltip on Enter key', async () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -143,9 +149,10 @@ describe('Tooltip', () => {
 
     it('should toggle tooltip on Space key', async () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -160,9 +167,10 @@ describe('Tooltip', () => {
 
     it('should close on Escape key', async () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -180,9 +188,10 @@ describe('Tooltip', () => {
 
     it('should have accessible role button', () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -192,9 +201,11 @@ describe('Tooltip', () => {
 
     it('should support custom delay', async () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text', delay: 500 },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                delay: 500,
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;
@@ -218,9 +229,11 @@ describe('Tooltip', () => {
 
         for (const position of positions) {
             const { unmount } = render(
-                React.createElement(Tooltip, { content: 'Tooltip text', position },
-                    React.createElement('button', null, 'Hover me')
-                )
+                React.createElement(Tooltip, {
+                    content: 'Tooltip text',
+                    position,
+                    children: React.createElement('button', null, 'Hover me')
+                })
             );
 
             const trigger = screen.getByText('Hover me').parentElement!;
@@ -237,9 +250,11 @@ describe('Tooltip', () => {
 
     it('should support custom className', () => {
         render(
-            React.createElement(Tooltip, { content: 'Tooltip text', className: 'custom-class' },
-                React.createElement('button', null, 'Hover me')
-            )
+            React.createElement(Tooltip, {
+                content: 'Tooltip text',
+                className: 'custom-class',
+                children: React.createElement('button', null, 'Hover me')
+            })
         );
 
         const trigger = screen.getByText('Hover me').parentElement!;

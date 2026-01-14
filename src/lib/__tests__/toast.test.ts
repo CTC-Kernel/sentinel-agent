@@ -14,7 +14,15 @@ describe('toast', () => {
         mockContext = {
             addNotification: vi.fn().mockReturnValue('notification-123'),
             removeNotification: vi.fn(),
-            notifications: []
+            notifications: [],
+            unreadCount: 0,
+            loading: false,
+            isOpen: false,
+            toggle: vi.fn(),
+            markAsRead: vi.fn(),
+            markAllAsRead: vi.fn(),
+            setIsOpen: vi.fn(),
+            clearNotifications: vi.fn()
         };
         setGlobalNotificationContext(mockContext);
     });
@@ -189,7 +197,7 @@ describe('toast', () => {
             });
 
             // Wait for promise rejection and handler to complete
-            await promise.catch(() => {});
+            await promise.catch(() => { });
             // Allow microtask queue to flush
             await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -224,11 +232,11 @@ describe('toast', () => {
             toast.promise(promise, {
                 loading: 'Loading...',
                 success: 'Done!',
-                error: (err: Error) => `Error: ${err.message}`
+                error: (err: any) => `Error: ${err.message}` // eslint-disable-line @typescript-eslint/no-explicit-any
             });
 
             // Wait for promise rejection and handler to complete
-            await promise.catch(() => {});
+            await promise.catch(() => { });
             // Allow microtask queue to flush
             await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -258,7 +266,15 @@ describe('toast', () => {
             const newContext = {
                 addNotification: vi.fn().mockReturnValue('new-id'),
                 removeNotification: vi.fn(),
-                notifications: []
+                notifications: [],
+                unreadCount: 0,
+                loading: false,
+                isOpen: false,
+                toggle: vi.fn(),
+                markAsRead: vi.fn(),
+                markAllAsRead: vi.fn(),
+                setIsOpen: vi.fn(),
+                clearNotifications: vi.fn()
             };
 
             setGlobalNotificationContext(newContext);

@@ -129,7 +129,7 @@ describe('DataExportService', () => {
             vi.mocked(JSZip).mockImplementationOnce(() => ({
                 file: vi.fn(),
                 generateAsync: vi.fn().mockRejectedValueOnce(new Error('ZIP error'))
-            } as unknown as any));
+            } as unknown as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
 
             await expect(DataExportService.exportOrganizationData('org-1')).rejects.toThrow();
         });

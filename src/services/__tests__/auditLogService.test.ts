@@ -335,7 +335,7 @@ describe('AuditLogService', () => {
         it('should batch log multiple entries', async () => {
             const { writeBatch } = await import('firebase/firestore');
             const mockBatch = { set: vi.fn(), commit: vi.fn(() => Promise.resolve()) };
-            vi.mocked(writeBatch).mockReturnValue(mockBatch as unknown as any);
+            vi.mocked(writeBatch).mockReturnValue(mockBatch as unknown as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
             const entries: CreateAuditLogInput[] = [
                 {

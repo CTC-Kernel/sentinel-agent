@@ -13,9 +13,9 @@ describe('useTheme', () => {
     const mockThemeContext = {
         theme: 'light' as const,
         setTheme: vi.fn(),
-        toggleTheme: vi.fn(),
-        isDark: false,
-        isLight: true
+        colorScheme: 'default' as const,
+        setColorScheme: vi.fn(),
+        setCustomColors: vi.fn()
     };
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -25,8 +25,6 @@ describe('useTheme', () => {
         const { result } = renderHook(() => useTheme(), { wrapper });
 
         expect(result.current.theme).toBe('light');
-        expect(result.current.isDark).toBe(false);
-        expect(result.current.isLight).toBe(true);
     });
 
     it('should provide setTheme function', () => {
@@ -35,11 +33,7 @@ describe('useTheme', () => {
         expect(typeof result.current.setTheme).toBe('function');
     });
 
-    it('should provide toggleTheme function', () => {
-        const { result } = renderHook(() => useTheme(), { wrapper });
 
-        expect(typeof result.current.toggleTheme).toBe('function');
-    });
 
     it('should throw error when used outside ThemeProvider', () => {
         expect(() => {
@@ -51,9 +45,9 @@ describe('useTheme', () => {
         const darkContext = {
             theme: 'dark' as const,
             setTheme: vi.fn(),
-            toggleTheme: vi.fn(),
-            isDark: true,
-            isLight: false
+            colorScheme: 'default' as const,
+            setColorScheme: vi.fn(),
+            setCustomColors: vi.fn()
         };
 
         const darkWrapper = ({ children }: { children: React.ReactNode }) =>
@@ -62,7 +56,5 @@ describe('useTheme', () => {
         const { result } = renderHook(() => useTheme(), { wrapper: darkWrapper });
 
         expect(result.current.theme).toBe('dark');
-        expect(result.current.isDark).toBe(true);
-        expect(result.current.isLight).toBe(false);
     });
 });

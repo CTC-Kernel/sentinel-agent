@@ -11,15 +11,15 @@
 import React, { useState } from 'react';
 import { useForm, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
-import { Asset, UserProfile, Supplier } from '../../types';
-import { RateLimiter } from '../../services/rateLimitService';
-import { InputSanitizer } from '../../services/inputSanitizationService';
-import { SessionMonitor } from '../../services/sessionMonitoringService';
-import { useSecureFormWithZod } from '../../hooks/useSecureForm';
+import { assetSchema, AssetFormData } from '../schemas/assetSchema';
+import { Asset, UserProfile, Supplier } from '../types';
+import { RateLimiter } from '../services/rateLimitService';
+import { InputSanitizer } from '../services/inputSanitizationService';
+import { SessionMonitor } from '../services/sessionMonitoringService';
+import { useSecureFormWithZod } from '../hooks/useSecureForm';
 import { toast } from '@/lib/toast';
-import { ErrorLogger } from '../../services/errorLogger';
-import { useStore } from '../../store';
+import { ErrorLogger } from '../services/errorLogger';
+import { useStore } from '../store';
 
 interface AssetFormProps {
     onSubmit: (data: AssetFormData) => Promise<void>;
@@ -49,14 +49,14 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
 }) => {
     // Utiliser useSecureFormWithZod au lieu de useForm
     const form = useSecureFormWithZod<AssetFormData>({
-        schema: assetSchema,
+        schema: assetSchema as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         initialValues: {
             name: initialData?.name || '',
             type: initialData?.type || 'Matériel',
             owner: initialData?.owner || '',
             // ... autres champs
         },
-        onSubmit: async (sanitizedData) => {
+        onSubmit: async (sanitizedData: AssetFormData) => {
             // Les données sont automatiquement sanitizées
             // Le rate limiting est automatiquement appliqué
 
@@ -65,16 +65,16 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
 
             try {
                 await onSubmit(sanitizedData);
-                toast('Actif sauvegardé avec succès', 'success');
+                toast.success('Actif sauvegardé avec succès');
             } catch (error) {
                 ErrorLogger.error(error, 'AssetFormSecure.onSubmit');
-                toast('Erreur lors de la sauvegarde', 'error');
+                toast.error('Erreur lors de la sauvegarde');
                 throw error;
             }
         },
         rateLimitOperation: 'api',
         onError: (error) => {
-            toast(error.message, 'error');
+            toast.error(error.message);
         }
     });
 
@@ -91,9 +91,8 @@ export const AssetFormSecure_Approach1: React.FC<AssetFormProps> = ({
                     onChange={(e) => form.handleChange('name')(e.target.value)}
                     onBlur={form.handleBlur('name')}
                     disabled={readOnly || form.isSubmitting}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                        form.errors.name && form.touched.name ? 'border-red-500' : ''
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-md ${form.errors.name && form.touched.name ? 'border-red-500' : ''
+                        }`}
                 />
                 {form.errors.name && form.touched.name && (
                     <p className="mt-1 text-sm text-red-600">{form.errors.name}</p>
@@ -156,7 +155,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
     isLoading = false,
     readOnly = false
 }) => {
-    const user = useStore(state => state.user);
+    const user = useStore((state: any) => state.user); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Garder react-hook-form existant
@@ -176,7 +175,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
         // 1. Rate Limiting
         if (!RateLimiter.checkLimit('api', user?.uid)) {
             const waitTime = RateLimiter.getWaitTime('api', user?.uid);
-            toast(`Trop de requêtes. Veuillez patienter ${Math.ceil(waitTime / 1000)}s.`, 'error');
+            toast.error(`Trop de requêtes. Veuillez patienter ${Math.ceil(waitTime / 1000)}s.`);
             return;
         }
 
@@ -193,7 +192,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
 
         try {
             await onSubmit(sanitizedData);
-            toast('Actif sauvegardé avec succès', 'success');
+            toast.success('Actif sauvegardé avec succès');
         } catch (error) {
             ErrorLogger.error(error, 'AssetForm.handleSecureSubmit', {
                 metadata: {
@@ -201,7 +200,7 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
                     assetName: sanitizedData.name
                 }
             });
-            toast('Erreur lors de la sauvegarde', 'error');
+            toast.error('Erreur lors de la sauvegarde');
         } finally {
             setIsSubmitting(false);
         }
@@ -212,9 +211,8 @@ export const AssetFormSecure_Approach2: React.FC<AssetFormProps> = ({
         return {
             ...data,
             name: InputSanitizer.sanitizeString(data.name, { maxLength: 200 }),
-            description: data.description ? InputSanitizer.sanitizeString(data.description, { maxLength: 5000 }) : undefined,
             owner: InputSanitizer.sanitizeEmail(data.owner),
-            location: data.location ? InputSanitizer.sanitizeString(data.location, { maxLength: 200 }) : undefined,
+            location: data.location ? InputSanitizer.sanitizeString(data.location, { maxLength: 200 }) : '',
             ipAddress: data.ipAddress ? sanitizeIPAddress(data.ipAddress) : undefined,
             version: data.version ? InputSanitizer.sanitizeString(data.version, { maxLength: 50 }) : undefined,
             email: data.email ? InputSanitizer.sanitizeEmail(data.email) : undefined,
