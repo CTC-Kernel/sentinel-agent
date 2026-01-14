@@ -13,6 +13,7 @@ import { IncidentFormData, incidentSchema } from '../schemas/incidentSchema';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { SecurityEvent } from '../services/integrationService';
 import { ImportService } from '../services/ImportService';
+import { ATTACK_SCENARIOS } from '../constants/scenarios';
 
 export const useIncidents = () => {
     const { user, addToast, t } = useStore();
@@ -207,24 +208,26 @@ export const useIncidents = () => {
         if (!user?.organizationId) return null;
         setLoading(true);
         try {
+            const scenario = ATTACK_SCENARIOS[Math.floor(Math.random() * ATTACK_SCENARIOS.length)];
+
             const attackData: Omit<Incident, 'id'> = {
                 organizationId: user.organizationId,
-                title: "Détection Ransomware : LockBit 3.0",
-                description: "<p><strong>Alerte Critique :</strong> L'agent EDR a détecté une activité de chiffrement massive sur le serveur de fichiers principal. Signature compatible avec <em>LockBit 3.0</em>.</p><ul><li><strong>Vecteur :</strong> Phishing suspecté (Email RH)</li><li><strong>Cibles :</strong> 245 fichiers chiffrés en 30 secondes</li><li><strong>Action EDR :</strong> Processus isolé, mais persistance détectée.</li></ul>",
-                severity: Criticality.CRITICAL,
+                title: scenario.title,
+                description: `${scenario.description}<ul><li><strong>Vecteur :</strong> ${scenario.details.vector}</li><li><strong>Cibles :</strong> ${scenario.details.targets}</li><li><strong>Action EDR :</strong> ${scenario.details.action}</li></ul>`,
+                severity: scenario.severity,
                 status: 'Contenu',
-                category: 'Ransomware',
+                category: scenario.category,
                 reporter: 'Sentinel AI (Automated)',
                 dateReported: serverTimestamp() as unknown as string,
                 dateAnalysis: serverTimestamp() as unknown as string,
                 dateContained: serverTimestamp() as unknown as string,
                 financialImpact: 0,
                 history: [
-                    { date: new Date().toISOString(), user: 'Sentinel AI', action: 'DETECTION', details: 'Signature match: LockBit 3.0 behavior detected.' },
+                    { date: new Date().toISOString(), user: 'Sentinel AI', action: 'DETECTION', details: `Signature match: ${scenario.category} behavior detected.` },
                     { date: new Date(Date.now() + 5000).toISOString(), user: 'Sentinel AI', action: 'CONTAINMENT', details: 'Automated response: Host isolation triggers.' }
                 ],
-                tags: ['Ransomware', 'Urgent', 'Automated'],
-                playbookId: 'playbook-ransomware-standard'
+                tags: scenario.tags,
+                playbookId: 'playbook-standard'
             };
 
             const docRef = await addDoc(collection(db, 'incidents'), attackData);

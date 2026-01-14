@@ -7,6 +7,8 @@ import { IncidentDashboard } from '../components/incidents/IncidentDashboard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useIncidentLogic } from '../hooks/incidents/useIncidentLogic';
 import { useIncidentDependencies } from '../hooks/incidents/useIncidentDependencies';
+import { useIncidentStats } from '../hooks/incidents/useIncidentStats';
+import { useIncidentExport } from '../hooks/incidents/useIncidentExport';
 
 import { PageHeader } from '../components/ui/PageHeader';
 import { Siren, Plus, ShieldAlert, BrainCircuit, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
@@ -28,7 +30,6 @@ import { canEditResource, hasPermission, canDeleteResource } from '../utils/perm
 import { IncidentImportModal } from '../components/incidents/IncidentImportModal';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { ImportService } from '../services/ImportService';
-import { CsvParser } from '../utils/csvUtils'; // Import CsvParser
 import { SecurityEvent } from '../services/integrationService';
 
 import { SEO } from '../components/SEO';
@@ -143,19 +144,8 @@ export const Incidents: React.FC = () => {
         setCsvImportOpen(false);
     }, [importIncidents]);
 
-    const handleExportCSV = React.useCallback(() => {
-        const csvHeaders = ['Title', 'Description', 'Status', 'Severity', 'Category', 'Date', 'Reporter'];
-        const data = incidents.map(inc => ({
-            'Title': inc.title,
-            'Description': inc.description || '',
-            'Status': inc.status,
-            'Severity': inc.severity,
-            'Category': inc.category || '',
-            'Date': new Date(inc.dateReported).toLocaleDateString(),
-            'Reporter': inc.reporter || ''
-        }));
-        CsvParser.downloadCSV(csvHeaders, data, `incidents_export_${new Date().toISOString().split('T')[0]}.csv`);
-    }, [incidents]);
+    const { exportCSV } = useIncidentExport();
+    const handleExportCSV = useCallback(() => exportCSV(incidents), [exportCSV, incidents]);
 
     const handleSimulateAttack = useCallback(async () => {
         setIsSubmitting(true);
@@ -302,38 +292,7 @@ export const Incidents: React.FC = () => {
     const canEdit = canEditResource(user, 'Incident');
     const canCreate = hasPermission(user, 'Incident', 'create');
 
-    const incidentStats = React.useMemo(() => {
-        const total = incidents.length;
-        const openCount = incidents.filter(i => i.status !== 'Fermé' && i.status !== 'Résolu').length;
-        const resolvedCount = incidents.filter(i => i.status === 'Fermé' || i.status === 'Résolu').length;
-        const criticalCount = incidents.filter(i => i.severity === Criticality.CRITICAL).length;
-
-        let totalResolutionHours = 0;
-        let resolvedWithTimes = 0;
-
-        incidents.forEach(inc => {
-            if (inc.dateReported && inc.dateResolved) {
-                const start = new Date(inc.dateReported).getTime();
-                const end = new Date(inc.dateResolved).getTime();
-                if (!Number.isNaN(start) && !Number.isNaN(end) && end > start) {
-                    const diffHours = (end - start) / (1000 * 60 * 60);
-                    totalResolutionHours += diffHours;
-                    resolvedWithTimes++;
-                }
-            }
-        });
-
-        const avgMttrHours = resolvedWithTimes > 0 ? Math.round(totalResolutionHours / resolvedWithTimes) : null;
-        const criticalRatio = total > 0 ? Math.round((criticalCount / total) * 100) : null;
-
-        return {
-            total,
-            open: openCount,
-            resolved: resolvedCount,
-            avgMttrHours,
-            criticalRatio,
-        };
-    }, [incidents]);
+    const incidentStats = useIncidentStats(incidents);
 
     const breadcrumbs = useMemo(() => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); } }];

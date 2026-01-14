@@ -6,8 +6,8 @@ import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { Button } from '../../ui/button';
 import { UserProfile, Asset, RecoveryPlan } from '../../../types';
-import { Controller } from 'react-hook-form';
-import { Clock, Save, Loader2, FileText, Shield } from 'lucide-react';
+import { Controller, useFieldArray, useWatch } from 'react-hook-form';
+import { Clock, Save, Loader2, FileText, Shield, Plus, Trash2, AlertTriangle } from 'lucide-react';
 
 interface RecoveryPlanInspectorProps {
     isOpen: boolean;
@@ -43,6 +43,14 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
             linkedAssetIds: []
         }
     });
+
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "steps"
+    });
+
+    const steps = useWatch({ control, name: 'steps' });
+    const totalDuration = steps?.reduce((acc, step) => acc + (step.estimatedDuration || 0), 0) || 0;
 
     useEffect(() => {
         if (isOpen) {
@@ -226,6 +234,111 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                         className="min-h-[100px]"
                         error={errors.description?.message}
                     />
+
+                    <div className="border-t border-slate-200 dark:border-white/10 pt-6 mt-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Procédures de Reprise (Playbook)</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-xs text-slate-500">Étapes séquentielles pour restaurer le service.</p>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${totalDuration > 0 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
+                                        Total: {totalDuration} min
+                                    </span>
+                                </div>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => append({ title: '', estimatedDuration: 0, isCritical: false, id: crypto.randomUUID() })}
+                                className="text-brand-600 border-brand-200 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                            >
+                                <Plus className="w-4 h-4 mr-1" />
+                                Ajouter une étape
+                            </Button>
+                        </div>
+
+                        <div className="space-y-3">
+                            {fields.map((field, index) => (
+                                <div key={field.id} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-500/30">
+                                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            type="button"
+                                            onClick={() => remove(index)}
+                                            className="text-slate-400 hover:text-red-500 transition-colors bg-white dark:bg-slate-800 rounded-full p-1 shadow-sm border border-slate-100 dark:border-white/5"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-none flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500 border border-slate-200 dark:border-white/10 mt-1">
+                                            {index + 1}
+                                        </div>
+
+                                        <div className="flex-1 space-y-3">
+                                            <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                                <div className="md:col-span-8">
+                                                    <input
+                                                        {...register(`steps.${index}.title` as const)}
+                                                        placeholder="Titre de l'action (ex: Redémarrer le service)"
+                                                        className="w-full bg-transparent border-none p-0 text-sm font-medium placeholder:text-slate-400 focus:ring-0 text-slate-900 dark:text-white"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-4 flex items-center gap-2">
+                                                    <Clock className="w-3 h-3 text-slate-400" />
+                                                    <input
+                                                        type="number"
+                                                        {...register(`steps.${index}.estimatedDuration` as const, { valueAsNumber: true })}
+                                                        placeholder="Min"
+                                                        className="w-full bg-transparent border-none p-0 text-sm text-right placeholder:text-slate-400 focus:ring-0 text-slate-600 dark:text-slate-300"
+                                                    />
+                                                    <span className="text-xs text-slate-400">min</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <input
+                                                    {...register(`steps.${index}.assignedRole` as const)}
+                                                    placeholder="Rôle responsable"
+                                                    className="w-full bg-slate-50 dark:bg-white/5 rounded px-2 py-1 text-xs border border-transparent focus:border-brand-500 focus:ring-0 transition-colors"
+                                                />
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        {...register(`steps.${index}.isCritical` as const)}
+                                                        className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-3 h-3"
+                                                    />
+                                                    <span className="text-xs text-slate-500">Étape Critique (Bloquante)</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {fields.length === 0 && (
+                                <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl bg-slate-50/50 dark:bg-white/5 flex flex-col items-center">
+                                    <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full mb-3 text-slate-400">
+                                        <AlertTriangle className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">Aucune procédure définie</p>
+                                    <p className="text-xs text-slate-500 mb-4 max-w-xs mx-auto">
+                                        Un plan de reprise sans étapes est inutile en cas de crise. Ajoutez vos procédures.
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => append({ title: '', estimatedDuration: 0, isCritical: false, id: crypto.randomUUID() })}
+                                        className="text-brand-600 hover:bg-brand-50"
+                                    >
+                                        Commencer le playbook
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </InspectorLayout>

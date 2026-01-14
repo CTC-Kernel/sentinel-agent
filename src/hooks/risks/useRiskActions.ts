@@ -26,6 +26,26 @@ export const useRiskActions = (onRefresh: () => void) => {
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
 
+    const validateRiskLogic = (data: Partial<Risk>): { valid: boolean; error?: string } => {
+        // 1. Check Residual vs Inherent Risk
+        // If we have full scoring data, ensure residual is not worse than inherent
+        if (
+            data.probability && data.impact &&
+            data.residualProbability && data.residualImpact
+        ) {
+            const inherentScore = data.probability * data.impact;
+            const residualScore = data.residualProbability * data.residualImpact;
+
+            if (residualScore > inherentScore) {
+                return {
+                    valid: false,
+                    error: t('risks.validation_residual_error') || "Le risque résiduel ne peut pas être supérieur au risque inhérent sans justification."
+                };
+            }
+        }
+        return { valid: true };
+    };
+
     const createRisk = async (data: Partial<Risk>) => {
         if (!user?.organizationId) return false;
         if (!canEditResource(user as UserProfile, 'Risk')) {
@@ -35,6 +55,13 @@ export const useRiskActions = (onRefresh: () => void) => {
 
         setSubmitting(true);
         try {
+            // Business Logic Validation
+            const logicCheck = validateRiskLogic(data);
+            if (!logicCheck.valid) {
+                toast.error(logicCheck.error || t('common.invalidData'));
+                return false;
+            }
+
             // Validation Zod
             const validationResult = riskSchema.safeParse(data);
             if (!validationResult.success) {
@@ -188,6 +215,13 @@ export const useRiskActions = (onRefresh: () => void) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
         setSubmitting(true);
         try {
+            // Business Logic Validation
+            const logicCheck = validateRiskLogic({ ...currentRisk, ...data });
+            if (!logicCheck.valid) {
+                toast.error(logicCheck.error || t('common.invalidData'));
+                return false;
+            }
+
             // Full validation required for publishing
             const validationResult = riskSchema.safeParse(data);
             if (!validationResult.success) {
@@ -240,6 +274,13 @@ export const useRiskActions = (onRefresh: () => void) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
         setSubmitting(true);
         try {
+            // Business Logic Validation
+            const logicCheck = validateRiskLogic({ ...currentRisk, ...data });
+            if (!logicCheck.valid) {
+                toast.error(logicCheck.error || t('common.invalidData'));
+                return false;
+            }
+
             // Validation Zod (Partial for updates)
             const validationResult = riskSchema.partial().safeParse(data);
             if (!validationResult.success) {

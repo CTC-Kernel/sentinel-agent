@@ -268,6 +268,7 @@
       "contactAdmin": "Si vous pensez qu'il s'agit d'une erreur, contactez l'administrateur qui vous a invité.",
       "defaultError": "Accès refusé ou lien expiré",
       "invitedAs": "Invité en tant que :",
+      "validation_residual_error": "Le risque résiduel ne peut pas être supérieur au risque inhérent.",
       "tabs": {
         "overview": "Vue d'ensemble",
         "findings": "Constats",

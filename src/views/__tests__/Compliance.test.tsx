@@ -24,6 +24,11 @@ vi.mock('../../store', () => {
     const mockGetState = vi.fn(() => ({
         customRoles: [],
         user: { organizationId: 'test-org', role: 'rssi', uid: 'test-user' },
+        organization: {
+            name: 'Test Organization',
+            enabledFrameworks: ['ISO27001', 'ISO22301', 'NIS2'],
+            subscription: { planId: 'professional' }
+        },
         language: 'fr',
         addToast: vi.fn(),
         t: (key: string): string => {
