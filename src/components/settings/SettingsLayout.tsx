@@ -21,7 +21,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
         { id: 'security', label: t('settings.security'), icon: Shield },
         { id: 'organization', label: t('settings.organization'), icon: Building, requiredPermission: { resource: 'Settings', action: 'manage' } },
         { id: 'frameworks', label: t('settings.frameworks') || 'Référentiels', icon: Layers, requiredPermission: { resource: 'Settings', action: 'manage' } },
-        { id: 'partners', label: 'Partenaires', icon: Handshake, requiredPermission: { resource: 'Settings', action: 'manage' } },
+        { id: 'partners', label: t('settings.partners'), icon: Handshake, requiredPermission: { resource: 'Settings', action: 'manage' } },
         { id: 'integrations', label: t('settings.integrations'), icon: Link },
     ];
 

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ContinuityDashboard } from './ContinuityDashboard';
 import { ContinuityBIA } from './ContinuityBIA';
 import { ContinuityStrategies } from './ContinuityStrategies';
+import { ContinuityPRA } from './pra/ContinuityPRA';
 import { ContinuityDrills } from './ContinuityDrills';
 import { ContinuityCrisis } from './ContinuityCrisis';
 import { EmptyState } from '../ui/EmptyState';
@@ -14,7 +15,7 @@ import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { useTranslation } from 'react-i18next';
 
 interface ContinuityContentProps {
-    activeTab: 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis' | 'tlpt';
+    activeTab: 'overview' | 'strategies' | 'pra' | 'bia' | 'drills' | 'crisis' | 'tlpt';
     loading: boolean;
     viewMode: 'grid' | 'list' | 'matrix' | 'kanban';
     filteredProcesses: BusinessProcess[];
@@ -35,6 +36,11 @@ interface ContinuityContentProps {
     _onAddTlpt: (data: Partial<TlptCampaign>) => Promise<void>;
     _onUpdateTlpt: (id: string, data: Partial<TlptCampaign>) => Promise<void>;
     _onDeleteTlpt: (id: string) => Promise<void>;
+    // PRA Props
+    recoveryPlans: import('../../types').RecoveryPlan[];
+    onAddPlan: (data: import('../../schemas/continuitySchema').RecoveryPlanFormData) => Promise<void>;
+    onUpdatePlan: (id: string, data: Partial<import('../../schemas/continuitySchema').RecoveryPlanFormData>) => Promise<void>;
+    onDeletePlan: (id: string) => Promise<void>;
 }
 
 export const ContinuityContent: React.FC<ContinuityContentProps> = ({
@@ -58,7 +64,11 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
     _tlptCampaigns,
     _onAddTlpt,
     _onUpdateTlpt,
-    _onDeleteTlpt
+    _onDeleteTlpt,
+    recoveryPlans,
+    onAddPlan,
+    onUpdatePlan,
+    onDeletePlan
 }) => {
     const { t } = useTranslation();
 
@@ -143,6 +153,18 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
 
                 {activeTab === 'strategies' && (
                     <ContinuityStrategies assets={assets} />
+                )}
+
+                {activeTab === 'pra' && (
+                    <ContinuityPRA
+                        plans={recoveryPlans}
+                        assets={assets}
+                        users={users}
+                        loading={loading}
+                        onAdd={onAddPlan}
+                        onUpdate={onUpdatePlan}
+                        onDelete={onDeletePlan}
+                    />
                 )}
 
                 {activeTab === 'drills' && (

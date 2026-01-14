@@ -78,7 +78,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                 userName: user.displayName || user.email || 'Utilisateur',
                 organizationId: user.organizationId,
                 content: data.content.trim(),
-                parentId: replyTo || undefined,
+                ...(replyTo ? { parentId: replyTo } : {}),
                 mentions
             });
             reset();

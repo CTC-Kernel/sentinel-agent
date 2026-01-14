@@ -50,3 +50,26 @@ export const warRoomMessageSchema = z.object({
 });
 
 export type WarRoomMessageFormData = z.infer<typeof warRoomMessageSchema>;
+
+export const recoveryPlanSchema = z.object({
+    title: z.string().trim().min(1, "Le titre est requis").max(150),
+    type: z.enum(['IT System', 'Business Process', 'Facility', 'Crisis Comm']),
+    rto: z.string().trim().min(1, "Le RTO est requis"),
+    rpo: z.string().trim().min(1, "Le RPO est requis"),
+    description: z.string().trim().optional(),
+    strategyId: z.string().optional(),
+    linkedAssetIds: z.array(z.string()).optional(),
+    triggers: z.array(z.string()).optional(),
+    status: z.enum(['Draft', 'Active', 'Archived', 'Testing']).default('Draft'),
+    ownerId: z.string().min(1, "Un responsable est requis"),
+    steps: z.array(z.object({
+        id: z.string(),
+        title: z.string().min(1, "Titre de l'étape requis"),
+        description: z.string().optional(),
+        assignedRole: z.string().optional(),
+        estimatedDuration: z.number().min(0).default(0),
+        isCritical: z.boolean().default(false)
+    })).optional()
+});
+
+export type RecoveryPlanFormData = z.infer<typeof recoveryPlanSchema>;

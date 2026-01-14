@@ -274,3 +274,31 @@ export interface WarRoomSession {
         isSystem?: boolean;
     }>;
 }
+
+export interface RecoveryPlanStep {
+    id: string;
+    title: string;
+    description: string;
+    assignedRole: string; // e.g., "SysAdmin", "DevOps"
+    estimatedDuration: number; // in minutes
+    isCritical: boolean;
+}
+
+export interface RecoveryPlan {
+    id: string;
+    organizationId: string;
+    title: string;
+    description: string;
+    type: 'IT System' | 'Business Process' | 'Facility' | 'Crisis Comm';
+    strategyId?: string; // Link to high-level strategy
+    rto: string;
+    rpo: string;
+    linkedAssetIds: string[];
+    triggers: string[];
+    steps: RecoveryPlanStep[];
+    status: 'Draft' | 'Active' | 'Archived' | 'Testing';
+    ownerId: string;
+    lastTestedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+}

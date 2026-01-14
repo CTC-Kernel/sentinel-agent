@@ -57,13 +57,18 @@ export const Compliance: React.FC = () => {
 
         // If no frameworks enabled, show all default compliance frameworks (fallback for new orgs)
         if (!enabled || enabled.length === 0) {
+            // FIX: If plan is discovery, restrict to a default one (e.g. ISO27001) to avoid overwhelming
+            const planId = organization?.subscription?.planId || 'discovery';
+            if (planId === 'discovery') {
+                return allFrameworks.filter(f => f.id === 'ISO27001');
+            }
             return allFrameworks.filter(f => f.type === 'Compliance');
         }
 
         // Filter to only show enabled frameworks (ANY type)
         // We filter FRAMEWORKS array to preserve order and metadata
         return allFrameworks.filter(f => enabled.includes(f.id as Framework));
-    }, [organization?.enabledFrameworks]);
+    }, [organization?.enabledFrameworks, organization?.subscription?.planId]);
 
     // UI State - default to first enabled framework
     const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');

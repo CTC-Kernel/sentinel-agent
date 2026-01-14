@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { where, orderBy, collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
-import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile, Incident, TlptCampaign } from '../../types';
+import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile, Incident, TlptCampaign, RecoveryPlan } from '../../types';
 
 export const useContinuityData = (organizationId?: string) => {
     const { demoMode } = useStore();
     const [processes, setProcesses] = useState<BusinessProcess[]>([]);
     const [drills, setDrills] = useState<BcpDrill[]>([]);
     const [tlptCampaigns, setTlptCampaigns] = useState<TlptCampaign[]>([]);
+    const [recoveryPlans, setRecoveryPlans] = useState<RecoveryPlan[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -77,6 +78,9 @@ export const useContinuityData = (organizationId?: string) => {
         const qTlpt = query(collection(db, 'tlpt_campaigns'), where('organizationId', '==', organizationId));
         unsubscribes.push(onSnapshot(qTlpt, (s) => setTlptCampaigns(s.docs.map(d => ({ id: d.id, ...d.data() } as TlptCampaign)))));
 
+        const qPlans = query(collection(db, 'recovery_plans'), where('organizationId', '==', organizationId));
+        unsubscribes.push(onSnapshot(qPlans, (s) => setRecoveryPlans(s.docs.map(d => ({ id: d.id, ...d.data() } as RecoveryPlan)))));
+
         // We assume loading finishes reasonably quickly for realtime listeners for now, 
         // or effectively "stream" updates. For strict loading state, one would count initial loads.
         // Simplification: set loading false after a short timeout or rely on initial empty state if appropriate.
@@ -99,6 +103,7 @@ export const useContinuityData = (organizationId?: string) => {
         users,
         incidents,
         tlptCampaigns,
+        recoveryPlans,
         loading
     };
 };

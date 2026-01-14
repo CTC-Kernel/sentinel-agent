@@ -405,6 +405,26 @@ service cloud.firestore {
       allow delete: if canDelete(resource.data.organizationId);
     }
 
+    // BCP Strategies
+    match /bcp_strategies/{strategyId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // Recovery Plans (PRA)
+    match /recovery_plans/{planId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
     // TLPT Campaigns
     match /tlpt_campaigns/{campaignId} {
       allow read: if canRead(resource.data.organizationId);
@@ -461,7 +481,7 @@ service cloud.firestore {
         (isAuthenticated() && "collaborators" in resource.data && resource.data.collaborators.hasAny([request.auth.uid])) ||
         (isAuthenticated() && "externalAuditors" in resource.data && resource.data.externalAuditors.hasAny([request.auth.token.email]));
         
-      allow delete: if false;
+      allow delete: if canDelete(resource.data.organizationId);
     }
 
     // Evidence Requests
@@ -531,7 +551,7 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
       allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
-      allow delete: if false;
+      allow delete: if canDelete(resource.data.organizationId);
     }
 
     // Projects

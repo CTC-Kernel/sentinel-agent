@@ -241,6 +241,64 @@ export const useContinuity = () => {
         }
     }, [user, addToast]);
 
+    const addRecoveryPlan = useCallback(async (data: import('../schemas/continuitySchema').RecoveryPlanFormData) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            const newPlan = {
+                ...data,
+                organizationId: user.organizationId,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                status: data.status || 'Draft',
+                lastTestedAt: null
+            };
+
+            const docRef = await addDoc(collection(db, 'recovery_plans'), newPlan);
+            await logAction(user, 'CREATE', 'RecoveryPlan', `Created PRA: ${data.title}`);
+            addToast("Plan de reprise créé", 'success');
+            return { id: docRef.id, ...newPlan };
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useContinuity.addRecoveryPlan', 'CREATE_FAILED');
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast]);
+
+    const updateRecoveryPlan = useCallback(async (id: string, data: Partial<import('../schemas/continuitySchema').RecoveryPlanFormData>) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            await updateDoc(doc(db, 'recovery_plans', id), {
+                ...data,
+                updatedAt: serverTimestamp()
+            });
+            await logAction(user, 'UPDATE', 'RecoveryPlan', `Updated PRA: ${data.title || id}`);
+            addToast("Plan de reprise mis à jour", 'success');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useContinuity.updateRecoveryPlan', 'UPDATE_FAILED');
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast]);
+
+    const deleteRecoveryPlan = useCallback(async (id: string) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            await deleteDoc(doc(db, 'recovery_plans', id));
+            await logAction(user, 'DELETE', 'RecoveryPlan', `Deleted PRA: ${id}`);
+            addToast("Plan de reprise supprimé", 'success');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useContinuity.deleteRecoveryPlan', 'DELETE_FAILED');
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast]);
+
     return {
         addProcess,
         updateProcess,
@@ -252,6 +310,9 @@ export const useContinuity = () => {
         addTlptCampaign,
         updateTlptCampaign,
         deleteTlptCampaign,
+        addRecoveryPlan,
+        updateRecoveryPlan,
+        deleteRecoveryPlan,
         loading
     };
 };

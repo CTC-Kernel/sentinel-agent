@@ -29,7 +29,7 @@ import { ContinuityContent } from '../components/continuity/ContinuityContent';
 import { OnboardingService } from '../services/onboardingService';
 // Form validation: useForm with required fields
 
-type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis' | 'tlpt';
+type ContinuityTab = 'overview' | 'strategies' | 'pra' | 'bia' | 'drills' | 'crisis' | 'tlpt';
 
 export const Continuity: React.FC = () => {
     const { user, t } = useStore();
@@ -54,7 +54,7 @@ export const Continuity: React.FC = () => {
     const [filter, setFilter] = useState('');
 
     // Actions Hook
-    const { addProcess, updateProcess, deleteProcess, addDrill, deleteDrill, importProcesses, addTlptCampaign, updateTlptCampaign, deleteTlptCampaign, loading: loadingAction } = useContinuity();
+    const { addProcess, updateProcess, deleteProcess, addDrill, deleteDrill, importProcesses, addTlptCampaign, updateTlptCampaign, deleteTlptCampaign, addRecoveryPlan, updateRecoveryPlan, deleteRecoveryPlan, loading: loadingAction } = useContinuity();
 
     const [csvImportOpen, setCsvImportOpen] = useState(false);
 
@@ -85,6 +85,7 @@ export const Continuity: React.FC = () => {
         risks,
         suppliers,
         users,
+        recoveryPlans,
         loading: loadingData
     } = useContinuityData(user?.organizationId);
 
@@ -229,6 +230,7 @@ export const Continuity: React.FC = () => {
         { id: 'overview', label: t('continuity.tabs.overview'), icon: Activity },
         { id: 'bia', label: t('continuity.tabs.bia'), icon: AlertOctagon },
         { id: 'strategies', label: t('continuity.tabs.strategies'), icon: ShieldCheck },
+        { id: 'pra', label: t('continuity.tabs.pra'), icon: FileText },
         { id: 'drills', label: t('continuity.tabs.drills'), icon: Zap },
         { id: 'tlpt', label: "Tests de Résilience (TLPT)", icon: ShieldCheck },
         { id: 'crisis', label: t('continuity.tabs.crisis'), icon: FileText },
@@ -304,6 +306,11 @@ export const Continuity: React.FC = () => {
                 _onAddTlpt={async (data) => { await addTlptCampaign(data as Partial<TlptCampaign>); }}
                 _onUpdateTlpt={(id, data) => updateTlptCampaign(id, data as Partial<TlptCampaign>)}
                 _onDeleteTlpt={deleteTlptCampaign}
+                // PRA
+                recoveryPlans={recoveryPlans}
+                onAddPlan={async (data) => { await addRecoveryPlan(data); }}
+                onUpdatePlan={async (id, data) => { await updateRecoveryPlan(id, data); }}
+                onDeletePlan={deleteRecoveryPlan}
             />
 
             {/* Modals */}
