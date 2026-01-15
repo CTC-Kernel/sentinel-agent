@@ -16,20 +16,32 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
     onFilterChange
 }) => {
     // Calculate metrics
-    const totalControls = controls.length;
+    // Metrics Calculation (Harmonized with StatsService)
     const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
-    const inProgressControls = controls.filter(c => c.status === 'Partiel').length;
+    const partialControls = controls.filter(c => c.status === 'Partiel').length;
+    const inProgressControls = controls.filter(c => c.status === 'En cours').length;
     const notImplementedControls = controls.filter(c => c.status === 'Non commencé').length;
 
-    // Global Score
-    const globalScore = totalControls > 0 ? (implementedControls / totalControls * 100) : 0;
+    // Calculate actionable controls (Total - N/A - Excluded)
+    const actionableControls = controls.filter(c => c.status !== 'Non applicable' && c.status !== 'Exclu').length;
 
-    // Framework specific scores (example logic from original dashboard)
+    // Harmonized Score Formula: (Implemented + (Partial * 0.5)) / Actionable * 100
+    const globalScore = actionableControls > 0
+        ? ((implementedControls + (partialControls * 0.5)) / actionableControls * 100)
+        : 0;
+
+    // Framework specific scores (Harmonized)
     const calculateScore = (fw: string) => {
         const fwControls = controls.filter(c => c.framework === fw);
         if (fwControls.length === 0) return 0;
-        const implemented = fwControls.filter(c => c.status === 'Implémenté').length;
-        return (implemented / fwControls.length) * 100;
+
+        const fwActionable = fwControls.filter(c => c.status !== 'Non applicable' && c.status !== 'Exclu').length;
+        if (fwActionable === 0) return 0;
+
+        const fwImplemented = fwControls.filter(c => c.status === 'Implémenté').length;
+        const fwPartial = fwControls.filter(c => c.status === 'Partiel').length;
+
+        return ((fwImplemented + (fwPartial * 0.5)) / fwActionable) * 100;
     };
 
     const isoScore = calculateScore('ISO27001');
@@ -128,9 +140,10 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     </div>
                     <span className="text-lg font-black text-red-700 dark:text-red-400">{notImplementedControls}</span>
                 </div>
+
                 <div
-                    onClick={() => onFilterChange?.('Partiel')}
-                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('Partiel')}
+                    onClick={() => onFilterChange?.('En cours')}
+                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('En cours')}
                     role="button"
                     tabIndex={0}
                     className="flex-1 flex items-center justify-between px-4 py-3 bg-amber-50/80 dark:bg-amber-900/10 rounded-xl border border-amber-100/50 dark:border-amber-900/20 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
@@ -140,6 +153,20 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                         <span className="text-xs font-bold text-amber-700/70 dark:text-amber-400/70">En cours</span>
                     </div>
                     <span className="text-lg font-black text-amber-700 dark:text-amber-400">{inProgressControls}</span>
+                </div>
+
+                <div
+                    onClick={() => onFilterChange?.('Partiel')}
+                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('Partiel')}
+                    role="button"
+                    tabIndex={0}
+                    className="flex-1 flex items-center justify-between px-4 py-3 bg-blue-50/80 dark:bg-blue-900/10 rounded-xl border border-blue-100/50 dark:border-blue-900/20 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                    <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-blue-600/70" />
+                        <span className="text-xs font-bold text-blue-700/70 dark:text-blue-400/70">Partiel</span>
+                    </div>
+                    <span className="text-lg font-black text-blue-700 dark:text-blue-400">{partialControls}</span>
                 </div>
             </div>
         </div>

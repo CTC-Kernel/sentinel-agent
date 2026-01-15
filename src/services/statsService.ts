@@ -58,8 +58,9 @@ export class StatsService {
             const activeProjects = projects.filter(p => p.status === 'En cours').length;
 
             const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
+            const partialControls = controls.filter(c => c.status === 'Partiel').length;
             const actionableControls = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
-            const complianceRate = actionableControls > 0 ? Math.round((implementedControls / actionableControls) * 100) : 0;
+            const complianceRate = actionableControls > 0 ? Math.round(((implementedControls + (partialControls * 0.5)) / actionableControls) * 100) : 0;
 
             const stats: DailyStats = {
                 date: today,

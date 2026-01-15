@@ -64,14 +64,28 @@ export const useDashboardMetrics = ({
     const topRisks = useMemo(() => [...allRisks].filter(r => r.score >= 10).sort((a, b) => b.score - a.score).slice(0, 5), [allRisks]);
 
     // Stats and Radar Logic
-    const { stats, radarData, complianceScore } = useMemo(() => {
+    const { stats, radarData, complianceScore, globalScore } = useMemo(() => {
         const implemented = controls.filter(c => c.status === 'Implémenté').length;
+        const partial = controls.filter(c => c.status === 'Partiel').length;
         const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
 
-        // Use external source of truth if available, otherwise fallback to local calculation
-        const compScore = (externalComplianceScore !== undefined && externalComplianceScore !== null)
+        // "Conformité" KPI -> Matches Compliance Module (Controls Only)
+        // Formula: (Implemented + (Partial * 0.5)) / Actionable * 100
+        const controlComplianceScore = actionable > 0
+            ? Math.round(((implemented + (partial * 0.5)) / actionable) * 100)
+            : 0;
+
+        // "Global Security Score" -> Composite (from ScoreService/AI)
+        // If available, use it for "Score Global". If not, fallback to Control Score for now.
+        // BUT for "stats.compliance", we MUST use controlComplianceScore to match the widget label "Conformité".
+        const globalScore = (externalComplianceScore !== undefined && externalComplianceScore !== null)
             ? externalComplianceScore
-            : (actionable > 0 ? Math.round((implemented / actionable) * 100) : 0);
+            : controlComplianceScore;
+
+        // Note: complianceScore exported below was used for the Gauge. 
+        // We should decide if the Gauge shows Global or Control.
+        // Label is "Conformité" -> Control Score.
+        const compScore = controlComplianceScore;
 
         const domains = { 'Org.': { total: 0, implemented: 0, prefix: 'A.5' }, 'Humain': { total: 0, implemented: 0, prefix: 'A.6' }, 'Physique': { total: 0, implemented: 0, prefix: 'A.7' }, 'Techno': { total: 0, implemented: 0, prefix: 'A.8' } };
         controls.forEach(c => {
@@ -156,7 +170,8 @@ export const useDashboardMetrics = ({
                 activeProjects: myProjectsLength
             },
             radarData: rData,
-            complianceScore: compScore
+            complianceScore: compScore,
+            globalScore
         };
     }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount, myProjectsLength, aggregatedStats, externalComplianceScore]);
 
@@ -168,5 +183,5 @@ export const useDashboardMetrics = ({
         return 'D';
     }, [complianceScore]);
 
-    return { historyData, topRisks, stats, radarData, complianceScore, scoreGrade };
+    return { historyData, topRisks, stats: { ...stats, globalScore }, radarData, complianceScore, scoreGrade, globalScore };
 };
