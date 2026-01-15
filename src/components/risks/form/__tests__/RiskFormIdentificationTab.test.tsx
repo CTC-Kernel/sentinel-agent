@@ -1,0 +1,237 @@
+/**
+ * Unit tests for RiskFormIdentificationTab component
+ * Tests threat identification form fields
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { RiskFormIdentificationTab } from '../RiskFormIdentificationTab';
+
+// Mock react-hook-form Controller
+vi.mock('react-hook-form', () => ({
+    Controller: ({ render: renderProp }: {
+        control: unknown;
+        name: string;
+        render: (props: { field: { value: string; onChange: (val: string) => void } }) => React.ReactNode;
+    }) => renderProp({ field: { value: '', onChange: vi.fn() } })
+}));
+
+// Mock Icons
+vi.mock('../../../ui/Icons', () => ({
+    FileText: () => <span data-testid="file-text-icon" />,
+    Search: () => <span data-testid="search-icon" />,
+    BookOpen: () => <span data-testid="book-icon" />
+}));
+
+// Mock FloatingLabelInput
+vi.mock('../../../ui/FloatingLabelInput', () => ({
+    FloatingLabelInput: ({ label, error, ...props }: {
+        label: string;
+        error?: string;
+        textarea?: boolean;
+        [key: string]: unknown;
+    }) => (
+        <div data-testid={`input-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+            <label>{label}</label>
+            {props.textarea ? (
+                <textarea aria-label={label} {...props} />
+            ) : (
+                <input aria-label={label} {...props} />
+            )}
+            {error && <span data-testid="error">{error}</span>}
+        </div>
+    )
+}));
+
+// Mock RichTextEditor
+vi.mock('../../../ui/RichTextEditor', () => ({
+    RichTextEditor: ({ label, value, onChange, error }: {
+        label: string;
+        value: string;
+        onChange: (val: string) => void;
+        error?: string;
+    }) => (
+        <div data-testid="rich-text-editor">
+            <label>{label}</label>
+            <textarea
+                aria-label={label}
+                value={value || ''}
+                onChange={(e) => onChange(e.target.value)}
+            />
+            {error && <span data-testid="error">{error}</span>}
+        </div>
+    )
+}));
+
+// Mock AIAssistButton
+vi.mock('../../../ai/AIAssistButton', () => ({
+    AIAssistButton: ({ onSuggest, fieldName }: { onSuggest: (val: string) => void; fieldName: string }) => (
+        <button
+            data-testid={`ai-assist-${fieldName.toLowerCase()}`}
+            onClick={() => onSuggest(`Suggested ${fieldName}`)}
+        >
+            AI Assist
+        </button>
+    )
+}));
+
+// Mock riskConstants
+vi.mock('../../../../data/riskConstants', () => ({
+    STANDARD_THREATS: ['Ransomware', 'Phishing', 'DDoS Attack', 'Data Breach']
+}));
+
+describe('RiskFormIdentificationTab', () => {
+    const mockSetValue = vi.fn();
+    const mockSetShowLibraryModal = vi.fn();
+    const mockGetValues = vi.fn();
+    const mockRegister = vi.fn((name: string) => ({ name }));
+
+    const mockControl = {
+        register: mockRegister
+    };
+
+    const mockAssets = [
+        { id: 'asset-1', name: 'Server-01', type: 'server' },
+        { id: 'asset-2', name: 'Database-01', type: 'database' }
+    ];
+
+    const defaultProps = {
+        control: mockControl as unknown,
+        errors: {},
+        assets: mockAssets,
+        getValues: mockGetValues,
+        setValue: mockSetValue,
+        setShowLibraryModal: mockSetShowLibraryModal
+    };
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockGetValues.mockImplementation((field: string) => {
+            if (field === 'assetId') return 'asset-1';
+            if (field === 'threat') return 'Test threat';
+            return '';
+        });
+    });
+
+    describe('rendering', () => {
+        it('renders section header', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByText('Identification de la Menace')).toBeInTheDocument();
+        });
+
+        it('renders FileText icon', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByTestId('file-text-icon')).toBeInTheDocument();
+        });
+
+        it('renders threat input field', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByLabelText('Menace (Cause Potentielle)')).toBeInTheDocument();
+        });
+
+        it('renders vulnerability rich text editor', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByTestId('rich-text-editor')).toBeInTheDocument();
+            expect(screen.getByText('Vulnérabilité (Faiblesse)')).toBeInTheDocument();
+        });
+
+        it('renders scenario textarea', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByLabelText('Scénario de Risque & Conséquences')).toBeInTheDocument();
+        });
+    });
+
+    describe('library button', () => {
+        it('renders library button', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByText('Biblio')).toBeInTheDocument();
+        });
+
+        it('opens library modal when clicked', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            fireEvent.click(screen.getByText('Biblio'));
+
+            expect(mockSetShowLibraryModal).toHaveBeenCalledWith(true);
+        });
+
+        it('renders book icon', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByTestId('book-icon')).toBeInTheDocument();
+        });
+    });
+
+    describe('AI assist buttons', () => {
+        it('renders AI assist for threat field', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByTestId('ai-assist-menace')).toBeInTheDocument();
+        });
+
+        it('renders AI assist for vulnerability field', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(screen.getByTestId('ai-assist-vulnérabilité')).toBeInTheDocument();
+        });
+
+        it('calls setValue when threat AI assist clicked', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            fireEvent.click(screen.getByTestId('ai-assist-menace'));
+
+            expect(mockSetValue).toHaveBeenCalledWith('threat', 'Suggested Menace', { shouldDirty: true });
+        });
+
+        it('calls setValue when vulnerability AI assist clicked', () => {
+            render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            fireEvent.click(screen.getByTestId('ai-assist-vulnérabilité'));
+
+            expect(mockSetValue).toHaveBeenCalledWith('vulnerability', 'Suggested Vulnérabilité', { shouldDirty: true });
+        });
+    });
+
+    describe('datalist', () => {
+        it('renders datalist with standard threats', () => {
+            const { container } = render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            const datalist = container.querySelector('datalist#threatsList');
+            expect(datalist).toBeInTheDocument();
+        });
+
+        it('contains threat options', () => {
+            const { container } = render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            const options = container.querySelectorAll('datalist#threatsList option');
+            expect(options.length).toBe(4);
+        });
+    });
+
+    describe('validation errors', () => {
+        it('displays threat error when present', () => {
+            const propsWithError = {
+                ...defaultProps,
+                errors: { threat: { message: 'La menace est requise' } }
+            };
+
+            render(<RiskFormIdentificationTab {...propsWithError} />);
+
+            expect(screen.getByText('La menace est requise')).toBeInTheDocument();
+        });
+    });
+
+    describe('styling', () => {
+        it('has glass-panel container', () => {
+            const { container } = render(<RiskFormIdentificationTab {...defaultProps} />);
+
+            expect(container.querySelector('.glass-panel')).toBeInTheDocument();
+        });
+    });
+});
