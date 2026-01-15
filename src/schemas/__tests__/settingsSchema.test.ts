@@ -24,7 +24,7 @@ describe('profileSchema', () => {
         });
 
         it('rejects missing displayName', () => {
-            const { displayName, ...data } = validProfile;
+            const { displayName: _displayName, ...data } = validProfile;
             const result = profileSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -35,7 +35,7 @@ describe('profileSchema', () => {
         });
 
         it('rejects missing role', () => {
-            const { role, ...data } = validProfile;
+            const { role: _role, ...data } = validProfile;
             const result = profileSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -189,13 +189,13 @@ describe('passwordSchema', () => {
         });
 
         it('rejects missing newPassword', () => {
-            const { newPassword, ...data } = validPassword;
+            const { newPassword: _newPassword, ...data } = validPassword;
             const result = passwordSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing confirmPassword', () => {
-            const { confirmPassword, ...data } = validPassword;
+            const { confirmPassword: _confirmPassword, ...data } = validPassword;
             const result = passwordSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

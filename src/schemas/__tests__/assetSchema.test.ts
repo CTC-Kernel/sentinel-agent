@@ -41,7 +41,7 @@ describe('assetSchema', () => {
         });
 
         it('rejects missing name', () => {
-            const { name, ...data } = validAsset;
+            const { name: _name, ...data } = validAsset;
             const result = assetSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -52,25 +52,25 @@ describe('assetSchema', () => {
         });
 
         it('rejects missing type', () => {
-            const { type, ...data } = validAsset;
+            const { type: _type, ...data } = validAsset;
             const result = assetSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing owner', () => {
-            const { owner, ...data } = validAsset;
+            const { owner: _owner, ...data } = validAsset;
             const result = assetSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing criticality fields', () => {
-            const { confidentiality, ...data } = validAsset;
+            const { confidentiality: _confidentiality, ...data } = validAsset;
             const result = assetSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing location', () => {
-            const { location, ...data } = validAsset;
+            const { location: _location, ...data } = validAsset;
             const result = assetSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

@@ -10,7 +10,7 @@ import { renderHook, act } from '@testing-library/react';
 const mockAddDoc = vi.fn();
 const mockUpdateDoc = vi.fn();
 const mockDeleteDoc = vi.fn();
-const mockWriteBatch = vi.fn();
+// const mockWriteBatch = vi.fn(); // Removed unused variable
 const mockBatchSet = vi.fn();
 const mockBatchUpdate = vi.fn();
 const mockBatchCommit = vi.fn();
@@ -119,7 +119,7 @@ describe('useContinuity', () => {
                     name: 'Test Process',
                     description: 'Test Description',
                     owner: 'Test Owner',
-                    priority: 'High',
+                    priority: 'Élevée',
                     rto: '4h',
                     rpo: '1h'
                 });
@@ -140,7 +140,7 @@ describe('useContinuity', () => {
                     name: 'New Process',
                     description: '',
                     owner: '',
-                    priority: 'Medium',
+                    priority: 'Moyenne',
                     rto: '4h',
                     rpo: '1h'
                 });
@@ -160,7 +160,7 @@ describe('useContinuity', () => {
                         name: 'Test',
                         description: '',
                         owner: '',
-                        priority: 'Low',
+                        priority: 'Faible',
                         rto: '4h',
                         rpo: '1h'
                     });
@@ -349,7 +349,11 @@ describe('useContinuity', () => {
                 await result.current.addRecoveryPlan({
                     title: 'PRA 2024',
                     description: 'Recovery Plan',
-                    status: 'Draft'
+                    status: 'Draft',
+                    type: 'Business Process',
+                    rto: '4h',
+                    rpo: '1h',
+                    ownerId: 'user-1'
                 });
             });
 
@@ -361,7 +365,7 @@ describe('useContinuity', () => {
             const { result } = renderHook(() => useContinuity());
 
             await act(async () => {
-                await result.current.updateRecoveryPlan('plan-1', { status: 'Approved' });
+                await result.current.updateRecoveryPlan('plan-1', { status: 'Active' });
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();

@@ -22,7 +22,7 @@ describe('supplierSchema', () => {
         });
 
         it('rejects missing name', () => {
-            const { name, ...data } = validSupplier;
+            const { name: _name, ...data } = validSupplier;
             const result = supplierSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -33,19 +33,19 @@ describe('supplierSchema', () => {
         });
 
         it('rejects missing category', () => {
-            const { category, ...data } = validSupplier;
+            const { category: _category, ...data } = validSupplier;
             const result = supplierSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing criticality', () => {
-            const { criticality, ...data } = validSupplier;
+            const { criticality: _criticality, ...data } = validSupplier;
             const result = supplierSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validSupplier;
+            const { status: _status, ...data } = validSupplier;
             const result = supplierSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

@@ -85,6 +85,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       }
+    },
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 8080
     }
   },
   build: {

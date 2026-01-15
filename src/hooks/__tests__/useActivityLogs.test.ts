@@ -3,7 +3,7 @@
  * Tests activity log fetching, filtering, and export
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
 // Mock Firebase Firestore

@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 
 // Mock DocumentWorkflowService
 const mockSubmitForReview = vi.fn();
@@ -38,6 +38,7 @@ vi.mock('../../services/errorLogger', () => ({
 }));
 
 import { useDocumentWorkflow } from '../useDocumentWorkflow';
+import { Document as AppDocument } from '../../types';
 
 describe('useDocumentWorkflow', () => {
     const mockDocument = {
@@ -73,7 +74,7 @@ describe('useDocumentWorkflow', () => {
 
             await act(async () => {
                 await result.current.submitForReview(
-                    mockDocument as any,
+                    mockDocument as unknown as AppDocument,
                     ['reviewer1@test.com', 'reviewer2@test.com'],
                     'Please review this document'
                 );
@@ -96,7 +97,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             act(() => {
-                result.current.submitForReview(mockDocument as any, ['reviewer@test.com']);
+                result.current.submitForReview(mockDocument as unknown as AppDocument, ['reviewer@test.com']);
             });
 
             expect(result.current.loading).toBe(true);
@@ -115,7 +116,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.submitForReview(mockDocument as any, ['reviewer@test.com']);
+                await result.current.submitForReview(mockDocument as unknown as AppDocument, ['reviewer@test.com']);
             });
 
             // Error should be handled by ErrorLogger
@@ -128,7 +129,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.approveDocument(mockDocument as any, 'Looks good!');
+                await result.current.approveDocument(mockDocument as unknown as AppDocument, 'Looks good!');
             });
 
             expect(mockApproveDocument).toHaveBeenCalledWith(
@@ -143,7 +144,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.approveDocument(mockDocument as any);
+                await result.current.approveDocument(mockDocument as unknown as AppDocument);
             });
 
             expect(mockApproveDocument).toHaveBeenCalledWith(
@@ -159,7 +160,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.approveDocument(mockDocument as any);
+                await result.current.approveDocument(mockDocument as unknown as AppDocument);
             });
 
             expect(result.current.loading).toBe(false);
@@ -171,7 +172,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.rejectDocument(mockDocument as any, 'Needs more details');
+                await result.current.rejectDocument(mockDocument as unknown as AppDocument, 'Needs more details');
             });
 
             expect(mockRejectDocument).toHaveBeenCalledWith(
@@ -188,7 +189,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.rejectDocument(mockDocument as any, 'Rejection reason');
+                await result.current.rejectDocument(mockDocument as unknown as AppDocument, 'Rejection reason');
             });
 
             expect(result.current.loading).toBe(false);
@@ -200,7 +201,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.publishDocument(mockDocument as any);
+                await result.current.publishDocument(mockDocument as unknown as AppDocument);
             });
 
             expect(mockPublishDocument).toHaveBeenCalledWith(
@@ -216,7 +217,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.publishDocument(mockDocument as any);
+                await result.current.publishDocument(mockDocument as unknown as AppDocument);
             });
 
             expect(result.current.loading).toBe(false);
@@ -228,7 +229,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.submitForReview(mockDocument as any, ['reviewer@test.com']);
+                await result.current.submitForReview(mockDocument as unknown as AppDocument, ['reviewer@test.com']);
             });
 
             expect(result.current.loading).toBe(false);
@@ -240,7 +241,7 @@ describe('useDocumentWorkflow', () => {
             const { result } = renderHook(() => useDocumentWorkflow());
 
             await act(async () => {
-                await result.current.submitForReview(mockDocument as any, ['reviewer@test.com']);
+                await result.current.submitForReview(mockDocument as unknown as AppDocument, ['reviewer@test.com']);
             });
 
             expect(result.current.loading).toBe(false);

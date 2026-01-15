@@ -39,7 +39,7 @@ describe('findingSchema', () => {
         });
 
         it('rejects missing description', () => {
-            const { description, ...data } = validFinding;
+            const { description: _description, ...data } = validFinding;
             const result = findingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -50,19 +50,19 @@ describe('findingSchema', () => {
         });
 
         it('rejects missing type', () => {
-            const { type, ...data } = validFinding;
+            const { type: _type, ...data } = validFinding;
             const result = findingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing severity', () => {
-            const { severity, ...data } = validFinding;
+            const { severity: _severity, ...data } = validFinding;
             const result = findingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validFinding;
+            const { status: _status, ...data } = validFinding;
             const result = findingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -149,7 +149,7 @@ describe('userSchema', () => {
         });
 
         it('rejects missing email', () => {
-            const { email, ...data } = validUser;
+            const { email: _email, ...data } = validUser;
             const result = userSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -165,7 +165,7 @@ describe('userSchema', () => {
         });
 
         it('rejects missing role', () => {
-            const { role, ...data } = validUser;
+            const { role: _role, ...data } = validUser;
             const result = userSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -237,7 +237,7 @@ describe('onboardingSchema', () => {
         });
 
         it('rejects missing organizationName', () => {
-            const { organizationName, ...data } = validOnboarding;
+            const { organizationName: _organizationName, ...data } = validOnboarding;
             const result = onboardingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -248,25 +248,25 @@ describe('onboardingSchema', () => {
         });
 
         it('rejects missing displayName', () => {
-            const { displayName, ...data } = validOnboarding;
+            const { displayName: _displayName, ...data } = validOnboarding;
             const result = onboardingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing department', () => {
-            const { department, ...data } = validOnboarding;
+            const { department: _department, ...data } = validOnboarding;
             const result = onboardingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing role', () => {
-            const { role, ...data } = validOnboarding;
+            const { role: _role, ...data } = validOnboarding;
             const result = onboardingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing industry', () => {
-            const { industry, ...data } = validOnboarding;
+            const { industry: _industry, ...data } = validOnboarding;
             const result = onboardingSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -351,7 +351,7 @@ describe('backupSchema', () => {
         });
 
         it('rejects missing fields', () => {
-            const { includeDocuments, ...data } = validConfig;
+            const { includeDocuments: _includeDocuments, ...data } = validConfig;
             const result = backupConfigSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -379,7 +379,7 @@ describe('backupSchema', () => {
         });
 
         it('rejects missing backupId', () => {
-            const { backupId, ...data } = validRestore;
+            const { backupId: _backupId, ...data } = validRestore;
             const result = restoreConfigSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -419,7 +419,7 @@ describe('assessmentSchema', () => {
         });
 
         it('rejects missing templateId', () => {
-            const { templateId, ...data } = validAssessment;
+            const { templateId: _templateId, ...data } = validAssessment;
             const result = assessmentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -430,19 +430,19 @@ describe('assessmentSchema', () => {
         });
 
         it('rejects missing supplierId', () => {
-            const { supplierId, ...data } = validAssessment;
+            const { supplierId: _supplierId, ...data } = validAssessment;
             const result = assessmentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing supplierName', () => {
-            const { supplierName, ...data } = validAssessment;
+            const { supplierName: _supplierName, ...data } = validAssessment;
             const result = assessmentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validAssessment;
+            const { status: _status, ...data } = validAssessment;
             const result = assessmentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -582,7 +582,7 @@ describe('tlptSchema', () => {
         });
 
         it('rejects missing name', () => {
-            const { name, ...data } = validTlpt;
+            const { name: _name, ...data } = validTlpt;
             const result = tlptSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -593,31 +593,31 @@ describe('tlptSchema', () => {
         });
 
         it('rejects missing scope', () => {
-            const { scope, ...data } = validTlpt;
+            const { scope: _scope, ...data } = validTlpt;
             const result = tlptSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing methodology', () => {
-            const { methodology, ...data } = validTlpt;
+            const { methodology: _methodology, ...data } = validTlpt;
             const result = tlptSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing provider', () => {
-            const { provider, ...data } = validTlpt;
+            const { provider: _provider, ...data } = validTlpt;
             const result = tlptSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validTlpt;
+            const { status: _status, ...data } = validTlpt;
             const result = tlptSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing startDate', () => {
-            const { startDate, ...data } = validTlpt;
+            const { startDate: _startDate, ...data } = validTlpt;
             const result = tlptSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -797,7 +797,7 @@ describe('vulnerabilitySchema', () => {
         });
 
         it('rejects missing title', () => {
-            const { title, ...data } = validVuln;
+            const { title: _title, ...data } = validVuln;
             const result = vulnerabilitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -808,13 +808,13 @@ describe('vulnerabilitySchema', () => {
         });
 
         it('rejects missing severity', () => {
-            const { severity, ...data } = validVuln;
+            const { severity: _severity, ...data } = validVuln;
             const result = vulnerabilitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validVuln;
+            const { status: _status, ...data } = validVuln;
             const result = vulnerabilitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -962,7 +962,7 @@ describe('controlSchema', () => {
         });
 
         it('rejects missing code', () => {
-            const { code, ...data } = validControl;
+            const { code: _code, ...data } = validControl;
             const result = controlSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -973,7 +973,7 @@ describe('controlSchema', () => {
         });
 
         it('rejects missing name', () => {
-            const { name, ...data } = validControl;
+            const { name: _name, ...data } = validControl;
             const result = controlSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -984,7 +984,7 @@ describe('controlSchema', () => {
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validControl;
+            const { status: _status, ...data } = validControl;
             const result = controlSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -1162,7 +1162,7 @@ describe('processingActivitySchema', () => {
         });
 
         it('rejects missing name', () => {
-            const { name, ...data } = validActivity;
+            const { name: _name, ...data } = validActivity;
             const result = processingActivitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -1173,19 +1173,19 @@ describe('processingActivitySchema', () => {
         });
 
         it('rejects missing purpose', () => {
-            const { purpose, ...data } = validActivity;
+            const { purpose: _purpose, ...data } = validActivity;
             const result = processingActivitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing manager', () => {
-            const { manager, ...data } = validActivity;
+            const { manager: _manager, ...data } = validActivity;
             const result = processingActivitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing legalBasis', () => {
-            const { legalBasis, ...data } = validActivity;
+            const { legalBasis: _legalBasis, ...data } = validActivity;
             const result = processingActivitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -1199,19 +1199,19 @@ describe('processingActivitySchema', () => {
         });
 
         it('rejects missing retentionPeriod', () => {
-            const { retentionPeriod, ...data } = validActivity;
+            const { retentionPeriod: _retentionPeriod, ...data } = validActivity;
             const result = processingActivitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing hasDPIA', () => {
-            const { hasDPIA, ...data } = validActivity;
+            const { hasDPIA: _hasDPIA, ...data } = validActivity;
             const result = processingActivitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validActivity;
+            const { status: _status, ...data } = validActivity;
             const result = processingActivitySchema.safeParse(data);
             expect(result.success).toBe(false);
         });

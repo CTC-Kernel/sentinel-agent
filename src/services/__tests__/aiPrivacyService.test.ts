@@ -168,7 +168,7 @@ describe('aiPrivacyService', () => {
                     }
                 }
             };
-            const result = aiPrivacyService.anonymizeData(data) as Record<string, any>;
+            const result = aiPrivacyService.anonymizeData(data) as { level1: { level2: { level3: { owner: string; data: string } } } };
             expect(result.level1.level2.level3.owner).toBe('[REDACTED]');
             expect(result.level1.level2.level3.data).toBe('safe data');
         });

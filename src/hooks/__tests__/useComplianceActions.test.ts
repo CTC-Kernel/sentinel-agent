@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 
 // Mock Firebase Firestore
 const mockUpdateDoc = vi.fn();
@@ -65,7 +65,7 @@ vi.mock('../../schemas/controlSchema', () => ({
 }));
 
 import { useComplianceActions } from '../useComplianceActions';
-import { Control, Framework } from '../../types';
+import { Control, Framework, UserProfile as User } from '../../types';
 
 describe('useComplianceActions', () => {
     const mockUser = {
@@ -95,13 +95,13 @@ describe('useComplianceActions', () => {
 
     describe('initialization', () => {
         it('initializes with updating false', () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             expect(result.current.updating).toBe(false);
         });
 
         it('provides all expected functions', () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             expect(typeof result.current.handleStatusChange).toBe('function');
             expect(typeof result.current.handleAssign).toBe('function');
@@ -125,7 +125,7 @@ describe('useComplianceActions', () => {
 
     describe('updateControl', () => {
         it('updates control in Firestore', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             let success: boolean | undefined;
             await act(async () => {
@@ -140,7 +140,7 @@ describe('useComplianceActions', () => {
         it('handles update errors', async () => {
             mockUpdateDoc.mockRejectedValue(new Error('Update failed'));
 
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             let success: boolean | undefined;
             await act(async () => {
@@ -159,7 +159,7 @@ describe('useComplianceActions', () => {
                 })
             );
 
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             const updatePromise = act(async () => {
                 await result.current.updateControl('ctrl-1', { status: 'Conforme' });
@@ -174,7 +174,7 @@ describe('useComplianceActions', () => {
 
     describe('handleStatusChange', () => {
         it('updates control status', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleStatusChange(mockControl, 'Conforme');
@@ -187,7 +187,7 @@ describe('useComplianceActions', () => {
 
     describe('handleAssign', () => {
         it('assigns user to control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleAssign(mockControl, 'user-456');
@@ -200,7 +200,7 @@ describe('useComplianceActions', () => {
 
     describe('handleLinkAsset', () => {
         it('links asset to control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleLinkAsset(mockControl, 'asset-123');
@@ -213,7 +213,7 @@ describe('useComplianceActions', () => {
 
     describe('handleUnlinkAsset', () => {
         it('unlinks asset from control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleUnlinkAsset(mockControl, 'asset-123');
@@ -226,7 +226,7 @@ describe('useComplianceActions', () => {
 
     describe('handleLinkSupplier', () => {
         it('links supplier to control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleLinkSupplier(mockControl, 'supplier-123');
@@ -239,7 +239,7 @@ describe('useComplianceActions', () => {
 
     describe('handleLinkProject', () => {
         it('links project to control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleLinkProject(mockControl, 'proj-123');
@@ -252,7 +252,7 @@ describe('useComplianceActions', () => {
 
     describe('handleLinkDocument', () => {
         it('links document to control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleLinkDocument(mockControl, 'doc-123');
@@ -265,7 +265,7 @@ describe('useComplianceActions', () => {
 
     describe('updateJustification', () => {
         it('updates control justification', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.updateJustification(mockControl, 'This control is not applicable');
@@ -278,7 +278,7 @@ describe('useComplianceActions', () => {
 
     describe('handleApplicabilityChange', () => {
         it('marks control as applicable', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleApplicabilityChange(
@@ -292,7 +292,7 @@ describe('useComplianceActions', () => {
         });
 
         it('marks control as non-applicable', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleApplicabilityChange(mockControl, false);
@@ -305,7 +305,7 @@ describe('useComplianceActions', () => {
 
     describe('handleMapFramework', () => {
         it('maps framework to control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleMapFramework(mockControl, 'NIS2' as Framework);
@@ -316,7 +316,7 @@ describe('useComplianceActions', () => {
         });
 
         it('shows info toast when mapping primary framework', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleMapFramework(mockControl, 'ISO27001' as Framework);
@@ -331,7 +331,7 @@ describe('useComplianceActions', () => {
                 mappedFrameworks: ['NIS2' as Framework]
             };
 
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleMapFramework(controlWithMappings, 'NIS2' as Framework);
@@ -343,7 +343,7 @@ describe('useComplianceActions', () => {
 
     describe('handleUnmapFramework', () => {
         it('unmaps framework from control', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
                 await result.current.handleUnmapFramework(mockControl, 'NIS2' as Framework);
@@ -356,7 +356,7 @@ describe('useComplianceActions', () => {
 
     describe('createRisk', () => {
         it('creates risk in Firestore', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             let riskId: string | null;
             await act(async () => {
@@ -373,7 +373,7 @@ describe('useComplianceActions', () => {
         it('handles create risk error', async () => {
             mockAddDoc.mockRejectedValue(new Error('Create failed'));
 
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             let riskId: string | null;
             await act(async () => {
@@ -387,7 +387,7 @@ describe('useComplianceActions', () => {
 
     describe('createAudit', () => {
         it('creates audit in Firestore', async () => {
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             let auditId: string | null;
             await act(async () => {
@@ -404,7 +404,7 @@ describe('useComplianceActions', () => {
         it('handles create audit error', async () => {
             mockAddDoc.mockRejectedValue(new Error('Create failed'));
 
-            const { result } = renderHook(() => useComplianceActions(mockUser as any));
+            const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             let auditId: string | null;
             await act(async () => {

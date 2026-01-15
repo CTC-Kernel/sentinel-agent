@@ -19,13 +19,13 @@ describe('loginSchema', () => {
         });
 
         it('rejects missing email', () => {
-            const { email, ...data } = validLogin;
+            const { email: _email, ...data } = validLogin;
             const result = loginSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing password', () => {
-            const { password, ...data } = validLogin;
+            const { password: _password, ...data } = validLogin;
             const result = loginSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -105,13 +105,13 @@ describe('registerSchema', () => {
         });
 
         it('rejects missing email', () => {
-            const { email, ...data } = validRegister;
+            const { email: _email, ...data } = validRegister;
             const result = registerSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing password', () => {
-            const { password, ...data } = validRegister;
+            const { password: _password, ...data } = validRegister;
             const result = registerSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

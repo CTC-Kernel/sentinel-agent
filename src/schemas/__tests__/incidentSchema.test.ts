@@ -23,7 +23,7 @@ describe('incidentSchema', () => {
         });
 
         it('rejects missing title', () => {
-            const { title, ...data } = validIncident;
+            const { title: _title, ...data } = validIncident;
             const result = incidentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -34,7 +34,7 @@ describe('incidentSchema', () => {
         });
 
         it('rejects missing description', () => {
-            const { description, ...data } = validIncident;
+            const { description: _description, ...data } = validIncident;
             const result = incidentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -45,19 +45,19 @@ describe('incidentSchema', () => {
         });
 
         it('rejects missing severity', () => {
-            const { severity, ...data } = validIncident;
+            const { severity: _severity, ...data } = validIncident;
             const result = incidentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validIncident;
+            const { status: _status, ...data } = validIncident;
             const result = incidentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing reporter', () => {
-            const { reporter, ...data } = validIncident;
+            const { reporter: _reporter, ...data } = validIncident;
             const result = incidentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

@@ -35,7 +35,7 @@ describe('projectSchema', () => {
         });
 
         it('rejects missing name', () => {
-            const { name, ...data } = validProject;
+            const { name: _name, ...data } = validProject;
             const result = projectSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -46,7 +46,7 @@ describe('projectSchema', () => {
         });
 
         it('rejects missing description', () => {
-            const { description, ...data } = validProject;
+            const { description: _description, ...data } = validProject;
             const result = projectSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -57,7 +57,7 @@ describe('projectSchema', () => {
         });
 
         it('rejects missing manager', () => {
-            const { manager, ...data } = validProject;
+            const { manager: _manager, ...data } = validProject;
             const result = projectSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -68,7 +68,7 @@ describe('projectSchema', () => {
         });
 
         it('rejects missing managerId', () => {
-            const { managerId, ...data } = validProject;
+            const { managerId: _managerId, ...data } = validProject;
             const result = projectSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -419,7 +419,7 @@ describe('templateFormSchema', () => {
         });
 
         it('rejects missing projectName', () => {
-            const { projectName, ...data } = validTemplate;
+            const { projectName: _projectName, ...data } = validTemplate;
             const result = templateFormSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -430,7 +430,7 @@ describe('templateFormSchema', () => {
         });
 
         it('rejects missing startDate', () => {
-            const { startDate, ...data } = validTemplate;
+            const { startDate: _startDate, ...data } = validTemplate;
             const result = templateFormSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -441,7 +441,7 @@ describe('templateFormSchema', () => {
         });
 
         it('rejects missing managerId', () => {
-            const { managerId, ...data } = validTemplate;
+            const { managerId: _managerId, ...data } = validTemplate;
             const result = templateFormSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

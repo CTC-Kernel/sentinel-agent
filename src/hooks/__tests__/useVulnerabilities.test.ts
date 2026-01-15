@@ -5,6 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { Vulnerability } from '../../types';
 
 // Mock Firebase Firestore
 const mockAddDoc = vi.fn();
@@ -215,7 +216,7 @@ describe('useVulnerabilities', () => {
 
             await expect(
                 act(async () => {
-                    await result.current.updateVulnerability('vuln-1', { status: 'Closed' });
+                    await result.current.updateVulnerability('vuln-1', { status: 'Resolved' });
                 })
             ).rejects.toThrow();
 
@@ -280,7 +281,7 @@ describe('useVulnerabilities', () => {
                     description: 'Description',
                     severity: 'Critical',
                     assetId: 'asset-1'
-                } as any);
+                } as unknown as Vulnerability);
             });
 
             expect(mockAddDoc).toHaveBeenCalled();
@@ -295,7 +296,7 @@ describe('useVulnerabilities', () => {
                 await result.current.createRiskFromVuln({
                     cveId: 'CVE-no-id',
                     severity: 'High'
-                } as any);
+                } as unknown as Vulnerability);
             });
 
             expect(mockAddDoc).not.toHaveBeenCalled();
@@ -312,7 +313,7 @@ describe('useVulnerabilities', () => {
                         id: 'vuln-error',
                         cveId: 'CVE-error',
                         severity: 'High'
-                    } as any);
+                    } as unknown as Vulnerability);
                 })
             ).rejects.toThrow();
 

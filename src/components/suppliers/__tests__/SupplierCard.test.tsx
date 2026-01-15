@@ -1,0 +1,227 @@
+/**
+ * Unit tests for SupplierCard component
+ * Tests supplier card display and interactions
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { SupplierCard } from '../SupplierCard';
+import { Supplier, Criticality, UserProfile } from '../../../types';
+
+// Mock avatar utils
+vi.mock('../../../utils/avatarUtils', () => ({
+    getUserAvatarUrl: vi.fn((url, role) => url || `https://avatar.vercel.sh/${role}`)
+}));
+
+describe('SupplierCard', () => {
+    const mockSupplier: Supplier = {
+        id: 'sup-1',
+        name: 'Test Supplier',
+        category: 'Logiciel',
+        status: 'Actif',
+        criticality: Criticality.HIGH,
+        securityScore: 75,
+        contactName: 'John Doe',
+        contactEmail: 'john@supplier.com',
+        contractEnd: new Date(Date.now() + 86400000 * 365).toISOString(), // 1 year from now
+        isICTProvider: true,
+        organizationId: 'org-1',
+        createdAt: new Date(),
+        updatedAt: new Date()
+    };
+
+    const mockUsers: UserProfile[] = [
+        {
+            uid: 'user-1',
+            email: 'john@supplier.com',
+            role: 'Admin',
+            displayName: 'John Doe',
+            photoURL: 'https://example.com/avatar.jpg',
+            organizationId: 'org-1'
+        }
+    ];
+
+    const mockOnClick = vi.fn();
+    const mockOnDelete = vi.fn();
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    describe('rendering', () => {
+        it('renders supplier name', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            expect(screen.getByText('Test Supplier')).toBeInTheDocument();
+        });
+
+        it('renders category badge', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            expect(screen.getByText('Logiciel')).toBeInTheDocument();
+        });
+
+        it('renders status badge', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            expect(screen.getByText('Actif')).toBeInTheDocument();
+        });
+
+        it('renders criticality badge', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            expect(screen.getByText(Criticality.HIGH)).toBeInTheDocument();
+        });
+
+        it('renders security score', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            expect(screen.getByText('75/100')).toBeInTheDocument();
+        });
+
+        it('renders DORA ICT badge when isICTProvider is true', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            expect(screen.getByText('DORA ICT')).toBeInTheDocument();
+        });
+
+        it('does not render DORA ICT badge when isICTProvider is false', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, isICTProvider: false }} onClick={mockOnClick} />);
+
+            expect(screen.queryByText('DORA ICT')).not.toBeInTheDocument();
+        });
+
+        it('renders contact name', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} users={mockUsers} />);
+
+            expect(screen.getByText('John Doe')).toBeInTheDocument();
+        });
+
+        it('renders contract end date', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            expect(screen.getByText('Contrat')).toBeInTheDocument();
+        });
+    });
+
+    describe('criticality colors', () => {
+        it('applies correct style for CRITICAL', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, criticality: Criticality.CRITICAL }} onClick={mockOnClick} />);
+
+            expect(screen.getByText(Criticality.CRITICAL)).toHaveClass('bg-red-100');
+        });
+
+        it('applies correct style for HIGH', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, criticality: Criticality.HIGH }} onClick={mockOnClick} />);
+
+            expect(screen.getByText(Criticality.HIGH)).toHaveClass('bg-orange-100');
+        });
+
+        it('applies correct style for MEDIUM', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, criticality: Criticality.MEDIUM }} onClick={mockOnClick} />);
+
+            expect(screen.getByText(Criticality.MEDIUM)).toHaveClass('bg-yellow-100');
+        });
+
+        it('applies correct style for LOW', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, criticality: Criticality.LOW }} onClick={mockOnClick} />);
+
+            expect(screen.getByText(Criticality.LOW)).toHaveClass('bg-green-100');
+        });
+    });
+
+    describe('interactions', () => {
+        it('calls onClick when card is clicked', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            fireEvent.click(screen.getByRole('button'));
+
+            expect(mockOnClick).toHaveBeenCalledWith(mockSupplier);
+        });
+
+        it('calls onClick on Enter key', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            fireEvent.keyDown(screen.getByRole('button'), { key: 'Enter' });
+
+            expect(mockOnClick).toHaveBeenCalledWith(mockSupplier);
+        });
+
+        it('calls onClick on Space key', () => {
+            render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
+
+            fireEvent.keyDown(screen.getByRole('button'), { key: ' ' });
+
+            expect(mockOnClick).toHaveBeenCalledWith(mockSupplier);
+        });
+    });
+
+    describe('expired contract', () => {
+        it('shows expired styling when contract is expired', () => {
+            const expiredSupplier = {
+                ...mockSupplier,
+                contractEnd: new Date(Date.now() - 86400000).toISOString() // Yesterday
+            };
+            render(<SupplierCard supplier={expiredSupplier} onClick={mockOnClick} />);
+
+            // The date should be displayed in red
+            const dateElement = screen.getByText(new Date(expiredSupplier.contractEnd).toLocaleDateString());
+            expect(dateElement).toHaveClass('text-red-500');
+        });
+    });
+
+    describe('security score colors', () => {
+        it('shows emerald color for score >= 80', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, securityScore: 85 }} onClick={mockOnClick} />);
+
+            expect(screen.getByText('85/100')).toHaveClass('text-emerald-500');
+        });
+
+        it('shows amber color for score >= 50', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, securityScore: 65 }} onClick={mockOnClick} />);
+
+            expect(screen.getByText('65/100')).toHaveClass('text-amber-500');
+        });
+
+        it('shows red color for score < 50', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, securityScore: 30 }} onClick={mockOnClick} />);
+
+            expect(screen.getByText('30/100')).toHaveClass('text-red-500');
+        });
+    });
+
+    describe('category icons', () => {
+        it('renders Building icon for Logiciel category', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, category: 'Logiciel' }} onClick={mockOnClick} />);
+
+            // The Building icon should be rendered (we can verify the component renders without error)
+            expect(screen.getByRole('button')).toBeInTheDocument();
+        });
+
+        it('renders Truck icon for Matériel category', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, category: 'Matériel' }} onClick={mockOnClick} />);
+
+            expect(screen.getByRole('button')).toBeInTheDocument();
+        });
+    });
+
+    describe('missing data handling', () => {
+        it('handles missing contractEnd', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, contractEnd: undefined }} onClick={mockOnClick} />);
+
+            expect(screen.getByText('-')).toBeInTheDocument();
+        });
+
+        it('handles missing securityScore', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, securityScore: undefined }} onClick={mockOnClick} />);
+
+            expect(screen.getByText('0/100')).toBeInTheDocument();
+        });
+
+        it('handles missing contactName', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, contactName: undefined }} onClick={mockOnClick} />);
+
+            expect(screen.queryByAltText('John Doe')).not.toBeInTheDocument();
+        });
+    });
+});

@@ -22,7 +22,7 @@ describe('auditSchema', () => {
         });
 
         it('rejects missing name', () => {
-            const { name, ...data } = validAudit;
+            const { name: _name, ...data } = validAudit;
             const result = auditSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -33,13 +33,13 @@ describe('auditSchema', () => {
         });
 
         it('rejects missing type', () => {
-            const { type, ...data } = validAudit;
+            const { type: _type, ...data } = validAudit;
             const result = auditSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing auditor', () => {
-            const { auditor, ...data } = validAudit;
+            const { auditor: _auditor, ...data } = validAudit;
             const result = auditSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -50,7 +50,7 @@ describe('auditSchema', () => {
         });
 
         it('rejects missing dateScheduled', () => {
-            const { dateScheduled, ...data } = validAudit;
+            const { dateScheduled: _dateScheduled, ...data } = validAudit;
             const result = auditSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -61,7 +61,7 @@ describe('auditSchema', () => {
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validAudit;
+            const { status: _status, ...data } = validAudit;
             const result = auditSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

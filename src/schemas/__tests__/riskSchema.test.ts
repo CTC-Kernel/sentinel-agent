@@ -38,37 +38,37 @@ describe('riskSchema', () => {
         });
 
         it('rejects missing threat', () => {
-            const { threat, ...data } = validRisk;
+            const { threat: _threat, ...data } = validRisk;
             const result = riskSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing vulnerability', () => {
-            const { vulnerability, ...data } = validRisk;
+            const { vulnerability: _vulnerability, ...data } = validRisk;
             const result = riskSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing probability', () => {
-            const { probability, ...data } = validRisk;
+            const { probability: _probability, ...data } = validRisk;
             const result = riskSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing impact', () => {
-            const { impact, ...data } = validRisk;
+            const { impact: _impact, ...data } = validRisk;
             const result = riskSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing strategy', () => {
-            const { strategy, ...data } = validRisk;
+            const { strategy: _strategy, ...data } = validRisk;
             const result = riskSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validRisk;
+            const { status: _status, ...data } = validRisk;
             const result = riskSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

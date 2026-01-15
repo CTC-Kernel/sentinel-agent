@@ -190,9 +190,7 @@ describe('useComplianceDataSeeder', () => {
         it('handles unknown framework', async () => {
             const { result } = renderHook(() => useComplianceDataSeeder());
 
-            await act(async () => {
-                await result.current.seedControls('UNKNOWN' as any);
-            });
+            await result.current.seedControls('UNKNOWN' as unknown as 'ISO27001');
 
             expect(mockToastError).toHaveBeenCalled();
         });

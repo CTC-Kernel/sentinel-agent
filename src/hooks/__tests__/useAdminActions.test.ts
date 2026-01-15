@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 
 // Mock Firebase Functions
 const mockHttpsCallable = vi.fn();
@@ -129,8 +129,10 @@ describe('useAdminActions', () => {
 
             // Mock window.location
             const originalLocation = window.location;
-            delete (window as { location?: Location }).location;
-            window.location = { href: '' } as Location;
+            Object.defineProperty(window, 'location', {
+                value: { href: '' },
+                writable: true
+            });
 
             const { result } = renderHook(() => useAdminActions());
 
@@ -154,8 +156,10 @@ describe('useAdminActions', () => {
             mockGetIdToken.mockResolvedValue('new-token');
 
             const originalLocation = window.location;
-            delete (window as { location?: Location }).location;
-            window.location = { href: '' } as Location;
+            Object.defineProperty(window, 'location', {
+                value: { href: '' },
+                writable: true
+            });
 
             const { result } = renderHook(() => useAdminActions());
 
@@ -175,8 +179,10 @@ describe('useAdminActions', () => {
             mockGetIdToken.mockResolvedValue('new-token');
 
             const originalLocation = window.location;
-            delete (window as { location?: Location }).location;
-            window.location = { href: '' } as Location;
+            Object.defineProperty(window, 'location', {
+                value: { href: '' },
+                writable: true
+            });
 
             const { result } = renderHook(() => useAdminActions());
 
@@ -195,8 +201,10 @@ describe('useAdminActions', () => {
             mockGetIdToken.mockResolvedValue('new-token');
 
             const originalLocation = window.location;
-            delete (window as { location?: Location }).location;
-            window.location = { href: '' } as Location;
+            Object.defineProperty(window, 'location', {
+                value: { href: '' },
+                writable: true
+            });
 
             const { result } = renderHook(() => useAdminActions());
 
@@ -244,8 +252,10 @@ describe('useAdminActions', () => {
             mockGetIdToken.mockResolvedValue('token');
 
             const originalLocation = window.location;
-            delete (window as { location?: Location }).location;
-            window.location = { href: '' } as Location;
+            Object.defineProperty(window, 'location', {
+                value: { href: '' },
+                writable: true
+            });
 
             const { result } = renderHook(() => useAdminActions());
 

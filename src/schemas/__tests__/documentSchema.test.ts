@@ -22,7 +22,7 @@ describe('documentSchema', () => {
         });
 
         it('rejects missing title', () => {
-            const { title, ...data } = validDocument;
+            const { title: _title, ...data } = validDocument;
             const result = documentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -33,13 +33,13 @@ describe('documentSchema', () => {
         });
 
         it('rejects missing type', () => {
-            const { type, ...data } = validDocument;
+            const { type: _type, ...data } = validDocument;
             const result = documentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing version', () => {
-            const { version, ...data } = validDocument;
+            const { version: _version, ...data } = validDocument;
             const result = documentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -50,13 +50,13 @@ describe('documentSchema', () => {
         });
 
         it('rejects missing status', () => {
-            const { status, ...data } = validDocument;
+            const { status: _status, ...data } = validDocument;
             const result = documentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing owner', () => {
-            const { owner, ...data } = validDocument;
+            const { owner: _owner, ...data } = validDocument;
             const result = documentSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

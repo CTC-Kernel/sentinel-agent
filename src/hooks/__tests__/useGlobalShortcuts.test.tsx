@@ -45,7 +45,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe('useGlobalShortcuts', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mockUseHotkeys.mockImplementation(() => {});
+        mockUseHotkeys.mockImplementation(() => { });
     });
 
     describe('initialization', () => {
@@ -185,7 +185,7 @@ describe('useGlobalShortcuts', () => {
 
             if (navigationHandler) {
                 const mockEvent = { preventDefault: vi.fn() };
-                navigationHandler(mockEvent as any);
+                navigationHandler(mockEvent as unknown as KeyboardEvent);
 
                 expect(mockEvent.preventDefault).toHaveBeenCalled();
                 expect(mockNavigate).toHaveBeenCalledWith('/');
@@ -204,7 +204,7 @@ describe('useGlobalShortcuts', () => {
 
             if (themeHandler) {
                 const mockEvent = { preventDefault: vi.fn() };
-                themeHandler(mockEvent as any);
+                themeHandler(mockEvent as unknown as KeyboardEvent);
 
                 expect(mockEvent.preventDefault).toHaveBeenCalled();
                 expect(mockToggleTheme).toHaveBeenCalled();

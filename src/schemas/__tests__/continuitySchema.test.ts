@@ -29,7 +29,7 @@ describe('businessProcessSchema', () => {
         });
 
         it('rejects missing name', () => {
-            const { name, ...data } = validProcess;
+            const { name: _name, ...data } = validProcess;
             const result = businessProcessSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -40,7 +40,7 @@ describe('businessProcessSchema', () => {
         });
 
         it('rejects missing description', () => {
-            const { description, ...data } = validProcess;
+            const { description: _description, ...data } = validProcess;
             const result = businessProcessSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -51,25 +51,25 @@ describe('businessProcessSchema', () => {
         });
 
         it('rejects missing owner', () => {
-            const { owner, ...data } = validProcess;
+            const { owner: _owner, ...data } = validProcess;
             const result = businessProcessSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing rto', () => {
-            const { rto, ...data } = validProcess;
+            const { rto: _rto, ...data } = validProcess;
             const result = businessProcessSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing rpo', () => {
-            const { rpo, ...data } = validProcess;
+            const { rpo: _rpo, ...data } = validProcess;
             const result = businessProcessSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing priority', () => {
-            const { priority, ...data } = validProcess;
+            const { priority: _priority, ...data } = validProcess;
             const result = businessProcessSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -256,7 +256,7 @@ describe('bcpDrillSchema', () => {
         });
 
         it('rejects missing processId', () => {
-            const { processId, ...data } = validDrill;
+            const { processId: _processId, ...data } = validDrill;
             const result = bcpDrillSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -267,13 +267,13 @@ describe('bcpDrillSchema', () => {
         });
 
         it('rejects missing date', () => {
-            const { date, ...data } = validDrill;
+            const { date: _date, ...data } = validDrill;
             const result = bcpDrillSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing type', () => {
-            const { type, ...data } = validDrill;
+            const { type: _type, ...data } = validDrill;
             const result = bcpDrillSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -341,7 +341,7 @@ describe('strategySchema', () => {
         });
 
         it('rejects missing title', () => {
-            const { title, ...data } = validStrategy;
+            const { title: _title, ...data } = validStrategy;
             const result = strategySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -352,19 +352,19 @@ describe('strategySchema', () => {
         });
 
         it('rejects missing type', () => {
-            const { type, ...data } = validStrategy;
+            const { type: _type, ...data } = validStrategy;
             const result = strategySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing rto', () => {
-            const { rto, ...data } = validStrategy;
+            const { rto: _rto, ...data } = validStrategy;
             const result = strategySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing rpo', () => {
-            const { rpo, ...data } = validStrategy;
+            const { rpo: _rpo, ...data } = validStrategy;
             const result = strategySchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -466,7 +466,7 @@ describe('recoveryPlanSchema', () => {
         });
 
         it('rejects missing title', () => {
-            const { title, ...data } = validPlan;
+            const { title: _title, ...data } = validPlan;
             const result = recoveryPlanSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
@@ -477,25 +477,25 @@ describe('recoveryPlanSchema', () => {
         });
 
         it('rejects missing type', () => {
-            const { type, ...data } = validPlan;
+            const { type: _type, ...data } = validPlan;
             const result = recoveryPlanSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing rto', () => {
-            const { rto, ...data } = validPlan;
+            const { rto: _rto, ...data } = validPlan;
             const result = recoveryPlanSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing rpo', () => {
-            const { rpo, ...data } = validPlan;
+            const { rpo: _rpo, ...data } = validPlan;
             const result = recoveryPlanSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
 
         it('rejects missing ownerId', () => {
-            const { ownerId, ...data } = validPlan;
+            const { ownerId: _ownerId, ...data } = validPlan;
             const result = recoveryPlanSchema.safeParse(data);
             expect(result.success).toBe(false);
         });
