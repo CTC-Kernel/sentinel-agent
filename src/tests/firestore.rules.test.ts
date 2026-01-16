@@ -40,7 +40,11 @@ describe('Firestore Rules Security', () => {
         if (!auth) return testEnv.authenticatedContext('unauthenticated');
 
         // Construct the token payload
-        const token: any = {
+        const token: {
+            email: string;
+            role?: string;
+            organizationId?: string;
+        } = {
             email: auth.email || 'test@example.com',
             // We must map our custom claims structure here
             // The rules check: request.auth.token.role and request.auth.token.organizationId
