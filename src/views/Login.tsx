@@ -128,7 +128,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             <Lock className="h-8 w-8" strokeWidth={2.5} />
                         </div>
                         <h1 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white">Sentinel GRC</h1>
-                        <p className="text-base font-medium text-slate-600 dark:text-slate-400 mt-2">{t('auth.subtitle')}</p>
+                        <p className="text-base font-medium text-slate-700 dark:text-slate-400 mt-2">{t('auth.subtitle')}</p>
                     </div>
 
                     {errorMsg && (
@@ -169,7 +169,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
                         <div className="relative py-2">
                             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
-                            <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-500">{t('auth.orEmail')}</span></div>
+                            <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-600 dark:text-slate-400">{t('auth.orEmail')}</span></div>
                         </div>
 
                         <form onSubmit={handleSubmit(onEmailAuthSubmit)} className="space-y-5">
@@ -227,7 +227,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                         <Button
                             variant="ghost"
                             onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
-                            className="text-[13px] font-bold text-slate-600 hover:text-slate-900 dark:hover:text-white"
+                            className="text-[13px] font-bold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                         >
                             {isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
                         </Button>
@@ -236,8 +236,8 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             </div>
 
             <div className="py-6 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t('auth.footer.developedBy')}</p>
-                <p className="text-sm text-slate-500 break-words">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">{t('auth.footer.developedBy')}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400 break-words">
                     {t('auth.footer.recaptcha')}
                     <button aria-label={t('auth.footer.privacy')} onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
                         {t('auth.footer.privacy')}
@@ -273,7 +273,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                 </div>
                                 {/* Heading hierarchy: h2 for modal title (follows h1 page title) */}
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.reset.title')}</h2>
-                                <p className="text-sm text-slate-600 mt-2">{t('auth.reset.desc')}</p>
+                                <p className="text-sm text-slate-700 dark:text-slate-400 mt-2">{t('auth.reset.desc')}</p>
                             </div>
 
                             {!resetSent ? (
@@ -319,7 +319,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                     <Lock className="h-7 w-7" />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.mfa.title')}</h3>
-                                <p className="text-sm text-slate-600 mt-2">{t('auth.mfa.desc')}</p>
+                                <p className="text-sm text-slate-700 dark:text-slate-400 mt-2">{t('auth.mfa.desc')}</p>
                             </div>
 
                             {mfaError && (

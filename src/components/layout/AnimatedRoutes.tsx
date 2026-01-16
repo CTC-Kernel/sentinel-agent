@@ -44,6 +44,9 @@ const Reports = React.lazy(() => import('../../views/Reports').then(module => ({
 const EbiosAnalyses = React.lazy(() => import('../../views/EbiosAnalyses').then(module => ({ default: module.EbiosAnalyses })));
 const EbiosAnalysisDetail = React.lazy(() => import('../../views/EbiosAnalysisDetail').then(module => ({ default: module.EbiosAnalysisDetail })));
 
+// SMSI Program Module (ISO 27003)
+const SMSIProgram = React.lazy(() => import('../../views/SMSIProgram').then(module => ({ default: module.SMSIProgramView })));
+
 // New Professional 404 Page
 import { NotFound } from '../../views/NotFound';
 
@@ -72,6 +75,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/compliance" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Compliance /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/ebios" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalyses /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/ebios/:id" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalysisDetail /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/smsi" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><SMSIProgram /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/documents" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user']}>
                         <AnimatedPage><Documents /></AnimatedPage>

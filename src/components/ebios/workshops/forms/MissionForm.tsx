@@ -51,6 +51,8 @@ export const MissionForm: React.FC<MissionFormProps> = ({
     },
   });
 
+
+  // eslint-disable-next-line react-hooks/incompatible-library
   const criticality = watch('criticality');
 
   const handleDelete = useCallback(() => {

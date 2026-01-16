@@ -59,7 +59,11 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
     },
   });
 
+
+
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedType = watch('type');
+  // eslint-disable-next-line react-hooks/incompatible-library
   const linkedEssentialAssetIds = watch('linkedEssentialAssetIds');
 
   const handleSave = useCallback((data: SupportingAsset) => {

@@ -34,6 +34,9 @@ import type {
   TargetedObjective,
   SMSIProgram,
   Milestone,
+  MilestoneStatus,
+  PDCAPhase,
+  PDCAPhaseData,
   RiskContext,
 } from '../types/ebios';
 
@@ -671,6 +674,73 @@ export class EbiosService {
         component: 'EbiosService',
         action: 'createMilestone',
         organizationId,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Update milestone status
+   */
+  static async updateMilestoneStatus(
+    organizationId: string,
+    milestoneId: string,
+    status: MilestoneStatus
+  ): Promise<void> {
+    try {
+      const milestoneRef = doc(
+        db,
+        'organizations',
+        organizationId,
+        'smsiProgram',
+        'current',
+        'milestones',
+        milestoneId
+      );
+
+      const updates: Partial<Milestone> = {
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (status === 'completed') {
+        updates.completedAt = new Date().toISOString();
+      }
+
+      await updateDoc(milestoneRef, updates);
+    } catch (error) {
+      ErrorLogger.error(error, 'EbiosService.updateMilestoneStatus', {
+        component: 'EbiosService',
+        action: 'updateMilestoneStatus',
+        organizationId,
+        milestoneId,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Update SMSI Program phase
+   */
+  static async updateSMSIProgramPhase(
+    organizationId: string,
+    phase: PDCAPhase,
+    phaseData: Partial<PDCAPhaseData>
+  ): Promise<void> {
+    try {
+      const programRef = doc(db, 'organizations', organizationId, 'smsiProgram', 'current');
+
+      await updateDoc(programRef, {
+        [`phases.${phase}`]: phaseData,
+        currentPhase: phase,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      ErrorLogger.error(error, 'EbiosService.updateSMSIProgramPhase', {
+        component: 'EbiosService',
+        action: 'updateSMSIProgramPhase',
+        organizationId,
+        phase,
       });
       throw error;
     }

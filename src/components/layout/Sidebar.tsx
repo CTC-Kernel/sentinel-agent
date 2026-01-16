@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon
+  Scale, Shield, Printer, LucideIcon, RefreshCcw
 } from 'lucide-react';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -70,6 +70,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       items: [
         { key: 'risks', name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert, resource: 'Risk' },
         { key: 'ebios', name: 'EBIOS RM', to: '/ebios', icon: Scale, resource: 'Risk' }, // EBIOS Risk Manager
+        { key: 'smsi', name: 'Programme SMSI', to: '/smsi', icon: RefreshCcw, resource: 'Risk' }, // ISO 27003 PDCA
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText, resource: 'Audit' }, // Compliance often mapped to Audit roles
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
         { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP

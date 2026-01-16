@@ -238,7 +238,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 font-display tracking-tight">
                         Analytics Dashboard
                     </h1>
-                    <p className="text-slate-600 dark:text-slate-400 font-medium">
+                    <p className="text-slate-700 dark:text-slate-400 font-medium">
                         Vue d'ensemble des métriques et tendances de sécurité
                     </p>
                 </div>
@@ -500,7 +500,7 @@ export const AnalyticsDashboard: React.FC = () => {
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">
                                 Top 10 Risques Critiques
                             </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Risques nécessitant une attention immédiate</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Risques nécessitant une attention immédiate</p>
                         </div>
                         <button
                             onClick={() => navigate('/risks')}

@@ -64,7 +64,7 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
                 </div>
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux de Résolution</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px] leading-snug">
+                    <p className="text-sm text-slate-700 dark:text-slate-400 max-w-[200px] leading-snug">
                         Pourcentage d'incidents résolus ou fermés.
                     </p>
                 </div>
@@ -73,17 +73,17 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
             {/* Key Metrics Breakdown */}
             <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2 relative z-decorator">
                 <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Total</div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">Total</div>
                     <div className="text-2xl font-black text-slate-900 dark:text-white">{totalIncidents}</div>
                 </div>
                 <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">En Cours</div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
                     <div className={`text-2xl font-black ${openIncidents > 0 ? 'text-orange-500' : 'text-slate-900 dark:text-white'}`}>
                         {openIncidents}
                     </div>
                 </div>
                 <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Critiques</div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">Critiques</div>
                     <div className={`text-2xl font-black ${criticalIncidents > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                         {criticalIncidents}
                     </div>

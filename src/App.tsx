@@ -307,6 +307,7 @@ const router = createHashRouter([
         v7_partialHydration: true,
         v7_skipActionErrorRevalidation: true,
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any); // Type assertion to bypass potential type definition mismatch in v6.29
 
 const AppContent: React.FC = () => {
