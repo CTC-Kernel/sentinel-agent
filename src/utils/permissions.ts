@@ -80,7 +80,7 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Integration: ['read']
     },
     user: {
-        Document: ['read'], // Can often read policy docs
+        Document: ['read', 'update_own'], // Can often read policy docs
         Asset: ['read'],
         Risk: ['read'],
         Project: ['read'],

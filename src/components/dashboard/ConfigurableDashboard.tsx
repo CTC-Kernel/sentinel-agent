@@ -14,6 +14,7 @@ import { getDefaultLayoutForRole, getDashboardRole } from '../../config/dashboar
 import { ConfigurableDashboardGrid } from './configurable/ConfigurableDashboardGrid';
 import { AddWidgetModal } from './configurable/AddWidgetModal';
 import { DashboardEditModeToggle } from './DashboardEditModeToggle';
+import { EmptyState } from '../ui/EmptyState';
 import { WIDGET_REGISTRY, type WidgetId } from './configurable/WidgetRegistry';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
@@ -185,32 +186,17 @@ export function ConfigurableDashboard({
 
       {/* Empty state */}
       {layout.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
-            <Plus className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            {t('dashboard.addWidget')}
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            {t('dashboard.customizeDashboard')}
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setIsEditing(true);
-              setShowAddWidgetModal(true);
-            }}
-            className={cn(
-              'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
-              'text-white bg-blue-500 hover:bg-blue-600',
-              'transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-            )}
-          >
-            <Plus className="w-4 h-4" />
-            {t('dashboard.addWidget')}
-          </button>
-        </div>
+        <EmptyState
+          icon={Plus}
+          title={t('dashboard.addWidget')}
+          description={t('dashboard.customizeDashboard')}
+          actionLabel={t('dashboard.addWidget')}
+          onAction={() => {
+            setIsEditing(true);
+            setShowAddWidgetModal(true);
+          }}
+          className="py-16"
+        />
       )}
 
       {/* Add widget modal */}

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { GlassCard } from '../ui/GlassCard';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Trash2, CalendarDays, Siren, ShieldAlert } from '../ui/Icons';
 import { Incident, Criticality, UserProfile } from '../../types';
@@ -237,7 +238,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                         </div>
                     ) : (
                         filteredIncidents.map((inc) => (
-                            <div
+                            <GlassCard
                                 key={inc.id}
                                 onClick={() => onSelect(inc)}
                                 onKeyDown={(e) => {
@@ -248,10 +249,11 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 }}
                                 role="button"
                                 tabIndex={0}
-                                className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/60 dark:border-white/10 hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                                hoverEffect={true}
+                                className="p-7 flex flex-col relative overflow-hidden group border border-white/60 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
                             >
                                 {inc.severity === Criticality.CRITICAL && (
-                                    <div className="absolute top-6 right-6">
+                                    <div className="absolute top-6 right-6 z-10">
                                         <span className="relative flex h-3 w-3">
                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -327,7 +329,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </GlassCard>
                         ))
                     )}
                 </div>

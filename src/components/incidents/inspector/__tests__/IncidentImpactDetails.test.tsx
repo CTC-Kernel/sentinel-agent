@@ -6,7 +6,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { IncidentImpactDetails } from '../IncidentImpactDetails';
-import { Incident, Asset, BusinessProcess, Risk, Criticality, IncidentStatus } from '../../../../types';
+import { Incident, Asset, BusinessProcess, Risk, Criticality } from '../../../../types';
 
 // Mock Icons
 vi.mock('../../../ui/Icons', () => ({
@@ -28,18 +28,26 @@ describe('IncidentImpactDetails', () => {
             id: 'asset-1',
             organizationId: 'org-1',
             name: 'Main Database Server',
-            type: 'Serveur',
-            criticality: Criticality.HIGH,
+            type: 'Matériel',
+            // criticality removed
             owner: 'IT Team',
+            confidentiality: Criticality.HIGH,
+            integrity: Criticality.HIGH,
+            availability: Criticality.HIGH,
+            location: 'Paris DC',
             createdAt: '2024-01-01'
         },
         {
             id: 'asset-2',
             organizationId: 'org-1',
             name: 'Backup Server',
-            type: 'Serveur',
-            criticality: Criticality.MEDIUM,
+            type: 'Matériel',
+            // criticality removed
             owner: 'IT Team',
+            confidentiality: Criticality.MEDIUM,
+            integrity: Criticality.MEDIUM,
+            availability: Criticality.MEDIUM,
+            location: 'Lyon DC',
             createdAt: '2024-01-01'
         }
     ];
@@ -49,15 +57,25 @@ describe('IncidentImpactDetails', () => {
             id: 'process-1',
             organizationId: 'org-1',
             name: 'Order Processing',
-            criticality: Criticality.HIGH,
-            owner: 'Operations'
+            // criticality removed as it is not in BusinessProcess type
+            owner: 'Operations',
+            description: 'Processus critique de gestion des commandes',
+            rto: '4h',
+            rpo: '1h',
+            priority: 'Critique',
+            supportingAssetIds: []
         },
         {
             id: 'process-2',
             organizationId: 'org-1',
             name: 'Customer Support',
-            criticality: Criticality.MEDIUM,
-            owner: 'Support Team'
+            // criticality removed
+            owner: 'Support Team',
+            description: 'Support client niveau 1 et 2',
+            rto: '24h',
+            rpo: '4h',
+            priority: 'Moyenne',
+            supportingAssetIds: []
         }
     ];
 
@@ -70,7 +88,11 @@ describe('IncidentImpactDetails', () => {
             score: 18,
             probability: 4,
             impact: 5,
-            status: 'Actif'
+            status: 'Ouvert',
+            assetId: 'asset-1',
+            vulnerability: 'Weak Password Policy',
+            strategy: 'Atténuer',
+            owner: 'CISO'
         },
         {
             id: 'risk-2',
@@ -80,7 +102,11 @@ describe('IncidentImpactDetails', () => {
             score: 8,
             probability: 2,
             impact: 4,
-            status: 'Actif'
+            status: 'Ouvert',
+            assetId: 'asset-1',
+            vulnerability: 'Old Firmware',
+            strategy: 'Accepter',
+            owner: 'IT Manager'
         }
     ];
 
@@ -88,11 +114,12 @@ describe('IncidentImpactDetails', () => {
         id: 'incident-1',
         organizationId: 'org-1',
         title: 'Security Breach',
+        description: 'Unauthorized access detected on main server',
         severity: Criticality.CRITICAL,
-        status: IncidentStatus.OPEN,
+        status: 'Nouveau',
         dateReported: '2024-01-15T10:00:00Z',
         reporter: 'Alice Martin',
-        reporterId: 'user-1',
+
         affectedAssetId: 'asset-1',
         affectedProcessId: 'process-1',
         relatedRiskId: 'risk-1'
@@ -149,7 +176,7 @@ describe('IncidentImpactDetails', () => {
         it('displays asset type badge', () => {
             render(<IncidentImpactDetails {...defaultProps} />);
 
-            expect(screen.getByText('Serveur')).toBeInTheDocument();
+            expect(screen.getByText('Matériel')).toBeInTheDocument();
         });
 
         it('shows no asset message when not linked', () => {
@@ -271,7 +298,11 @@ describe('IncidentImpactDetails', () => {
                     score: 4,
                     probability: 2,
                     impact: 2,
-                    status: 'Actif'
+                    status: 'Ouvert',
+                    assetId: 'asset-1',
+                    vulnerability: 'Minor config issue',
+                    strategy: 'Accepter',
+                    owner: 'Admin'
                 }
             ];
             const incidentLowRisk = { ...mockIncident, relatedRiskId: 'risk-low' };
