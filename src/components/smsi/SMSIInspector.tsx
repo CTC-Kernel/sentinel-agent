@@ -3,7 +3,7 @@ import React from 'react';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Milestone } from '../../types/ebios';
 import { Badge } from '../ui/Badge';
-import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG } from './constants';
+import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG, PHASE_STYLES, MILESTONE_STATUS_STYLES } from './constants';
 import { GlassCard } from '../ui/GlassCard';
 import { Calendar, Users } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -26,6 +26,8 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
 
     const phaseConfig = PHASE_CONFIG[milestone.phase];
     const statusConfig = MILESTONE_STATUS_CONFIG[milestone.status];
+    const statusStyle = MILESTONE_STATUS_STYLES[milestone.status];
+    const phaseStyle = PHASE_STYLES[milestone.phase];
     const StatusIcon = statusConfig.icon;
 
     return (
@@ -38,8 +40,8 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
             statusBadge={
                 <Badge
                     className={cn(
-                        `bg-${statusConfig.color}-100 dark:bg-${statusConfig.color}-900/30`,
-                        `text-${statusConfig.color}-700 dark:text-${statusConfig.color}-400`
+                        statusStyle.bg,
+                        statusStyle.text
                     )}
                 >
                     <div className="flex items-center gap-1.5">
@@ -78,7 +80,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                         <div>
                             <label className="text-sm font-medium text-gray-500 block mb-1">Phase PDCA</label>
                             <div className="flex items-center gap-2">
-                                <phaseConfig.icon className={`w-4 h-4 text-${phaseConfig.color}-500`} />
+                                <phaseConfig.icon className={cn("w-4 h-4", phaseStyle.text)} />
                                 <span className="text-gray-900 dark:text-white">{phaseConfig.label} - {phaseConfig.description}</span>
                             </div>
                         </div>
@@ -93,6 +95,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                                 if (status === 'overdue') return null; // Don't allow manual setting to 'overdue'
                                 const isActive = milestone.status === status;
                                 const ConfigIcon = config.icon;
+                                const style = MILESTONE_STATUS_STYLES[status as Milestone['status']];
                                 return (
                                     <Button
                                         key={status}
@@ -100,7 +103,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                                         size="sm"
                                         onClick={() => onStatusChange(milestone.id, status as Milestone['status'])}
                                         className={cn(
-                                            isActive && `bg-${config.color}-500 hover:bg-${config.color}-600`
+                                            isActive && style.button
                                         )}
                                         disabled={isActive}
                                     >

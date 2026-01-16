@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '../ui/GlassCard';
@@ -11,7 +10,7 @@ import {
     Users
 } from 'lucide-react';
 
-import { PHASE_CONFIG } from './constants';
+import { PHASE_CONFIG, PHASE_STYLES } from './constants';
 
 interface SMSIDashboardProps {
     program: SMSIProgram;
@@ -57,6 +56,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                 <div className="flex items-center justify-center gap-4 py-6 flex-wrap">
                     {(['plan', 'do', 'check', 'act'] as PDCAPhase[]).map((phase, index) => {
                         const config = PHASE_CONFIG[phase];
+                        const styles = PHASE_STYLES[phase];
                         const phaseData = program.phases[phase];
                         const Icon = config.icon;
                         const isCurrentPhase = program.currentPhase === phase;
@@ -70,7 +70,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                         "relative flex flex-col items-center p-4 rounded-2xl border-2 transition-all",
                                         "w-36 min-h-[140px]",
                                         isCurrentPhase
-                                            ? `border-${config.color}-500 bg-${config.color}-50 dark:bg-${config.color}-900/20`
+                                            ? `${styles.borderActive} ${styles.bgActive}`
                                             : "border-gray-200 dark:border-gray-700 hover:border-gray-300",
                                         selectedPhase === phase && "ring-2 ring-offset-2 ring-blue-500"
                                     )}
@@ -78,22 +78,22 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                     whileTap={{ scale: 0.98 }}
                                 >
                                     {isCurrentPhase && (
-                                        <div className={`absolute -top-2 -right-2 w-5 h-5 bg-${config.color}-500 rounded-full flex items-center justify-center`}>
+                                        <div className={`absolute -top-2 -right-2 w-5 h-5 ${styles.badge} rounded-full flex items-center justify-center`}>
                                             <ChevronRight className="w-3 h-3 text-white" />
                                         </div>
                                     )}
 
                                     <div className={cn(
                                         "w-12 h-12 rounded-xl flex items-center justify-center mb-3",
-                                        `bg-${config.color}-100 dark:bg-${config.color}-900/30`
+                                        styles.iconBg
                                     )}>
-                                        <Icon className={`w-6 h-6 text-${config.color}-600 dark:text-${config.color}-400`} />
+                                        <Icon className={`w-6 h-6 ${styles.iconText}`} />
                                     </div>
 
                                     <span className={cn(
                                         "text-sm font-bold",
                                         isCurrentPhase
-                                            ? `text-${config.color}-600 dark:text-${config.color}-400`
+                                            ? styles.textActive
                                             : "text-gray-600 dark:text-gray-400"
                                     )}>
                                         {config.label}
@@ -147,19 +147,20 @@ interface PhaseDetailsPanelProps {
 
 const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, milestones }) => {
     const config = PHASE_CONFIG[phase];
+    const styles = PHASE_STYLES[phase];
     const phaseData = program.phases[phase];
     const Icon = config.icon;
 
     const completedMilestones = milestones.filter(m => m.status === 'completed').length;
 
     return (
-        <GlassCard className={`p-6 border-${config.color}-200 dark:border-${config.color}-900`}>
+        <GlassCard className={`p-6 ${styles.cardBorder}`}>
             <div className="flex items-center gap-4">
                 <div className={cn(
                     "w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0",
-                    `bg-${config.color}-100 dark:bg-${config.color}-900/30`
+                    styles.iconBg
                 )}>
-                    <Icon className={`w-7 h-7 text-${config.color}-600 dark:text-${config.color}-400`} />
+                    <Icon className={`w-7 h-7 ${styles.iconText}`} />
                 </div>
 
                 <div className="flex-1">

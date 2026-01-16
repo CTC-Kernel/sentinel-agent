@@ -7,7 +7,7 @@ import { Milestone } from '../../types/ebios';
 import { cn } from '../../utils/cn';
 import { motion } from 'framer-motion';
 import { Badge } from '../ui/Badge';
-import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG } from './constants';
+import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG, PHASE_STYLES, MILESTONE_STATUS_STYLES } from './constants';
 
 interface SMSIMilestoneListProps {
     milestones: Milestone[];
@@ -48,6 +48,8 @@ interface MilestoneCardProps {
 const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => {
     const phaseConfig = PHASE_CONFIG[milestone.phase];
     const statusConfig = MILESTONE_STATUS_CONFIG[milestone.status];
+    const phaseStyle = PHASE_STYLES[milestone.phase];
+    const statusStyle = MILESTONE_STATUS_STYLES[milestone.status];
     const StatusIcon = statusConfig.icon;
 
     const dueDate = new Date(milestone.dueDate);
@@ -66,9 +68,9 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
         >
             <div className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-                `bg-${phaseConfig.color}-100 dark:bg-${phaseConfig.color}-900/30`
+                phaseStyle.iconBg
             )}>
-                <phaseConfig.icon className={`w-5 h-5 text-${phaseConfig.color}-600 dark:text-${phaseConfig.color}-400`} />
+                <phaseConfig.icon className={cn("w-5 h-5", phaseStyle.iconText)} />
             </div>
 
             <div className="flex-1 min-w-0">
@@ -96,8 +98,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
 
                 <div className={cn(
                     "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium",
-                    `bg-${statusConfig.color}-100 dark:bg-${statusConfig.color}-900/30`,
-                    `text-${statusConfig.color}-700 dark:text-${statusConfig.color}-400`
+                    statusStyle.bg,
+                    statusStyle.text
                 )}>
                     <StatusIcon className="w-4 h-4" />
                     <span className="hidden sm:inline">{statusConfig.label}</span>
