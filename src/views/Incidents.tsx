@@ -5,24 +5,27 @@ import { useStore } from '../store';
 import { Incident, UserProfile, Criticality } from '../types';
 import { IncidentDashboard } from '../components/incidents/IncidentDashboard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { useIncidentLogic } from '../hooks/incidents/useIncidentLogic';
+import { useIncidentData } from '../hooks/incidents/useIncidentData';
+import { useIncidentActions } from '../hooks/incidents/useIncidentActions';
 import { useIncidentDependencies } from '../hooks/incidents/useIncidentDependencies';
 import { useIncidentStats } from '../hooks/incidents/useIncidentStats';
 import { useIncidentExport } from '../hooks/incidents/useIncidentExport';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, Plus, ShieldAlert, BrainCircuit, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
-import { Download } from 'lucide-react';
+import { Siren, Plus, BrainCircuit, MoreVertical } from '../components/ui/Icons';
+import { Download, Loader } from 'lucide-react';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
-import { Skeleton, CardSkeleton } from '../components/ui/Skeleton';
 
 import { ErrorLogger } from '../services/errorLogger';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Drawer } from '../components/ui/Drawer';
-import { IncidentKanban } from '../components/incidents/IncidentKanban';
-import { IncidentForm } from '../components/incidents/IncidentForm';
-import { IncidentInspector } from '../components/incidents/IncidentInspector';
+// Lazy Loading Heavy Components
+const IncidentKanban = React.lazy(() => import('../components/incidents/IncidentKanban').then(m => ({ default: m.IncidentKanban })));
+const IncidentForm = React.lazy(() => import('../components/incidents/IncidentForm').then(m => ({ default: m.IncidentForm })));
+const IncidentInspector = React.lazy(() => import('../components/incidents/IncidentInspector').then(m => ({ default: m.IncidentInspector })));
+
+import { IncidentStats } from '../components/incidents/IncidentStats';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { IncidentFormData } from '../schemas/incidentSchema';
 
@@ -40,6 +43,9 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 // Form validation: useForm with required fields
 
 import { OnboardingService } from '../services/onboardingService';
+
+// Inline Loader
+const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-brand-500" /></div>;
 
 export const Incidents: React.FC = () => {
     const { user, t } = useStore();
@@ -69,6 +75,10 @@ export const Incidents: React.FC = () => {
     const {
         incidents: sortedIncidents,
         loading: loadingData,
+        refreshIncidents
+    } = useIncidentData(user?.organizationId);
+
+    const {
         addIncident,
         updateIncident,
         deleteIncident,
@@ -77,7 +87,7 @@ export const Incidents: React.FC = () => {
         importIncidents,
         simulateAttack,
         loading: loadingAction
-    } = useIncidentLogic(user?.organizationId);
+    } = useIncidentActions();
 
     // Lazy load dependencies
     const shouldLoadDeps = !!selectedIncident || creationMode || importModalOpen || csvImportOpen;
@@ -372,106 +382,15 @@ export const Incidents: React.FC = () => {
             />
 
             {/* Carte de synthèse Incidents */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-
-                {loading ? (
-                    /* Skeleton Loader for Summary Card */
-                    <>
-                        <div className="space-y-4 relative z-10">
-                            <Skeleton className="h-4 w-48 rounded" />
-                            <div className="flex items-baseline gap-3">
-                                <Skeleton className="h-12 w-24 rounded-lg" />
-                                <Skeleton className="h-4 w-32 rounded" />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="w-[180px] h-[100px]">
-                                    <CardSkeleton count={1} className="h-full" />
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="space-y-2 relative z-10">
-                            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                                <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                                Vue globale des incidents
-                            </p>
-                            <div className="flex items-baseline gap-3">
-                                <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-                                    {incidentStats.open}
-                                </p>
-                                <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('incidents.activeIncidents')}</span>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
-                            {/* Active Incidents Card */}
-                            <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-50/50 dark:hover:bg-red-900/20">
-                                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                                <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Actifs</span>
-                                    <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400">
-                                        <ShieldAlert className="h-4 w-4" />
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{incidentStats.open}</p>
-                                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.toTreat')}</p>
-                                </div>
-                            </div>
-
-                            {/* MTTR Card */}
-                            <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20">
-                                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                                <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">MTTR</span>
-                                    <div className="p-1.5 rounded-lg bg-emerald-100/50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                                        <Clock className="h-4 w-4" />
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                        {incidentStats.avgMttrHours !== null ? `${incidentStats.avgMttrHours}h` : '-'}
-                                    </p>
-                                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.avgDelay')}</p>
-                                </div>
-                            </div>
-
-                            {/* Critical Ratio Card */}
-                            <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-orange-900/20">
-                                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                                <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Critiques</span>
-                                    <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
-                                        <AlertTriangle className="h-4 w-4" />
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                        {incidentStats.criticalRatio !== null ? `${incidentStats.criticalRatio}%` : '-'}
-                                    </p>
-                                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.volumeTotal')}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </>
-                )}
+            <motion.div variants={slideUpVariants}>
+                <IncidentStats stats={incidentStats} loading={loading} />
             </motion.div>
 
             {/* Standardized Page Control */}
             <PremiumPageControl
                 searchQuery={filter}
                 onSearchChange={setFilter}
+                onRefresh={refreshIncidents}
                 searchPlaceholder={t('risks.searchPlaceholder')}
                 viewMode={viewMode}
                 onViewModeChange={handleViewModeChange}
@@ -605,18 +524,20 @@ export const Incidents: React.FC = () => {
             {/* Incidents Board */}
             <motion.div variants={slideUpVariants} className={viewMode === 'kanban' ? 'h-[600px]' : ''}>
                 {viewMode === 'kanban' ? (
-                    <IncidentKanban
-                        incidents={incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))}
-                        onSelect={handleSelectIncident}
-                        onEdit={(inc) => {
-                            setSelectedIncident(inc);
-                            setCreationMode(false);
-                            setSelectedIncident(inc);
-                        }}
-                        onDelete={initiateDelete}
-                        canEdit={canEdit}
-                        loading={loading}
-                    />
+                    <React.Suspense fallback={<Spinner />}>
+                        <IncidentKanban
+                            incidents={incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))}
+                            onSelect={handleSelectIncident}
+                            onEdit={(inc) => {
+                                setSelectedIncident(inc);
+                                setCreationMode(false);
+                                setSelectedIncident(inc);
+                            }}
+                            onDelete={initiateDelete}
+                            canEdit={canEdit}
+                            loading={loading}
+                        />
+                    </React.Suspense>
                 ) : (
                     <IncidentDashboard
                         incidents={incidents}
@@ -633,20 +554,22 @@ export const Incidents: React.FC = () => {
             </motion.div>
 
             {/* Inspector */}
-            <IncidentInspector
-                isOpen={!!selectedIncident}
-                onClose={handleInspectorClose}
-                incident={selectedIncident}
+            <React.Suspense fallback={null}>
+                <IncidentInspector
+                    isOpen={!!selectedIncident}
+                    onClose={handleInspectorClose}
+                    incident={selectedIncident}
 
-                users={effectiveUsers}
-                processes={rawProcesses}
-                assets={assets}
-                risks={risks}
-                canEdit={canEdit}
-                onUpdate={handleUpdate}
-                onDelete={initiateDelete}
-                isSubmitting={isSubmitting}
-            />
+                    users={effectiveUsers}
+                    processes={rawProcesses}
+                    assets={assets}
+                    risks={risks}
+                    canEdit={canEdit}
+                    onUpdate={handleUpdate}
+                    onDelete={initiateDelete}
+                    isSubmitting={isSubmitting}
+                />
+            </React.Suspense>
 
             {/* Create Drawer */}
             <Drawer
@@ -658,15 +581,17 @@ export const Incidents: React.FC = () => {
                 breadcrumbs={breadcrumbs}
             >
                 <div className="p-6">
-                    <IncidentForm
-                        onSubmit={handleCreate}
-                        onCancel={handleCancelCreate}
-                        users={effectiveUsers}
-                        processes={rawProcesses}
-                        assets={assets}
-                        risks={risks}
-                        isLoading={isSubmitting || loadingAction}
-                    />
+                    <React.Suspense fallback={<Spinner />}>
+                        <IncidentForm
+                            onSubmit={handleCreate}
+                            onCancel={handleCancelCreate}
+                            users={effectiveUsers}
+                            processes={rawProcesses}
+                            assets={assets}
+                            risks={risks}
+                            isLoading={isSubmitting || loadingAction}
+                        />
+                    </React.Suspense>
                 </div>
             </Drawer>
         </motion.div >

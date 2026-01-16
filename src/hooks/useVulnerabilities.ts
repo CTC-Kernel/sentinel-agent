@@ -105,7 +105,7 @@ export const useVulnerabilities = () => {
             return;
         }
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
             const { id: _unused, ...safeUpdates } = updates;
             const dataToSave = sanitizeData({
                 ...safeUpdates,

@@ -2,7 +2,7 @@ import { UserProfile, ResourceType } from '../types';
 export type { ResourceType };
 import { ErrorLogger } from '../services/errorLogger';
 
-export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage';
+export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage' | 'update_own' | 'delete_own';
 export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
 
 type PermissionMatrix = Partial<Record<ResourceType | '*', ActionType[]>>;
@@ -49,7 +49,7 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         AuditTrail: ['read']
     },
     project_manager: {
-        Project: ['manage'], // 'manage' includes 'delete', centralized here instead of hardcoded exception
+        Project: ['manage'], // 'manage' includes 'delete'
         Document: ['create', 'read', 'update'],
         Risk: ['read'],
         Asset: ['read'],
@@ -80,13 +80,13 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Integration: ['read']
     },
     user: {
-        Document: ['read'],
+        Document: ['read'], // Can often read policy docs
         Asset: ['read'],
         Risk: ['read'],
         Project: ['read'],
         Audit: ['read'],
         Control: ['read'],
-        Incident: ['read', 'create'],
+        Incident: ['read', 'create', 'update_own'], // Granular: Create and Edit Own only
         Supplier: ['read'],
         BusinessProcess: ['read'],
         ProcessingActivity: ['read'],
@@ -98,9 +98,44 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
 import { useStore } from '../store';
 import { CustomRole } from '../types';
 
+const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
+    if (!ownerId) return false;
+    // SECURITY FIX: Multiple layers of ownership verification
+    // 1. Primary check via immutable UID
+    const uidMatch = ownerId === user.uid;
+
+    // 2. Additional verification for critical resources
+    if (!uidMatch) {
+        // Log suspicious ownership attempts
+        ErrorLogger.warn('Ownership verification failed', 'permissions.isResourceOwner', {
+            metadata: {
+                userId: user.uid,
+                requestedOwnerId: ownerId,
+                userRole: user.role,
+                timestamp: new Date().toISOString()
+            }
+        });
+        return false;
+    }
+
+    // 3. Verify user is active (check isPending flag)
+    if (user.isPending) {
+        ErrorLogger.warn('Pending user attempted ownership verification', 'permissions.isResourceOwner', {
+            metadata: {
+                userId: user.uid,
+                isPending: user.isPending,
+                resourceOwnerId: ownerId
+            }
+        });
+        return false;
+    }
+
+    return true;
+};
+
 const expandActions = (actions: ActionType[] = []): ActionType[] => {
     if (actions.includes('manage')) {
-        return ['create', 'read', 'update', 'delete', 'manage'];
+        return ['create', 'read', 'update', 'delete', 'manage', 'update_own', 'delete_own'];
     }
     return actions;
 };
@@ -119,7 +154,6 @@ const getAllowedActions = (role: string, resource: ResourceType, customRoles: Cu
     const customRole = customRoles.find(r => r.id === role);
     if (customRole) {
         const specific = customRole.permissions[resource] || [];
-        // Custom roles don't currently support wildcard '*' in the UI, but we can support it in logic if added later
         const wildcard = customRole.permissions['*'] || [];
         return Array.from(new Set([...expandActions(specific), ...expandActions(wildcard)]));
     }
@@ -127,35 +161,42 @@ const getAllowedActions = (role: string, resource: ResourceType, customRoles: Cu
     return [];
 };
 
-export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType, orgOwnerId?: string): boolean => {
+export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType, orgOwnerId?: string, resourceOwnerId?: string): boolean => {
     if (!user) return false;
 
-    // Organization Owner has full access (effectively Super Admin for their Org)
+    // Organization Owner has full access
     if (orgOwnerId && user.uid === orgOwnerId) return true;
 
-    // Fallback role if missing
     const userRole = user.role || 'user';
 
-    // SECURITY FIX: Admin still has full access but with explicit validation
+    // Admin override (explicit validation)
     if (userRole === 'admin') {
-        // Additional validation for critical actions
         if (action === 'delete' && ['User', 'Organization'].includes(resource)) {
             return orgOwnerId ? user.uid === orgOwnerId : true;
         }
         return true;
     }
 
-    // CRITICAL FIX: Restrict auditors from delete operations
-    if (userRole === 'auditor' && action === 'delete') {
+    // Auditor Restriction (Cannot delete/manage mostly)
+    if (userRole === 'auditor' && (action === 'delete' || action === 'manage')) {
         return false;
     }
 
-    // Get custom roles from store
+    // Get permissions from Matrix
     const customRoles = useStore.getState().customRoles;
-
     const allowed = getAllowedActions(userRole, resource, customRoles);
 
+    // 1. Direct match (e.g. 'read', 'create')
     if (allowed.includes(action)) return true;
+
+    // 2. Ownership-based match (update_own / delete_own)
+    // If the user wants to 'update', check if they have 'update_own' AND are the owner
+    if (action === 'update' && allowed.includes('update_own')) {
+        return isResourceOwner(user, resourceOwnerId);
+    }
+    if (action === 'delete' && allowed.includes('delete_own')) {
+        return isResourceOwner(user, resourceOwnerId);
+    }
 
     return false;
 };
@@ -203,99 +244,21 @@ export const getRoleDescription = (role: Role): string => {
 
 export const PERMISSIONS = ROLE_PERMISSIONS;
 
-const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
-    if (!ownerId) return false;
-    // SECURITY FIX: Multiple layers of ownership verification
-    // 1. Primary check via immutable UID
-    const uidMatch = ownerId === user.uid;
-
-    // 2. Additional verification for critical resources
-    if (!uidMatch) {
-        // Log suspicious ownership attempts
-        ErrorLogger.warn('Ownership verification failed', 'permissions.isResourceOwner', {
-            metadata: {
-                userId: user.uid,
-                requestedOwnerId: ownerId,
-                userRole: user.role,
-                timestamp: new Date().toISOString()
-            }
-        });
-        return false;
-    }
-
-    // 3. Verify user is active (check isPending flag)
-    if (user.isPending) {
-        ErrorLogger.warn('Pending user attempted ownership verification', 'permissions.isResourceOwner', {
-            metadata: {
-                userId: user.uid,
-                isPending: user.isPending,
-                resourceOwnerId: ownerId
-            }
-        });
-        return false;
-    }
-
-    return true;
-};
-
 import { PLANS, PlanConfig } from '../config/plans';
 import { PlanType } from '../types';
-
-// ... existing imports ...
 
 export const hasFeatureAccess = (planId: PlanType, feature: keyof PlanConfig['limits']['features']): boolean => {
     const plan = PLANS[planId] || PLANS['discovery'];
     return plan.limits.features[feature] || false;
 };
 
+// Helper exports that now delegate fully to hasPermission
 export const canEditResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {
-    if (!user) return false;
-
-    // Owner check
-    if (orgOwnerId && user.uid === orgOwnerId) return true;
-
-    if (user.role === 'admin') return true;
-
-    // Check plan limits for specific resources if needed
-    // For now, we focus on feature access via hasFeatureAccess
-
-    if (resource === 'Document' && isResourceOwner(user, resourceOwnerId)) {
-        return true;
-    }
-
-    // FIX: Allow users to edit their own incidents
-    if (resource === 'Incident' && isResourceOwner(user, resourceOwnerId)) {
-        return true;
-    }
-
-    // AUDIT FIX: Centralized Permission Logic
-    // Previously, Auditors had hardcoded exceptions here.
-    // Now, we rely strictly on the ROLE_PERMISSIONS matrix or hasPermission function.
-    // This ensures that if we change the matrix, the logic here updates automatically.
-
-    return hasPermission(user, resource, 'update', orgOwnerId);
+    return hasPermission(user, resource, 'update', orgOwnerId, resourceOwnerId);
 };
 
 export const canDeleteResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {
-    if (!user) return false;
-
-    // Owner check
-    if (orgOwnerId && user.uid === orgOwnerId) return true;
-
-    if (user.role === 'admin') return true;
-
-    if (resource === 'Document' && isResourceOwner(user, resourceOwnerId)) {
-        return true;
-    }
-
-    // Project Managers permission is now handled by the matrix (manage = delete)
-
-    // Auditors generally cannot delete, except maybe Drafts? Rules say NO for risks/Assets/Controls.
-    // Rules say YES for Audits?
-    // Audit Rules: allow delete: if canDelete(orgId); -> Admin/RSSI only.
-    // So Auditors CANNOT delete Audits in Firestore rules.
-
-    return hasPermission(user, resource, 'delete', orgOwnerId);
+    return hasPermission(user, resource, 'delete', orgOwnerId, resourceOwnerId);
 };
 
 export const canUpdateResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {

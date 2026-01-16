@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { FindingsList } from '../FindingsList';
 import { Audit, Finding } from '../../../types';
 
@@ -55,8 +55,11 @@ vi.mock('../../ui/Skeleton', () => ({
 describe('FindingsList', () => {
     const createFinding = (overrides: Partial<Finding> = {}): Finding => ({
         id: 'find-1',
+        organizationId: 'org-1',
+        auditId: 'audit-1',
         description: 'Test finding description',
         type: 'Majeure',
+        severity: 'Moyenne',
         status: 'Ouvert',
         createdAt: new Date().toISOString(),
         ...overrides
@@ -65,12 +68,15 @@ describe('FindingsList', () => {
     const createAudit = (overrides: Partial<Audit> = {}): Audit => ({
         id: 'audit-1',
         name: 'Test Audit',
+        type: 'Interne',
+        auditor: 'Bob Auditor',
         status: 'En cours',
         organizationId: 'org-1',
-        dateScheduled: new Date(),
+        dateScheduled: new Date().toISOString(),
         findings: [createFinding()],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        findingsCount: 1,
         ...overrides
     });
 

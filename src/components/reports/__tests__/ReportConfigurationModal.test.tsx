@@ -98,7 +98,7 @@ describe('ReportConfigurationModal', () => {
         });
 
         it('toggles section when clicked', () => {
-            const { container } = render(<ReportConfigurationModal {...defaultProps} />);
+            render(<ReportConfigurationModal {...defaultProps} />);
 
             // Initially all sections are active (have specific border color)
             const risksButton = screen.getByText('Risques Cyber').closest('button');

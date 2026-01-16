@@ -17,7 +17,7 @@ describe('SupplierCard', () => {
     const mockSupplier: Supplier = {
         id: 'sup-1',
         name: 'Test Supplier',
-        category: 'Logiciel',
+        category: 'SaaS',
         status: 'Actif',
         criticality: Criticality.HIGH,
         securityScore: 75,
@@ -26,15 +26,26 @@ describe('SupplierCard', () => {
         contractEnd: new Date(Date.now() + 86400000 * 365).toISOString(), // 1 year from now
         isICTProvider: true,
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        riskAssessment: {
+            overallScore: 85
+        },
+        contract: {
+            endDate: new Date(Date.now() + 86400000 * 365).toISOString()
+        },
+        reviewDates: {
+            contractReview: new Date().toISOString(),
+            securityReview: new Date().toISOString(),
+            complianceReview: new Date().toISOString()
+        }
     };
 
     const mockUsers: UserProfile[] = [
         {
             uid: 'user-1',
             email: 'john@supplier.com',
-            role: 'Admin',
+            role: 'admin',
             displayName: 'John Doe',
             photoURL: 'https://example.com/avatar.jpg',
             organizationId: 'org-1'
@@ -42,7 +53,7 @@ describe('SupplierCard', () => {
     ];
 
     const mockOnClick = vi.fn();
-    const mockOnDelete = vi.fn();
+
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -58,7 +69,7 @@ describe('SupplierCard', () => {
         it('renders category badge', () => {
             render(<SupplierCard supplier={mockSupplier} onClick={mockOnClick} />);
 
-            expect(screen.getByText('Logiciel')).toBeInTheDocument();
+            expect(screen.getByText('SaaS')).toBeInTheDocument();
         });
 
         it('renders status badge', () => {
@@ -191,8 +202,8 @@ describe('SupplierCard', () => {
     });
 
     describe('category icons', () => {
-        it('renders Building icon for Logiciel category', () => {
-            render(<SupplierCard supplier={{ ...mockSupplier, category: 'Logiciel' }} onClick={mockOnClick} />);
+        it('renders Building icon for SaaS category', () => {
+            render(<SupplierCard supplier={{ ...mockSupplier, category: 'SaaS' }} onClick={mockOnClick} />);
 
             // The Building icon should be rendered (we can verify the component renders without error)
             expect(screen.getByRole('button')).toBeInTheDocument();

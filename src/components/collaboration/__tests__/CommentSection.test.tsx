@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { CommentSection } from '../CommentSection';
 
 // Mock useStore
@@ -194,7 +194,7 @@ describe('CommentSection', () => {
             }));
 
             // Re-render with empty comments
-            const { rerender } = render(<CommentSection {...defaultProps} />);
+            render(<CommentSection {...defaultProps} />);
             // Note: Due to how vi.doMock works, this test demonstrates the pattern
             // In actual implementation, you'd need to clear and re-import the module
         });

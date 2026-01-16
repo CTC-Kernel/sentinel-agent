@@ -17,7 +17,7 @@ import { findingSchema } from '../findingSchema';
 import { userSchema } from '../userSchema';
 import { onboardingSchema } from '../onboardingSchema';
 import { backupConfigSchema, restoreConfigSchema } from '../backupSchema';
-import { assessmentSchema, assessmentAnswerSchema } from '../assessmentSchema';
+import { assessmentSchema } from '../assessmentSchema';
 import { tlptSchema } from '../tlptSchema';
 import { treatmentActionSchema } from '../treatmentActionSchema';
 import { vulnerabilitySchema } from '../vulnerabilitySchema';

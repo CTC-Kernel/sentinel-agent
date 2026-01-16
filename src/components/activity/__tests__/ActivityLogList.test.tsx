@@ -10,7 +10,7 @@ import { ActivityLogList } from '../ActivityLogList';
 
 // Mock date-fns
 vi.mock('date-fns', () => ({
-    format: vi.fn((date, formatStr) => {
+    format: vi.fn((_date, formatStr) => {
         if (formatStr.includes('MMM')) return '15 Jan 2024';
         if (formatStr.includes('HH:mm')) return '14:30:00';
         return '2024-01-15';
@@ -23,7 +23,7 @@ vi.mock('date-fns/locale', () => ({
 
 // Mock DataTable
 vi.mock('../../ui/DataTable', () => ({
-    DataTable: ({ data, columns, emptyState, loading }: {
+    DataTable: ({ data, columns: _columns, emptyState, loading }: {
         data: unknown[];
         columns: unknown[];
         emptyState: React.ReactNode;
@@ -35,7 +35,8 @@ vi.mock('../../ui/DataTable', () => ({
             {data.length > 0 && (
                 <table>
                     <tbody>
-                        {data.map((item: { id: string }, index: number) => (
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {data.map((item: any, index: number) => (
                             <tr key={index} data-testid={`row-${item.id || index}`}>
                                 <td>Row {index}</td>
                             </tr>
@@ -58,6 +59,8 @@ describe('ActivityLogList', () => {
             action: 'create',
             resource: 'Risk',
             resourceId: 'risk-1',
+            organizationId: 'org-1',
+            userId: 'user-1',
             details: 'Created a new risk',
             changes: []
         },
@@ -71,7 +74,9 @@ describe('ActivityLogList', () => {
             details: 'Updated asset',
             changes: [
                 { field: 'status', oldValue: 'active', newValue: 'inactive' }
-            ]
+            ],
+            organizationId: 'org-1',
+            userId: 'user-1'
         }
     ];
 

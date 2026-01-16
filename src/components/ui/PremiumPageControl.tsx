@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Search, MoreVertical, LayoutGrid, List, LayoutDashboard } from 'lucide-react';
+import { Search, MoreVertical, LayoutGrid, List, LayoutDashboard, RefreshCcw } from 'lucide-react';
 
 interface PremiumPageControlProps {
     searchQuery: string;
@@ -11,6 +11,11 @@ interface PremiumPageControlProps {
 
     viewMode?: 'grid' | 'list' | 'matrix' | 'kanban';
     onViewModeChange?: (mode: 'grid' | 'list' | 'matrix' | 'kanban') => void;
+
+    /**
+     * Optional refresh callback
+     */
+    onRefresh?: () => void;
 
     // Generic View Props
     activeView?: string;
@@ -32,6 +37,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
     onToggleAdvancedSearch,
     viewMode,
     onViewModeChange,
+    onRefresh,
     activeView,
     onViewChange,
     viewOptions,
@@ -55,6 +61,15 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
 
             {/* Actions & Controls */}
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200/50 dark:border-white/5">
+                {onRefresh && (
+                    <button
+                        onClick={onRefresh}
+                        className="p-2 text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all"
+                        title="Actualiser"
+                    >
+                        <RefreshCcw className="h-4 w-4" />
+                    </button>
+                )}
                 {children}
                 {actions && (
                     <div className="flex items-center gap-2 mr-2">

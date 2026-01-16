@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { RISK_TEMPLATES, createRisksFromTemplate, RiskTemplate } from '../riskTemplates';
+import { RISK_TEMPLATES, createRisksFromTemplate } from '../riskTemplates';
 
 describe('RISK_TEMPLATES', () => {
     it('contains expected template categories', () => {

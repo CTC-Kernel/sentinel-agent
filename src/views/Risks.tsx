@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    LayoutDashboard, List, Grid3x3, ShieldAlert
+    LayoutDashboard, List, Grid3x3, ShieldAlert, Loader
 } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
@@ -34,15 +34,14 @@ import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
 import { RiskFormData } from '../schemas/riskSchema';
 import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
-import { RiskMatrix } from '../components/risks/RiskMatrix';
+// RiskMatrix removed for lazy load
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 // CustomSelect removed
 // Button removed
 
 
+// ... existing imports ...
 import { Drawer } from '../components/ui/Drawer';
-import { RiskForm } from '../components/risks/RiskForm';
-import { RiskInspector } from '../components/risks/RiskInspector';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { aiService } from '../services/aiService';
@@ -52,11 +51,20 @@ import { toast } from '@/lib/toast';
 import { canEditResource } from '../utils/permissions';
 import { useAuth } from '../hooks/useAuth';
 
+// Lazy Loading Heavy Components
+const RiskForm = React.lazy(() => import('../components/risks/RiskForm').then(m => ({ default: m.RiskForm })));
+const RiskInspector = React.lazy(() => import('../components/risks/RiskInspector').then(m => ({ default: m.RiskInspector })));
+const RiskMatrix = React.lazy(() => import('../components/risks/RiskMatrix').then(m => ({ default: m.RiskMatrix })));
+
+// Inline Loader
+const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-brand-500" /></div>;
+
 export const Risks: React.FC = () => {
     // Hooks
     const { user } = useAuth();
     const { demoMode, t } = useStore();
 
+    // ... (keep state logic same) ...
     // 1. Core Data (Always Fetch)
     const { risks, loading: loadingRisks } = useRiskLogic();
 
@@ -76,10 +84,6 @@ export const Risks: React.FC = () => {
     const [initialFormData, setInitialFormData] = useState<Partial<RiskFormData> | undefined>(undefined);
 
     // 2. Dependency Fetches (Lazy Loading)
-    // We fetch dependencies if:
-    // - We are creating/editing a risk (Form needs assets, controls, etc)
-    // - A risk is selected (Inspector needs details)
-    // - Logic requires users check (Assignment)
     const shouldFetchDetails = creationMode || !!editingRisk || !!selectedRisk;
 
     const {
@@ -92,8 +96,8 @@ export const Risks: React.FC = () => {
         usersList,
         loading: loadingDeps
     } = useRiskDependencies({
-        fetchUsers: true, // Always fetch users for avatars in list
-        fetchAssets: true, // List consumes asset names often, and empty state checks assets. Keep it active for now or optimize further.
+        fetchUsers: true,
+        fetchAssets: true,
         fetchControls: shouldFetchDetails,
         fetchProcesses: shouldFetchDetails,
         fetchSuppliers: shouldFetchDetails,
@@ -103,25 +107,19 @@ export const Risks: React.FC = () => {
 
     const loading = loadingRisks || (shouldFetchDetails && loadingDeps);
 
-    // 3. Actions
-    // Refresh is handled via Firestore realtime, so onRefresh can be no-op or specific trigger if needed
+    // ... (keep actions and effects same) ...
     const {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
         exportCSV, setIsGeneratingReport, submitting,
         importRisks, checkDependencies
-    } = useRiskActions(() => { }); // Realtime updates handle refresh
+    } = useRiskActions(() => { });
 
-    // Start module tour
     useEffect(() => {
         const timer = setTimeout(() => {
             OnboardingService.startRisksTour();
         }, 1000);
         return () => clearTimeout(timer);
     }, []);
-
-    // Sanitize and Filters
-    // Sanitize and Filters
-    // Risks are already sanitized in useRiskLogic
 
     const {
         activeFilters, setActiveFilters,
@@ -132,12 +130,9 @@ export const Risks: React.FC = () => {
         availableCategories
     } = useRiskFilters(risks);
 
-    // URL Params
-    // searchParams handled by hook
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Deep Link Hook
     useDeepLinkAction({
         data: risks,
         loading,
@@ -154,7 +149,6 @@ export const Risks: React.FC = () => {
         }
     });
 
-    // Legacy State Support (Asset Inspector)
     useEffect(() => {
         const state = location.state as { createForAsset?: string; assetName?: string } | null;
         if (state?.createForAsset && !creationMode) {
@@ -177,12 +171,11 @@ export const Risks: React.FC = () => {
             toast.error("Permission refusée");
             return;
         }
-        // Check dependencies when user tries to delete
         const { hasDependencies, dependencies } = await checkDependencies(risk.id);
 
         let message = t('risks.deleteMessage');
         if (hasDependencies && dependencies && dependencies.length > 0) {
-            const depDetails = dependencies.slice(0, 5).map((d) => `${d.type}: ${d.name}`).join(', ');
+            const depDetails = dependencies.slice(0, 5).map((d) => `${d.type}: ${d.name} `).join(', ');
             message = t('risks.deleteWarning', { count: dependencies.length, details: depDetails + (dependencies.length > 5 ? '...' : '') });
         }
 
@@ -204,7 +197,6 @@ export const Risks: React.FC = () => {
     }, [risks, t, handleDelete]);
 
     const handleFormSubmit = useCallback(async (data: RiskFormData) => {
-        // Use Calculator for consistent scoring
         const calculatedValues = RiskCalculator.parseRiskValues(data);
 
         const cleanedData = {
@@ -291,10 +283,8 @@ export const Risks: React.FC = () => {
         setIsTemplateModalOpen(false);
     }, [createRisk, t]);
 
-    // Duplicating State
     const [duplicatingIds, setDuplicatingIds] = React.useState<Set<string>>(new Set());
 
-    // Helpers
     const handleDuplicateRisk = useCallback(async (r: Risk) => {
         if (duplicatingIds.has(r.id)) return;
         setDuplicatingIds(prev => new Set(prev).add(r.id));
@@ -326,9 +316,6 @@ export const Risks: React.FC = () => {
         }
     }, [assets.length, navigate]);
 
-
-
-    // Role Logic
     const role = user?.role || 'user';
     let risksTitle = t('risks.title');
     let risksSubtitle = t('risks.subtitle');
@@ -505,32 +492,36 @@ export const Risks: React.FC = () => {
                             <button type="button" onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">{t('common.reset')}</button>
                         </div>
                     )}
-                    <RiskMatrix
-                        risks={filteredRisks}
-                        matrixFilter={matrixFilter}
-                        setMatrixFilter={(f) => { setMatrixFilter(f); if (f) setActiveTab('list'); }}
-                        frameworkFilter={frameworkFilter}
-                    />
+                    <React.Suspense fallback={<Spinner />}>
+                        <RiskMatrix
+                            risks={filteredRisks}
+                            matrixFilter={matrixFilter}
+                            setMatrixFilter={(f) => { setMatrixFilter(f); if (f) setActiveTab('list'); }}
+                            frameworkFilter={frameworkFilter}
+                        />
+                    </React.Suspense>
                 </motion.div>
             )}
 
-            <RiskInspector
-                isOpen={!!selectedRisk}
-                onClose={() => setSelectedRisk(null)}
-                risk={selectedRisk}
-                assets={assets}
-                controls={controls}
-                projects={projects}
-                audits={audits}
-                suppliers={suppliers}
-                usersList={usersList}
-                processes={processes}
-                canEdit={canEdit}
-                demoMode={demoMode}
-                onUpdate={updateRisk}
-                onDelete={(id, name) => handleDelete({ id, name })}
-                onDuplicate={handleDuplicateRisk}
-            />
+            <React.Suspense fallback={null}>
+                <RiskInspector
+                    isOpen={!!selectedRisk}
+                    onClose={() => setSelectedRisk(null)}
+                    risk={selectedRisk}
+                    assets={assets}
+                    controls={controls}
+                    projects={projects}
+                    audits={audits}
+                    suppliers={suppliers}
+                    usersList={usersList}
+                    processes={processes}
+                    canEdit={canEdit}
+                    demoMode={demoMode}
+                    onUpdate={updateRisk}
+                    onDelete={(id, name) => handleDelete({ id, name })}
+                    onDuplicate={handleDuplicateRisk}
+                />
+            </React.Suspense>
 
             <Drawer
                 isOpen={creationMode}
@@ -539,18 +530,20 @@ export const Risks: React.FC = () => {
                 width="max-w-6xl"
             >
                 <div className="p-6">
-                    <RiskForm
-                        initialData={initialFormData}
-                        existingRisk={editingRisk}
-                        onSubmit={handleFormSubmit}
-                        onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
-                        assets={assets}
-                        usersList={usersList}
-                        processes={processes}
-                        suppliers={suppliers}
-                        controls={controls}
-                        isLoading={submitting}
-                    />
+                    <React.Suspense fallback={<Spinner />}>
+                        <RiskForm
+                            initialData={initialFormData}
+                            existingRisk={editingRisk}
+                            onSubmit={handleFormSubmit}
+                            onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
+                            assets={assets}
+                            usersList={usersList}
+                            processes={processes}
+                            suppliers={suppliers}
+                            controls={controls}
+                            isLoading={submitting}
+                        />
+                    </React.Suspense>
                 </div>
             </Drawer>
 

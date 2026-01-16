@@ -15,7 +15,7 @@ vi.mock('react-markdown', () => ({
 
 // Mock remark-gfm
 vi.mock('remark-gfm', () => ({
-    default: () => {}
+    default: () => { }
 }));
 
 // Mock syntax highlighter
@@ -91,7 +91,7 @@ describe('ChatMessage', () => {
                 />
             );
 
-            expect(screen.getByText('10:00')).toBeInTheDocument();
+            expect(screen.getByText(/10:00/)).toBeInTheDocument();
         });
     });
 

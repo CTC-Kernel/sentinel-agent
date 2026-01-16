@@ -91,7 +91,7 @@ describe('Incidents View', () => {
         // If we can't easily click the toggle, we can verify that default is Grid (Dashboard)
     });
 
-    it('opens declaration form', () => {
+    it('opens declaration form', async () => {
         render(
             <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Incidents />
@@ -101,7 +101,7 @@ describe('Incidents View', () => {
         const declareBtn = screen.getByText('incidents.declare');
         fireEvent.click(declareBtn);
 
-        expect(screen.getByTestId('drawer')).toBeInTheDocument();
-        expect(screen.getByTestId('incident-form')).toBeInTheDocument();
+        await expect(screen.findByTestId('drawer')).resolves.toBeInTheDocument();
+        await expect(screen.findByTestId('incident-form')).resolves.toBeInTheDocument();
     });
 });

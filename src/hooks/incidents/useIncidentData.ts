@@ -4,15 +4,9 @@ import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { useStore } from '../../store';
 import { Incident } from '../../types';
-import { useIncidents } from '../useIncidents';
 
-export const useIncidentLogic = (organizationId?: string) => {
+export const useIncidentData = (organizationId?: string) => {
     const { demoMode } = useStore();
-
-    // Actions are handled by the existing useIncidents hook, we can re-export or just focus on data here.
-    // Ideally, we might want to merge them, but for now let's keep separation clean:
-    // This hook handles *fetching* logic.
-    const { loading: actionsLoading, ...incidentActions } = useIncidents();
 
     const [mockData, setMockData] = React.useState<{
         incidents: Incident[];
@@ -48,8 +42,7 @@ export const useIncidentLogic = (organizationId?: string) => {
 
     return {
         incidents,
-        loading: loading || actionsLoading,
-        refreshIncidents,
-        ...incidentActions // Actions without loading
+        loading,
+        refreshIncidents
     };
 };

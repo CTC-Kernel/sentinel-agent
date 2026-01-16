@@ -279,7 +279,7 @@ describe('bcpDrillSchema', () => {
         });
 
         it('rejects missing result', () => {
-            const { result: res, ...data } = validDrill;
+            const { result: _res, ...data } = validDrill;
             const result = bcpDrillSchema.safeParse(data);
             expect(result.success).toBe(false);
         });

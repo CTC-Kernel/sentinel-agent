@@ -41,6 +41,16 @@ export const RiskCalculator = {
     },
 
     /**
+     * Returns the badge status for UI components
+     */
+    getBadgeStatus: (score: number): 'error' | 'warning' | 'info' | 'success' => {
+        if (score >= 15) return 'error';
+        if (score >= 10) return 'warning';
+        if (score >= 5) return 'info';
+        return 'success';
+    },
+
+    /**
      * Returns the hex color for charts/matrices
      */
     getScoreHexColor: (score: number): string => {

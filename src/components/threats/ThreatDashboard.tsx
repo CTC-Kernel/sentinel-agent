@@ -40,10 +40,9 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
         const last24h = new Date(now - 24 * 60 * 60 * 1000);
         const buckets: Record<string, number> = {};
 
-        // Initialize buckets for last 6 4-hour blocks to show a 24h trend
-        for (let i = 0; i <= 24; i += 4) {
-            const d = new Date(now - (24 - i) * 60 * 60 * 1000);
-            const key = d.getHours().toString().padStart(2, '0') + ':00';
+        // Initialize buckets for fixed 4-hour blocks
+        for (let i = 0; i < 24; i += 4) {
+            const key = i.toString().padStart(2, '0') + ':00';
             buckets[key] = 0;
         }
 

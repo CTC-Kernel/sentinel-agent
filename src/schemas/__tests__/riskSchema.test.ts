@@ -3,7 +3,7 @@
  * Tests validation of risk forms including business rules
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { riskSchema } from '../riskSchema';
 
 // Mock i18n

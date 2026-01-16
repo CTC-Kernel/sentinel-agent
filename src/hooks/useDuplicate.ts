@@ -131,17 +131,12 @@ export function useDuplicate<T extends { id: string }>(
         const originalName = String(entity[nameField] || '');
         const newName = addDuplicateSuffix(originalName, locale);
 
-        // Create the duplicate data
-        // Remove id and system fields that shouldn't be copied
-        /* eslint-disable @typescript-eslint/no-unused-vars */
         const {
           id: _id,
           createdAt: _createdAt,
           updatedAt: _updatedAt,
           ...entityData
         } = entity as T & { createdAt?: unknown; updatedAt?: unknown };
-        /* eslint-enable @typescript-eslint/no-unused-vars */
-
         const duplicateData = {
           ...entityData,
           [nameField]: newName,

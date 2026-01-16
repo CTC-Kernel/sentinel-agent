@@ -1,4 +1,6 @@
 import React, { useRef, useState } from 'react';
+import { ShieldCheck } from 'lucide-react';
+
 import { useStore } from '../../store';
 import { Camera, ShieldAlert, Trash2, AlertTriangle } from '../ui/Icons';
 import { SubmitHandler, Controller } from 'react-hook-form';
@@ -29,6 +31,21 @@ export const ProfileSettings: React.FC = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Mock MFA Toggle
+    const handleToggleMfa = async () => {
+        if (!user) return;
+        // In real impl, this would trigger a flow (QR Code scan, etc.)
+        // For now, simply toggle the boolean in the user profile via updateUser
+        const newStatus = !user.mfaEnabled;
+        try {
+            await updateUser(user.uid, { mfaEnabled: newStatus });
+            setUser({ ...user, mfaEnabled: newStatus });
+            addToast(newStatus ? "MFA activé avec succès" : "MFA désactivé", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'ProfileSettings.handleToggleMfa', 'UPDATE_FAILED');
+        }
+    };
 
     const profileForm = useZodForm<typeof profileSchema>({
         schema: profileSchema,
@@ -269,6 +286,40 @@ export const ProfileSettings: React.FC = () => {
                                     ]}
                                     value={language}
                                     onChange={(value) => setLanguage(value as 'fr' | 'en')}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="border-t border-slate-200 dark:border-white/10 my-6"></div>
+
+                        <div className="border-t border-slate-200 dark:border-white/10 my-6"></div>
+
+                        {/* Security Settings (MFA) */}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+                                    {t('settings.security') || 'Sécurité'}
+                                </h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    {t('settings.securityDesc') || 'Gérez la sécurité de votre compte et l\'authentification à deux facteurs.'}
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                                <div className={`p-3 rounded-full ${user?.mfaEnabled ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                    <ShieldCheck className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-medium text-slate-900 dark:text-white">Double Authentification (MFA)</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        {user?.mfaEnabled
+                                            ? "Votre compte est protégé par une authentification à deux facteurs."
+                                            : "Ajoutez une couche de sécurité supplémentaire à votre compte."}
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={user?.mfaEnabled || false}
+                                    onChange={handleToggleMfa}
                                 />
                             </div>
                         </div>

@@ -49,6 +49,8 @@ export interface UserProfile {
     hasShodanKey?: boolean;
     hasHibpKey?: boolean;
     hasSafeBrowsingKey?: boolean;
+
+    mfaEnabled?: boolean;
 }
 
 export interface CustomRole {

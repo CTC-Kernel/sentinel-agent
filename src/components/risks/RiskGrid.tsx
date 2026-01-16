@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { RiskCalculator } from '../../utils/RiskCalculator';
+
 import { Server, TrendingDown, TrendingUp, ArrowRight, Clock, LucideIcon, ShieldAlert, Edit, Trash2 } from 'lucide-react';
 import { CardSkeleton } from '../ui/Skeleton';
 import { Badge } from '../ui/Badge';
@@ -7,6 +9,7 @@ import { EmptyState } from '../ui/EmptyState';
 import { Button } from '../ui/button';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk, Asset } from '../../types';
+import { GlassCard } from '../ui/GlassCard';
 
 interface RiskGridProps {
     risks: Risk[];
@@ -47,13 +50,6 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
 
     const getAssetName = (id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu';
 
-    const getRiskLevel = (score: number) => {
-        if (score >= 15) return { label: 'Critique', status: 'error' as const };
-        if (score >= 10) return { label: 'Élevé', status: 'warning' as const };
-        if (score >= 5) return { label: 'Moyen', status: 'info' as const };
-        return { label: 'Faible', status: 'success' as const };
-    };
-
     const isReviewOverdue = (risk: Risk) => {
         const oneYearAgo = new Date();
         oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -69,9 +65,9 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
         const diffTime = deadline.getTime() - now.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays < 0) return { status: 'overdue', days: Math.abs(diffDays), label: `Retard ${Math.abs(diffDays)}j`, color: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800' };
-        if (diffDays <= 7) return { status: 'warning', days: diffDays, label: `J-${diffDays}`, color: 'text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800' };
-        return { status: 'ok', days: diffDays, label: `${diffDays}j`, color: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-slate-400 dark:bg-slate-800 dark:border-white/10' };
+        if (diffDays < 0) return { status: 'overdue', days: Math.abs(diffDays), label: `Retard ${Math.abs(diffDays)} j`, color: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800' };
+        if (diffDays <= 7) return { status: 'warning', days: diffDays, label: `J - ${diffDays} `, color: 'text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800' };
+        return { status: 'ok', days: diffDays, label: `${diffDays} j`, color: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-slate-400 dark:bg-slate-800 dark:border-white/10' };
     };
 
     if (loading) return <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in"><div className="col-span-full"><CardSkeleton count={3} /></div></div>;
@@ -93,13 +89,16 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
     return (
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">
             {risks.map(risk => {
-                const level = getRiskLevel(risk.score);
+                const level = {
+                    label: RiskCalculator.getCriticalityLabel(risk.score),
+                    status: RiskCalculator.getBadgeStatus(risk.score)
+                };
                 const residualScore = risk.residualScore || risk.score;
                 const isMitigated = residualScore < risk.score;
                 const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
 
                 return (
-                    <div
+                    <GlassCard
                         key={risk.id}
                         onClick={() => onSelect(risk)}
                         role="button"
@@ -110,12 +109,12 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 onSelect(risk);
                             }
                         }}
-                        className="group glass-premium p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer overflow-hidden"
+                        className="group p-6 rounded-[2rem] flex flex-col h-full relative"
+                        hoverEffect={true}
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
                         {/* Hover Overlay with Actions */}
-                        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                        <div className="absolute top-4 right-4 z-20 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
                             {canEdit && onEdit && (
                                 <CustomTooltip content="Modifier">
                                     <Button
@@ -205,7 +204,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 )}
                             </div>
                         </div>
-                    </div>
+                    </GlassCard>
                 );
             })}
         </div>

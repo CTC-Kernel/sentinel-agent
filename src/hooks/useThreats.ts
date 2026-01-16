@@ -71,7 +71,6 @@ export const useThreats = () => {
         }
         try {
             // Ensure ID is not in the update payload
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { id: _unused, ...safeUpdates } = updates;
             await updateDoc(doc(db, 'threat_library', id), safeUpdates);
             addToast("Menace modifiée", "success");

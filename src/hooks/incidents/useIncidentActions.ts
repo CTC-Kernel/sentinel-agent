@@ -1,21 +1,21 @@
 import { useState, useCallback } from 'react';
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
-import { useStore } from '../store';
-import { ErrorLogger } from '../services/errorLogger';
-import { NotificationService } from '../services/notificationService';
-import { hybridService } from '../services/hybridService';
-import { logAction } from '../services/logger';
-import { IncidentService } from '../services/incidentService';
-import { Incident, Criticality } from '../types';
-import { IncidentStatus, isValidIncidentTransition } from '../types/incidents';
-import { IncidentFormData, incidentSchema } from '../schemas/incidentSchema';
-import { sanitizeData } from '../utils/dataSanitizer';
-import { SecurityEvent } from '../services/integrationService';
-import { ImportService } from '../services/ImportService';
-import { ATTACK_SCENARIOS } from '../constants/scenarios';
+import { db } from '../../firebase';
+import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
+import { NotificationService } from '../../services/notificationService';
+import { hybridService } from '../../services/hybridService';
+import { logAction } from '../../services/logger';
+import { IncidentService } from '../../services/incidentService';
+import { Incident, Criticality } from '../../types';
+import { IncidentStatus, isValidIncidentTransition } from '../../types/incidents';
+import { IncidentFormData, incidentSchema } from '../../schemas/incidentSchema';
+import { sanitizeData } from '../../utils/dataSanitizer';
+import { SecurityEvent } from '../../services/integrationService';
+import { ImportService } from '../../services/ImportService';
+import { ATTACK_SCENARIOS } from '../../constants/scenarios';
 
-export const useIncidents = () => {
+export const useIncidentActions = () => {
     const { user, addToast, t } = useStore();
     const [loading, setLoading] = useState(false);
 
@@ -57,7 +57,7 @@ export const useIncidents = () => {
             addToast(t('incidents.toastDeclared'), "success");
             return docRef.id;
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useIncidents.addIncident', 'CREATE_FAILED');
+            ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.addIncident', 'CREATE_FAILED');
             throw error;
         } finally {
             setLoading(false);
@@ -116,7 +116,7 @@ export const useIncidents = () => {
             addToast(t('incidents.toastUpdated'), "success");
             return { ...currentIncident, ...incidentData } as Incident;
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useIncidents.updateIncident', 'UPDATE_FAILED');
+            ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.updateIncident', 'UPDATE_FAILED');
             throw error;
         } finally {
             setLoading(false);
@@ -136,7 +136,7 @@ export const useIncidents = () => {
             });
             addToast(t('incidents.toastDeleted'), "info");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useIncidents.deleteIncident', 'DELETE_FAILED');
+            ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.deleteIncident', 'DELETE_FAILED');
             throw error;
         } finally {
             setLoading(false);
@@ -146,19 +146,41 @@ export const useIncidents = () => {
     const deleteIncidentsBulk = useCallback(async (ids: string[]) => {
         if (!user?.organizationId || !user?.uid) return;
         setLoading(true);
-        try {
-            // Use IncidentService for atomic bulk deletion with audit logging
-            await IncidentService.bulkDeleteIncidents(
-                ids,
-                user.organizationId,
-                user.uid,
-                user.email || 'unknown'
-            );
 
-            addToast(t('incidents.toastBulkDeleted', { count: ids.length }), "info");
+        let successCount = 0;
+        let blockedCount = 0;
+        const errors: string[] = [];
+
+        try {
+            // Process sequentially or semi-parallel to track individual results
+            await Promise.all(ids.map(async (id) => {
+                try {
+                    // Use IncidentService for atomic deletion with audit logging
+                    await IncidentService.deleteIncidentWithLog({
+                        incidentId: id,
+                        organizationId: user.organizationId!,
+                        userId: user.uid,
+                        userEmail: user.email || 'unknown'
+                    });
+                    successCount++;
+                } catch (error: unknown) {
+                    blockedCount++;
+                    const errWithMsg = error as { message?: string } | null;
+                    if (errWithMsg?.message) errors.push(errWithMsg.message);
+                }
+            }));
+
+            if (successCount > 0) {
+                addToast(t('incidents.toastBulkDeleted', { count: successCount }) + (blockedCount > 0 ? ` (${blockedCount} échoués)` : ''), "success");
+            }
+
+            if (blockedCount > 0) {
+                const firstError = errors.length > 0 ? errors[0] : 'Erreur inconnue';
+                addToast(`Certains incidents n'ont pas pu être supprimés (${blockedCount}). Exemple: ${firstError}`, "error");
+            }
+
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useIncidents.deleteIncidentsBulk', 'DELETE_FAILED');
-            throw error;
+            ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.deleteIncidentsBulk', 'DELETE_FAILED');
         } finally {
             setLoading(false);
         }
@@ -197,7 +219,7 @@ export const useIncidents = () => {
 
             addToast(t('incidents.toastImport', { count: events.length }), "success");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useIncidents.importIncidentsFromEvents');
+            ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.importIncidentsFromEvents');
             throw error;
         } finally {
             setLoading(false);
@@ -248,7 +270,7 @@ export const useIncidents = () => {
             addToast(t('incidents.toastSim'), "info");
             return { id: docRef.id, ...attackData } as Incident;
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useIncidents.simulateAttack');
+            ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.simulateAttack');
             throw error;
         } finally {
             setLoading(false);
@@ -275,7 +297,7 @@ export const useIncidents = () => {
             await logAction(user, 'IMPORT', 'Incident', `Import CSV de ${count} incidents`);
             addToast(t('incidents.toastImport', { count }), "success");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useIncidents.importIncidents');
+            ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.importIncidents');
         } finally {
             setLoading(false);
         }
