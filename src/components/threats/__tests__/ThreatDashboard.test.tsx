@@ -13,12 +13,12 @@ vi.mock('recharts', () => ({
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
         <div data-testid="responsive-container">{children}</div>
     ),
-    BarChart: ({ children }: { children: React.ReactNode }) => (
-        <div data-testid="bar-chart">{children}</div>
+    BarChart: () => (
+        <div data-testid="bar-chart" />
     ),
     Bar: () => <div data-testid="bar" />,
-    AreaChart: ({ children }: { children: React.ReactNode }) => (
-        <div data-testid="area-chart">{children}</div>
+    AreaChart: () => (
+        <div data-testid="area-chart" />
     ),
     Area: () => <div data-testid="area" />,
     XAxis: () => <div data-testid="x-axis" />,

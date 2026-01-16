@@ -38,7 +38,10 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                         <CustomSelect
                             label="Données collectées (Sélection multiple)"
                             value={watchedDataCategories || []}
-                            onChange={(val) => setValue('dataCategories', Array.isArray(val) ? val : [val], { shouldDirty: true })}
+                            onChange={(val) => {
+                                const newValue = Array.isArray(val) ? val : [val];
+                                setValue('dataCategories', newValue.filter(Boolean), { shouldDirty: true });
+                            }}
                             options={[
                                 { value: 'Etat Civil', label: 'Etat Civil (Nom, Prénom...)' },
                                 { value: 'Coordonnées', label: 'Coordonnées (Email, Tél...)' },

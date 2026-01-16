@@ -19,7 +19,7 @@ vi.mock('lucide-react', () => ({
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: { children?: React.ReactNode; className?: string; [key: string]: unknown }) => (
+        div: ({ children, className, ...props }: { children?: React.ReactNode; className?: string;[key: string]: unknown }) => (
             <div className={className} {...props}>{children}</div>
         )
     },
@@ -72,7 +72,11 @@ vi.mock('../../../hooks/useNotifications', () => ({
 }));
 
 const renderWithRouter = (ui: React.ReactElement) => {
-    return render(<BrowserRouter>{ui}</BrowserRouter>);
+    return render(
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            {ui}
+        </BrowserRouter>
+    );
 };
 
 describe('NotificationCenter', () => {
@@ -83,7 +87,7 @@ describe('NotificationCenter', () => {
             userId: 'user-1',
             title: 'New risk identified',
             message: 'A new high risk has been identified',
-            type: 'risk',
+            type: 'warning',
             read: false,
             createdAt: '2024-01-15T10:00:00Z'
         },
@@ -93,7 +97,7 @@ describe('NotificationCenter', () => {
             userId: 'user-1',
             title: 'Control approved',
             message: 'Your control has been approved',
-            type: 'control',
+            type: 'success',
             read: true,
             createdAt: '2024-01-14T10:00:00Z'
         },
@@ -103,7 +107,7 @@ describe('NotificationCenter', () => {
             userId: 'user-1',
             title: 'Task assigned',
             message: 'You have been assigned a task',
-            type: 'task',
+            type: 'assignment',
             read: false,
             createdAt: '2024-01-13T10:00:00Z'
         }

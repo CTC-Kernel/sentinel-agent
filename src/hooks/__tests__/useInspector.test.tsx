@@ -42,7 +42,9 @@ vi.mock('../../utils/errorHandler', () => ({
 describe('useInspector', () => {
     const createWrapper = () =>
         ({ children }: { children: ReactNode }) => (
-            <MemoryRouter>{children}</MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                {children}
+            </MemoryRouter>
         );
 
     const testTabs: InspectorTab[] = [

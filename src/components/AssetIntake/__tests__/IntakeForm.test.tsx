@@ -150,115 +150,115 @@ describe('IntakeForm', () => {
     });
 
     describe('rendering', () => {
-        it('renders hardware detected section', () => {
+        it('renders hardware detected section', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText('Matériel Détecté')).toBeInTheDocument();
         });
 
-        it('renders complementary info section', () => {
+        it('renders complementary info section', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText('Informations Complémentaires')).toBeInTheDocument();
         });
 
-        it('renders equipment name input', () => {
+        it('renders equipment name input', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByLabelText("Nom de l'équipement")).toBeInTheDocument();
         });
 
-        it('renders serial number input', () => {
+        it('renders serial number input', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByLabelText('Numéro de Série')).toBeInTheDocument();
         });
 
-        it('renders user select', () => {
+        it('renders user select', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByLabelText('Utilisateur Principal')).toBeInTheDocument();
         });
 
-        it('renders project select', () => {
+        it('renders project select', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByLabelText('Projet Associé')).toBeInTheDocument();
         });
 
-        it('renders equipment type select', () => {
+        it('renders equipment type select', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByLabelText("Type d'équipement")).toBeInTheDocument();
         });
 
-        it('renders notes textarea', () => {
+        it('renders notes textarea', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByLabelText('Notes')).toBeInTheDocument();
         });
 
-        it('renders submit button', () => {
+        it('renders submit button', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText("Enregistrer l'équipement")).toBeInTheDocument();
         });
     });
 
     describe('hardware info display', () => {
-        it('displays GPU information', () => {
+        it('displays GPU information', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText('Apple M1 Pro')).toBeInTheDocument();
         });
 
-        it('displays CPU cores', () => {
+        it('displays CPU cores', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText('10 Cœurs logiques')).toBeInTheDocument();
         });
 
-        it('displays OS information', () => {
+        it('displays OS information', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText(/macOS Sonoma/)).toBeInTheDocument();
         });
 
-        it('displays RAM information', () => {
+        it('displays RAM information', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText(/16 GB/)).toBeInTheDocument();
         });
 
-        it('displays browser information', () => {
+        it('displays browser information', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText(/Chrome 121/)).toBeInTheDocument();
         });
 
-        it('displays screen resolution', () => {
+        it('displays screen resolution', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText('2560x1440')).toBeInTheDocument();
         });
     });
 
     describe('form labels', () => {
-        it('shows Processeur / GPU label', () => {
+        it('shows Processeur / GPU label', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText('Processeur / GPU')).toBeInTheDocument();
         });
 
-        it('shows Mémoire & OS label', () => {
+        it('shows Mémoire & OS label', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText('Mémoire & OS')).toBeInTheDocument();
         });
 
-        it('shows Affichage label', () => {
+        it('shows Affichage label', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByText('Affichage')).toBeInTheDocument();
         });
     });
@@ -333,24 +333,23 @@ describe('IntakeForm', () => {
     });
 
     describe('styling', () => {
-        it('has glass-panel containers', () => {
+        it('has glass-panel containers', async () => {
             const { container } = render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(container.querySelectorAll('.glass-panel').length).toBe(2);
         });
     });
 
     describe('icons', () => {
-        it('renders laptop icons', () => {
+        it('renders laptop icons', async () => {
             render(<IntakeForm {...defaultProps} />);
-
-            // Multiple laptop icons may exist in the UI
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getAllByTestId('laptop-icon').length).toBeGreaterThan(0);
         });
 
-        it('renders save icon in button', () => {
+        it('renders save icon in button', async () => {
             render(<IntakeForm {...defaultProps} />);
-
+            await waitFor(() => expect(mockFetchOptions).toHaveBeenCalled());
             expect(screen.getByTestId('save-icon')).toBeInTheDocument();
         });
     });

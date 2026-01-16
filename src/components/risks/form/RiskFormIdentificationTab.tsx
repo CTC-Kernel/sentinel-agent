@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Controller } from 'react-hook-form';
-import { FileText, Search, BookOpen } from '../../ui/Icons';
+import { FileText, BookOpen } from '../../ui/Icons';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { RichTextEditor } from '../../ui/RichTextEditor';
 import { AIAssistButton } from '../../ai/AIAssistButton';
@@ -33,7 +33,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
                     required
                     error={errors.threat?.message}
                     placeholder="Ex: Attaque par ingénierie sociale..."
-                    icon={Search}
+                // icon={Search} - Search icon usage was incorrect for this component variant or passed incorrectly
                 />
                 <div className="absolute right-2 top-2 z-10 flex gap-2">
                     <button

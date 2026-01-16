@@ -1,7 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+
 import { Sparkles, AlertTriangle, ShieldCheck, RefreshCw, Activity } from 'lucide-react';
 import { BrainCircuit } from '../../ui/Icons';
+import { GlassCard } from '../../ui/GlassCard';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAIGemini } from '../../../hooks/useAIGemini';
@@ -79,19 +80,16 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     return (
         <div className="flex flex-col gap-6 mb-8">
             {/* AI Summary Card */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="w-full relative group overflow-hidden rounded-[2rem] p-[1px]"
+            <GlassCard
+                className="w-full group rounded-[2rem] p-0"
+                hoverEffect={true}
+                gradientOverlay={true}
             >
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 via-purple-500/5 to-brand-500/10 animate-shine opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                {/* Background Effects */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
-                <div className="glass-premium relative h-full rounded-[2rem] p-6 flex flex-col justify-between overflow-hidden">
-                    {/* Background Effects */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
-
+                <div className="p-6 h-full flex flex-col justify-between">
                     <div className="flex items-start justify-between mb-4 relative z-10">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 shadow-sm shadow-brand-500/10">
@@ -152,18 +150,15 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         )}
                     </div>
                 </div>
-            </motion.div>
+            </GlassCard>
 
             {/* Consolidated Health Overview Card */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="w-full relative group overflow-hidden rounded-[2rem] p-[1px]"
+            <GlassCard
+                className="w-full group rounded-[2rem] p-0"
+                hoverEffect={true}
+                gradientOverlay={true}
             >
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 via-purple-500/5 to-brand-500/10 animate-shine opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-                <div className="glass-premium relative h-full rounded-[2rem] p-6 flex flex-col overflow-hidden">
+                <div className="p-6 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-emerald-500/10">
@@ -262,7 +257,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         </div>
                     </div>
                 </div>
-            </motion.div>
+            </GlassCard>
         </div>
     );
 };

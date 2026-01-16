@@ -50,7 +50,7 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                         const member = users.find(u => u.uid === memberId);
                         if (!member) return null;
                         return (
-                            <div className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 overflow-hidden" title={member.displayName}>
+                            <div key={memberId} className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 overflow-hidden" title={member.displayName}>
                                 <img
                                     src={getDefaultAvatarUrl(member?.role)}
                                     alt={member.displayName}

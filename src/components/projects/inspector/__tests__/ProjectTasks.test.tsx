@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ProjectTasks } from '../ProjectTasks';
 import { Project, ProjectTask, UserProfile } from '../../../../types';
 
@@ -118,7 +118,14 @@ describe('ProjectTasks', () => {
             description: 'Configure development environment',
             status: 'Terminé',
             startDate: '2024-01-01',
-            dueDate: '2024-01-15'
+            dueDate: '2024-01-15',
+            assigneeId: 'user-1',
+            priority: 'medium',
+            comments: [],
+            attachments: [],
+            createdAt: '2024-01-01',
+            updatedAt: '2024-01-01',
+            createdBy: 'user-1'
         },
         {
             id: 'task-2',
@@ -126,7 +133,14 @@ describe('ProjectTasks', () => {
             description: 'Build the main feature',
             status: 'En cours',
             startDate: '2024-01-10',
-            dueDate: '2024-01-30'
+            dueDate: '2024-01-30',
+            assigneeId: 'user-1',
+            priority: 'high',
+            comments: [],
+            attachments: [],
+            createdAt: '2024-01-01',
+            updatedAt: '2024-01-01',
+            createdBy: 'user-1'
         },
         {
             id: 'task-3',
@@ -134,23 +148,37 @@ describe('ProjectTasks', () => {
             description: 'Add unit tests',
             status: 'A faire',
             startDate: '2024-02-01',
-            dueDate: '2024-02-15'
+            dueDate: '2024-02-15',
+            assigneeId: 'user-1',
+            priority: 'low',
+            comments: [],
+            attachments: [],
+            createdAt: '2024-01-01',
+            updatedAt: '2024-01-01',
+            createdBy: 'user-1'
         }
     ];
 
-    const mockProject: Project = {
+    const mockProject = {
         id: 'project-1',
         name: 'Test Project',
         description: 'A test project',
         status: 'En cours',
         startDate: '2024-01-01',
-        tasks: mockTasks
-    };
+        tasks: mockTasks,
+        organizationId: 'org-1',
+        manager: 'Manager',
+        dueDate: '2024-12-31',
+        progress: 0,
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        createdBy: 'user-1'
+    } as Project;
 
-    const projectWithNoTasks: Project = {
+    const projectWithNoTasks = {
         ...mockProject,
         tasks: []
-    };
+    } as Project;
 
     const mockUsersList: UserProfile[] = [
         {
@@ -290,7 +318,9 @@ describe('ProjectTasks', () => {
             fireEvent.click(screen.getByText('Nouvelle tâche'));
             fireEvent.click(screen.getByTestId('submit-task'));
 
-            expect(mockOnUpdateTasks).toHaveBeenCalled();
+            await waitFor(() => {
+                expect(mockOnUpdateTasks).toHaveBeenCalled();
+            });
         });
     });
 
@@ -317,7 +347,9 @@ describe('ProjectTasks', () => {
             fireEvent.click(screen.getByTestId('delete-task-1'));
             fireEvent.click(screen.getByTestId('confirm-delete'));
 
-            expect(mockOnUpdateTasks).toHaveBeenCalled();
+            await waitFor(() => {
+                expect(mockOnUpdateTasks).toHaveBeenCalled();
+            });
         });
     });
 
