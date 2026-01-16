@@ -4,6 +4,7 @@ import { TrendingDown } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { slideUpVariants } from '../ui/animationVariants';
 import { Risk } from '../../types';
+import { GlassCard } from '../ui/GlassCard';
 
 interface RiskStatsProps {
     stats: {
@@ -19,8 +20,10 @@ interface RiskStatsProps {
 export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
     return (
         <motion.div variants={slideUpVariants}>
-            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-transparent dark:border-white/5 shadow-lg relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
+            <GlassCard
+                className="p-6 md:p-8 relative overflow-hidden group"
+                gradientOverlay={true}
+            >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative z-10">
                     <div className="space-y-2">
                         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 flex items-center gap-2">
@@ -72,7 +75,7 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </GlassCard>
         </motion.div>
     );
 };

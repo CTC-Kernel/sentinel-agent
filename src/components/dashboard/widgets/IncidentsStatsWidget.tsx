@@ -4,6 +4,7 @@ import { Incident, Criticality } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
 import { Clock, AlertTriangle, Loader2 } from '../../ui/Icons';
+import { GlassCard } from '../../ui/GlassCard';
 
 interface IncidentsStatsWidgetProps {
     navigate?: (path: string) => void;
@@ -58,9 +59,11 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
     }
 
     return (
-        <div className="h-full flex flex-col p-5 glass-panel rounded-2xl border border-white/60 dark:border-white/5 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-
+        <GlassCard
+            className="h-full flex flex-col p-5 overflow-hidden group hover:shadow-apple"
+            hoverEffect={true}
+            gradientOverlay={true}
+        >
             <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
                     <span className="relative flex h-2.5 w-2.5">
@@ -145,6 +148,5 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                     </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 };
