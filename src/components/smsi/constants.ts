@@ -2,7 +2,7 @@
 import { Target, PlayCircle, BarChart3, Settings2, Clock, TrendingUp, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { PDCAPhase } from '../../types/ebios';
 
-export const PHASE_CONFIG: Record<PDCAPhase, { label: string; color: string; icon: any; description: string }> = {
+export const PHASE_CONFIG: Record<PDCAPhase, { label: string; color: string; icon: React.ElementType; description: string }> = {
     plan: {
         label: 'Plan',
         color: 'blue',

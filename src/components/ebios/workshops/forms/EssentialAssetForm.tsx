@@ -6,7 +6,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Trash2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../../utils/cn';
@@ -40,7 +40,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<EssentialAsset>({
@@ -56,11 +56,9 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
     },
   });
 
-
-
-  const criticality = watch('criticality');
-  const selectedType = watch('type');
-  const linkedMissionIds = watch('linkedMissionIds');
+  const criticality = useWatch({ control, name: 'criticality' });
+  const selectedType = useWatch({ control, name: 'type' });
+  const linkedMissionIds = useWatch({ control, name: 'linkedMissionIds' });
 
   const handleDelete = useCallback(() => {
     if (asset && onDelete) {

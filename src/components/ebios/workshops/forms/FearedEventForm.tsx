@@ -6,7 +6,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Trash2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../../utils/cn';
@@ -42,7 +42,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<FearedEvent>({
@@ -59,12 +59,10 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
     },
   });
 
-
-
-  const gravity = watch('gravity');
-  const impactType = watch('impactType');
-  const linkedMissionIds = watch('linkedMissionIds');
-  const linkedEssentialAssetIds = watch('linkedEssentialAssetIds');
+  const gravity = useWatch({ control, name: 'gravity' });
+  const impactType = useWatch({ control, name: 'impactType' });
+  const linkedMissionIds = useWatch({ control, name: 'linkedMissionIds' });
+  const linkedEssentialAssetIds = useWatch({ control, name: 'linkedEssentialAssetIds' });
 
   const handleDelete = useCallback(() => {
     if (event && onDelete) {

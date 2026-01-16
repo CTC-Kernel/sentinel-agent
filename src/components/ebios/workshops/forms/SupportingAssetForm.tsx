@@ -6,7 +6,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Trash2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../../utils/cn';
@@ -45,11 +45,12 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<SupportingAsset>({
-    resolver: zodResolver(supportingAssetSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(supportingAssetSchema) as any,
     defaultValues: asset || {
       id: uuidv4(),
       name: '',
@@ -59,9 +60,8 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
     },
   });
 
-
-  const selectedType = watch('type');
-  const linkedEssentialAssetIds = watch('linkedEssentialAssetIds');
+  const selectedType = useWatch({ control, name: 'type' });
+  const linkedEssentialAssetIds = useWatch({ control, name: 'linkedEssentialAssetIds' });
 
   const handleSave = useCallback((data: SupportingAsset) => {
     onSave(data);

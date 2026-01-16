@@ -4,7 +4,7 @@
  * Main view for managing the PDCA-based Information Security Management System program
  */
 
-import React, { useState, Suspense, useMemo, useEffect } from 'react';
+import React, { useState, Suspense, useMemo } from 'react';
 import { useSMSIProgram } from '../hooks/smsi/useSMSIProgram';
 import { PageHeader } from '../components/ui/PageHeader';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -41,17 +41,12 @@ export const SMSIProgramView: React.FC = () => {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'planning'>('overview');
-  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
 
-  // Update selected milestone when milestones list changes (e.g. after status update)
-  useEffect(() => {
-    if (selectedMilestone) {
-      const updated = milestones.find(m => m.id === selectedMilestone.id);
-      if (updated) {
-        setSelectedMilestone(updated);
-      }
-    }
-  }, [milestones, selectedMilestone?.id]);
+  // Derive selected milestone from milestones list
+  const selectedMilestone = useMemo(() =>
+    milestones.find(m => m.id === selectedMilestoneId) || null,
+    [milestones, selectedMilestoneId]);
 
 
   const handleCreateProgram = async (data: { name: string; description?: string; targetCertificationDate?: string }) => {
@@ -177,7 +172,7 @@ export const SMSIProgramView: React.FC = () => {
           >
             <SMSIMilestoneList
               milestones={milestones}
-              onSelect={setSelectedMilestone}
+              onSelect={(milestone) => setSelectedMilestoneId(milestone.id)}
             />
           </motion.div>
         )}
@@ -186,7 +181,7 @@ export const SMSIProgramView: React.FC = () => {
       <Suspense fallback={null}>
         <SMSIInspector
           isOpen={!!selectedMilestone}
-          onClose={() => setSelectedMilestone(null)}
+          onClose={() => setSelectedMilestoneId(null)}
           milestone={selectedMilestone}
           onStatusChange={handleStatusChange}
         />
