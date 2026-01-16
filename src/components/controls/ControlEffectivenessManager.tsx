@@ -10,26 +10,22 @@ import { GlassCard } from '../ui/GlassCard';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
-import { EmptyState } from '../ui/EmptyState';
 import { cn } from '../../utils/cn';
 import { ISO_DOMAINS, ISO_SEED_CONTROLS } from '../../data/complianceData';
 import {
   Shield,
-  TrendingUp,
   TrendingDown,
   AlertTriangle,
-  CheckCircle2,
   Clock,
   Plus,
   ChevronRight,
   BarChart3,
   Target,
-  FileText,
   X,
   Save,
   Calendar,
 } from 'lucide-react';
-import type { ControlEffectivenessAssessment, DomainMaturityScore } from '../../types/ebios';
+import type { ControlEffectivenessAssessment } from '../../types/ebios';
 
 const ASSESSMENT_METHODS = [
   { value: 'documentation', label: 'Revue documentaire' },
@@ -46,7 +42,6 @@ export const ControlEffectivenessManager: React.FC = () => {
     loading,
     error,
     createAssessment,
-    deleteAssessment,
     getOverallMaturity,
     getLowEffectivenessControls,
     getAssessmentsDueForReview,
@@ -143,8 +138,8 @@ export const ControlEffectivenessManager: React.FC = () => {
                   transform="rotate(-90 50 50)"
                   className={cn(
                     overallMaturity.level >= 4 ? 'text-emerald-500' :
-                    overallMaturity.level >= 3 ? 'text-blue-500' :
-                    overallMaturity.level >= 2 ? 'text-amber-500' : 'text-red-500'
+                      overallMaturity.level >= 3 ? 'text-blue-500' :
+                        overallMaturity.level >= 2 ? 'text-amber-500' : 'text-red-500'
                   )}
                 />
               </svg>
@@ -153,8 +148,8 @@ export const ControlEffectivenessManager: React.FC = () => {
                 <span className={cn(
                   "text-sm font-medium",
                   overallMaturity.level >= 4 ? 'text-emerald-600 dark:text-emerald-400' :
-                  overallMaturity.level >= 3 ? 'text-blue-600 dark:text-blue-400' :
-                  overallMaturity.level >= 2 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
+                    overallMaturity.level >= 3 ? 'text-blue-600 dark:text-blue-400' :
+                      overallMaturity.level >= 2 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
                 )}>
                   Niveau {overallMaturity.level}
                 </span>
@@ -172,9 +167,9 @@ export const ControlEffectivenessManager: React.FC = () => {
                 <div className={cn(
                   "w-3 h-3 rounded-full",
                   level === 5 ? 'bg-emerald-500' :
-                  level === 4 ? 'bg-blue-500' :
-                  level === 3 ? 'bg-cyan-500' :
-                  level === 2 ? 'bg-amber-500' : 'bg-red-500'
+                    level === 4 ? 'bg-blue-500' :
+                      level === 3 ? 'bg-cyan-500' :
+                        level === 2 ? 'bg-amber-500' : 'bg-red-500'
                 )} />
                 <span className="text-xs text-slate-500">{MATURITY_THRESHOLDS[level].label}</span>
               </div>
@@ -264,9 +259,9 @@ export const ControlEffectivenessManager: React.FC = () => {
                 <div className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
                   maturityLevel >= 4 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
-                  maturityLevel >= 3 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
-                  maturityLevel >= 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
-                  'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                    maturityLevel >= 3 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
+                      maturityLevel >= 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
+                        'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                 )}>
                   {maturityLevel}
                 </div>
@@ -280,8 +275,8 @@ export const ControlEffectivenessManager: React.FC = () => {
                 <span className={cn(
                   "font-medium",
                   avgEffectiveness >= 60 ? 'text-emerald-600 dark:text-emerald-400' :
-                  avgEffectiveness >= 40 ? 'text-amber-600 dark:text-amber-400' :
-                  'text-slate-500'
+                    avgEffectiveness >= 40 ? 'text-amber-600 dark:text-amber-400' :
+                      'text-slate-500'
                 )}>
                   {avgEffectiveness}%
                 </span>
@@ -293,8 +288,8 @@ export const ControlEffectivenessManager: React.FC = () => {
                   className={cn(
                     "h-full rounded-full transition-all",
                     maturityLevel >= 4 ? 'bg-emerald-500' :
-                    maturityLevel >= 3 ? 'bg-blue-500' :
-                    maturityLevel >= 2 ? 'bg-amber-500' : 'bg-slate-400'
+                      maturityLevel >= 3 ? 'bg-blue-500' :
+                        maturityLevel >= 2 ? 'bg-amber-500' : 'bg-slate-400'
                   )}
                   style={{ width: `${avgEffectiveness}%` }}
                 />
@@ -420,8 +415,8 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
                     <div className={cn(
                       "text-lg font-bold",
                       score >= 60 ? 'text-emerald-600 dark:text-emerald-400' :
-                      score >= 40 ? 'text-amber-600 dark:text-amber-400' :
-                      'text-red-600 dark:text-red-400'
+                        score >= 40 ? 'text-amber-600 dark:text-amber-400' :
+                          'text-red-600 dark:text-red-400'
                     )}>
                       {score}%
                     </div>
@@ -502,7 +497,7 @@ const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     }
   };
 
-  const selectedControlInfo = controls.find(c => c.code === formData.controlCode);
+
 
   return (
     <motion.div
@@ -569,7 +564,7 @@ const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                 Score d'efficacité: <span className={cn(
                   "font-bold",
                   formData.effectivenessScore >= 60 ? 'text-emerald-600' :
-                  formData.effectivenessScore >= 40 ? 'text-amber-600' : 'text-red-600'
+                    formData.effectivenessScore >= 40 ? 'text-amber-600' : 'text-red-600'
                 )}>{formData.effectivenessScore}%</span>
               </label>
               <input

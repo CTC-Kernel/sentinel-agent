@@ -61,13 +61,9 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
 
 
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const gravity = watch('gravity');
-  // eslint-disable-next-line react-hooks/incompatible-library
   const impactType = watch('impactType');
-  // eslint-disable-next-line react-hooks/incompatible-library
   const linkedMissionIds = watch('linkedMissionIds');
-  // eslint-disable-next-line react-hooks/incompatible-library
   const linkedEssentialAssetIds = watch('linkedEssentialAssetIds');
 
   const handleDelete = useCallback(() => {

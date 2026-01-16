@@ -148,5 +148,6 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                     </div>
                 </div>
             </div>
-            );
+        </GlassCard>
+    );
 };

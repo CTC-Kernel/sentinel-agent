@@ -58,11 +58,8 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
 
 
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const criticality = watch('criticality');
-  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedType = watch('type');
-  // eslint-disable-next-line react-hooks/incompatible-library
   const linkedMissionIds = watch('linkedMissionIds');
 
   const handleDelete = useCallback(() => {

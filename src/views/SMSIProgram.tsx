@@ -4,7 +4,6 @@
  */
 
 import React, { useState, Suspense } from 'react';
-import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSMSIProgram } from '../hooks/smsi/useSMSIProgram';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -34,7 +33,7 @@ import {
 // Lazy load the create program modal
 const CreateProgramModal = React.lazy(() => import('../components/smsi/CreateProgramModal'));
 
-const PHASE_CONFIG: Record<PDCAPhase, { label: string; color: string; icon: React.ElementType; description: string }> = {
+const PHASE_CONFIG: Record<PDCAPhase, { label: string; color: string; icon: React.ElementType<{ className?: string }>; description: string }> = {
   plan: {
     label: 'Plan',
     color: 'blue',
@@ -69,7 +68,6 @@ const MILESTONE_STATUS_CONFIG = {
 };
 
 export const SMSIProgramView: React.FC = () => {
-  const { t } = useTranslation();
   const {
     program,
     milestones,
@@ -323,11 +321,11 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
             <Badge
               status={
                 phaseData.status === 'completed' ? 'success' :
-                phaseData.status === 'in_progress' ? 'info' : 'warning'
+                  phaseData.status === 'in_progress' ? 'info' : 'warning'
               }
             >
               {phaseData.status === 'completed' ? 'Terminée' :
-               phaseData.status === 'in_progress' ? 'En cours' : 'Non démarrée'}
+                phaseData.status === 'in_progress' ? 'En cours' : 'Non démarrée'}
             </Badge>
           </div>
 

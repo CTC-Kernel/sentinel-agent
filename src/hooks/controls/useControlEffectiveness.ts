@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { collection, query, where, getDocs, doc, setDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, setDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import type { ControlEffectivenessAssessment, DomainMaturityScore } from '../../types/ebios';

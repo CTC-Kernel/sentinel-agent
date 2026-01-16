@@ -23,7 +23,6 @@ import {
   Plus,
   Trash2,
   AlertTriangle,
-  CheckCircle2,
   X,
   FileText,
   Shield,
@@ -37,7 +36,7 @@ type TabId = 'business' | 'regulatory' | 'appetite' | 'criteria';
 interface TabConfig {
   id: TabId;
   label: string;
-  icon: React.ElementType;
+  icon: React.ElementType<{ className?: string }>;
   description: string;
 }
 
@@ -258,7 +257,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.activities.map((activity, index) => (
-              <Badge key={index} variant="secondary" className="gap-1.5 py-1.5">
+              <Badge key={index} variant="soft" className="gap-1.5 py-1.5">
                 {activity}
                 <button onClick={() => removeItem('activities', index)} className="ml-1 hover:text-red-500">
                   <X className="w-3 h-3" />
@@ -288,7 +287,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.objectives.map((objective, index) => (
-              <Badge key={index} variant="secondary" className="gap-1.5 py-1.5">
+              <Badge key={index} variant="soft" className="gap-1.5 py-1.5">
                 {objective}
                 <button onClick={() => removeItem('objectives', index)} className="ml-1 hover:text-red-500">
                   <X className="w-3 h-3" />
@@ -318,7 +317,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.criticalProcesses.map((process, index) => (
-              <Badge key={index} variant="secondary" className="gap-1.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+              <Badge key={index} variant="soft" className="gap-1.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
                 <AlertTriangle className="w-3 h-3" />
                 {process}
                 <button onClick={() => removeItem('criticalProcesses', index)} className="ml-1 hover:text-red-500">
