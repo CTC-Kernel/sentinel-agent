@@ -65,7 +65,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
         onClose();
     };
 
-    const getIcon = (iconName: string) => {
+    const getIcon = (iconName: string): React.ElementType => {
         return iconMap[iconName] || FileText;
     };
 

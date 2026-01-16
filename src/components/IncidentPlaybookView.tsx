@@ -6,7 +6,7 @@ import { useStore } from '../store';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Button } from '../components/ui/button';
-import { useIncidentsActions } from '../hooks/incidents/useIncidentsActions';
+import { useIncidentActions } from '../hooks/incidents/useIncidentActions';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -41,7 +41,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   const [confirmAction, setConfirmAction] = useState<() => void>(() => { });
   const [confirmMessage, setConfirmMessage] = useState('');
   const { user, addToast } = useStore();
-  const { updateIncident } = useIncidentsActions();
+  const { updateIncident } = useIncidentActions();
 
   const loadPlaybooks = useCallback(async () => {
     if (!user?.organizationId) return;

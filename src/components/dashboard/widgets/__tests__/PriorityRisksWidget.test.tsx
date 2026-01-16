@@ -69,43 +69,55 @@ describe('PriorityRisksWidget', () => {
     const mockRisks: Risk[] = [
         {
             id: 'risk-1',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
             threat: 'Ransomware Attack',
             vulnerability: 'Outdated systems',
             score: 25,
-            likelihood: 5,
+            probability: 5,
             impact: 5,
-            status: 'En traitement',
-            strategy: 'Mitiger'
+            status: 'En cours',
+            strategy: 'Atténuer',
+            owner: 'user-1'
         },
         {
             id: 'risk-2',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
             threat: 'Data Breach',
             vulnerability: 'Weak access controls',
             score: 20,
-            likelihood: 4,
+            probability: 4,
             impact: 5,
-            status: 'Identifié',
-            strategy: 'Transférer'
+            status: 'Ouvert',
+            strategy: 'Transférer',
+            owner: 'user-1'
         },
         {
             id: 'risk-3',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
             threat: 'DDoS Attack',
             vulnerability: 'No rate limiting',
             score: 16,
-            likelihood: 4,
+            probability: 4,
             impact: 4,
-            status: 'En traitement',
-            strategy: 'Mitiger'
+            status: 'En cours',
+            strategy: 'Atténuer',
+            owner: 'user-1'
         },
         {
             id: 'risk-4',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
             threat: 'Phishing',
             vulnerability: 'Lack of training',
             score: 12,
-            likelihood: 3,
+            probability: 3,
             impact: 4,
-            status: 'Identifié',
-            strategy: 'Accepter'
+            status: 'Ouvert',
+            strategy: 'Accepter',
+            owner: 'user-1'
         }
     ];
 
