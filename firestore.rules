@@ -150,6 +150,55 @@ service cloud.firestore {
         allow write: if isSuperAdmin() || 
           (belongsToOrganization(orgId) && (isOrgAdmin() || isRSSI() || isOrgOwner(orgId) || hasRole('direction')));
       }
+
+      // ===========================================================================
+      // EBIOS Risk Manager (Subcollections)
+      // ===========================================================================
+
+      // EBIOS Analyses
+      match /ebiosAnalyses/{analysisId} {
+        allow read: if canRead(orgId);
+        allow create: if isAuthenticated() &&
+          request.resource.data.organizationId == orgId &&
+          canWrite(orgId) &&
+          isValidString(request.resource.data.name, 1, 200);
+        allow update: if canWrite(orgId);
+        // Delete allowed for admins/owners via UI
+        allow delete: if canDelete(orgId);
+      }
+
+      // EBIOS Risk Sources (Custom)
+      match /riskSources/{sourceId} {
+        allow read: if canRead(orgId);
+        allow create: if isAuthenticated() && canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canDelete(orgId);
+      }
+
+      // EBIOS Targeted Objectives (Custom)
+      match /targetedObjectives/{objectiveId} {
+        allow read: if canRead(orgId);
+        allow create: if isAuthenticated() && canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canDelete(orgId);
+      }
+
+      // SMSI Program (ISO 27003)
+      match /smsiProgram/{programId} {
+        allow read: if canRead(orgId);
+        allow write: if canWrite(orgId);
+
+        match /milestones/{milestoneId} {
+          allow read: if canRead(orgId);
+          allow write: if canWrite(orgId);
+        }
+      }
+
+      // Risk Context (ISO 27005)
+      match /riskContext/{contextId} {
+        allow read: if canRead(orgId);
+        allow write: if canWrite(orgId);
+      }
     }
 
     // Users collection
@@ -804,67 +853,8 @@ service cloud.firestore {
       return status in ['not_started', 'in_progress', 'completed', 'validated'];
     }
 
-    // EBIOS Analyses - Main collection for EBIOS RM risk analyses
-    match /ebios_analyses/{analysisId} {
-      allow read: if canRead(resource.data.organizationId);
+    // EBIOS Rules moved to organization subcollection
 
-      allow create: if isAuthenticated() &&
-        request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId) &&
-        isValidString(request.resource.data.name, 1, 200) &&
-        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
-        (!('status' in request.resource.data) || isValidEbiosStatus(request.resource.data.status));
-
-      allow update: if canWrite(resource.data.organizationId) &&
-        (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
-        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
-        (!('status' in request.resource.data) || isValidEbiosStatus(request.resource.data.status));
-
-      // Delete only via Cloud Function to ensure data integrity
-      allow delete: if false;
-    }
-
-    // EBIOS Risk Sources Library - Organization-specific or ANSSI standard library
-    match /ebios_risk_sources/{sourceId} {
-      allow read: if isAuthenticated() && (
-        // Allow reading ANSSI standard sources (no orgId) or own org sources
-        !('organizationId' in resource.data) ||
-        resource.data.organizationId == null ||
-        belongsToOrganization(resource.data.organizationId)
-      );
-
-      allow create: if isAuthenticated() &&
-        request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId) &&
-        isValidString(request.resource.data.name, 1, 200) &&
-        isValidString(request.resource.data.code, 1, 50);
-
-      allow update: if canWrite(resource.data.organizationId) &&
-        (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200));
-
-      allow delete: if canDelete(resource.data.organizationId);
-    }
-
-    // EBIOS Targeted Objectives Library
-    match /ebios_targeted_objectives/{objectiveId} {
-      allow read: if isAuthenticated() && (
-        // Allow reading ANSSI standard objectives (no orgId) or own org objectives
-        !('organizationId' in resource.data) ||
-        resource.data.organizationId == null ||
-        belongsToOrganization(resource.data.organizationId)
-      );
-
-      allow create: if isAuthenticated() &&
-        request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId) &&
-        isValidString(request.resource.data.name, 1, 200) &&
-        isValidString(request.resource.data.code, 1, 50);
-
-      allow update: if canWrite(resource.data.organizationId) &&
-        (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200));
-
-      allow delete: if canDelete(resource.data.organizationId);
-    }
 
     // Default deny all
     match /{document=**} {

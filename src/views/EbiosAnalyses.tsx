@@ -81,16 +81,13 @@ export const EbiosAnalyses: React.FC = () => {
   });
 
   // Handlers
-  const handleCreateAnalysis = useCallback(async (data: { name: string; description?: string }) => {
+  const handleCreateAnalysis = useCallback(async (data: { name: string; description?: string; sector?: string; targetCertificationDate?: string }) => {
     if (!organizationId || !user?.uid) return;
 
     try {
       const newAnalysis = await EbiosService.createAnalysis(
         organizationId,
-        {
-          name: data.name,
-          description: data.description,
-        },
+        data,
         user.uid
       );
       setAnalyses((prev) => [newAnalysis, ...prev]);
@@ -334,9 +331,9 @@ export const EbiosAnalyses: React.FC = () => {
                             className={cn(
                               "flex-1 h-1.5 rounded-full",
                               workshop.status === 'validated' ? "bg-purple-500" :
-                              workshop.status === 'completed' ? "bg-green-500" :
-                              workshop.status === 'in_progress' ? "bg-blue-500" :
-                              "bg-gray-200 dark:bg-gray-700"
+                                workshop.status === 'completed' ? "bg-green-500" :
+                                  workshop.status === 'in_progress' ? "bg-blue-500" :
+                                    "bg-gray-200 dark:bg-gray-700"
                             )}
                           />
                         );
