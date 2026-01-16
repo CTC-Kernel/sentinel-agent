@@ -47,6 +47,12 @@ const EbiosAnalysisDetail = React.lazy(() => import('../../views/EbiosAnalysisDe
 // SMSI Program Module (ISO 27003)
 const SMSIProgram = React.lazy(() => import('../../views/SMSIProgram').then(module => ({ default: module.SMSIProgramView })));
 
+// Risk Context Module (ISO 27005)
+const RiskContext = React.lazy(() => import('../../views/RiskContext').then(module => ({ default: module.RiskContextView })));
+
+// Control Effectiveness Module (ISO 27002)
+const ControlEffectiveness = React.lazy(() => import('../../views/ControlEffectiveness').then(module => ({ default: module.ControlEffectivenessView })));
+
 // New Professional 404 Page
 import { NotFound } from '../../views/NotFound';
 
@@ -76,6 +82,8 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/ebios" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalyses /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/ebios/:id" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalysisDetail /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/smsi" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><SMSIProgram /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/risk-context" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><RiskContext /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/control-effectiveness" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor']}><AnimatedPage><ControlEffectiveness /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/documents" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user']}>
                         <AnimatedPage><Documents /></AnimatedPage>

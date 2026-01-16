@@ -7,7 +7,7 @@ import React, { useState, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSMSIProgram } from '../hooks/smsi/useSMSIProgram';
-import { PageHeader } from '../components/layout/PageHeader';
+import { PageHeader } from '../components/ui/PageHeader';
 import { GlassCard } from '../components/ui/GlassCard';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Skeleton } from '../components/ui/Skeleton';

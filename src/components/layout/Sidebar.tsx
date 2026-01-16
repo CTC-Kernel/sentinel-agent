@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon, RefreshCcw
+  Scale, Shield, Printer, LucideIcon, RefreshCcw, Target, BarChart3
 } from 'lucide-react';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -73,6 +73,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         { key: 'smsi', name: 'Programme SMSI', to: '/smsi', icon: RefreshCcw, resource: 'Risk' }, // ISO 27003 PDCA
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText, resource: 'Audit' }, // Compliance often mapped to Audit roles
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
+        { key: 'control-effectiveness', name: 'Efficacité Contrôles', to: '/control-effectiveness', icon: BarChart3, resource: 'Audit' }, // ISO 27002
         { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP
         { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint, resource: 'Document' }, // Privacy
       ]
@@ -89,7 +90,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.administration'),
       items: [
         { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users, resource: 'User' },
-
+        { key: 'risk-context', name: 'Contexte de Risque', to: '/risk-context', icon: Target, resource: 'Risk', action: 'manage' }, // ISO 27005
         { key: 'system-health', name: 'État du Système', to: '/system-health', icon: Activity, resource: 'Organization', action: 'manage' },
         { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database, resource: 'Settings', action: 'manage' },
         { key: 'super_admin', name: t('sidebar.superAdmin'), to: '/admin_management', icon: Shield, superAdminOnly: true }
