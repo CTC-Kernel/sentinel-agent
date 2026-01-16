@@ -73,7 +73,7 @@ describe('useResourceLogs', () => {
 
     describe('initialization', () => {
         it('initializes with loading state', () => {
-            mockGetDocs.mockImplementation(() => new Promise(() => {}));
+            mockGetDocs.mockImplementation(() => new Promise(() => { }));
 
             const { result } = renderHook(() => useResourceLogs('Risk', 'risk-123'));
 
@@ -274,9 +274,10 @@ describe('useResourceLogs', () => {
                 { initialProps: { resourceId: 'risk-123' as string | undefined } }
             );
 
-            await waitFor(() => !result.current.loading);
-
-            expect(result.current.logs.length).toBe(2);
+            await waitFor(() => {
+                expect(result.current.loading).toBe(false);
+                expect(result.current.logs.length).toBe(2);
+            });
 
             rerender({ resourceId: undefined });
 

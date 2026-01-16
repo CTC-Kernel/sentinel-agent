@@ -199,8 +199,8 @@ describe('PriorityRisksWidget', () => {
         it('displays risk strategies', () => {
             render(<PriorityRisksWidget {...defaultProps} />);
 
-            // Multiple "Mitiger" strategies exist
-            expect(screen.getAllByText('Mitiger').length).toBeGreaterThan(0);
+            // Multiple "Atténuer" strategies exist
+            expect(screen.getAllByText('Atténuer').length).toBeGreaterThan(0);
             expect(screen.getByText('Transférer')).toBeInTheDocument();
         });
 

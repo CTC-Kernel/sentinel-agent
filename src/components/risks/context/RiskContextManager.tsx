@@ -686,6 +686,59 @@ interface EvaluationCriteriaTabProps {
   isSaving: boolean;
 }
 
+interface ScaleEditorProps {
+  type: 'impactScale' | 'probabilityScale';
+  title: string;
+  items: ScaleDefinition[];
+  onUpdate: (
+    scaleType: 'impactScale' | 'probabilityScale',
+    index: number,
+    field: keyof ScaleDefinition,
+    value: string | number | string[]
+  ) => void;
+}
+
+const ScaleEditor: React.FC<ScaleEditorProps> = ({ type, title, items, onUpdate }) => (
+  <div>
+    <h4 className="font-medium text-slate-900 dark:text-white mb-4">{title}</h4>
+    <div className="space-y-3">
+      {items.map((item, index) => (
+        <div
+          key={item.level}
+          className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+        >
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center font-bold">
+              {item.level}
+            </div>
+            <input
+              type="text"
+              value={item.name}
+              onChange={(e) => onUpdate(type, index, 'name', e.target.value)}
+              className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+              placeholder="Nom du niveau"
+            />
+          </div>
+          <textarea
+            value={item.description}
+            onChange={(e) => onUpdate(type, index, 'description', e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm resize-none"
+            placeholder="Description du niveau..."
+          />
+          {item.criteria && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {item.criteria.map((criterion, ci) => (
+                <Badge key={ci} variant="outline" size="sm">{criterion}</Badge>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const EvaluationCriteriaTab: React.FC<EvaluationCriteriaTabProps> = ({ data, onSave, isSaving }) => {
   const [formData, setFormData] = useState(data);
 
@@ -702,47 +755,6 @@ const EvaluationCriteriaTab: React.FC<EvaluationCriteriaTabProps> = ({ data, onS
       )
     }));
   };
-
-  const ScaleEditor = ({ type, title }: { type: 'impactScale' | 'probabilityScale'; title: string }) => (
-    <div>
-      <h4 className="font-medium text-slate-900 dark:text-white mb-4">{title}</h4>
-      <div className="space-y-3">
-        {formData[type].map((item, index) => (
-          <div
-            key={item.level}
-            className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
-          >
-            <div className="flex items-center gap-4 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center font-bold">
-                {item.level}
-              </div>
-              <input
-                type="text"
-                value={item.name}
-                onChange={(e) => updateScaleItem(type, index, 'name', e.target.value)}
-                className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-                placeholder="Nom du niveau"
-              />
-            </div>
-            <textarea
-              value={item.description}
-              onChange={(e) => updateScaleItem(type, index, 'description', e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm resize-none"
-              placeholder="Description du niveau..."
-            />
-            {item.criteria && (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {item.criteria.map((criterion, ci) => (
-                  <Badge key={ci} variant="outline" size="sm">{criterion}</Badge>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
   return (
     <GlassCard className="p-6">
@@ -763,8 +775,18 @@ const EvaluationCriteriaTab: React.FC<EvaluationCriteriaTabProps> = ({ data, onS
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ScaleEditor type="impactScale" title="Échelle d'Impact" />
-        <ScaleEditor type="probabilityScale" title="Échelle de Probabilité" />
+        <ScaleEditor
+          type="impactScale"
+          title="Échelle d'Impact"
+          items={formData.impactScale}
+          onUpdate={updateScaleItem}
+        />
+        <ScaleEditor
+          type="probabilityScale"
+          title="Échelle de Probabilité"
+          items={formData.probabilityScale}
+          onUpdate={updateScaleItem}
+        />
       </div>
     </GlassCard>
   );
