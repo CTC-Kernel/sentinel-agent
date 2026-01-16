@@ -66,6 +66,33 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         { title: t('dashboard.addDocuments'), desc: t('dashboard.addDocumentsDesc'), icon: FileText, color: 'purple', link: '/documents?action=create' },
     ];
 
+    // Static mappings for Tailwind JIT
+    const CARD_STYLES: Record<string, {
+        bg: string;
+        bgHover: string;
+        iconBg: string;
+        iconText: string;
+    }> = {
+        blue: {
+            bg: 'bg-blue-500/10',
+            bgHover: 'group-hover/card:bg-blue-500/20',
+            iconBg: 'bg-blue-50 dark:bg-blue-500/10',
+            iconText: 'text-blue-600 dark:text-blue-400'
+        },
+        emerald: {
+            bg: 'bg-emerald-500/10',
+            bgHover: 'group-hover/card:bg-emerald-500/20',
+            iconBg: 'bg-emerald-50 dark:bg-emerald-500/10',
+            iconText: 'text-emerald-600 dark:text-emerald-400'
+        },
+        purple: {
+            bg: 'bg-purple-500/10',
+            bgHover: 'group-hover/card:bg-purple-500/20',
+            iconBg: 'bg-purple-50 dark:bg-purple-500/10',
+            iconText: 'text-purple-600 dark:text-purple-400'
+        }
+    };
+
     if (isEmpty && !loading) {
         return (
             <div className="relative overflow-hidden rounded-[2.5rem] bg-card text-card-foreground shadow-2xl dark:shadow-none border border-border p-8 md:p-16 text-center animate-fade-in group">
@@ -90,19 +117,22 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
-                        {cards.map((card, i) => (
-                            <button key={card.link || `card-${i}`} onClick={() => {
-                                if (card.link && card.link.startsWith('/')) navigate(card.link); // validateUrl check
-                            }} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={card.title}>
-                                <div className={`absolute -right-10 -bottom-10 w-40 h-40 bg-${card.color}-500/10 rounded-full blur-3xl group-hover/card:bg-${card.color}-500/20 transition-all duration-500`} />
+                        {cards.map((card, i) => {
+                            const styles = CARD_STYLES[card.color] || CARD_STYLES.blue;
+                            return (
+                                <button key={card.link || `card-${i}`} onClick={() => {
+                                    if (card.link && card.link.startsWith('/')) navigate(card.link); // validateUrl check
+                                }} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={card.title}>
+                                    <div className={`absolute -right-10 -bottom-10 w-40 h-40 ${styles.bg} rounded-full blur-3xl ${styles.bgHover} transition-all duration-500`} />
 
-                                <div className={`w-14 h-14 rounded-2xl bg-${card.color}-50 dark:bg-${card.color}-500/10 flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
-                                    <card.icon className={`h-7 w-7 text-${card.color}-600 dark:text-${card.color}-400`} />
-                                </div>
-                                <h3 className="text-lg font-bold text-foreground mb-2 tracking-tight group-hover/card:text-brand-600 dark:group-hover/card:text-brand-400 transition-colors">{card.title}</h3>
-                                <p className="text-sm text-muted-foreground leading-relaxed relative z-10">{card.desc}</p>
-                            </button>
-                        ))}
+                                    <div className={`w-14 h-14 rounded-2xl ${styles.iconBg} flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
+                                        <card.icon className={`h-7 w-7 ${styles.iconText}`} />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground mb-2 tracking-tight group-hover/card:text-brand-600 dark:group-hover/card:text-brand-400 transition-colors">{card.title}</h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed relative z-10">{card.desc}</p>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

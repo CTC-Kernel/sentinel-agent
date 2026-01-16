@@ -553,6 +553,39 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
     critical: { label: 'Critique', color: 'red', description: 'Risques inacceptables' },
   };
 
+  // Static mappings for Tailwind JIT
+  const LEVEL_STYLES: Record<string, {
+    border: string;
+    bg: string;
+    dot: string;
+    text: string;
+  }> = {
+    emerald: {
+      border: 'border-emerald-200 dark:border-emerald-900',
+      bg: 'bg-emerald-50/50 dark:bg-emerald-900/10',
+      dot: 'bg-emerald-500',
+      text: 'text-emerald-700 dark:text-emerald-400'
+    },
+    amber: {
+      border: 'border-amber-200 dark:border-amber-900',
+      bg: 'bg-amber-50/50 dark:bg-amber-900/10',
+      dot: 'bg-amber-500',
+      text: 'text-amber-700 dark:text-amber-400'
+    },
+    orange: {
+      border: 'border-orange-200 dark:border-orange-900',
+      bg: 'bg-orange-50/50 dark:bg-orange-900/10',
+      dot: 'bg-orange-500',
+      text: 'text-orange-700 dark:text-orange-400'
+    },
+    red: {
+      border: 'border-red-200 dark:border-red-900',
+      bg: 'bg-red-50/50 dark:bg-red-900/10',
+      dot: 'bg-red-500',
+      text: 'text-red-700 dark:text-red-400'
+    }
+  };
+
   return (
     <GlassCard className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -592,25 +625,29 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
           <p className="text-sm text-slate-500 mb-4">Score de risque maximum pour chaque niveau (Probabilité x Impact, 1-25)</p>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {(Object.entries(LEVEL_CONFIG) as [keyof typeof LEVEL_CONFIG, typeof LEVEL_CONFIG.low][]).map(([level, config]) => (
-              <div key={level} className={`p-4 rounded-xl border-2 border-${config.color}-200 dark:border-${config.color}-900 bg-${config.color}-50/50 dark:bg-${config.color}-900/10`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-3 h-3 rounded-full bg-${config.color}-500`} />
-                  <span className={`font-medium text-${config.color}-700 dark:text-${config.color}-400`}>{config.label}</span>
+            {(Object.entries(LEVEL_CONFIG) as [keyof typeof LEVEL_CONFIG, typeof LEVEL_CONFIG.low][]).map(([level, config]) => {
+              const styles = LEVEL_STYLES[config.color] || LEVEL_STYLES.emerald;
+              return (
+                <div key={level} className={`p-4 rounded-xl border-2 ${styles.border} ${styles.bg}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-3 h-3 rounded-full ${styles.dot}`} />
+                    <span className={`font-medium ${styles.text}`}>{config.label}</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    max="25"
+                    value={formData.acceptableRiskLevels[level]}
+                    onChange={(e) => updateLevel(level, parseInt(e.target.value) || 1)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">{config.description}</p>
                 </div>
-                <input
-                  type="number"
-                  min="1"
-                  max="25"
-                  value={formData.acceptableRiskLevels[level]}
-                  onChange={(e) => updateLevel(level, parseInt(e.target.value) || 1)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-center text-lg font-bold"
-                />
-                <p className="text-xs text-slate-500 mt-2">{config.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
+
 
         {/* Escalation Thresholds */}
         <div>
