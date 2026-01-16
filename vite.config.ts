@@ -16,7 +16,7 @@ export default defineConfig({
     drop: ['console', 'debugger'],
   },
   plugins: [
-    react(),
+    react({ jsxRuntime: 'automatic' }),
     tsconfigPaths({ ignoreConfigErrors: true }),
     VitePWA({
       registerType: 'autoUpdate',
