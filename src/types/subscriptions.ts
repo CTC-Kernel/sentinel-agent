@@ -1,4 +1,5 @@
 import { Framework } from './common';
+import { SsoSettings } from './sso';
 
 export type PlanType = 'discovery' | 'professional' | 'enterprise';
 
@@ -51,6 +52,7 @@ export interface Organization {
             consentGiven: boolean;
             dataSanitization: boolean;
         };
+        ssoSettings?: SsoSettings;
     };
     enabledFrameworks?: Framework[];
 }

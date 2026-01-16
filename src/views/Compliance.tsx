@@ -34,6 +34,7 @@ import { DocumentUploadWizard } from '../components/documents/DocumentUploadWiza
 
 import { OnboardingService } from '../services/onboardingService';
 import { EvidenceDossierService } from '../services/EvidenceDossierService';
+import { ComplianceStatsWidget } from '../components/compliance/ComplianceStatsWidget';
 
 export const Compliance: React.FC = () => {
     const { user, addToast, t, organization } = useStore();
@@ -268,6 +269,8 @@ export const Compliance: React.FC = () => {
 
             <div className="relative z-10 p-4 md:p-6 space-y-8 w-full max-w-full overflow-x-hidden pb-24">
                 <div className="max-w-[1920px] mx-auto space-y-8">
+
+
                     <PageHeader
                         title={t('compliance.title')}
                         subtitle={t('compliance.subtitle')}
@@ -280,6 +283,11 @@ export const Compliance: React.FC = () => {
                         }
                         actions={undefined}
                     />
+
+                    {/* Stats Widget */}
+                    <div className="mt-6">
+                        <ComplianceStatsWidget controls={filteredControls} currentFramework={currentFramework} />
+                    </div>
 
                     {/* Framework Selector (Top Level) - filtered by enabled frameworks */}
                     <ScrollableTabs

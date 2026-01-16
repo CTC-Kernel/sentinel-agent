@@ -702,6 +702,60 @@ export const translations = {
             val_unlimited: 'Illimité',
             val_included: 'Inclus',
             val_option: 'En option',
+            // Missing keys added
+            frameworks: 'Référentiels',
+            partners: 'Partenaires',
+            address: 'Adresse',
+            aiPrivacyTitle: 'Confidentialité IA & Données',
+            enableAI: 'Activer l\'IA Sentinel',
+            enableAIDesc: 'Autoriser l\'IA à analyser vos données pour générer des recommandations.',
+            dataSanitization: 'Sanitisation des données',
+            dataSanitizationDesc: 'Supprimer les données personnelles (PII) avant l\'envoi à l\'IA.',
+            aiConsent: 'Consentement IA',
+            securityDesc: 'Gérez votre mot de passe et vos sessions.',
+            frameworksTitle: 'Référentiels de conformité',
+            frameworksDescription: 'Sélectionnez les normes applicables à votre organisation.',
+
+        }
+    },
+    ebios: {
+        stats: {
+            total: 'Total Analyses',
+            inProgress: 'En cours',
+            completed: 'Terminées',
+            avgProgress: 'Progression moyenne'
+        },
+        createAnalysisSubtitle: 'Nouvelle analyse EBIOS Risk Manager',
+        title: 'Analyses EBIOS RM',
+        description: 'Méthode d\'analyse de risques EBIOS Risk Manager',
+        newAnalysis: 'Nouvelle analyse',
+        searchPlaceholder: 'Rechercher une analyse...',
+        allStatuses: 'Tous les statuts',
+        noResultsTitle: 'Aucun résultat trouvé',
+        noResultsDescription: 'Essayez de modifier vos filtres ou termes de recherche',
+        emptyTitle: 'Aucune analyse',
+        emptyDescription: 'Commencez par créer votre première analyse EBIOS RM',
+        createFirstAnalysis: 'Créer une analyse',
+        workshop: 'Atelier',
+        updatedAt: 'Mis à jour le {date}',
+        deleteConfirmTitle: 'Supprimer l\'analyse ?',
+        deleteConfirmMessage: 'Êtes-vous sûr de vouloir supprimer l\'analyse "{name}" ? Cette action est irréversible.',
+        analysisCreated: 'Analyse créée avec succès',
+        analysisDeleted: 'Analyse supprimée',
+        analysisArchived: 'Analyse archivée',
+        analysisDuplicated: 'Analyse dupliquée',
+        status: {
+            draft: 'Brouillon',
+            inProgress: 'En cours',
+            completed: 'Terminée',
+            archived: 'Archivée'
+        },
+        errors: {
+            fetchFailed: 'Erreur lors du chargement des analyses',
+            createFailed: 'Erreur lors de la création de l\'analyse',
+            deleteFailed: 'Erreur lors de la suppression',
+            archiveFailed: 'Erreur lors de l\'archivage',
+            duplicateFailed: 'Erreur lors de la duplication'
         }
     },
     en: {

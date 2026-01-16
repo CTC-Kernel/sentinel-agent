@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../../firebase';
+import { useStore } from '../../../store';
 import { UserProfile } from '../../../types';
 import { ErrorLogger } from '../../../services/errorLogger';
 import { Search, User as UserIcon, Mail, Shield, Building2, MoreVertical, LogIn } from 'lucide-react';
@@ -10,6 +11,7 @@ import { getAuth, signInWithCustomToken } from 'firebase/auth';
 const auth = getAuth();
 
 export const UserManagement: React.FC = () => {
+    const { addToast } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(false);
@@ -113,7 +115,7 @@ export const UserManagement: React.FC = () => {
                                                     window.location.href = '/dashboard';
                                                 } catch (err) {
                                                     ErrorLogger.error(err, 'UserManagement.impersonate');
-                                                    alert("Impersonation failed: " + (err as Error).message);
+                                                    addToast("Impersonation failed: " + (err as Error).message, 'error');
                                                 }
                                             }
                                         }}

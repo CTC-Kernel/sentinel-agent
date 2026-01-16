@@ -1,7 +1,6 @@
 import React from 'react';
 import { Risk } from '../../types';
-import { ShieldAlert, AlertTriangle, Activity, Layers, TrendingUp } from '../ui/Icons';
-import { RISK_ACCEPTANCE_THRESHOLD } from '../../constants/RiskConstants';
+import { Activity, Layers, TrendingUp, AlertTriangle } from '../ui/Icons';
 import { motion } from 'framer-motion';
 import { RiskHeatmap } from './RiskHeatmap';
 import { RiskResidualChart } from './RiskResidualChart';
@@ -13,112 +12,12 @@ interface RiskDashboardProps {
 
 export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
     // Calculate metrics
-    const totalRisks = risks.length;
     const criticalRisks = risks.filter(r => r.score >= 10).length;
-    const risksAboveAppetite = risks.filter(r => (r.residualScore || r.score) > RISK_ACCEPTANCE_THRESHOLD).length;
-
-    const avgScore = risks.length > 0 ? risks.reduce((sum, r) => sum + r.score, 0) / risks.length : 0;
-    const avgResidual = risks.length > 0 ? risks.reduce((sum, r) => sum + ((r.residualProbability || 0) * (r.residualImpact || 0)), 0) / risks.length : 0;
-    const riskReduction = avgScore > 0 ? ((avgScore - avgResidual) / avgScore * 100) : 0;
 
     return (
         <div className="space-y-6" role="region" aria-label="Tableau de bord des risques">
             {/* KPI Cards Consolidated (Risk Style) */}
-            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group transition-all hover:shadow-apple-lg">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
-                <div className="space-y-2 relative z-10">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                        <span className="inline-flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse w-2 h-2" aria-hidden="true" />
-                        Vue globale des risques
-                    </p>
-                    <div className="flex items-baseline gap-3">
-                        <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-                            {totalRisks}
-                        </p>
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Risques identifiés</span>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
-                    {/* Critical Risks Card */}
-                    <div
-                        className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-50/50 dark:hover:bg-red-900/20 focus-within:ring-2 focus-within:ring-red-500"
-                        tabIndex={0}
-                        aria-label={`${criticalRisks} Risques Critiques`}
-                    >
-                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-700 dark:text-red-300">Critiques</span>
-                            <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400" aria-hidden="true">
-                                <ShieldAlert className="h-4 w-4" />
-                            </div>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{criticalRisks}</p>
-                            <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Score ≥ 10</p>
-                        </div>
-                    </div>
-
-                    {/* Above Appetite Card */}
-                    <div
-                        className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-orange-900/20 focus-within:ring-2 focus-within:ring-orange-500"
-                        tabIndex={0}
-                        aria-label={`${risksAboveAppetite} Risques Hors Appétence`}
-                    >
-                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-700 dark:text-orange-300">Hors Appétence</span>
-                            <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400" aria-hidden="true">
-                                <AlertTriangle className="h-4 w-4" />
-                            </div>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {risksAboveAppetite}
-                            </p>
-                            <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{`> Seuil accept.`}</p>
-                        </div>
-                    </div>
-
-                    {/* Avg Score Card */}
-                    <div
-                        className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 focus-within:ring-2 focus-within:ring-indigo-500"
-                        tabIndex={0}
-                        aria-label={`Score Moyen: ${avgScore.toFixed(1)}`}
-                    >
-                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 dark:text-indigo-300">Score Moyen</span>
-                            <div className="p-1.5 rounded-lg bg-indigo-100/50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400" aria-hidden="true">
-                                <Activity className="h-4 w-4" />
-                            </div>
-                        </div>
-                        <div className="space-y-1">
-                            <div className="flex items-baseline gap-2">
-                                <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                    {avgScore.toFixed(1)}
-                                </p>
-                                {riskReduction > 0 && (
-                                    <span
-                                        className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100/50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded"
-                                        aria-label={`Réduction de ${riskReduction.toFixed(0)}%`}
-                                    >
-                                        -{riskReduction.toFixed(0)}%
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Tendance</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Charts Row 1: Heatmap + Treatment */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

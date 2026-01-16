@@ -6,7 +6,6 @@ import { EmptyChartState } from '../ui/EmptyChartState';
 import { staggerContainerVariants } from '../ui/animationVariants';
 
 // Sub-components
-import { AuditScoreCard } from './dashboard/AuditScoreCard';
 import { AuditCharts } from './dashboard/AuditCharts';
 
 interface AuditDashboardProps {
@@ -16,7 +15,7 @@ interface AuditDashboardProps {
     loading?: boolean;
 }
 
-export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings, onFilterChange, loading }) => {
+export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings, loading }) => {
     // Metrics Calculation
     const metrics = useMemo(() => {
         const totalAudits = audits.length;
@@ -101,13 +100,7 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
             animate="visible"
             className="space-y-6"
         >
-            <AuditScoreCard
-                complianceRate={metrics.complianceRate}
-                totalAudits={metrics.totalAudits}
-                openFindings={metrics.openFindings}
-                upcomingAudits={metrics.upcomingAudits}
-                onFilterChange={onFilterChange}
-            />
+
 
             <AuditCharts
                 statusData={chartData.statusData}

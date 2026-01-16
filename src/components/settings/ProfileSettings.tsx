@@ -228,6 +228,15 @@ export const ProfileSettings: React.FC = () => {
 
                     {/* Form Section */}
                     <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="flex-1 w-full space-y-8">
+                        {/* Hidden username field for accessibility/password managers (API keys are password fields) */}
+                        <input
+                            type="text"
+                            autoComplete="username"
+                            value={user?.email || ''}
+                            readOnly
+                            className="hidden"
+                            aria-hidden="true"
+                        />
                         {/* Personal Info */}
                         <div className="space-y-6">
                             <div>
@@ -427,6 +436,7 @@ export const ProfileSettings: React.FC = () => {
                                     type="password"
                                     {...profileForm.register('shodanApiKey')}
                                     placeholder="..."
+                                    autoComplete="new-password"
                                 />
                                 <div className="flex gap-2 items-end">
                                     <FloatingLabelInput
@@ -435,6 +445,7 @@ export const ProfileSettings: React.FC = () => {
                                         {...profileForm.register('hibpApiKey')}
                                         placeholder="..."
                                         className="col-span-2"
+                                        autoComplete="new-password"
                                     />
                                     <Button
                                         type="button"
@@ -455,6 +466,7 @@ export const ProfileSettings: React.FC = () => {
                                     type="password"
                                     {...profileForm.register('safeBrowsingApiKey')}
                                     placeholder="..."
+                                    autoComplete="new-password"
                                 />
                             </div>
                         </div>

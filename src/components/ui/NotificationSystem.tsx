@@ -152,7 +152,7 @@ const NotificationContainer: React.FC = () => {
           </span>
         )}
       </div>
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {notifications.map((notification) => (
           <motion.div
             key={notification.id}

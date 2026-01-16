@@ -26,6 +26,7 @@ import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { OnboardingService } from '../services/onboardingService';
 import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
+import { AuditStatsWidget } from '../components/audits/AuditStatsWidget';
 
 export const Audits: React.FC = () => {
     const { user, t } = useStore();
@@ -210,6 +211,11 @@ export const Audits: React.FC = () => {
                     onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings')}
                 />
             </div>
+
+            <AuditStatsWidget
+                audits={filteredAudits}
+                findingsCount={filteredAudits.flatMap(a => a.findings || []).filter(f => f.status === 'Ouvert').length}
+            />
 
             <AuditsToolbar
                 searchQuery={filter}

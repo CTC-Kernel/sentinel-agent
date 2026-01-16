@@ -17,7 +17,7 @@ import { RoleCard } from './roles/RoleCard';
 import { UserRow } from './roles/UserRow';
 
 export const RoleManagement: React.FC = () => {
-    const { user } = useStore();
+    const { user, addToast } = useStore();
     const { users: teamUsers, loading, updateUser } = useTeamData();
     const [users, setUsers] = useState<UserProfile[]>(teamUsers);
     const [editingUser, setEditingUser] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export const RoleManagement: React.FC = () => {
             setEditingUser(null);
         } catch (error) {
             ErrorLogger.error(error, 'RoleManagement.handleUpdateRole');
-            alert('Erreur lors de la mise à jour du rôle');
+            addToast('Erreur lors de la mise à jour du rôle', 'error');
         }
     };
 

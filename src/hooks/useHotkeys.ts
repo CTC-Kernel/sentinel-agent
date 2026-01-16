@@ -35,6 +35,8 @@ export const useHotkeys = (
       if (event.shiftKey) pressedKeys.push('shift');
       if (event.altKey) pressedKeys.push('alt');
 
+      if (!event.key) return; // Prevent crash if key is undefined
+
       const key = event.key.toLowerCase();
       pressedKeys.push(key);
 

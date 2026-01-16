@@ -47,6 +47,7 @@
       "profile": "Mon Profil",
       "activity": "Journal d'Activité",
       "security": "Sécurité & Connexion",
+      "securityDesc": "Gérez vos méthodes d'authentification et sessions sécurisées.",
       "frameworks": "Référentiels",
       "partners": "Partenaires",
       "integrations": "Intégrations",
@@ -1887,6 +1888,13 @@
     "warrantyExp": "Exp. Garantie"
   },
   "ebios": {
+    "stats": {
+      "total": "Total Analyses",
+      "inProgress": "En cours",
+      "completed": "Terminées",
+      "avgProgress": "Progression moyenne"
+    },
+    "createAnalysisSubtitle": "Nouvelle analyse EBIOS Risk Manager",
     "title": "EBIOS Risk Manager",
     "description": "Méthodologie ANSSI d'analyse de risques cyber",
     "newAnalysis": "Nouvelle Analyse",

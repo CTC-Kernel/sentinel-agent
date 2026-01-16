@@ -108,7 +108,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
             <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Projets Liés</h3>
                 <div className="space-y-2 mb-4">
-                    {control.relatedProjectIds?.map(pid => {
+                    {(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).map(pid => {
                         const project = safeProjects.find(p => p.id === pid);
                         return project ? (
                             <div key={pid} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">

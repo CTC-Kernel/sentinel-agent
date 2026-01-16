@@ -144,8 +144,7 @@ export class EbiosService {
   ): Promise<EbiosAnalysis[]> {
     try {
       let q = query(
-        collection(db, 'organizations', organizationId, 'ebiosAnalyses'),
-        orderBy('updatedAt', 'desc')
+        collection(db, 'organizations', organizationId, 'ebiosAnalyses')
       );
 
       if (options?.status) {
@@ -713,7 +712,7 @@ export class EbiosService {
         component: 'EbiosService',
         action: 'updateMilestoneStatus',
         organizationId,
-        milestoneId,
+        metadata: { milestoneId },
       });
       throw error;
     }
@@ -740,7 +739,7 @@ export class EbiosService {
         component: 'EbiosService',
         action: 'updateSMSIProgramPhase',
         organizationId,
-        phase,
+        metadata: { phase },
       });
       throw error;
     }
@@ -802,6 +801,51 @@ export class EbiosService {
         component: 'EbiosService',
         action: 'saveRiskContext',
         organizationId,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Duplicate an EBIOS analysis
+   */
+  static async duplicateAnalysis(
+    organizationId: string,
+    analysisId: string,
+    userId: string
+  ): Promise<EbiosAnalysis> {
+    try {
+      const original = await this.getAnalysis(organizationId, analysisId);
+      if (!original) throw new Error('Analysis not found');
+
+      const analysisRef = doc(collection(db, 'organizations', organizationId, 'ebiosAnalyses'));
+      const now = new Date().toISOString();
+
+      const newAnalysis: EbiosAnalysis = {
+        ...original,
+        id: analysisRef.id,
+        name: `${original.name} (Copy)`,
+        status: 'draft',
+        createdAt: now,
+        createdBy: userId,
+        updatedAt: now,
+        updatedBy: userId,
+        // Reset validation info if desired, or keep progress?
+        // Usually duplication implies starting fresh or forking. 
+        // For EBIOS, we probably want to keep the content but maybe reset validation status?
+        // For simplicity and "functional" request, keeping content is better.
+        // I will reset the status to draft but keep the workshops content.
+        workshops: original.workshops
+      };
+
+      await setDoc(analysisRef, newAnalysis);
+      return newAnalysis;
+    } catch (error) {
+      ErrorLogger.error(error, 'EbiosService.duplicateAnalysis', {
+        component: 'EbiosService',
+        action: 'duplicateAnalysis',
+        organizationId,
+        metadata: { analysisId }
       });
       throw error;
     }

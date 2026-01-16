@@ -11,7 +11,7 @@ import { auth } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import QRCode from 'qrcode';
 import { ActiveSessions } from './ActiveSessions';
-import { SSOPlaceholder } from './SSOPlaceholder';
+import { SSOManager } from './SSOManager';
 
 export const SecuritySettings: React.FC = () => {
     const { addToast, t } = useStore();
@@ -147,6 +147,15 @@ export const SecuritySettings: React.FC = () => {
                     </div>
                 </div>
                 <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="relative z-10 p-6 space-y-6 flex-1 flex flex-col justify-between">
+                    {/* Hidden username field for accessibility/password managers */}
+                    <input
+                        type="email"
+                        autoComplete="username"
+                        value={auth.currentUser?.email || ''}
+                        readOnly
+                        className="hidden"
+                        aria-hidden="true"
+                    />
                     <div className="space-y-6">
                         <FloatingLabelInput
                             label={t('settings.newPassword')}
@@ -251,8 +260,8 @@ export const SecuritySettings: React.FC = () => {
             {/* Active Sessions */}
             <ActiveSessions />
 
-            {/* SSO Placeholder */}
-            <SSOPlaceholder />
+            {/* SSO Configuration */}
+            <SSOManager />
         </div>
     );
 };

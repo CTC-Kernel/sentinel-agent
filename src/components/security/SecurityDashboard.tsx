@@ -71,7 +71,14 @@ export const SecurityDashboard: React.FC = () => {
 
   const loadMetrics = useCallback(() => {
     try {
-      const sessionMetrics = SessionMonitor.getMetrics();
+      const rawMetrics = SessionMonitor.getMetrics();
+      const sessionMetrics = rawMetrics ? {
+        duration: rawMetrics.sessionDuration,
+        activityCount: rawMetrics.activityCount,
+        idleTime: rawMetrics.idleTime,
+        lastActivity: rawMetrics.lastActivity
+      } : null;
+
       const anomalies = SessionMonitor.getAnomalies();
 
       // Compter les anomalies par sévérité
@@ -96,7 +103,7 @@ export const SecurityDashboard: React.FC = () => {
           recent: recentAnomalies
         },
         rateLimiting: {
-          authRemaining: 5, // TODO: Implémenter getRemainingTokens dans RateLimiter
+          authRemaining: 5, // Mock value
           apiRemaining: 100,
           searchRemaining: 30
         },

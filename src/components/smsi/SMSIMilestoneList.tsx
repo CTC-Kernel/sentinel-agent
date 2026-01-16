@@ -1,0 +1,108 @@
+
+import React from 'react';
+import { GlassCard } from '../ui/GlassCard';
+import { Button } from '../ui/button';
+import { Plus } from 'lucide-react';
+import { Milestone } from '../../types/ebios';
+import { cn } from '../../utils/cn';
+import { motion } from 'framer-motion';
+import { Badge } from '../ui/Badge';
+import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG } from './constants';
+
+interface SMSIMilestoneListProps {
+    milestones: Milestone[];
+    onSelect?: (milestone: Milestone) => void;
+}
+
+export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({ milestones, onSelect }) => {
+    return (
+        <GlassCard className="p-6">
+            <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Jalons du programme</h3>
+                <Button size="sm" variant="outline" className="gap-1.5">
+                    <Plus className="w-4 h-4" />
+                    Ajouter un jalon
+                </Button>
+            </div>
+
+            {milestones.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                    Aucun jalon défini. Ajoutez des jalons pour suivre l'avancement du programme.
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {milestones.map((milestone) => (
+                        <MilestoneCard key={milestone.id} milestone={milestone} onClick={() => onSelect?.(milestone)} />
+                    ))}
+                </div>
+            )}
+        </GlassCard>
+    );
+};
+
+interface MilestoneCardProps {
+    milestone: Milestone;
+    onClick?: () => void;
+}
+
+const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => {
+    const phaseConfig = PHASE_CONFIG[milestone.phase];
+    const statusConfig = MILESTONE_STATUS_CONFIG[milestone.status];
+    const StatusIcon = statusConfig.icon;
+
+    const dueDate = new Date(milestone.dueDate);
+    const isOverdue = milestone.status !== 'completed' && dueDate < new Date();
+
+    return (
+        <motion.div
+            className={cn(
+                "flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer",
+                isOverdue
+                    ? "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-900/10"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50"
+            )}
+            whileHover={{ x: 4 }}
+            onClick={onClick}
+        >
+            <div className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
+                `bg-${phaseConfig.color}-100 dark:bg-${phaseConfig.color}-900/30`
+            )}>
+                <phaseConfig.icon className={`w-5 h-5 text-${phaseConfig.color}-600 dark:text-${phaseConfig.color}-400`} />
+            </div>
+
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-gray-900 dark:text-white truncate">{milestone.name}</h4>
+                    <Badge variant="outline" size="sm">
+                        {phaseConfig.label}
+                    </Badge>
+                </div>
+                {milestone.description && (
+                    <p className="text-sm text-gray-500 truncate mt-0.5">{milestone.description}</p>
+                )}
+            </div>
+
+            <div className="flex items-center gap-4 flex-shrink-0">
+                <div className="text-right hidden sm:block">
+                    <div className={cn(
+                        "text-sm font-medium",
+                        isOverdue ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"
+                    )}>
+                        {dueDate.toLocaleDateString('fr-FR')}
+                    </div>
+                    <div className="text-xs text-gray-400">Échéance</div>
+                </div>
+
+                <div className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium",
+                    `bg-${statusConfig.color}-100 dark:bg-${statusConfig.color}-900/30`,
+                    `text-${statusConfig.color}-700 dark:text-${statusConfig.color}-400`
+                )}>
+                    <StatusIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{statusConfig.label}</span>
+                </div>
+            </div>
+        </motion.div>
+    );
+};

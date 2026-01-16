@@ -55,7 +55,7 @@ export const SSOPlaceholder: React.FC = () => {
                 <Button
                     variant="outline"
                     className="mt-4 gap-2 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                    onClick={() => window.open('https://sentinel-grc.com/enterprise', '_blank')}
+                    onClick={() => window.location.href = 'mailto:contact@cyber-threat-consulting.com?subject=Demande d\'activation SSO Enterprise&body=Bonjour, je souhaite activer le SSO pour mon organisation.'}
                 >
                     {t('settings.enableSSO') || "Activer le SSO"} <ExternalLink className="w-4 h-4" />
                 </Button>

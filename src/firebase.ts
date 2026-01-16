@@ -33,7 +33,7 @@ export let isAppCheckFailed = false;
 // Initialize App Check with ReCAPTCHA Enterprise
 if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test') {
   const appCheckKey = import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY as string | undefined;
-  const appCheckDebugToken = import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN as string | undefined;
+  const appCheckDebugToken = (import.meta.env.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN || import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN) as string | undefined;
 
   // SECURITY: Never allow enabling App Check debug mode in production via localStorage.
   // Debug tokens must only be used on localhost/127.0.0.1.
@@ -143,7 +143,6 @@ export const auth = getAuth(app);
 // We enable persistent cache for offline support, but auto-detect settings to avoid tab variance issues.
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-  experimentalForceLongPolling: true,
 });
 
 export const storage = getStorage(app);

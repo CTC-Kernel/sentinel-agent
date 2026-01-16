@@ -30,7 +30,7 @@ interface TimelineEvent {
 }
 
 export const InteractiveTimeline: React.FC = () => {
-    const { user } = useStore();
+    const { user, addToast } = useStore();
     const navigate = useNavigate();
     const timelineRef = useRef<HTMLDivElement>(null);
     const timelineInstance = useRef<Timeline | null>(null);
@@ -270,7 +270,7 @@ export const InteractiveTimeline: React.FC = () => {
             link.click();
         } catch (error) {
             ErrorLogger.error(error, 'InteractiveTimeline.handleExportPNG');
-            alert('Erreur lors de l\'exportation de la timeline');
+            addToast('Erreur lors de l\'exportation de la timeline', 'error');
         }
     };
 

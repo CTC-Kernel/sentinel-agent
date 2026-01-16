@@ -34,6 +34,7 @@ import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
 import { RiskFormData } from '../schemas/riskSchema';
 import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
+import { RiskStatsWidget } from '../components/risks/RiskStatsWidget';
 // RiskMatrix removed for lazy load
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 // CustomSelect removed
@@ -354,6 +355,9 @@ export const Risks: React.FC = () => {
                 breadcrumbs={[{ label: t('commandPalette.nav.risks') }]}
                 trustType="integrity"
             />
+
+
+            <RiskStatsWidget risks={filteredRisks} />
 
             <ScrollableTabs
                 tabs={tabs}

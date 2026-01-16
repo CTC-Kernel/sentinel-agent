@@ -31,8 +31,10 @@ import { toast } from '@/lib/toast';
 import { cn } from '../utils/cn';
 import type { EbiosAnalysis, EbiosAnalysisStatus } from '../types/ebios';
 
-// Create Analysis Modal
-const CreateAnalysisModal = React.lazy(() => import('../components/ebios/CreateAnalysisModal'));
+import { EbiosStatsWidget } from '../components/ebios/EbiosStatsWidget';
+
+// Create Analysis Inspector
+const CreateAnalysisInspector = React.lazy(() => import('../components/ebios/CreateAnalysisInspector'));
 
 export const EbiosAnalyses: React.FC = () => {
   const { t } = useStore();
@@ -130,6 +132,19 @@ export const EbiosAnalyses: React.FC = () => {
     }
   }, [organizationId, user?.uid, t]);
 
+  const handleDuplicateAnalysis = useCallback(async (analysis: EbiosAnalysis) => {
+    if (!organizationId || !user?.uid) return;
+
+    try {
+      const duplicated = await EbiosService.duplicateAnalysis(organizationId, analysis.id, user.uid);
+      setAnalyses((prev) => [duplicated, ...prev]);
+      toast.success(t('ebios.analysisDuplicated'));
+    } catch (error) {
+      console.error('Error duplicating analysis:', error);
+      toast.error(t('ebios.errors.duplicateFailed'));
+    }
+  }, [organizationId, user?.uid, t]);
+
   const getStatusColor = (status: EbiosAnalysisStatus) => {
     switch (status) {
       case 'completed':
@@ -174,8 +189,13 @@ export const EbiosAnalyses: React.FC = () => {
           }
         />
 
+        {/* Stats Dashboard */}
+        <div className="mt-8">
+          <EbiosStatsWidget analyses={analyses} />
+        </div>
+
         {/* Filters */}
-        <div className="mt-6 flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -252,7 +272,7 @@ export const EbiosAnalyses: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              // TODO: Implement duplicate
+                              handleDuplicateAnalysis(analysis);
                               setActionMenuOpen(null);
                             }}
                             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -357,10 +377,11 @@ export const EbiosAnalyses: React.FC = () => {
         )}
       </div>
 
-      {/* Create Modal */}
+      {/* Create Inspector */}
       {showCreateModal && (
         <React.Suspense fallback={<Spinner />}>
-          <CreateAnalysisModal
+          <CreateAnalysisInspector
+            isOpen={true}
             onSave={handleCreateAnalysis}
             onClose={() => setShowCreateModal(false)}
           />

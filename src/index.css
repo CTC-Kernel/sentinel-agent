@@ -17,15 +17,16 @@
 
 :root {
   /* Shadcn UI Variables - Refined for Premium Light Mode */
-  --background: 210 40% 98%;
-  /* Keeping slightly cool, but can be tweaked to 0 0% 99% for cleaner white */
-  --foreground: 222.2 84% 4.9%;
+  --background: 210 40% 95%;
+  /* Darker off-white for contrast */
+  --foreground: 222.2 84% 2.5%;
+  /* Darker text */
 
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 222.2 84% 2.5%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
+  --popover-foreground: 222.2 84% 2.5%;
 
   /* Primary - Vivid Apple Blue */
   --primary: 221.2 83.2% 53.3%;
@@ -86,14 +87,14 @@
   --info-border: #bae6fd;
 
   /* Glassmorphism - Premium - Refined (Light Mode) - CRYSTALLINE */
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  /* More transparent */
-  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  /* Less transparent for better readability */
+  --glass-border: rgba(255, 255, 255, 0.8);
   --glass-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03),
-    0 0 0 1px rgba(0, 0, 0, 0.02);
-  /* Subtle edge definition */
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -1px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  /* Stronger shadow for depth */
 }
 
 .dark {
@@ -658,11 +659,11 @@ body.voxel-fullscreen header {
 }
 
 .driver-popover-title {
-  @apply text-lg font-bold mb-2 text-slate-900 dark:text-white;
+  @apply text-lg font-bold mb-2 text-slate-800 dark:text-white !important;
 }
 
 .driver-popover-description {
-  @apply text-sm text-slate-600 dark:text-slate-300;
+  @apply text-sm text-slate-700 dark:text-slate-300 !important;
 }
 
 .driver-popover-footer {
