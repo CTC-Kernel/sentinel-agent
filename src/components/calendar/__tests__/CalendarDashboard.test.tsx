@@ -7,35 +7,45 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CalendarDashboard } from '../CalendarDashboard';
 
+// Toolbar props interface for react-big-calendar
+interface ToolbarProps {
+    date: Date;
+    onNavigate: () => void;
+    onView: () => void;
+}
+
 // Mock react-big-calendar
 vi.mock('react-big-calendar', () => ({
     Calendar: ({ events, onSelectEvent, onSelectSlot, components }: {
         events: unknown[];
         onSelectEvent: (event: unknown) => void;
         onSelectSlot: (slotInfo: { start: Date }) => void;
-        components?: { toolbar?: React.ComponentType<unknown> };
-    }) => (
-        <div data-testid="calendar">
-            {components?.toolbar && <components.toolbar date={new Date()} onNavigate={() => { }} onView={() => { }} />}
-            <div data-testid="events-container">
-                {events.map((event: unknown, idx: number) => (
-                    <div
-                        key={idx}
-                        data-testid="calendar-event"
-                        onClick={() => onSelectEvent(event)}
-                    >
-                        {(event as { title: string }).title}
-                    </div>
-                ))}
+        components?: { toolbar?: React.ComponentType<ToolbarProps> };
+    }) => {
+        const Toolbar = components?.toolbar;
+        return (
+            <div data-testid="calendar">
+                {Toolbar && <Toolbar date={new Date()} onNavigate={() => { }} onView={() => { }} />}
+                <div data-testid="events-container">
+                    {events.map((event: unknown, idx: number) => (
+                        <div
+                            key={idx}
+                            data-testid="calendar-event"
+                            onClick={() => onSelectEvent(event)}
+                        >
+                            {(event as { title: string }).title}
+                        </div>
+                    ))}
+                </div>
+                <button
+                    data-testid="select-slot"
+                    onClick={() => onSelectSlot({ start: new Date() })}
+                >
+                    Select Slot
+                </button>
             </div>
-            <button
-                data-testid="select-slot"
-                onClick={() => onSelectSlot({ start: new Date() })}
-            >
-                Select Slot
-            </button>
-        </div>
-    ),
+        );
+    },
     dateFnsLocalizer: () => ({}),
     Views: { MONTH: 'month', WEEK: 'week', DAY: 'day' }
 }));

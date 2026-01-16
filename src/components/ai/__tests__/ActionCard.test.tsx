@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ActionCard } from '../ActionCard';
+import { AIActionType } from '../../../services/ai/actionRegistry';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -36,9 +37,14 @@ vi.mock('../../../services/errorLogger', () => ({
 // Mock ActionRegistry
 const mockExecute = vi.fn();
 vi.mock('../../../services/ai/actionRegistry', () => ({
+    AIActionType: {
+        CREATE_ASSET: 'CREATE_ASSET',
+        UPDATE_RISK: 'UPDATE_RISK',
+        BULK_DELETE_ASSETS: 'BULK_DELETE_ASSETS'
+    },
     ActionRegistry: {
-        CREATE_RISK: { label: 'Créer un risque' },
-        UPDATE_CONTROL: { label: 'Mettre à jour un contrôle' }
+        CREATE_ASSET: { label: 'Créer un Actif' },
+        UPDATE_RISK: { label: 'Mettre à jour un Risque' }
     },
     AIActionExecutor: {
         execute: (...args: unknown[]) => mockExecute(...args)
@@ -47,8 +53,8 @@ vi.mock('../../../services/ai/actionRegistry', () => ({
 
 describe('ActionCard', () => {
     const defaultProps = {
-        type: 'CREATE_RISK' as const,
-        payload: { name: 'Test Risk', severity: 'High' },
+        type: AIActionType.CREATE_ASSET,
+        payload: { name: 'Test Asset', type: 'Logiciel' },
         reasoning: 'This will help improve security',
         onComplete: vi.fn()
     };
@@ -68,7 +74,7 @@ describe('ActionCard', () => {
         it('renders action label', () => {
             render(<ActionCard {...defaultProps} />);
 
-            expect(screen.getByText('Créer un risque')).toBeInTheDocument();
+            expect(screen.getByText('Créer un Actif')).toBeInTheDocument();
         });
 
         it('renders reasoning', () => {
@@ -80,7 +86,7 @@ describe('ActionCard', () => {
         it('renders payload preview', () => {
             render(<ActionCard {...defaultProps} />);
 
-            expect(screen.getByText(/"name": "Test Risk"/)).toBeInTheDocument();
+            expect(screen.getByText(/"name": "Test Asset"/)).toBeInTheDocument();
         });
 
         it('renders confirm button', () => {
@@ -156,7 +162,8 @@ describe('ActionCard', () => {
 
     describe('unknown action', () => {
         it('shows error for unknown action type', () => {
-            render(<ActionCard {...defaultProps} type={'UNKNOWN_ACTION' as 'CREATE_RISK'} />);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            render(<ActionCard {...defaultProps} type={'UNKNOWN_ACTION' as any} />);
 
             expect(screen.getByText(/Action inconnue/)).toBeInTheDocument();
         });
@@ -166,13 +173,13 @@ describe('ActionCard', () => {
         it('has accessible confirm button', () => {
             render(<ActionCard {...defaultProps} />);
 
-            expect(screen.getByLabelText("Confirmer l'action: Créer un risque")).toBeInTheDocument();
+            expect(screen.getByLabelText("Confirmer l'action: Créer un Actif")).toBeInTheDocument();
         });
 
         it('has accessible refuse button', () => {
             render(<ActionCard {...defaultProps} />);
 
-            expect(screen.getByLabelText("Refuser l'action: Créer un risque")).toBeInTheDocument();
+            expect(screen.getByLabelText("Refuser l'action: Créer un Actif")).toBeInTheDocument();
         });
     });
 
@@ -180,7 +187,7 @@ describe('ActionCard', () => {
         it('renders without reasoning', () => {
             render(<ActionCard {...defaultProps} reasoning={undefined} />);
 
-            expect(screen.getByText('Créer un risque')).toBeInTheDocument();
+            expect(screen.getByText('Créer un Actif')).toBeInTheDocument();
             expect(screen.queryByText(/This will help/)).not.toBeInTheDocument();
         });
     });

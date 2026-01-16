@@ -51,33 +51,59 @@ describe('ComplianceList', () => {
     const mockControls = [
         {
             id: 'ctrl-1',
+            organizationId: 'org-1',
             code: 'A.5.1',
             name: 'Politiques de sécurité',
-            status: 'Implémenté',
+            status: 'Implémenté' as const,
             evidenceIds: ['ev-1']
         },
         {
             id: 'ctrl-2',
+            organizationId: 'org-1',
             code: 'A.5.2',
             name: 'Revue des politiques',
-            status: 'Partiel',
+            status: 'Partiel' as const,
             evidenceIds: []
         },
         {
             id: 'ctrl-3',
+            organizationId: 'org-1',
             code: 'A.6.1',
             name: 'Organisation interne',
-            status: 'Non implémenté',
+            status: 'Non conforme' as const,
             evidenceIds: []
         }
     ];
 
     const mockRisks = [
-        { id: 'risk-1', mitigationControlIds: ['ctrl-1'] }
+        {
+            id: 'risk-1',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
+            threat: 'Threat 1',
+            vulnerability: 'Vulnerability 1',
+            probability: 3 as const,
+            impact: 3 as const,
+            score: 9,
+            status: 'Ouvert' as const,
+            strategy: 'Atténuer' as const,
+            owner: 'user-1',
+            mitigationControlIds: ['ctrl-1']
+        }
     ];
 
     const mockFindings = [
-        { id: 'find-1', relatedControlId: 'ctrl-2', status: 'Ouvert' }
+        {
+            id: 'find-1',
+            organizationId: 'org-1',
+            auditId: 'audit-1',
+            description: 'Finding 1',
+            type: 'Mineure' as const,
+            severity: 'Moyenne' as const,
+            relatedControlId: 'ctrl-2',
+            status: 'Ouvert' as const,
+            createdAt: '2024-01-01'
+        }
     ];
 
     const defaultProps = {
@@ -215,7 +241,7 @@ describe('ComplianceList', () => {
 
         it('shows missing evidence warning when implemented but no evidence', () => {
             const controlsWithMissingEvidence = [
-                { ...mockControls[0], evidenceIds: [] }
+                { ...mockControls[0], evidenceIds: [] as string[] }
             ];
 
             render(<ComplianceList {...defaultProps} controls={controlsWithMissingEvidence} />);

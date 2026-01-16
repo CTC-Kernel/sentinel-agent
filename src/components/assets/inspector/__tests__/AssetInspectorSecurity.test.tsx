@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AssetInspectorSecurity } from '../AssetInspectorSecurity';
-import { Asset, Risk, Incident, Vulnerability } from '../../../../types';
+import { Asset, Risk, Incident, Vulnerability, Criticality } from '../../../../types';
 
 // Mock Icons
 vi.mock('../../../ui/Icons', () => ({
@@ -31,11 +31,15 @@ describe('AssetInspectorSecurity', () => {
 
     const mockAsset: Asset = {
         id: 'asset-1',
+        organizationId: 'org-1',
         name: 'Server-01',
-        type: 'server',
-        criticality: 'high',
-        status: 'active',
+        type: 'Matériel',
+        confidentiality: Criticality.HIGH,
+        integrity: Criticality.HIGH,
+        availability: Criticality.HIGH,
         owner: 'user-1',
+        location: 'Datacenter',
+        createdAt: '2024-01-01',
         ipAddress: '192.168.1.1'
     };
 
@@ -45,54 +49,68 @@ describe('AssetInspectorSecurity', () => {
             severity: 'Critical',
             score: 9.8,
             description: 'Remote code execution vulnerability',
-            affectedProducts: ['Apache 2.4']
+            publishedDate: '2024-01-01',
+            source: 'NVD'
         },
         {
             cveId: 'CVE-2024-5678',
             severity: 'High',
             score: 7.5,
             description: 'SQL injection vulnerability',
-            affectedProducts: ['MySQL 8.0']
+            publishedDate: '2024-01-01',
+            source: 'NVD'
         }
     ];
 
     const mockRisks: Risk[] = [
         {
             id: 'risk-1',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
             threat: 'Ransomware Attack',
             vulnerability: 'Unpatched server',
             score: 20,
-            likelihood: 4,
+            probability: 4,
             impact: 5,
-            status: 'En traitement'
+            status: 'En cours',
+            strategy: 'Atténuer',
+            owner: 'user-1'
         },
         {
             id: 'risk-2',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
             threat: 'Data Breach',
             vulnerability: 'Weak passwords',
             score: 12,
-            likelihood: 3,
+            probability: 3,
             impact: 4,
-            status: 'Identifié'
+            status: 'Ouvert',
+            strategy: 'Atténuer',
+            owner: 'user-1'
         }
     ];
 
     const mockIncidents: Incident[] = [
         {
             id: 'inc-1',
+            organizationId: 'org-1',
             title: 'Server Downtime',
-            status: 'Ouvert',
-            severity: 'high',
+            status: 'Nouveau',
+            severity: Criticality.HIGH,
             dateReported: '2024-01-15',
-            description: 'Server became unresponsive'
+            description: 'Server became unresponsive',
+            reporter: 'user-1'
         },
         {
             id: 'inc-2',
+            organizationId: 'org-1',
             title: 'Security Alert',
             status: 'Résolu',
-            severity: 'medium',
+            severity: Criticality.MEDIUM,
             dateReported: '2024-01-10',
-            description: 'Suspicious login detected'
+            description: 'Suspicious login detected',
+            reporter: 'user-1'
         }
     ];
 
@@ -291,7 +309,7 @@ describe('AssetInspectorSecurity', () => {
         it('shows incident status', () => {
             render(<AssetInspectorSecurity {...defaultProps} linkedIncidents={mockIncidents} />);
 
-            expect(screen.getByText('Ouvert')).toBeInTheDocument();
+            expect(screen.getByText('Nouveau')).toBeInTheDocument();
             expect(screen.getByText('Résolu')).toBeInTheDocument();
         });
 

@@ -1330,6 +1330,34 @@ export const translations = {
                 ITIL: 'ITIL (Gestion de Services)'
             },
         },
+        audits: {
+            title: 'Audits',
+            subtitle: 'Gestion des audits et vérifications de conformité',
+            form: {
+                templates: {
+                    internal: 'Vérification de conformité annuelle sur le périmètre complet',
+                    supplier: 'Évaluation de sécurité d\'un hébergeur de données de santé',
+                    access: 'Revue trimestrielle des comptes à privilèges'
+                }
+            },
+            findingsSection: {
+                form: {
+                    type: {
+                        observation: 'Observation'
+                    },
+                    severity: {
+                        critical: 'Critique',
+                        high: 'Élevé',
+                        medium: 'Moyen',
+                        low: 'Faible',
+                        info: 'Information'
+                    }
+                }
+            },
+            actions: {
+                assignPartner: 'Assigner un partenaire'
+            }
+        },
         reports: {
             title: 'Rapports',
             subtitle: 'Génération de rapports de conformité et d\'audit',

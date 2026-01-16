@@ -69,6 +69,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.governance'),
       items: [
         { key: 'risks', name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert, resource: 'Risk' },
+        { key: 'ebios', name: 'EBIOS RM', to: '/ebios', icon: Scale, resource: 'Risk' }, // EBIOS Risk Manager
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText, resource: 'Audit' }, // Compliance often mapped to Audit roles
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
         { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP

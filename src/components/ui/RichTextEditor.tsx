@@ -3,7 +3,6 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import type { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Quote, Heading1, Heading2 } from 'lucide-react';
 
@@ -145,20 +144,21 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
     const isEditable = editable && !readOnly;
 
+    const extensions = React.useMemo(() => [
+        StarterKit,
+        Link.configure({
+            openOnClick: false,
+            HTMLAttributes: {
+                class: 'text-blue-500 hover:text-blue-700 underline',
+            },
+        }),
+        TextAlign.configure({
+            types: ['heading', 'paragraph'],
+        }),
+    ], []);
+
     const editor = useEditor({
-        extensions: [
-            StarterKit,
-            Underline,
-            Link.configure({
-                openOnClick: false,
-                HTMLAttributes: {
-                    class: 'text-blue-500 hover:text-blue-700 underline',
-                },
-            }),
-            TextAlign.configure({
-                types: ['heading', 'paragraph'],
-            }),
-        ],
+        extensions,
         content: value,
         editable: isEditable,
         onUpdate: ({ editor }) => {

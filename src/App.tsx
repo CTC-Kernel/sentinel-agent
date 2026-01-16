@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Suspense } from 'react';
 // Conflict resolution verified
-import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'; // HashRouter aliased as Router
+import { createHashRouter, RouterProvider, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 
 // Contexts & Hooks
@@ -196,19 +196,6 @@ const AppLayout: React.FC = () => {
     );
 };
 
-const AppContent: React.FC = () => {
-    return (
-        <Router future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-        }}>
-            <AuthProvider>
-                <AppInner />
-            </AuthProvider>
-        </Router>
-    );
-};
-
 const AppInner: React.FC = () => {
     const { isBlocked } = useAuth();
 
@@ -300,6 +287,31 @@ const AppInner: React.FC = () => {
             </ErrorBoundary>
         </>
     );
+};
+
+const router = createHashRouter([
+    {
+        path: "/*",
+        element: (
+            <AuthProvider>
+                <AppInner />
+            </AuthProvider>
+        ),
+    }
+], {
+    future: {
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+        v7_fetcherPersist: true,
+        v7_normalizeFormMethod: true,
+        v7_partialHydration: true,
+        v7_skipActionErrorRevalidation: true,
+    }
+} as any); // Type assertion to bypass potential type definition mismatch in v6.29
+
+const AppContent: React.FC = () => {
+    console.log("Router Future Config:", router.future);
+    return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
 };
 
 export default AppContent;

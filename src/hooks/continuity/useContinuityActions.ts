@@ -14,7 +14,7 @@ export const useContinuityActions = () => {
   );
 
   const { data: drills, loading: loadingDrills } = useFirestoreCollection<import('../../types').BcpDrill>(
-    'drills',
+    'bcp_drills',
     [where('organizationId', '==', user?.organizationId)],
     { realtime: true, enabled: !!user?.organizationId }
   );

@@ -97,21 +97,25 @@ describe('AuditFindings', () => {
 
     const mockAudit: Audit = {
         id: 'audit-1',
+        organizationId: 'org-1',
         name: 'ISO 27001 Audit',
-        type: 'ISO27001',
+        type: 'Certification',
         status: 'En cours',
         dateScheduled: '2024-02-01',
-        auditor: 'John Doe'
+        auditor: 'John Doe',
+        findingsCount: 3
     };
 
     const mockControls: Control[] = [
-        { id: 'ctrl-1', code: 'A.5.1', name: 'Policies for information security', status: 'Implémenté', evidenceIds: [] },
-        { id: 'ctrl-2', code: 'A.6.1', name: 'Internal organization', status: 'Partiel', evidenceIds: [] }
+        { id: 'ctrl-1', organizationId: 'org-1', code: 'A.5.1', name: 'Policies for information security', status: 'Implémenté', evidenceIds: [] },
+        { id: 'ctrl-2', organizationId: 'org-1', code: 'A.6.1', name: 'Internal organization', status: 'Partiel', evidenceIds: [] }
     ];
 
     const mockFindings: Finding[] = [
         {
             id: 'find-1',
+            organizationId: 'org-1',
+            auditId: 'audit-1',
             description: 'Missing access control policy',
             type: 'Majeure',
             severity: 'Haute',
@@ -121,6 +125,8 @@ describe('AuditFindings', () => {
         },
         {
             id: 'find-2',
+            organizationId: 'org-1',
+            auditId: 'audit-1',
             description: 'Incomplete documentation',
             type: 'Mineure',
             severity: 'Moyenne',
@@ -130,6 +136,8 @@ describe('AuditFindings', () => {
         },
         {
             id: 'find-3',
+            organizationId: 'org-1',
+            auditId: 'audit-1',
             description: 'Opportunity for automation',
             type: 'Opportunité',
             severity: 'Faible',

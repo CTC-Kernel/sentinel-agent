@@ -38,7 +38,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         : options.filter(opt => opt.value === value);
 
     return (
-        <Listbox value={value} onChange={onChange} multiple={multiple} disabled={disabled}>
+        <Listbox value={value || (multiple ? [] : '')} onChange={onChange} multiple={multiple} disabled={disabled}>
             {({ open }) => {
                 const displayValue = selectedOptions.length > 0
                     ? selectedOptions.map(o => o.label).join(', ')

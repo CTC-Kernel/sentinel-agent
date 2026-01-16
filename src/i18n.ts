@@ -10,6 +10,7 @@ i18n
     .init({
         debug: import.meta.env.DEV,
         fallbackLng: 'fr',
+        load: 'languageOnly',
         interpolation: {
             escapeValue: false, // not needed for react as it escapes by default
         },

@@ -40,6 +40,10 @@ const Vulnerabilities = React.lazy(() => import('../../views/Vulnerabilities').t
 const ThreatIntelligence = React.lazy(() => import('../../views/ThreatIntelligence').then(module => ({ default: module.ThreatIntelligence })));
 const Reports = React.lazy(() => import('../../views/Reports').then(module => ({ default: module.Reports })));
 
+// EBIOS RM Module
+const EbiosAnalyses = React.lazy(() => import('../../views/EbiosAnalyses').then(module => ({ default: module.EbiosAnalyses })));
+const EbiosAnalysisDetail = React.lazy(() => import('../../views/EbiosAnalysisDetail').then(module => ({ default: module.EbiosAnalysisDetail })));
+
 // New Professional 404 Page
 import { NotFound } from '../../views/NotFound';
 
@@ -66,6 +70,8 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/threat-intelligence" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatIntelligence /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/reports" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Reports /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/compliance" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Compliance /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/ebios" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalyses /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/ebios/:id" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalysisDetail /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/documents" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user']}>
                         <AnimatedPage><Documents /></AnimatedPage>
