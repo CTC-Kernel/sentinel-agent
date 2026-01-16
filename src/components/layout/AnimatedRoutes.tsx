@@ -55,7 +55,7 @@ export const AnimatedRoutes: React.FC = () => {
     const allRoles: Role[] = ['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user'];
 
     return (
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
             <Routes location={location} key={location.pathname}>
                 <Route path="/" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><DashboardWithQuickActions /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/analytics" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><AnalyticsDashboard /></AnimatedPage></RoleGuardComponent>} />

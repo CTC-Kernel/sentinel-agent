@@ -781,6 +781,7 @@
     },
     "actions": {
       "exportCsv": "Exporter CSV",
+      "importCsv": "Importer CSV",
       "invite": "Inviter Membre",
       "edit": "Modifier",
       "delete": "Supprimer",
