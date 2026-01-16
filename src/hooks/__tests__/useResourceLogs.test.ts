@@ -243,10 +243,13 @@ describe('useResourceLogs', () => {
 
             const { result } = renderHook(() => useResourceLogs('Risk', 'risk-123'));
 
-            await waitFor(() => !result.current.loading);
+            await waitFor(() => {
+                expect(result.current.loading).toBe(false);
+                expect(result.current.hasMore).toBe(false);
+            });
 
             expect(result.current.logs).toEqual([]);
-            expect(result.current.hasMore).toBe(false);
+            expect(mockToastError).not.toHaveBeenCalled();
         });
     });
 
