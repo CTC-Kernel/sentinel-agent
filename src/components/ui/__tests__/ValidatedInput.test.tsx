@@ -90,7 +90,7 @@ describe('ValidatedInput', () => {
 
       // Check for the Check icon (it has a specific class)
       expect(screen.getByRole('textbox').parentElement).toContainHTML(
-        'text-emerald-500'
+        'text-success-text'
       );
     });
 
@@ -110,7 +110,7 @@ describe('ValidatedInput', () => {
         fireEvent.blur(input);
       });
 
-      expect(input).toHaveClass('border-emerald-500');
+      expect(input).toHaveClass('border-success-border');
     });
   });
 
@@ -132,7 +132,7 @@ describe('ValidatedInput', () => {
       });
 
       expect(screen.getByRole('textbox').parentElement).toContainHTML(
-        'text-rose-500'
+        'text-destructive'
       );
     });
 
@@ -152,7 +152,7 @@ describe('ValidatedInput', () => {
         fireEvent.blur(input);
       });
 
-      expect(input).toHaveClass('border-rose-500');
+      expect(input).toHaveClass('border-destructive');
     });
 
     it('displays error message below input', () => {
@@ -216,7 +216,7 @@ describe('ValidatedInput', () => {
       );
 
       const input = screen.getByRole('textbox');
-      expect(input).toHaveClass('border-rose-500');
+      expect(input).toHaveClass('border-destructive');
     });
 
     it('external error takes precedence over validation error', () => {
@@ -302,7 +302,7 @@ describe('ValidatedInput', () => {
       });
 
       // Before delay, should not have error class
-      expect(input).not.toHaveClass('border-rose-500');
+      expect(input).not.toHaveClass('border-destructive');
 
       // Advance timers
       await act(async () => {
@@ -310,7 +310,7 @@ describe('ValidatedInput', () => {
       });
 
       // After delay, should have error class
-      expect(input).toHaveClass('border-rose-500');
+      expect(input).toHaveClass('border-destructive');
     });
   });
 
@@ -343,7 +343,7 @@ describe('ValidatedInput', () => {
 
       const input = screen.getByRole('textbox');
       expect(input).toBeDisabled();
-      expect(input).toHaveClass('disabled:bg-slate-100');
+      expect(input).toHaveClass('disabled:bg-secondary');
     });
   });
 });

@@ -195,7 +195,7 @@ describe('IncidentStats', () => {
         it('has glass card container with backdrop blur', () => {
             const { container } = render(<IncidentStats {...defaultProps} />);
 
-            expect(container.querySelector('.backdrop-blur-md')).toBeInTheDocument();
+            expect(container.querySelector('.backdrop-blur-xl')).toBeInTheDocument();
         });
 
         it('has animated pulse indicator', () => {
@@ -207,7 +207,7 @@ describe('IncidentStats', () => {
         it('has card styling with hover effects', () => {
             const { container } = render(<IncidentStats {...defaultProps} />);
 
-            expect(container.querySelector('.hover\\:scale-\\[1\\.01\\]')).toBeInTheDocument();
+            expect(container.querySelector('.hover\\:-translate-y-1')).toBeInTheDocument();
         });
     });
 });

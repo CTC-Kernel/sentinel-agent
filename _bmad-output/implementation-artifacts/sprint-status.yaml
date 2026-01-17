@@ -267,3 +267,154 @@ development_status:
   22-1-evaluation-efficacite-controles: done # Brownfield - AssessmentFormModal (score, method, evidence, notes)
   22-2-score-maturite-par-domaine: done # Brownfield - DomainMaturityScore, MaturityRadarWidget, 5-level scale
   epic-22-retrospective: optional
+
+  # =============================================================================
+  # COFFRE-FORT DOCUMENTAIRE (Epics 23-27)
+  # Source: epics-coffre-fort-documentaire.md
+  # =============================================================================
+
+  # Epic 23: Chiffrement & Sécurité Documentaire (P0 - Foundation)
+  # FRs covered: FR-VAULT-001, FR-VAULT-005
+  epic-23: in-progress
+  23-1-configuration-infrastructure-cloud-kms: in-progress
+  23-2-cloud-function-chiffrement-upload: backlog
+  23-3-cloud-function-dechiffrement-download: backlog
+  23-4-migration-documents-existants: backlog
+  23-5-ui-indicateur-chiffrement: backlog
+  23-6-tests-securite-chiffrement: backlog
+  epic-23-retrospective: optional
+
+  # Epic 24: Classification & Contrôle d'Accès (P0 - Foundation)
+  # FRs covered: FR-VAULT-002, FR-VAULT-007
+  epic-24: backlog
+  24-1-modele-donnees-classification: backlog
+  24-2-ui-selecteur-classification: backlog
+  24-3-firestore-rules-classification-rbac: backlog
+  24-4-modele-donnees-document-acl: backlog
+  24-5-ui-gestion-permissions-document: backlog
+  24-6-tests-classification-acl: backlog
+  epic-24-retrospective: optional
+
+  # Epic 25: Conformité Légale (P0/P1)
+  # FRs covered: FR-VAULT-003, FR-VAULT-004, FR-VAULT-009
+  epic-25: backlog
+  25-1-modele-donnees-legal-hold: backlog
+  25-2-firestore-rules-legal-hold-protection: backlog
+  25-3-ui-gestion-legal-holds: backlog
+  25-4-modele-donnees-retention-policy: backlog
+  25-5-cloud-function-retention-policy-engine: backlog
+  25-6-ui-dashboard-retention: backlog
+  epic-25-retrospective: optional
+
+  # Epic 26: Intégrité & Signatures (P1)
+  # FRs covered: FR-VAULT-005, FR-VAULT-006
+  epic-26: backlog
+  26-1-cloud-function-hash-upload: backlog
+  26-2-verification-integrite-telechargement: backlog
+  26-3-ui-certificat-integrite: backlog
+  26-4-integration-signature-electronique: backlog
+  26-5-ui-workflow-signature: backlog
+  epic-26-retrospective: optional
+
+  # Epic 27: Audit Trail & eDiscovery (P1/P2)
+  # FRs covered: FR-VAULT-008, FR-VAULT-009, FR-VAULT-010
+  epic-27: backlog
+  27-1-audit-trail-collection-immutable: backlog
+  27-2-vault-audit-service: backlog
+  27-3-ui-visualisation-audit-trail: backlog
+  27-4-ediscovery-recherche-avancee: backlog
+  27-5-watermarking-telechargement: backlog
+  epic-27-retrospective: optional
+
+  # =============================================================================
+  # VOXEL INTELLIGENCE ENGINE (Epics 28-34)
+  # Source: epics-voxel-intelligence-engine.md
+  # =============================================================================
+
+  # Epic 28: Synchronisation Temps Réel (P0 - Foundation)
+  # FRs covered: FR-VOXEL-001
+  epic-28: in-progress
+  28-1-zustand-store-voxel-state: in-progress
+  28-2-firestore-realtime-listeners: backlog
+  28-3-node-animation-system: backlog
+  28-4-sync-status-indicator: backlog
+  28-5-offline-mode-cache: backlog
+  epic-28-retrospective: optional
+
+  # Epic 29: Détection d'Anomalies (P0 - Core)
+  # FRs covered: FR-VOXEL-002, FR-VOXEL-007
+  epic-29: backlog
+  29-1-anomaly-data-model-collection: backlog
+  29-2-cloud-function-anomaly-detection: backlog
+  29-3-circular-dependency-detection: backlog
+  29-4-client-side-anomaly-detection: backlog
+  29-5-anomaly-visualization-3d: backlog
+  29-6-anomaly-panel-ui: backlog
+  29-7-anomaly-quick-actions: backlog
+  29-8-alert-configuration-ui: backlog
+  29-9-alert-cloud-functions: backlog
+  epic-29-retrospective: optional
+
+  # Epic 30: Simulation Blast Radius (P0 - Core)
+  # FRs covered: FR-VOXEL-003, FR-VOXEL-006
+  epic-30: backlog
+  30-1-blast-radius-algorithm: backlog
+  30-2-use-blast-radius-hook: backlog
+  30-3-blast-radius-visualization: backlog
+  30-4-blast-radius-stats-panel: backlog
+  30-5-what-if-simulation-mode: backlog
+  30-6-root-cause-analysis-algorithm: backlog
+  30-7-root-cause-visualization: backlog
+  30-8-impact-report-export: backlog
+  epic-30-retrospective: optional
+
+  # Epic 31: Vues par Rôle & Analytics (P1)
+  # FRs covered: FR-VOXEL-004, FR-VOXEL-005
+  epic-31: backlog
+  31-1-view-presets-system: backlog
+  31-2-view-selector-ui: backlog
+  31-3-view-transition-animations: backlog
+  31-4-custom-view-save-load: backlog
+  31-5-url-state-sharing: backlog
+  31-6-daily-snapshots-cloud-function: backlog
+  31-7-time-machine-ui: backlog
+  31-8-trend-charts: backlog
+  31-9-predictive-trends: backlog
+  31-10-calendar-heatmap: backlog
+  epic-31-retrospective: optional
+
+  # Epic 32: Performance & Export (P1)
+  # FRs covered: FR-VOXEL-008, FR-VOXEL-009
+  epic-32: backlog
+  32-1-instanced-rendering: backlog
+  32-2-level-of-detail-lod: backlog
+  32-3-frustum-culling-optimization: backlog
+  32-4-web-workers-layout: backlog
+  32-5-memory-management: backlog
+  32-6-performance-monitoring-dashboard: backlog
+  32-7-screenshot-export-png: backlog
+  32-8-pdf-report-export: backlog
+  32-9-gltf-3d-export: backlog
+  32-10-presentation-mode: backlog
+  epic-32-retrospective: optional
+
+  # Epic 33: Annotations & Collaboration (P2)
+  # FRs covered: FR-VOXEL-010
+  epic-33: backlog
+  33-1-annotation-data-model: backlog
+  33-2-annotation-creation-ui: backlog
+  33-3-annotation-visualization-3d: backlog
+  33-4-annotation-thread-discussion: backlog
+  33-5-mention-notifications: backlog
+  33-6-annotation-export: backlog
+  epic-33-retrospective: optional
+
+  # Epic 34: Fondation AR/VR (P3)
+  # FRs covered: FR-VOXEL-011
+  epic-34: backlog
+  34-1-webxr-detection-ui: backlog
+  34-2-basic-vr-navigation: backlog
+  34-3-vr-optimized-scene: backlog
+  34-4-ar-mobile-preview: backlog
+  34-5-gltf-export-vr-headsets: backlog
+  epic-34-retrospective: optional
