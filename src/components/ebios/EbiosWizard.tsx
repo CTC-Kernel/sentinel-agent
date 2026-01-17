@@ -17,6 +17,7 @@ import { cn } from '../../utils/cn';
 import { GlassCard } from '../ui/GlassCard';
 import { ProgressRing } from '../ui/ProgressRing';
 import { EbiosWorkshopStepper } from './EbiosWorkshopStepper';
+import { GenerateReportButtonCompact } from './workshops/GenerateReportButton';
 import { WORKSHOP_INFO } from '../../data/ebiosLibrary';
 import type { EbiosAnalysis, EbiosWorkshopNumber } from '../../types/ebios';
 import { canProceedToWorkshop, isValidWorkshopTransition } from '../../types/ebios';
@@ -29,6 +30,7 @@ interface EbiosWizardProps {
   onSave?: () => Promise<void>;
   isSaving?: boolean;
   hasUnsavedChanges?: boolean;
+  organizationName?: string;
 }
 
 export const EbiosWizard: React.FC<EbiosWizardProps> = ({
@@ -39,6 +41,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
   onSave,
   isSaving = false,
   hasUnsavedChanges = false,
+  organizationName,
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -198,6 +201,17 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
               ))}
             </div>
           </div>
+
+          {/* Workshop Report Generation - Story 15.6 */}
+          {currentWorkshop === 1 && (
+            <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+              <GenerateReportButtonCompact
+                analysis={analysis}
+                workshopNumber={1}
+                organizationName={organizationName}
+              />
+            </div>
+          )}
         </GlassCard>
 
         {/* Full Stepper (Mobile/Tablet) */}

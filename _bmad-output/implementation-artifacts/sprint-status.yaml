@@ -172,3 +172,90 @@ development_status:
   14-3-technical-documentation: backlog
   14-4-performance-optimization: backlog
   epic-14-retrospective: optional
+
+  # =============================================================================
+  # EBIOS RM & ISO EXTENSION (Epics 15-22)
+  # Source: epics-ebios-rm-iso27003-2026-01-16.md
+  # =============================================================================
+
+  # Epic 15: EBIOS RM - Atelier 1: Cadrage et Socle de Sécurité (P0 - Foundation)
+  # FRs covered: EBIOS-001 à EBIOS-007
+  epic-15: in-progress
+  15-1-creation-analyse-ebios-rm: done # Brownfield - EbiosAnalyses.tsx, ebiosService.ts, ebios.ts types
+  15-2-definition-perimetre-missions: done # Brownfield - MissionForm.tsx, Workshop1Content.tsx
+  15-3-identification-biens-supports: done # Brownfield - SupportingAssetForm.tsx, Workshop1Content.tsx
+  15-4-definition-evenements-redoutes: done # Brownfield - FearedEventForm.tsx, Workshop1Content.tsx
+  15-5-evaluation-socle-securite: done # Brownfield - SecurityBaselinePanel.tsx with maturity score
+  15-6-generation-note-cadrage: done # EbiosReportService.ts + GenerateReportButton.tsx
+  15-7-liaison-actifs-existants: ready-for-dev # PARTIAL - types exist, UI missing
+  epic-15-retrospective: optional
+
+  # Epic 16: EBIOS RM - Atelier 2: Sources de Risque (P0 - Foundation)
+  # FRs covered: EBIOS-010 à EBIOS-015
+  epic-16: backlog
+  16-1-selection-sources-risque-anssi: ready-for-dev
+  16-2-creation-sources-risque-custom: ready-for-dev
+  16-3-definition-objectifs-vises: ready-for-dev
+  16-4-generation-couples-sr-ov: ready-for-dev
+  16-5-evaluation-pertinence-sr-ov: ready-for-dev
+  16-6-suggestions-sources-par-secteur: ready-for-dev
+  epic-16-retrospective: optional
+
+  # Epic 17: EBIOS RM - Atelier 3: Scénarios Stratégiques (P0 - Core)
+  # FRs covered: EBIOS-020 à EBIOS-025
+  epic-17: backlog
+  17-1-cartographie-ecosysteme: ready-for-dev
+  17-2-definition-chemins-attaque: ready-for-dev
+  17-3-construction-scenarios-strategiques: ready-for-dev
+  17-4-evaluation-gravite: ready-for-dev
+  17-5-visualisation-graphique-ecosysteme: ready-for-dev
+  17-6-suggestions-scenarios-par-secteur: ready-for-dev
+  epic-17-retrospective: optional
+
+  # Epic 18: EBIOS RM - Atelier 4: Scénarios Opérationnels (P0 - Core)
+  # FRs covered: EBIOS-030 à EBIOS-035
+  epic-18: backlog
+  18-1-declinaison-modes-operatoires: ready-for-dev
+  18-2-sequences-attaque-mitre-attack: ready-for-dev
+  18-3-evaluation-vraisemblance: ready-for-dev
+  18-4-calcul-niveau-risque: ready-for-dev
+  18-5-creation-automatique-registre-risques: ready-for-dev
+  18-6-propositions-techniques-mitre: ready-for-dev
+  epic-18-retrospective: optional
+
+  # Epic 19: EBIOS RM - Atelier 5: Traitement du Risque (P0 - Core)
+  # FRs covered: EBIOS-040 à EBIOS-045
+  epic-19: backlog
+  19-1-definition-plan-traitement: ready-for-dev
+  19-2-selection-mesures-iso-27002: ready-for-dev
+  19-3-mapping-automatique-risques-controles: ready-for-dev
+  19-4-calcul-risques-residuels: ready-for-dev
+  19-5-generation-synthese-ebios-rm: ready-for-dev
+  19-6-export-dossier-ebios-pdf: ready-for-dev
+  epic-19-retrospective: optional
+
+  # Epic 20: Programme SMSI - ISO 27003 (P1 - Program Management)
+  # FRs covered: ISO3-001 à ISO3-007
+  epic-20: backlog
+  20-1-creation-programme-smsi: ready-for-dev
+  20-2-definition-jalons: ready-for-dev
+  20-3-dashboard-avancement: ready-for-dev
+  20-4-attribution-responsables: ready-for-dev
+  20-5-alertes-rapports-automatiques: ready-for-dev
+  epic-20-retrospective: optional
+
+  # Epic 21: Contexte de Risque - ISO 27005 (P1 - Foundation)
+  # FRs covered: ISO5-001 à ISO5-005
+  epic-21: backlog
+  21-1-definition-contexte-business: ready-for-dev
+  21-2-definition-contexte-reglementaire: ready-for-dev
+  21-3-definition-appetit-au-risque: ready-for-dev
+  21-4-criteres-evaluation-risques: ready-for-dev
+  epic-21-retrospective: optional
+
+  # Epic 22: Efficacité des Contrôles - ISO 27002 (P2 - Enhancement)
+  # FRs covered: ISO2-001 à ISO2-004
+  epic-22: backlog
+  22-1-evaluation-efficacite-controles: ready-for-dev
+  22-2-score-maturite-par-domaine: ready-for-dev
+  epic-22-retrospective: optional

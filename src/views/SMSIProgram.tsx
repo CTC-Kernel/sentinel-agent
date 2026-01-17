@@ -20,13 +20,14 @@ import { SMSIStatsWidget } from '../components/smsi/SMSIStatsWidget';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { SMSIDrawer } from '../components/smsi/SMSIDrawer';
 import { SMSIDashboard } from '../components/smsi/SMSIDashboard';
 import { SMSIMilestoneList } from '../components/smsi/SMSIMilestoneList';
 import { SMSIInspector } from '../components/smsi/SMSIInspector';
 import { Milestone } from '../types/ebios';
 
-// Lazy load the create program modal
-const CreateProgramModal = React.lazy(() => import('../components/smsi/CreateProgramModal'));
+// Lazy load the create program modal (REMOVED: Using Drawer now)
+// const CreateProgramModal = React.lazy(() => import('../components/smsi/CreateProgramModal'));
 
 export const SMSIProgramView: React.FC = () => {
   const {
@@ -39,7 +40,7 @@ export const SMSIProgramView: React.FC = () => {
     updateMilestoneStatus
   } = useSMSIProgram();
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'planning'>('overview');
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
 
@@ -51,7 +52,7 @@ export const SMSIProgramView: React.FC = () => {
 
   const handleCreateProgram = async (data: { name: string; description?: string; targetCertificationDate?: string }) => {
     await createProgram(data);
-    setShowCreateModal(false);
+    setIsDrawerOpen(false);
   };
 
   const handleStatusChange = async (id: string, status: Milestone['status']) => {
@@ -90,19 +91,15 @@ export const SMSIProgramView: React.FC = () => {
             title="Aucun programme SMSI"
             description="Créez votre premier programme SMSI pour commencer à gérer votre système de management selon le cycle PDCA."
             actionLabel="Créer un programme"
-            onAction={() => setShowCreateModal(true)}
+            onAction={() => setIsDrawerOpen(true)}
           />
         </div>
 
-        <Suspense fallback={null}>
-          {showCreateModal && (
-            <CreateProgramModal
-              isOpen={showCreateModal}
-              onClose={() => setShowCreateModal(false)}
-              onSubmit={handleCreateProgram}
-            />
-          )}
-        </Suspense>
+        <SMSIDrawer
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          onSubmit={handleCreateProgram}
+        />
       </div>
     );
   }
@@ -186,6 +183,9 @@ export const SMSIProgramView: React.FC = () => {
           onStatusChange={handleStatusChange}
         />
       </Suspense>
+
+      {/* Drawer used for creating program even if program exists (e.g. if we allowed multiple) or editing (future) */}
+      {/* For now only shown when program is null via the early return, but good to keep clean */}
     </motion.div>
   );
 };

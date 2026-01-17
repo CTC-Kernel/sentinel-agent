@@ -19,6 +19,8 @@ import {
   Plus,
   ChevronDown,
   ChevronUp,
+  Link2,
+  Download,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
@@ -28,6 +30,7 @@ import { EssentialAssetForm } from './forms/EssentialAssetForm';
 import { SupportingAssetForm } from './forms/SupportingAssetForm';
 import { FearedEventForm } from './forms/FearedEventForm';
 import { SecurityBaselinePanel } from './SecurityBaselinePanel';
+import { ImportFromInventoryModal } from '../shared/ImportFromInventoryModal';
 import { GRAVITY_SCALE } from '../../../data/ebiosLibrary';
 
 interface Workshop1ContentProps {

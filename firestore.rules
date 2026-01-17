@@ -186,16 +186,22 @@ service cloud.firestore {
       // SMSI Program (ISO 27003)
       match /smsiProgram/{programId} {
         allow read: if canRead(orgId);
-        allow write: if canWrite(orgId);
+        allow write: if canWrite(orgId) || (isProjectManager() && belongsToOrganization(orgId));
 
         match /milestones/{milestoneId} {
           allow read: if canRead(orgId);
-          allow write: if canWrite(orgId);
+          allow write: if canWrite(orgId) || (isProjectManager() && belongsToOrganization(orgId));
         }
       }
 
       // Risk Context (ISO 27005)
       match /riskContext/{contextId} {
+        allow read: if canRead(orgId);
+        allow write: if canWrite(orgId);
+      }
+
+      // Control Assessments (ISO 27002 / Maturity)
+      match /controlAssessments/{assessmentId} {
         allow read: if canRead(orgId);
         allow write: if canWrite(orgId);
       }
