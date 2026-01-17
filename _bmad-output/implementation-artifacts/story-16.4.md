@@ -1,6 +1,12 @@
 # Story 16.4: Génération des Couples SR/OV
 
-Status: ready-for-dev
+Status: done
+
+> **Brownfield (2026-01-17):**
+> - generatePairs() function in Workshop2Content.tsx
+> - Cartesian product of selected sources × objectives
+> - Duplicate prevention with existing pair keys
+> - Auto-initialization with relevance=2 and retainedForAnalysis=false
 
 ## Story
 
