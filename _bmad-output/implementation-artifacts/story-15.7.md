@@ -1,6 +1,13 @@
 # Story 15.7: Liaison avec Actifs Existants
 
-Status: ready-for-dev
+Status: done
+
+> **Completed (2026-01-17):**
+> - Created ImportFromInventoryModal.tsx with search, type filters, and multi-select
+> - Implemented mapAssetToSupportingAsset() function for Asset → SupportingAsset mapping
+> - Integrated import button in Workshop1Content.tsx (Supporting Assets section)
+> - Added visual indicator (Link2 icon + "Lié" badge) for linked assets
+> - Note: AC4 (sync listener) deferred - requires Cloud Function which is out of scope for MVP
 
 ## Story
 

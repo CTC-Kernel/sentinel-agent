@@ -1,6 +1,13 @@
 # Story 16.2: Création de Sources de Risque Custom
 
-Status: ready-for-dev
+Status: done
+
+> **Completed (2026-01-17):**
+> - Created CustomRiskSourceForm.tsx with Zod validation
+> - Created CustomTargetedObjectiveForm.tsx with Zod validation
+> - Added "Add Custom Source/Objective" buttons in Workshop2Content.tsx
+> - Integrated form modals with save/delete callbacks
+> - Badge "Custom" displayed for non-ANSSI sources
 
 ## Story
 
