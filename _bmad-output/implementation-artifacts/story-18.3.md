@@ -1,6 +1,8 @@
 # Story 18.3: Évaluation de la Vraisemblance
 
-Status: ready-for-dev
+Status: done
+
+> Note: Cette story était déjà implémentée dans Workshop4Content.tsx avec évaluation de vraisemblance 1-4 et indicateurs visuels
 
 ## Story
 

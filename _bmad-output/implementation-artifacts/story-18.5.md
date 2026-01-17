@@ -1,6 +1,8 @@
 # Story 18.5: Création Automatique dans le Registre de Risques
 
-Status: ready-for-dev
+Status: done
+
+> Note: Cette story était déjà implémentée dans Workshop4Content.tsx avec handleCreateRiskFromScenario() et CreateRiskFromEbiosData
 
 ## Story
 

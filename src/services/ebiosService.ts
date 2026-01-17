@@ -719,6 +719,45 @@ export class EbiosService {
   }
 
   /**
+   * Update milestone (full update for editing)
+   */
+  static async updateMilestone(
+    organizationId: string,
+    milestoneId: string,
+    data: Partial<Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt'>>
+  ): Promise<Milestone> {
+    try {
+      const milestoneRef = doc(
+        db,
+        'organizations',
+        organizationId,
+        'smsiProgram',
+        'current',
+        'milestones',
+        milestoneId
+      );
+
+      const updates = {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(milestoneRef, updates);
+
+      const updatedDoc = await getDoc(milestoneRef);
+      return { id: updatedDoc.id, ...updatedDoc.data() } as Milestone;
+    } catch (error) {
+      ErrorLogger.error(error, 'EbiosService.updateMilestone', {
+        component: 'EbiosService',
+        action: 'updateMilestone',
+        organizationId,
+        metadata: { milestoneId },
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Update SMSI Program phase
    */
   static async updateSMSIProgramPhase(

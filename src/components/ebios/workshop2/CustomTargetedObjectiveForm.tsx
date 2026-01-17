@@ -25,9 +25,10 @@ type ImpactType = typeof IMPACT_TYPES[number];
 const customObjectiveSchema = z.object({
   code: z.string().min(1, 'Code requis').max(10, 'Code trop long'),
   name: z.string().min(3, 'Nom requis (min 3 caractères)'),
-  impactType: z.enum([...IMPACT_TYPES] as [ImpactType, ...ImpactType[]], {
-    errorMap: () => ({ message: 'Type d\'impact requis' }),
-  }),
+  impactType: z.string().refine(
+    (val): val is ImpactType => IMPACT_TYPES.includes(val as ImpactType),
+    { message: 'Type d\'impact requis' }
+  ),
   description: z.string().min(10, 'Description requise (min 10 caractères)'),
 });
 
@@ -90,7 +91,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
       id: objective?.id || uuidv4(),
       code: data.code,
       name: data.name,
-      impactType: data.impactType,
+      impactType: data.impactType as ImpactType,
       description: data.description,
       isANSSIStandard: false,
       organizationId: objective?.organizationId || null,

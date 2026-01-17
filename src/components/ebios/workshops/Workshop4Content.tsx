@@ -19,6 +19,11 @@ import {
   Trash2,
   AlertTriangle,
   Link2,
+  Shield,
+  Edit2,
+  FileCheck,
+  Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
@@ -27,15 +32,38 @@ import type {
   Workshop3Data,
   OperationalScenario,
   AttackStep,
+  MitreReference,
 } from '../../../types/ebios';
 import { GRAVITY_SCALE, LIKELIHOOD_SCALE, RISK_MATRIX_CONFIG } from '../../../data/ebiosLibrary';
 import { v4 as uuidv4 } from 'uuid';
+import { OperationalScenarioForm } from '../workshop4/OperationalScenarioForm';
+import { MitreSearchModal } from '../workshop4/MitreSearchModal';
 
 interface Workshop4ContentProps {
   data: Workshop4Data;
   workshop3Data: Workshop3Data;
   onDataChange: (data: Partial<Workshop4Data>) => void;
   readOnly?: boolean;
+  // EBIOS Analysis context for risk creation
+  analysisId?: string;
+  analysisName?: string;
+  onCreateRisk?: (scenarioId: string, riskData: CreateRiskFromEbiosData) => Promise<string | null>;
+}
+
+// Data structure for creating a risk from EBIOS
+export interface CreateRiskFromEbiosData {
+  threat: string;
+  scenario: string;
+  probability: 1 | 2 | 3 | 4 | 5;
+  impact: 1 | 2 | 3 | 4 | 5;
+  mitreTechniques: Array<{ id: string; name: string; description: string }>;
+  ebiosReference: {
+    analysisId: string;
+    analysisName: string;
+    scenarioId: string;
+    scenarioCode?: string;
+    scenarioType: 'operational';
+  };
 }
 
 export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
@@ -43,13 +71,18 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
   workshop3Data,
   onDataChange,
   readOnly = false,
+  analysisId,
+  analysisName,
+  onCreateRisk,
 }) => {
   const { t } = useTranslation();
 
   const [expandedScenario, setExpandedScenario] = useState<string | null>(null);
-  // These are prepared for the scenario edit form
-  const [_editingScenario, setEditingScenario] = useState<OperationalScenario | null>(null);
-  const [_showScenarioForm, setShowScenarioForm] = useState(false);
+  const [editingScenario, setEditingScenario] = useState<OperationalScenario | null>(null);
+  const [showScenarioForm, setShowScenarioForm] = useState(false);
+  const [showMitreModal, setShowMitreModal] = useState(false);
+  const [mitreTargetStep, setMitreTargetStep] = useState<{ scenarioId: string; stepId: string } | null>(null);
+  const [creatingRiskForScenario, setCreatingRiskForScenario] = useState<string | null>(null);
 
   // Get strategic scenarios from Workshop 3
   const strategicScenarios = workshop3Data.strategicScenarios;
@@ -68,15 +101,16 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
     const strategicScenario = strategicScenarios.find(s => s.id === strategicScenarioId);
     if (!strategicScenario) return;
 
+    // Pre-fill with strategic scenario info but don't set ID (will be created on save)
     const newScenario: OperationalScenario = {
-      id: uuidv4(),
+      id: '', // Empty = new scenario
       name: `${strategicScenario.name} - Opérationnel`,
       description: '',
       strategicScenarioId,
       attackSequence: [],
       likelihood: 2,
       likelihoodJustification: '',
-      riskLevel: strategicScenario.gravity * 2, // Default calculation
+      riskLevel: strategicScenario.gravity * 2,
     };
     setEditingScenario(newScenario);
     setShowScenarioForm(true);
@@ -146,6 +180,123 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
     );
     onDataChange({ operationalScenarios });
   }, [data.operationalScenarios, onDataChange]);
+
+  // Handle saving scenario from form
+  const handleSaveScenario = useCallback((scenarioData: Partial<OperationalScenario>) => {
+    if (editingScenario?.id) {
+      // Update existing scenario
+      const operationalScenarios = data.operationalScenarios.map(s =>
+        s.id === editingScenario.id ? { ...s, ...scenarioData } : s
+      );
+      onDataChange({ operationalScenarios });
+    } else {
+      // Create new scenario
+      const strategicScenario = strategicScenarios.find(s => s.id === scenarioData.strategicScenarioId);
+      const newScenario: OperationalScenario = {
+        id: uuidv4(),
+        name: scenarioData.name || '',
+        description: scenarioData.description || '',
+        strategicScenarioId: scenarioData.strategicScenarioId || '',
+        attackSequence: [],
+        likelihood: 2,
+        likelihoodJustification: '',
+        riskLevel: (strategicScenario?.gravity || 2) * 2,
+        ...scenarioData,
+      };
+      onDataChange({ operationalScenarios: [...data.operationalScenarios, newScenario] });
+    }
+    setShowScenarioForm(false);
+    setEditingScenario(null);
+  }, [data.operationalScenarios, editingScenario, strategicScenarios, onDataChange]);
+
+  // Handle editing an existing scenario
+  const handleEditScenario = useCallback((scenario: OperationalScenario) => {
+    setEditingScenario(scenario);
+    setShowScenarioForm(true);
+  }, []);
+
+  // Handle opening MITRE modal for a step
+  const handleOpenMitreModal = useCallback((scenarioId: string, stepId: string) => {
+    setMitreTargetStep({ scenarioId, stepId });
+    setShowMitreModal(true);
+  }, []);
+
+  // Handle selecting a MITRE technique
+  const handleSelectMitre = useCallback((reference: MitreReference) => {
+    if (!mitreTargetStep) return;
+
+    const operationalScenarios = data.operationalScenarios.map(s =>
+      s.id === mitreTargetStep.scenarioId
+        ? {
+            ...s,
+            attackSequence: s.attackSequence.map(step =>
+              step.id === mitreTargetStep.stepId
+                ? { ...step, mitreReference: reference }
+                : step
+            ),
+          }
+        : s
+    );
+    onDataChange({ operationalScenarios });
+    setShowMitreModal(false);
+    setMitreTargetStep(null);
+  }, [data.operationalScenarios, mitreTargetStep, onDataChange]);
+
+  // Handle creating a risk from an operational scenario (Story 18.5)
+  const handleCreateRiskFromScenario = useCallback(async (opScenario: OperationalScenario) => {
+    if (!onCreateRisk || !analysisId || !analysisName) return;
+
+    const strategicScenario = strategicScenarios.find(s => s.id === opScenario.strategicScenarioId);
+    if (!strategicScenario) return;
+
+    setCreatingRiskForScenario(opScenario.id);
+
+    try {
+      // Map EBIOS 1-4 scale to Risk 1-5 scale
+      const mapScale = (value: 1 | 2 | 3 | 4): 1 | 2 | 3 | 4 | 5 => Math.min(5, value + 1) as 1 | 2 | 3 | 4 | 5;
+
+      // Extract MITRE techniques from attack steps
+      const mitreTechniques = opScenario.attackSequence
+        .filter(step => step.mitreReference)
+        .map(step => ({
+          id: step.mitreReference!.techniqueId,
+          name: step.mitreReference!.techniqueName,
+          description: `${step.mitreReference!.tacticName} - ${step.description}`,
+        }));
+
+      // Build scenario description
+      const attackStepsDescription = opScenario.attackSequence
+        .map((step, idx) => `${idx + 1}. ${step.description}${step.mitreReference ? ` (${step.mitreReference.techniqueId})` : ''}`)
+        .join('\n');
+
+      const riskData: CreateRiskFromEbiosData = {
+        threat: `[EBIOS] ${opScenario.name}`,
+        scenario: `**Scénario stratégique:** ${strategicScenario.name}\n\n**Mode opératoire:**\n${opScenario.description || 'Non spécifié'}\n\n**Séquence d'attaque:**\n${attackStepsDescription || 'Non définie'}`,
+        probability: mapScale(opScenario.likelihood),
+        impact: mapScale(strategicScenario.gravity),
+        mitreTechniques,
+        ebiosReference: {
+          analysisId,
+          analysisName,
+          scenarioId: opScenario.id,
+          scenarioCode: opScenario.code,
+          scenarioType: 'operational',
+        },
+      };
+
+      const riskId = await onCreateRisk(opScenario.id, riskData);
+
+      if (riskId) {
+        // Link the scenario to the created risk
+        const operationalScenarios = data.operationalScenarios.map(s =>
+          s.id === opScenario.id ? { ...s, linkedRiskId: riskId } : s
+        );
+        onDataChange({ operationalScenarios });
+      }
+    } finally {
+      setCreatingRiskForScenario(null);
+    }
+  }, [analysisId, analysisName, data.operationalScenarios, onCreateRisk, onDataChange, strategicScenarios]);
 
   // Stats
   const totalScenarios = data.operationalScenarios.length;
@@ -362,7 +513,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                             {step.description}
                                           </p>
                                         )}
-                                        {step.mitreReference && (
+                                        {step.mitreReference ? (
                                           <div className="flex items-center gap-2 mt-2">
                                             <Link2 className="w-3 h-3 text-gray-400" />
                                             <span className="text-xs text-purple-600 dark:text-purple-400 font-mono">
@@ -371,7 +522,23 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                             <span className="text-xs text-gray-500">
                                               {step.mitreReference.techniqueName}
                                             </span>
+                                            {!readOnly && (
+                                              <button
+                                                onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
+                                                className="text-xs text-blue-500 hover:text-blue-600 ml-2"
+                                              >
+                                                {t('common.change')}
+                                              </button>
+                                            )}
                                           </div>
+                                        ) : !readOnly && (
+                                          <button
+                                            onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
+                                            className="mt-2 flex items-center gap-1.5 text-xs text-purple-500 hover:text-purple-600"
+                                          >
+                                            <Shield className="w-3 h-3" />
+                                            {t('ebios.workshop4.addMitreRef')}
+                                          </button>
                                         )}
                                       </div>
                                       {!readOnly && (
@@ -388,16 +555,62 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                               )}
 
                               {/* Actions */}
-                              {!readOnly && (
-                                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                                  <button
-                                    onClick={() => handleDeleteScenario(opScenario.id)}
-                                    className="px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm"
-                                  >
-                                    {t('common.delete')}
-                                  </button>
+                              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                                {/* Risk link status */}
+                                <div>
+                                  {opScenario.linkedRiskId ? (
+                                    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                                      <FileCheck className="w-4 h-4" />
+                                      <span>{t('ebios.workshop4.riskCreated')}</span>
+                                      <a
+                                        href={`/risks/${opScenario.linkedRiskId}`}
+                                        className="flex items-center gap-1 text-blue-500 hover:text-blue-600"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <ExternalLink className="w-3 h-3" />
+                                        {t('ebios.workshop4.viewRisk')}
+                                      </a>
+                                    </div>
+                                  ) : onCreateRisk && analysisId ? (
+                                    <button
+                                      onClick={() => handleCreateRiskFromScenario(opScenario)}
+                                      disabled={creatingRiskForScenario === opScenario.id}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-medium transition-colors"
+                                    >
+                                      {creatingRiskForScenario === opScenario.id ? (
+                                        <>
+                                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                          {t('ebios.workshop4.creatingRisk')}
+                                        </>
+                                      ) : (
+                                        <>
+                                          <FileCheck className="w-3.5 h-3.5" />
+                                          {t('ebios.workshop4.createRisk')}
+                                        </>
+                                      )}
+                                    </button>
+                                  ) : null}
                                 </div>
-                              )}
+
+                                {/* Edit/Delete buttons */}
+                                {!readOnly && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleEditScenario(opScenario)}
+                                      className="px-3 py-1.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm flex items-center gap-1"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                      {t('common.edit')}
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteScenario(opScenario.id)}
+                                      className="px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm"
+                                    >
+                                      {t('common.delete')}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -410,6 +623,34 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
           })}
         </div>
       )}
+
+      {/* Operational Scenario Form Modal */}
+      <OperationalScenarioForm
+        isOpen={showScenarioForm}
+        onClose={() => {
+          setShowScenarioForm(false);
+          setEditingScenario(null);
+        }}
+        onSave={handleSaveScenario}
+        scenario={editingScenario}
+        strategicScenarios={strategicScenarios}
+        existingScenarios={data.operationalScenarios}
+      />
+
+      {/* MITRE Search Modal */}
+      <MitreSearchModal
+        isOpen={showMitreModal}
+        onClose={() => {
+          setShowMitreModal(false);
+          setMitreTargetStep(null);
+        }}
+        onSelect={handleSelectMitre}
+        previousSteps={
+          mitreTargetStep
+            ? data.operationalScenarios.find(s => s.id === mitreTargetStep.scenarioId)?.attackSequence || []
+            : []
+        }
+      />
     </div>
   );
 };

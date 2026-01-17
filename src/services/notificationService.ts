@@ -1,6 +1,7 @@
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { UserProfile, Audit, Document as GRCDocument, Asset, Risk, ProjectTask, Incident, Control, Supplier, NotificationPreferences, NotificationChannelPreferences } from '../types';
+import type { Milestone } from '../types/ebios';
 import { sendEmail } from './emailService';
 import {
     getTaskAssignmentTemplate,
@@ -786,6 +787,83 @@ export class NotificationService {
     }
 
     /**
+     * Check for upcoming or overdue SMSI milestones
+     * Story 20.5: Alertes et rapports automatiques
+     */
+    static async checkSMSIMilestones(organizationId: string): Promise<void> {
+        try {
+            // Query milestones from SMSI program
+            const milestonesSnap = await getDocs(
+                collection(db, 'organizations', organizationId, 'smsiProgram', 'current', 'milestones')
+            );
+
+            if (milestonesSnap.empty) return;
+
+            const milestones = milestonesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Milestone));
+            const now = new Date();
+            const sevenDaysFromNow = new Date();
+            sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+            for (const milestone of milestones) {
+                if (milestone.status === 'completed') continue;
+
+                const dueDate = new Date(milestone.dueDate);
+                const isOverdue = dueDate < now;
+                const isUpcoming = dueDate <= sevenDaysFromNow && dueDate >= now;
+
+                if (!isOverdue && !isUpcoming) continue;
+
+                // Notify responsible person if assigned
+                const notifyUserId = milestone.responsibleId;
+                if (!notifyUserId) continue;
+
+                // Idempotency check - prevent duplicate notifications within 24h
+                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                const existingNotifs = await getDocs(query(
+                    collection(db, 'notifications'),
+                    where('userId', '==', notifyUserId),
+                    where('link', '==', '/smsi'),
+                    where('createdAt', '>=', yesterday)
+                ));
+
+                const alreadyNotified = existingNotifs.docs.some(d =>
+                    d.data().message?.includes(milestone.name)
+                );
+
+                if (alreadyNotified) continue;
+
+                if (isOverdue) {
+                    const daysOverdue = Math.ceil((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+                    await addDoc(collection(db, 'notifications'), sanitizeData({
+                        organizationId,
+                        userId: notifyUserId,
+                        type: 'warning',
+                        title: `Jalon SMSI en retard`,
+                        message: `Le jalon "${milestone.name}" est en retard de ${daysOverdue} jour(s)`,
+                        link: '/smsi',
+                        read: false,
+                        createdAt: serverTimestamp(),
+                    }));
+                } else if (isUpcoming) {
+                    const daysUntil = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                    await addDoc(collection(db, 'notifications'), sanitizeData({
+                        organizationId,
+                        userId: notifyUserId,
+                        type: 'info',
+                        title: `Jalon SMSI à venir`,
+                        message: `Le jalon "${milestone.name}" arrive à échéance dans ${daysUntil} jour(s)`,
+                        link: '/smsi',
+                        read: false,
+                        createdAt: serverTimestamp(),
+                    }));
+                }
+            }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkSMSIMilestones');
+        }
+    }
+
+    /**
      * Run all automated checks
      */
     static async runAutomatedChecks(organizationId: string): Promise<void> {
@@ -796,6 +874,7 @@ export class NotificationService {
             this.checkCriticalRisks(organizationId),
             this.checkExpiringContracts(organizationId),
             this.checkRiskTreatmentSLA(organizationId),
+            this.checkSMSIMilestones(organizationId),
         ]);
 
         results.forEach((result, index) => {
@@ -806,7 +885,8 @@ export class NotificationService {
                     'checkUpcomingMaintenance',
                     'checkCriticalRisks',
                     'checkExpiringContracts',
-                    'checkRiskTreatmentSLA'
+                    'checkRiskTreatmentSLA',
+                    'checkSMSIMilestones'
                 ];
                 ErrorLogger.error(result.reason, `NotificationService.${methods[index]}`);
             }

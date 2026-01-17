@@ -142,6 +142,9 @@ export interface Risk {
     updatedAt?: string;
     justification?: string;
     aiAnalysis?: AIAnalysisResult;
+    // EBIOS RM Integration (Story 18.5)
+    ebiosReference?: EbiosReference;
+    source?: 'manual' | 'ebios_rm' | 'import';
 }
 
 export interface RiskTreatment {
@@ -197,6 +200,18 @@ export interface RiskHistory {
     reason?: string;
     action?: string; // Compatibility with generic logs
     details?: string; // Compatibility with legacy history
+}
+
+/**
+ * EBIOS RM Reference - Links a Risk to its EBIOS source
+ * Story 18.5: Création dans le registre de risques
+ */
+export interface EbiosReference {
+    analysisId: string;
+    analysisName: string;
+    scenarioId: string;
+    scenarioCode?: string;
+    scenarioType: 'strategic' | 'operational';
 }
 
 export interface ThreatTemplate {

@@ -68,7 +68,9 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
 
     if (!selectedDocument) return null;
 
-    const linkedControls = controls.filter(c => c.evidenceIds?.includes(selectedDocument.id));
+    const linkedControls = controls.filter(c => Array.isArray(c.evidenceIds) && c.evidenceIds.includes(selectedDocument.id));
+
+    const ownerUser = users.find(u => u.displayName === selectedDocument.owner);
 
     return (
         <Drawer
@@ -123,15 +125,15 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                         <div className="flex items-center gap-1.5 text-sm text-slate-500">
                             <span className="mr-1">Propriétaire:</span>
                             <img
-                                src={getUserAvatarUrl(users.find(u => u.displayName === selectedDocument.owner)?.photoURL, users.find(u => u.displayName === selectedDocument.owner)?.role)}
+                                src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
                                 alt={selectedDocument.owner}
                                 className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.src = getUserAvatarUrl(null, users.find(u => u.displayName === selectedDocument.owner)?.role);
+                                    target.src = getUserAvatarUrl(null, ownerUser?.role);
                                 }}
                             />
-                            <span>{users.find(u => u.displayName === selectedDocument.owner)?.displayName || selectedDocument.owner}</span>
+                            <span>{ownerUser?.displayName || selectedDocument.owner}</span>
                         </div>
                     </div>
                     {/* Action Buttons */}

@@ -68,12 +68,12 @@ export interface UseRiskContextReturn {
 }
 
 export function useRiskContext(): UseRiskContextReturn {
-  const { user } = useStore();
+  const { user, organization } = useStore();
   const [riskContext, setRiskContext] = useState<RiskContext | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const organizationId = user?.organizationId;
+  const organizationId = user?.organizationId || organization?.id;
 
   // Fetch risk context on mount
   useEffect(() => {
@@ -101,7 +101,11 @@ export function useRiskContext(): UseRiskContextReturn {
 
   // Initialize context with defaults
   const initializeContext = useCallback(async (): Promise<RiskContext | null> => {
-    if (!organizationId) return null;
+    if (!organizationId) {
+      console.error('Impossible d\'initialiser le contexte: OrganizationID manquant');
+      setError('Impossible d\'initialiser le contexte: Organisation non identifiée');
+      return null;
+    }
 
     try {
       setLoading(true);

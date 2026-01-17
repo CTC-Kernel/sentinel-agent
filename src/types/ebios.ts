@@ -242,6 +242,7 @@ export interface Workshop4Data {
 
 export interface OperationalScenario {
   id: string;
+  code?: string; // Auto-generated: SO-001, SO-002, etc.
   name: string;
   description?: string;
   strategicScenarioId: string;

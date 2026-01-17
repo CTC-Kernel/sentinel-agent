@@ -1,26 +1,43 @@
+/**
+ * SMSIInspector.tsx
+ * Inspector panel for viewing and managing SMSI milestones
+ *
+ * Story 20.2: Définition des Jalons
+ * Story 20.4: Attribution des Responsables
+ */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Milestone } from '../../types/ebios';
 import { Badge } from '../ui/Badge';
 import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG, PHASE_STYLES, MILESTONE_STATUS_STYLES } from './constants';
 import { GlassCard } from '../ui/GlassCard';
-import { Calendar, Users } from 'lucide-react';
+import { Calendar, Users, Pencil } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
+
+interface TeamMember {
+    id: string;
+    displayName: string;
+    email: string;
+}
 
 interface SMSIInspectorProps {
     isOpen: boolean;
     onClose: () => void;
     milestone: Milestone | null;
     onStatusChange?: (id: string, status: Milestone['status']) => void;
+    onEdit?: (milestone: Milestone) => void;
+    teamMembers?: TeamMember[];
 }
 
 export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
     isOpen,
     onClose,
     milestone,
-    onStatusChange
+    onStatusChange,
+    onEdit,
+    teamMembers = []
 }) => {
     if (!milestone) return null;
 
@@ -29,6 +46,13 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
     const statusStyle = MILESTONE_STATUS_STYLES[milestone.status];
     const phaseStyle = PHASE_STYLES[milestone.phase];
     const StatusIcon = statusConfig.icon;
+
+    // Get responsible person's display name - Story 20.4
+    const responsibleName = useMemo(() => {
+        if (!milestone.responsibleId) return 'Non assigné';
+        const member = teamMembers.find(m => m.id === milestone.responsibleId);
+        return member?.displayName || member?.email || milestone.responsibleId;
+    }, [milestone.responsibleId, teamMembers]);
 
     return (
         <InspectorLayout
@@ -72,7 +96,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                                 <label className="text-sm font-medium text-gray-500 block mb-1">Responsable</label>
                                 <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                                     <Users className="w-4 h-4 text-gray-400" />
-                                    {milestone.responsibleId || 'Non assigné'}
+                                    {responsibleName}
                                 </div>
                             </div>
                         </div>
@@ -87,31 +111,50 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                     </div>
                 </GlassCard>
 
-                {onStatusChange && (
+                {(onStatusChange || onEdit) && (
                     <GlassCard className="p-6">
                         <h3 className="text-lg font-semibold mb-4">Actions</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {Object.entries(MILESTONE_STATUS_CONFIG).map(([status, config]) => {
-                                if (status === 'overdue') return null; // Don't allow manual setting to 'overdue'
-                                const isActive = milestone.status === status;
-                                const ConfigIcon = config.icon;
-                                const style = MILESTONE_STATUS_STYLES[status as Milestone['status']];
-                                return (
-                                    <Button
-                                        key={status}
-                                        variant={isActive ? 'default' : 'outline'}
-                                        size="sm"
-                                        onClick={() => onStatusChange(milestone.id, status as Milestone['status'])}
-                                        className={cn(
-                                            isActive && style.button
-                                        )}
-                                        disabled={isActive}
-                                    >
-                                        <ConfigIcon className="w-4 h-4 mr-2" />
-                                        Marquer comme {config.label}
-                                    </Button>
-                                );
-                            })}
+                        <div className="space-y-4">
+                            {onEdit && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => onEdit(milestone)}
+                                    className="w-full justify-start"
+                                >
+                                    <Pencil className="w-4 h-4 mr-2" />
+                                    Modifier le jalon
+                                </Button>
+                            )}
+
+                            {onStatusChange && (
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500 block mb-2">Changer le statut</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.entries(MILESTONE_STATUS_CONFIG).map(([status, config]) => {
+                                            if (status === 'overdue') return null; // Don't allow manual setting to 'overdue'
+                                            const isActive = milestone.status === status;
+                                            const ConfigIcon = config.icon;
+                                            const style = MILESTONE_STATUS_STYLES[status as Milestone['status']];
+                                            return (
+                                                <Button
+                                                    key={status}
+                                                    variant={isActive ? 'default' : 'outline'}
+                                                    size="sm"
+                                                    onClick={() => onStatusChange(milestone.id, status as Milestone['status'])}
+                                                    className={cn(
+                                                        isActive && style.button
+                                                    )}
+                                                    disabled={isActive}
+                                                >
+                                                    <ConfigIcon className="w-4 h-4 mr-2" />
+                                                    {config.label}
+                                                </Button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </GlassCard>
                 )}

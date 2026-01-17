@@ -24,6 +24,8 @@ import {
   Cloud,
   Truck,
   ShieldAlert,
+  Network,
+  X,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
@@ -38,6 +40,10 @@ import type {
 } from '../../../types/ebios';
 import { GRAVITY_SCALE, LIKELIHOOD_SCALE } from '../../../data/ebiosLibrary';
 import { v4 as uuidv4 } from 'uuid';
+import { EcosystemPartyForm } from '../workshop3/EcosystemPartyForm';
+import { AttackPathForm } from '../workshop3/AttackPathForm';
+import { StrategicScenarioForm } from '../workshop3/StrategicScenarioForm';
+import { EcosystemMap } from '../workshop3/EcosystemMap';
 
 interface Workshop3ContentProps {
   data: Workshop3Data;
@@ -73,13 +79,15 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
   const [expandedSections, setExpandedSections] = useState<Set<SectionKey>>(
     new Set(['ecosystem', 'attackPaths', 'strategicScenarios'])
   );
-  // Form state - prepared for edit forms
-  const [_editingParty, setEditingParty] = useState<EcosystemParty | null>(null);
-  const [_editingPath, setEditingPath] = useState<AttackPath | null>(null);
-  const [_editingScenario, setEditingScenario] = useState<StrategicScenario | null>(null);
-  const [_showPartyForm, setShowPartyForm] = useState(false);
-  const [_showPathForm, setShowPathForm] = useState(false);
-  const [_showScenarioForm, setShowScenarioForm] = useState(false);
+  // Visualization state (Story 17.5)
+  const [showEcosystemMap, setShowEcosystemMap] = useState(false);
+  // Form state
+  const [editingParty, setEditingParty] = useState<EcosystemParty | null>(null);
+  const [editingPath, setEditingPath] = useState<AttackPath | null>(null);
+  const [editingScenario, setEditingScenario] = useState<StrategicScenario | null>(null);
+  const [showPartyForm, setShowPartyForm] = useState(false);
+  const [showPathForm, setShowPathForm] = useState(false);
+  const [showScenarioForm, setShowScenarioForm] = useState(false);
 
   // Get retained SR/OV pairs from Workshop 2
   const retainedPairs = useMemo(() =>
@@ -172,6 +180,49 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
     onDataChange({ strategicScenarios });
   }, [data.strategicScenarios, onDataChange]);
 
+  // Save handlers for forms
+  const handleSaveParty = useCallback((party: EcosystemParty) => {
+    const existingIndex = data.ecosystem.findIndex(p => p.id === party.id);
+    let ecosystem: EcosystemParty[];
+    if (existingIndex >= 0) {
+      ecosystem = [...data.ecosystem];
+      ecosystem[existingIndex] = party;
+    } else {
+      ecosystem = [...data.ecosystem, party];
+    }
+    onDataChange({ ecosystem });
+    setShowPartyForm(false);
+    setEditingParty(null);
+  }, [data.ecosystem, onDataChange]);
+
+  const handleSavePath = useCallback((path: AttackPath) => {
+    const existingIndex = data.attackPaths.findIndex(p => p.id === path.id);
+    let attackPaths: AttackPath[];
+    if (existingIndex >= 0) {
+      attackPaths = [...data.attackPaths];
+      attackPaths[existingIndex] = path;
+    } else {
+      attackPaths = [...data.attackPaths, path];
+    }
+    onDataChange({ attackPaths });
+    setShowPathForm(false);
+    setEditingPath(null);
+  }, [data.attackPaths, onDataChange]);
+
+  const handleSaveScenario = useCallback((scenario: StrategicScenario) => {
+    const existingIndex = data.strategicScenarios.findIndex(s => s.id === scenario.id);
+    let strategicScenarios: StrategicScenario[];
+    if (existingIndex >= 0) {
+      strategicScenarios = [...data.strategicScenarios];
+      strategicScenarios[existingIndex] = scenario;
+    } else {
+      strategicScenarios = [...data.strategicScenarios, scenario];
+    }
+    onDataChange({ strategicScenarios });
+    setShowScenarioForm(false);
+    setEditingScenario(null);
+  }, [data.strategicScenarios, onDataChange]);
+
   // Helper functions
   const getPartyById = (id: string) => data.ecosystem.find(p => p.id === id);
   const getAssetById = (id: string) => workshop1Data.scope.essentialAssets.find(a => a.id === id);
@@ -184,31 +235,82 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Ecosystem Section */}
-      <GlassCard>
-        <button
-          onClick={() => toggleSection('ecosystem')}
-          className="w-full flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
-              <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+      {/* Ecosystem Map Visualization (Story 17.5) */}
+      {showEcosystemMap && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="relative w-full max-w-6xl h-[80vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="absolute top-4 right-4 z-10">
+              <button
+                onClick={() => setShowEcosystemMap(false)}
+                className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {t('ebios.workshop3.ecosystem')}
+            <div className="absolute top-4 left-4 z-10">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Network className="w-5 h-5 text-indigo-500" />
+                {t('ebios.ecosystem.legend')} - {t('ebios.workshop3.ecosystem')}
               </h3>
-              <p className="text-sm text-gray-500">
-                {data.ecosystem.length} {t('ebios.workshop3.partiesCount')}
-              </p>
+            </div>
+            <div className="pt-16 pb-4 px-4 h-full">
+              <EcosystemMap
+                parties={data.ecosystem}
+                attackPaths={data.attackPaths}
+                assets={workshop1Data.scope.essentialAssets}
+                onPartyClick={(party) => {
+                  setEditingParty(party);
+                  setShowPartyForm(true);
+                }}
+                onPathClick={(path) => {
+                  setEditingPath(path);
+                  setShowPathForm(true);
+                }}
+                readOnly={readOnly}
+              />
             </div>
           </div>
-          {expandedSections.has('ecosystem') ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+        </div>
+      )}
+
+      {/* Ecosystem Section */}
+      <GlassCard>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => toggleSection('ecosystem')}
+            className="flex-1 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
+                <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  {t('ebios.workshop3.ecosystem')}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {data.ecosystem.length} {t('ebios.workshop3.partiesCount')}
+                </p>
+              </div>
+            </div>
+            {expandedSections.has('ecosystem') ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+          {/* Visualization Button (Story 17.5) */}
+          {data.ecosystem.length > 0 && (
+            <button
+              onClick={() => setShowEcosystemMap(true)}
+              className="ml-4 flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
+              title={t('ebios.ecosystem.legend')}
+            >
+              <Network className="w-4 h-4" />
+              <span className="text-sm font-medium hidden sm:inline">Visualiser</span>
+            </button>
           )}
-        </button>
+        </div>
 
         {expandedSections.has('ecosystem') && (
           <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
@@ -557,8 +659,59 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
         )}
       </GlassCard>
 
-      {/* TODO: Add modal forms for Party, Attack Path, and Strategic Scenario editing */}
-      {/* These would be similar to Workshop 1 forms but with Workshop 3 specific fields */}
+      {/* Modal Forms */}
+      {showPartyForm && (
+        <EcosystemPartyForm
+          party={editingParty}
+          onSave={handleSaveParty}
+          onDelete={editingParty?.name ? (id) => {
+            handleDeleteParty(id);
+            setShowPartyForm(false);
+            setEditingParty(null);
+          } : undefined}
+          onClose={() => {
+            setShowPartyForm(false);
+            setEditingParty(null);
+          }}
+        />
+      )}
+
+      {showPathForm && (
+        <AttackPathForm
+          path={editingPath}
+          parties={data.ecosystem}
+          assets={workshop1Data.scope.essentialAssets}
+          onSave={handleSavePath}
+          onDelete={editingPath?.name ? (id) => {
+            handleDeletePath(id);
+            setShowPathForm(false);
+            setEditingPath(null);
+          } : undefined}
+          onClose={() => {
+            setShowPathForm(false);
+            setEditingPath(null);
+          }}
+        />
+      )}
+
+      {showScenarioForm && (
+        <StrategicScenarioForm
+          scenario={editingScenario}
+          retainedPairs={retainedPairs}
+          attackPaths={data.attackPaths}
+          fearedEvents={workshop1Data.fearedEvents}
+          onSave={handleSaveScenario}
+          onDelete={editingScenario?.name ? (id) => {
+            handleDeleteScenario(id);
+            setShowScenarioForm(false);
+            setEditingScenario(null);
+          } : undefined}
+          onClose={() => {
+            setShowScenarioForm(false);
+            setEditingScenario(null);
+          }}
+        />
+      )}
     </div>
   );
 };

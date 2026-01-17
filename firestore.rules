@@ -107,21 +107,15 @@ service cloud.firestore {
     // - Auditor: Can update specific resources (Audit, Document, Risk, etc.)
     // - Project Manager: Can update Projects
     function canWrite(orgId) {
-      return belongsToOrganization(orgId) && (
-        isAdmin() || 
-        isRSSI() || 
-        isOrgOwner(orgId)
-      );
+      return (belongsToOrganization(orgId) && (isAdmin() || isRSSI())) || 
+             isOrgOwner(orgId);
     }
     
     // DELETE:
     // - Admin/RSSI/Owner ONLY
     function canDelete(orgId) {
-      return belongsToOrganization(orgId) && (
-        isAdmin() || 
-        isRSSI() || 
-        isOrgOwner(orgId)
-      );
+      return (belongsToOrganization(orgId) && (isAdmin() || isRSSI())) || 
+             isOrgOwner(orgId);
     }
 
     // --- COLLECTIONS ---
@@ -160,9 +154,9 @@ service cloud.firestore {
         allow read: if canRead(orgId);
         allow create: if isAuthenticated() &&
           request.resource.data.organizationId == orgId &&
-          canWrite(orgId) &&
+          (canWrite(orgId) || ((isAuditor() || isProjectManager()) && belongsToOrganization(orgId))) &&
           isValidString(request.resource.data.name, 1, 200);
-        allow update: if canWrite(orgId);
+        allow update: if canWrite(orgId) || ((isAuditor() || isProjectManager()) && belongsToOrganization(orgId));
         // Delete allowed for admins/owners via UI
         allow delete: if canDelete(orgId);
       }
@@ -237,8 +231,8 @@ service cloud.firestore {
           (!('organizationName' in request.resource.data) || request.resource.data.organizationName == resource.data.organizationName)
         ) || 
         (
-          belongsToOrganization(resource.data.organizationId) && 
-          isAdmin()
+          (belongsToOrganization(resource.data.organizationId) && isAdmin()) ||
+          isOrgOwner(resource.data.organizationId)
         )
       );
       
@@ -681,7 +675,8 @@ service cloud.firestore {
     
     // Dashboard Summaries
     match /dashboard_summaries/{orgId} {
-      allow read, write: if belongsToOrganization(orgId);
+      allow read: if belongsToOrganization(orgId);
+      allow write: if canWrite(orgId);
     }
 
     // Stats History
@@ -783,9 +778,9 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (isAdmin() || isRSSI());
-      allow update: if canWrite(resource.data.organizationId) && (isAdmin() || isRSSI());
-      allow delete: if canDelete(resource.data.organizationId) && (isAdmin() || isRSSI());
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
     }
 
     // Incident Responses
@@ -795,8 +790,8 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || isUser());
       
-      // SECURITY FIX: Only allow update if the user is the creator OR is an Admin/RSSI
-      allow update: if (canWrite(resource.data.organizationId) && (isAdmin() || isRSSI())) || 
+      // SECURITY FIX: Only allow update if the user is the creator OR is an Admin/RSSI/Owner
+      allow update: if canWrite(resource.data.organizationId) || 
         (isAuthenticated() && resource.data.userId == request.auth.uid);
         
       allow delete: if canDelete(resource.data.organizationId);

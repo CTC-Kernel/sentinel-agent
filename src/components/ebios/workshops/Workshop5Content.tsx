@@ -8,7 +8,7 @@
  * 3. Risk Acceptance Workflow - Formal acceptance of residual risks
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ShieldCheck,
@@ -25,6 +25,8 @@ import {
   ClipboardCheck,
   UserCircle,
   Calendar,
+  Shield,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
@@ -37,7 +39,9 @@ import type {
   OperationalScenario,
   StrategicScenario,
 } from '../../../types/ebios';
-import { RISK_MATRIX_CONFIG } from '../../../data/ebiosLibrary';
+import { RISK_MATRIX_CONFIG, getControlSuggestionsForScenario } from '../../../data/ebiosLibrary';
+import { ISO_SEED_CONTROLS } from '../../../data/complianceData';
+import { ControlSelectorModal } from '../workshop5/ControlSelectorModal';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Workshop5ContentProps {
@@ -122,6 +126,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
 
   const [expandedScenario, setExpandedScenario] = useState<string | null>(null);
   const [showAcceptanceModal, setShowAcceptanceModal] = useState<string | null>(null);
+  const [showControlSelector, setShowControlSelector] = useState<string | null>(null);
 
   // Get operational scenarios from Workshop 4
   const operationalScenarios = workshop4Data.operationalScenarios;
@@ -150,6 +155,19 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
   const getResidualRisk = (scenarioId: string): ResidualRiskAssessment | undefined => {
     return data.residualRisks.find(rr => rr.operationalScenarioId === scenarioId);
   };
+
+  // Get control name by code
+  const getControlName = (code: string): string => {
+    const control = ISO_SEED_CONTROLS.find(c => c.code === code);
+    return control?.name || code;
+  };
+
+  // Get suggested controls for a scenario based on MITRE techniques
+  const getSuggestedControls = useCallback((scenarioId: string): string[] => {
+    const opScenario = operationalScenarios.find(s => s.id === scenarioId);
+    if (!opScenario?.attackSequence) return [];
+    return getControlSuggestionsForScenario(opScenario.attackSequence);
+  }, [operationalScenarios]);
 
   // Calculate residual risk based on control effectiveness
   const calculateResidualRisk = (initialRisk: number, effectiveness: number): number => {
@@ -185,6 +203,17 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
     const residualRisks = data.residualRisks.filter(rr => rr.operationalScenarioId !== scenarioId);
     onDataChange({ treatmentPlan, residualRisks });
   }, [data.treatmentPlan, data.residualRisks, onDataChange]);
+
+  // Handle updating selected controls for a treatment
+  const handleUpdateControls = useCallback((scenarioId: string, controlIds: string[]) => {
+    const treatmentPlan = data.treatmentPlan.map(tp =>
+      tp.operationalScenarioId === scenarioId
+        ? { ...tp, selectedControlIds: controlIds }
+        : tp
+    );
+    onDataChange({ treatmentPlan });
+    setShowControlSelector(null);
+  }, [data.treatmentPlan, onDataChange]);
 
   const handleUpdateResidualRisk = useCallback((scenarioId: string, effectiveness: number) => {
     const opScenario = operationalScenarios.find(s => s.id === scenarioId);
@@ -483,41 +512,104 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
 
                           {/* Implementation Details (for mitigate/transfer strategies) */}
                           {(treatment.strategy === 'mitigate' || treatment.strategy === 'transfer') && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                                  <UserCircle className="w-4 h-4" />
-                                  {t('ebios.workshop5.responsible')}
-                                </label>
-                                {!readOnly ? (
-                                  <input
-                                    type="text"
-                                    value={treatment.responsibleId || ''}
-                                    onChange={(e) => handleUpdateTreatment(opScenario.id, { responsibleId: e.target.value })}
-                                    placeholder={t('ebios.workshop5.responsiblePlaceholder')}
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
-                                  />
-                                ) : (
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {treatment.responsibleId || '-'}
-                                  </p>
-                                )}
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                    <UserCircle className="w-4 h-4" />
+                                    {t('ebios.workshop5.responsible')}
+                                  </label>
+                                  {!readOnly ? (
+                                    <input
+                                      type="text"
+                                      value={treatment.responsibleId || ''}
+                                      onChange={(e) => handleUpdateTreatment(opScenario.id, { responsibleId: e.target.value })}
+                                      placeholder={t('ebios.workshop5.responsiblePlaceholder')}
+                                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
+                                    />
+                                  ) : (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      {treatment.responsibleId || '-'}
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                    <Calendar className="w-4 h-4" />
+                                    {t('ebios.workshop5.deadline')}
+                                  </label>
+                                  {!readOnly ? (
+                                    <input
+                                      type="date"
+                                      value={treatment.deadline || ''}
+                                      onChange={(e) => handleUpdateTreatment(opScenario.id, { deadline: e.target.value })}
+                                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
+                                    />
+                                  ) : (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      {treatment.deadline || '-'}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                                  <Calendar className="w-4 h-4" />
-                                  {t('ebios.workshop5.deadline')}
-                                </label>
-                                {!readOnly ? (
-                                  <input
-                                    type="date"
-                                    value={treatment.deadline || ''}
-                                    onChange={(e) => handleUpdateTreatment(opScenario.id, { deadline: e.target.value })}
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
-                                  />
+
+                              {/* ISO 27002 Control Selection - Story 19.2 */}
+                              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                                <div className="flex items-center justify-between mb-3">
+                                  <label className="text-sm font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                                    <Shield className="w-4 h-4" />
+                                    {t('ebios.workshop5.selectedControls')}
+                                  </label>
+                                  {!readOnly && (
+                                    <button
+                                      onClick={() => setShowControlSelector(opScenario.id)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                      {t('ebios.workshop5.selectControls')}
+                                    </button>
+                                  )}
+                                </div>
+
+                                {/* Suggested controls hint */}
+                                {getSuggestedControls(opScenario.id).length > 0 && treatment.selectedControlIds.length === 0 && (
+                                  <div className="flex items-center gap-2 mb-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                                    <Sparkles className="w-4 h-4 text-purple-500" />
+                                    <span className="text-xs text-purple-700 dark:text-purple-400">
+                                      {t('ebios.workshop5.controlSuggestionsAvailable', { count: getSuggestedControls(opScenario.id).length })}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Selected controls list */}
+                                {treatment.selectedControlIds.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {treatment.selectedControlIds.map((code) => (
+                                      <div
+                                        key={code}
+                                        className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded-lg border border-blue-200 dark:border-blue-800"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-mono text-xs text-blue-600 dark:text-blue-400">{code}</span>
+                                          <span className="text-sm text-gray-700 dark:text-gray-300">{getControlName(code)}</span>
+                                        </div>
+                                        {!readOnly && (
+                                          <button
+                                            onClick={() => handleUpdateControls(opScenario.id, treatment.selectedControlIds.filter(c => c !== code))}
+                                            className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                          >
+                                            <XCircle className="w-4 h-4" />
+                                          </button>
+                                        )}
+                                      </div>
+                                    ))}
+                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                                      {treatment.selectedControlIds.length} {locale === 'fr' ? 'contrôle(s) sélectionné(s)' : 'control(s) selected'}
+                                    </p>
+                                  </div>
                                 ) : (
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {treatment.deadline || '-'}
+                                  <p className="text-sm text-blue-600 dark:text-blue-400 italic">
+                                    {t('ebios.workshop5.noControlsSelected')}
                                   </p>
                                 )}
                               </div>
@@ -692,6 +784,18 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
             );
           })}
         </div>
+      )}
+
+      {/* Control Selector Modal - Story 19.2 */}
+      {showControlSelector && (
+        <ControlSelectorModal
+          isOpen={!!showControlSelector}
+          onClose={() => setShowControlSelector(null)}
+          onSelect={(controlIds) => handleUpdateControls(showControlSelector, controlIds)}
+          selectedControlIds={getTreatmentPlan(showControlSelector)?.selectedControlIds || []}
+          suggestedControlCodes={getSuggestedControls(showControlSelector)}
+          scenarioName={operationalScenarios.find(s => s.id === showControlSelector)?.name}
+        />
       )}
 
       {/* Acceptance Modal */}

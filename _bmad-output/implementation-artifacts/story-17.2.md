@@ -1,6 +1,6 @@
 # Story 17.2: Définition des Chemins d'Attaque
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

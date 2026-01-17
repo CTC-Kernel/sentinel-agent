@@ -16,51 +16,78 @@ service firebase.storage {
       return isAuthenticated() && getUserOrg() == orgId;
     }
     
-    function isValidFileSize(maxSizeMB) {
-      return request.resource.size < maxSizeMB * 1024 * 1024;
+    function getUserRole() {
+      return request.auth.token.role;
     }
     
+    function isAdmin() {
+      return getUserRole() == 'admin';
+    }
+    
+    function isRSSI() {
+      return getUserRole() == 'rssi';
+    }
+
+    function isAuditor() {
+      return getUserRole() == 'auditor';
+    }
+    
+    // Write Permission Helper
+    function canWriteCritical() {
+      // Backups, Org Settings
+      return isAdmin() || isRSSI(); // Owner usually has 'admin' claim
+    }
+    
+    function canWriteSensitive() {
+      // Evidence, Documents
+      return isAdmin() || isRSSI() || isAuditor();
+    }
+    
+    function canWriteStandard() {
+      return isAdmin() || isRSSI() || isAuditor() || getUserRole() == 'project_manager'; 
+    }
+
     // Avatar uploads - user-specific
     match /avatars/{userId}/{allPaths=**} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && request.auth.uid == userId && isValidFileSize(5);
     }
     
-    // Documents - organization-based with Firestore lookup
+    // Documents - Restricted write
     match /documents/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && isValidFileSize(10);
+      allow write: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(10);
     }
     
-    // Audit evidence - organization-based
+    // Audit evidence - Restricted write
     match /evidence/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && isValidFileSize(20);
+      allow write: if belongsToOrg(orgId) && canWriteSensitive() && isValidFileSize(20);
     }
     
-    // Incident attachments - organization-based
+    // Incident attachments - Restricted write
     match /incidents/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && isValidFileSize(15);
+      allow write: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(15);
     }
     
     // Exports - organization-based, read-only after creation
     match /exports/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow create: if belongsToOrg(orgId) && isValidFileSize(50);
+      allow create: if belongsToOrg(orgId) && canWriteStandard() && isValidFileSize(50);
       allow update, delete: if false;
     }
 
-    // Backups - organization-based
+    // Backups - Highly Restricted
     match /backups/{orgId}/{allPaths=**} {
-      allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && isValidFileSize(500); // 500MB limit
+      allow read: if belongsToOrg(orgId) && canWriteCritical();
+      allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(500); // 500MB limit
     }
 
-    // Organizations - general storage
+    // Organizations - General storage
     match /organizations/{orgId}/{allPaths=**} {
       allow read: if belongsToOrg(orgId);
-      allow write: if belongsToOrg(orgId) && isValidFileSize(50); // 50MB limit
+      allow write: if belongsToOrg(orgId) && canWriteCritical() && isValidFileSize(50); // 50MB limit
     }
   }
 }

@@ -1,6 +1,8 @@
 # Story 18.6: Propositions de Techniques MITRE
 
-Status: ready-for-dev
+Status: done
+
+> Note: Cette story était déjà implémentée dans MitreSearchModal.tsx avec getMitreSuggestions() basé sur les étapes précédentes
 
 ## Story
 

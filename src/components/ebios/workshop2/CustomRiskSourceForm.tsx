@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import { Button } from '../../ui/button';
-import type { RiskSource } from '../../../types/ebios';
+import type { RiskSource, RiskSourceCategory } from '../../../types/ebios';
 import { RISK_SOURCE_CATEGORIES } from '../../../types/ebios';
 import { RISK_SOURCE_CATEGORY_LABELS } from '../../../data/ebiosLibrary';
 
@@ -23,9 +23,10 @@ import { RISK_SOURCE_CATEGORY_LABELS } from '../../../data/ebiosLibrary';
 const customRiskSourceSchema = z.object({
   code: z.string().min(1, 'Code requis').max(10, 'Code trop long'),
   name: z.string().min(3, 'Nom requis (min 3 caractères)'),
-  category: z.enum([...RISK_SOURCE_CATEGORIES] as [string, ...string[]], {
-    errorMap: () => ({ message: 'Catégorie requise' }),
-  }),
+  category: z.string().refine(
+    (val): val is RiskSourceCategory => RISK_SOURCE_CATEGORIES.includes(val as RiskSourceCategory),
+    { message: 'Catégorie requise' }
+  ),
   description: z.string().min(10, 'Description requise (min 10 caractères)'),
   motivation: z.string().optional(),
   resources: z.string().optional(),
@@ -94,7 +95,7 @@ export const CustomRiskSourceForm: React.FC<CustomRiskSourceFormProps> = ({
       id: source?.id || uuidv4(),
       code: data.code,
       name: data.name,
-      category: data.category,
+      category: data.category as RiskSourceCategory,
       description: data.description,
       motivation: data.motivation,
       resources: data.resources,

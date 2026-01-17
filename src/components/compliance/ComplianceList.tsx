@@ -130,7 +130,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
 
                         {isExpanded && (
                             <div className="p-4 bg-slate-50/50 dark:bg-black/20 backdrop-blur-sm border-t border-slate-100 dark:border-white/5 relative z-10">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {domainControls.map(control => {
                                         const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
                                         const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;

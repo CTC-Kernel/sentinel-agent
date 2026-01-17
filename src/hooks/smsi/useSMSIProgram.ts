@@ -16,6 +16,7 @@ interface UseSMSIProgramReturn {
   error: string | null;
   createProgram: (data: { name: string; description?: string; targetCertificationDate?: string }) => Promise<SMSIProgram | null>;
   createMilestone: (data: Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt' | 'status'>) => Promise<Milestone | null>;
+  updateMilestone: (milestoneId: string, data: Partial<Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt'>>) => Promise<Milestone | null>;
   updateMilestoneStatus: (milestoneId: string, status: Milestone['status']) => Promise<void>;
   getMilestonesByPhase: (phase: PDCAPhase) => Milestone[];
   getOverdueMilestones: () => Milestone[];
@@ -93,6 +94,26 @@ export function useSMSIProgram(): UseSMSIProgramReturn {
     }
   }, [organizationId]);
 
+  const updateMilestone = useCallback(async (
+    milestoneId: string,
+    data: Partial<Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt'>>
+  ): Promise<Milestone | null> => {
+    if (!organizationId) return null;
+
+    try {
+      const updatedMilestone = await EbiosService.updateMilestone(organizationId, milestoneId, data);
+      setMilestones(prev => prev.map(m =>
+        m.id === milestoneId ? updatedMilestone : m
+      ).sort((a, b) =>
+        new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+      ));
+      return updatedMilestone;
+    } catch (err) {
+      ErrorLogger.error(err, 'useSMSIProgram.updateMilestone');
+      throw err;
+    }
+  }, [organizationId]);
+
   const updateMilestoneStatus = useCallback(async (
     milestoneId: string,
     status: Milestone['status']
@@ -130,6 +151,7 @@ export function useSMSIProgram(): UseSMSIProgramReturn {
     error,
     createProgram,
     createMilestone,
+    updateMilestone,
     updateMilestoneStatus,
     getMilestonesByPhase,
     getOverdueMilestones,

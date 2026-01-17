@@ -247,8 +247,55 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   const pairsCount = data.srOvPairs.length;
   const retainedPairsCount = data.srOvPairs.filter((p) => p.retainedForAnalysis).length;
 
+  // Get selected codes for recommendations
+  const selectedSourceCodes = useMemo(() => {
+    return data.selectedRiskSources
+      .map((s) => {
+        const source = allRiskSources.find((rs) => rs.id === s.riskSourceId);
+        return source?.code;
+      })
+      .filter(Boolean) as string[];
+  }, [data.selectedRiskSources, allRiskSources]);
+
+  const selectedObjectiveCodes = useMemo(() => {
+    return data.selectedTargetedObjectives
+      .map((s) => {
+        const objective = allTargetedObjectives.find((o) => o.id === s.targetedObjectiveId);
+        return objective?.code;
+      })
+      .filter(Boolean) as string[];
+  }, [data.selectedTargetedObjectives, allTargetedObjectives]);
+
+  // Handler for selecting a source from recommendations (by code)
+  const handleSelectSourceByCode = useCallback((code: string) => {
+    const source = allRiskSources.find((s) => s.code === code);
+    if (source && !isRiskSourceSelected(source.id)) {
+      toggleRiskSource(source.id);
+    }
+  }, [allRiskSources, isRiskSourceSelected, toggleRiskSource]);
+
+  // Handler for selecting an objective from recommendations (by code)
+  const handleSelectObjectiveByCode = useCallback((code: string) => {
+    const objective = allTargetedObjectives.find((o) => o.code === code);
+    if (objective && !isTargetedObjectiveSelected(objective.id)) {
+      toggleTargetedObjective(objective.id);
+    }
+  }, [allTargetedObjectives, isTargetedObjectiveSelected, toggleTargetedObjective]);
+
   return (
     <div className="space-y-6">
+      {/* Sector Recommendations */}
+      {sectorId && !readOnly && (
+        <SectorRecommendations
+          sectorId={sectorId}
+          selectedSourceCodes={selectedSourceCodes}
+          selectedObjectiveCodes={selectedObjectiveCodes}
+          onSelectSource={handleSelectSourceByCode}
+          onSelectObjective={handleSelectObjectiveByCode}
+          readOnly={readOnly}
+        />
+      )}
+
       {/* Risk Sources Section */}
       <GlassCard>
         <button

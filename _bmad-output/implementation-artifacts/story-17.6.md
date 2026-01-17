@@ -1,6 +1,6 @@
 # Story 17.6: Suggestions de Scénarios par Secteur
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

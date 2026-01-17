@@ -3,7 +3,7 @@ import React from 'react';
 import { GlassCard } from '../ui/GlassCard';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-import { Milestone } from '../../types/ebios';
+import { Milestone, PDCAPhase } from '../../types/ebios';
 import { cn } from '../../utils/cn';
 import { motion } from 'framer-motion';
 import { Badge } from '../ui/Badge';
@@ -12,26 +12,52 @@ import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG, PHASE_STYLES, MILESTONE_STATUS_S
 interface SMSIMilestoneListProps {
     milestones: Milestone[];
     onSelect?: (milestone: Milestone) => void;
+    onAddMilestone?: () => void;
+    filterPhase?: PDCAPhase;
 }
 
-export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({ milestones, onSelect }) => {
+export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({
+    milestones,
+    onSelect,
+    onAddMilestone,
+    filterPhase
+}) => {
+    const displayedMilestones = filterPhase
+        ? milestones.filter(m => m.phase === filterPhase)
+        : milestones;
+
     return (
         <GlassCard className="p-6">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Jalons du programme</h3>
-                <Button size="sm" variant="outline" className="gap-1.5">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Jalons du programme
+                    {filterPhase && (
+                        <span className="ml-2 text-sm font-normal text-gray-500">
+                            ({PHASE_CONFIG[filterPhase].label})
+                        </span>
+                    )}
+                </h3>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={onAddMilestone}
+                >
                     <Plus className="w-4 h-4" />
                     Ajouter un jalon
                 </Button>
             </div>
 
-            {milestones.length === 0 ? (
+            {displayedMilestones.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                    Aucun jalon défini. Ajoutez des jalons pour suivre l'avancement du programme.
+                    {filterPhase
+                        ? `Aucun jalon pour la phase ${PHASE_CONFIG[filterPhase].label}.`
+                        : 'Aucun jalon défini. Ajoutez des jalons pour suivre l\'avancement du programme.'
+                    }
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {milestones.map((milestone) => (
+                    {displayedMilestones.map((milestone) => (
                         <MilestoneCard key={milestone.id} milestone={milestone} onClick={() => onSelect?.(milestone)} />
                     ))}
                 </div>

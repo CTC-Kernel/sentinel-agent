@@ -8,13 +8,9 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building2, Lightbulb, Check, X, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
-import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
-import { Button } from '../../ui/button';
 import {
   SECTOR_PROFILES,
-  ANSSI_RISK_SOURCES,
-  ANSSI_TARGETED_OBJECTIVES,
   getRecommendedSourcesForSector,
   getRecommendedObjectivesForSector,
 } from '../../../data/ebiosLibrary';
