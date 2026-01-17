@@ -29,49 +29,49 @@ export const useComplianceData = (currentFramework?: Framework, options: UseComp
     const shouldFetchCore = !!user?.organizationId && !demoMode; // Controls are always fetched
 
     // 1. Controls (Core - Always Fetched if not demo)
-    const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
+    const { data: rawControls, loading: loadingControls, error: errorControls } = useFirestoreCollection<Control>(
         'controls',
         shouldFetchCore ? [where('organizationId', '==', user?.organizationId)] : undefined,
         { logError: true, realtime: true, enabled: shouldFetchCore }
     );
 
     // 2. Risks
-    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
+    const { data: rawRisks, loading: loadingRisks, error: errorRisks } = useFirestoreCollection<Risk>(
         'risks',
         shouldFetch(fetchRisks) ? [where('organizationId', '==', user?.organizationId)] : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchRisks) }
     );
 
     // 3. Assets
-    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
+    const { data: rawAssets, loading: loadingAssets, error: errorAssets } = useFirestoreCollection<Asset>(
         'assets',
         shouldFetch(fetchAssets) ? [where('organizationId', '==', user?.organizationId), limit(500)] : undefined, // Limit for perf
         { logError: true, realtime: true, enabled: shouldFetch(fetchAssets) }
     );
 
     // 4. Documents
-    const { data: rawDocuments, loading: loadingDocuments } = useFirestoreCollection<Document>(
+    const { data: rawDocuments, loading: loadingDocuments, error: errorDocuments } = useFirestoreCollection<Document>(
         'documents',
         shouldFetch(fetchDocuments) ? [where('organizationId', '==', user?.organizationId)] : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchDocuments) }
     );
 
     // 5. Users
-    const { data: rawUsers, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
+    const { data: rawUsers, loading: loadingUsers, error: errorUsers } = useFirestoreCollection<UserProfile>(
         'users',
         shouldFetch(fetchUsers) ? [where('organizationId', '==', user?.organizationId)] : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchUsers) }
     );
 
     // 6. Suppliers
-    const { data: rawSuppliers, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
+    const { data: rawSuppliers, loading: loadingSuppliers, error: errorSuppliers } = useFirestoreCollection<Supplier>(
         'suppliers',
         shouldFetch(fetchSuppliers) ? [where('organizationId', '==', user?.organizationId)] : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchSuppliers) }
     );
 
     // 7. Projects
-    const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>(
+    const { data: rawProjects, loading: loadingProjects, error: errorProjects } = useFirestoreCollection<Project>(
         'projects',
         shouldFetch(fetchProjects) ? [where('organizationId', '==', user?.organizationId)] : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchProjects) }
@@ -97,17 +97,21 @@ export const useComplianceData = (currentFramework?: Framework, options: UseComp
         (fetchProjects && loadingProjects);
 
     // Default empty arrays if not fetched
+    const error = errorControls || errorRisks || errorAssets || errorDocuments || errorUsers || errorSuppliers || errorProjects;
+
     return {
         controls: rawControls || [],
         filteredControls: filteredControls,
         risks: rawRisks || [],
-        findings: [] as Finding[], // Findings logic tbd
+        findings: [] as Finding[],
         documents: rawDocuments || [],
         usersList: rawUsers || [],
         assets: rawAssets || [],
         suppliers: rawSuppliers || [],
         projects: rawProjects || [],
         loading,
+        error,
         ...complianceActions
     };
+
 };

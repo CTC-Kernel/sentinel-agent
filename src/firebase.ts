@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
 // Capacitor import removed from static scope to prevent web issues
 // import { Capacitor } from '@capacitor/core';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
@@ -142,7 +142,7 @@ export const auth = getAuth(app);
 // Initialize Firestore with memory cache and forced long-polling for maximum stability.
 // We enable persistent cache for offline support, but auto-detect settings to avoid tab variance issues.
 export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  localCache: persistentLocalCache(),
 });
 
 export const storage = getStorage(app);
