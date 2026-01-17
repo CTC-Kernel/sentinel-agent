@@ -30,12 +30,12 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
             <div className={`
                 relative flex items-center w-full rounded-2xl transition-all duration-300 group
                 ${error
-                    ? 'border border-red-500 bg-red-50/50 dark:bg-red-900/10'
-                    : 'glass-input shadow-sm group-focus-within:border-brand-500/50 group-focus-within:shadow-glow'
+                    ? 'border border-destructive bg-destructive/5'
+                    : 'glass-input shadow-sm group-focus-within:border-primary/50 group-focus-within:shadow-glow'
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 transition-colors duration-200 ${error ? 'text-red-500' : 'text-slate-400 group-focus-within:text-brand-500'} ${textarea ? 'self-start mt-3.5' : ''}`}>
+                    <div className={`pl-4 transition-colors duration-200 ${error ? 'text-destructive' : 'text-muted-foreground group-focus-within:text-primary'} ${textarea ? 'self-start mt-3.5' : ''}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}
@@ -51,7 +51,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         aria-required={props.required}
                         rows={rows}
                         className={`
-                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
+                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-foreground
                             placeholder-transparent rounded-2xl resize-none
                             ${Icon ? 'pl-2' : ''}
                         `}
@@ -66,7 +66,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         aria-describedby={describedBy}
                         aria-required={props.required}
                         className={`
-                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
+                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-foreground
                             placeholder-transparent rounded-2xl
                             ${Icon ? 'pl-2' : ''}
                         `}
@@ -78,11 +78,11 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                     htmlFor={fieldId}
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
-                        -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-950 px-1 rounded
-                        peer-focus:text-brand-600 dark:peer-focus:text-brand-400
+                        -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-background px-1 rounded
+                        peer-focus:text-primary
                         ${error
-                            ? 'text-red-500'
-                            : 'text-brand-600 dark:text-brand-400'
+                            ? 'text-destructive'
+                            : 'text-primary'
                         }
                         ${Icon ? 'ml-7' : ''}
                     `}
@@ -92,7 +92,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
             </div>
 
             {error && (
-                <p id={errorId} className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
+                <p id={errorId} className="text-destructive text-xs mt-1.5 ml-1 font-medium animate-fade-in">
                     {error}
                 </p>
             )}

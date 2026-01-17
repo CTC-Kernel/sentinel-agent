@@ -54,12 +54,12 @@ export interface ValidatedInputProps
  */
 function getBorderClass(state: FieldValidationState, hasError: boolean): string {
   if (hasError || state === 'invalid') {
-    return 'border-rose-500 focus:border-rose-500 focus:ring-rose-500';
+    return 'border-destructive focus:border-destructive focus:ring-destructive';
   }
   if (state === 'valid') {
-    return 'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500';
+    return 'border-success-border focus:border-success-border focus:ring-success-border';
   }
-  return 'border-slate-300 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500';
+  return 'border-input focus:border-primary focus:ring-primary';
 }
 
 /**
@@ -160,12 +160,12 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
     const inputClasses = [
       'block w-full rounded-md shadow-sm',
       'px-3 py-2 text-sm',
-      'bg-white dark:bg-slate-800',
-      'text-slate-900 dark:text-slate-100',
-      'placeholder-slate-400 dark:placeholder-slate-500',
+      'bg-background',
+      'text-foreground',
+      'placeholder-muted-foreground',
       getBorderClass(effectiveState, hasError),
       'focus:outline-none focus:ring-2 focus:ring-offset-0',
-      'disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed',
+      'disabled:bg-secondary disabled:text-muted-foreground disabled:cursor-not-allowed',
       'transition-colors duration-150',
       hideIcon ? '' : 'pr-10', // Space for icon
       className,
@@ -179,10 +179,10 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             {label}
-            {required && <span className="text-rose-500 ml-1">*</span>}
+            {required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
 
@@ -208,13 +208,13 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               {effectiveState === 'valid' && (
                 <Check
-                  className="w-5 h-5 text-emerald-500"
+                  className="w-5 h-5 text-success-text"
                   aria-hidden="true"
                 />
               )}
               {effectiveState === 'invalid' && (
                 <AlertCircle
-                  className="w-5 h-5 text-rose-500"
+                  className="w-5 h-5 text-destructive"
                   aria-hidden="true"
                 />
               )}
@@ -227,8 +227,8 @@ export const ValidatedInput = forwardRef<HTMLInputElement, ValidatedInputProps>(
           <p
             id={errorId}
             className={`mt-1 text-sm ${displayError
-              ? 'text-rose-600 dark:text-rose-400'
-              : 'text-slate-500 dark:text-slate-400'
+              ? 'text-destructive'
+              : 'text-muted-foreground'
               }`}
             role={displayError ? 'alert' : undefined}
           >

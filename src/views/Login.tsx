@@ -132,10 +132,10 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                     </div>
 
                     {errorMsg && (
-                        <div className="w-full mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex flex-col gap-2 text-xs font-bold text-red-600 shadow-sm animate-slide-up">
+                        <div className="w-full mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex flex-col gap-2 text-xs font-bold text-destructive shadow-sm animate-slide-up">
                             <p className="flex items-center justify-center"><AlertTriangle className="h-4 w-4 mr-2" /> {errorMsg}</p>
                             {errorMsg.includes('restreint') && (
-                                <p className="text-[10px] font-normal text-red-500 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
+                                <p className="text-[10px] font-normal text-destructive/80 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
                             )}
                         </div>
                     )}
@@ -271,7 +271,6 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                 <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
                                     <Mail className="h-7 w-7" />
                                 </div>
-                                {/* Heading hierarchy: h2 for modal title (follows h1 page title) */}
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.reset.title')}</h2>
                                 <p className="text-sm text-slate-700 dark:text-slate-400 mt-2">{t('auth.reset.desc')}</p>
                             </div>
@@ -323,7 +322,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             </div>
 
                             {mfaError && (
-                                <div className="w-full mb-4 p-3 bg-red-50 border border-red-100 rounded-2xl text-xs font-bold text-red-600 text-center">
+                                <div className="w-full mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-2xl text-xs font-bold text-destructive text-center">
                                     {mfaError}
                                 </div>
                             )}

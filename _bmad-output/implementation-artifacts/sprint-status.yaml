@@ -180,25 +180,25 @@ development_status:
 
   # Epic 15: EBIOS RM - Atelier 1: Cadrage et Socle de Sécurité (P0 - Foundation)
   # FRs covered: EBIOS-001 à EBIOS-007
-  epic-15: in-progress
+  epic-15: done
   15-1-creation-analyse-ebios-rm: done # Brownfield - EbiosAnalyses.tsx, ebiosService.ts, ebios.ts types
   15-2-definition-perimetre-missions: done # Brownfield - MissionForm.tsx, Workshop1Content.tsx
   15-3-identification-biens-supports: done # Brownfield - SupportingAssetForm.tsx, Workshop1Content.tsx
   15-4-definition-evenements-redoutes: done # Brownfield - FearedEventForm.tsx, Workshop1Content.tsx
   15-5-evaluation-socle-securite: done # Brownfield - SecurityBaselinePanel.tsx with maturity score
   15-6-generation-note-cadrage: done # EbiosReportService.ts + GenerateReportButton.tsx
-  15-7-liaison-actifs-existants: ready-for-dev # PARTIAL - types exist, UI missing
+  15-7-liaison-actifs-existants: done # ImportFromInventoryModal.tsx + integration in Workshop1Content.tsx
   epic-15-retrospective: optional
 
   # Epic 16: EBIOS RM - Atelier 2: Sources de Risque (P0 - Foundation)
   # FRs covered: EBIOS-010 à EBIOS-015
-  epic-16: backlog
-  16-1-selection-sources-risque-anssi: ready-for-dev
-  16-2-creation-sources-risque-custom: ready-for-dev
-  16-3-definition-objectifs-vises: ready-for-dev
-  16-4-generation-couples-sr-ov: ready-for-dev
-  16-5-evaluation-pertinence-sr-ov: ready-for-dev
-  16-6-suggestions-sources-par-secteur: ready-for-dev
+  epic-16: in-progress
+  16-1-selection-sources-risque-anssi: done # Brownfield - ANSSI_RISK_SOURCES (20) + Workshop2Content.tsx
+  16-2-creation-sources-risque-custom: done # CustomRiskSourceForm.tsx + CustomTargetedObjectiveForm.tsx
+  16-3-definition-objectifs-vises: done # Brownfield - ANSSI_TARGETED_OBJECTIVES (18) + Workshop2Content.tsx
+  16-4-generation-couples-sr-ov: done # Brownfield - generatePairs() in Workshop2Content.tsx
+  16-5-evaluation-pertinence-sr-ov: done # Brownfield - Relevance slider + retained toggle
+  16-6-suggestions-sources-par-secteur: ready-for-dev # Missing sector recommendations
   epic-16-retrospective: optional
 
   # Epic 17: EBIOS RM - Atelier 3: Scénarios Stratégiques (P0 - Core)

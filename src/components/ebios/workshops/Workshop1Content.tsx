@@ -56,6 +56,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
     type: SectionKey;
     item: Mission | EssentialAsset | SupportingAsset | FearedEvent | null;
   } | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const toggleSection = (section: SectionKey) => {
     setExpandedSections((prev) => {
@@ -137,6 +138,18 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
     const supportingAssets = data.scope.supportingAssets.filter((a) => a.id !== id);
     onDataChange({ scope: { ...data.scope, supportingAssets } });
   }, [data.scope, onDataChange]);
+
+  // Import from inventory handler
+  const handleImportFromInventory = useCallback((importedAssets: SupportingAsset[]) => {
+    const supportingAssets = [...data.scope.supportingAssets, ...importedAssets];
+    onDataChange({ scope: { ...data.scope, supportingAssets } });
+    setShowImportModal(false);
+  }, [data.scope, onDataChange]);
+
+  // Get existing linked asset IDs for filtering
+  const existingLinkedAssetIds = data.scope.supportingAssets
+    .filter((a) => a.linkedAssetId)
+    .map((a) => a.linkedAssetId as string);
 
   // Feared Event handlers
   const handleAddFearedEvent = useCallback(() => {
@@ -378,6 +391,15 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                     <span className="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                       {t(`ebios.supportingAssetTypes.${asset.type}`)}
                     </span>
+                    {asset.linkedAssetId && (
+                      <span
+                        className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                        title={t('ebios.workshop1.linkedToInventory', 'Lié à l\'inventaire')}
+                      >
+                        <Link2 className="w-3 h-3" />
+                        {t('ebios.workshop1.linked', 'Lié')}
+                      </span>
+                    )}
                   </div>
                   {asset.description && (
                     <p className="text-sm text-gray-500 mt-1 line-clamp-2">
@@ -392,13 +414,22 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
             ))}
 
             {!readOnly && (
-              <button
-                onClick={handleAddSupportingAsset}
-                className="w-full p-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-cyan-300 dark:hover:border-cyan-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-cyan-500"
-              >
-                <Plus className="w-5 h-5" />
-                {t('ebios.workshop1.addSupportingAsset')}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAddSupportingAsset}
+                  className="flex-1 p-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-cyan-300 dark:hover:border-cyan-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-cyan-500"
+                >
+                  <Plus className="w-5 h-5" />
+                  {t('ebios.workshop1.addSupportingAsset')}
+                </button>
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  className="flex-1 p-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-blue-500"
+                >
+                  <Download className="w-5 h-5" />
+                  {t('ebios.workshop1.importFromInventory', 'Importer depuis l\'inventaire')}
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -565,6 +596,16 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
           onSave={handleSaveFearedEvent}
           onDelete={editingItem.item ? handleDeleteFearedEvent : undefined}
           onClose={() => setEditingItem(null)}
+        />
+      )}
+
+      {/* Import from Inventory Modal */}
+      {showImportModal && (
+        <ImportFromInventoryModal
+          onImport={handleImportFromInventory}
+          onClose={() => setShowImportModal(false)}
+          existingLinkedAssetIds={existingLinkedAssetIds}
+          essentialAssetIds={data.scope.essentialAssets.map((a) => a.id)}
         />
       )}
     </div>

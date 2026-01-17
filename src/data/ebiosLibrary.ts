@@ -746,3 +746,142 @@ export const RISK_MATRIX_CONFIG = {
     return 'critical';
   },
 };
+
+// ============================================================================
+// Sector-Based Risk Source Recommendations (ANSSI)
+// ============================================================================
+
+export interface SectorProfile {
+  id: string;
+  name: { fr: string; en: string };
+  description: { fr: string; en: string };
+  recommendedSourceCodes: string[];
+  recommendedObjectiveCodes: string[];
+}
+
+export const SECTOR_PROFILES: Record<string, SectorProfile> = {
+  finance: {
+    id: 'finance',
+    name: { fr: 'Services financiers', en: 'Financial services' },
+    description: {
+      fr: 'Banques, assurances, fintech, marchés financiers',
+      en: 'Banks, insurance, fintech, financial markets',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-02', 'SR-04', 'SR-05', 'SR-06', 'SR-11', 'SR-13', 'SR-14'],
+    recommendedObjectiveCodes: ['OV-C01', 'OV-C02', 'OV-C05', 'OV-I01', 'OV-I05', 'OV-A01', 'OV-A02'],
+  },
+  health: {
+    id: 'health',
+    name: { fr: 'Santé', en: 'Healthcare' },
+    description: {
+      fr: 'Hôpitaux, cliniques, laboratoires, pharma',
+      en: 'Hospitals, clinics, laboratories, pharma',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-04', 'SR-06', 'SR-09', 'SR-13', 'SR-16', 'SR-18'],
+    recommendedObjectiveCodes: ['OV-C02', 'OV-C03', 'OV-I02', 'OV-A01', 'OV-A02', 'OV-A03'],
+  },
+  energy: {
+    id: 'energy',
+    name: { fr: 'Énergie', en: 'Energy' },
+    description: {
+      fr: 'Électricité, gaz, pétrole, nucléaire, renouvelables',
+      en: 'Electricity, gas, oil, nuclear, renewables',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-02', 'SR-07', 'SR-08', 'SR-09', 'SR-10'],
+    recommendedObjectiveCodes: ['OV-C01', 'OV-I02', 'OV-A01', 'OV-A03', 'OV-A05'],
+  },
+  telecom: {
+    id: 'telecom',
+    name: { fr: 'Télécommunications', en: 'Telecommunications' },
+    description: {
+      fr: 'Opérateurs télécom, FAI, datacenters',
+      en: 'Telecom operators, ISPs, datacenters',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-02', 'SR-04', 'SR-06', 'SR-07'],
+    recommendedObjectiveCodes: ['OV-C01', 'OV-C04', 'OV-A01', 'OV-A03', 'OV-A04'],
+  },
+  defense: {
+    id: 'defense',
+    name: { fr: 'Défense', en: 'Defense' },
+    description: {
+      fr: 'Industries de défense, armement, sécurité nationale',
+      en: 'Defense industries, armament, national security',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-02', 'SR-03', 'SR-07', 'SR-08', 'SR-13', 'SR-15'],
+    recommendedObjectiveCodes: ['OV-C01', 'OV-C03', 'OV-C06', 'OV-I02', 'OV-I03', 'OV-A03', 'OV-A05'],
+  },
+  retail: {
+    id: 'retail',
+    name: { fr: 'Commerce de détail', en: 'Retail' },
+    description: {
+      fr: 'Grande distribution, e-commerce, luxe',
+      en: 'Retail chains, e-commerce, luxury',
+    },
+    recommendedSourceCodes: ['SR-04', 'SR-05', 'SR-11', 'SR-14', 'SR-16', 'SR-19'],
+    recommendedObjectiveCodes: ['OV-C02', 'OV-C05', 'OV-I05', 'OV-I06', 'OV-A01', 'OV-A02'],
+  },
+  public_sector: {
+    id: 'public_sector',
+    name: { fr: 'Secteur public', en: 'Public sector' },
+    description: {
+      fr: 'Administrations, collectivités, services publics',
+      en: 'Government agencies, local authorities, public services',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-03', 'SR-07', 'SR-09', 'SR-10', 'SR-13', 'SR-16'],
+    recommendedObjectiveCodes: ['OV-C01', 'OV-C02', 'OV-C04', 'OV-I04', 'OV-I06', 'OV-A01', 'OV-A04'],
+  },
+  technology: {
+    id: 'technology',
+    name: { fr: 'Technologie', en: 'Technology' },
+    description: {
+      fr: 'Éditeurs logiciels, ESN, startups tech',
+      en: 'Software vendors, IT services, tech startups',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-04', 'SR-06', 'SR-11', 'SR-12', 'SR-14', 'SR-19', 'SR-20'],
+    recommendedObjectiveCodes: ['OV-C01', 'OV-C03', 'OV-C06', 'OV-I03', 'OV-A01', 'OV-A02'],
+  },
+  manufacturing: {
+    id: 'manufacturing',
+    name: { fr: 'Industrie manufacturière', en: 'Manufacturing' },
+    description: {
+      fr: 'Automobile, aéronautique, industrie lourde',
+      en: 'Automotive, aerospace, heavy industry',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-02', 'SR-04', 'SR-11', 'SR-13', 'SR-16'],
+    recommendedObjectiveCodes: ['OV-C01', 'OV-C03', 'OV-I02', 'OV-I03', 'OV-A01', 'OV-A03', 'OV-A06'],
+  },
+  transport: {
+    id: 'transport',
+    name: { fr: 'Transport', en: 'Transportation' },
+    description: {
+      fr: 'Aviation, ferroviaire, maritime, logistique',
+      en: 'Aviation, rail, maritime, logistics',
+    },
+    recommendedSourceCodes: ['SR-01', 'SR-02', 'SR-07', 'SR-08', 'SR-09'],
+    recommendedObjectiveCodes: ['OV-I02', 'OV-A01', 'OV-A03', 'OV-A06'],
+  },
+};
+
+/**
+ * Get recommended risk sources for a given sector
+ */
+export function getRecommendedSourcesForSector(sectorId: string): typeof ANSSI_RISK_SOURCES {
+  const profile = SECTOR_PROFILES[sectorId];
+  if (!profile) return [];
+
+  return ANSSI_RISK_SOURCES.filter((source) =>
+    profile.recommendedSourceCodes.includes(source.code)
+  );
+}
+
+/**
+ * Get recommended targeted objectives for a given sector
+ */
+export function getRecommendedObjectivesForSector(sectorId: string): typeof ANSSI_TARGETED_OBJECTIVES {
+  const profile = SECTOR_PROFILES[sectorId];
+  if (!profile) return [];
+
+  return ANSSI_TARGETED_OBJECTIVES.filter((objective) =>
+    profile.recommendedObjectiveCodes.includes(objective.code)
+  );
+}

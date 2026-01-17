@@ -58,7 +58,7 @@ const RiskInspector = React.lazy(() => import('../components/risks/RiskInspector
 const RiskMatrix = React.lazy(() => import('../components/risks/RiskMatrix').then(m => ({ default: m.RiskMatrix })));
 
 // Inline Loader
-const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-brand-500" /></div>;
+const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-primary" /></div>;
 
 export const Risks: React.FC = () => {
     // Hooks
@@ -489,11 +489,11 @@ export const Risks: React.FC = () => {
                     tabIndex={0}
                 >
                     {matrixFilter && (
-                        <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
-                            <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
+                        <div className="bg-primary/5 dark:bg-primary/20 p-4 rounded-2xl border border-primary/20 dark:border-primary/30 flex justify-between items-center mb-6">
+                            <span className="text-sm font-bold text-primary">
                                 {t('risks.matrix')} : {t('risks.searchPlaceholder')}
                             </span>
-                            <button type="button" onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">{t('common.reset')}</button>
+                            <button type="button" onClick={() => setMatrixFilter(null)} className="text-xs text-destructive font-bold hover:underline">{t('common.reset')}</button>
                         </div>
                     )}
                     <React.Suspense fallback={<Spinner />}>

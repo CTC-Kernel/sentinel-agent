@@ -17,10 +17,9 @@
 
 :root {
   /* Shadcn UI Variables - Refined for Premium Light Mode */
-  --background: 210 40% 95%;
-  /* Darker off-white for contrast */
+  --background: 210 40% 98%;
+  /* Slightly cooler/lighter than 95% */
   --foreground: 222.2 84% 2.5%;
-  /* Darker text */
 
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 2.5%;
@@ -87,14 +86,13 @@
   --info-border: #bae6fd;
 
   /* Glassmorphism - Premium - Refined (Light Mode) - CRYSTALLINE */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  /* Less transparent for better readability */
-  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  /* Increased transparency for better effect */
+  --glass-border: rgba(255, 255, 255, 0.6);
   --glass-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.08),
-    0 2px 4px -1px rgba(0, 0, 0, 0.04),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
-  /* Stronger shadow for depth */
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
 }
 
 .dark {
@@ -102,47 +100,55 @@
   --background: 222.2 84% 4.9%;
   /* #020617 */
   --foreground: 210 40% 98%;
+
   --card: 222.2 84% 6.9%;
   /* Slightly lighter than bg */
   --card-foreground: 210 40% 98%;
+
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
+
   --primary: 217.2 91.2% 59.8%;
   --primary-foreground: 222.2 47.4% 11.2%;
+
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
+
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
+
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
+
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
+
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
   --ring: 212.7 26.8% 83.9%;
 
   /* Semantic Status Colors (Dark Mode) */
-  --success-bg: rgba(16, 185, 129, 0.15);
+  --success-bg: rgba(16, 185, 129, 0.1);
   --success-text: #6ee7b7;
-  --success-border: rgba(16, 185, 129, 0.25);
+  --success-border: rgba(16, 185, 129, 0.2);
 
-  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-bg: rgba(245, 158, 11, 0.1);
   --warning-text: #fcd34d;
-  --warning-border: rgba(245, 158, 11, 0.25);
+  --warning-border: rgba(245, 158, 11, 0.2);
 
-  --error-bg: rgba(244, 63, 94, 0.15);
+  --error-bg: rgba(244, 63, 94, 0.1);
   --error-text: #fda4af;
-  --error-border: rgba(244, 63, 94, 0.25);
+  --error-border: rgba(244, 63, 94, 0.2);
 
-  --info-bg: rgba(14, 165, 233, 0.15);
+  --info-bg: rgba(14, 165, 233, 0.1);
   --info-text: #7dd3fc;
-  --info-border: rgba(14, 165, 233, 0.25);
+  --info-border: rgba(14, 165, 233, 0.2);
 
   /* Glassmorphism Dark - Refined for depth */
-  --glass-bg: rgba(15, 23, 42, 0.75);
-  /* Sharper, less transparent */
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --glass-bg: rgba(15, 23, 42, 0.65);
+  /* More transparent for modern feel */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 /* Base Glass Panel - Sharper */

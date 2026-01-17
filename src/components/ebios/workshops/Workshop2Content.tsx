@@ -20,6 +20,7 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  UserPlus,
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
@@ -36,6 +37,9 @@ import {
   IMPACT_TYPE_LABELS,
   GRAVITY_SCALE,
 } from '../../../data/ebiosLibrary';
+import { CustomRiskSourceForm } from '../workshop2/CustomRiskSourceForm';
+import { CustomTargetedObjectiveForm } from '../workshop2/CustomTargetedObjectiveForm';
+import { SectorRecommendations } from '../workshop2/SectorRecommendations';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Workshop2ContentProps {
@@ -43,6 +47,11 @@ interface Workshop2ContentProps {
   onDataChange: (data: Partial<Workshop2Data>) => void;
   riskSources?: RiskSource[];
   targetedObjectives?: TargetedObjective[];
+  onCustomRiskSourceSave?: (source: RiskSource) => void;
+  onCustomRiskSourceDelete?: (id: string) => void;
+  onCustomObjectiveSave?: (objective: TargetedObjective) => void;
+  onCustomObjectiveDelete?: (id: string) => void;
+  sectorId?: string; // Organization sector for recommendations
   readOnly?: boolean;
 }
 
@@ -53,6 +62,11 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   onDataChange,
   riskSources = [],
   targetedObjectives = [],
+  onCustomRiskSourceSave,
+  onCustomRiskSourceDelete,
+  onCustomObjectiveSave,
+  onCustomObjectiveDelete,
+  sectorId,
   readOnly = false,
 }) => {
   const { t, i18n } = useTranslation();
@@ -61,6 +75,12 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   const [expandedSections, setExpandedSections] = useState<Set<SectionKey>>(
     new Set(['riskSources', 'targetedObjectives', 'srOvPairs'])
   );
+
+  // Custom form states
+  const [showRiskSourceForm, setShowRiskSourceForm] = useState(false);
+  const [editingRiskSource, setEditingRiskSource] = useState<RiskSource | null>(null);
+  const [showObjectiveForm, setShowObjectiveForm] = useState(false);
+  const [editingObjective, setEditingObjective] = useState<TargetedObjective | null>(null);
 
   // Combine ANSSI library with custom sources
   const allRiskSources = useMemo(() => {
@@ -316,6 +336,20 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                   </div>
                 </div>
               ))}
+
+              {/* Add Custom Source Button */}
+              {!readOnly && onCustomRiskSourceSave && (
+                <button
+                  onClick={() => {
+                    setEditingRiskSource(null);
+                    setShowRiskSourceForm(true);
+                  }}
+                  className="w-full mt-4 p-3 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-red-500"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  {t('ebios.workshop2.addCustomSource', 'Ajouter une source personnalisée')}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -408,6 +442,20 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                   </div>
                 );
               })}
+
+              {/* Add Custom Objective Button */}
+              {!readOnly && onCustomObjectiveSave && (
+                <button
+                  onClick={() => {
+                    setEditingObjective(null);
+                    setShowObjectiveForm(true);
+                  }}
+                  className="w-full mt-4 p-3 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-amber-500"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('ebios.workshop2.addCustomObjective', 'Ajouter un objectif personnalisé')}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -573,6 +621,50 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
           </div>
         )}
       </GlassCard>
+
+      {/* Custom Risk Source Form Modal */}
+      {showRiskSourceForm && onCustomRiskSourceSave && (
+        <CustomRiskSourceForm
+          source={editingRiskSource}
+          onSave={(source) => {
+            onCustomRiskSourceSave(source);
+            setShowRiskSourceForm(false);
+            setEditingRiskSource(null);
+          }}
+          onDelete={editingRiskSource && onCustomRiskSourceDelete ? (id) => {
+            onCustomRiskSourceDelete(id);
+            setShowRiskSourceForm(false);
+            setEditingRiskSource(null);
+          } : undefined}
+          onClose={() => {
+            setShowRiskSourceForm(false);
+            setEditingRiskSource(null);
+          }}
+          existingCodes={allRiskSources.map((s) => s.code)}
+        />
+      )}
+
+      {/* Custom Targeted Objective Form Modal */}
+      {showObjectiveForm && onCustomObjectiveSave && (
+        <CustomTargetedObjectiveForm
+          objective={editingObjective}
+          onSave={(objective) => {
+            onCustomObjectiveSave(objective);
+            setShowObjectiveForm(false);
+            setEditingObjective(null);
+          }}
+          onDelete={editingObjective && onCustomObjectiveDelete ? (id) => {
+            onCustomObjectiveDelete(id);
+            setShowObjectiveForm(false);
+            setEditingObjective(null);
+          } : undefined}
+          onClose={() => {
+            setShowObjectiveForm(false);
+            setEditingObjective(null);
+          }}
+          existingCodes={allTargetedObjectives.map((o) => o.code)}
+        />
+      )}
     </div>
   );
 };
