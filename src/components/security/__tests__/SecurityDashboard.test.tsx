@@ -11,7 +11,7 @@ import { SecurityDashboard, SecurityWidgetCompact } from '../SecurityDashboard';
 vi.mock('../../../services/sessionMonitoringService', () => ({
     SessionMonitor: {
         getMetrics: vi.fn(() => ({
-            duration: 3600000, // 1 hour
+            sessionDuration: 3600000, // 1 hour
             activityCount: 42,
             idleTime: 300000, // 5 minutes
             lastActivity: Date.now()
