@@ -1,6 +1,6 @@
 # Story 17.3: Construction des Scénarios Stratégiques
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

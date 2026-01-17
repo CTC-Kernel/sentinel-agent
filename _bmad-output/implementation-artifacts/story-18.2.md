@@ -1,6 +1,8 @@
 # Story 18.2: Séquences d'Attaque avec MITRE ATT&CK
 
-Status: ready-for-dev
+Status: done
+
+> Note: Cette story était déjà implémentée dans MitreSearchModal.tsx avec recherche MITRE ATT&CK complète (tactiques, techniques, sous-techniques)
 
 ## Story
 
