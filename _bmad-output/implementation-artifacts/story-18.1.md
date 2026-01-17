@@ -1,6 +1,8 @@
 # Story 18.1: Déclinaison en Modes Opératoires
 
-Status: ready-for-dev
+Status: done
+
+> Note: Cette story était déjà implémentée dans Workshop4Content.tsx et OperationalScenarioForm.tsx
 
 ## Story
 

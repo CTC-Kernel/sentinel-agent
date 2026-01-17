@@ -1,6 +1,6 @@
 # Story 17.1: Cartographie de l'Écosystème
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
