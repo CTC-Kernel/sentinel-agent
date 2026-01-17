@@ -1,3 +1,5 @@
+import type { DocumentEncryptionMetadata, DocumentClassification, DocumentACL } from './vault';
+
 /**
  * Unified document status enumeration (French)
  */
@@ -84,6 +86,12 @@ export interface Document {
     folderId?: string;
     author?: string; // Generated report author name
     content?: string; // HTML content for rich text policies
+    // Vault / Encryption fields (Story 23.1)
+    encryption?: DocumentEncryptionMetadata;
+    classification?: DocumentClassification;
+    legalHoldIds?: string[];
+    isUnderHold?: boolean;
+    acl?: DocumentACL;
 }
 
 export interface DocumentFolder {

@@ -4032,3 +4032,10 @@ exports.onAuditsScoreChange = onAuditsChange;
 // Daily Score Snapshot Scheduler
 const { dailyScoreSnapshot } = require('./scheduled/dailyScoreSnapshot');
 exports.dailyScoreSnapshot = dailyScoreSnapshot;
+
+// ============================================================================
+// DOCUMENT VAULT / KMS FUNCTIONS (Story 23.1)
+// ============================================================================
+
+const { checkKmsSetup } = require('./vault/checkKmsSetup');
+exports.checkKmsSetup = checkKmsSetup;
