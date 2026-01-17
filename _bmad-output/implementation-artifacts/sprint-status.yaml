@@ -203,12 +203,12 @@ development_status:
 
   # Epic 17: EBIOS RM - Atelier 3: Scénarios Stratégiques (P0 - Core)
   # FRs covered: EBIOS-020 à EBIOS-025
-  epic-17: in-progress
+  epic-17: done
   17-1-cartographie-ecosysteme: done # EcosystemPartyForm.tsx created
   17-2-definition-chemins-attaque: done # AttackPathForm.tsx created
   17-3-construction-scenarios-strategiques: done # StrategicScenarioForm.tsx created
   17-4-evaluation-gravite: done # Integrated in StrategicScenarioForm with justification
-  17-5-visualisation-graphique-ecosysteme: ready-for-dev # Requires ReactFlow installation
+  17-5-visualisation-graphique-ecosysteme: done # EcosystemMap.tsx with D3/Framer Motion (SVG interactive)
   17-6-suggestions-scenarios-par-secteur: done # SCENARIO_TEMPLATES + ScenarioSuggestions.tsx
   epic-17-retrospective: optional
 
