@@ -39,6 +39,13 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
     onEdit,
     teamMembers = []
 }) => {
+    // Get responsible person's display name - Story 20.4
+    const responsibleName = useMemo(() => {
+        if (!milestone?.responsibleId) return 'Non assigné';
+        const member = teamMembers.find(m => m.id === milestone.responsibleId);
+        return member?.displayName || member?.email || milestone.responsibleId;
+    }, [milestone, teamMembers]);
+
     if (!milestone) return null;
 
     const phaseConfig = PHASE_CONFIG[milestone.phase];
@@ -46,13 +53,6 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
     const statusStyle = MILESTONE_STATUS_STYLES[milestone.status];
     const phaseStyle = PHASE_STYLES[milestone.phase];
     const StatusIcon = statusConfig.icon;
-
-    // Get responsible person's display name - Story 20.4
-    const responsibleName = useMemo(() => {
-        if (!milestone.responsibleId) return 'Non assigné';
-        const member = teamMembers.find(m => m.id === milestone.responsibleId);
-        return member?.displayName || member?.email || milestone.responsibleId;
-    }, [milestone.responsibleId, teamMembers]);
 
     return (
         <InspectorLayout
@@ -104,7 +104,11 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                         <div>
                             <label className="text-sm font-medium text-gray-500 block mb-1">Phase PDCA</label>
                             <div className="flex items-center gap-2">
-                                <phaseConfig.icon className={cn("w-4 h-4", phaseStyle.text)} />
+                                {(() => {
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    const PhaseIcon = phaseConfig.icon as any;
+                                    return <PhaseIcon className={cn("w-4 h-4", phaseStyle.text)} />;
+                                })()}
                                 <span className="text-gray-900 dark:text-white">{phaseConfig.label} - {phaseConfig.description}</span>
                             </div>
                         </div>

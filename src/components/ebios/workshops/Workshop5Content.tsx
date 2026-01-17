@@ -8,7 +8,7 @@
  * 3. Risk Acceptance Workflow - Formal acceptance of residual risks
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ShieldCheck,
@@ -247,11 +247,11 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
     const residualRisks = data.residualRisks.map(rr =>
       rr.operationalScenarioId === scenarioId
         ? {
-            ...rr,
-            acceptedBy: 'current_user', // Would be replaced with actual user ID
-            acceptanceDate: new Date().toISOString(),
-            acceptanceJustification: justification,
-          }
+          ...rr,
+          acceptedBy: 'current_user', // Would be replaced with actual user ID
+          acceptanceDate: new Date().toISOString(),
+          acceptanceJustification: justification,
+        }
         : rr
     );
     onDataChange({ residualRisks });
@@ -351,9 +351,9 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
 
             const residualRiskLevel = residualRisk
               ? getRiskLevel(
-                  Math.ceil(residualRisk.residualRiskLevel / opScenario.likelihood),
-                  opScenario.likelihood
-                )
+                Math.ceil(residualRisk.residualRiskLevel / opScenario.likelihood),
+                opScenario.likelihood
+              )
               : initialRiskLevel;
             const residualRiskColor = getRiskColor(residualRiskLevel);
 

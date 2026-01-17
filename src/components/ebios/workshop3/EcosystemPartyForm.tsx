@@ -29,7 +29,7 @@ const PARTY_TYPES: EcosystemPartyType[] = [
   'other',
 ];
 
-export const PARTY_TYPE_LABELS: Record<EcosystemPartyType, { fr: string; en: string }> = {
+const PARTY_TYPE_LABELS: Record<EcosystemPartyType, { fr: string; en: string }> = {
   supplier: { fr: 'Fournisseur', en: 'Supplier' },
   partner: { fr: 'Partenaire', en: 'Partner' },
   customer: { fr: 'Client', en: 'Customer' },

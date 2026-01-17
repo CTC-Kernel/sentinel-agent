@@ -140,10 +140,11 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
   };
 
   // Risk Source handlers
-  const isRiskSourceSelected = (riskSourceId: string) =>
-    data.selectedRiskSources.some((s) => s.riskSourceId === riskSourceId);
+  const isRiskSourceSelected = useCallback((riskSourceId: string) =>
+    data.selectedRiskSources.some((s) => s.riskSourceId === riskSourceId),
+    [data.selectedRiskSources]);
 
-  const toggleRiskSource = (riskSourceId: string) => {
+  const toggleRiskSource = useCallback((riskSourceId: string) => {
     if (readOnly) return;
 
     if (isRiskSourceSelected(riskSourceId)) {
@@ -165,13 +166,14 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
       ];
       onDataChange({ selectedRiskSources });
     }
-  };
+  }, [readOnly, isRiskSourceSelected, data.selectedRiskSources, data.srOvPairs, onDataChange]);
 
   // Targeted Objective handlers
-  const isTargetedObjectiveSelected = (objectiveId: string) =>
-    data.selectedTargetedObjectives.some((s) => s.targetedObjectiveId === objectiveId);
+  const isTargetedObjectiveSelected = useCallback((objectiveId: string) =>
+    data.selectedTargetedObjectives.some((s) => s.targetedObjectiveId === objectiveId),
+    [data.selectedTargetedObjectives]);
 
-  const toggleTargetedObjective = (objectiveId: string) => {
+  const toggleTargetedObjective = useCallback((objectiveId: string) => {
     if (readOnly) return;
 
     if (isTargetedObjectiveSelected(objectiveId)) {
@@ -193,7 +195,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
       ];
       onDataChange({ selectedTargetedObjectives });
     }
-  };
+  }, [readOnly, isTargetedObjectiveSelected, data.selectedTargetedObjectives, data.srOvPairs, onDataChange]);
 
   // Generate all possible SR/OV pairs
   const generatePairs = useCallback(() => {
@@ -335,12 +337,12 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                     <span className={cn(
                       "w-2 h-2 rounded-full",
                       category.includes('state') ? "bg-purple-500" :
-                      category.includes('crime') ? "bg-red-500" :
-                      category.includes('terrorist') ? "bg-orange-500" :
-                      category.includes('activist') ? "bg-yellow-500" :
-                      category.includes('competitor') ? "bg-blue-500" :
-                      category.includes('insider') ? "bg-pink-500" :
-                      "bg-gray-500"
+                        category.includes('crime') ? "bg-red-500" :
+                          category.includes('terrorist') ? "bg-orange-500" :
+                            category.includes('activist') ? "bg-yellow-500" :
+                              category.includes('competitor') ? "bg-blue-500" :
+                                category.includes('insider') ? "bg-pink-500" :
+                                  "bg-gray-500"
                     )} />
                     {RISK_SOURCE_CATEGORY_LABELS[category as keyof typeof RISK_SOURCE_CATEGORY_LABELS]?.[locale] || category}
                   </h4>

@@ -8,12 +8,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Search, Link2, Package, Check, AlertCircle } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import { useAssets } from '../../../hooks/assets/useAssets';
 import type { Asset } from '../../../types/assets';
 import type { SupportingAsset } from '../../../types/ebios';
+import { mapAssetToSupportingAsset, mapAssetTypeToEbiosType } from '../../../utils/ebiosUtils';
 
 interface ImportFromInventoryModalProps {
   onImport: (assets: SupportingAsset[]) => void;
@@ -21,35 +21,6 @@ interface ImportFromInventoryModalProps {
   existingLinkedAssetIds?: string[];
   essentialAssetIds?: string[]; // To pre-link to essential assets
 }
-
-// Map global Asset type to EBIOS SupportingAsset type
-const mapAssetTypeToEbiosType = (
-  assetType: Asset['type']
-): SupportingAsset['type'] => {
-  const mapping: Record<Asset['type'], SupportingAsset['type']> = {
-    Matériel: 'hardware',
-    Logiciel: 'software',
-    Données: 'software', // Map data to software (closest match)
-    Service: 'network', // Map service to network (external services)
-    Humain: 'personnel',
-  };
-  return mapping[assetType] || 'organization';
-};
-
-// Convert Asset to SupportingAsset
-export const mapAssetToSupportingAsset = (
-  asset: Asset,
-  linkedEssentialAssetIds: string[] = []
-): SupportingAsset => {
-  return {
-    id: uuidv4(),
-    name: asset.name,
-    description: asset.notes || `${asset.type} - ${asset.location || 'N/A'}`,
-    type: mapAssetTypeToEbiosType(asset.type),
-    linkedEssentialAssetIds,
-    linkedAssetId: asset.id, // Link to original asset
-  };
-};
 
 export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> = ({
   onImport,
