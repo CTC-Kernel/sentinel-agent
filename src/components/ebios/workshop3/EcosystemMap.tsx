@@ -12,7 +12,7 @@
  * - Legend with filtering
  */
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -123,7 +123,8 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
   assets,
   onPartyClick,
   onPathClick,
-  readOnly = false,
+  // readOnly is available for future use when editing directly in the map
+  readOnly: _readOnly = false,
 }) => {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith('fr') ? 'fr' : 'en';

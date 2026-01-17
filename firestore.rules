@@ -846,13 +846,7 @@ service cloud.firestore {
     // ===========================================================================
 
     // EBIOS Analysis Status Validation
-    function isValidEbiosStatus(status) {
-      return status in ['draft', 'in_progress', 'completed', 'archived'];
-    }
 
-    function isValidWorkshopStatus(status) {
-      return status in ['not_started', 'in_progress', 'completed', 'validated'];
-    }
 
     // EBIOS Rules moved to organization subcollection
 

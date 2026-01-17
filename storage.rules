@@ -16,6 +16,10 @@ service firebase.storage {
       return isAuthenticated() && getUserOrg() == orgId;
     }
     
+    function isValidFileSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+
     function getUserRole() {
       return request.auth.token.role;
     }
