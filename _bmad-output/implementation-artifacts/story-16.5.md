@@ -1,6 +1,12 @@
 # Story 16.5: Évaluation de la Pertinence SR/OV
 
-Status: ready-for-dev
+Status: done
+
+> **Brownfield (2026-01-17):**
+> - Relevance slider (1-4 scale) with GRAVITY_SCALE colors
+> - Retained/Not Retained toggle button
+> - updatePair() function to save changes
+> - Stats display: retainedPairsCount/pairsCount
 
 ## Story
 

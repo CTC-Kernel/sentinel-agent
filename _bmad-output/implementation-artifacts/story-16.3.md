@@ -1,6 +1,12 @@
 # Story 16.3: Définition des Objectifs Visés
 
-Status: ready-for-dev
+Status: done
+
+> **Brownfield (2026-01-17):**
+> - ANSSI_TARGETED_OBJECTIVES library with 18 objectives in src/data/ebiosLibrary.ts
+> - Objectives grouped by impact type (confidentiality, integrity, availability)
+> - Workshop2Content.tsx with objective selection UI
+> - Checkbox selection with visual feedback
 
 ## Story
 

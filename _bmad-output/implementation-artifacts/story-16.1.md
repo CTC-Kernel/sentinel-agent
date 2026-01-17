@@ -1,6 +1,12 @@
 # Story 16.1: Sélection des Sources de Risque ANSSI
 
-Status: ready-for-dev
+Status: done
+
+> **Brownfield (2026-01-17):**
+> - ANSSI_RISK_SOURCES library with 20 standard sources in src/data/ebiosLibrary.ts
+> - Workshop2Content.tsx with risk source selection UI
+> - Sources grouped by category (state_sponsored, organized_crime, etc.)
+> - Checkbox selection with visual feedback
 
 ## Story
 
