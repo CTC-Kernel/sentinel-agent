@@ -1,6 +1,8 @@
 # Story 18.4: Calcul du Niveau de Risque
 
-Status: ready-for-dev
+Status: done
+
+> Note: Cette story était déjà implémentée dans Workshop4Content.tsx avec getRiskLevel() et affichage couleur codé
 
 ## Story
 

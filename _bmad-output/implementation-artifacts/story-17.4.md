@@ -1,6 +1,6 @@
 # Story 17.4: Évaluation de la Gravité
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
