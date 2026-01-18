@@ -626,7 +626,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               exit={{ height: 0, opacity: 0 }}
               className="mt-3 overflow-hidden"
             >
-              <WhaitIfBuilder onApply={onApplyWhatIf} nodes={allNodes} />
+              <WhatIfBuilder onApply={onApplyWhatIf} nodes={allNodes} />
               {whatIfScenario && (
                 <button
                   onClick={onClearWhatIf}
@@ -741,6 +741,6 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
 };
 
 // Re-export with correct name
-const WhaitIfBuilder = WhatIfBuilder;
+
 
 export default BlastRadiusPanel;
