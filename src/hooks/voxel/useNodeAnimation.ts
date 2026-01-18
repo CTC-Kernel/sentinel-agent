@@ -5,7 +5,7 @@
  * Handles node enter/exit animations and highlight effects.
  */
 
-import { useCallback, useRef, useMemo } from 'react';
+import { useCallback, useRef, useMemo, useState } from 'react';
 import { useSpring, config as springConfig } from '@react-spring/three';
 import type { VoxelNode } from '@/types/voxel';
 
@@ -43,7 +43,8 @@ export function useNodeAnimation(
   config: NodeAnimationConfig = {}
 ) {
   const mergedConfig = { ...DEFAULT_CONFIG, ...config };
-  const isExitingRef = useRef(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const isExitingRef = useRef(false); // Keep ref for callbacks if needed, or just use state setters
 
   // Spring configuration
   const springConf = useMemo(
@@ -68,6 +69,7 @@ export function useNodeAnimation(
    */
   const animateEnter = useCallback(() => {
     isExitingRef.current = false;
+    setIsExiting(false);
     api.start({
       from: { scale: 0, opacity: 0, positionY: (node?.position.y ?? 0) - 2 },
       to: { scale: 1, opacity: 1, positionY: node?.position.y ?? 0 },
@@ -81,6 +83,7 @@ export function useNodeAnimation(
   const animateExit = useCallback(
     (onComplete?: () => void) => {
       isExitingRef.current = true;
+      setIsExiting(true);
       api.start({
         to: { scale: 0, opacity: 0 },
         config: { ...springConf, duration: mergedConfig.exitDuration },
@@ -144,7 +147,7 @@ export function useNodeAnimation(
     animateHighlight,
     animatePulse,
     animatePosition,
-    isExiting: isExitingRef.current,
+    isExiting,
   };
 }
 

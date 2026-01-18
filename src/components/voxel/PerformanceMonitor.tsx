@@ -62,11 +62,14 @@ function useFPS(): FPSData {
   });
 
   const frameTimesRef = useRef<number[]>([]);
-  const lastTimeRef = useRef(performance.now());
-  const lastUpdateRef = useRef(performance.now());
+  const lastTimeRef = useRef(0);
+  const lastUpdateRef = useRef(0);
 
   useFrame(() => {
     const now = performance.now();
+    if (lastTimeRef.current === 0) lastTimeRef.current = now;
+    if (lastUpdateRef.current === 0) lastUpdateRef.current = now;
+
     const delta = now - lastTimeRef.current;
     lastTimeRef.current = now;
 
@@ -271,8 +274,8 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
                   fpsData.average >= 55
                     ? '#22c55e'
                     : fpsData.average >= 30
-                    ? '#f59e0b'
-                    : '#ef4444',
+                      ? '#f59e0b'
+                      : '#ef4444',
               }}
             />
             <span className="text-sm font-medium">Performance</span>
@@ -375,9 +378,8 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               </button>
               <button
                 onClick={() => setShowDreiStats(!showDreiStats)}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  showDreiStats ? 'bg-blue-500/30' : 'bg-white/5 hover:bg-white/10'
-                }`}
+                className={`px-2 py-1 text-xs rounded transition-colors ${showDreiStats ? 'bg-blue-500/30' : 'bg-white/5 hover:bg-white/10'
+                  }`}
               >
                 Stats
               </button>

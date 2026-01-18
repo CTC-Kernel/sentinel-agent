@@ -14,7 +14,6 @@ import { BlastRadiusPanel } from '../BlastRadiusPanel';
 import type { AffectedNode, WhatIfComparison } from '@/services/blastRadiusService';
 import type { SimulationMode } from '@/hooks/voxel/useBlastRadius';
 import { createVoxelNode, resetIdCounter } from '@/tests/factories/voxelFactory';
-import type { VoxelNode } from '@/types/voxel';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -118,6 +117,12 @@ describe('BlastRadiusPanel', () => {
     onExport: vi.fn(),
     onExportPdf: vi.fn(),
     onSetMode: vi.fn(),
+    // Missing props
+    businessImpact: 'medium' as 'medium' | 'low' | 'high' | 'critical',
+    whatIfScenario: null,
+    onSetConfig: vi.fn(),
+    onApplyWhatIf: vi.fn(),
+    onClearResults: vi.fn(),
   };
 
   beforeEach(() => {
@@ -215,7 +220,6 @@ describe('BlastRadiusPanel', () => {
       render(<BlastRadiusPanel {...defaultProps} />);
 
       // First node should be highest impact (Asset A at 0.85)
-      const nodeItems = screen.getAllByRole('button');
       // Node order should reflect impact sorting
     });
 
@@ -357,8 +361,26 @@ describe('BlastRadiusPanel', () => {
 
     it('should call onClearWhatIf when clearing what-if', () => {
       const whatIfResult: WhatIfComparison = {
-        baseline: {} as any,
-        scenario: {} as any,
+        baseline: {
+          sourceNodeId: 'source-node',
+          affectedNodes: [],
+          totalImpact: 0,
+          maxDepth: 0,
+          paths: [],
+          nodesByType: { asset: [], risk: [], control: [], incident: [], supplier: [], project: [], audit: [] },
+          businessImpact: 'low',
+          executionTimeMs: 0,
+        },
+        scenario: {
+          sourceNodeId: 'source-node',
+          affectedNodes: [],
+          totalImpact: 0,
+          maxDepth: 0,
+          paths: [],
+          nodesByType: { asset: [], risk: [], control: [], incident: [], supplier: [], project: [], audit: [] },
+          businessImpact: 'low',
+          executionTimeMs: 0,
+        },
         impactDelta: 0,
         affectedNodesDelta: 0,
         newlyAffected: [],
@@ -427,7 +449,7 @@ describe('BlastRadiusPanel', () => {
       // Should show spinner or loading text
       expect(
         screen.queryByText(/calcul|simulation|chargement/i) ||
-          document.querySelector('[class*="animate-spin"]')
+        document.querySelector('[class*="animate-spin"]')
       ).toBeDefined();
     });
 

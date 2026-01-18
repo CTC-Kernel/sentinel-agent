@@ -130,6 +130,8 @@ Object.assign(navigator, {
   },
 });
 
+import * as THREE from 'three';
+
 // Mock fetch
 global.fetch = vi.fn().mockResolvedValue({
   blob: vi.fn().mockResolvedValue(new Blob(['mock'], { type: 'image/png' })),
@@ -141,12 +143,12 @@ global.ClipboardItem = vi.fn().mockImplementation((items) => ({
   supports: vi.fn(),
   types: Object.keys(items),
   getType: vi.fn(),
-})) as any;
+})) as unknown as typeof ClipboardItem;
 
 describe('VoxelExportService', () => {
-  let mockRenderer: any;
-  let mockScene: any;
-  let mockCamera: any;
+  let mockRenderer: THREE.WebGLRenderer;
+  let mockScene: THREE.Scene;
+  let mockCamera: THREE.Camera;
 
   beforeEach(async () => {
     resetIdCounter();

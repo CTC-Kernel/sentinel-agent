@@ -12,9 +12,13 @@ import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Line, Text, Html } from '@react-three/drei';
 import { animated, useSpring, config } from '@react-spring/three';
-import { AdditiveBlending, Vector3, Group, CatmullRomCurve3 } from 'three';
+// @ts-expect-error - animated.group not typed
+const AnimatedGroup = animated.group;
+// @ts-expect-error - animated.meshBasicMaterial not typed
+const AnimatedMeshBasicMaterial = animated.meshBasicMaterial;
+import { AdditiveBlending, Vector3, Group, CatmullRomCurve3, Mesh } from 'three';
 import type { VoxelNode } from '@/types/voxel';
-import type { PotentialCause, RootCauseResult } from '@/services/blastRadiusService';
+import type { PotentialCause } from '@/services/blastRadiusService';
 
 // ============================================================================
 // Constants
@@ -63,8 +67,8 @@ const IncidentNodeHighlight: React.FC<IncidentNodeHighlightProps> = React.memo((
   size,
   active,
 }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
 
   // Entrance animation
   const { scale } = useSpring({
@@ -87,7 +91,7 @@ const IncidentNodeHighlight: React.FC<IncidentNodeHighlightProps> = React.memo((
   if (!active) return null;
 
   return (
-    <animated.group position={position} scale={scale}>
+    <AnimatedGroup position={position} scale={scale}>
       {/* Pulsing glow */}
       <mesh ref={meshRef}>
         <sphereGeometry args={[1, 16, 16]} />
@@ -131,7 +135,7 @@ const IncidentNodeHighlight: React.FC<IncidentNodeHighlightProps> = React.memo((
       >
         INCIDENT
       </Text>
-    </animated.group>
+    </AnimatedGroup>
   );
 });
 
@@ -159,13 +163,13 @@ const RootCauseNodeHighlight: React.FC<RootCauseNodeHighlightProps> = React.memo
   rank,
   onClick,
 }) => {
-  const { nodeId, node, likelihood, depth, contributingFactors } = cause;
+  const { nodeId, node, likelihood, contributingFactors } = cause;
   const pos = node.position;
   const position: [number, number, number] = [pos.x, pos.y, pos.z];
   const color = getLikelihoodColor(likelihood);
   const nodeSize = (node.data as { size?: number })?.size || 1;
 
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const arrowRef = useRef<Group>(null);
 
   // Entrance animation
@@ -191,7 +195,7 @@ const RootCauseNodeHighlight: React.FC<RootCauseNodeHighlightProps> = React.memo
   if (!active) return null;
 
   return (
-    <animated.group
+    <AnimatedGroup
       position={position}
       scale={scale}
       onClick={() => onClick?.(nodeId)}
@@ -199,7 +203,7 @@ const RootCauseNodeHighlight: React.FC<RootCauseNodeHighlightProps> = React.memo
       {/* Glow sphere */}
       <mesh ref={meshRef}>
         <sphereGeometry args={[1, 16, 16]} />
-        <animated.meshBasicMaterial
+        <AnimatedMeshBasicMaterial
           color={color}
           transparent
           opacity={opacity.to((o) => o * 0.25)}
@@ -210,7 +214,7 @@ const RootCauseNodeHighlight: React.FC<RootCauseNodeHighlightProps> = React.memo
       {/* Ring indicator */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[nodeSize * 1.3, nodeSize * 1.5, 32]} />
-        <animated.meshBasicMaterial
+        <AnimatedMeshBasicMaterial
           color={color}
           transparent
           opacity={opacity.to((o) => o * 0.8)}
@@ -262,7 +266,7 @@ const RootCauseNodeHighlight: React.FC<RootCauseNodeHighlightProps> = React.memo
           </div>
         </Html>
       )}
-    </animated.group>
+    </AnimatedGroup>
   );
 });
 
@@ -292,8 +296,9 @@ const CausalPath: React.FC<CausalPathProps> = React.memo(({
   delay,
   animate = true,
 }) => {
-  const lineRef = useRef<THREE.Line>(null);
-  const particleRef = useRef<THREE.Mesh>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lineRef = useRef<any>(null);
+  const particleRef = useRef<Mesh>(null);
   const color = getLikelihoodColor(likelihood);
 
   // Build path points
@@ -330,7 +335,8 @@ const CausalPath: React.FC<CausalPathProps> = React.memo(({
       particleRef.current.position.copy(point);
     }
     if (lineRef.current?.material && active) {
-      const material = lineRef.current.material as THREE.LineDashedMaterial;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const material = lineRef.current.material as any;
       if (material.dashOffset !== undefined) {
         material.dashOffset = -clock.getElapsedTime() * 1.5;
       }
@@ -340,7 +346,7 @@ const CausalPath: React.FC<CausalPathProps> = React.memo(({
   if (points.length < 2 || !active) return null;
 
   return (
-    <animated.group scale={progress}>
+    <AnimatedGroup scale={progress}>
       {/* Path line */}
       <Line
         ref={lineRef}
@@ -389,7 +395,7 @@ const CausalPath: React.FC<CausalPathProps> = React.memo(({
           />
         </mesh>
       )}
-    </animated.group>
+    </AnimatedGroup>
   );
 });
 
@@ -424,14 +430,14 @@ interface RootCauseVisualizationProps {
  * Main root cause visualization component
  */
 export const RootCauseVisualization: React.FC<RootCauseVisualizationProps> = React.memo(({
-  incidentNodeId,
+  incidentNodeId: _incidentNodeId,
   incidentNode,
   potentialCauses,
   allNodes,
   isActive,
   maxCausesDisplayed = 10,
   showPathAnimations = true,
-  showLabels = true,
+  showLabels: _showLabels = true,
   onCauseClick,
 }) => {
   // Incident position

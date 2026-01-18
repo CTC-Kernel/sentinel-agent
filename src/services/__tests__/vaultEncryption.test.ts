@@ -4,7 +4,8 @@
  * Suite de tests pour valider la sécurité du système de chiffrement.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { Timestamp } from 'firebase/firestore';
 import {
   VAULT_CONFIG,
   getKeyPath,
@@ -129,7 +130,7 @@ describe('Encryption Metadata Validation', () => {
     const validMetadata: DocumentEncryptionMetadata = {
       encrypted: true,
       keyVersion: '1',
-      encryptedAt: { seconds: Date.now() / 1000, nanoseconds: 0 } as any,
+      encryptedAt: { seconds: Date.now() / 1000, nanoseconds: 0 } as unknown as Timestamp,
       algorithm: 'AES-256-GCM',
       hash: 'a'.repeat(64), // SHA-256 produces 64 hex characters
     };
@@ -194,30 +195,30 @@ describe('Access Control Matrix', () => {
     role: string;
     expected: boolean;
   }> = [
-    // Public
-    { classification: 'public', role: 'user', expected: true },
-    { classification: 'public', role: 'project_manager', expected: true },
-    { classification: 'public', role: 'rssi', expected: true },
-    { classification: 'public', role: 'admin', expected: true },
+      // Public
+      { classification: 'public', role: 'user', expected: true },
+      { classification: 'public', role: 'project_manager', expected: true },
+      { classification: 'public', role: 'rssi', expected: true },
+      { classification: 'public', role: 'admin', expected: true },
 
-    // Internal
-    { classification: 'internal', role: 'user', expected: true },
-    { classification: 'internal', role: 'project_manager', expected: true },
-    { classification: 'internal', role: 'rssi', expected: true },
-    { classification: 'internal', role: 'admin', expected: true },
+      // Internal
+      { classification: 'internal', role: 'user', expected: true },
+      { classification: 'internal', role: 'project_manager', expected: true },
+      { classification: 'internal', role: 'rssi', expected: true },
+      { classification: 'internal', role: 'admin', expected: true },
 
-    // Confidential
-    { classification: 'confidential', role: 'user', expected: false },
-    { classification: 'confidential', role: 'project_manager', expected: true },
-    { classification: 'confidential', role: 'rssi', expected: true },
-    { classification: 'confidential', role: 'admin', expected: true },
+      // Confidential
+      { classification: 'confidential', role: 'user', expected: false },
+      { classification: 'confidential', role: 'project_manager', expected: true },
+      { classification: 'confidential', role: 'rssi', expected: true },
+      { classification: 'confidential', role: 'admin', expected: true },
 
-    // Secret
-    { classification: 'secret', role: 'user', expected: false },
-    { classification: 'secret', role: 'project_manager', expected: false },
-    { classification: 'secret', role: 'rssi', expected: true },
-    { classification: 'secret', role: 'admin', expected: true },
-  ];
+      // Secret
+      { classification: 'secret', role: 'user', expected: false },
+      { classification: 'secret', role: 'project_manager', expected: false },
+      { classification: 'secret', role: 'rssi', expected: true },
+      { classification: 'secret', role: 'admin', expected: true },
+    ];
 
   testMatrix.forEach(({ classification, role, expected }) => {
     it(`should ${expected ? 'allow' : 'deny'} ${role} access to ${classification}`, () => {

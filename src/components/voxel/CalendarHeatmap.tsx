@@ -5,7 +5,7 @@
  * Color intensity based on change volume, click to load snapshot.
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   format,
   startOfYear,
@@ -13,7 +13,6 @@ import {
   eachDayOfInterval,
   getDay,
   getMonth,
-  subYears,
   parseISO,
   isToday,
   isFuture,
@@ -22,11 +21,7 @@ import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/Skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
 import {
   Select,
   SelectContent,
@@ -36,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/lib/firebase';
+import { functions } from '@/firebase';
 import { Calendar, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // ============================================================================
@@ -65,7 +60,7 @@ interface CalendarHeatmapProps {
 }
 
 type IntensityLevel = 0 | 1 | 2 | 3 | 4;
-type MetricType = 'changes' | 'anomalies' | 'risks' | 'nodes';
+
 
 // ============================================================================
 // Constants
@@ -132,45 +127,48 @@ function DayCell({
   const isFutureDate = isFuture(date);
   const isTodayDate = isToday(date);
 
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          className={cn(
-            'w-3 h-3 rounded-sm transition-colors',
-            INTENSITY_COLORS[isFutureDate ? 0 : intensity],
-            isSelected && 'ring-2 ring-primary ring-offset-1',
-            isTodayDate && 'ring-1 ring-foreground/30',
-            isFutureDate && 'opacity-50 cursor-not-allowed'
+
+  const tooltipContent = (
+    <div className="text-xs">
+      <div className="font-medium">
+        {format(date, 'EEEE d MMMM yyyy', { locale: fr })}
+      </div>
+      {data?.hasData ? (
+        <div className="mt-1 space-y-0.5">
+          <div>{data.changes} changements</div>
+          {data.nodesDelta !== 0 && (
+            <div className={data.nodesDelta > 0 ? 'text-emerald-500' : 'text-red-500'}>
+              Noeuds: {data.nodesDelta > 0 ? '+' : ''}{data.nodesDelta}
+            </div>
           )}
-          onClick={isFutureDate ? undefined : onClick}
-          disabled={isFutureDate}
-        />
-      </TooltipTrigger>
-      <TooltipContent side="top" className="text-xs">
-        <div className="font-medium">
-          {format(date, 'EEEE d MMMM yyyy', { locale: fr })}
+          {data.anomaliesDelta !== 0 && (
+            <div className={data.anomaliesDelta > 0 ? 'text-orange-500' : 'text-emerald-500'}>
+              Anomalies: {data.anomaliesDelta > 0 ? '+' : ''}{data.anomaliesDelta}
+            </div>
+          )}
         </div>
-        {data?.hasData ? (
-          <div className="mt-1 space-y-0.5">
-            <div>{data.changes} changements</div>
-            {data.nodesDelta !== 0 && (
-              <div className={data.nodesDelta > 0 ? 'text-emerald-500' : 'text-red-500'}>
-                Noeuds: {data.nodesDelta > 0 ? '+' : ''}{data.nodesDelta}
-              </div>
-            )}
-            {data.anomaliesDelta !== 0 && (
-              <div className={data.anomaliesDelta > 0 ? 'text-orange-500' : 'text-emerald-500'}>
-                Anomalies: {data.anomaliesDelta > 0 ? '+' : ''}{data.anomaliesDelta}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-muted-foreground">Pas de donnees</div>
+      ) : (
+        <div className="text-muted-foreground">Pas de donnees</div>
+      )}
+    </div>
+  );
+
+  return (
+    <Tooltip content={tooltipContent}>
+      <button
+        className={cn(
+          'w-3 h-3 rounded-sm transition-colors',
+          INTENSITY_COLORS[isFutureDate ? 0 : intensity],
+          isSelected && 'ring-2 ring-primary ring-offset-1',
+          isTodayDate && 'ring-1 ring-foreground/30',
+          isFutureDate && 'opacity-50 cursor-not-allowed'
         )}
-      </TooltipContent>
+        onClick={isFutureDate ? undefined : onClick}
+        disabled={isFutureDate}
+      />
     </Tooltip>
   );
+
 }
 
 /**
@@ -225,7 +223,6 @@ export function CalendarHeatmap({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [activityData, setActivityData] = useState<Map<string, DayData>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
-  const [metric, setMetric] = useState<MetricType>('changes');
 
   // Generate all days for the year
   const yearDays = useMemo(() => {
@@ -260,7 +257,7 @@ export function CalendarHeatmap({
 
     return Array.from(weeksMap.entries())
       .sort((a, b) => a[0] - b[0])
-      .map(([weekNum, days]) => days);
+      .map(([_weekNum, days]) => days);
   }, [yearDays, year]);
 
   // Get month labels with their positions
@@ -299,7 +296,18 @@ export function CalendarHeatmap({
         limit: 366,
       });
 
-      const response = result.data as { success: boolean; snapshots: any[] };
+      interface VoxelSnapshot {
+        date: string;
+        metrics?: {
+          nodes?: { total: number };
+          anomalies?: { active: number };
+          risks?: { total: number };
+          compliance?: { implementationRate: number };
+        };
+      }
+
+      // ... inside component ...
+      const response = result.data as { success: boolean; snapshots: VoxelSnapshot[] };
       if (response.success) {
         const dataMap = new Map<string, DayData>();
 
@@ -324,7 +332,7 @@ export function CalendarHeatmap({
             : 0;
           const complianceDelta = previous
             ? (current.metrics?.compliance?.implementationRate || 0) -
-              (previous.metrics?.compliance?.implementationRate || 0)
+            (previous.metrics?.compliance?.implementationRate || 0)
             : 0;
 
           // Total changes = sum of absolute deltas

@@ -62,6 +62,8 @@ export const canAccessClassification = (
   userRole: string
 ): boolean => {
   const config = CLASSIFICATION_CONFIG[classification];
+  // Handle invalid classification levels gracefully
+  if (!config) return false;
   if (config.requiredRoles.length === 0) return true;
   return (config.requiredRoles as readonly string[]).includes(userRole);
 };

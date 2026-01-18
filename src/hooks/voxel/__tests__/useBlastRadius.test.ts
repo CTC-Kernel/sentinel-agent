@@ -50,7 +50,7 @@ vi.mock('@/stores/voxelStore', () => ({
 // Mock BlastRadiusService
 vi.mock('@/services/blastRadiusService', () => ({
   BlastRadiusService: {
-    calculateBlastRadius: vi.fn((sourceId, nodes, edges, _config) => ({
+    calculateBlastRadius: vi.fn((sourceId, nodes, _edges, _config) => ({
       sourceNodeId: sourceId,
       affectedNodes: [
         {
@@ -115,7 +115,7 @@ vi.mock('@/services/blastRadiusService', () => ({
       ],
       executionTimeMs: 3,
     })),
-    applyWhatIfScenario: vi.fn((sourceId, nodes, edges, config, scenario) => {
+    applyWhatIfScenario: vi.fn((sourceId, nodes, _edges, _config, _scenario) => {
       const baseline = {
         sourceNodeId: sourceId,
         affectedNodes: [
@@ -166,11 +166,10 @@ describe('useBlastRadius', () => {
   beforeEach(() => {
     resetIdCounter();
     vi.clearAllMocks();
-    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   // ============================================================================

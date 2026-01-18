@@ -33,11 +33,10 @@ import { format, parseISO, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/lib/firebase';
+import { functions } from '@/firebase';
 
 // ============================================================================
 // Types
@@ -80,6 +79,16 @@ interface TrendWarning {
   severity: 'warning' | 'critical';
 }
 
+interface VoxelSnapshot {
+  date: string;
+  metrics?: {
+    nodes?: { total: number };
+    risks?: { total: number };
+    anomalies?: { active: number };
+    compliance?: { implementationRate: number };
+  };
+}
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -99,7 +108,6 @@ function linearRegression(data: { x: number; y: number }[]): {
   const sumY = data.reduce((acc, d) => acc + d.y, 0);
   const sumXY = data.reduce((acc, d) => acc + d.x * d.y, 0);
   const sumX2 = data.reduce((acc, d) => acc + d.x * d.x, 0);
-  const sumY2 = data.reduce((acc, d) => acc + d.y * d.y, 0);
 
   const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
   const intercept = (sumY - slope * sumX) / n;
@@ -129,14 +137,14 @@ function generatePredictions(
     y: d[metric] as number,
   }));
 
-  const { slope, intercept, r2 } = linearRegression(regressionData);
+  const { slope, intercept } = linearRegression(regressionData);
 
   // Generate predictions
   const predictions: TrendDataPoint[] = [];
   const lastDate = parseISO(data[data.length - 1].date);
   const stdDev = Math.sqrt(
     regressionData.reduce((acc, d) => acc + Math.pow(d.y - (slope * d.x + intercept), 2), 0) /
-      regressionData.length
+    regressionData.length
   );
 
   for (let i = 1; i <= daysToPredict; i++) {
@@ -249,12 +257,14 @@ function TrendWarningBanner({ warnings }: { warnings: TrendWarning[] }) {
 /**
  * Custom tooltip for charts
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
 
   return (
     <div className="bg-popover border rounded-lg shadow-lg p-3 text-sm">
       <p className="font-medium mb-2">{label}</p>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {payload.map((entry: any, index: number) => (
         <div key={index} className="flex items-center gap-2">
           <div
@@ -363,7 +373,7 @@ export function TrendCharts({
         limit: daysForRange,
       });
 
-      const response = result.data as { success: boolean; snapshots: any[] };
+      const response = result.data as { success: boolean; snapshots: VoxelSnapshot[] };
       if (response.success) {
         const trendData: TrendDataPoint[] = response.snapshots
           .sort((a, b) => a.date.localeCompare(b.date))

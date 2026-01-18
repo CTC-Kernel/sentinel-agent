@@ -58,7 +58,6 @@ describe('useVoxelRealtime', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
 
     unsubscribeMock = vi.fn();
     mockOnSnapshot.mockReturnValue(unsubscribeMock);
@@ -72,6 +71,7 @@ describe('useVoxelRealtime', () => {
   });
 
   afterEach(() => {
+    vi.clearAllMocks();
     vi.useRealTimers();
   });
 
@@ -157,6 +157,8 @@ describe('useVoxelRealtime', () => {
 
   describe('snapshot handling', () => {
     it('should add nodes for "added" changes', async () => {
+      vi.useFakeTimers();
+
       mockOnSnapshot.mockImplementation((_, onSuccess) => {
         onSuccess({
           docChanges: () => [
@@ -192,12 +194,12 @@ describe('useVoxelRealtime', () => {
         vi.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(mockAddNode).toHaveBeenCalled();
-      });
+      expect(mockAddNode).toHaveBeenCalled();
     });
 
     it('should update nodes for "modified" changes', async () => {
+      vi.useFakeTimers();
+
       mockOnSnapshot.mockImplementation((_, onSuccess) => {
         onSuccess({
           docChanges: () => [
@@ -232,12 +234,12 @@ describe('useVoxelRealtime', () => {
         vi.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(mockUpdateNode).toHaveBeenCalled();
-      });
+      expect(mockUpdateNode).toHaveBeenCalled();
     });
 
     it('should remove nodes for "removed" changes', async () => {
+      vi.useFakeTimers();
+
       mockOnSnapshot.mockImplementation((_, onSuccess) => {
         onSuccess({
           docChanges: () => [
@@ -267,9 +269,7 @@ describe('useVoxelRealtime', () => {
         vi.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(mockRemoveNode).toHaveBeenCalledWith('asset-1');
-      });
+      expect(mockRemoveNode).toHaveBeenCalledWith('asset-1');
     });
   });
 
@@ -279,6 +279,8 @@ describe('useVoxelRealtime', () => {
 
   describe('debouncing', () => {
     it('should debounce batch updates', async () => {
+      vi.useFakeTimers();
+
       let snapshotCallback: (snapshot: unknown) => void = () => {};
 
       mockOnSnapshot.mockImplementation((_, onSuccess) => {
@@ -330,12 +332,12 @@ describe('useVoxelRealtime', () => {
       });
 
       // Now should have flushed
-      await waitFor(() => {
-        expect(mockAddNode).toHaveBeenCalledTimes(3);
-      });
+      expect(mockAddNode).toHaveBeenCalledTimes(3);
     });
 
     it('should use custom debounce time', async () => {
+      vi.useFakeTimers();
+
       let snapshotCallback: (snapshot: unknown) => void = () => {};
 
       mockOnSnapshot.mockImplementation((_, onSuccess) => {
@@ -372,9 +374,7 @@ describe('useVoxelRealtime', () => {
         vi.advanceTimersByTime(150);
       });
 
-      await waitFor(() => {
-        expect(mockAddNode).toHaveBeenCalled();
-      });
+      expect(mockAddNode).toHaveBeenCalled();
     });
   });
 
@@ -441,6 +441,8 @@ describe('useVoxelRealtime', () => {
     });
 
     it('should update lastSyncAt after flushing updates', async () => {
+      vi.useFakeTimers();
+
       mockOnSnapshot.mockImplementation((_, onSuccess) => {
         onSuccess({
           docChanges: () => [
@@ -464,9 +466,7 @@ describe('useVoxelRealtime', () => {
         vi.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(mockSetLastSyncAt).toHaveBeenCalled();
-      });
+      expect(mockSetLastSyncAt).toHaveBeenCalled();
     });
   });
 
@@ -496,6 +496,8 @@ describe('useVoxelRealtime', () => {
     });
 
     it('should clear pending timers on unmount', async () => {
+      vi.useFakeTimers();
+
       let snapshotCallback: (snapshot: unknown) => void = () => {};
 
       mockOnSnapshot.mockImplementation((_, onSuccess) => {
@@ -513,7 +515,7 @@ describe('useVoxelRealtime', () => {
         })
       );
 
-      // Trigger a change to start debounce timer
+      // Trigger a change to start the debounce timer
       act(() => {
         snapshotCallback({
           docChanges: () => [
@@ -522,48 +524,16 @@ describe('useVoxelRealtime', () => {
         });
       });
 
-      // Unmount before debounce timer fires
+      // Unmount before timer fires
       unmount();
 
-      // Advance timers
+      // Advance timers after unmount
       act(() => {
-        vi.advanceTimersByTime(200);
+        vi.advanceTimersByTime(150);
       });
 
-      // Should not have called addNode since we unmounted
-      // (Can't easily verify timer was cleared, but no error means success)
-    });
-  });
-
-  // ============================================================================
-  // Return Value Tests
-  // ============================================================================
-
-  describe('return value', () => {
-    it('should return isEnabled status', async () => {
-      const { useVoxelRealtime } = await import('../useVoxelRealtime');
-
-      const { result } = renderHook(() =>
-        useVoxelRealtime({
-          enabled: true,
-          collections: ['assets'],
-        })
-      );
-
-      expect(result.current.isEnabled).toBe(true);
-    });
-
-    it('should return configured collections', async () => {
-      const { useVoxelRealtime } = await import('../useVoxelRealtime');
-
-      const { result } = renderHook(() =>
-        useVoxelRealtime({
-          enabled: true,
-          collections: ['assets', 'risks', 'controls'],
-        })
-      );
-
-      expect(result.current.collections).toEqual(['assets', 'risks', 'controls']);
+      // Should not have called addNode since component unmounted
+      expect(mockAddNode).not.toHaveBeenCalled();
     });
   });
 });

@@ -15,7 +15,7 @@ import React, { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Html, Text, Line, Billboard } from '@react-three/drei';
 import { animated, useSpring, config } from '@react-spring/three';
-import { Group, Vector3, AdditiveBlending } from 'three';
+import { Group, Vector3, AdditiveBlending, Mesh, MeshBasicMaterial } from 'three';
 import type { VoxelAnnotation, Position3D } from '../../types/voxelAnnotation';
 import {
   ANNOTATION_TYPE_COLORS,
@@ -138,8 +138,8 @@ const UnreadPulse: React.FC<{
   color: string;
   visible: boolean;
 }> = React.memo(({ color, visible }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const meshRef = useRef<Mesh>(null);
+  const materialRef = useRef<MeshBasicMaterial>(null);
 
   useFrame(({ clock }) => {
     if (!visible || !meshRef.current || !materialRef.current) return;
@@ -263,12 +263,12 @@ const ConnectionLine: React.FC<{
   color: string;
   visible: boolean;
 }> = React.memo(({ start, end, color, visible }) => {
-  if (!visible) return null;
-
   const points = useMemo(() => [
     new Vector3(start.x, start.y, start.z),
     new Vector3(end.x, end.y, end.z),
   ], [start, end]);
+
+  if (!visible) return null;
 
   return (
     <Line

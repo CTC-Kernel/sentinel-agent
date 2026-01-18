@@ -6,16 +6,14 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useVoxelStore, useCurrentPreset } from '@/stores/voxelStore';
 import {
-  VIEW_PRESETS,
   isValidPreset,
   serializePresetToUrl,
   deserializePresetFromUrl,
-  type ExtendedViewPresetConfig,
 } from '@/stores/viewPresets';
-import type { ViewPreset, VoxelNodeType } from '@/types/voxel';
+import type { ViewPreset, VoxelNodeType, VoxelUIState } from '@/types/voxel';
 
 // ============================================================================
 // Types
@@ -88,25 +86,7 @@ const DEFAULT_OPTIONS: Required<UseVoxelUrlStateOptions> = {
 // Helper Functions
 // ============================================================================
 
-/**
- * Encode camera position to URL-safe string
- */
-function encodeCameraPosition(
-  position: { x: number; y: number; z: number },
-  target: { x: number; y: number; z: number }
-): string {
-  const p = [
-    Math.round(position.x * 10) / 10,
-    Math.round(position.y * 10) / 10,
-    Math.round(position.z * 10) / 10,
-  ];
-  const t = [
-    Math.round(target.x * 10) / 10,
-    Math.round(target.y * 10) / 10,
-    Math.round(target.z * 10) / 10,
-  ];
-  return btoa(`${p.join(',')};${t.join(',')}`);
-}
+
 
 /**
  * Decode camera position from URL string
@@ -132,21 +112,7 @@ function decodeCameraPosition(encoded: string): {
   }
 }
 
-/**
- * Encode layers to URL-safe string
- */
-function encodeLayers(layers: VoxelNodeType[]): string {
-  const shorthand: Record<VoxelNodeType, string> = {
-    asset: 'a',
-    risk: 'r',
-    control: 'c',
-    incident: 'i',
-    supplier: 's',
-    project: 'p',
-    audit: 'u',
-  };
-  return layers.map(l => shorthand[l]).join('');
-}
+
 
 /**
  * Decode layers from URL string
@@ -173,8 +139,6 @@ export function useVoxelUrlState(
 ): UseVoxelUrlStateReturn {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   // Store state
   const currentPreset = useCurrentPreset();
@@ -218,6 +182,7 @@ export function useVoxelUrlState(
   /**
    * Apply URL state to the Voxel view
    */
+
   const applyFromUrl = useCallback((): boolean => {
     const state = parseUrlState();
     let applied = false;
@@ -266,7 +231,7 @@ export function useVoxelUrlState(
     if (state.layout) {
       const validLayouts = ['force', 'hierarchical', 'radial', 'timeline'];
       if (validLayouts.includes(state.layout)) {
-        setLayoutType(state.layout as typeof ui.layoutType);
+        setLayoutType(state.layout as VoxelUIState['layoutType']);
         applied = true;
       }
     }
@@ -287,7 +252,6 @@ export function useVoxelUrlState(
     setNodeTypeFilter,
     setLayoutType,
     selectNode,
-    ui.layoutType,
   ]);
 
   /**
@@ -406,6 +370,7 @@ export function useVoxelUrlState(
       initialLoadRef.current = false;
       const hasState = Object.values(URL_PARAMS).some(p => searchParams.has(p));
       if (hasState) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         applyFromUrl();
       }
     }

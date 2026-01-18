@@ -217,53 +217,11 @@ export function useOfflineMode(
     disableNetwork(db).catch(console.error);
   }, [saveToCache, setSyncStatus]);
 
-  /**
-   * Handle coming back online
-   */
-  const handleOnline = useCallback(() => {
-    console.log('[OfflineMode] Coming back online');
-    setIsOnline(true);
-    setSyncStatus('syncing');
 
-    // Re-enable Firestore network
-    enableNetwork(db)
-      .then(() => {
-        setRetryCount(0);
-        setIsPollingFallback(false);
-        setSyncStatus('connected');
-      })
-      .catch((error) => {
-        console.error('[OfflineMode] Failed to reconnect:', error);
-        handleReconnectFailure();
-      });
-  }, [setSyncStatus]);
 
   /**
    * Handle reconnection failure
    */
-  const handleReconnectFailure = useCallback(() => {
-    setRetryCount((prev) => prev + 1);
-
-    if (retryCount >= mergedConfig.maxRetryAttempts) {
-      console.log('[OfflineMode] Max retries reached, enabling polling fallback');
-      setIsPollingFallback(true);
-      startPollingFallback();
-    } else {
-      // Exponential backoff retry
-      const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
-      console.log(`[OfflineMode] Retrying in ${delay}ms (attempt ${retryCount + 1})`);
-
-      reconnectTimeoutRef.current = setTimeout(() => {
-        enableNetwork(db)
-          .then(() => {
-            setRetryCount(0);
-            setSyncStatus('connected');
-          })
-          .catch(handleReconnectFailure);
-      }, delay);
-    }
-  }, [retryCount, mergedConfig.maxRetryAttempts, setSyncStatus]);
-
   /**
    * Start polling fallback mode
    */
@@ -291,6 +249,58 @@ export function useOfflineMode(
       }
     }, mergedConfig.pollingInterval);
   }, [mergedConfig.pollingInterval, setSyncStatus]);
+
+  /**
+   * Handle reconnection failure
+   */
+  const handleReconnectFailureRef = useRef<() => void>(() => { });
+
+  const handleReconnectFailure = useCallback(() => {
+    setRetryCount((prev) => prev + 1);
+
+    if (retryCount >= mergedConfig.maxRetryAttempts) {
+      console.log('[OfflineMode] Max retries reached, enabling polling fallback');
+      setIsPollingFallback(true);
+      startPollingFallback();
+    } else {
+      const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+      console.log(`[OfflineMode] Retrying in ${delay}ms (attempt ${retryCount + 1})`);
+
+      reconnectTimeoutRef.current = setTimeout(() => {
+        enableNetwork(db)
+          .then(() => {
+            setRetryCount(0);
+            setSyncStatus('connected');
+          })
+          .catch(() => handleReconnectFailureRef.current());
+      }, delay);
+    }
+  }, [retryCount, mergedConfig.maxRetryAttempts, setSyncStatus, startPollingFallback]);
+
+  useEffect(() => {
+    handleReconnectFailureRef.current = handleReconnectFailure;
+  }, [handleReconnectFailure]);
+
+  /**
+   * Handle coming back online
+   */
+  const handleOnline = useCallback(() => {
+    console.log('[OfflineMode] Coming back online');
+    setIsOnline(true);
+    setSyncStatus('syncing');
+
+    // Re-enable Firestore network
+    enableNetwork(db)
+      .then(() => {
+        setRetryCount(0);
+        setIsPollingFallback(false);
+        setSyncStatus('connected');
+      })
+      .catch((error) => {
+        console.error('[OfflineMode] Failed to reconnect:', error);
+        handleReconnectFailure();
+      });
+  }, [setSyncStatus, handleReconnectFailure]);
 
   /**
    * Stop polling fallback
@@ -335,7 +345,7 @@ export function useOfflineMode(
   // Load from cache on initial mount if offline
   useEffect(() => {
     if (!isOnline && mergedConfig.enableCache) {
-      loadFromCache();
+      setTimeout(() => loadFromCache(), 0);
     }
   }, [isOnline, mergedConfig.enableCache, loadFromCache]);
 

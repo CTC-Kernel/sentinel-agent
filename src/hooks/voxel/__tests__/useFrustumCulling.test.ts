@@ -9,9 +9,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import type { VoxelNode } from '@/types/voxel';
-import { createVoxelNode, createVoxelNodes, resetIdCounter } from '@/tests/factories/voxelFactory';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { createVoxelNodes, resetIdCounter } from '@/tests/factories/voxelFactory';
 
 // Mock Three.js
 const mockCamera = {
@@ -83,8 +82,12 @@ describe('useFrustumCulling', () => {
         useFrustumCulling(nodes, { enabled: false })
       );
 
+      // Wait for async visibility calculation via requestAnimationFrame
+      await waitFor(() => {
+        expect(result.current.state.visibleCount).toBe(5);
+      });
+
       expect(result.current.state.visibleNodeIds.size).toBe(5);
-      expect(result.current.state.visibleCount).toBe(5);
     });
 
     it('should have correct state structure', async () => {
@@ -134,6 +137,11 @@ describe('useFrustumCulling', () => {
       const { result } = renderHook(() =>
         useFrustumCulling(nodes, { enabled: false })
       );
+
+      // Wait for the async visibility calculation via requestAnimationFrame
+      await waitFor(() => {
+        expect(result.current.state.visibleCount).toBe(10);
+      });
 
       expect(result.current.state.visibilityRatio).toBe(1);
       expect(result.current.state.totalNodes).toBe(10);
@@ -215,7 +223,10 @@ describe('useFrustumCulling', () => {
         result.current.setEnabled(false);
       });
 
-      expect(result.current.state.visibleCount).toBe(10);
+      // Wait for the async visibility recalculation
+      await waitFor(() => {
+        expect(result.current.state.visibleCount).toBe(10);
+      });
     });
   });
 

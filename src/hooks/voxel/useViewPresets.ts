@@ -8,7 +8,7 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useVoxelStore, useCurrentPreset } from '@/stores/voxelStore';
 import {
-  VIEW_PRESETS,
+
   getAvailablePresets,
   getPresetConfig,
   isValidPreset,
@@ -18,9 +18,9 @@ import {
   type CustomViewConfig,
 } from '@/stores/viewPresets';
 import type { ViewPreset } from '@/types/voxel';
-import { useAuth } from '@/contexts/AuthContext';
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useAuth } from '@/hooks/useAuth';
+import { doc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/firebase';
 
 // ============================================================================
 // Types

@@ -8,7 +8,7 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useXR, useController, Interactive, XRInteractionEvent } from '@react-three/xr';
-import { Vector3, Group, Raycaster, Line3, Color, Mesh } from 'three';
+import { Vector3, Group, Mesh } from 'three';
 import type { VoxelNode } from '@/types/voxel';
 
 // ============================================================================
@@ -80,7 +80,6 @@ const ControllerRay: React.FC<ControllerRayProps> = ({
   hitPosition,
 }) => {
   const controller = useController(hand);
-  const lineRef = useRef<Mesh>(null);
 
   // Calculate ray end position
   const rayPoints = useMemo(() => {
@@ -89,8 +88,8 @@ const ControllerRay: React.FC<ControllerRayProps> = ({
     const startPos = new Vector3(0, 0, 0);
     const endPos = hitPosition
       ? hitPosition.clone().sub(controller.controller.position).normalize().multiplyScalar(
-          hitPosition.distanceTo(controller.controller.position)
-        )
+        hitPosition.distanceTo(controller.controller.position)
+      )
       : new Vector3(0, 0, -maxDistance);
 
     return { start: startPos, end: endPos };
@@ -271,7 +270,7 @@ const SelectionHighlight: React.FC<SelectionHighlightProps> = ({ position, color
 export const VRControllers: React.FC<VRControllersProps> = ({
   onNodeSelect,
   onNodeHover,
-  onTeleport,
+  onTeleport: _onTeleport,
   enableTeleport = true,
   enableHaptics = true,
   rayColor = DEFAULT_RAY_COLOR,
@@ -279,21 +278,21 @@ export const VRControllers: React.FC<VRControllersProps> = ({
   maxRayDistance = DEFAULT_MAX_DISTANCE,
   nodeMap,
 }) => {
-  const { isPresenting, player } = useXR();
+  const { isPresenting } = useXR();
   const leftController = useController('left');
   const rightController = useController('right');
 
   // State
-  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [isLeftHitting, setIsLeftHitting] = useState(false);
-  const [isRightHitting, setIsRightHitting] = useState(false);
-  const [leftHitPosition, setLeftHitPosition] = useState<Vector3 | undefined>();
-  const [rightHitPosition, setRightHitPosition] = useState<Vector3 | undefined>();
-  const [teleportTarget, setTeleportTarget] = useState<Vector3 | null>(null);
-  const [isTeleportValid, setIsTeleportValid] = useState(false);
-  const [isLeftGrabbing, setIsLeftGrabbing] = useState(false);
-  const [isRightGrabbing, setIsRightGrabbing] = useState(false);
+  const [hoveredNodeId, _setHoveredNodeId] = useState<string | null>(null);
+  const [selectedNodeId, _setSelectedNodeId] = useState<string | null>(null);
+  const [isLeftHitting, _setIsLeftHitting] = useState(false);
+  const [isRightHitting, _setIsRightHitting] = useState(false);
+  const [leftHitPosition, _setLeftHitPosition] = useState<Vector3 | undefined>();
+  const [rightHitPosition, _setRightHitPosition] = useState<Vector3 | undefined>();
+  const [teleportTarget, _setTeleportTarget] = useState<Vector3 | null>(null);
+  const [isTeleportValid, _setIsTeleportValid] = useState(false);
+  const [isLeftGrabbing, _setIsLeftGrabbing] = useState(false);
+  const [isRightGrabbing, _setIsRightGrabbing] = useState(false);
 
   // Trigger haptic feedback
   const triggerHaptic = useCallback(
@@ -308,50 +307,25 @@ export const VRControllers: React.FC<VRControllersProps> = ({
     [enableHaptics, leftController, rightController]
   );
 
-  // Handle node hover
-  const handleNodeHover = useCallback(
-    (nodeId: string | null) => {
-      if (nodeId !== hoveredNodeId) {
-        setHoveredNodeId(nodeId);
-        if (nodeId && nodeMap) {
-          const node = nodeMap.get(nodeId);
-          onNodeHover?.(node || null);
-          triggerHaptic('right', 0.2, 20);
-        } else {
-          onNodeHover?.(null);
-        }
-      }
-    },
-    [hoveredNodeId, nodeMap, onNodeHover, triggerHaptic]
-  );
+  // Handlers for node interaction would go here
+  // Currently unused as interactions are handled by Interactive component or custom logic
+  useEffect(() => {
+    if (hoveredNodeId && nodeMap) {
+      const node = nodeMap.get(hoveredNodeId);
+      onNodeHover?.(node || null);
+      if (node) triggerHaptic('right', 0.2, 20);
+    } else {
+      onNodeHover?.(null);
+    }
+  }, [hoveredNodeId, nodeMap, onNodeHover, triggerHaptic]);
 
-  // Handle node selection
-  const handleNodeSelect = useCallback(
-    (nodeId: string | null) => {
-      setSelectedNodeId(nodeId);
-      if (nodeId && nodeMap) {
-        const node = nodeMap.get(nodeId);
-        onNodeSelect?.(node || null);
-        triggerHaptic('right', 0.8, 100);
-      } else {
-        onNodeSelect?.(null);
-      }
-    },
-    [nodeMap, onNodeSelect, triggerHaptic]
-  );
-
-  // Handle teleport
-  const handleTeleport = useCallback(
-    (position: Vector3) => {
-      if (enableTeleport && player) {
-        // Move player to new position
-        player.position.set(position.x, position.y, position.z);
-        onTeleport?.(position);
-        triggerHaptic('left', 0.6, 150);
-      }
-    },
-    [enableTeleport, player, onTeleport, triggerHaptic]
-  );
+  useEffect(() => {
+    if (selectedNodeId && nodeMap) {
+      const node = nodeMap.get(selectedNodeId);
+      onNodeSelect?.(node || null);
+      if (node) triggerHaptic('right', 0.8, 100);
+    }
+  }, [selectedNodeId, nodeMap, onNodeSelect, triggerHaptic]);
 
   // Get selected node position for highlight
   const selectedNodePosition = useMemo(() => {
@@ -433,7 +407,7 @@ export interface VRInteractiveNodeProps {
 }
 
 export const VRInteractiveNode: React.FC<VRInteractiveNodeProps> = ({
-  nodeId,
+  nodeId: _nodeId,
   node,
   children,
   onSelect,
@@ -446,8 +420,7 @@ export const VRInteractiveNode: React.FC<VRInteractiveNodeProps> = ({
 
   // Handle select interaction
   const handleSelect = useCallback(
-    (event: XRInteractionEvent) => {
-      event.stopPropagation();
+    (_event: XRInteractionEvent) => {
       onSelect?.(node);
     },
     [node, onSelect]
@@ -455,8 +428,7 @@ export const VRInteractiveNode: React.FC<VRInteractiveNodeProps> = ({
 
   // Handle hover start
   const handleHoverStart = useCallback(
-    (event: XRInteractionEvent) => {
-      event.stopPropagation();
+    (_event: XRInteractionEvent) => {
       setIsHovered(true);
       onHover?.(node);
     },
@@ -465,8 +437,7 @@ export const VRInteractiveNode: React.FC<VRInteractiveNodeProps> = ({
 
   // Handle hover end
   const handleHoverEnd = useCallback(
-    (event: XRInteractionEvent) => {
-      event.stopPropagation();
+    (_event: XRInteractionEvent) => {
       setIsHovered(false);
       onHover?.(null);
     },
@@ -528,7 +499,7 @@ export interface VRHandTrackingProps {
 
 export const VRHandTracking: React.FC<VRHandTrackingProps> = ({
   showHands = true,
-  handColor = '#ffffff',
+  handColor: _handColor = '#ffffff',
 }) => {
   const { isPresenting } = useXR();
 

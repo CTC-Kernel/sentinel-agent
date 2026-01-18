@@ -137,52 +137,7 @@ async function checkSessionSupport(mode: XRSessionMode): Promise<boolean> {
   }
 }
 
-/**
- * Detect device capabilities by checking optional features
- */
-async function detectCapabilities(): Promise<XRDeviceCapabilities> {
-  const capabilities: XRDeviceCapabilities = { ...INITIAL_CAPABILITIES };
 
-  if (!isWebXRAvailable()) return capabilities;
-
-  // Check VR capabilities
-  try {
-    // Try to check for hand-tracking support via feature descriptor
-    // Note: This is a simplified check; actual availability may vary
-    const vrSession = await navigator.xr?.requestSession?.('immersive-vr', {
-      optionalFeatures: ['hand-tracking', 'local-floor', 'bounded-floor'],
-    }).catch(() => null);
-
-    if (vrSession) {
-      capabilities.handTracking = vrSession.inputSources?.some(
-        (source) => source.hand !== undefined
-      ) ?? false;
-      capabilities.localFloor = true;
-      await vrSession.end();
-    }
-  } catch {
-    // Silent fail for capability detection
-  }
-
-  // Check AR capabilities
-  try {
-    const arSession = await navigator.xr?.requestSession?.('immersive-ar', {
-      optionalFeatures: ['hit-test', 'anchors', 'plane-detection', 'depth-sensing', 'dom-overlay'],
-    }).catch(() => null);
-
-    if (arSession) {
-      capabilities.hitTest = true;
-      capabilities.anchors = true;
-      capabilities.planeDetection = true;
-      capabilities.domOverlay = true;
-      await arSession.end();
-    }
-  } catch {
-    // Silent fail for capability detection
-  }
-
-  return capabilities;
-}
 
 /**
  * Get user-friendly device info string

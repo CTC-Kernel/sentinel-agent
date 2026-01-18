@@ -30,66 +30,69 @@ vi.mock('@/stores/voxelStore', () => ({
   useCurrentPreset: vi.fn(() => 'executive' as ViewPreset),
 }));
 
-// Mock viewPresets
-vi.mock('@/stores/viewPresets', () => ({
-  VIEW_PRESETS: {
+// Mock viewPresets - define inline to avoid hoisting issues
+vi.mock('@/stores/viewPresets', () => {
+  const presets = {
     executive: {
-      name: 'executive',
-      label: 'Vue Executive',
       layers: ['asset', 'risk', 'control'],
       layout: 'force',
       camera: { position: { x: 0, y: 10, z: 20 }, target: { x: 0, y: 0, z: 0 } },
       description: 'Vue haut niveau pour dirigeants',
-      icon: 'Briefcase',
+      icon: '👔',
+      colorScheme: 'default',
     },
     rssi: {
-      name: 'rssi',
-      label: 'Vue RSSI',
       layers: ['risk', 'control', 'incident'],
       layout: 'force',
       camera: { position: { x: 0, y: 10, z: 20 }, target: { x: 0, y: 0, z: 0 } },
       description: 'Vue securite pour RSSI',
-      icon: 'Shield',
+      icon: '🛡️',
+      colorScheme: 'default',
     },
     auditor: {
-      name: 'auditor',
-      label: 'Vue Auditeur',
       layers: ['control', 'audit'],
       layout: 'hierarchical',
       camera: { position: { x: 0, y: 10, z: 20 }, target: { x: 0, y: 0, z: 0 } },
       description: 'Vue conformite pour auditeurs',
-      icon: 'ClipboardCheck',
+      icon: '📋',
+      colorScheme: 'default',
     },
     soc: {
-      name: 'soc',
-      label: 'Vue SOC',
       layers: ['incident', 'asset'],
       layout: 'force',
       camera: { position: { x: 0, y: 10, z: 20 }, target: { x: 0, y: 0, z: 0 } },
       description: 'Vue operations pour SOC',
-      icon: 'Activity',
+      icon: '📊',
+      colorScheme: 'default',
     },
     compliance: {
-      name: 'compliance',
-      label: 'Vue Compliance',
       layers: ['control', 'audit', 'risk'],
       layout: 'hierarchical',
       camera: { position: { x: 0, y: 10, z: 20 }, target: { x: 0, y: 0, z: 0 } },
       description: 'Vue conformite reglementaire',
-      icon: 'Scale',
+      icon: '⚖️',
+      colorScheme: 'default',
     },
     custom: {
-      name: 'custom',
-      label: 'Vue Personnalisee',
       layers: [],
       layout: 'force',
       camera: { position: { x: 0, y: 10, z: 20 }, target: { x: 0, y: 0, z: 0 } },
       description: 'Votre vue personnalisee',
-      icon: 'Settings',
+      icon: '⚙️',
+      colorScheme: 'default',
     },
-  },
-  getAvailablePresets: vi.fn(() => ['executive', 'rssi', 'auditor', 'soc', 'compliance', 'custom']),
-}));
+  };
+
+  return {
+    VIEW_PRESETS: presets,
+    getAvailablePresets: vi.fn(() =>
+      Object.keys(presets).map(key => ({
+        key,
+        config: presets[key as keyof typeof presets],
+      }))
+    ),
+  };
+});
 
 // Mock useLocale
 vi.mock('@/hooks/useLocale', () => ({
@@ -116,7 +119,7 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
   DropdownMenuSeparator: (props: Record<string, unknown>) => (
     <div data-testid="dropdown-separator" role="separator" {...props} />
   ),
-  DropdownMenuTrigger: ({ children, asChild, ...props }: React.PropsWithChildren<{ asChild?: boolean }>) => (
+  DropdownMenuTrigger: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => (
     <div data-testid="dropdown-trigger" {...props}>{children}</div>
   ),
 }));
@@ -155,7 +158,9 @@ describe('ViewSelector', () => {
     it('should display current preset name', () => {
       render(<ViewSelector {...defaultProps} />);
 
-      expect(screen.getByText(/executive|vue/i)).toBeInTheDocument();
+      // Current preset icon should be displayed - use queryAllByText since text may appear multiple times
+      const presetTexts = screen.queryAllByText(/executive|vue/i);
+      expect(presetTexts.length).toBeGreaterThan(0);
     });
 
     it('should render dropdown menu', () => {
@@ -188,17 +193,22 @@ describe('ViewSelector', () => {
     it('should call applyPreset when preset is selected', async () => {
       render(<ViewSelector {...defaultProps} />);
 
-      const rssiOption = screen.getByText(/rssi/i);
-      fireEvent.click(rssiOption);
-
-      expect(mockApplyPreset).toHaveBeenCalledWith('rssi');
+      // Get all dropdown items and find the one containing rssi text
+      const dropdownItems = screen.getAllByTestId('dropdown-item');
+      const rssiItem = dropdownItems.find(item => item.textContent?.toLowerCase().includes('rssi'));
+      expect(rssiItem).toBeDefined();
+      if (rssiItem) {
+        fireEvent.click(rssiItem);
+        expect(mockApplyPreset).toHaveBeenCalledWith('rssi');
+      }
     });
 
     it('should show preset descriptions', () => {
       render(<ViewSelector {...defaultProps} />);
 
-      // Descriptions should be visible
-      expect(screen.queryByText(/dirigeants|haut niveau/i)).toBeDefined();
+      // Descriptions should be visible - use queryAllByText since descriptions appear multiple times
+      const descriptions = screen.queryAllByText(/dirigeants|haut niveau/i);
+      expect(descriptions.length).toBeGreaterThan(0);
     });
 
     it('should show layer previews for each preset', () => {
@@ -266,9 +276,9 @@ describe('ViewSelector', () => {
     it('should show keyboard shortcuts in dropdown', () => {
       render(<ViewSelector {...defaultProps} />);
 
-      // Shortcuts should be visible (1, 2, 3, etc.)
-      const shortcutText = screen.queryByText(/\d/);
-      expect(shortcutText).toBeDefined();
+      // Shortcuts should be visible (1, 2, 3, etc.) - use queryAllByText since there are multiple
+      const shortcutTexts = screen.queryAllByText(/^[1-6]$/);
+      expect(shortcutTexts.length).toBeGreaterThan(0);
     });
   });
 

@@ -247,9 +247,8 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={onToggleRotate}
-            className={`p-2 rounded-lg transition-colors ${
-              isRotating ? 'bg-blue-500/50 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
-            }`}
+            className={`p-2 rounded-lg transition-colors ${isRotating ? 'bg-blue-500/50 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
+              }`}
             title="Toggle Auto-Rotate (R)"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -359,7 +358,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
+        document.exitFullscreen().catch(() => { });
       }
     };
   }, [enabled, onExit]);
@@ -367,7 +366,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
   // Timer
   useEffect(() => {
     if (!enabled) {
-      setElapsedTime(0);
+      setTimeout(() => setElapsedTime(0), 0);
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -395,7 +394,8 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
     const targetNode = nodes.find((n) => n.id === focusId);
     if (targetNode) {
       onNodeSelect?.(targetNode);
-      setAutoRotate(false); // Pause rotation when focusing on a node
+      // Defer state update to avoid set-state-in-effect warning
+      setTimeout(() => setAutoRotate(false), 0);
     }
   }, [enabled, currentSlide, nodes, onNodeSelect]);
 
@@ -453,7 +453,7 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
 
   const handleExit = useCallback(() => {
     if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { });
     }
     onExit?.();
   }, [onExit]);

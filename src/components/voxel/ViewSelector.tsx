@@ -21,7 +21,6 @@ import { cn } from '@/lib/utils';
 import { useVoxelStore, useCurrentPreset } from '@/stores/voxelStore';
 import { VIEW_PRESETS, getAvailablePresets, type ExtendedViewPresetConfig } from '@/stores/viewPresets';
 import type { ViewPreset } from '@/types/voxel';
-import { useLocale } from '@/hooks/useLocale';
 
 interface ViewSelectorProps {
   className?: string;
@@ -78,7 +77,7 @@ export function ViewSelector({
   onSaveCustomView,
   onManageViews,
 }: ViewSelectorProps) {
-  const { locale } = useLocale();
+  // const { locale } = useLocale();
   const currentPreset = useCurrentPreset();
   const applyPreset = useVoxelStore((s) => s.applyPreset);
   const presets = getAvailablePresets();
@@ -87,7 +86,7 @@ export function ViewSelector({
   const currentConfig = VIEW_PRESETS[currentPreset];
 
   // Translation helper with fallback
-  const t = useCallback((key: string, fallback: string) => {
+  const t = useCallback((_key: string, fallback: string) => {
     // Simple translation lookup - in real app would use i18n
     return fallback;
   }, []);
@@ -114,6 +113,7 @@ export function ViewSelector({
   }, [applyPreset]);
 
   // Handle copy link action
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const handleCopyLink = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onCopyLink?.();
@@ -125,14 +125,14 @@ export function ViewSelector({
     e.stopPropagation();
     onSaveCustomView?.();
     setIsOpen(false);
-  }, [onSaveCustomView]);
+  }, [onSaveCustomView, setIsOpen]);
 
   // Handle manage views action
   const handleManageViews = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onManageViews?.();
     setIsOpen(false);
-  }, [onManageViews]);
+  }, [onManageViews, setIsOpen]);
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>

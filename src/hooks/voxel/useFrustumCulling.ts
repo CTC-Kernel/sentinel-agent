@@ -225,7 +225,7 @@ export function useFrustumCulling(
 
   // Recalculate when nodes change
   useEffect(() => {
-    calculateVisibleNodes();
+    requestAnimationFrame(() => calculateVisibleNodes());
   }, [nodes, calculateVisibleNodes]);
 
   // Check if specific node is visible

@@ -17,12 +17,10 @@ import {
   WhatIfComparison,
   ExtendedBlastRadiusConfig,
 } from '../blastRadiusService';
-import type { VoxelNode, VoxelEdge, VoxelNodeType } from '@/types/voxel';
+import type { VoxelNode, VoxelEdge } from '@/types/voxel';
 import {
   createVoxelNode,
   createVoxelEdge,
-  createVoxelGraph,
-  createBlastRadiusConfig,
   resetIdCounter,
 } from '@/tests/factories/voxelFactory';
 
@@ -645,7 +643,7 @@ describe('BlastRadiusService', () => {
 
   describe('toLegacyResult', () => {
     it('should convert BlastRadiusAnalysis to legacy format', () => {
-      const nodeA = createVoxelNode({ id: 'node-a' });
+
       const nodeB = createVoxelNode({ id: 'node-b' });
 
       const analysis: BlastRadiusAnalysis = {

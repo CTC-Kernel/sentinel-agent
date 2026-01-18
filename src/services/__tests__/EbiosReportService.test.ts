@@ -11,21 +11,9 @@ import {
   createEbiosAnalysis,
   createCompletedEbiosAnalysis,
   createWorkshop1Data,
-  createWorkshop2Data,
-  createWorkshop3Data,
-  createWorkshop4Data,
-  createWorkshop5Data,
   createSMSIProgram,
   createMilestoneList,
-  createMission,
-  createEssentialAsset,
-  createSupportingAsset,
-  createFearedEvent,
   createSecurityBaseline,
-  createStrategicScenario,
-  createOperationalScenario,
-  createTreatmentPlanItem,
-  createResidualRisk,
   resetEbiosCounters,
 } from '../../tests/factories/ebiosFactory';
 
@@ -55,6 +43,7 @@ const mockJsPDF = {
   getTextWidth: vi.fn(() => 50),
   saveGraphicsState: vi.fn(),
   restoreGraphicsState: vi.fn(),
+  generateReport: vi.fn(async (_options: unknown) => new Blob(['mock PDF'], { type: 'application/pdf' })),
   output: vi.fn(() => new Blob(['pdf content'], { type: 'application/pdf' })),
 };
 
@@ -67,7 +56,7 @@ vi.mock('jspdf-autotable', () => ({}));
 // Mock PdfService
 vi.mock('../PdfService', () => ({
   PdfService: {
-    generateExecutiveReport: vi.fn((options, contentCallback) => {
+    generateExecutiveReport: vi.fn((_options, contentCallback) => {
       // Simulate calling the content callback
       contentCallback(mockJsPDF, 50);
       return mockJsPDF;

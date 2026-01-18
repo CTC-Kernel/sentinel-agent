@@ -75,8 +75,8 @@ const timestampToString = (timestamp: Timestamp | string | undefined): string =>
  */
 export const parseMentions = (content: string): string[] => {
   const mentionPatterns = [
-    /@\[([^\]]+)\]/g,           // @[User Name] format
-    /@([a-zA-Z0-9_-]+)/g,       // @username format (also matches IDs)
+    /@\[([^\]]+)\]/g,                                    // @[User Name] format
+    /@([a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*(?:@[a-zA-Z0-9_.-]+)?)/g, // @username or @user.name or @user@domain format
   ];
 
   const mentions = new Set<string>();

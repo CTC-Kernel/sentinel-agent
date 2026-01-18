@@ -5,7 +5,7 @@
  * and warns about dropped frames to maintain VR comfort (72+ FPS target).
  */
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 
 // ============================================================================
@@ -234,7 +234,7 @@ export function useVRPerformance(options: UseVRPerformanceOptions = {}): UseVRPe
     logging = false,
   } = options;
 
-  const { gl } = useThree();
+  useThree();
 
   // State
   const [qualityLevel, setQualityLevel] = useState<VRQualityLevel>('high');
@@ -250,15 +250,24 @@ export function useVRPerformance(options: UseVRPerformanceOptions = {}): UseVRPe
     timeSinceLastDrop: Infinity,
     gpuFrameTimeMs: null,
   });
+  const [frameHistory, setFrameHistory] = useState<number[]>([]);
 
   // Refs for frame timing
+  // Refs for frame timing
   const frameTimesRef = useRef<number[]>([]);
-  const lastFrameTimeRef = useRef(performance.now());
+  const lastFrameTimeRef = useRef(0);
   const lastDropTimeRef = useRef(0);
   const droppedFramesRef = useRef(0);
-  const lastUpdateRef = useRef(performance.now());
-  const lastQualityCheckRef = useRef(performance.now());
+  const lastUpdateRef = useRef(0);
+  const lastQualityCheckRef = useRef(0);
   const lastStatusRef = useRef<VRPerformanceStatus>('good');
+
+  useEffect(() => {
+    const now = performance.now();
+    lastFrameTimeRef.current = now;
+    lastUpdateRef.current = now;
+    lastQualityCheckRef.current = now;
+  }, []);
 
   // Frame update
   useFrame(() => {
@@ -312,6 +321,7 @@ export function useVRPerformance(options: UseVRPerformanceOptions = {}): UseVRPe
       };
 
       setStats(newStats);
+      setFrameHistory([...frameTimesRef.current]);
 
       // Update status
       const newStatus = calculateStatus(avgFPS, targetFPS, warningFPS, criticalFPS);
@@ -385,7 +395,9 @@ export function useVRPerformance(options: UseVRPerformanceOptions = {}): UseVRPe
     () => getRecommendation(status, qualityLevel, stats),
     [status, qualityLevel, stats]
   );
-  const frameHistory = useMemo(() => [...frameTimesRef.current], [stats]);
+  // useMemo removed - frameHistory state updated in setStats
+  // But wait, the hook returns frameHistory.
+  // I need to add frameHistory to state definition.
 
   return {
     stats,

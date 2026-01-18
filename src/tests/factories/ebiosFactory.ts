@@ -718,6 +718,7 @@ export function createInProgressEbiosAnalysis(
   // Mark previous workshops as completed
   for (let i = 1; i < currentWorkshop; i++) {
     const workshopNum = i as 1 | 2 | 3 | 4 | 5;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (workshops[workshopNum] as any) = {
       ...workshops[workshopNum],
       status: 'completed',
@@ -727,6 +728,7 @@ export function createInProgressEbiosAnalysis(
   }
 
   // Mark current workshop as in progress
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (workshops[currentWorkshop] as any) = {
     ...workshops[currentWorkshop],
     status: 'in_progress',

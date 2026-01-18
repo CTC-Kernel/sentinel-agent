@@ -69,7 +69,7 @@ import {
 } from '../ui/select';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { Switch } from '../ui/switch';
+import { Switch } from '../ui/Switch';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Tooltip } from '../ui/Tooltip';
@@ -447,9 +447,10 @@ export function SignatureWorkflow({
       setSignModalOpen(false);
       loadRequests();
       onSignatureComplete?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to apply signature:', error);
-      toast.error(error?.message || 'Échec de la signature');
+      const message = error instanceof Error ? error.message : 'Échec de la signature';
+      toast.error(message);
     } finally {
       setSigning(false);
     }
@@ -486,9 +487,10 @@ export function SignatureWorkflow({
       toast.success('Signature rejetée');
       setRejectModalOpen(false);
       loadRequests();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to reject signature:', error);
-      toast.error(error?.message || 'Échec du rejet');
+      const message = error instanceof Error ? error.message : 'Échec du rejet';
+      toast.error(message);
     } finally {
       setRejecting(false);
     }
@@ -510,9 +512,9 @@ export function SignatureWorkflow({
       );
       toast.success('Demande annulée');
       loadRequests();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to cancel request:', error);
-      toast.error(error?.message || 'Échec de l\'annulation');
+      toast.error(error instanceof Error ? error.message : 'Échec de l\'annulation');
     }
   }, [user, loadRequests]);
 

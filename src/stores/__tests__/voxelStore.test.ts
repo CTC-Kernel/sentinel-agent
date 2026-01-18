@@ -18,7 +18,7 @@ import {
   createVoxelAnomaly,
   resetIdCounter,
 } from '@/tests/factories/voxelFactory';
-import type { VoxelNode, VoxelEdge, VoxelAnomaly } from '@/types/voxel';
+
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -164,7 +164,7 @@ describe('voxelStore', () => {
 
       it('should update the updatedAt timestamp', () => {
         const node = createVoxelNode({ id: 'test-node' });
-        const originalDate = node.updatedAt;
+
 
         act(() => {
           useVoxelStore.getState().addNode(node);

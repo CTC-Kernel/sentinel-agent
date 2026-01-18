@@ -10,10 +10,10 @@
  */
 
 import React, { useMemo, useCallback, useRef, useState, useEffect, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { XR, Controllers, Hands, VRButton } from '@react-three/xr';
-import { InstancedMesh, Object3D, Color, Matrix4, Vector3, MeshBasicMaterial, SphereGeometry } from 'three';
-import { Html, Environment, Stats } from '@react-three/drei';
+import { Canvas, useThree } from '@react-three/fiber';
+import { XR, Controllers, Hands, VRButton, useXR } from '@react-three/xr';
+import { InstancedMesh, Object3D, Color, Vector3, InstancedBufferAttribute } from 'three';
+import { Html, Stats } from '@react-three/drei';
 import type { VoxelNode, VoxelNodeType } from '@/types/voxel';
 import { useVRPerformance, getVRPerformanceColor, VRQualityLevel, VRQualitySettings } from '@/hooks/voxel/useVRPerformance';
 
@@ -67,12 +67,7 @@ const NODE_COLORS: Record<VoxelNodeType, string> = {
   audit: '#06b6d4',
 };
 
-const STATUS_EMISSIVE: Record<string, number> = {
-  critical: 0.5,
-  warning: 0.3,
-  normal: 0.1,
-  inactive: 0,
-};
+
 
 // Geometry detail levels based on quality
 const GEOMETRY_SEGMENTS: Record<VRQualityLevel, number> = {
@@ -94,30 +89,9 @@ const OptimizedInstancedNodes: React.FC<OptimizedNodeProps> = ({
 }) => {
   const meshRef = useRef<InstancedMesh>(null);
   const tempObject = useMemo(() => new Object3D(), []);
-  const tempMatrix = useMemo(() => new Matrix4(), []);
-
-  // Group nodes by type for better batching
-  const nodesByType = useMemo(() => {
-    const grouped = new Map<VoxelNodeType, VoxelNode[]>();
-    nodes.forEach((node) => {
-      const group = grouped.get(node.type) || [];
-      group.push(node);
-      grouped.set(node.type, group);
-    });
-    return grouped;
-  }, [nodes]);
 
   // Geometry based on quality
   const segments = GEOMETRY_SEGMENTS[qualitySettings.level];
-
-  // Create position map for lookups
-  const nodeIndexMap = useMemo(() => {
-    const map = new Map<string, number>();
-    nodes.forEach((node, index) => {
-      map.set(node.id, index);
-    });
-    return map;
-  }, [nodes]);
 
   // Update instance matrices
   useEffect(() => {
@@ -147,7 +121,7 @@ const OptimizedInstancedNodes: React.FC<OptimizedNodeProps> = ({
 
     meshRef.current.geometry.setAttribute(
       'color',
-      new (require('three').InstancedBufferAttribute)(colorArray, 3)
+      new InstancedBufferAttribute(colorArray, 3)
     );
   }, [nodes, selectedNodeId]);
 
@@ -190,12 +164,10 @@ const OptimizedEdges: React.FC<OptimizedEdgesProps> = ({
   qualitySettings,
 }) => {
   // Only render edges at medium quality or above
-  if (qualitySettings.level === 'low') return null;
-
   // Limit edges based on quality
   const maxEdges = qualitySettings.level === 'ultra' ? edges.length :
-                   qualitySettings.level === 'high' ? Math.min(edges.length, 500) :
-                   Math.min(edges.length, 200);
+    qualitySettings.level === 'high' ? Math.min(edges.length, 500) :
+      qualitySettings.level === 'medium' ? Math.min(edges.length, 200) : 0;
 
   const visibleEdges = edges.slice(0, maxEdges);
 
@@ -222,9 +194,7 @@ const OptimizedEdges: React.FC<OptimizedEdgesProps> = ({
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={lineSegments.length / 3}
-          array={lineSegments}
-          itemSize={3}
+          args={[lineSegments, 3]}
         />
       </bufferGeometry>
       <lineBasicMaterial
@@ -247,7 +217,7 @@ interface VRPerformanceHUDProps {
 }
 
 const VRPerformanceHUD: React.FC<VRPerformanceHUDProps> = ({ visible, targetFPS }) => {
-  const { stats, status, qualityLevel, recommendation, isVRReady } = useVRPerformance({
+  const { stats, status, qualityLevel, isVRReady } = useVRPerformance({
     targetFPS,
     autoAdjustQuality: true,
     logging: false,
@@ -387,6 +357,24 @@ const VROptimizedFloor: React.FC<{ size?: number }> = ({ size = 50 }) => {
 };
 
 // ============================================================================
+// Session Handler Component
+// ============================================================================
+
+const SessionHandler: React.FC<{ onStart?: () => void; onEnd?: () => void }> = ({ onStart, onEnd }) => {
+  const store = useXR();
+  const session = store.session;
+
+  useEffect(() => {
+    if (session) {
+      onStart?.();
+      return () => onEnd?.();
+    }
+  }, [session, onStart, onEnd]);
+
+  return null;
+};
+
+// ============================================================================
 // Scene Content Component (Inside Canvas)
 // ============================================================================
 
@@ -444,7 +432,8 @@ const VRSceneContent: React.FC<VRSceneContentProps> = ({
   }, [onExitVR]);
 
   return (
-    <XR onSessionStart={handleSessionStart} onSessionEnd={handleSessionEnd}>
+    <XR>
+      <SessionHandler onStart={handleSessionStart} onEnd={handleSessionEnd} />
       {/* Simplified lighting for VR */}
       <ambientLight intensity={0.6} />
       <directionalLight
@@ -521,7 +510,6 @@ export const VROptimizedScene: React.FC<VROptimizedSceneProps> = ({
   onEnterVR,
   onExitVR,
   initialQuality = 'high',
-  autoQuality = true,
   showStats = false,
   targetFPS = 72,
   debug = false,

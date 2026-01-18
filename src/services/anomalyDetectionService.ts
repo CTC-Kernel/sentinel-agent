@@ -53,13 +53,15 @@ const generateAnomalyId = (): string => {
  */
 const calculateSeverity = (
   type: VoxelAnomalyType,
-  context: Record<string, unknown> = {}
+  details: Record<string, unknown> = {}
 ): VoxelAnomalySeverity => {
   switch (type) {
     case 'circular_dependency':
       return 'critical';
     case 'coverage_gap': {
-      const riskScore = context.riskScore as number;
+      // coverage_gap stores riskScore in nested context
+      const contextData = (details.context || details) as Record<string, unknown>;
+      const riskScore = contextData.riskScore as number;
       if (riskScore >= 15) return 'critical';
       if (riskScore >= 10) return 'high';
       if (riskScore >= 5) return 'medium';
@@ -68,13 +70,13 @@ const calculateSeverity = (
     case 'orphan_control':
       return 'medium';
     case 'stale_assessment': {
-      const days = context.daysSinceAssessment as number;
+      const days = details.daysSinceAssessment as number;
       if (days > 180) return 'critical';
       if (days > 120) return 'high';
       return 'medium';
     }
     case 'compliance_drift': {
-      const value = context.actualValue as number;
+      const value = details.actualValue as number;
       if (value < 30) return 'critical';
       if (value < EFFECTIVENESS_THRESHOLD) return 'high';
       return 'medium';

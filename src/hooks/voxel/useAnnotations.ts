@@ -21,7 +21,6 @@ import type {
   Position3D,
   AnnotationType,
   AnnotationExportOptions,
-  AnnotationMode,
   AnnotationCreatorState,
 } from '../../types/voxelAnnotation';
 import { AnnotationService } from '../../services/annotationService';
@@ -97,7 +96,7 @@ export interface UseAnnotationsReturn {
   refresh: () => Promise<void>;
 
   // Export
-  exportAnnotations: (options: AnnotationExportOptions) => Promise<string | VoxelAnnotation[]>;
+  exportAnnotations: (options: AnnotationExportOptions) => Promise<string | VoxelAnnotation[] | unknown[]>;
   downloadExport: (options: AnnotationExportOptions, filename?: string) => Promise<void>;
 
   // Stats
@@ -233,7 +232,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
   );
 
   // Annotation mode management
-  const startAnnotationMode = useCallback((position?: Position3D, nodeId?: string) => {
+  const startAnnotationMode = useCallback((position?: Position3D, _nodeId?: string) => {
     setAnnotationMode({
       mode: 'create',
       position: position || null,
@@ -441,7 +440,7 @@ export function useAnnotations(options: UseAnnotationsOptions): UseAnnotationsRe
 
   // Export operations
   const exportAnnotations = useCallback(
-    async (exportOptions: AnnotationExportOptions): Promise<string | VoxelAnnotation[]> => {
+    async (exportOptions: AnnotationExportOptions): Promise<string | VoxelAnnotation[] | unknown[]> => {
       return AnnotationService.exportAnnotations(organizationId, exportOptions);
     },
     [organizationId]

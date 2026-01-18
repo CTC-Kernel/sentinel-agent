@@ -10,7 +10,6 @@ import { EbiosService } from '../ebiosService';
 import {
   createEbiosAnalysis,
   createWorkshop1Data,
-  createWorkshop2Data,
   createRiskSource,
   createTargetedObjective,
   createSMSIProgram,
@@ -39,20 +38,22 @@ const mockWhere = vi.fn(() => ({}));
 const mockOrderBy = vi.fn(() => ({}));
 const mockLimit = vi.fn(() => ({}));
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 vi.mock('firebase/firestore', () => ({
-  doc: (...args: unknown[]) => mockDoc(...args),
-  getDoc: (...args: unknown[]) => mockGetDoc(...args),
-  setDoc: (...args: unknown[]) => mockSetDoc(...args),
-  updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
-  deleteDoc: (...args: unknown[]) => mockDeleteDoc(...args),
-  getDocs: (...args: unknown[]) => mockGetDocs(...args),
-  onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
-  collection: (...args: unknown[]) => mockCollection(...args),
-  query: (...args: unknown[]) => mockQuery(...args),
-  where: (...args: unknown[]) => mockWhere(...args),
-  orderBy: (...args: unknown[]) => mockOrderBy(...args),
-  limit: (...args: unknown[]) => mockLimit(...args),
+  doc: (...args: any[]) => mockDoc(...args),
+  getDoc: (...args: any[]) => mockGetDoc(...args),
+  setDoc: (...args: any[]) => mockSetDoc(...args),
+  updateDoc: (...args: any[]) => mockUpdateDoc(...args),
+  deleteDoc: (...args: any[]) => mockDeleteDoc(...args),
+  getDocs: (...args: any[]) => mockGetDocs(...args),
+  onSnapshot: (...args: any[]) => mockOnSnapshot(...args),
+  collection: (...args: any[]) => mockCollection(...args),
+  query: (...args: any[]) => mockQuery(...args),
+  where: (...args: any[]) => mockWhere(...args),
+  orderBy: (...args: any[]) => mockOrderBy(...args),
+  limit: (...args: any[]) => mockLimit(...args),
 }));
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Mock ErrorLogger
 vi.mock('../errorLogger', () => ({
@@ -205,7 +206,7 @@ describe('EbiosService', () => {
 
     it('should limit results', async () => {
       mockGetDocs.mockResolvedValueOnce({
-        forEach: () => {},
+        forEach: () => { },
       });
 
       await EbiosService.listAnalyses(organizationId, { limit: 5 });
@@ -324,7 +325,7 @@ describe('EbiosService', () => {
         organizationId,
         'analysis-id',
         1,
-        { scope: { missions: [] } },
+        { scope: { missions: [], essentialAssets: [], supportingAssets: [] } },
         userId
       );
 
@@ -672,7 +673,7 @@ describe('EbiosService', () => {
       });
 
       const contextData = createRiskContext();
-      const { id, organizationId: orgId, createdAt, updatedAt, ...data } = contextData;
+      const { ...data } = contextData;
 
       const result = await EbiosService.saveRiskContext(organizationId, data);
 
@@ -687,7 +688,7 @@ describe('EbiosService', () => {
         data: () => existingContext,
       });
 
-      const { id, organizationId: orgId, createdAt, updatedAt, ...data } = existingContext;
+      const { ...data } = existingContext;
 
       const result = await EbiosService.saveRiskContext(organizationId, data);
 

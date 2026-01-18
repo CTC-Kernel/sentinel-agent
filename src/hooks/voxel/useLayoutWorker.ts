@@ -172,7 +172,9 @@ export function useLayoutWorker(
 
   // Store callbacks in refs to avoid recreating worker on callback changes
   const callbacksRef = useRef({ onPositionUpdate, onConverged, onStats });
-  callbacksRef.current = { onPositionUpdate, onConverged, onStats };
+  useEffect(() => {
+    callbacksRef.current = { onPositionUpdate, onConverged, onStats };
+  }, [onPositionUpdate, onConverged, onStats]);
 
   // Initialize worker
   useEffect(() => {
@@ -375,7 +377,7 @@ export function useLayoutWorker(
     };
 
     workerRef.current = worker;
-    setIsReady(true);
+    setTimeout(() => setIsReady(true), 0);
 
     // Cleanup
     return () => {
@@ -404,7 +406,7 @@ export function useLayoutWorker(
 
     if (autoStart) {
       workerRef.current.postMessage({ type: 'start' });
-      setIsRunning(true);
+      setTimeout(() => setIsRunning(true), 0);
     }
   }, [nodes, edges, config, autoStart]);
 

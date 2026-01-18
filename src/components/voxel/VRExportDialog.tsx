@@ -164,7 +164,7 @@ interface QualitySelectorProps {
   platform: VRTargetPlatform;
 }
 
-const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, platform }) => {
+const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, platform: _platform }) => {
   const qualities: { value: VRQualityPreset; label: string; description: string }[] = [
     { value: 'low', label: 'Low', description: 'Smallest file, fastest loading' },
     { value: 'medium', label: 'Medium', description: 'Balanced quality and size' },

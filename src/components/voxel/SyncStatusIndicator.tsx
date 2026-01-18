@@ -4,10 +4,10 @@
  * Component showing the real-time sync status of the Voxel module.
  */
 
-import React from 'react';
-import { Wifi, WifiOff, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
+
+import { WifiOff, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import { useVoxelSync } from '@/stores/voxelStore';
 import { useLocale } from '@/hooks/useLocale';
@@ -107,45 +107,40 @@ export function SyncStatusIndicator({
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge
-            variant="outline"
-            className={cn(
-              'gap-1.5 border cursor-help transition-colors',
-              config.bgColor,
-              config.color,
-              sizes.badge,
-              className
-            )}
-          >
-            {/* Pulse indicator */}
-            <span
-              className={cn(
-                'rounded-full',
-                sizes.pulse,
-                config.pulseColor,
-                sync.status === 'connected' && 'animate-pulse'
-              )}
-            />
-            <Icon
-              size={sizes.icon}
-              className={cn(sync.status === 'syncing' && 'animate-spin')}
-            />
-            {showLabel && (
-              <span className="font-medium">
-                {t(`voxel.sync.label.${config.labelKey}`, config.labelKey)}
-              </span>
-            )}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs">
-          {tooltipContent}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+
+    <Tooltip content={tooltipContent}>
+      <Badge
+        variant="outline"
+        className={cn(
+          'gap-1.5 border cursor-help transition-colors',
+          config.bgColor,
+          config.color,
+          sizes.badge,
+          className
+        )}
+      >
+        {/* Pulse indicator */}
+        <span
+          className={cn(
+            'rounded-full',
+            sizes.pulse,
+            config.pulseColor,
+            sync.status === 'connected' && 'animate-pulse'
+          )}
+        />
+        <Icon
+          size={sizes.icon}
+          className={cn(sync.status === 'syncing' && 'animate-spin')}
+        />
+        {showLabel && (
+          <span className="font-medium">
+            {t(`voxel.sync.label.${config.labelKey}`, config.labelKey)}
+          </span>
+        )}
+      </Badge>
+    </Tooltip>
   );
+
 }
 
 export default SyncStatusIndicator;

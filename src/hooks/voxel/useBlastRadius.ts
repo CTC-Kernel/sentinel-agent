@@ -20,7 +20,7 @@ import {
   AffectedNode,
   PotentialCause,
 } from '@/services/blastRadiusService';
-import type { VoxelNode, VoxelEdge, VoxelNodeType, BlastRadiusConfig } from '@/types/voxel';
+import type { VoxelNodeType } from '@/types/voxel';
 
 // ============================================================================
 // Types
@@ -521,7 +521,7 @@ export function useBlastRadius(): UseBlastRadiusReturn {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [state.config]); // Only re-run when config changes
+  }, [state.config, startSimulation, startRootCauseAnalysis, state.sourceNodeId, state.mode, state.blastRadiusResult]); // Only re-run when config changes
 
   // ============================================================================
   // Return

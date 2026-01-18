@@ -54,7 +54,7 @@ export interface UseLocaleReturn {
     integer?: boolean;
   }) => ReturnType<typeof createLocalizedNumberSchema>;
   /** Translate a key */
-  t: (key: string, ...args: any[]) => string;
+  t: (key: string, ...args: unknown[]) => string;
 }
 
 /**
@@ -155,6 +155,6 @@ export function useLocale(): UseLocaleReturn {
     zodMessages,
     createDateSchema,
     createNumberSchema,
-    t: (key: string, ...args: any[]) => key, // Placeholder translation function
+    t: (id: string, ..._args: unknown[]): string => id, // Placeholder translation function
   };
 }

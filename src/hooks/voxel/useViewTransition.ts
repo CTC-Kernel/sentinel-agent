@@ -5,9 +5,9 @@
  * Handles camera position, node visibility, and filter transitions.
  */
 
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { useCallback, useRef, useState, useMemo } from 'react';
 import { useSpring, config as springConfig, SpringValue } from '@react-spring/three';
-import type { VoxelNodeType, VoxelUIState, ViewPreset } from '@/types/voxel';
+import type { VoxelNodeType, ViewPreset } from '@/types/voxel';
 import { useVoxelStore } from '@/stores/voxelStore';
 import { VIEW_PRESETS, type ExtendedViewPresetConfig } from '@/stores/viewPresets';
 
@@ -76,8 +76,8 @@ const DEFAULT_CONFIG: Required<ViewTransitionConfig> = {
   tension: 120,
   friction: 14,
   easing: 'default',
-  onStart: () => {},
-  onComplete: () => {},
+  onStart: () => { },
+  onComplete: () => { },
 };
 
 const SPRING_CONFIGS = {
@@ -94,7 +94,7 @@ const SPRING_CONFIGS = {
 // ============================================================================
 
 export function useViewTransition(initialConfig?: ViewTransitionConfig): UseViewTransitionReturn {
-  const mergedConfig = { ...DEFAULT_CONFIG, ...initialConfig };
+  const mergedConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...initialConfig }), [initialConfig]);
 
   // Store state
   const ui = useVoxelStore((s) => s.ui);
@@ -139,7 +139,6 @@ export function useViewTransition(initialConfig?: ViewTransitionConfig): UseView
   }));
 
   // Node visibility springs (one per node type)
-  const visibilityMapRef = useRef<Map<VoxelNodeType, SpringValue<number>>>(new Map());
   const [visibilitySprings, visibilityApi] = useSpring(() => {
     const initial: Record<string, number> = {};
     ALL_NODE_TYPES.forEach((type) => {
@@ -152,27 +151,29 @@ export function useViewTransition(initialConfig?: ViewTransitionConfig): UseView
   });
 
   // Build visibility map from springs
-  useEffect(() => {
+  const nodeVisibility = useMemo(() => {
     const map = new Map<VoxelNodeType, SpringValue<number>>();
     ALL_NODE_TYPES.forEach((type) => {
       const springValue = visibilitySprings[type as keyof typeof visibilitySprings];
-      if (springValue instanceof SpringValue) {
-        map.set(type, springValue);
+      // Check if it's a SpringValue (has .get method)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (springValue && typeof (springValue as any).get === 'function') {
+        map.set(type, springValue as SpringValue<number>);
       }
     });
-    visibilityMapRef.current = map;
+    return map;
   }, [visibilitySprings]);
 
   /**
    * Check if a node type is currently visible
    */
   const isNodeTypeVisible = useCallback((type: VoxelNodeType): boolean => {
-    const spring = visibilityMapRef.current.get(type);
+    const spring = nodeVisibility.get(type);
     if (spring) {
       return spring.get() > 0.5;
     }
     return filters.nodeTypes.includes(type);
-  }, [filters.nodeTypes]);
+  }, [filters.nodeTypes, nodeVisibility]);
 
   /**
    * Transition to a specific configuration
@@ -270,7 +271,7 @@ export function useViewTransition(initialConfig?: ViewTransitionConfig): UseView
 
   return {
     cameraSpring: cameraSpring as CameraState,
-    nodeVisibility: visibilityMapRef.current,
+    nodeVisibility,
     transitionState,
     transitionTo,
     transitionToConfig,

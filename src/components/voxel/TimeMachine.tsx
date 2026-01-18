@@ -9,8 +9,6 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   Calendar,
   Clock,
-  ArrowLeft,
-  ArrowRight,
   X,
   TrendingUp,
   TrendingDown,
@@ -22,26 +20,16 @@ import {
   ChevronRight,
   RotateCcw,
 } from 'lucide-react';
-import { format, parseISO, subDays, addDays, isAfter, isBefore, isEqual } from 'date-fns';
+import { format, subDays, addDays, isAfter, isBefore, isEqual } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarPicker } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
+import { Calendar as CalendarPicker } from '@/components/ui/Calendar';
+import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/lib/utils';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/lib/firebase';
+import { functions } from '@/firebase';
 
 // ============================================================================
 // Types
@@ -209,12 +197,13 @@ export function TimeMachine({
   const [selectedDate, setSelectedDate] = useState<Date>(subDays(new Date(), 1));
   const [compareDate, setCompareDate] = useState<Date | null>(null);
   const [snapshot, setSnapshot] = useState<VoxelSnapshot | null>(null);
-  const [compareSnapshot, setCompareSnapshot] = useState<VoxelSnapshot | null>(null);
+  const [_compareSnapshot, setCompareSnapshot] = useState<VoxelSnapshot | null>(null);
   const [delta, setDelta] = useState<SnapshotDelta | null>(null);
-  const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isCompareCalendarOpen, setIsCompareCalendarOpen] = useState(false);
 
   // Date range for the timeline (last 90 days)
   const dateRange = useMemo(() => {
@@ -222,25 +211,6 @@ export function TimeMachine({
     const start = subDays(end, 90);
     return { start, end };
   }, []);
-
-  // Fetch available snapshot dates
-  const fetchAvailableDates = useCallback(async () => {
-    try {
-      const getSnapshots = httpsCallable(functions, 'getVoxelSnapshots');
-      const result = await getSnapshots({
-        startDate: format(dateRange.start, 'yyyy-MM-dd'),
-        endDate: format(dateRange.end, 'yyyy-MM-dd'),
-        limit: 90,
-      });
-
-      const data = result.data as { success: boolean; snapshots: VoxelSnapshot[] };
-      if (data.success) {
-        setAvailableDates(data.snapshots.map(s => s.date));
-      }
-    } catch (err) {
-      console.error('Failed to fetch available dates:', err);
-    }
-  }, [dateRange]);
 
   // Fetch snapshot for selected date
   const fetchSnapshot = useCallback(async (date: Date) => {
@@ -317,12 +287,7 @@ export function TimeMachine({
     }
   }, [snapshot, onCompare]);
 
-  // Load available dates on mount
-  useEffect(() => {
-    if (isOpen) {
-      fetchAvailableDates();
-    }
-  }, [isOpen, fetchAvailableDates]);
+
 
   // Fetch snapshot when date changes
   useEffect(() => {
@@ -399,7 +364,7 @@ export function TimeMachine({
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-primary" />
           <h2 className="font-semibold">Time Machine</h2>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="soft" className="text-xs">
             {format(selectedDate, 'dd MMM yyyy', { locale: fr })}
           </Badge>
         </div>
@@ -422,25 +387,35 @@ export function TimeMachine({
             <ChevronLeft className="h-4 w-4" />
           </Button>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="flex-1 justify-start text-left font-normal">
-                <Calendar className="mr-2 h-4 w-4" />
-                {format(selectedDate, 'PPP', { locale: fr })}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarPicker
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                disabled={(date) =>
-                  isAfter(date, new Date()) || isBefore(date, dateRange.start)
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <div className="relative flex-1">
+            <Button
+              variant="outline"
+              className="w-full justify-start text-left font-normal"
+              onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              {format(selectedDate, 'PPP', { locale: fr })}
+            </Button>
+
+            {isCalendarOpen && (
+              <div className="absolute top-full left-0 z-50 mt-2 bg-background border rounded-md shadow-lg p-2">
+                <CalendarPicker
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date);
+                      setIsCalendarOpen(false);
+                    }
+                  }}
+                  disabled={(date) =>
+                    isAfter(date, new Date()) || isBefore(date, dateRange.start)
+                  }
+                  initialFocus
+                />
+              </div>
+            )}
+          </div>
 
           <Button
             variant="outline"
@@ -459,13 +434,14 @@ export function TimeMachine({
             <span>90 jours</span>
             <span>Aujourd'hui</span>
           </div>
-          <Slider
-            value={sliderValue}
+          <input
+            type="range"
+            value={sliderValue[0]}
             max={90}
             min={0}
             step={1}
-            onValueChange={handleSliderChange}
-            className="cursor-pointer"
+            onChange={(e) => handleSliderChange([parseInt(e.target.value, 10)])}
+            className="w-full cursor-pointer accent-primary h-2 bg-secondary rounded-lg appearance-none"
           />
         </div>
 
@@ -496,27 +472,37 @@ export function TimeMachine({
             <label className="text-sm text-muted-foreground mb-2 block">
               Comparer avec:
             </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {compareDate ? format(compareDate, 'PPP', { locale: fr }) : "Selectionnez une date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarPicker
-                  mode="single"
-                  selected={compareDate || undefined}
-                  onSelect={(date) => date && setCompareDate(date)}
-                  disabled={(date) =>
-                    isAfter(date, new Date()) ||
-                    isBefore(date, dateRange.start) ||
-                    isEqual(date, selectedDate)
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="relative">
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+                onClick={() => setIsCompareCalendarOpen(!isCompareCalendarOpen)}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {compareDate ? format(compareDate, 'PPP', { locale: fr }) : "Selectionnez une date"}
+              </Button>
+
+              {isCompareCalendarOpen && (
+                <div className="absolute top-full left-0 z-50 mt-2 bg-background border rounded-md shadow-lg p-2">
+                  <CalendarPicker
+                    mode="single"
+                    selected={compareDate || undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setCompareDate(date);
+                        setIsCompareCalendarOpen(false);
+                      }
+                    }}
+                    disabled={(date) =>
+                      isAfter(date, new Date()) ||
+                      isBefore(date, dateRange.start) ||
+                      isEqual(date, selectedDate)
+                    }
+                    initialFocus
+                  />
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -586,45 +572,25 @@ export function TimeMachine({
             <div>
               <h3 className="text-sm font-medium mb-3">Distribution des risques</h3>
               <div className="flex gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex-1 h-2 bg-red-500 rounded" style={{
-                      flex: snapshot.metrics.risks.critical || 0.1,
-                    }} />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Critique: {snapshot.metrics.risks.critical}
-                  </TooltipContent>
+                <Tooltip content={`Critique: ${snapshot.metrics.risks.critical}`}>
+                  <div className="flex-1 h-2 bg-red-500 rounded" style={{
+                    flex: snapshot.metrics.risks.critical || 0.1,
+                  }} />
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex-1 h-2 bg-orange-500 rounded" style={{
-                      flex: snapshot.metrics.risks.high || 0.1,
-                    }} />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Haut: {snapshot.metrics.risks.high}
-                  </TooltipContent>
+                <Tooltip content={`Haut: ${snapshot.metrics.risks.high}`}>
+                  <div className="flex-1 h-2 bg-orange-500 rounded" style={{
+                    flex: snapshot.metrics.risks.high || 0.1,
+                  }} />
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex-1 h-2 bg-yellow-500 rounded" style={{
-                      flex: snapshot.metrics.risks.medium || 0.1,
-                    }} />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Moyen: {snapshot.metrics.risks.medium}
-                  </TooltipContent>
+                <Tooltip content={`Moyen: ${snapshot.metrics.risks.medium}`}>
+                  <div className="flex-1 h-2 bg-yellow-500 rounded" style={{
+                    flex: snapshot.metrics.risks.medium || 0.1,
+                  }} />
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex-1 h-2 bg-green-500 rounded" style={{
-                      flex: snapshot.metrics.risks.low || 0.1,
-                    }} />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Faible: {snapshot.metrics.risks.low}
-                  </TooltipContent>
+                <Tooltip content={`Faible: ${snapshot.metrics.risks.low}`}>
+                  <div className="flex-1 h-2 bg-green-500 rounded" style={{
+                    flex: snapshot.metrics.risks.low || 0.1,
+                  }} />
                 </Tooltip>
               </div>
             </div>
