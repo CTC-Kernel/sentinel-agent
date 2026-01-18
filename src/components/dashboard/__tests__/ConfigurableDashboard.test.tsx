@@ -10,6 +10,22 @@ import userEvent from '@testing-library/user-event';
 import { ConfigurableDashboard } from '../ConfigurableDashboard';
 import type { WidgetLayout } from '../../../hooks/useDashboardPreferences';
 
+// Mock framer-motion
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>,
+    h3: ({ children, className, ...props }: React.ComponentProps<'h3'>) => <h3 className={className} {...props}>{children}</h3>,
+    p: ({ children, className, ...props }: React.ComponentProps<'p'>) => <p className={className} {...props}>{children}</p>,
+    button: ({ children, className, ...props }: React.ComponentProps<'button'>) => <button className={className} {...props}>{children}</button>,
+  },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+// Mock microInteractions
+vi.mock('../../../utils/microInteractions', () => ({
+  appleEasing: [0.16, 1, 0.3, 1],
+}));
+
 // Mock useAuth
 const mockUser = {
   uid: 'user-123',

@@ -1,5 +1,7 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { appleEasing } from '../../utils/microInteractions';
 
 interface EmptyStateProps {
     icon: LucideIcon;
@@ -11,6 +13,16 @@ interface EmptyStateProps {
     compact?: boolean;
     className?: string;
 }
+
+// Floating animation for the icon
+const floatingAnimation = {
+    y: [0, -8, 0],
+    transition: {
+        duration: 3,
+        repeat: Infinity,
+        ease: 'easeInOut'
+    }
+};
 
 export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, title, description, actionLabel, onAction, color = 'slate', compact = false, className = '' }) => {
     const colorStyles = {
@@ -24,33 +36,78 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
 
     if (compact) {
         return (
-            <div className="flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-50 duration-500">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyles[color]}`}>
+            <motion.div
+                className="flex flex-col items-center justify-center p-6 text-center"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: appleEasing }}
+            >
+                <motion.div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyles[color]}`}
+                    animate={floatingAnimation}
+                >
                     <Icon className="w-5 h-5" />
-                </div>
+                </motion.div>
                 <h3 className="text-sm font-bold text-foreground mb-1 tracking-tight">{title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">{description}</p>
-            </div>
+            </motion.div>
         );
     }
 
     return (
-        <div className={`flex flex-col items-center justify-center p-12 text-center animate-in fade-in zoom-in-50 duration-500 ${className}`}>
-            <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyles[color]}`}>
+        <motion.div
+            className={`flex flex-col items-center justify-center p-12 text-center ${className}`}
+            initial="hidden"
+            animate="visible"
+            variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } }
+            }}
+        >
+            <motion.div
+                className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyles[color]}`}
+                variants={{
+                    hidden: { scale: 0, rotate: -180 },
+                    visible: { scale: 1, rotate: 0, transition: { type: 'spring', stiffness: 200, damping: 15 } }
+                }}
+                animate={floatingAnimation}
+            >
                 <Icon className="w-10 h-10" />
-            </div>
-            <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">{title}</h3>
-            <p className="text-muted-foreground max-w-md mb-8 leading-relaxed font-medium">{description}</p>
+            </motion.div>
+            <motion.h3
+                className="text-xl font-bold text-foreground mb-2 tracking-tight"
+                variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { ease: appleEasing } }
+                }}
+            >
+                {title}
+            </motion.h3>
+            <motion.p
+                className="text-muted-foreground max-w-md mb-8 leading-relaxed font-medium"
+                variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0, transition: { ease: appleEasing } }
+                }}
+            >
+                {description}
+            </motion.p>
             {actionLabel && onAction && (
-                <button
+                <motion.button
                     onClick={onAction}
                     aria-label={actionLabel}
-                    className="px-8 py-3.5 bg-primary text-primary-foreground rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:scale-105 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                    className="px-8 py-3.5 bg-primary text-primary-foreground rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-shadow duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                    variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.9 },
+                        visible: { opacity: 1, y: 0, scale: 1, transition: { ease: appleEasing } }
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
                 >
                     {actionLabel}
-                </button>
+                </motion.button>
             )}
-        </div>
+        </motion.div>
     );
 });
 

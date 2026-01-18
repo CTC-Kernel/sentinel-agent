@@ -1,7 +1,9 @@
 import React, { useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
+import { motion } from 'framer-motion';
 import { AlertTriangle, Info } from './Icons';
 import { Button } from './button';
+import { appleEasing } from '../../utils/microInteractions';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -70,22 +72,49 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-[2rem] bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
                 <div className="p-6 text-center">
-                  <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 ${colorClass}`}>
-                    <Icon className="h-8 w-8" aria-hidden="true" />
-                  </div>
-                  <Dialog.Title as="h3" className="text-xl font-bold leading-6 text-slate-900 dark:text-white mb-2">
-                    {title}
-                  </Dialog.Title>
-                  <div className="mt-2 text-center">
+                  <motion.div
+                    className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 ${colorClass}`}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.2, duration: 0.3, ease: appleEasing }}
+                    >
+                      <Icon className="h-8 w-8" aria-hidden="true" />
+                    </motion.div>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.3, ease: appleEasing }}
+                  >
+                    <Dialog.Title as="h3" className="text-xl font-bold leading-6 text-slate-900 dark:text-white mb-2">
+                      {title}
+                    </Dialog.Title>
+                  </motion.div>
+                  <motion.div
+                    className="mt-2 text-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.3, ease: appleEasing }}
+                  >
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                       {message}
                     </p>
                     {details && (
-                      <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 text-left">
+                      <motion.div
+                        className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 text-left"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.25, duration: 0.3, ease: appleEasing }}
+                      >
                         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{details}</p>
-                      </div>
+                      </motion.div>
                     )}
-                  </div>
+                  </motion.div>
                 </div>
                 <div className="flex border-t border-slate-200 dark:border-white/5">
                   <Button

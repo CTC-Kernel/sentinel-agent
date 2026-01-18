@@ -151,6 +151,38 @@ export const cardHover = {
   transition: { type: 'spring', stiffness: 300, damping: 20 },
 };
 
+/** Card hover effect - subtle */
+export const cardHoverSubtle = {
+  y: -2,
+  boxShadow: '0 10px 20px rgba(0, 0, 0, 0.08)',
+  transition: { type: 'spring', stiffness: 400, damping: 25 },
+};
+
+/** Card hover effect with scale */
+export const cardHoverScale = {
+  scale: 1.02,
+  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
+  transition: { type: 'spring', stiffness: 300, damping: 20 },
+};
+
+/** Card tap effect */
+export const cardTap = {
+  scale: 0.98,
+  y: 0,
+  transition: { duration: 0.1 },
+};
+
+/** Card entrance animation */
+export const cardEntrance: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { ease: appleEasing, duration: 0.4 },
+  },
+};
+
 // ============================================================================
 // TRANSITION PRESETS
 // ============================================================================
@@ -451,6 +483,10 @@ export default {
   buttonHover,
   buttonTap,
   cardHover,
+  cardHoverSubtle,
+  cardHoverScale,
+  cardTap,
+  cardEntrance,
   springTransition,
   smoothTransition,
   triggerConfetti,
