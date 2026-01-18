@@ -11,7 +11,6 @@ import {
   where,
   orderBy,
   limit,
-  startAfter,
   getDocs,
   getDoc,
   addDoc,
@@ -19,20 +18,17 @@ import {
   deleteDoc,
   doc,
   serverTimestamp,
-  Timestamp,
   Query,
   DocumentData,
   QueryConstraint,
 } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '@/firebase';
+import { db } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
-import { DocumentAction } from './vaultAuditService';
-import { ClassificationLevel } from '@/types/vault';
+import type { DocumentAction } from './vaultAuditService';
+import type { ClassificationLevel } from '@/types/vault';
 
 // Constants
 const DOCUMENT_AUDIT_LOGS_COLLECTION = 'document_audit_logs';
-const DOCUMENTS_COLLECTION = 'documents';
 const EDISCOVERY_SEARCHES_COLLECTION = 'ediscovery_searches';
 
 /**

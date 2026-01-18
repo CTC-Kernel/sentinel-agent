@@ -401,7 +401,7 @@ export function TrendCharts({
 
     const warnings: TrendWarning[] = [];
     const metrics: MetricType[] = ['nodes', 'risks', 'anomalies', 'compliance'];
-    let allPredictions: TrendDataPoint[] = [];
+    const allPredictions: TrendDataPoint[] = [];
 
     metrics.forEach((metric) => {
       const { predictions, warning } = generatePredictions(data, metric, predictionDays);

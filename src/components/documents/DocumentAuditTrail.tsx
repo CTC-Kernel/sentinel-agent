@@ -26,7 +26,7 @@ import {
   ChevronUp,
   Filter,
   Calendar,
-  User,
+  User, // Remove if unused
   RefreshCw,
   FileDown,
   X,
@@ -182,7 +182,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
   // Initial fetch
   useEffect(() => {
     fetchAuditTrail(true);
-  }, [documentId, organizationView, userId, selectedActions, dateRange]);
+  }, [fetchAuditTrail]);
 
   // Real-time updates (polling for simplicity)
   useEffect(() => {
@@ -323,11 +323,10 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                         setSelectedActions(prev => [...prev, value]);
                       }
                     }}
-                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                      isSelected
+                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${isSelected
                         ? `${colors.bg} ${colors.text} ${colors.border}`
                         : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-brand-300'
-                    }`}
+                      }`}
                   >
                     {label}
                   </button>
@@ -415,9 +414,8 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
               return (
                 <div
                   key={entry.id}
-                  className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${
-                    onEntryClick ? 'cursor-pointer' : ''
-                  }`}
+                  className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${onEntryClick ? 'cursor-pointer' : ''
+                    }`}
                   onClick={() => onEntryClick?.(entry)}
                 >
                   <div className="flex items-start gap-4">

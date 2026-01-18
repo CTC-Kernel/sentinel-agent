@@ -255,7 +255,7 @@ export function useWebXR(options: UseWebXROptions = {}): UseWebXRReturn {
       ]);
 
       // Detect capabilities (only if at least one mode is supported)
-      let capabilities = { ...INITIAL_CAPABILITIES };
+      const capabilities = { ...INITIAL_CAPABILITIES };
       if (vrSupported || arSupported) {
         // For now, just mark basic capabilities based on support
         // Full capability detection would require actually starting sessions

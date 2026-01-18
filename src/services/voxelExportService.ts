@@ -884,7 +884,7 @@ export function estimateVRExportSize(
   options: VRExportOptions
 ): { minSize: number; maxSize: number; formatted: string } {
   const platformSettings = VR_PLATFORM_SETTINGS[options.platform];
-  const maxTexSize = platformSettings.maxTextureSize[options.quality];
+  const _maxTexSize = platformSettings.maxTextureSize[options.quality];
 
   // Base size per node (geometry + material)
   const baseNodeSize = options.quality === 'low' ? 2000 : options.quality === 'medium' ? 5000 : 10000;

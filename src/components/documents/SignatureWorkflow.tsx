@@ -14,29 +14,19 @@ import SignatureCanvas from 'react-signature-canvas';
 import {
   PenTool,
   Send,
-  Users,
-  Clock,
-  Check,
-  X,
-  AlertTriangle,
-  ChevronDown,
-  ChevronUp,
   Plus,
   Trash2,
   GripVertical,
   Download,
-  FileText,
-  Calendar,
-  Mail,
-  User,
   Shield,
   Loader2,
   RefreshCw,
   XCircle,
   CheckCircle2,
-  Eye,
   History,
-  ArrowRight,
+  Check,
+  X,
+  AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -59,9 +49,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Input } from '../ui/input';
+import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import {
   Dialog,
   DialogContent,
@@ -70,50 +60,38 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-
+} from '../ui/select';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Switch } from '@/components/ui/Switch';
+import { Separator } from '../ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Tooltip } from '../ui/Tooltip';
 import { cn } from '@/lib/utils';
-import { useLocale } from '@/hooks/useLocale';
 import { useStore } from '@/store';
-import { SignatureService } from '@/services/signatureService';
+import {
+  SignatureService,
+} from '@/services/signatureService';
 import type {
   SignatureRequest,
-  SignatureStatus,
   SignerInfo,
-  SignerStatus,
+  SignatureStatus,
+  SignatureType,
   CreateSignatureRequestInput,
   ApplySignatureInput,
-  SignatureType,
+  SignerStatus
 } from '@/types/signature';
 import { toast } from 'sonner';
 
 interface SignatureWorkflowProps {
   documentId: string;
-  documentName: string;
+  documentName?: string;
   className?: string;
   onRequestCreated?: (request: SignatureRequest) => void;
   onSignatureComplete?: () => void;
@@ -172,14 +150,14 @@ function SortableSigner({
         <Input
           placeholder="Nom"
           value={signer.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate({ name: e.target.value })}
           className="h-9"
         />
         <Input
           type="email"
           placeholder="Email"
           value={signer.email}
-          onChange={(e) => onUpdate({ email: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate({ email: e.target.value })}
           className="h-9"
         />
       </div>
@@ -187,7 +165,7 @@ function SortableSigner({
       <Input
         placeholder="Rôle (optionnel)"
         value={signer.role || ''}
-        onChange={(e) => onUpdate({ role: e.target.value })}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate({ role: e.target.value })}
         className="h-9 w-32"
       />
 
@@ -234,8 +212,8 @@ export function SignatureWorkflow({
   onRequestCreated,
   onSignatureComplete,
 }: SignatureWorkflowProps) {
-  const { t } = useLocale();
-  const { user, organizationId } = useStore();
+  const { user, organization } = useStore();
+  const organizationId = organization?.id;
 
   // Main state
   const [requests, setRequests] = useState<SignatureRequest[]>([]);
@@ -243,7 +221,6 @@ export function SignatureWorkflow({
   const [activeTab, setActiveTab] = useState<'requests' | 'create'>('requests');
 
   // Create request form state
-  const [createFormOpen, setCreateFormOpen] = useState(false);
   const [formTitle, setFormTitle] = useState('');
   const [formMessage, setFormMessage] = useState('');
   const [formDeadline, setFormDeadline] = useState('');
@@ -276,12 +253,6 @@ export function SignatureWorkflow({
   );
 
   // Load signature requests
-  useEffect(() => {
-    if (documentId && organizationId) {
-      loadRequests();
-    }
-  }, [documentId, organizationId]);
-
   const loadRequests = useCallback(async () => {
     if (!organizationId) return;
 
@@ -299,6 +270,12 @@ export function SignatureWorkflow({
       setLoading(false);
     }
   }, [documentId, organizationId]);
+
+  useEffect(() => {
+    if (documentId && organizationId) {
+      loadRequests();
+    }
+  }, [documentId, organizationId, loadRequests]);
 
   // Handle drag end for signer reordering
   const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -370,7 +347,7 @@ export function SignatureWorkflow({
     try {
       const input: CreateSignatureRequestInput = {
         documentId,
-        documentName,
+        documentName: documentName || 'Document',
         title: formTitle.trim(),
         message: formMessage.trim() || undefined,
         signers: validSigners,
@@ -387,7 +364,6 @@ export function SignatureWorkflow({
 
       toast.success('Demande de signature créée');
       setRequests((prev) => [request, ...prev]);
-      setCreateFormOpen(false);
       resetForm();
       setActiveTab('requests');
 
@@ -545,7 +521,7 @@ export function SignatureWorkflow({
 
       // Check sequential signing
       if (request.sequentialSigning) {
-        const signerIndex = request.signers.findIndex((s) => s.id === signer.id);
+        const signerIndex = request.signers.findIndex((s: SignerInfo) => s.id === signer.id);
         for (let i = 0; i < signerIndex; i++) {
           if (request.signers[i].status !== 'signed') {
             return false;
@@ -560,7 +536,7 @@ export function SignatureWorkflow({
 
   // Get progress percentage
   const getProgress = (request: SignatureRequest): number => {
-    const signed = request.signers.filter((s) => s.status === 'signed').length;
+    const signed = request.signers.filter((s: SignerInfo) => s.status === 'signed').length;
     return Math.round((signed / request.signers.length) * 100);
   };
 
@@ -654,8 +630,8 @@ export function SignatureWorkflow({
                             request.status === 'completed'
                               ? 'bg-green-500'
                               : request.status === 'rejected'
-                              ? 'bg-red-500'
-                              : 'bg-brand-500'
+                                ? 'bg-red-500'
+                                : 'bg-brand-500'
                           )}
                           style={{ width: `${getProgress(request)}%` }}
                         />
@@ -674,8 +650,8 @@ export function SignatureWorkflow({
                             signer.status === 'signed'
                               ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
                               : signer.status === 'rejected'
-                              ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                              : 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700'
+                                ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                                : 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700'
                           )}
                         >
                           {/* Order number */}
@@ -685,8 +661,8 @@ export function SignatureWorkflow({
                               signer.status === 'signed'
                                 ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
                                 : signer.status === 'rejected'
-                                ? 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400'
-                                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                  ? 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400'
+                                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                             )}
                           >
                             {signer.status === 'signed' ? (
@@ -781,7 +757,7 @@ export function SignatureWorkflow({
                   id="title"
                   placeholder="Ex: Contrat de prestation - Signature"
                   value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormTitle(e.target.value)}
                 />
               </div>
 
@@ -792,7 +768,7 @@ export function SignatureWorkflow({
                   id="message"
                   placeholder="Message optionnel pour les signataires..."
                   value={formMessage}
-                  onChange={(e) => setFormMessage(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormMessage(e.target.value)}
                   rows={3}
                 />
               </div>
@@ -805,29 +781,23 @@ export function SignatureWorkflow({
                     id="deadline"
                     type="datetime-local"
                     value={formDeadline}
-                    onChange={(e) => setFormDeadline(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormDeadline(e.target.value)}
                   />
                 </div>
 
                 <div className="flex items-center gap-3 pt-7">
-                  <Switch
-                    id="sequential"
-                    checked={formSequential}
-                    onCheckedChange={setFormSequential}
-                  />
-                  <Label htmlFor="sequential" className="cursor-pointer">
-                    Signature séquentielle
-                  </Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Les signataires devront signer dans l'ordre défini
-                      </TooltipContent>
+                  <div className="flex items-center gap-3 pt-7">
+                    <Switch
+                      checked={formSequential}
+                      onChange={(v: boolean) => setFormSequential(v)}
+                    />
+                    <Label htmlFor="sequential" className="cursor-pointer">
+                      Signature séquentielle
+                    </Label>
+                    <Tooltip content="Les signataires devront signer dans l'ordre défini">
+                      <AlertTriangle className="h-4 w-4 text-muted-foreground outline-none" />
                     </Tooltip>
-                  </TooltipProvider>
+                  </div>
                 </div>
               </div>
 
@@ -941,7 +911,7 @@ export function SignatureWorkflow({
                   id="typedName"
                   placeholder="Prénom Nom"
                   value={typedName}
-                  onChange={(e) => setTypedName(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTypedName(e.target.value)}
                   className="text-lg"
                 />
                 <p className="text-sm text-muted-foreground">
@@ -1025,7 +995,7 @@ export function SignatureWorkflow({
                 id="rejectionReason"
                 placeholder="Expliquez pourquoi vous refusez de signer..."
                 value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRejectionReason(e.target.value)}
                 rows={4}
               />
             </div>

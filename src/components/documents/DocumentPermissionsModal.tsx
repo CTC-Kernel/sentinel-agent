@@ -31,14 +31,14 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useTeamData } from '@/hooks/team/useTeamData';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocale } from '@/hooks/useLocale';
 import type { Document } from '@/types/documents';
-import type { DocumentPermission, ClassificationLevel } from '@/types/vault';
-import type { UserProfile, UserGroup } from '@/types/users';
+import type { DocumentPermission } from '@/types/vault';
 import {
   grantAccess,
   revokeAccess,
@@ -47,7 +47,7 @@ import {
   PERMISSION_DESCRIPTIONS,
   type PermissionLevel,
 } from '@/services/aclService';
-import { CLASSIFICATION_CONFIG, canAccessClassification } from '@/services/vaultConfig';
+import { CLASSIFICATION_CONFIG } from '@/services/vaultConfig';
 import { getUserAvatarUrl } from '@/utils/avatarUtils';
 import { toast } from '@/lib/toast';
 import { ErrorLogger } from '@/services/errorLogger';
@@ -143,26 +143,29 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
   // Find user/group info for a permission entry
   const getPrincipalInfo = (permission: DocumentPermission) => {
     switch (permission.principalType) {
-      case 'user':
+      case 'user': {
         const foundUser = users.find(u => u.uid === permission.principalId);
         return {
           name: foundUser?.displayName || permission.principalId,
           email: foundUser?.email,
           avatar: foundUser ? getUserAvatarUrl(foundUser.photoURL, foundUser.role) : undefined,
         };
-      case 'role':
+      }
+      case 'role': {
         return {
           name: permission.principalId,
           email: 'Role',
           avatar: undefined,
         };
-      case 'group':
+      }
+      case 'group': {
         const foundGroup = groups.find(g => g.id === permission.principalId);
         return {
           name: foundGroup?.name || permission.principalId,
           email: `${foundGroup?.members.length || 0} membres`,
           avatar: undefined,
         };
+      }
       default:
         return { name: permission.principalId, email: '', avatar: undefined };
     }
@@ -191,7 +194,9 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
       setIsAdding(false);
       onPermissionChange?.();
     } catch (error) {
-      ErrorLogger.handleErrorWithToast(error, 'DocumentPermissionsModal.add', 'PERMISSION_ERROR');
+
+
+      ErrorLogger.handleErrorWithToast(error, 'DocumentPermissionsModal.add', 'PERMISSION_DENIED');
     } finally {
       setIsLoading(false);
     }
@@ -207,7 +212,7 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
       toast.success(t('permissions.revoked', 'Permission revoquee'));
       onPermissionChange?.();
     } catch (error) {
-      ErrorLogger.handleErrorWithToast(error, 'DocumentPermissionsModal.revoke', 'PERMISSION_ERROR');
+      ErrorLogger.handleErrorWithToast(error, 'DocumentPermissionsModal.revoke', 'PERMISSION_DENIED');
     } finally {
       setRemovingId(null);
     }
@@ -287,14 +292,8 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
                           <span className="font-medium text-slate-900 dark:text-white">
                             {t('classification.inheritedAccess', 'Acces herite de la classification')}
                           </span>
-                          <Badge
-                            variant="outline"
-                            style={{
-                              borderColor: classificationConfig.color,
-                              color: classificationConfig.color,
-                            }}
-                          >
-                            {classificationConfig.label}
+                          <Badge variant="outline" status={classification === 'public' ? 'success' : classification === 'internal' ? 'info' : classification === 'confidential' ? 'warning' : 'error'}>
+                            {classification === 'public' ? 'Public' : classification === 'internal' ? 'Interne' : classification === 'confidential' ? 'Confidentiel' : 'Secret'}
                           </Badge>
                         </div>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -302,12 +301,12 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1">
                           {CLASSIFICATION_CONFIG[classification].requiredRoles.length === 0 ? (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="soft" className="text-xs">
                               Tous les utilisateurs
                             </Badge>
                           ) : (
                             CLASSIFICATION_CONFIG[classification].requiredRoles.map(role => (
-                              <Badge key={role} variant="secondary" className="text-xs">
+                              <Badge key={role} variant="outline" status={role === 'admin' ? 'error' : role === 'project_manager' ? 'warning' : 'info'}>
                                 {role}
                               </Badge>
                             ))
@@ -323,7 +322,12 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
                       <h4 className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
                         <Users className="w-4 h-4" />
                         {t('permissions.explicit', 'Permissions explicites')}
-                        <Badge variant="outline" className="ml-2">
+                        <Badge variant="outline" className="gap-1 pl-1 pr-2">
+                          <Avatar className="h-4 w-4">
+                            <AvatarFallback className="bg-transparent text-xs">
+                              {currentPermissions.length}
+                            </AvatarFallback>
+                          </Avatar>
                           {currentPermissions.length}
                         </Badge>
                       </h4>
@@ -398,7 +402,6 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
                                 <Badge
                                   variant="outline"
                                   className="gap-1"
-                                  title={PERMISSION_DESCRIPTIONS[permission.access]}
                                 >
                                   <PermissionIcon className="w-3 h-3" />
                                   {PERMISSION_LABELS[permission.access]}
@@ -538,7 +541,7 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
                                               {u.email}
                                             </p>
                                           </div>
-                                          <Badge variant="secondary" className="text-xs shrink-0">
+                                          <Badge variant="soft" className="text-xs shrink-0">
                                             {u.role}
                                           </Badge>
                                         </button>
@@ -603,7 +606,7 @@ export const DocumentPermissionsModal: React.FC<DocumentPermissionsModalProps> =
                                             {g.name}
                                           </p>
                                         </div>
-                                        <Badge variant="secondary" className="text-xs">
+                                        <Badge variant="soft" className="text-xs">
                                           {g.members.length} membres
                                         </Badge>
                                       </button>

@@ -5,13 +5,9 @@
  */
 
 import { httpsCallable } from 'firebase/functions';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { functions, db } from '@/firebase';
+import { functions } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
-import { ClassificationLevel } from '@/types/vault';
-
-// Constants
-const WATERMARK_SETTINGS_COLLECTION = 'watermark_settings';
+import type { ClassificationLevel } from '@/types/vault';
 
 /**
  * Watermark position options

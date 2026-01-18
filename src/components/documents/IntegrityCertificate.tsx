@@ -19,9 +19,6 @@ import {
   Check,
   RefreshCw,
   Download,
-  FileText,
-  User,
-  Calendar,
   Hash,
   Lock,
   AlertTriangle,
@@ -35,24 +32,18 @@ import { fr } from 'date-fns/locale';
 import { jsPDF } from 'jspdf';
 
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Tooltip } from '../ui/Tooltip';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from '../ui/collapsible';
+import { Separator } from '../ui/separator';
+import { ScrollArea } from '../ui/scroll-area';
 
 import { cn } from '@/lib/utils';
-import { useLocale } from '@/hooks/useLocale';
 import { useStore } from '@/store';
 import {
   IntegrityService,
@@ -115,27 +106,20 @@ const statusConfig: Record<
 
 export function IntegrityCertificate({
   documentId,
-  documentName,
   className,
   compact = false,
 }: IntegrityCertificateProps) {
-  const { t } = useLocale();
-  const { user, organizationId } = useStore();
+  const { user } = useStore();
 
   // State
   const [integrity, setIntegrity] = useState<DocumentIntegrity | null>(null);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedHash, setCopiedHash] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<HashHistoryEvent[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-
-  // Load initial integrity status
-  useEffect(() => {
-    loadIntegrityStatus();
-  }, [documentId]);
 
   const loadIntegrityStatus = useCallback(async () => {
     setLoading(true);
@@ -155,6 +139,11 @@ export function IntegrityCertificate({
       setLoading(false);
     }
   }, [documentId]);
+
+  // Load initial integrity status
+  useEffect(() => {
+    loadIntegrityStatus();
+  }, [loadIntegrityStatus]);
 
   const handleVerify = useCallback(async () => {
     setVerifying(true);
@@ -182,14 +171,15 @@ export function IntegrityCertificate({
     }
   }, [documentId, user]);
 
-  const handleCopyHash = useCallback(async () => {
-    if (!integrity?.hash) return;
+  const handleCopyHash = useCallback(async (hashToCopy?: string | null) => {
+    const targetHash = hashToCopy || integrity?.hash;
+    if (!targetHash) return;
 
     try {
-      await navigator.clipboard.writeText(integrity.hash);
-      setCopied(true);
+      await navigator.clipboard.writeText(targetHash);
+      setCopiedHash(true);
       toast.success('Hash copié dans le presse-papiers');
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopiedHash(false), 2000);
     } catch {
       toast.error('Impossible de copier le hash');
     }
@@ -312,7 +302,7 @@ export function IntegrityCertificate({
     // Status badge
     const statusLabel = IntegrityService.getStatusLabel(cert.integrity.status);
     const statusColor = cert.integrity.status === 'verified' ? [16, 185, 129] :
-                        cert.integrity.status === 'compromised' ? [239, 68, 68] : [100, 116, 139];
+      cert.integrity.status === 'compromised' ? [239, 68, 68] : [100, 116, 139];
 
     doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
     doc.roundedRect(margin, y - 4, 40, 8, 2, 2, 'F');
@@ -424,33 +414,30 @@ export function IntegrityCertificate({
   if (compact) {
     return (
       <div className={cn('flex items-center gap-3', className)}>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className={cn('flex items-center gap-2', config.color)}>
-                <StatusIcon className="h-5 w-5" />
-                <Badge status={config.badgeStatus} variant="soft" size="sm">
-                  {config.label}
-                </Badge>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <div className="space-y-1 max-w-xs">
-                <p className="font-medium">{config.description}</p>
-                {integrity?.hash && (
-                  <p className="text-xs font-mono text-muted-foreground">
-                    Hash: {IntegrityService.formatHash(integrity.hash)}
-                  </p>
-                )}
-                {integrity?.lastVerified && (
-                  <p className="text-xs text-muted-foreground">
-                    Vérifié: {format(integrity.lastVerified, 'dd/MM/yyyy HH:mm', { locale: fr })}
-                  </p>
-                )}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip
+          content={
+            <div className="space-y-1 max-w-xs text-center">
+              <p className="font-medium">{config.description}</p>
+              {integrity?.hash && (
+                <p className="text-xs font-mono text-muted-foreground">
+                  Hash: {IntegrityService.formatHash(integrity.hash)}
+                </p>
+              )}
+              {integrity?.lastVerified && (
+                <p className="text-xs text-muted-foreground">
+                  Vérifié: {format(integrity.lastVerified, 'dd/MM/yyyy HH:mm', { locale: fr })}
+                </p>
+              )}
+            </div>
+          }
+        >
+          <div className={cn('flex items-center gap-2', config.color)}>
+            <StatusIcon className="h-5 w-5" />
+            <Badge status={config.badgeStatus} variant="soft" size="sm">
+              {config.label}
+            </Badge>
+          </div>
+        </Tooltip>
 
         <Button
           variant="ghost"
@@ -475,7 +462,7 @@ export function IntegrityCertificate({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <StatusIcon className={cn('h-5 w-5', config.color)} />
+            <StatusIcon className="h-5 w-5" />
             <CardTitle className="text-base font-semibold">
               Certificat d'Intégrité
             </CardTitle>
@@ -499,27 +486,20 @@ export function IntegrityCertificate({
               <code className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg font-mono text-xs break-all border border-slate-200 dark:border-slate-700">
                 {integrity.hash}
               </code>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyHash}
-                      className="shrink-0"
-                    >
-                      {copied ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {copied ? 'Copié!' : 'Copier le hash'}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip content="Copier l'empreinte">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => handleCopyHash(integrity.hash)}
+                >
+                  {copiedHash ? (
+                    <Check className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
+              </Tooltip>
             </div>
           </div>
         )}
@@ -594,22 +574,22 @@ export function IntegrityCertificate({
 
         {/* History Collapsible */}
         <Collapsible open={historyOpen} onOpenChange={handleToggleHistory}>
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-between mt-2"
-            >
-              <span className="flex items-center gap-2">
-                <History className="h-4 w-4" />
-                Historique des vérifications
-              </span>
-              {historyOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
+          <CollapsibleTrigger
+            className={cn(
+              "flex items-center w-full justify-between mt-2 hover:bg-muted/50 p-2 rounded-md transition-colors",
+              className
+            )}
+            onClick={handleToggleHistory}
+          >
+            <span className="flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Historique des vérifications
+            </span>
+            {historyOpen ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </CollapsibleTrigger>
 
           <CollapsibleContent className="mt-3">
@@ -638,8 +618,8 @@ export function IntegrityCertificate({
                           event.status === 'verified'
                             ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
                             : event.status === 'compromised'
-                            ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                            : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                              ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                         )}
                       >
                         {event.status === 'verified' ? (

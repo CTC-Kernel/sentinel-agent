@@ -3,7 +3,7 @@ import { Dialog as HeadlessDialog, DialogPanel as HeadlessDialogPanel, DialogTit
 
 interface DialogProps {
   open: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
   className?: string; // z-index customization
 }
@@ -23,9 +23,9 @@ interface DialogTitleProps {
   className?: string;
 }
 
-export const Dialog: React.FC<DialogProps> = ({ open, onClose, children, className = 'relative z-[150]' }) => {
+export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, className = 'relative z-[150]' }) => {
   return (
-    <HeadlessDialog open={open} onClose={onClose} className={className}>
+    <HeadlessDialog open={open} onClose={() => onOpenChange(false)} className={className}>
       {children}
     </HeadlessDialog>
   );
@@ -56,5 +56,21 @@ export const DialogTitle: React.FC<DialogTitleProps> = ({ children, className = 
     <HeadlessDialogTitle className={`text-lg font-bold text-slate-900 dark:text-white ${className}`}>
       {children}
     </HeadlessDialogTitle>
+  );
+};
+
+export const DialogDescription: React.FC<DialogTitleProps> = ({ children, className = '' }) => {
+  return (
+    <div className={`mt-2 text-sm text-slate-500 dark:text-slate-400 ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+export const DialogFooter: React.FC<DialogHeaderProps> = ({ children, className = '' }) => {
+  return (
+    <div className={`mt-6 flex justify-end space-x-2 ${className}`}>
+      {children}
+    </div>
   );
 };

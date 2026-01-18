@@ -11,27 +11,20 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Clock,
   Plus,
   Edit2,
   Trash2,
   AlertTriangle,
   FileText,
-  Calendar,
   Archive,
   XCircle,
   Bell,
-  ChevronRight,
-  Search,
-  Filter,
   Loader2,
-  Play,
-  Shield,
   BarChart3,
   Settings,
   CheckCircle,
 } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
@@ -55,11 +48,9 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -73,7 +64,6 @@ import { useStore } from '@/store';
 import { useLocale } from '@/hooks/useLocale';
 import { useDocuments } from '@/hooks/useDocuments';
 import {
-  RetentionService,
   getPolicies,
   createPolicy,
   updatePolicy,
@@ -86,20 +76,15 @@ import {
 import type {
   RetentionPolicy,
   RetentionAction,
-  RetentionScope,
   DocumentRetentionStatus,
   ClassificationLevel,
 } from '@/types/vault';
-import { DOCUMENT_STATUSES } from '@/types/documents';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface RetentionDashboardProps {
   className?: string;
 }
-
-const DOCUMENT_TYPES = ['Politique', 'Procedure', 'Preuve', 'Rapport', 'Autre'];
-const CLASSIFICATION_LEVELS: ClassificationLevel[] = ['public', 'internal', 'confidential', 'secret'];
 
 const ACTION_CONFIG: Record<RetentionAction, { label: string; icon: React.ElementType; color: string }> = {
   archive: { label: 'Archiver', icon: Archive, color: 'text-blue-500' },
@@ -157,20 +142,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
   });
   const [formLoading, setFormLoading] = useState(false);
 
-  // Load data
-  useEffect(() => {
-    if (organizationId) {
-      loadData();
-    }
-  }, [organizationId]);
-
-  useEffect(() => {
-    if (organizationId) {
-      loadExpiryData();
-    }
-  }, [organizationId, expiryFilter]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!organizationId) return;
     setLoading(true);
     try {
@@ -188,9 +160,9 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, t]);
 
-  const loadExpiryData = async () => {
+  const loadExpiryData = useCallback(async () => {
     if (!organizationId) return;
     try {
       const [nearExpiryData, expiredData] = await Promise.all([
@@ -202,7 +174,16 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
     } catch (error) {
       console.error('Error loading expiry data:', error);
     }
-  };
+  }, [organizationId, expiryFilter]);
+
+  // Load data
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    loadExpiryData();
+  }, [loadExpiryData]);
 
   // Get document title by ID
   const getDocumentTitle = (docId: string): string => {

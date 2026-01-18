@@ -209,7 +209,7 @@ export const SignatureService = {
     }
   ): Promise<SignatureRequest[]> {
     try {
-      let q = query(
+      const q = query(
         collection(db, SIGNATURE_REQUESTS_COLLECTION),
         where('organizationId', '==', organizationId),
         orderBy('createdAt', 'desc')

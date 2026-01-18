@@ -43,8 +43,6 @@ import type {
   AnnotationAuthor,
   AnnotationExportOptions,
   AnnotationExportRow,
-  AnnotationExportFormat,
-  ANNOTATION_TYPE_COLORS,
 } from '../types/voxelAnnotation';
 
 // ============================================================================

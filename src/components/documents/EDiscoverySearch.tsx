@@ -11,7 +11,6 @@ import {
   Calendar,
   User,
   FileText,
-  Tag,
   Save,
   Trash2,
   Play,
@@ -19,14 +18,10 @@ import {
   ChevronDown,
   ChevronUp,
   X,
-  Plus,
   History,
   Star,
-  StarOff,
   Loader2,
   AlertCircle,
-  Filter,
-  RefreshCw,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,7 +33,7 @@ import {
   SearchResultEntry,
   BooleanOperator,
 } from '@/services/eDiscoveryService';
-import { VaultAuditService, DocumentAction, DocumentActions } from '@/services/vaultAuditService';
+import { VaultAuditService, DocumentAction } from '@/services/vaultAuditService';
 import { format, formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -91,24 +86,23 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
   const [expandedResults, setExpandedResults] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
 
-  // Load saved searches
-  useEffect(() => {
-    if (user && currentOrganization?.id) {
-      loadSavedSearches();
-    }
-  }, [user, currentOrganization?.id]);
-
-  const loadSavedSearches = async () => {
+  const loadSavedSearches = useCallback(async () => {
+    if (!user?.uid || !currentOrganization?.id) return;
     try {
       const searches = await EDiscoveryService.loadSearchQueries(
-        currentOrganization?.id || '',
-        user?.uid || ''
+        currentOrganization.id,
+        user.uid
       );
       setSavedSearches(searches);
     } catch (err) {
       console.error('Failed to load saved searches:', err);
     }
-  };
+  }, [user?.uid, currentOrganization?.id]);
+
+  // Load saved searches
+  useEffect(() => {
+    loadSavedSearches();
+  }, [loadSavedSearches]);
 
   // Build query from current state
   const buildQuery = useCallback((): EDiscoveryQuery => {
@@ -432,11 +426,10 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                       setSelectedActions(prev => [...prev, value]);
                     }
                   }}
-                  className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                    isSelected
+                  className={`px-2 py-1 text-xs rounded-full border transition-colors ${isSelected
                       ? `${colors.bg} ${colors.text} ${colors.border}`
                       : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-brand-300'
-                  }`}
+                    }`}
                 >
                   {label}
                 </button>

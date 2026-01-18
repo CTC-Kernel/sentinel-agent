@@ -8,23 +8,14 @@
 import { httpsCallable } from 'firebase/functions';
 import {
   collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-  getDocs,
   addDoc,
   serverTimestamp,
-  DocumentSnapshot,
-  QueryDocumentSnapshot,
-  Timestamp,
 } from 'firebase/firestore';
 import { functions, db } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
 
 // Constants
-const DOCUMENT_AUDIT_LOGS_COLLECTION = 'document_audit_logs';
+const _DOCUMENT_AUDIT_LOGS_COLLECTION = 'document_audit_logs';
 
 /**
  * Document action types for audit logging

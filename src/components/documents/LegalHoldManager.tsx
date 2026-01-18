@@ -8,7 +8,7 @@
  * - View documents under each hold
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Shield,
   ShieldOff,
@@ -18,9 +18,6 @@ import {
   Calendar,
   User,
   AlertTriangle,
-  Clock,
-  Check,
-  X,
   ChevronDown,
   ChevronRight,
   Filter,
@@ -32,9 +29,9 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '../ui/input';
+import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import {
   Dialog,
   DialogContent,
@@ -49,23 +46,22 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+} from '../ui/select';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Checkbox } from '../ui/checkbox';
+import { ScrollArea } from '../ui/scroll-area';
+import { Separator } from '../ui/separator';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from '../ui/collapsible';
 
 import { useStore } from '@/store';
 import { useLocale } from '@/hooks/useLocale';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useDocumentsData } from '../../hooks/documents/useDocumentsData';
 import {
-  LegalHoldService,
   getLegalHolds,
   createLegalHold,
   releaseLegalHold,
@@ -83,8 +79,9 @@ interface LegalHoldManagerProps {
 
 export function LegalHoldManager({ className }: LegalHoldManagerProps) {
   const { t } = useLocale();
-  const { user, organizationId } = useStore();
-  const { documents } = useDocuments();
+  const { user, organization } = useStore();
+  const organizationId = organization?.id;
+  const { documents } = useDocumentsData(organizationId);
 
   // State
   const [holds, setHolds] = useState<LegalHold[]>([]);
@@ -116,15 +113,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
   const [releaseReason, setReleaseReason] = useState('');
   const [formLoading, setFormLoading] = useState(false);
 
-  // Load data
-  useEffect(() => {
-    if (organizationId) {
-      loadHolds();
-      loadStats();
-    }
-  }, [organizationId]);
-
-  const loadHolds = async () => {
+  const loadHolds = useCallback(async () => {
     if (!organizationId) return;
     setLoading(true);
     try {
@@ -136,9 +125,9 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, t]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!organizationId) return;
     try {
       const data = await getLegalHoldStats(organizationId);
@@ -146,7 +135,15 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
     } catch (error) {
       console.error('Error loading stats:', error);
     }
-  };
+  }, [organizationId]);
+
+  // Load data
+  useEffect(() => {
+    if (organizationId) {
+      loadHolds();
+      loadStats();
+    }
+  }, [organizationId, loadHolds, loadStats]);
 
   // Filter holds
   const filteredHolds = useMemo(() => {
@@ -292,6 +289,10 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
     return format(timestamp.toDate(), 'dd MMM yyyy HH:mm', { locale: fr });
   };
 
+  const filteredDocuments = useMemo(() => {
+    return documents.filter(doc => !doc.isUnderHold);
+  }, [documents]);
+
   return (
     <div className={cn('space-y-6', className)}>
       {/* Header */}
@@ -354,13 +355,13 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
           <Input
             placeholder={t('legalHold.search', 'Rechercher...')}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             className="pl-9"
           />
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(v) => setStatusFilter(v as 'all' | LegalHoldStatus)}
+          onValueChange={(v: string) => setStatusFilter(v as 'all' | LegalHoldStatus)}
         >
           <SelectTrigger className="w-[180px]">
             <Filter className="mr-2 h-4 w-4" />
@@ -402,14 +403,12 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 -ml-2">
-                            {isExpanded ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
-                            )}
-                          </Button>
+                        <CollapsibleTrigger className="h-6 w-6 -ml-2 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full flex items-center justify-center transition-colors">
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          )}
                         </CollapsibleTrigger>
                         <div>
                           <CardTitle className="flex items-center gap-2">
@@ -419,8 +418,8 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
                               <ShieldOff className="h-5 w-5 text-green-500" />
                             )}
                             {hold.name}
-                            <Badge variant={hold.status === 'active' ? 'destructive' : 'secondary'}>
-                              {hold.status === 'active' ? 'Actif' : 'Libere'}
+                            <Badge status={hold.status === 'active' ? 'error' : 'neutral'} variant="soft">
+                              {hold.status === 'active' ? 'Actif' : 'Libéré'}
                             </Badge>
                           </CardTitle>
                           <CardDescription className="mt-1">
@@ -611,12 +610,12 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
               </p>
               <ScrollArea className="h-[200px] border rounded-lg p-2">
                 <div className="space-y-2">
-                  {documents.length === 0 ? (
+                  {filteredDocuments.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">
                       Aucun document disponible
                     </p>
                   ) : (
-                    documents.map((doc) => (
+                    filteredDocuments.map((doc: Document) => (
                       <div
                         key={doc.id}
                         className={cn(
