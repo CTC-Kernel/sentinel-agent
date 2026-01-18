@@ -3,6 +3,41 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ScoreGauge } from '../ScoreGauge';
 import { getScoreTextColor, getScoreStrokeColor } from '../../../utils/scoreUtils';
 
+// Mock framer-motion
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>,
+    span: ({ children, className, ...props }: React.ComponentProps<'span'>) => <span className={className} {...props}>{children}</span>,
+    circle: (props: React.SVGProps<SVGCircleElement>) => <circle {...props} />,
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}));
+
+// Mock microInteractions utilities
+vi.mock('../../../utils/microInteractions', () => ({
+  appleEasing: [0.16, 1, 0.3, 1],
+  animateCounter: vi.fn((from: number, to: number, duration: number, onUpdate: (v: number) => void, onComplete?: () => void) => {
+    // Immediately set to final value for tests
+    onUpdate(to);
+    if (onComplete) onComplete();
+    return () => {};
+  }),
+  triggerConfetti: vi.fn(),
+  triggerHaptic: vi.fn(),
+}));
+
+// Mock lucide-react icons
+vi.mock('lucide-react', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Icon = ({ className, ...props }: any) => <span className={`icon ${className}`} {...props} />;
+  return {
+    TrendingUp: Icon,
+    TrendingDown: Icon,
+    Minus: Icon,
+  };
+});
+
 // Aliases for backward compatibility with test naming
 const getScoreColor = getScoreTextColor;
 
@@ -125,9 +160,10 @@ describe('ScoreGauge', () => {
     });
 
     it('should apply custom className', () => {
-      render(<ScoreGauge score={75} className="custom-class" />);
+      const { container } = render(<ScoreGauge score={75} className="custom-class" />);
 
-      expect(screen.getByRole('meter')).toHaveClass('custom-class');
+      // The className is applied to the parent wrapper div, not the meter
+      expect(container.querySelector('.custom-class')).toBeInTheDocument();
     });
 
     it('should render SVG circles', () => {

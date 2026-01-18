@@ -39,7 +39,6 @@ import {
   Bell,
   Sliders,
   BarChart3,
-  Zap,
   Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -47,11 +46,11 @@ import type { VoxelNode, VoxelNodeType } from '@/types/voxel';
 import type {
   AffectedNode,
   WhatIfScenario,
-  WhatIfComparison as WhatIfComparisonType,
+  WhatIfComparison,
   ExtendedBlastRadiusConfig,
 } from '@/services/blastRadiusService';
 import type { SimulationMode } from '@/hooks/voxel/useBlastRadius';
-import { appleEasing, triggerConfetti, triggerHaptic } from '@/utils/microInteractions';
+import { appleEasing } from '@/utils/microInteractions';
 
 // ============================================================================
 // Constants
@@ -708,11 +707,10 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className={`p-4 rounded-xl border ${
-              whatIfResult.impactDelta < 0
+            className={`p-4 rounded-xl border ${whatIfResult.impactDelta < 0
                 ? 'bg-green-500/10 border-green-500/30'
                 : 'bg-indigo-500/10 border-indigo-500/30'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2 mb-3">
               <motion.div
@@ -726,9 +724,8 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                   <AlertTriangle className="h-4 w-4 text-amber-400" />
                 )}
               </motion.div>
-              <span className={`text-xs font-medium ${
-                whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-indigo-400'
-              }`}>
+              <span className={`text-xs font-medium ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-indigo-400'
+                }`}>
                 {whatIfResult.impactDelta < 0 ? 'Amelioration detectee !' : 'Comparaison What-If'}
               </span>
             </div>
@@ -755,9 +752,8 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className={`text-2xl font-bold ${
-                    whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-red-400'
-                  }`}
+                  className={`text-2xl font-bold ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-red-400'
+                    }`}
                 >
                   {whatIfResult.impactDelta > 0 ? '+' : ''}
                   {(Math.abs(whatIfResult.impactDelta) * 100).toFixed(0)}%

@@ -82,8 +82,9 @@ export function ScoreGauge({
   const { diameter, strokeWidth, fontSize } = config;
 
   // Animated display value state
-  const [displayValue, setDisplayValue] = useState(previousScore ?? score);
-  const [hasAnimated, setHasAnimated] = useState(false);
+  // If animation is disabled, we start directly with the target score
+  const [displayValue, setDisplayValue] = useState(showAnimation ? (previousScore ?? score) : score);
+  const [hasAnimated, setHasAnimated] = useState(!showAnimation);
   const animationRef = useRef<(() => void) | null>(null);
 
   // SVG calculations
@@ -114,8 +115,7 @@ export function ScoreGauge({
   // Animate counter on score change
   useEffect(() => {
     if (!showAnimation) {
-      setDisplayValue(normalizedScore);
-      setHasAnimated(true);
+      // If animation is disabled, we handle this in the initial state or a separate effect that doesn't conflict
       return;
     }
 
@@ -146,7 +146,8 @@ export function ScoreGauge({
         animationRef.current();
       }
     };
-  }, [normalizedScore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [normalizedScore, showAnimation]);
 
   // Memoize the gauge path for performance
   const gaugeStyle = useMemo(() => ({

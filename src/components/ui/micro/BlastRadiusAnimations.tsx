@@ -17,7 +17,6 @@ import { Shield, AlertTriangle, TrendingDown, TrendingUp, Zap, Check } from 'luc
 import { cn } from '@/lib/utils';
 import {
   appleEasing,
-  getImpactColor,
   triggerConfetti,
   triggerHaptic,
 } from '@/utils/microInteractions';
@@ -109,34 +108,7 @@ const nodeRevealVariants: Variants = {
   },
 };
 
-const lineVariants: Variants = {
-  hidden: { pathLength: 0, opacity: 0 },
-  visible: (delay: number) => ({
-    pathLength: 1,
-    opacity: 1,
-    transition: {
-      pathLength: { delay, duration: 0.4, ease: appleEasing },
-      opacity: { delay, duration: 0.2 },
-    },
-  }),
-};
 
-const pulseVariants: Variants = {
-  initial: {
-    boxShadow: '0 0 0 0 rgba(239, 68, 68, 0.4)',
-  },
-  pulse: {
-    boxShadow: [
-      '0 0 0 0 rgba(239, 68, 68, 0.4)',
-      '0 0 0 15px rgba(239, 68, 68, 0)',
-    ],
-    transition: {
-      repeat: Infinity,
-      duration: 1.5,
-      ease: 'easeOut',
-    },
-  },
-};
 
 // ============================================================================
 // Components
@@ -172,11 +144,11 @@ export const ImpactPulse: React.FC<ImpactPulseProps> = ({
       animate={
         active && severity === 'critical'
           ? {
-              boxShadow: [
-                `0 0 0 0 ${color}`,
-                `0 0 0 ${size === 'lg' ? '20px' : '12px'} rgba(239, 68, 68, 0)`,
-              ],
-            }
+            boxShadow: [
+              `0 0 0 0 ${color}`,
+              `0 0 0 ${size === 'lg' ? '20px' : '12px'} rgba(239, 68, 68, 0)`,
+            ],
+          }
           : {}
       }
       transition={{
@@ -204,10 +176,10 @@ const AnimatedAffectedNode: React.FC<{
     node.impact >= 0.75
       ? 'critical'
       : node.impact >= 0.5
-      ? 'high'
-      : node.impact >= 0.25
-      ? 'medium'
-      : 'low';
+        ? 'high'
+        : node.impact >= 0.25
+          ? 'medium'
+          : 'low';
 
   return (
     <motion.div
@@ -281,11 +253,14 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
 
   useEffect(() => {
     if (isAnimating && affectedNodes.length > 0) {
-      setRevealed(true);
-      // Trigger haptic on significant impact
-      if (affectedNodes.length > 5) {
-        triggerHaptic('medium');
-      }
+      const timer = setTimeout(() => {
+        setRevealed(true);
+        // Trigger haptic on significant impact
+        if (affectedNodes.length > 5) {
+          triggerHaptic('medium');
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isAnimating, affectedNodes.length]);
 
@@ -400,14 +375,12 @@ export const BlastRadiusReveal: React.FC<BlastRadiusRevealProps> = ({
 export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
   baselineImpact,
   scenarioImpact,
-  baselineCount,
-  scenarioCount,
   protectedNodes = [],
   celebrateImprovement = true,
   className,
 }) => {
   const impactDelta = scenarioImpact - baselineImpact;
-  const countDelta = scenarioCount - baselineCount;
+  // const countDelta = scenarioCount - baselineCount;
   const isImprovement = impactDelta < 0;
   const improvementPercent = baselineImpact > 0
     ? Math.abs(Math.round((impactDelta / baselineImpact) * 100))

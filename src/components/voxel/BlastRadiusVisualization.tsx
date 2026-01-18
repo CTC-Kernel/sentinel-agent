@@ -9,11 +9,13 @@
  * - Smooth animations using react-spring
  */
 
-import React, { useRef, useMemo, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Line, Text } from '@react-three/drei';
-import { animated, useSpring, config } from '@react-spring/three';
-import { AdditiveBlending, Vector3, Group, Color } from 'three';
+import { animated, useSpring } from '@react-spring/three';
+import * as THREE from 'three';
+import { AdditiveBlending, Vector3, Group } from 'three';
 import type { VoxelNode } from '@/types/voxel';
 import type { AffectedNode } from '@/services/blastRadiusService';
 
@@ -28,12 +30,7 @@ const IMPACT_COLORS = {
   low: '#22c55e',       // Green - <25% impact
 };
 
-const IMPACT_EMISSIVE = {
-  critical: '#dc2626',
-  high: '#ea580c',
-  medium: '#ca8a04',
-  low: '#16a34a',
-};
+
 
 const SOURCE_COLOR = '#8b5cf6'; // Purple for source node
 
@@ -51,24 +48,10 @@ const getImpactColor = (impact: number): string => {
   return IMPACT_COLORS.low;
 };
 
-/**
- * Get emissive color based on impact level
- */
-const getImpactEmissive = (impact: number): string => {
-  if (impact >= 0.75) return IMPACT_EMISSIVE.critical;
-  if (impact >= 0.5) return IMPACT_EMISSIVE.high;
-  if (impact >= 0.25) return IMPACT_EMISSIVE.medium;
-  return IMPACT_EMISSIVE.low;
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const A = animated as any;
 
-/**
- * Interpolate between two colors
- */
-const interpolateColor = (color1: string, color2: string, factor: number): string => {
-  const c1 = new Color(color1);
-  const c2 = new Color(color2);
-  return c1.lerp(c2, factor).getHexString();
-};
+
 
 // ============================================================================
 // ExpandingRing Component
@@ -101,9 +84,9 @@ const ExpandingRing: React.FC<ExpandingRingProps> = React.memo(({
     from: { scale: 0, opacity: 0 },
     to: active
       ? async (next) => {
-          await next({ scale: 0, opacity: 0.8 });
-          await next({ scale: 1, opacity: 0 });
-        }
+        await next({ scale: 0, opacity: 0.8 });
+        await next({ scale: 1, opacity: 0 });
+      }
       : { scale: 0, opacity: 0 },
     delay: delay,
     config: { duration: 1500 },
@@ -113,21 +96,21 @@ const ExpandingRing: React.FC<ExpandingRingProps> = React.memo(({
   if (!active) return null;
 
   return (
-    <animated.group position={position} ref={ringRef}>
-      <animated.mesh
+    <A.group position={position} ref={ringRef}>
+      <A.mesh
         rotation={[-Math.PI / 2, 0, 0]}
-        scale={scale.to((s) => [s * maxRadius, s * maxRadius, 1])}
+        scale={scale.to((s: number) => [s * maxRadius, s * maxRadius, 1])}
       >
         <ringGeometry args={[0.9, 1, 64]} />
-        <animated.meshBasicMaterial
+        <A.meshBasicMaterial
           color={color}
           transparent
           opacity={opacity}
           blending={AdditiveBlending}
           depthWrite={false}
         />
-      </animated.mesh>
-    </animated.group>
+      </A.mesh>
+    </A.group>
   );
 });
 
@@ -154,12 +137,7 @@ const SourceNodeHighlight: React.FC<SourceNodeHighlightProps> = React.memo(({
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
 
-  // Entrance animation
-  const { scale, emissive } = useSpring({
-    from: { scale: 0, emissive: 0 },
-    to: { scale: active ? 1.3 : 0, emissive: active ? 1 : 0 },
-    config: config.wobbly,
-  });
+
 
   // Pulsing animation
   useFrame(({ clock }) => {
@@ -239,7 +217,7 @@ const AffectedNodeHighlight: React.FC<AffectedNodeHighlightProps> = React.memo((
   const pos = node.position;
   const position: [number, number, number] = [pos.x, pos.y, pos.z];
   const color = getImpactColor(impact);
-  const emissiveColor = getImpactEmissive(impact);
+
   const nodeSize = (node.data as { size?: number })?.size || 1;
 
   const meshRef = useRef<THREE.Mesh>(null);
@@ -264,7 +242,7 @@ const AffectedNodeHighlight: React.FC<AffectedNodeHighlightProps> = React.memo((
   if (!active) return null;
 
   return (
-    <animated.group
+    <A.group
       position={position}
       scale={scale}
       onClick={() => onClick?.(nodeId)}
@@ -272,10 +250,10 @@ const AffectedNodeHighlight: React.FC<AffectedNodeHighlightProps> = React.memo((
       {/* Glow sphere */}
       <mesh ref={meshRef}>
         <sphereGeometry args={[1, 16, 16]} />
-        <animated.meshBasicMaterial
+        <A.meshBasicMaterial
           color={color}
           transparent
-          opacity={opacity.to((o) => o * 0.3)}
+          opacity={opacity.to((o: number) => o * 0.3)}
           blending={AdditiveBlending}
         />
       </mesh>
@@ -283,7 +261,7 @@ const AffectedNodeHighlight: React.FC<AffectedNodeHighlightProps> = React.memo((
       {/* Ring indicator */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[nodeSize * 1.3, nodeSize * 1.5, 32]} />
-        <animated.meshBasicMaterial
+        <A.meshBasicMaterial
           color={color}
           transparent
           opacity={opacity}
@@ -312,7 +290,7 @@ const AffectedNodeHighlight: React.FC<AffectedNodeHighlightProps> = React.memo((
       >
         {`D${depth}`}
       </Text>
-    </animated.group>
+    </A.group>
   );
 });
 
@@ -340,7 +318,7 @@ const ImpactPath: React.FC<ImpactPathProps> = React.memo(({
   delay,
   impact,
 }) => {
-  const lineRef = useRef<THREE.Line>(null);
+  const lineRef = useRef<any>(null);
   const color = getImpactColor(impact);
 
   // Build path points
@@ -367,8 +345,8 @@ const ImpactPath: React.FC<ImpactPathProps> = React.memo(({
   useFrame(({ clock }) => {
     if (lineRef.current?.material && active) {
       const material = lineRef.current.material as THREE.LineDashedMaterial;
-      if (material.dashOffset !== undefined) {
-        material.dashOffset = -clock.getElapsedTime() * 2;
+      if ((material as any).dashOffset !== undefined) {
+        (material as any).dashOffset = -clock.getElapsedTime() * 2;
       }
     }
   });
@@ -376,7 +354,7 @@ const ImpactPath: React.FC<ImpactPathProps> = React.memo(({
   if (points.length < 2 || !active) return null;
 
   return (
-    <animated.group scale={progress}>
+    <A.group scale={progress}>
       <Line
         ref={lineRef}
         points={points}
@@ -389,7 +367,7 @@ const ImpactPath: React.FC<ImpactPathProps> = React.memo(({
         transparent
         opacity={0.6}
       />
-    </animated.group>
+    </A.group>
   );
 });
 
@@ -428,7 +406,7 @@ interface BlastRadiusVisualizationProps {
  * Main blast radius visualization component
  */
 export const BlastRadiusVisualization: React.FC<BlastRadiusVisualizationProps> = React.memo(({
-  sourceNodeId,
+  // sourceNodeId,
   sourceNode,
   affectedNodes,
   allNodes,
@@ -437,7 +415,7 @@ export const BlastRadiusVisualization: React.FC<BlastRadiusVisualizationProps> =
   isActive,
   showRings = true,
   showPaths = true,
-  showLabels = true,
+  // showLabels = true,
   onNodeClick,
 }) => {
   // Source position
@@ -446,16 +424,7 @@ export const BlastRadiusVisualization: React.FC<BlastRadiusVisualizationProps> =
     return [sourceNode.position.x, sourceNode.position.y, sourceNode.position.z];
   }, [sourceNode]);
 
-  // Group affected nodes by depth for staggered animation
-  const nodesByDepth = useMemo(() => {
-    const grouped = new Map<number, AffectedNode[]>();
-    affectedNodes.forEach((node) => {
-      const list = grouped.get(node.depth) || [];
-      list.push(node);
-      grouped.set(node.depth, list);
-    });
-    return grouped;
-  }, [affectedNodes]);
+
 
   // Top paths (limit for performance)
   const topPaths = useMemo(() => {

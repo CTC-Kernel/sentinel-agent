@@ -539,6 +539,7 @@ export interface UsePresentationModeReturn {
   setSlides: (slides: PresentationSlide[]) => void;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePresentationMode(): UsePresentationModeReturn {
   const [isActive, setIsActive] = useState(false);
   const [slides, setSlides] = useState<PresentationSlide[]>([]);

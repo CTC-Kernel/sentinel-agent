@@ -52,6 +52,7 @@ export interface LODDistances {
 // ============================================================================
 
 /** Default LOD distances */
+// eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_LOD_DISTANCES: LODDistances = {
   high: 15,
   medium: 35,
@@ -443,6 +444,7 @@ export interface UseLODConfigOptions {
   qualityMode?: boolean;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLODConfig(options: UseLODConfigOptions = {}): LODDistances {
   const { baseDistances = DEFAULT_LOD_DISTANCES, performanceMode = false, qualityMode = false } = options;
 

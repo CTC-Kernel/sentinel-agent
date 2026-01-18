@@ -3,6 +3,40 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ComplianceScoreWidget } from '../ComplianceScoreWidget';
 import type { ComplianceScore, ScoreHistory } from '../../../types/score.types';
 
+// Mock framer-motion
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>,
+    span: ({ children, className, ...props }: React.ComponentProps<'span'>) => <span className={className} {...props}>{children}</span>,
+    circle: (props: React.SVGProps<SVGCircleElement>) => <circle {...props} />,
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}));
+
+// Mock microInteractions utilities
+vi.mock('../../../utils/microInteractions', () => ({
+  appleEasing: [0.16, 1, 0.3, 1],
+  animateCounter: vi.fn((from: number, to: number, duration: number, onUpdate: (v: number) => void, onComplete?: () => void) => {
+    onUpdate(to);
+    if (onComplete) onComplete();
+    return () => {};
+  }),
+  triggerConfetti: vi.fn(),
+  triggerHaptic: vi.fn(),
+}));
+
+// Mock lucide-react icons
+vi.mock('lucide-react', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Icon = ({ className, ...props }: any) => <span className={`icon ${className}`} {...props} />;
+  return {
+    TrendingUp: Icon,
+    TrendingDown: Icon,
+    Minus: Icon,
+  };
+});
+
 // Mock the useComplianceScore hook
 vi.mock('../../../hooks/useComplianceScore', () => ({
   useComplianceScore: vi.fn(),
@@ -181,10 +215,10 @@ describe('ComplianceScoreWidget', () => {
 
     render(<ComplianceScoreWidget organizationId="org-123" showSparkline={false} />);
 
-    // Should only have gauge SVG
-    const container = document.querySelector('.flex.flex-col.items-center');
-    const sparklineContainer = container?.querySelector('.flex.items-center.gap-2');
-    expect(sparklineContainer).not.toBeInTheDocument();
+    // Should not have sparkline - look for the unique sparkline container with history icon
+    const svgs = document.querySelectorAll('svg');
+    // Only the gauge SVG should be present (not the sparkline SVG)
+    expect(svgs.length).toBe(1);
   });
 
   it('should open breakdown panel on gauge click', async () => {

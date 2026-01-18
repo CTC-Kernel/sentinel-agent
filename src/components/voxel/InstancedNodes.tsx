@@ -335,6 +335,7 @@ export const InstancedNodes: React.FC<InstancedNodesProps> = ({
 /**
  * Check if instanced rendering is recommended based on node count
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function shouldUseInstancedRendering(nodeCount: number, threshold = 100): boolean {
   return nodeCount >= threshold;
 }
@@ -342,6 +343,7 @@ export function shouldUseInstancedRendering(nodeCount: number, threshold = 100):
 /**
  * Calculate memory usage for instanced mesh
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function calculateInstancedMemory(instanceCount: number): {
   matrixBytes: number;
   colorBytes: number;

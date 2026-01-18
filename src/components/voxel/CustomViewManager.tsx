@@ -7,11 +7,9 @@
 
 import React, { useState, useCallback } from 'react';
 import {
-  Save,
   Trash2,
   Edit2,
   Play,
-  X,
   Plus,
   Layers,
   LayoutGrid,
@@ -31,16 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/Skeleton';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { cn } from '@/lib/utils';
 import { useViewPresets } from '@/hooks/voxel/useViewPresets';
 import type { CustomViewConfig } from '@/stores/viewPresets';
@@ -207,7 +196,6 @@ export function CustomViewManager({
     saveCurrentAsCustom,
     updateCustomView,
     deleteCustomView,
-    refreshCustomViews,
   } = useViewPresets();
 
   const [mode, setMode] = useState<ManagerMode>(initialMode);
@@ -263,7 +251,7 @@ export function CustomViewManager({
       } else {
         setError('Impossible de sauvegarder la vue');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Une erreur est survenue');
     } finally {
       setIsSaving(false);
@@ -293,7 +281,7 @@ export function CustomViewManager({
       } else {
         setError('Impossible de mettre a jour la vue');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Une erreur est survenue');
     } finally {
       setIsSaving(false);
@@ -411,7 +399,7 @@ export function CustomViewManager({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
@@ -468,22 +456,15 @@ export function CustomViewManager({
       </Dialog>
 
       {/* Delete confirmation dialog */}
-      <AlertDialog open={!!deleteConfirmView} onOpenChange={(open) => !open && setDeleteConfirmView(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette vue ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irreversible. La vue "{deleteConfirmView?.name}" sera definitivement supprimee.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmModal
+        isOpen={!!deleteConfirmView}
+        onClose={() => setDeleteConfirmView(null)}
+        onConfirm={handleDelete}
+        title="Supprimer cette vue ?"
+        message={`Cette action est irreversible. La vue "${deleteConfirmView?.name}" sera definitivement supprimee.`}
+        type="danger"
+        confirmText="Supprimer"
+      />
     </>
   );
 }

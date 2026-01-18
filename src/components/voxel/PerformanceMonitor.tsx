@@ -236,6 +236,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
       points: info.render?.points ?? 0,
       lines: info.render?.lines ?? 0,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gl, fpsData]); // Update with FPS to refresh
 
   // Toggle collapse
