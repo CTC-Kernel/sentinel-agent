@@ -20,7 +20,7 @@ const Collapsible = React.forwardRef<
         >
             {React.Children.map(children, child => {
                 if (React.isValidElement(child)) {
-                    // @ts-ignore
+                    // @ts-expect-error - Cloning element to pass down open state
                     return React.cloneElement(child, { isOpen, setIsOpen, onOpenChange })
                 }
                 return child
@@ -32,7 +32,7 @@ Collapsible.displayName = "Collapsible"
 
 const CollapsibleTrigger = React.forwardRef<
     HTMLButtonElement,
-    React.ButtonHTMLAttributes<HTMLButtonElement> & { isOpen?: boolean; setIsOpen?: any; onOpenChange?: any }
+    React.ButtonHTMLAttributes<HTMLButtonElement> & { isOpen?: boolean; setIsOpen?: (open: boolean) => void; onOpenChange?: (open: boolean) => void }
 >(({ className, isOpen, setIsOpen, onOpenChange, onClick, ...props }, ref) => (
     <button
         ref={ref}

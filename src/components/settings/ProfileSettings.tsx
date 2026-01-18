@@ -8,7 +8,7 @@ import { useZodForm } from '../../hooks/useZodForm';
 import { profileSchema, ProfileFormData } from '../../schemas/settingsSchema';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { Switch } from '../ui/Switch';
+import { Switch } from '../ui/switch';
 import { Button } from '../ui/button';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage, auth } from '../../firebase';

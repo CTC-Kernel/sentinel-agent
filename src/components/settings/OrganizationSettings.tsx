@@ -19,7 +19,7 @@ import { UserProfile } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 import { UserRow } from './UserRow';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
-import { Switch } from '../ui/Switch';
+import { Switch } from '../ui/switch';
 
 const SECONDS_TO_MS = 1000;
 

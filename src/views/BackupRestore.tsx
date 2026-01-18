@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { SubmitHandler, Controller } from 'react-hook-form';
 import { useZodForm } from '../hooks/useZodForm';
-import { Switch } from '../components/ui/Switch';
+import { Switch } from '../components/ui/switch';
 import { backupConfigSchema, restoreConfigSchema, BackupConfigFormData, RestoreConfigFormData } from '../schemas/backupSchema';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { LoadingScreen } from '../components/ui/LoadingScreen';

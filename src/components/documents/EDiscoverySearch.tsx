@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';
 import {
   EDiscoveryService,
@@ -51,10 +52,11 @@ interface EDiscoverySearchProps {
 export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
   defaultDocumentId,
   onSearchExecuted,
-  onResultClick,
+  // onResultClick,
   className = '',
 }) => {
-  const { user, currentOrganization } = useAuth();
+  const { user } = useAuth();
+  const { organization: currentOrganization } = useStore();
 
   // Query state
   const [keywords, setKeywords] = useState('');
@@ -427,8 +429,8 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                     }
                   }}
                   className={`px-2 py-1 text-xs rounded-full border transition-colors ${isSelected
-                      ? `${colors.bg} ${colors.text} ${colors.border}`
-                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-brand-300'
+                    ? `${colors.bg} ${colors.text} ${colors.border}`
+                    : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-brand-300'
                     }`}
                 >
                   {label}

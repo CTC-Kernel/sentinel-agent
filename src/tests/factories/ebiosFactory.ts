@@ -38,10 +38,6 @@ import type {
 } from '../../types/ebios';
 import {
   createDefaultWorkshop1Data,
-  createDefaultWorkshop2Data,
-  createDefaultWorkshop3Data,
-  createDefaultWorkshop4Data,
-  createDefaultWorkshop5Data,
   createDefaultEbiosWorkshops,
 } from '../../types/ebios';
 
@@ -722,7 +718,7 @@ export function createInProgressEbiosAnalysis(
   // Mark previous workshops as completed
   for (let i = 1; i < currentWorkshop; i++) {
     const workshopNum = i as 1 | 2 | 3 | 4 | 5;
-    workshops[workshopNum] = {
+    (workshops[workshopNum] as any) = {
       ...workshops[workshopNum],
       status: 'completed',
       startedAt: new Date().toISOString(),
@@ -731,7 +727,7 @@ export function createInProgressEbiosAnalysis(
   }
 
   // Mark current workshop as in progress
-  workshops[currentWorkshop] = {
+  (workshops[currentWorkshop] as any) = {
     ...workshops[currentWorkshop],
     status: 'in_progress',
     startedAt: new Date().toISOString(),

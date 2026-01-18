@@ -69,7 +69,7 @@ import {
 } from '../ui/select';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { Switch } from '@/components/ui/Switch';
+import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Tooltip } from '../ui/Tooltip';
@@ -319,6 +319,16 @@ export function SignatureWorkflow({
     []
   );
 
+
+  // Reset create form
+  const resetForm = useCallback(() => {
+    setFormTitle('');
+    setFormMessage('');
+    setFormDeadline('');
+    setFormSequential(false);
+    setFormSigners([{ name: '', email: '', order: 1 }]);
+  }, []);
+
   // Create signature request
   const handleCreateRequest = useCallback(async () => {
     if (!organizationId || !user) return;
@@ -385,16 +395,10 @@ export function SignatureWorkflow({
     formSequential,
     formSigners,
     onRequestCreated,
+    resetForm,
   ]);
 
-  // Reset create form
-  const resetForm = useCallback(() => {
-    setFormTitle('');
-    setFormMessage('');
-    setFormDeadline('');
-    setFormSequential(false);
-    setFormSigners([{ name: '', email: '', order: 1 }]);
-  }, []);
+
 
   // Open sign modal
   const openSignModal = useCallback((request: SignatureRequest, signer: SignerInfo) => {

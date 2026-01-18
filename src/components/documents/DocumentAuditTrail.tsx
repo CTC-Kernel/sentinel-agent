@@ -26,7 +26,7 @@ import {
   ChevronUp,
   Filter,
   Calendar,
-  User, // Remove if unused
+  // User, // Remove if unused
   RefreshCw,
   FileDown,
   X,
@@ -324,8 +324,8 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                       }
                     }}
                     className={`px-2 py-1 text-xs rounded-full border transition-colors ${isSelected
-                        ? `${colors.bg} ${colors.text} ${colors.border}`
-                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-brand-300'
+                      ? `${colors.bg} ${colors.text} ${colors.border}`
+                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-brand-300'
                       }`}
                   >
                     {label}

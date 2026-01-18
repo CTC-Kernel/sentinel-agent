@@ -9,6 +9,7 @@ interface BadgeProps {
     size?: 'sm' | 'md';
     className?: string;
     icon?: BadgeIconComponent;
+    onClick?: () => void;
 }
 
 export const Badge: React.FC<BadgeProps> = React.memo(({
@@ -17,7 +18,9 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
     status = 'neutral',
     size = 'sm',
     className = '',
-    icon: Icon
+    icon: Icon,
+    onClick,
+    ...props
 }) => {
     // Base styles
     const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-200 animate-badge-in";
@@ -71,7 +74,13 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
     };
 
     return (
-        <span className={`${baseStyles} ${sizeStyles[size]} ${getStatusStyles()} ${className}`}>
+        <span
+            className={`${baseStyles} ${sizeStyles[size]} ${getStatusStyles()} ${className} ${onClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+            onClick={onClick}
+            role={onClick ? "button" : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            {...props}
+        >
             {Icon && <Icon className={size === 'sm' ? "w-3 h-3" : "w-3.5 h-3.5"} />}
             {children}
         </span>

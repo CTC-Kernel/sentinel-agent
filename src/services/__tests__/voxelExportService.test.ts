@@ -9,7 +9,7 @@
  * - Utility functions
  */
 
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   VoxelExportService,
   captureScreenshot,
@@ -78,7 +78,7 @@ vi.mock('three', () => ({
 // Mock GLTFExporter
 vi.mock('three/examples/jsm/exporters/GLTFExporter.js', () => ({
   GLTFExporter: vi.fn().mockImplementation(() => ({
-    parse: vi.fn((scene, onComplete, _onError, _options) => {
+    parse: vi.fn((_scene, onComplete, _onError, _options) => {
       onComplete(new ArrayBuffer(1024));
     }),
   })),
@@ -136,14 +136,19 @@ global.fetch = vi.fn().mockResolvedValue({
 });
 
 // Mock ClipboardItem
-global.ClipboardItem = vi.fn().mockImplementation((items) => items);
+global.ClipboardItem = vi.fn().mockImplementation((items) => ({
+  ...items,
+  supports: vi.fn(),
+  types: Object.keys(items),
+  getType: vi.fn(),
+})) as any;
 
 describe('VoxelExportService', () => {
-  let mockRenderer: ReturnType<typeof vi.fn>;
-  let mockScene: ReturnType<typeof vi.fn>;
-  let mockCamera: ReturnType<typeof vi.fn>;
+  let mockRenderer: any;
+  let mockScene: any;
+  let mockCamera: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     resetIdCounter();
     vi.clearAllMocks();
 

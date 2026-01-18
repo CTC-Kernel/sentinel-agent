@@ -43,7 +43,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     // Handle initial file
     React.useEffect(() => {
         if (initialFile) {
-            const validation = validateFile(initialFile, maxSizeMB, allowedTypes);
+            const validation = validateFile(initialFile, { maxSizeMB, allowedTypes });
             if (validation.valid) {
                 setSelectedFile(initialFile);
             } else {
@@ -57,7 +57,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         if (!file) return;
 
         setError(null);
-        const validation = validateFile(file, maxSizeMB, allowedTypes);
+        const validation = validateFile(file, { maxSizeMB, allowedTypes });
 
         if (!validation.valid) {
             setError(validation.error || 'Invalid file');

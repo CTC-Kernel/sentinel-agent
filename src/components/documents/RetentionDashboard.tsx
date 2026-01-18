@@ -9,7 +9,7 @@
  * - Manual trigger for retention preview
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Plus,
   Edit2,
@@ -23,13 +23,17 @@ import {
   BarChart3,
   Settings,
   CheckCircle,
+  Clock,
+  Shield,
+  LucideIcon,
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
+import { Switch } from '@/components/ui/Switch';
+import { Separator } from '@/components/ui/separator';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -62,7 +66,7 @@ import {
 
 import { useStore } from '@/store';
 import { useLocale } from '@/hooks/useLocale';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useDocumentsData } from '../../hooks/documents/useDocumentsData';
 import {
   getPolicies,
   createPolicy,
@@ -78,6 +82,7 @@ import type {
   RetentionAction,
   DocumentRetentionStatus,
   ClassificationLevel,
+  RetentionScope,
 } from '@/types/vault';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -86,16 +91,21 @@ interface RetentionDashboardProps {
   className?: string;
 }
 
-const ACTION_CONFIG: Record<RetentionAction, { label: string; icon: React.ElementType; color: string }> = {
+const ACTION_CONFIG: Record<RetentionAction, { label: string; icon: LucideIcon; color: string }> = {
   archive: { label: 'Archiver', icon: Archive, color: 'text-blue-500' },
   delete: { label: 'Supprimer', icon: XCircle, color: 'text-red-500' },
   notify: { label: 'Notifier', icon: Bell, color: 'text-amber-500' },
 };
 
+const DOCUMENT_TYPES = ['Policy', 'Procedure', 'Evidence', 'Audit', 'Contract', 'HR', 'Legal', 'Financial'];
+const CLASSIFICATION_LEVELS: ClassificationLevel[] = ['public', 'internal', 'confidential', 'secret'];
+
 export function RetentionDashboard({ className }: RetentionDashboardProps) {
   const { t } = useLocale();
-  const { user, organizationId } = useStore();
-  const { documents } = useDocuments();
+
+  const { user, organization } = useStore();
+  const organizationId = organization?.id;
+  const { documents } = useDocumentsData(organizationId);
 
   // State
   const [policies, setPolicies] = useState<RetentionPolicy[]>([]);
@@ -201,7 +211,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
 
     setFormLoading(true);
     try {
-      const scope: RetentionScope = {};
+      const scope: Partial<RetentionScope> = {};
       if (formData.documentTypes.length > 0) {
         scope.documentTypes = formData.documentTypes;
       }
@@ -338,10 +348,10 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
     return `${days} jour${days > 1 ? 's' : ''}`;
   };
 
-  const formatDate = (timestamp: { toDate: () => Date } | undefined) => {
-    if (!timestamp) return '-';
-    return format(timestamp.toDate(), 'dd MMM yyyy', { locale: fr });
-  };
+  // const formatDate = (timestamp: { toDate: () => Date } | undefined) => {
+  //   if (!timestamp) return '-';
+  //   return format(timestamp.toDate(), 'dd MMM yyyy', { locale: fr });
+  // };
 
   // Calculate percentages for age distribution chart
   const ageChartData = useMemo(() => {
@@ -499,7 +509,8 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                             )}
                           </div>
                           <Badge
-                            variant={item.daysUntilExpiry <= 7 ? 'destructive' : 'outline'}
+                            status={item.daysUntilExpiry <= 7 ? 'error' : 'neutral'}
+                            variant={item.daysUntilExpiry <= 7 ? 'soft' : 'outline'}
                             className="shrink-0 ml-2"
                           >
                             {item.daysUntilExpiry}j
@@ -579,7 +590,10 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={policy.isActive !== false ? 'default' : 'secondary'}>
+                          <Badge
+                            variant={policy.isActive !== false ? 'soft' : 'soft'}
+                            status={policy.isActive !== false ? 'success' : 'neutral'}
+                          >
                             {policy.isActive !== false ? 'Active' : 'Inactive'}
                           </Badge>
                         </TableCell>
@@ -665,7 +679,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                             </TableCell>
                             <TableCell>{item.policyName}</TableCell>
                             <TableCell>
-                              <Badge variant="destructive">
+                              <Badge status="error" variant="soft">
                                 {Math.abs(item.daysUntilExpiry)} jours
                               </Badge>
                             </TableCell>
@@ -682,7 +696,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                                   Legal Hold
                                 </Badge>
                               ) : (
-                                <Badge variant="destructive">Action requise</Badge>
+                                <Badge status="error" variant="soft">Action requise</Badge>
                               )}
                             </TableCell>
                           </TableRow>
@@ -735,7 +749,8 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                             <TableCell>{item.policyName}</TableCell>
                             <TableCell>
                               <Badge
-                                variant={item.daysUntilExpiry <= 7 ? 'destructive' : 'outline'}
+                                variant="soft"
+                                status={item.daysUntilExpiry <= 7 ? 'error' : 'neutral'}
                               >
                                 {item.daysUntilExpiry} jours
                               </Badge>
@@ -920,7 +935,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                 </div>
                 <Switch
                   checked={formData.excludeLegalHold}
-                  onCheckedChange={(checked) =>
+                  onChange={(checked) =>
                     setFormData((prev) => ({ ...prev, excludeLegalHold: checked }))
                   }
                 />
@@ -935,7 +950,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
                 </div>
                 <Switch
                   checked={formData.isActive}
-                  onCheckedChange={(checked) =>
+                  onChange={(checked) =>
                     setFormData((prev) => ({ ...prev, isActive: checked }))
                   }
                 />

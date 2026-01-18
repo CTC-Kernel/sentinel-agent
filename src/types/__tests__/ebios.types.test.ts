@@ -26,11 +26,6 @@ import {
   type EbiosWorkshopStatus,
 } from '../ebios';
 import {
-  createWorkshop1Data,
-  createWorkshop2Data,
-  createWorkshop3Data,
-  createWorkshop4Data,
-  createWorkshop5Data,
   resetEbiosCounters,
 } from '../../tests/factories/ebiosFactory';
 
