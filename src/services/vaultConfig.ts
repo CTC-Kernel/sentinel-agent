@@ -34,7 +34,7 @@ export const CLASSIFICATION_CONFIG = {
     icon: 'Building',
     description: 'Employes uniquement',
     color: '#3b82f6',
-    requiredRoles: ['user', 'project_manager', 'rssi', 'admin', 'super_admin'],
+    requiredRoles: ['user', 'auditor', 'project_manager', 'rssi', 'admin', 'super_admin'],
   },
   confidential: {
     label: 'Confidentiel',

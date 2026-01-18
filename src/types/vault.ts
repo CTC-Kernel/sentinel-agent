@@ -48,6 +48,11 @@ export interface EncryptionStatus {
 }
 
 /**
+ * Legal hold status type
+ */
+export type LegalHoldStatus = 'active' | 'released';
+
+/**
  * Legal hold for compliance and litigation purposes
  */
 export interface LegalHold {
@@ -55,14 +60,37 @@ export interface LegalHold {
   organizationId: string;
   name: string;
   reason: string;
+  description?: string;
   createdBy: string;
   createdAt: Timestamp;
   expiresAt?: Timestamp;
   documentIds: string[];
-  status: 'active' | 'released';
+  affectedDocumentIds?: string[]; // Alias for clarity in legal contexts
+  status: LegalHoldStatus;
   releasedBy?: string;
   releasedAt?: Timestamp;
   releaseReason?: string;
+  // Metadata for audit trail
+  custodians?: string[]; // User IDs responsible for the hold
+  matterNumber?: string; // Legal case reference
+  notes?: string;
+  updatedAt?: Timestamp;
+  updatedBy?: string;
+}
+
+/**
+ * Retention action types
+ */
+export type RetentionAction = 'archive' | 'delete' | 'notify';
+
+/**
+ * Retention scope for policy filtering
+ */
+export interface RetentionScope {
+  classifications?: ClassificationLevel[];
+  documentTypes?: string[];
+  tags?: string[];
+  folderIds?: string[];
 }
 
 /**
@@ -72,17 +100,38 @@ export interface RetentionPolicy {
   id: string;
   organizationId: string;
   name: string;
-  documentType: string;
+  description?: string;
+  documentType?: string; // Legacy field
+  retentionPeriod?: number; // Alias for retentionDays (in days)
   retentionDays: number;
-  action: 'archive' | 'delete' | 'notify';
+  action: RetentionAction;
   notifyDaysBefore: number;
+  // Scoping
+  scope?: RetentionScope;
   exceptions?: {
     classifications?: ClassificationLevel[];
     excludeLegalHold?: boolean;
   };
+  // Status and metadata
+  isActive?: boolean;
+  priority?: number; // Higher priority policies take precedence
   createdBy: string;
   createdAt: Timestamp;
   updatedAt?: Timestamp;
+  updatedBy?: string;
+}
+
+/**
+ * Document retention status for tracking expiry
+ */
+export interface DocumentRetentionStatus {
+  documentId: string;
+  policyId: string;
+  policyName: string;
+  expiryDate: Timestamp;
+  daysUntilExpiry: number;
+  action: RetentionAction;
+  isUnderLegalHold: boolean;
 }
 
 /**

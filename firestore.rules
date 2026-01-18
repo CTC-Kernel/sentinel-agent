@@ -93,7 +93,140 @@ service cloud.firestore {
     function isValidLegalBasis(val) {
       return val in ['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'];
     }
-    
+
+    // --- CLASSIFICATION HELPERS (Story 24.3) ---
+    // Document classification levels: public, internal, confidential, secret
+
+    function isValidClassification(level) {
+      return level in ['public', 'internal', 'confidential', 'secret'];
+    }
+
+    // Check if user role can access a classification level
+    // public: all authenticated users
+    // internal: all authenticated users (user, project_manager, rssi, admin, super_admin)
+    // confidential: project_manager, rssi, admin, super_admin only
+    // secret: rssi, admin, super_admin only
+    function canAccessClassificationLevel(classification, role) {
+      return classification == 'public' ||
+             (classification == 'internal' && role in ['user', 'auditor', 'project_manager', 'rssi', 'admin', 'super_admin', 'direction']) ||
+             (classification == 'confidential' && role in ['project_manager', 'rssi', 'admin', 'super_admin', 'direction']) ||
+             (classification == 'secret' && role in ['rssi', 'admin', 'super_admin']);
+    }
+
+    // Check if user can access document based on classification
+    function canAccessDocumentClassification(docData) {
+      let classification = docData.get('classification', {}).get('level', 'internal');
+      let userRole = getUserData().role;
+      return canAccessClassificationLevel(classification, userRole);
+    }
+
+    // Check if user has explicit ACL permission on a document
+    // Checks user ID, role, and group memberships against ACL permissions
+    function hasExplicitAclPermission(docData, requiredAccess) {
+      let acl = docData.get('acl', null);
+      // If no ACL, fall back to classification-based access
+      if (acl == null) {
+        return false;
+      }
+      let permissions = acl.get('permissions', []);
+      let userId = request.auth.uid;
+      let userRole = getUserData().role;
+
+      // Check each permission entry
+      // Note: Firestore rules have limited iteration, so we check common cases
+      return permissions.size() > 0 && (
+        // User-based permission
+        permissions.hasAny([{
+          'principalType': 'user',
+          'principalId': userId,
+          'access': requiredAccess
+        }]) ||
+        permissions.hasAny([{
+          'principalType': 'user',
+          'principalId': userId,
+          'access': 'admin'
+        }]) ||
+        // Role-based permission
+        permissions.hasAny([{
+          'principalType': 'role',
+          'principalId': userRole,
+          'access': requiredAccess
+        }]) ||
+        permissions.hasAny([{
+          'principalType': 'role',
+          'principalId': userRole,
+          'access': 'admin'
+        }])
+      );
+    }
+
+    // Check if user is document owner
+    function isDocumentOwner(docData) {
+      return docData.get('ownerId', null) == request.auth.uid;
+    }
+
+    // --- LEGAL HOLD HELPERS (Story 25.2) ---
+    // Check if a document is under legal hold
+    function isDocumentUnderLegalHold(docData) {
+      return docData.get('isUnderHold', false) == true ||
+             (docData.get('legalHoldIds', []).size() > 0);
+    }
+
+    // Check if document can be deleted (not under legal hold)
+    function canDeleteDocumentSafely(docData) {
+      return !isDocumentUnderLegalHold(docData);
+    }
+
+    // Combined document access check
+    // Returns true if user can read the document based on:
+    // 1. Being admin/RSSI (always has access)
+    // 2. Being document owner
+    // 3. Classification-based access (when ACL defaultAccess is 'classification')
+    // 4. Explicit ACL permission
+    function canAccessDocument(docData) {
+      let userRole = getUserData().role;
+
+      // Admin and RSSI always have access
+      if (userRole in ['admin', 'super_admin', 'rssi']) {
+        return true;
+      }
+
+      // Document owner always has access
+      if (isDocumentOwner(docData)) {
+        return true;
+      }
+
+      // Check ACL default access mode
+      let acl = docData.get('acl', null);
+      let defaultAccess = acl != null ? acl.get('defaultAccess', 'classification') : 'classification';
+
+      // Classification-based access
+      if (defaultAccess == 'classification') {
+        return canAccessDocumentClassification(docData);
+      }
+
+      // Explicit ACL only mode - check for read permission
+      return hasExplicitAclPermission(docData, 'read');
+    }
+
+    // Check if user can edit document (requires edit or admin permission)
+    function canEditDocument(docData) {
+      let userRole = getUserData().role;
+
+      // Admin and RSSI can always edit
+      if (userRole in ['admin', 'super_admin', 'rssi']) {
+        return true;
+      }
+
+      // Document owner can always edit
+      if (isDocumentOwner(docData)) {
+        return true;
+      }
+
+      // Check explicit ACL for edit permission
+      return hasExplicitAclPermission(docData, 'edit');
+    }
+
     // --- PERMISSION LOGIC ---
 
     // READ: Everyone in the org can read most resources
@@ -590,15 +723,50 @@ service cloud.firestore {
       allow delete: if canDelete(resource.data.organizationId);
     }
 
-    // Documents
+    // Documents (with Classification-based RBAC - Story 24.3)
     match /documents/{documentId} {
-      allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && 
+      // READ: User must belong to org AND have classification access
+      // Classification check: public=all, internal=authenticated, confidential=manager+, secret=rssi/admin
+      allow read: if belongsToOrganization(resource.data.organizationId) &&
+        canAccessDocument(resource.data);
+
+      // CREATE: User must belong to org, have write permission, and be able to set the classification
+      allow create: if isAuthenticated() &&
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || ((isAuditor() || isProjectManager()) && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || 
-        ((isAuditor() || isProjectManager()) && belongsToOrganization(resource.data.organizationId)) ||
-        (resource.data.owner == request.auth.token.email && belongsToOrganization(resource.data.organizationId));
+        (canWrite(request.resource.data.organizationId) || ((isAuditor() || isProjectManager()) && belongsToOrganization(request.resource.data.organizationId))) &&
+        // Validate classification if provided
+        (!('classification' in request.resource.data) ||
+          (isValidClassification(request.resource.data.classification.level) &&
+           canAccessClassificationLevel(request.resource.data.classification.level, getUserData().role)));
+
+      // UPDATE: User must have edit access to document (classification or ACL based)
+      // Also validate classification change if applicable
+      // Documents under legal hold have restricted updates (Story 25.2)
+      allow update: if belongsToOrganization(resource.data.organizationId) &&
+        canEditDocument(resource.data) &&
+        // If document is under legal hold, only allow non-critical updates
+        // Critical fields protected: url, storagePath, encryption, hash, content
+        (!isDocumentUnderLegalHold(resource.data) ||
+          (
+            // Allow metadata updates only on held documents
+            (!('url' in request.resource.data) || request.resource.data.url == resource.data.get('url', null)) &&
+            (!('storagePath' in request.resource.data) || request.resource.data.storagePath == resource.data.get('storagePath', null)) &&
+            (!('content' in request.resource.data) || request.resource.data.content == resource.data.get('content', null)) &&
+            (!('hash' in request.resource.data) || request.resource.data.hash == resource.data.get('hash', null)) &&
+            // Preserve legal hold fields (only legalHoldService can modify these)
+            (!('legalHoldIds' in request.resource.data) ||
+              (isAdmin() || isRSSI()))
+          )
+        ) &&
+        // If changing classification, validate the new level
+        (!('classification' in request.resource.data) ||
+          !('level' in request.resource.data.classification) ||
+          request.resource.data.classification.level == resource.data.get('classification', {}).get('level', 'internal') ||
+          (isValidClassification(request.resource.data.classification.level) &&
+           canAccessClassificationLevel(request.resource.data.classification.level, getUserData().role)));
+
+      // DELETE: Blocked client-side (use Cloud Functions for safe deletion with cascade)
+      // Note: Documents under legal hold CANNOT be deleted even via Cloud Functions
       allow delete: if false;
     }
 
@@ -839,6 +1007,134 @@ service cloud.firestore {
         canWrite(request.resource.data.organizationId);
       allow update: if canWrite(resource.data.organizationId);
       allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // ===========================================================================
+    // COFFRE-FORT DOCUMENTAIRE - Legal Compliance (Epic 25)
+    // ===========================================================================
+
+    // Legal Holds Collection (Story 25.2)
+    // Only admin/rssi can manage legal holds
+    match /legalHolds/{holdId} {
+      // Read: Org members with elevated roles can view legal holds
+      allow read: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI() || isAuditor());
+
+      // Create: Only admin/rssi can create legal holds
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (isAdmin() || isRSSI()) &&
+        isValidString(request.resource.data.name, 1, 200) &&
+        isValidString(request.resource.data.reason, 1, 5000) &&
+        request.resource.data.status == 'active';
+
+      // Update: Only admin/rssi can modify legal holds
+      // Cannot change status from released back to active
+      allow update: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI()) &&
+        (!('status' in request.resource.data) ||
+          request.resource.data.status == 'active' ||
+          (request.resource.data.status == 'released' && resource.data.status == 'active'));
+
+      // Delete: Only allow deletion of released holds with no documents
+      allow delete: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI()) &&
+        resource.data.status == 'released' &&
+        (resource.data.documentIds == [] || !('documentIds' in resource.data));
+    }
+
+    // Retention Policies Collection (Story 25.4)
+    // Only admin/rssi can manage retention policies
+    match /retentionPolicies/{policyId} {
+      // Read: Org members with elevated roles can view policies
+      allow read: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI() || isAuditor() || isProjectManager());
+
+      // Create: Only admin/rssi can create retention policies
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (isAdmin() || isRSSI()) &&
+        isValidString(request.resource.data.name, 1, 200) &&
+        request.resource.data.retentionDays is int &&
+        request.resource.data.retentionDays > 0 &&
+        request.resource.data.action in ['archive', 'delete', 'notify'];
+
+      // Update: Only admin/rssi can modify retention policies
+      allow update: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI()) &&
+        (!('retentionDays' in request.resource.data) ||
+          (request.resource.data.retentionDays is int && request.resource.data.retentionDays > 0)) &&
+        (!('action' in request.resource.data) ||
+          request.resource.data.action in ['archive', 'delete', 'notify']);
+
+      // Delete: Only admin/rssi can delete policies
+      allow delete: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI());
+    }
+
+    // ===========================================================================
+    // DOCUMENT AUDIT TRAIL - Immutable Logs (Epic 27)
+    // ===========================================================================
+
+    // Document Audit Logs Collection (Story 27.1)
+    // IMMUTABLE: Only allow create, never update or delete
+    // This ensures complete audit trail integrity for compliance
+    match /document_audit_logs/{logId} {
+      // Read: Admin, RSSI, Auditor can read audit logs for their org
+      // Regular users can read their own actions only
+      allow read: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI() || isAuditor() ||
+         resource.data.userId == request.auth.uid);
+
+      // Create: Only allow creation if:
+      // 1. Authenticated user
+      // 2. Creating for their own organization
+      // 3. User ID matches the authenticated user (prevents spoofing)
+      // 4. Required fields are present
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        request.resource.data.userId == request.auth.uid &&
+        isValidString(request.resource.data.action, 1, 50) &&
+        request.resource.data.documentId is string &&
+        request.resource.data.documentId.size() > 0;
+
+      // UPDATE: NEVER allowed - audit logs are immutable
+      allow update: if false;
+
+      // DELETE: NEVER allowed - audit logs are permanent
+      allow delete: if false;
+    }
+
+    // eDiscovery Saved Searches Collection (Story 27.4)
+    // Users can save and reuse search queries
+    match /ediscovery_searches/{searchId} {
+      // Read: Users can read their own searches, admin/rssi can read all org searches
+      allow read: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI() || isAuditor() || resource.data.createdBy == request.auth.uid);
+
+      // Create: Authenticated users in org can create searches
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        request.resource.data.createdBy == request.auth.uid &&
+        isValidString(request.resource.data.name, 1, 200);
+
+      // Update: Only owner or admin can update
+      allow update: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI() || resource.data.createdBy == request.auth.uid);
+
+      // Delete: Only owner or admin can delete
+      allow delete: if belongsToOrganization(resource.data.organizationId) &&
+        (isAdmin() || isRSSI() || resource.data.createdBy == request.auth.uid);
+    }
+
+    // Watermark Settings Collection (Story 27.5)
+    // Organization-level watermark configuration
+    match /watermark_settings/{orgId} {
+      // Read: Any org member can read watermark settings
+      allow read: if belongsToOrganization(orgId);
+
+      // Write: Only admin/rssi can modify watermark settings
+      allow write: if belongsToOrganization(orgId) && (isAdmin() || isRSSI());
     }
 
     // ===========================================================================

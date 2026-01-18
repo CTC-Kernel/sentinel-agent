@@ -40,15 +40,110 @@ export interface VoxelEdge {
   weight: number;
 }
 
+// ============================================================================
+// Anomaly Types (Epic 29)
+// ============================================================================
+
+export type VoxelAnomalyType =
+  | 'orphan_control'      // Control not linked to any risk
+  | 'circular_dependency' // Circular risk→control→risk chain
+  | 'coverage_gap'        // Risk without mitigation controls
+  | 'stale_assessment'    // Assessment older than 90 days
+  | 'compliance_drift'    // Control effectiveness below threshold
+  | 'orphan'              // Legacy: general orphan entity
+  | 'stale'               // Legacy: general stale entity
+  | 'inconsistency'       // Data inconsistency detected
+  | 'cycle'               // Legacy: circular dependency
+  | 'cluster'             // Anomalous clustering pattern
+  | 'trend';              // Concerning trend detected
+
+export type VoxelAnomalySeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export type VoxelAnomalyStatus = 'active' | 'acknowledged' | 'resolved' | 'dismissed' | 'ignored';
+
+export interface VoxelAnomalyDetails {
+  /** Path of node IDs forming a cycle (for circular_dependency) */
+  cyclePath?: string[];
+  /** Related node IDs involved in the anomaly */
+  relatedNodeIds?: string[];
+  /** Days since last assessment (for stale_assessment) */
+  daysSinceAssessment?: number;
+  /** Expected threshold that was violated */
+  threshold?: number;
+  /** Actual value that triggered the anomaly */
+  actualValue?: number;
+  /** Additional context-specific information */
+  context?: Record<string, unknown>;
+}
+
 export interface VoxelAnomaly {
   id: string;
-  type: 'orphan' | 'stale' | 'inconsistency' | 'cycle' | 'cluster' | 'trend';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: VoxelAnomalyType;
+  severity: VoxelAnomalySeverity;
   nodeId: string;
   message: string;
   detectedAt: Date;
-  status: 'active' | 'acknowledged' | 'resolved' | 'dismissed';
+  status: VoxelAnomalyStatus;
+  /** Additional details about the anomaly */
+  details?: VoxelAnomalyDetails;
+  /** User who resolved/dismissed the anomaly */
+  resolvedBy?: string;
+  /** Timestamp when the anomaly was resolved */
+  resolvedAt?: Date;
+  /** Justification for ignoring/dismissing */
+  dismissalReason?: string;
+  /** Source of detection: 'server' | 'client' */
+  detectionSource?: 'server' | 'client';
+  /** Organization ID for multi-tenant filtering */
+  organizationId?: string;
 }
+
+// ============================================================================
+// Alert Configuration (Story 29.8)
+// ============================================================================
+
+export interface AlertThreshold {
+  anomalyType: VoxelAnomalyType;
+  minSeverity: VoxelAnomalySeverity;
+  enabled: boolean;
+}
+
+export interface AlertChannelConfig {
+  inApp: boolean;
+  email: boolean;
+  /** Future: push notifications */
+  push?: boolean;
+}
+
+export interface VoxelAlertConfig {
+  id: string;
+  organizationId: string;
+  thresholds: AlertThreshold[];
+  channels: AlertChannelConfig;
+  /** Rate limiting: max alerts per hour */
+  maxAlertsPerHour: number;
+  /** Cooldown period in minutes between alerts of same type */
+  cooldownMinutes: number;
+  createdAt: Date;
+  updatedAt: Date;
+  updatedBy?: string;
+}
+
+export const DEFAULT_ALERT_CONFIG: Omit<VoxelAlertConfig, 'id' | 'organizationId' | 'createdAt' | 'updatedAt'> = {
+  thresholds: [
+    { anomalyType: 'orphan_control', minSeverity: 'medium', enabled: true },
+    { anomalyType: 'circular_dependency', minSeverity: 'high', enabled: true },
+    { anomalyType: 'coverage_gap', minSeverity: 'high', enabled: true },
+    { anomalyType: 'stale_assessment', minSeverity: 'medium', enabled: true },
+    { anomalyType: 'compliance_drift', minSeverity: 'high', enabled: true },
+  ],
+  channels: {
+    inApp: true,
+    email: false,
+  },
+  maxAlertsPerHour: 10,
+  cooldownMinutes: 30,
+};
 
 // ============================================================================
 // Filter & UI State Types

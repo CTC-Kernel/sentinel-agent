@@ -2097,6 +2097,54 @@ exports.deleteOrganization = onCall(async (request) => {
 // Export the API function
 exports.api = require("./api").api;
 
+// =============================================================================
+// Voxel Intelligence Engine - Epic 29: Anomaly Detection
+// =============================================================================
+
+const detectAnomalies = require("./voxel/detectAnomalies");
+const anomalyAlerts = require("./voxel/anomalyAlerts");
+
+// Scheduled and Callable anomaly detection functions
+exports.scheduledAnomalyDetection = detectAnomalies.scheduledAnomalyDetection;
+exports.detectAnomaliesOnDemand = detectAnomalies.detectAnomaliesOnDemand;
+exports.getAnomalies = detectAnomalies.getAnomalies;
+exports.updateAnomalyStatus = detectAnomalies.updateAnomalyStatus;
+
+// Anomaly alert functions
+exports.onAnomalyCreated = anomalyAlerts.onAnomalyCreated;
+exports.getAlertConfiguration = anomalyAlerts.getAlertConfiguration;
+exports.updateAlertConfiguration = anomalyAlerts.updateAlertConfiguration;
+exports.testAnomalyAlert = anomalyAlerts.testAnomalyAlert;
+
+// =============================================================================
+// Voxel Intelligence Engine - Epic 31: Snapshots & Analytics
+// =============================================================================
+
+const voxelSnapshots = require("./voxel/snapshots");
+
+// Scheduled daily snapshot function
+exports.scheduledVoxelSnapshot = voxelSnapshots.scheduledVoxelSnapshot;
+
+// Callable snapshot functions
+exports.createVoxelSnapshot = voxelSnapshots.createVoxelSnapshot;
+exports.getVoxelSnapshots = voxelSnapshots.getVoxelSnapshots;
+exports.getVoxelSnapshotByDate = voxelSnapshots.getVoxelSnapshotByDate;
+exports.compareVoxelSnapshots = voxelSnapshots.compareVoxelSnapshots;
+
+// =============================================================================
+// Coffre-Fort Documentaire - Epic 25: Legal Compliance & Retention
+// =============================================================================
+
+const retentionEngine = require("./vault/retentionEngine");
+
+// Scheduled retention engine (runs daily at 2 AM)
+exports.scheduledRetentionEngine = retentionEngine.scheduledRetentionEngine;
+
+// Callable functions for retention management
+exports.previewRetentionActions = retentionEngine.previewRetentionActions;
+exports.runRetentionEngine = retentionEngine.runRetentionEngine;
+exports.getRetentionHistory = retentionEngine.getRetentionHistory;
+
 function getUserSecretKey() {
     const raw = userSecretsKey.value();
     if (!raw) {
@@ -4039,3 +4087,67 @@ exports.dailyScoreSnapshot = dailyScoreSnapshot;
 
 const { checkKmsSetup } = require('./vault/checkKmsSetup');
 exports.checkKmsSetup = checkKmsSetup;
+
+// Story 23.2 - Document Encryption on Upload
+const { encryptOnUpload } = require('./vault/encryptOnUpload');
+exports.encryptOnUpload = encryptOnUpload;
+
+// Story 23.3 - Document Decryption on Download
+const { decryptOnDownload } = require('./vault/decryptOnDownload');
+exports.decryptOnDownload = decryptOnDownload;
+
+// Story 23.4 - Document Migration
+const { migrateDocuments, scheduledDocumentMigration, getMigrationStatus } = require('./vault/migrateDocuments');
+exports.migrateDocuments = migrateDocuments;
+exports.scheduledDocumentMigration = scheduledDocumentMigration;
+exports.getMigrationStatus = getMigrationStatus;
+
+// Story 26.1 - Document Integrity Service
+const { verifyIntegrity, getHashHistory, generateIntegrityCertificate } = require('./vault/integrityService');
+exports.verifyIntegrity = verifyIntegrity;
+exports.getHashHistory = getHashHistory;
+exports.generateIntegrityCertificate = generateIntegrityCertificate;
+
+// Story 26.4 - Electronic Signature Service
+const {
+  initiateSignature,
+  verifySignature,
+  sendSignatureNotifications,
+  handleSignatureWebhook,
+  generateSignedDocumentCertificate
+} = require('./vault/signatureService');
+exports.initiateSignature = initiateSignature;
+exports.verifySignature = verifySignature;
+exports.sendSignatureNotifications = sendSignatureNotifications;
+exports.handleSignatureWebhook = handleSignatureWebhook;
+exports.generateSignedDocumentCertificate = generateSignedDocumentCertificate;
+
+// ============================================================================
+// EPIC 27 - AUDIT TRAIL & eDISCOVERY (Story 27.1-27.5)
+// ============================================================================
+
+// Story 27.2 - Audit Query Functions
+const {
+  getDocumentAuditTrail,
+  getUserAuditTrail,
+  getOrganizationAuditTrail,
+  exportAuditTrail,
+  getAuditStatistics
+} = require('./vault/auditQueries');
+exports.getDocumentAuditTrail = getDocumentAuditTrail;
+exports.getUserAuditTrail = getUserAuditTrail;
+exports.getOrganizationAuditTrail = getOrganizationAuditTrail;
+exports.exportAuditTrail = exportAuditTrail;
+exports.getAuditStatistics = getAuditStatistics;
+
+// Story 27.5 - Watermarking Service
+const {
+  downloadWithWatermark,
+  getWatermarkSettingsCallable,
+  updateWatermarkSettings,
+  previewWatermark
+} = require('./vault/watermarkService');
+exports.downloadWithWatermark = downloadWithWatermark;
+exports.getWatermarkSettingsCallable = getWatermarkSettingsCallable;
+exports.updateWatermarkSettings = updateWatermarkSettings;
+exports.previewWatermark = previewWatermark;
