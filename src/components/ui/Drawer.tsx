@@ -1,9 +1,11 @@
-
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './button';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from './Icons';
+
+// Apple-style cubic-bezier for smooth, spring-like animations
+const APPLE_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
 interface DrawerProps {
     isOpen: boolean;
@@ -33,14 +35,17 @@ export const Drawer: React.FC<DrawerProps> = ({
             <Dialog as="div" className="relative z-[100]" onClose={onClose}>
                 <Transition.Child
                     as={React.Fragment}
-                    enter="ease-in-out duration-500"
+                    enter="duration-400"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
-                    leave="ease-in-out duration-500"
+                    leave="duration-300"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" />
+                    <div
+                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px]"
+                        style={{ transition: `opacity 400ms ${APPLE_EASING}` }}
+                    />
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-hidden">
@@ -48,14 +53,17 @@ export const Drawer: React.FC<DrawerProps> = ({
                         <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
                             <Transition.Child
                                 as={React.Fragment}
-                                enter="transform transition ease-in-out duration-500 sm:duration-700"
+                                enter="transform duration-500"
                                 enterFrom="translate-x-full"
                                 enterTo="translate-x-0"
-                                leave="transform transition ease-in-out duration-500 sm:duration-700"
+                                leave="transform duration-400"
                                 leaveFrom="translate-x-0"
                                 leaveTo="translate-x-full"
                             >
-                                <Dialog.Panel className={`pointer-events-auto w-screen ${width}`}>
+                                <Dialog.Panel
+                                    className={`pointer-events-auto w-screen ${width}`}
+                                    style={{ transition: `transform 500ms ${APPLE_EASING}` }}
+                                >
                                     <div className="flex h-full flex-col glass-premium border-t-0 border-b-0 border-r-0 rounded-l-2xl shadow-xl">
                                         {/* Header */}
                                         <div className="px-6 py-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">

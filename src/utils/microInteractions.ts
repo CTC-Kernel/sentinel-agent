@@ -347,6 +347,95 @@ export const keyframes = {
   `,
 };
 
+// ============================================================================
+// ACTION FEEDBACK UTILITIES
+// ============================================================================
+
+export type ActionFeedbackType = 'success' | 'error' | 'warning' | 'info';
+
+/**
+ * Trigger feedback for save action
+ * Combines haptic feedback with optional confetti for success
+ */
+export const triggerSaveFeedback = (success: boolean = true) => {
+  if (success) {
+    triggerHaptic('medium');
+    // Small celebration for successful save
+    triggerConfetti({ particleCount: 30, spread: 40, origin: { y: 0.7 } });
+  } else {
+    triggerHaptic('heavy');
+  }
+};
+
+/**
+ * Trigger feedback for delete action
+ * Warning haptic feedback
+ */
+export const triggerDeleteFeedback = () => {
+  triggerHaptic('heavy');
+};
+
+/**
+ * Trigger feedback for form submission success
+ */
+export const triggerSubmitFeedback = (success: boolean = true) => {
+  if (success) {
+    triggerHaptic('light');
+    triggerConfetti({ particleCount: 50, spread: 60 });
+  } else {
+    triggerHaptic('heavy');
+  }
+};
+
+/**
+ * Create a pulse animation on an element
+ */
+export const pulseElement = (element: HTMLElement, color: string = 'rgba(59, 130, 246, 0.4)') => {
+  const originalBoxShadow = element.style.boxShadow;
+  element.style.transition = 'box-shadow 0.3s ease-out';
+  element.style.boxShadow = `0 0 0 0 ${color}`;
+
+  requestAnimationFrame(() => {
+    element.style.boxShadow = `0 0 0 10px transparent`;
+    setTimeout(() => {
+      element.style.boxShadow = originalBoxShadow;
+    }, 300);
+  });
+};
+
+/**
+ * Shake an element to indicate error
+ */
+export const shakeElement = (element: HTMLElement) => {
+  const originalTransform = element.style.transform;
+  element.style.transition = 'transform 0.1s ease-in-out';
+
+  const shake = [0, -5, 5, -5, 5, -3, 3, 0];
+  let i = 0;
+
+  const interval = setInterval(() => {
+    if (i >= shake.length) {
+      clearInterval(interval);
+      element.style.transform = originalTransform;
+      return;
+    }
+    element.style.transform = `translateX(${shake[i]}px)`;
+    i++;
+  }, 50);
+};
+
+/**
+ * Bounce an element briefly
+ */
+export const bounceElement = (element: HTMLElement) => {
+  element.style.transition = `transform 0.3s ${appleEasing.join(',')}`;
+  element.style.transform = 'scale(1.05)';
+
+  setTimeout(() => {
+    element.style.transform = 'scale(1)';
+  }, 150);
+};
+
 export default {
   appleEasing,
   DURATION,
@@ -371,4 +460,11 @@ export default {
   getStaggerDelay,
   getImpactColor,
   getSeverityColorClass,
+  // Action feedback
+  triggerSaveFeedback,
+  triggerDeleteFeedback,
+  triggerSubmitFeedback,
+  pulseElement,
+  shakeElement,
+  bounceElement,
 };

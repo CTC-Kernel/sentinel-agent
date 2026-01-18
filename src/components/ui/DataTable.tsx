@@ -9,6 +9,7 @@ import {
     ColumnDef,
     SortingState
 } from '@tanstack/react-table';
+import { motion } from 'framer-motion';
 import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight, Trash2 } from './Icons';
 import { Button } from './button';
 import { cn } from '../../lib/utils';
@@ -16,6 +17,7 @@ import { Skeleton } from './Skeleton';
 
 import { Tooltip } from './Tooltip';
 import { ConfirmModal } from './ConfirmModal';
+import { appleEasing } from '../../utils/microInteractions';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -30,6 +32,8 @@ interface DataTableProps<TData, TValue> {
     className?: string;
     loading?: boolean;
     emptyState?: React.ReactNode;
+    /** Enable stagger animation for table rows */
+    animateRows?: boolean;
 }
 
 export function DataTable<TData extends { id: string }, TValue>({
@@ -45,6 +49,7 @@ export function DataTable<TData extends { id: string }, TValue>({
     className,
     loading = false,
     emptyState,
+    animateRows = true,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
@@ -246,9 +251,16 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 </tr>
                             ))
                         ) : table.getRowModel().rows.length > 0 ? (
-                            table.getRowModel().rows.map((row) => (
-                                <tr
+                            table.getRowModel().rows.map((row, index) => (
+                                <motion.tr
                                     key={row.id}
+                                    initial={animateRows ? { opacity: 0, y: 10 } : false}
+                                    animate={animateRows ? { opacity: 1, y: 0 } : undefined}
+                                    transition={animateRows ? {
+                                        delay: index * 0.03,
+                                        duration: 0.25,
+                                        ease: appleEasing
+                                    } : undefined}
                                     onClick={(e) => {
                                         // Don't trigger row click if clicking checkbox
                                         if ((e.target as HTMLElement).closest('input[type="checkbox"]')) return;
@@ -265,7 +277,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}
-                                </tr>
+                                </motion.tr>
                             ))
                         ) : (
                             <tr>
