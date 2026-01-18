@@ -9,3 +9,4 @@ export * from './controlFactory';
 export * from './auditFactory';
 export * from './documentFactory';
 export * from './userFactory';
+export * from './ebiosFactory';
