@@ -8,7 +8,7 @@ import { useZodForm } from '../../hooks/useZodForm';
 import { profileSchema, ProfileFormData } from '../../schemas/settingsSchema';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { Switch } from '../ui/switch';
+import { Switch } from '../ui/Switch';
 import { Button } from '../ui/button';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage, auth } from '../../firebase';
@@ -180,7 +180,7 @@ export const ProfileSettings: React.FC = () => {
                     {/* Avatar Section */}
                     <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">
                         <div className="relative group mx-auto">
-                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl ring-4 ring-slate-100 dark:ring-white/5">
+                            <div className="w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/20 bg-white dark:bg-slate-900">
                                 <img
                                     src={getDefaultAvatarUrl(user?.role)}
                                     alt={user?.displayName || 'User'}
@@ -191,7 +191,7 @@ export const ProfileSettings: React.FC = () => {
                                     }}
                                 />
                                 <div
-                                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                                    className="absolute inset-0 bg-black/30 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center cursor-pointer"
                                     onClick={() => fileInputRef.current?.click()}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
@@ -203,7 +203,7 @@ export const ProfileSettings: React.FC = () => {
                                     tabIndex={0}
                                     aria-label="Modifier la photo de profil"
                                 >
-                                    <Camera className="w-8 h-8 text-white" />
+                                    <Camera className="w-8 h-8 text-white drop-shadow-md transform group-hover:scale-110 transition-transform duration-300" />
                                 </div>
                             </div>
                             <input
