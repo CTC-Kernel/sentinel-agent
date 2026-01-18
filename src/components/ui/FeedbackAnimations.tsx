@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { appleEasing } from '../../utils/microInteractions';
 
 /**
  * Composant Button avec animation de feedback au clic
@@ -210,7 +212,7 @@ export const NotificationBadge: React.FC<NotificationBadgeProps> = ({
 };
 
 /**
- * Progress bar animée
+ * Progress bar animée avec Framer Motion
  */
 interface AnimatedProgressProps {
   value: number;
@@ -218,6 +220,10 @@ interface AnimatedProgressProps {
   color?: 'brand' | 'success' | 'warning' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
+  /** Show pulse glow effect */
+  showGlow?: boolean;
+  /** Indeterminate mode (loading animation) */
+  indeterminate?: boolean;
 }
 
 export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
@@ -225,7 +231,9 @@ export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
   max = 100,
   color = 'brand',
   size = 'md',
-  showLabel = false
+  showLabel = false,
+  showGlow = false,
+  indeterminate = false
 }) => {
   const percentage = Math.min((value / max) * 100, 100);
 
@@ -234,6 +242,13 @@ export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
     success: 'bg-emerald-500',
     warning: 'bg-amber-500',
     danger: 'bg-red-500'
+  };
+
+  const glowClasses = {
+    brand: 'shadow-brand-500/50',
+    success: 'shadow-emerald-500/50',
+    warning: 'shadow-amber-500/50',
+    danger: 'shadow-red-500/50'
   };
 
   const sizeClasses = {
@@ -245,21 +260,123 @@ export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
   return (
     <div className="w-full">
       {showLabel && (
-        <div className="flex justify-between items-center mb-2">
+        <motion.div
+          className="flex justify-between items-center mb-2"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ease: appleEasing }}
+        >
           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Progression
           </span>
-          <span className="text-sm font-bold text-slate-900 dark:text-white">
+          <motion.span
+            className="text-sm font-bold text-slate-900 dark:text-white tabular-nums"
+            key={Math.round(percentage)}
+            initial={{ scale: 1.2, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
             {Math.round(percentage)}%
-          </span>
-        </div>
+          </motion.span>
+        </motion.div>
       )}
       <div className={`w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden ${sizeClasses[size]}`}>
-        <div
-          className={`${colorClasses[color]} ${sizeClasses[size]} rounded-full transition-all duration-500 ease-out`}
-          style={{ width: `${percentage}%` }}
-        />
+        {indeterminate ? (
+          <motion.div
+            className={`${colorClasses[color]} ${sizeClasses[size]} rounded-full w-1/3`}
+            animate={{ x: ['0%', '200%', '0%'] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        ) : (
+          <motion.div
+            className={`${colorClasses[color]} ${sizeClasses[size]} rounded-full ${showGlow ? `shadow-lg ${glowClasses[color]}` : ''}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${percentage}%` }}
+            transition={{ duration: 0.8, ease: appleEasing }}
+          />
+        )}
       </div>
+    </div>
+  );
+};
+
+/**
+ * Circular progress indicator
+ */
+interface CircularProgressProps {
+  value: number;
+  max?: number;
+  size?: number;
+  strokeWidth?: number;
+  color?: 'brand' | 'success' | 'warning' | 'danger';
+  showValue?: boolean;
+}
+
+export const CircularProgress: React.FC<CircularProgressProps> = ({
+  value,
+  max = 100,
+  size = 60,
+  strokeWidth = 6,
+  color = 'brand',
+  showValue = true
+}) => {
+  const percentage = Math.min((value / max) * 100, 100);
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  const colorClasses = {
+    brand: 'stroke-brand-500',
+    success: 'stroke-emerald-500',
+    warning: 'stroke-amber-500',
+    danger: 'stroke-red-500'
+  };
+
+  const textColorClasses = {
+    brand: 'text-brand-600',
+    success: 'text-emerald-600',
+    warning: 'text-amber-600',
+    danger: 'text-red-600'
+  };
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-slate-200 dark:text-slate-700"
+        />
+        {/* Progress circle */}
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          className={colorClasses[color]}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset }}
+          transition={{ duration: 1, ease: appleEasing }}
+          style={{ strokeDasharray: circumference }}
+        />
+      </svg>
+      {showValue && (
+        <motion.span
+          className={`absolute text-sm font-bold ${textColorClasses[color]}`}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5, ease: appleEasing }}
+        >
+          {Math.round(percentage)}%
+        </motion.span>
+      )}
     </div>
   );
 };
