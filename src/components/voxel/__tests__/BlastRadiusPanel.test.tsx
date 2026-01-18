@@ -14,6 +14,7 @@ vi.mock('framer-motion', () => ({
     aside: ({ children, className, ...props }: React.ComponentProps<'aside'>) => <aside className={className} {...props}>{children}</aside>,
     div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>,
     button: ({ children, className, ...props }: React.ComponentProps<'button'>) => <button className={className} {...props}>{children}</button>,
+    span: ({ children, className, ...props }: React.ComponentProps<'span'>) => <span className={className} {...props}>{children}</span>,
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   AnimatePresence: ({ children }: any) => <>{children}</>,
@@ -24,6 +25,12 @@ vi.mock('@/stores/voxelStore', () => ({
     nodes: new Map(),
     edges: new Map(),
   })),
+}));
+
+vi.mock('@/utils/microInteractions', () => ({
+  appleEasing: [0.16, 1, 0.3, 1],
+  triggerConfetti: vi.fn(),
+  triggerHaptic: vi.fn(),
 }));
 
 // Mock lucide-react icons components
@@ -60,6 +67,8 @@ vi.mock('lucide-react', () => {
     Bell: Icon,
     Sliders: Icon,
     BarChart3: Icon,
+    Zap: Icon,
+    Check: Icon,
   };
 });
 

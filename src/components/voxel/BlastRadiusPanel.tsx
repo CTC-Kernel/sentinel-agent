@@ -7,6 +7,8 @@
  * - Breakdown by node type
  * - What-If simulation controls
  * - Export results functionality
+ *
+ * Enhanced with micro-interactions for "aha moments"
  */
 
 import React, { useState, useMemo } from 'react';
@@ -37,16 +39,19 @@ import {
   Bell,
   Sliders,
   BarChart3,
+  Zap,
+  Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { VoxelNode, VoxelNodeType } from '@/types/voxel';
 import type {
   AffectedNode,
   WhatIfScenario,
-  WhatIfComparison,
+  WhatIfComparison as WhatIfComparisonType,
   ExtendedBlastRadiusConfig,
 } from '@/services/blastRadiusService';
 import type { SimulationMode } from '@/hooks/voxel/useBlastRadius';
+import { appleEasing, triggerConfetti, triggerHaptic } from '@/utils/microInteractions';
 
 // ============================================================================
 // Constants
@@ -141,7 +146,7 @@ const ImpactBadge: React.FC<{ impact: number; className?: string }> = ({ impact,
 };
 
 /**
- * Stats card component
+ * Stats card component with animations
  */
 const StatsCard: React.FC<{
   label: string;
@@ -149,22 +154,46 @@ const StatsCard: React.FC<{
   icon: React.FC<{ className?: string }>;
   color?: string;
   delta?: number;
-}> = ({ label, value, icon: Icon, color = 'text-white', delta }) => (
-  <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+  delay?: number;
+}> = ({ label, value, icon: Icon, color = 'text-white', delta, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20, scale: 0.9 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ delay, duration: 0.4, ease: appleEasing }}
+    className="bg-white/5 rounded-xl p-3 border border-white/10"
+  >
     <div className="flex items-center gap-2 mb-1">
-      <Icon className={`h-4 w-4 ${color}`} />
+      <motion.div
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ delay: delay + 0.2, type: 'spring', stiffness: 200 }}
+      >
+        <Icon className={`h-4 w-4 ${color}`} />
+      </motion.div>
       <span className="text-xs text-white/50">{label}</span>
     </div>
     <div className="flex items-baseline gap-2">
-      <span className={`text-xl font-bold ${color}`}>{value}</span>
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: delay + 0.3 }}
+        className={`text-xl font-bold tabular-nums ${color}`}
+      >
+        {value}
+      </motion.span>
       {delta !== undefined && delta !== 0 && (
-        <span className={`text-xs flex items-center gap-0.5 ${delta > 0 ? 'text-red-400' : 'text-green-400'}`}>
+        <motion.span
+          initial={{ scale: 0, x: -10 }}
+          animate={{ scale: 1, x: 0 }}
+          transition={{ delay: delay + 0.5, type: 'spring', stiffness: 300 }}
+          className={`text-xs flex items-center gap-0.5 ${delta > 0 ? 'text-red-400' : 'text-green-400'}`}
+        >
           {delta > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
           {delta > 0 ? '+' : ''}{delta}
-        </span>
+        </motion.span>
       )}
     </div>
-  </div>
+  </motion.div>
 );
 
 /**
@@ -481,6 +510,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               icon={Layers}
               color="text-indigo-400"
               delta={whatIfResult?.affectedNodesDelta}
+              delay={0}
             />
             <StatsCard
               label="Impact total"
@@ -488,12 +518,14 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               icon={Activity}
               color="text-purple-400"
               delta={whatIfResult ? parseFloat(whatIfResult.impactDelta.toFixed(1)) : undefined}
+              delay={0.1}
             />
             <StatsCard
               label="Profondeur max"
               value={stats.maxDepth}
               icon={GitBranch}
               color="text-blue-400"
+              delay={0.2}
             />
             <div className={`rounded-xl p-3 border ${businessImpactColors.bg} ${businessImpactColors.border}`}>
               <div className="flex items-center gap-2 mb-1">
@@ -670,31 +702,124 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
 
       {/* Footer Actions */}
       <div className="p-5 border-t border-white/10 shrink-0 space-y-3">
-        {/* What-If comparison summary */}
+        {/* What-If comparison summary with animations */}
         {whatIfResult && (
-          <div className="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/30">
-            <div className="text-xs text-indigo-400 font-medium mb-2">Comparaison What-If</div>
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            className={`p-4 rounded-xl border ${
+              whatIfResult.impactDelta < 0
+                ? 'bg-green-500/10 border-green-500/30'
+                : 'bg-indigo-500/10 border-indigo-500/30'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: 'spring' }}
+              >
+                {whatIfResult.impactDelta < 0 ? (
+                  <Check className="h-4 w-4 text-green-400" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-amber-400" />
+                )}
+              </motion.div>
+              <span className={`text-xs font-medium ${
+                whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-indigo-400'
+              }`}>
+                {whatIfResult.impactDelta < 0 ? 'Amelioration detectee !' : 'Comparaison What-If'}
+              </span>
+            </div>
+
+            {/* Main delta display */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="flex items-center justify-center gap-3 mb-3"
+            >
+              <motion.div
+                animate={whatIfResult.impactDelta < 0 ? { rotate: [0, -10, 0] } : {}}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                {whatIfResult.impactDelta < 0 ? (
+                  <TrendingDown className="h-8 w-8 text-green-400" />
+                ) : (
+                  <TrendingUp className="h-8 w-8 text-red-400" />
+                )}
+              </motion.div>
+              <div className="text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className={`text-2xl font-bold ${
+                    whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-red-400'
+                  }`}
+                >
+                  {whatIfResult.impactDelta > 0 ? '+' : ''}
+                  {(Math.abs(whatIfResult.impactDelta) * 100).toFixed(0)}%
+                </motion.div>
+                <div className="text-[10px] text-white/50">
+                  {whatIfResult.impactDelta < 0 ? 'Reduction d\'impact' : 'Augmentation d\'impact'}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Details grid */}
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="p-2 bg-white/5 rounded-lg"
+              >
                 <div className={`text-sm font-bold ${whatIfResult.impactDelta > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                  {whatIfResult.impactDelta > 0 ? '+' : ''}{whatIfResult.impactDelta.toFixed(1)}
+                  {whatIfResult.impactDelta > 0 ? '+' : ''}{whatIfResult.impactDelta.toFixed(2)}
                 </div>
                 <div className="text-[10px] text-white/40">Impact</div>
-              </div>
-              <div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="p-2 bg-white/5 rounded-lg"
+              >
                 <div className="text-sm font-bold text-yellow-400">
                   {whatIfResult.newlyAffected.length}
                 </div>
                 <div className="text-[10px] text-white/40">Nouveaux</div>
-              </div>
-              <div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="p-2 bg-white/5 rounded-lg"
+              >
                 <div className="text-sm font-bold text-green-400">
                   {whatIfResult.noLongerAffected.length}
                 </div>
                 <div className="text-[10px] text-white/40">Proteges</div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+
+            {/* Success message for significant improvements */}
+            {whatIfResult.impactDelta < -0.2 && whatIfResult.noLongerAffected.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                transition={{ delay: 0.8 }}
+                className="mt-3 p-2 bg-green-500/20 rounded-lg flex items-center gap-2"
+              >
+                <Shield className="h-4 w-4 text-green-400" />
+                <span className="text-xs text-green-300">
+                  Excellente mitigation ! {whatIfResult.noLongerAffected.length} elements proteges.
+                </span>
+              </motion.div>
+            )}
+          </motion.div>
         )}
 
         {/* Export buttons */}
