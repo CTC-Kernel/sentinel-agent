@@ -9,11 +9,11 @@
  * - Export results functionality
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Activity,
   AlertTriangle,
-  AlertCircle,
+
   Target,
   Layers,
   TrendingUp,
@@ -21,16 +21,13 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
-  Filter,
+
   X,
-  Play,
-  Pause,
-  RefreshCw,
+
   Eye,
   Download,
   FileText,
-  Plus,
-  Minus,
+
   GitBranch,
   Shield,
   Server,
@@ -359,21 +356,17 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   sourceNodeId,
   sourceNode,
   mode,
-  isSimulating,
   affectedNodes,
   stats,
   businessImpact,
   whatIfResult,
   whatIfScenario,
   config,
-  onStartSimulation,
-  onStopSimulation,
   onSetConfig,
   onApplyWhatIf,
   onClearWhatIf,
   onFocusNode,
   onClearResults,
-  onSetMode,
   onExportPdf,
   onExportCsv,
 }) => {

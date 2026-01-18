@@ -1,20 +1,22 @@
 /**
  * Unit tests for BlastRadiusPanel component
- *
- * Note: Simplified tests due to complex dependencies on framer-motion,
- * voxel factory, and multiple services. Full integration testing is recommended.
  */
 
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import BlastRadiusPanel from '../BlastRadiusPanel';
 
-// Mock all dependencies
+import { VoxelNodeType } from '@/types/voxel';
+
+// Mock dependencies
 vi.mock('framer-motion', () => ({
   motion: {
-    div: 'div',
-    span: 'span',
-    button: 'button',
+    aside: ({ children, className, ...props }: React.ComponentProps<'aside'>) => <aside className={className} {...props}>{children}</aside>,
+    div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>,
+    button: ({ children, className, ...props }: React.ComponentProps<'button'>) => <button className={className} {...props}>{children}</button>,
   },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
 vi.mock('@/stores/voxelStore', () => ({
@@ -24,84 +26,149 @@ vi.mock('@/stores/voxelStore', () => ({
   })),
 }));
 
-vi.mock('lucide-react', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('lucide-react')>();
-  // Return all actual exports - they're just React components that render SVGs
-  return actual;
+// Mock lucide-react icons components
+vi.mock('lucide-react', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Icon = ({ className, ...props }: any) => <span className={`icon ${className}`} {...props} />;
+  return {
+    Activity: Icon,
+    AlertTriangle: Icon,
+    AlertCircle: Icon,
+    Target: Icon,
+    Layers: Icon,
+    TrendingUp: Icon,
+    TrendingDown: Icon,
+    ChevronDown: Icon,
+    ChevronUp: Icon,
+    Search: Icon,
+    Filter: Icon,
+    X: Icon,
+    Play: Icon,
+    Pause: Icon,
+    RefreshCw: Icon,
+    Eye: Icon,
+    Download: Icon,
+    FileText: Icon,
+    Plus: Icon,
+    Minus: Icon,
+    GitBranch: Icon,
+    Shield: Icon,
+    Server: Icon,
+    Briefcase: Icon,
+    Users: Icon,
+    ClipboardCheck: Icon,
+    Bell: Icon,
+    Sliders: Icon,
+    BarChart3: Icon,
+  };
 });
 
-vi.mock('@/components/ui/button', () => ({
-  Button: ({ children, ...props }: React.PropsWithChildren) => <button {...props}>{children}</button>,
-}));
-
-vi.mock('@/components/ui/slider', () => ({
-  Slider: () => <div data-testid="slider" />,
-}));
-
-vi.mock('@/components/ui/switch', () => ({
-  Switch: () => <input type="checkbox" data-testid="switch" />,
-}));
-
-vi.mock('@/components/ui/badge', () => ({
-  Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-}));
-
-vi.mock('@/components/ui/tabs', () => ({
-  Tabs: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  TabsList: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  TabsTrigger: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
-  TabsContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
 describe('BlastRadiusPanel', () => {
-  describe('module tests', () => {
-    it('should export BlastRadiusPanel component', async () => {
-      const module = await import('../BlastRadiusPanel');
-      expect(module.BlastRadiusPanel).toBeDefined();
-    });
+  const mockClose = vi.fn();
+  const mockStartSimulation = vi.fn();
+  const mockStopSimulation = vi.fn();
+  const mockSetConfig = vi.fn();
+  const mockApplyWhatIf = vi.fn();
+  const mockClearWhatIf = vi.fn();
+  const mockFocusNode = vi.fn();
+  const mockClearResults = vi.fn();
+  const mockSetMode = vi.fn();
 
-    it('should have correct component type', async () => {
-      const module = await import('../BlastRadiusPanel');
-      expect(typeof module.BlastRadiusPanel).toBe('function');
-    });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const defaultProps: any = {
+    isOpen: true,
+    onClose: mockClose,
+    sourceNodeId: 'node-1',
+    sourceNode: {
+      id: 'node-1',
+      label: 'Test Source Node',
+      type: 'asset',
+      position: [0, 0, 0],
+      impactScore: 0.8,
+    },
+    mode: 'blast-radius',
+    isSimulating: false,
+    affectedNodes: [
+      {
+        nodeId: 'node-2',
+        impactScore: 0.5,
+        pathDistance: 1,
+        propagationPath: ['node-1', 'node-2'],
+        node: { // Nested VoxelNode structure required by AffectedNodeItem
+          id: 'node-2',
+          label: 'Affected Node',
+          type: 'asset',
+          priority: 'high',
+        }
+      }
+    ],
+    stats: {
+      totalAffected: 1,
+      totalImpact: 0.5,
+      maxDepth: 1,
+      criticalCount: 0,
+      highCount: 1,
+      mediumCount: 0,
+      lowCount: 0,
+      byType: {
+        asset: 1,
+        risk: 0,
+        control: 0,
+        incident: 0,
+        supplier: 0,
+        project: 0,
+        audit: 0,
+      } as Record<VoxelNodeType, number>,
+    },
+    businessImpact: 'medium',
+    whatIfResult: null,
+    whatIfScenario: null,
+    config: {
+      maxDepth: 3,
+      impactThreshold: 0.1,
+      decayFactor: 0.5,
+      includeTypes: ['asset', 'risk'],
+      direction: 'downstream',
+    },
+    onStartSimulation: mockStartSimulation,
+    onStopSimulation: mockStopSimulation,
+    onSetConfig: mockSetConfig,
+    onApplyWhatIf: mockApplyWhatIf,
+    onClearWhatIf: mockClearWhatIf,
+    onFocusNode: mockFocusNode,
+    onClearResults: mockClearResults,
+    onSetMode: mockSetMode,
+  };
+
+  it('renders successfully with required props', () => {
+    render(<BlastRadiusPanel {...defaultProps} />);
+
+    // Check for title
+    expect(screen.getByText('Blast Radius')).toBeInTheDocument();
+
+    // Check source node is displayed
+    expect(screen.getByText('Test Source Node')).toBeInTheDocument();
+
+    // Check affected node (using label from nested node object)
+    expect(screen.getByText('Affected Node')).toBeInTheDocument();
   });
 
-  describe('props interface', () => {
-    it('should accept isOpen prop', async () => {
-      const module = await import('../BlastRadiusPanel');
-      expect(module.BlastRadiusPanel).toBeDefined();
-    });
-
-    it('should accept callback props', async () => {
-      const module = await import('../BlastRadiusPanel');
-      expect(typeof module.BlastRadiusPanel).toBe('function');
-    });
-
-    it('should accept config props', async () => {
-      const module = await import('../BlastRadiusPanel');
-      expect(module.BlastRadiusPanel).toBeDefined();
-    });
+  it('renders What-If section correctly', () => {
+    render(<BlastRadiusPanel {...defaultProps} />);
+    expect(screen.getByText('Scenario What-If')).toBeInTheDocument();
   });
 
-  describe('functionality', () => {
-    it('should have stats display capability', async () => {
-      // Verified through type definitions
-      expect(true).toBe(true);
-    });
+  it('does not crash when props are minimal/empty', () => {
+    const minimalProps = {
+      ...defaultProps,
+      sourceNodeId: null,
+      sourceNode: null,
+      affectedNodes: [],
+    };
 
-    it('should have node list capability', async () => {
-      // Verified through type definitions
-      expect(true).toBe(true);
-    });
-
-    it('should have what-if controls capability', async () => {
-      // Verified through type definitions
-      expect(true).toBe(true);
-    });
-
-    it('should have export capability', async () => {
-      // Verified through type definitions
-      expect(true).toBe(true);
-    });
+    render(<BlastRadiusPanel {...minimalProps} />);
+    expect(screen.getByText('Blast Radius')).toBeInTheDocument();
+    // When sourceNodeId is null, it displays "Selectionnez un noeud source"
+    expect(screen.getByText('Selectionnez un noeud source')).toBeInTheDocument();
   });
 });
