@@ -2,7 +2,7 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Asset, Risk, ProcessingActivity } from '../../../types';
 import { ProcessingActivityFormData } from '../../../schemas/privacySchema';
-import { Server, AlertTriangle, Plus, X } from 'lucide-react';
+import { Server, AlertTriangle, Plus, X } from '../../ui/Icons';
 
 interface PrivacyLinksProps {
     activity: ProcessingActivity;

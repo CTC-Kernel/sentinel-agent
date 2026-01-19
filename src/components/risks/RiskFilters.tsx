@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, LayoutGrid, List, SlidersHorizontal, Table, FileSpreadsheet, FileText } from 'lucide-react';
+import { Search, LayoutGrid, List, SlidersHorizontal, Table, FileSpreadsheet, FileText } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 
 interface RiskFiltersProps {

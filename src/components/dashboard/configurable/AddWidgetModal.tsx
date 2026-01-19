@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WIDGET_REGISTRY, WidgetId } from './WidgetRegistry';
 import { getWidgetCategory, type WidgetCategory } from '../../../config/dashboardDefaults';
-import { Plus, X, Search, LayoutGrid, AlertTriangle, Clock, FileText, Grid3X3 } from 'lucide-react';
+import { Plus, X, Search, LayoutGrid, AlertTriangle, Clock, FileText, Grid3X3 } from '../../ui/Icons';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../../lib/utils';
 

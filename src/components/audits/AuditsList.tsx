@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { DataTable } from '../ui/DataTable';
 import { Audit, UserProfile } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
-import { CalendarDays, ClipboardCheck, AlertOctagon } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, AlertOctagon } from '../ui/Icons';
 import { Edit, Trash2, Copy } from '../ui/Icons';
 import { RowActionsMenu, RowActionItem } from '../ui/RowActionsMenu';
 import { EmptyState } from '../ui/EmptyState';

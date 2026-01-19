@@ -6,7 +6,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { Shield, ExternalLink, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
+import { Shield, ExternalLink, CheckCircle2, AlertTriangle, Clock } from '../../ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { Risk, Control } from '../../../types';
 import { Badge } from '../../ui/Badge';

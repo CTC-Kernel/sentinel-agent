@@ -79,7 +79,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     }, [toggleTheme, user, theme, updateUser]);
 
     return (
-        <header className="h-16 pt-safe z-sticky sticky top-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-3xl border-b border-slate-200 dark:border-white/5 transition-all duration-300 px-4 md:px-8 shadow-sm dark:shadow-none">
+        <header className="h-16 pt-safe z-sticky sticky top-0 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--glass-border)] transition-all duration-300 px-4 md:px-8 shadow-sm dark:shadow-none">
             <div className="h-full max-w-[1600px] mx-auto flex items-center justify-between">
                 {/* Left: Mobile Menu & Search Trigger */}
                 <div className="flex items-center flex-1 gap-4">

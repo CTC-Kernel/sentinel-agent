@@ -10,7 +10,7 @@ import { useVulnerabilities } from '../hooks/useVulnerabilities';
 import { useVulnerabilitiesData } from '../hooks/vulnerabilities/useVulnerabilitiesData';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Plus, Upload, MoreVertical } from '../components/ui/Icons';
+import { Plus, Upload, MoreVertical, LayoutDashboard, List as ListIcon } from '../components/ui/Icons';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { Button } from '../components/ui/button';
 
@@ -27,9 +27,10 @@ import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { VulnerabilityImportModal } from '../components/vulnerabilities/VulnerabilityImportModal';
 
 import { SEO } from '../components/SEO';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 // Form validation: useForm with required fields
 
 export const Vulnerabilities: React.FC = () => {
@@ -39,6 +40,7 @@ export const Vulnerabilities: React.FC = () => {
     // Mode
     const [creationMode, setCreationMode] = useState(false);
     const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'kanban'>('vulns_view_mode', 'list');
+    const [activeTab, setActiveTab] = usePersistedState<string>('vulns-active-tab', 'overview');
 
     const [selectedVulnerability, setSelectedVulnerability] = useState<Vulnerability | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
@@ -82,16 +84,18 @@ export const Vulnerabilities: React.FC = () => {
             const vuln = vulnerabilities.find(v => v.id === deepLinkVulnId);
             if (vuln && selectedVulnerability?.id !== vuln.id) {
                 setSelectedVulnerability(vuln);
+                setActiveTab('list');
             }
         } else if (deepLinkAction === 'create' && !creationMode) {
             setCreationMode(true);
+            setActiveTab('list');
             // Consume action immediately
             setSearchParams(params => {
                 params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [loading, deepLinkVulnId, deepLinkAction, vulnerabilities, selectedVulnerability, setSelectedVulnerability, creationMode, setSearchParams]);
+    }, [loading, deepLinkVulnId, deepLinkAction, vulnerabilities, selectedVulnerability, setSelectedVulnerability, creationMode, setSearchParams, setActiveTab]);
 
     // Cleanup Effect
     useEffect(() => {
@@ -113,8 +117,9 @@ export const Vulnerabilities: React.FC = () => {
         const vuln = vulnerabilities.find(v => v.id === state.voxelSelectedId);
         if (vuln) {
             setSelectedVulnerability(vuln);
+            setActiveTab('list');
         }
-    }, [location.state, loading, vulnerabilities]);
+    }, [location.state, loading, vulnerabilities, setActiveTab]);
 
     // Auto-seed if empty
     const initialSeedRef = React.useRef(false);
@@ -195,6 +200,11 @@ export const Vulnerabilities: React.FC = () => {
 
     const canEdit = canEditResource(user as UserProfile, 'Vulnerability');
 
+    const tabs = [
+        { id: 'overview', label: t('common.overview'), icon: LayoutDashboard },
+        { id: 'list', label: t('vulnerabilities.list'), icon: ListIcon, count: vulnerabilities.length }
+    ];
+
     return (
         <motion.div
             variants={staggerContainerVariants}
@@ -232,90 +242,119 @@ export const Vulnerabilities: React.FC = () => {
                 />
             </motion.div>
 
-            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden">
-                <VulnerabilityDashboard vulnerabilities={vulnerabilities} />
-            </motion.div>
-
-            <PremiumPageControl
-                searchQuery={filter}
-                onSearchChange={setFilter}
-                searchPlaceholder={t('vulnerabilities.searchPlaceholder')}
-                viewMode={viewMode}
-                onViewModeChange={handleViewModeChange}
-                actions={
-                    canEdit && (
-                        <>
-                            <div className="flex items-center">
-                                <Menu as="div" className="relative inline-block text-left mr-2">
-                                    <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                        <MoreVertical className="h-5 w-5" />
-                                    </Menu.Button>
-                                    <Transition
-                                        as={React.Fragment}
-                                        enter="transition ease-out duration-100"
-                                        enterFrom="transform opacity-0 scale-95"
-                                        enterTo="transform opacity-100 scale-100"
-                                        leave="transition ease-in duration-75"
-                                        leaveFrom="transform opacity-100 scale-100"
-                                        leaveTo="transform opacity-0 scale-95"
-                                    >
-                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                            <div className="p-1">
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <Button
-                                                            variant="ghost"
-                                                            aria-label="Import Scan"
-                                                            onClick={handleImportClick}
-                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                        >
-                                                            <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                            {t('vulnerabilities.importScan')}
-                                                        </Button>
-                                                    )}
-                                                </Menu.Item>
-                                            </div>
-                                        </Menu.Items>
-                                    </Transition>
-                                </Menu>
-
-                                <CustomTooltip content="Create new vulnerability">
-                                    <Button
-                                        onClick={handleCreateClick}
-                                        className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-brand-600/20"
-                                        aria-label="Create new vulnerability"
-                                    >
-                                        <Plus className="h-5 w-5 mr-2" />
-                                        <span className="hidden sm:inline">{t('vulnerabilities.declare')}</span>
-                                    </Button>
-                                </CustomTooltip>
-                            </div>
-                        </>
-                    )
-                }
-            />
-
             <motion.div variants={slideUpVariants}>
-                {viewMode === 'kanban' ? (
-                    <VulnerabilityKanban
-                        vulnerabilities={filteredVulnerabilities}
-                        onSelect={setSelectedVulnerability}
-                        onDelete={initiateDelete}
-                        loading={loading}
-                    />
-                ) : (
-                    <VulnerabilityList
-                        vulnerabilities={filteredVulnerabilities}
-                        viewMode={viewMode}
-                        onSelect={setSelectedVulnerability}
-                        onDelete={initiateDelete}
-                        loading={loading}
-                        onImportClick={handleImportClick}
-                        onCreateClick={handleCreateClick}
-                    />
-                )}
+                <ScrollableTabs
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    className="mb-6"
+                />
             </motion.div>
+
+            <AnimatePresence mode="wait">
+                {activeTab === 'overview' ? (
+                    <motion.div
+                        key="overview"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden"
+                    >
+                        <VulnerabilityDashboard vulnerabilities={vulnerabilities} />
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="list"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-6"
+                    >
+                        <PremiumPageControl
+                            searchQuery={filter}
+                            onSearchChange={setFilter}
+                            searchPlaceholder={t('vulnerabilities.searchPlaceholder')}
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            actions={
+                                canEdit && (
+                                    <>
+                                        <div className="flex items-center">
+                                            <Menu as="div" className="relative inline-block text-left mr-2">
+                                                <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                    <MoreVertical className="h-5 w-5" />
+                                                </Menu.Button>
+                                                <Transition
+                                                    as={React.Fragment}
+                                                    enter="transition ease-out duration-100"
+                                                    enterFrom="transform opacity-0 scale-95"
+                                                    enterTo="transform opacity-100 scale-100"
+                                                    leave="transition ease-in duration-75"
+                                                    leaveFrom="transform opacity-100 scale-100"
+                                                    leaveTo="transform opacity-0 scale-95"
+                                                >
+                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                        <div className="p-1">
+                                                            <Menu.Item>
+                                                                {({ active }) => (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        aria-label="Import Scan"
+                                                                        onClick={handleImportClick}
+                                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                    >
+                                                                        <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                                        {t('vulnerabilities.importScan')}
+                                                                    </Button>
+                                                                )}
+                                                            </Menu.Item>
+                                                        </div>
+                                                    </Menu.Items>
+                                                </Transition>
+                                            </Menu>
+
+                                            <CustomTooltip content="Create new vulnerability">
+                                                <Button
+                                                    onClick={handleCreateClick}
+                                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-brand-600/20"
+                                                    aria-label="Create new vulnerability"
+                                                >
+                                                    <Plus className="h-5 w-5 mr-2" />
+                                                    <span className="hidden sm:inline">{t('vulnerabilities.declare')}</span>
+                                                </Button>
+                                            </CustomTooltip>
+                                        </div>
+                                    </>
+                                )
+                            }
+                        />
+
+                        <motion.div variants={slideUpVariants}>
+                            {viewMode === 'kanban' ? (
+                                <VulnerabilityKanban
+                                    vulnerabilities={filteredVulnerabilities}
+                                    onSelect={setSelectedVulnerability}
+                                    onDelete={initiateDelete}
+                                    loading={loading}
+                                />
+                            ) : (
+                                <VulnerabilityList
+                                    vulnerabilities={filteredVulnerabilities}
+                                    viewMode={viewMode}
+                                    onSelect={setSelectedVulnerability}
+                                    onDelete={initiateDelete}
+                                    loading={loading}
+                                    onImportClick={handleImportClick}
+                                    onCreateClick={handleCreateClick}
+                                />
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <Drawer
                 isOpen={creationMode}

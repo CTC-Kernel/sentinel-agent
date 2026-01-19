@@ -1,7 +1,7 @@
 import React, { useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Sphere } from '@react-three/drei';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from '../ui/Icons';
 import * as THREE from 'three';
 import { EarthCountries } from './EarthCountries';
 

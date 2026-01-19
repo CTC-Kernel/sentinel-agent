@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { createEbiosAnalysisSchema, type CreateEbiosAnalysisFormData } from '../../schemas/ebiosSchema';
-import { Shield } from 'lucide-react';
+import { Shield } from '../ui/Icons';
 
 interface CreateAnalysisDrawerProps {
     isOpen: boolean;

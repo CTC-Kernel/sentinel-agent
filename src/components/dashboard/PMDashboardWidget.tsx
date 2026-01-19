@@ -12,7 +12,7 @@ import { canViewPMDashboard } from './utils';
 import { PMProgressWidget } from './PMProgressWidget';
 import { PMTimelineWidget } from './PMTimelineWidget';
 import { PMActionsOverdueWidget } from './PMActionsOverdueWidget';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from '../ui/Icons';
 
 /**
  * Props for PMDashboardWidget

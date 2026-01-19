@@ -1,5 +1,5 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from './Icons';
 import { motion } from 'framer-motion';
 import { appleEasing } from '../../utils/microInteractions';
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
-import { Edit2, Trash2, Loader2, Activity, Server, Zap, History, HeartPulse } from 'lucide-react';
+import { Edit2, Trash2, Loader2, Activity, Server, Zap, History, HeartPulse } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { BusinessProcess, Asset, Supplier, Risk, BcpDrill, UserProfile } from '../../types';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';

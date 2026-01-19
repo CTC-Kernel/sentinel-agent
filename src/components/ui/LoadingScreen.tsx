@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from './button';
 import { createPortal } from 'react-dom';
-import { Lock } from 'lucide-react';
+import { Lock } from './Icons';
 
 interface LoadingScreenProps {
     message?: string;

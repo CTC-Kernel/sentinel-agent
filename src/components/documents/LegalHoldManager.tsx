@@ -24,7 +24,7 @@ import {
   Loader2,
   Scale,
   Trash2,
-} from 'lucide-react';
+} from '../ui/Icons';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

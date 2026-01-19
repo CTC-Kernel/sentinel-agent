@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Supplier } from '../../../types';
 import { SupplierFormData } from '../../../schemas/supplierSchema';
-import { Check, ShieldCheck, AlertTriangle, FileText, Scale, Siren, LogOut, Globe } from 'lucide-react';
+import { Check, ShieldCheck, AlertTriangle, FileText, Scale, Siren, LogOut, Globe } from '../../ui/Icons';
 import { motion } from 'framer-motion';
 import { ErrorLogger } from '../../../services/errorLogger';
 

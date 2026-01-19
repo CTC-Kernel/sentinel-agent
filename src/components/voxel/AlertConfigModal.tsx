@@ -21,7 +21,7 @@ import {
   AlertTriangle,
   Clock,
   Shield,
-} from 'lucide-react';
+} from '../ui/Icons';
 import type {
   VoxelAlertConfig,
   AlertThreshold,

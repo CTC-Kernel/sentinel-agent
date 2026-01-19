@@ -4,7 +4,7 @@ import { db } from '../../../firebase';
 import { useStore } from '../../../store';
 import { UserProfile } from '../../../types';
 import { ErrorLogger } from '../../../services/errorLogger';
-import { Search, User as UserIcon, Mail, Shield, Building2, MoreVertical, LogIn } from 'lucide-react';
+import { Search, User as UserIcon, Mail, Shield, Building2, MoreVertical, LogIn } from '../../../components/ui/Icons';
 import { AdminService } from '../../../services/adminService';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
 

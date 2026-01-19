@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../firebase';
-import { Loader2, FileText, ChevronRight, Shield, AlertOctagon, Upload, Lock, CheckCircle } from 'lucide-react';
+import { Loader2, FileText, ChevronRight, Shield, AlertOctagon, Upload, Lock, CheckCircle } from '../../components/ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { CertificateUploadSection } from './CertificateUploadSection';
 

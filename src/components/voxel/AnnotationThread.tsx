@@ -32,7 +32,7 @@ import {
   StickyNote,
   HelpCircle,
   Highlighter,
-} from 'lucide-react';
+} from '../ui/Icons';
 import type {
   VoxelAnnotation,
   AnnotationReply,

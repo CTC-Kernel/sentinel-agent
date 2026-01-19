@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, CheckCircle2, Loader2, CalendarDays } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, Loader2, CalendarDays } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
 import { SafeHTML } from '../../ui/SafeHTML';
 import { RiskAIAssistant } from '../RiskAIAssistant';

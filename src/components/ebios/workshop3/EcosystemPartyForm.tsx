@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Globe, Save, Trash2, Users, Building, Cloud, Truck } from 'lucide-react';
+import { X, Globe, Save, Trash2, Users, Building, Cloud, Truck } from '../../ui/Icons';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';

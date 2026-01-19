@@ -22,7 +22,7 @@ import {
   Star,
   Loader2,
   AlertCircle,
-} from 'lucide-react';
+} from '../ui/Icons';
 import { Button } from '../ui/button';
 import { useStore } from '@/store';
 import { useAuth } from '@/hooks/useAuth';

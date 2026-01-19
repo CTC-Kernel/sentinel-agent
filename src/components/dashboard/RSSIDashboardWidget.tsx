@@ -11,7 +11,7 @@ import { canViewRSSIDashboard } from './utils';
 import { RSSICriticalRisksWidget } from './RSSICriticalRisksWidget';
 import { RSSIIncidentsWidget } from './RSSIIncidentsWidget';
 import { RSSIActionsWidget } from './RSSIActionsWidget';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from '../ui/Icons';
 
 /**
  * Props for RSSIDashboardWidget

@@ -55,11 +55,18 @@ export class SecureStorage {
 
             return derivedKey;
         } catch (error) {
-            ErrorLogger.error('Failed to get encryption key', 'SecureStorage.getEncryptionKey', {
+            // SECURITY FIX: Never fallback to a hardcoded key
+            // This would expose all encrypted data if the key is known
+            ErrorLogger.error('Critical: Failed to derive encryption key', 'SecureStorage.getEncryptionKey', {
                 metadata: { error }
             });
-            // Fallback to a static key (less secure but functional)
-            return 'sentinel-fallback-key-change-in-prod';
+
+            // Throw error instead of using insecure fallback
+            throw new Error(
+                'SecureStorage: Unable to derive encryption key. ' +
+                'This may be due to browser restrictions or storage quota issues. ' +
+                'Please clear browser data and try again.'
+            );
         }
     }
 
@@ -94,6 +101,7 @@ export class SecureStorage {
 
     /**
      * Encrypt data using AES-256
+     * SECURITY: No fallback - encryption must succeed or fail entirely
      */
     private static encrypt(data: string): string {
         try {
@@ -104,11 +112,11 @@ export class SecureStorage {
             });
             return `v${this.VERSION}:${encrypted.toString()}`;
         } catch (error) {
-            ErrorLogger.error('Failed to encrypt data', 'SecureStorage.encrypt', {
+            // SECURITY FIX: Do not fallback to insecure base64 encoding
+            ErrorLogger.error('Failed to encrypt data - no fallback used', 'SecureStorage.encrypt', {
                 metadata: { error }
             });
-            // Fallback to base64 (less secure)
-            return `v1:${btoa(unescape(encodeURIComponent(data)))}`;
+            throw new Error('SecureStorage: Encryption failed. Cannot store sensitive data insecurely.');
         }
     }
 

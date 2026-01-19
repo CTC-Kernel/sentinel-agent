@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Lock, ExternalLink } from 'lucide-react';
+import { Shield, Lock, ExternalLink } from '../ui/Icons';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 

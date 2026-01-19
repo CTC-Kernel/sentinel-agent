@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Map, Share2, Zap, ArrowRight, Activity } from 'lucide-react';
+import { X, Map, Share2, Zap, ArrowRight, Activity } from './ui/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VoxelGuideProps {

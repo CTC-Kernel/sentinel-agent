@@ -3,7 +3,7 @@ import { Controller } from 'react-hook-form';
 import { useZodForm } from '../../../hooks/useZodForm';
 import { InspectorLayout } from '../../ui/InspectorLayout';
 import { Asset } from '../../../types';
-import { Loader2, Save, Clock, ShieldCheck, Server } from 'lucide-react';
+import { Loader2, Save, Clock, ShieldCheck, Server } from '../../ui/Icons';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { Button } from '../../ui/button';

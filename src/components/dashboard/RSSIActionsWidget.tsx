@@ -12,7 +12,7 @@ import {
   DUE_STATUS_COLOR_CLASSES,
   type ActionListItem,
 } from '../../hooks/useAssignedActions';
-import { ChevronRight, Clock, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react';
+import { ChevronRight, Clock, AlertCircle, RefreshCw, CheckCircle } from '../ui/Icons';
 
 /**
  * Props for RSSIActionsWidget

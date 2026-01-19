@@ -8,7 +8,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { FileText, Loader2, CheckCircle, AlertCircle } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { Button } from '../../ui/button';
 import { EbiosReportService } from '../../../services/EbiosReportService';

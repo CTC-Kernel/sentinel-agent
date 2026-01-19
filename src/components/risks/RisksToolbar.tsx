@@ -4,7 +4,7 @@ import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,
     Plus, BrainCircuit, Filter, HelpCircle, List, Grid3x3, Upload
-} from 'lucide-react';
+} from '../ui/Icons';
 import { OnboardingService } from '../../services/onboardingService';
 import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { CustomSelect } from '../ui/CustomSelect';

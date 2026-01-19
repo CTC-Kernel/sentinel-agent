@@ -7,7 +7,7 @@
 import React, { useMemo, useState } from 'react';
 import { Control, Framework } from '../../types';
 import { FRAMEWORKS } from '../../data/frameworks';
-import { Check, AlertTriangle, ChevronDown, ChevronUp, Layers } from 'lucide-react';
+import { Check, AlertTriangle, ChevronDown, ChevronUp, Layers } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../lib/utils';
 

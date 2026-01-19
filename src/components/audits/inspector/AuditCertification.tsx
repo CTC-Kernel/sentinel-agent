@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Link as LinkIcon, ExternalLink, Plus } from 'lucide-react';
+import { ShieldCheck, Link as LinkIcon, ExternalLink, Plus } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { useStore } from '../../../store';
 

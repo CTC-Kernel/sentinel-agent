@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Audit, Finding } from '../../types';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from '../ui/Icons';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { EmptyState } from '../ui/EmptyState';

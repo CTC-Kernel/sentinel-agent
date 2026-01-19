@@ -4,7 +4,7 @@ import { Audit } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from '../../ui/Icons';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { EmptyChartState } from '../../ui/EmptyChartState';
 

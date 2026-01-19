@@ -7,7 +7,7 @@ import { Button } from '../../ui/button';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { DatePicker } from '../../ui/DatePicker';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight } from '../../ui/Icons';
 
 interface TLPTFormProps {
     initialData?: TlptCampaign;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Control } from '../../../types';
-import { ExternalLink, Link as LinkIcon, FileText as FileIcon } from 'lucide-react';
+import { ExternalLink, Link as LinkIcon, FileText as FileIcon } from '../../ui/Icons';
 import { SafeHTML } from '../../ui/SafeHTML';
 import { Button } from '../../ui/button';
 

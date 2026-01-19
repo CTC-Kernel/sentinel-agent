@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { X } from 'lucide-react';
+import { X } from '../ui/Icons';
 import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 
 interface ThreatDiscussionProps {

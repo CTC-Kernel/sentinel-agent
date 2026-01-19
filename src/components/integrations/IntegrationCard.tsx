@@ -1,6 +1,6 @@
 import React from 'react';
 import { IntegrationProvider } from '../../services/integrationService';
-import { CheckCircle2, Plug, Loader2 } from 'lucide-react';
+import { CheckCircle2, Plug, Loader2 } from '../ui/Icons';
 
 interface IntegrationCardProps {
     provider: IntegrationProvider;

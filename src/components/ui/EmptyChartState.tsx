@@ -1,9 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, PieChart, LineChart, Activity, Plus } from 'lucide-react';
-// If Button doesn't exist or is different, I might need to adjust imports.
-// Checking Icons.tsx again might be useful, but standard lucide-react is fine if installed.
-// The project seems to use specific icons from '../ui/Icons' often, but lucide-react is in package.json.
+import { BarChart3, PieChart, LineChart, Activity, Plus } from './Icons';
+import { useStore } from '../../store';
 
 interface EmptyChartStateProps {
     className?: string;
@@ -17,13 +15,17 @@ interface EmptyChartStateProps {
 
 export const EmptyChartState: React.FC<EmptyChartStateProps> = ({
     className = "",
-    message = "Aucune donnée disponible", // Default French message as per app language likely
-    description = "Commencez par ajouter des données pour visualiser ce graphique.",
+    message,
+    description,
     actionLabel,
     onAction,
     icon,
     variant = 'default'
 }) => {
+    const { t } = useStore();
+
+    const displayMessage = message || t('common.emptyChart.noData');
+    const displayDescription = description || t('common.emptyChart.addData');
 
     const getIcon = () => {
         if (icon) return icon;
@@ -71,10 +73,10 @@ export const EmptyChartState: React.FC<EmptyChartStateProps> = ({
                 className="max-w-md space-y-2"
             >
                 <h4 className="text-lg font-semibold text-foreground tracking-tight">
-                    {message}
+                    {displayMessage}
                 </h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                    {description}
+                    {displayDescription}
                 </p>
             </motion.div>
 

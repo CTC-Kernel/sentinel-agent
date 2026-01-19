@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Sparkles, AlertTriangle, ShieldCheck, RefreshCw, Activity } from 'lucide-react';
+import { Sparkles, AlertTriangle, ShieldCheck, RefreshCw, Activity } from '../../ui/Icons';
 import { BrainCircuit } from '../../ui/Icons';
 import { GlassCard } from '../../ui/GlassCard';
 import ReactMarkdown from 'react-markdown';

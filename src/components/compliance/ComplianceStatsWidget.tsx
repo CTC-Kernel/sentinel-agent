@@ -1,7 +1,7 @@
 import React from 'react';
 import { Control, Framework } from '../../types';
 import { GlassCard } from '../ui/GlassCard';
-import { TrendingUp, CheckCircle2, AlertTriangle, Paperclip } from 'lucide-react';
+import { TrendingUp, CheckCircle2, AlertTriangle, Paperclip } from '../ui/Icons';
 import { cn } from '../../utils/cn';
 
 interface ComplianceStatsWidgetProps {

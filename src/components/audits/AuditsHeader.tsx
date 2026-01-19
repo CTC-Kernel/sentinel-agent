@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Download, Calendar, BrainCircuit } from 'lucide-react';
+import { Plus, Download, Calendar, BrainCircuit } from '../ui/Icons';
 import { PageHeader } from '../ui/PageHeader';
 import { Button } from '../ui/button';
 import { useTranslation } from 'react-i18next';

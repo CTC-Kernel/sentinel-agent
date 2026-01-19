@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from '../ui/Icons';
 
 import { useStore } from '../../store';
 import { Camera, ShieldAlert, Trash2, AlertTriangle } from '../ui/Icons';

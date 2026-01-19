@@ -27,7 +27,7 @@ export const DashboardSkeleton: React.FC = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="h-24 bg-white/50 dark:bg-slate-900/50 rounded-2xl p-4 flex gap-4 overflow-hidden">
+            <div className="glass-panel h-24 rounded-2xl p-4 flex gap-4 overflow-hidden">
                 {Array.from({ length: 6 }).map((_, i) => (
                     <Skeleton key={`tab-skel-${i}`} className="h-full w-24 rounded-xl flex-shrink-0" />
                 ))}

@@ -6,7 +6,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
 import { Globe, AlertOctagon, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box, LayoutDashboard, List, Network } from '../components/ui/Icons';
-import { RefreshCw, Settings, ChevronRight } from 'lucide-react';
+import { RefreshCw, Settings, ChevronRight } from '../components/ui/Icons';
 import { Menu, Transition } from '@headlessui/react';
 import { Threat } from '../types';
 import { ThreatFeedService } from '../services/ThreatFeedService';

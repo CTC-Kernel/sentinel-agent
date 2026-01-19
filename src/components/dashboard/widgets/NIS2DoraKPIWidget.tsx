@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Shield, AlertTriangle, Server, CheckCircle } from 'lucide-react';
+import { Shield, AlertTriangle, Server, CheckCircle } from '../../ui/Icons';
 import { Incident, Supplier } from '../../../types';
 import { motion } from 'framer-motion';
 

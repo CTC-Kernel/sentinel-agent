@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertTriangle, Globe, Loader2, Save, Network } from 'lucide-react';
+import { AlertTriangle, Globe, Loader2, Save, Network } from '../ui/Icons';
 import { useStore } from '../../store';
 import { useThreatIntelActions } from '../../hooks/threats/useThreatIntelActions';
 import { Button } from '../ui/button';

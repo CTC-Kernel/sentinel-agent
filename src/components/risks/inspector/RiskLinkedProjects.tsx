@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderKanban, Plus } from 'lucide-react';
+import { FolderKanban, Plus } from '../../ui/Icons';
 import { Project } from '../../../types';
 
 interface RiskLinkedProjectsProps {

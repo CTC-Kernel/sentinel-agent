@@ -6,7 +6,7 @@ import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
 import { Supplier, Criticality } from '../types';
-import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert } from '../components/ui/Icons';
+import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert, LayoutDashboard, List } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Button } from '../components/ui/button';
 import { useStore } from '../store';
@@ -15,7 +15,7 @@ import { useSupplierDependencies } from '../hooks/suppliers/useSupplierDependenc
 import { ConfirmModal } from '../components/ui/ConfirmModal'; // Keyboard: Escape key supported
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -36,6 +36,7 @@ import { ImportService } from '../services/ImportService';
 import { SupplierCard } from '../components/suppliers/SupplierCard';
 import { SupplierInspector } from '../components/suppliers/SupplierInspector';
 import { OnboardingService } from '../services/onboardingService';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -67,6 +68,7 @@ export const Suppliers: React.FC = () => {
     }, []);
 
     const canEdit = canEditResource(user, 'Supplier');
+    const [activeTab, setActiveTab] = usePersistedState<string>('suppliers-active-tab', 'overview');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('suppliers_view_mode', 'grid');
 
     const [creationMode, setCreationMode] = useState(false);
@@ -126,16 +128,18 @@ export const Suppliers: React.FC = () => {
             const supplier = suppliersRaw.find(s => s.id === deepLinkSupplierId);
             if (supplier && selectedSupplier?.id !== supplier.id) {
                 setSelectedSupplier(supplier);
+                setActiveTab('suppliers'); // Switch to list tab to see detail or just ensure context
             }
         } else if (deepLinkAction === 'create' && !creationMode) {
             setCreationMode(true);
+            setActiveTab('suppliers');
             // Consume action immediately
             setSearchParams(params => {
                 params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [loadingSuppliers, deepLinkSupplierId, deepLinkAction, suppliersRaw, selectedSupplier, setSelectedSupplier, creationMode, setSearchParams]);
+    }, [loadingSuppliers, deepLinkSupplierId, deepLinkAction, suppliersRaw, selectedSupplier, setSelectedSupplier, creationMode, setSearchParams, setActiveTab]);
 
     // Cleanup Effect
     useEffect(() => {
@@ -170,8 +174,11 @@ export const Suppliers: React.FC = () => {
     const handleViewModeChange = useCallback((mode: 'grid' | 'list' | 'matrix' | 'kanban') => setViewMode(mode), [setViewMode]);
     const handleDashboardFilterChange = useCallback((newFilter: { type: string; value: string } | null) => {
         // Implement dashboard filter logic if needed, or just set filter
-        if (newFilter) setFilter(newFilter.value);
-    }, []);
+        if (newFilter) {
+            setFilter(newFilter.value);
+            setActiveTab('suppliers');
+        }
+    }, [setActiveTab]);
 
     const handleCreationDrawerOpen = useCallback(() => setCreationMode(true), []);
     const handleCreationDrawerClose = useCallback(() => setCreationMode(false), []);
@@ -186,10 +193,11 @@ export const Suppliers: React.FC = () => {
         try {
             await addSupplier(data); // Assuming addSupplier takes SupplierFormData (checked hook, it takes Partial<Supplier>)
             setCreationMode(false);
+            setActiveTab('suppliers');
         } finally {
             setIsSubmitting(false);
         }
-    }, [addSupplier]);
+    }, [addSupplier, setActiveTab]);
 
     const handleUpdate = useCallback(async (id: string, data: Partial<SupplierFormData>) => {
         setIsSubmitting(true);
@@ -244,6 +252,7 @@ export const Suppliers: React.FC = () => {
     }, [t, deleteSupplier, isSubmitting]);
 
     const handleCardClick = useCallback((supplier: Supplier) => {
+        console.log('Supplier clicked', supplier);
         setSelectedSupplier(supplier);
     }, []);
 
@@ -272,7 +281,8 @@ export const Suppliers: React.FC = () => {
         const text = await file.text();
         await importSuppliers(text);
         setImportModalOpen(false);
-    }, [importSuppliers]);
+        setActiveTab('suppliers');
+    }, [importSuppliers, setActiveTab]);
 
     const handleExportCSV = useCallback(async () => {
         if (isExportingCSV) return;
@@ -364,7 +374,10 @@ export const Suppliers: React.FC = () => {
     const suppliersTitle = t('suppliers.title');
     const suppliersSubtitle = t('suppliers.subtitle');
 
-
+    const tabs = [
+        { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
+        { id: 'suppliers', label: 'Fournisseurs', icon: List, count: filteredSuppliers.length }
+    ];
 
     const handleConfirmClose = useCallback(() => {
         setConfirmData(prev => ({ ...prev, isOpen: false }));
@@ -431,163 +444,186 @@ export const Suppliers: React.FC = () => {
                 />
             </motion.div>
 
-            {/* Dashboard */}
-            {/* Dashboard */}
+            {/* Tabs */}
             <motion.div variants={slideUpVariants}>
-                <div data-tour="suppliers-dashboard">
-                    <SupplierDashboard
-                        suppliers={filteredSuppliers}
-                        loading={loadingSuppliers}
-                        onFilterChange={handleDashboardFilterChange}
-                    />
-                </div>
-            </motion.div>
-
-            <motion.div variants={slideUpVariants} className="mb-6">
-                <PremiumPageControl
-                    searchQuery={filter}
-                    onSearchChange={handleSearchChange}
-                    searchPlaceholder={t('suppliers.searchPlaceholder')}
-                    viewMode={viewMode}
-                    onViewModeChange={handleViewModeChange}
-                    actions={canEdit && (
-                        <>
-                            <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                    <MoreVertical className="h-5 w-5" />
-                                </Menu.Button>
-                                <Transition
-                                    as={React.Fragment}
-                                    enter="transition ease-out duration-100"
-                                    enterFrom="transform opacity-0 scale-95"
-                                    enterTo="transform opacity-100 scale-100"
-                                    leave="transition ease-in duration-75"
-                                    leaveFrom="transform opacity-100 scale-100"
-                                    leaveTo="transform opacity-0 scale-95"
-                                >
-                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                        <div className="p-1">
-                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                {t('suppliers.tools')}
-                                            </div>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button
-                                                        onClick={() => setImportModalOpen(true)}
-                                                        className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
-                                                        aria-label="Import Suppliers CSV"
-                                                    >
-                                                        <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                        {t('suppliers.importCsv')}
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                        </div>
-                                        <div className="p-1">
-                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                {t('suppliers.reports')}
-                                            </div>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button
-                                                        aria-label={t('suppliers.exportCsv')}
-                                                        onClick={handleExportCSV}
-                                                        disabled={isExportingCSV}
-                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
-                                                    >
-                                                        {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
-                                                        {t('suppliers.exportCsv')}
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button
-                                                        aria-label="Export DORA"
-                                                        onClick={handleExportDORARegister}
-                                                        disabled={isExportingDORA}
-                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
-                                                    >
-                                                        {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
-                                                        Export DORA
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                        </div>
-                                    </Menu.Items>
-                                </Transition>
-                            </Menu>
-
-
-                            <CustomTooltip content="Gérer les modèles d'évaluation">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={handleTemplateModeOpen}
-                                    className="h-10 w-10 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10"
-                                    aria-label="Gérer les modèles d'évaluation"
-                                >
-                                    <ClipboardList className="h-5 w-5" />
-                                </Button>
-                            </CustomTooltip>
-
-                            <CustomTooltip content="Ajouter un nouveau fournisseur">
-                                <Button
-                                    variant="default"
-                                    onClick={handleCreationDrawerOpen}
-                                    className="rounded-xl shadow-lg shadow-brand-500/20"
-                                    data-tour="suppliers-new"
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    <span className="hidden sm:inline">{t('suppliers.newSupplier')}</span>
-                                </Button>
-                            </CustomTooltip>
-                        </>
-                    )}
+                <ScrollableTabs
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    className="mb-6"
                 />
             </motion.div>
 
-            {viewMode === 'list' ? (
-                <motion.div variants={slideUpVariants} className="glass-premium rounded-[2.5rem] overflow-hidden shadow-sm">
-                    <DataTable
-                        columns={columns}
-                        data={filteredSuppliers}
-                        selectable={true}
-                        onBulkDelete={handleBulkDelete}
-                        onRowClick={setSelectedSupplier}
-                        searchable={false}
-                        loading={loadingSuppliers}
-                    />
-                </motion.div>
-            ) : (
-                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {loadingSuppliers ? (
-                        <div className="col-span-full"><CardSkeleton count={3} /></div>
-                    ) : filteredSuppliers.length === 0 ? (
-                        <div className="col-span-full">
-                            <EmptyState
-                                icon={Building}
-                                title={t('suppliers.emptyTitle')}
-                                description={filter ? "Aucun fournisseur trouvé." : t('suppliers.emptyDesc')}
-                                actionLabel={filter || !canEdit ? undefined : t('suppliers.newSupplier')}
-                                onAction={filter || !canEdit ? undefined : handleCreationDrawerOpen}
-                            />
-                        </div>
-                    ) : (
-                        filteredSuppliers.map(supplier => (
-                            <SupplierCard
-                                key={supplier.id}
-                                supplier={supplier}
-                                onClick={handleCardClick}
-                                onDelete={canEdit ? () => handleDeleteClick(supplier) : undefined}
-                            />
-                        ))
-                    )}
-                </motion.div>
-            )}
+            <AnimatePresence mode="wait">
+                {activeTab === 'overview' ? (
+                    <motion.div
+                        key="overview"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <SupplierDashboard
+                            suppliers={filteredSuppliers}
+                            loading={loadingSuppliers}
+                            onFilterChange={handleDashboardFilterChange}
+                        />
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="suppliers"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-6"
+                    >
+                        <PremiumPageControl
+                            searchQuery={filter}
+                            onSearchChange={handleSearchChange}
+                            searchPlaceholder={t('suppliers.searchPlaceholder')}
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            actions={canEdit && (
+                                <>
+                                    <Menu as="div" className="relative inline-block text-left">
+                                        <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                            <MoreVertical className="h-5 w-5" />
+                                        </Menu.Button>
+                                        <Transition
+                                            as={React.Fragment}
+                                            enter="transition ease-out duration-100"
+                                            enterFrom="transform opacity-0 scale-95"
+                                            enterTo="transform opacity-100 scale-100"
+                                            leave="transition ease-in duration-75"
+                                            leaveFrom="transform opacity-100 scale-100"
+                                            leaveTo="transform opacity-0 scale-95"
+                                        >
+                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                <div className="p-1">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                        {t('suppliers.tools')}
+                                                    </div>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button
+                                                                onClick={() => setImportModalOpen(true)}
+                                                                className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                                aria-label="Import Suppliers CSV"
+                                                            >
+                                                                <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                                {t('suppliers.importCsv')}
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                </div>
+                                                <div className="p-1">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                        {t('suppliers.reports')}
+                                                    </div>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button
+                                                                aria-label={t('suppliers.exportCsv')}
+                                                                onClick={handleExportCSV}
+                                                                disabled={isExportingCSV}
+                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                            >
+                                                                {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                                {t('suppliers.exportCsv')}
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button
+                                                                aria-label="Export DORA"
+                                                                onClick={handleExportDORARegister}
+                                                                disabled={isExportingDORA}
+                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                            >
+                                                                {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                                Export DORA
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                </div>
+                                            </Menu.Items>
+                                        </Transition>
+                                    </Menu>
+
+
+                                    <CustomTooltip content="Gérer les modèles d'évaluation">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={handleTemplateModeOpen}
+                                            className="h-10 w-10 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10"
+                                            aria-label="Gérer les modèles d'évaluation"
+                                        >
+                                            <ClipboardList className="h-5 w-5" />
+                                        </Button>
+                                    </CustomTooltip>
+
+                                    <CustomTooltip content="Ajouter un nouveau fournisseur">
+                                        <Button
+                                            variant="default"
+                                            onClick={handleCreationDrawerOpen}
+                                            className="rounded-xl shadow-lg shadow-brand-500/20"
+                                            data-tour="suppliers-new"
+                                        >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            <span className="hidden sm:inline">{t('suppliers.newSupplier')}</span>
+                                        </Button>
+                                    </CustomTooltip>
+                                </>
+                            )}
+                        />
+
+                        {viewMode === 'list' ? (
+                            <motion.div variants={slideUpVariants} className="glass-premium rounded-[2.5rem] overflow-hidden shadow-sm">
+                                <DataTable
+                                    columns={columns}
+                                    data={filteredSuppliers}
+                                    selectable={true}
+                                    onBulkDelete={handleBulkDelete}
+                                    onRowClick={setSelectedSupplier}
+                                    searchable={false}
+                                    loading={loadingSuppliers}
+                                />
+                            </motion.div>
+                        ) : (
+                            <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {loadingSuppliers ? (
+                                    <div className="col-span-full"><CardSkeleton count={3} /></div>
+                                ) : filteredSuppliers.length === 0 ? (
+                                    <div className="col-span-full">
+                                        <EmptyState
+                                            icon={Building}
+                                            title={t('suppliers.emptyTitle')}
+                                            description={filter ? "Aucun fournisseur trouvé." : t('suppliers.emptyDesc')}
+                                            actionLabel={filter || !canEdit ? undefined : t('suppliers.newSupplier')}
+                                            onAction={filter || !canEdit ? undefined : handleCreationDrawerOpen}
+                                        />
+                                    </div>
+                                ) : (
+                                    filteredSuppliers.map(supplier => (
+                                        <SupplierCard
+                                            key={supplier.id}
+                                            supplier={supplier}
+                                            onClick={handleCardClick}
+                                            onDelete={canEdit ? () => handleDeleteClick(supplier) : undefined}
+                                        />
+                                    ))
+                                )}
+                            </motion.div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Creation Drawer */}
             <Drawer

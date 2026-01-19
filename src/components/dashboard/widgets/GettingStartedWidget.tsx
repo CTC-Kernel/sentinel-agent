@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { X, Rocket, Check, ChevronRight, Info } from 'lucide-react';
+import { X, Rocket, Check, ChevronRight, Info } from '../../ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../../store';
 import { ErrorLogger } from '../../../services/errorLogger';

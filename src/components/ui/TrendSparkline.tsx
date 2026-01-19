@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import { cn } from '../../lib/utils';
 import type { ScoreHistory, TrendType } from '../../types/score.types';
 import { getScoreHexColor } from '../../utils/scoreUtils';
+import { useStore } from '../../store';
 
 export interface TrendSparklineProps {
   /** Historical score data */
@@ -91,6 +92,8 @@ export function TrendSparkline({
   showTrendArrow = true,
   className,
 }: TrendSparklineProps) {
+  const { t } = useStore();
+
   // Calculate sparkline path and reusable values
   const { path, lastScore, minScore, range, padding, chartHeight } = useMemo(() => {
     if (!history || history.length === 0) {
@@ -136,7 +139,7 @@ export function TrendSparkline({
   if (!history || history.length === 0) {
     return (
       <div className={cn('flex items-center gap-1', className)}>
-        <span className="text-xs text-gray-400">Aucun historique</span>
+        <span className="text-xs text-gray-400">{t('common.noHistory')}</span>
       </div>
     );
   }

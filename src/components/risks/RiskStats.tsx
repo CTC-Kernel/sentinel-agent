@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingDown } from 'lucide-react';
+import { TrendingDown } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { slideUpVariants } from '../ui/animationVariants';
 import { Risk } from '../../types';

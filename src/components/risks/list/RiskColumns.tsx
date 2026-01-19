@@ -1,7 +1,7 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Risk, Asset, UserProfile, Control } from '../../../types';
-import { ShieldAlert, Clock, Shield } from 'lucide-react';
+import { ShieldAlert, Clock, Shield } from '../../ui/Icons';
 import { Edit, Copy, Trash2 } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
 import { DraftBadge } from '../../ui/DraftBadge';

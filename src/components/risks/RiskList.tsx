@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from '../ui/Icons';
 import { DataTable } from '../ui/DataTable';
 import { EmptyState } from '../ui/EmptyState';
 import { Risk, Asset, UserProfile } from '../../types';

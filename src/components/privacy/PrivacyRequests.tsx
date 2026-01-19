@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Plus, User, Clock, FileText } from 'lucide-react';
+import { Search, Plus, User, Clock, FileText } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
@@ -9,7 +9,7 @@ import { fr } from 'date-fns/locale';
 
 import { usePrivacyRequests } from '../../hooks/privacy/usePrivacyRequests';
 import { PrivacyRequest } from '../../types';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from '../ui/Icons';
 
 interface PrivacyRequestsProps {
     onCreate?: () => void;

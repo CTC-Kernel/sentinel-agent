@@ -5,7 +5,7 @@ import { ProcessingActivityFormData } from '../../../schemas/privacySchema';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
 // Imports
-import { Shield, FileSpreadsheet, AlertTriangle, Eye, History as HistoryIcon } from 'lucide-react';
+import { Shield, FileSpreadsheet, AlertTriangle, Eye, History as HistoryIcon } from '../../ui/Icons';
 
 interface PrivacyDataProps {
     activity: ProcessingActivity;

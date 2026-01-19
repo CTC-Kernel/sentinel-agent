@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     Activity, ShieldCheck, Zap, FileText, AlertOctagon
-} from 'lucide-react';
+} from '../components/ui/Icons';
 import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';

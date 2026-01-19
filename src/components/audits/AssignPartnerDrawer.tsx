@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Handshake, Loader2, Search, Building2 } from 'lucide-react';
+import { Handshake, Loader2, Search, Building2 } from '../ui/Icons';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../../firebase';

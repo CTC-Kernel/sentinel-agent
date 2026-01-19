@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { ChevronDown, Check, Plus, Link2, Settings2 } from 'lucide-react';
+import { ChevronDown, Check, Plus, Link2, Settings2 } from '../ui/Icons';
 import {
   DropdownMenu,
   DropdownMenuContent,

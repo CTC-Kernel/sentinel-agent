@@ -5,7 +5,6 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Target } from 'lucide-react';
 import { PageHeader } from '../components/ui/PageHeader';
 import { RiskContextManager } from '../components/risks/context/RiskContextManager';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -26,7 +25,13 @@ export const RiskContextView: React.FC = () => {
         <PageHeader
           title={t('riskContext.title')}
           subtitle={t('riskContext.subtitle')}
-          icon={<Target className="w-8 h-8" />}
+          icon={
+            <img
+              src="/images/gouvernance.png"
+              alt="Context"
+              className="w-full h-full object-contain"
+            />
+          }
           breadcrumbs={[{ label: t('riskContext.title') }]}
         />
         <RiskContextManager />

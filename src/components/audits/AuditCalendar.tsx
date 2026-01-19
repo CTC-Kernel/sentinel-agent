@@ -2,7 +2,7 @@ import React from 'react';
 import { Audit } from '../../types';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from '../ui/Icons';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '../ui/Skeleton';
 

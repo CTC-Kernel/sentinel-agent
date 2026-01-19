@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RiskCalculator } from '../../utils/RiskCalculator';
 
-import { Server, TrendingDown, TrendingUp, ArrowRight, Clock, LucideIcon, ShieldAlert, Edit, Trash2 } from 'lucide-react';
+import { Server, TrendingDown, TrendingUp, ArrowRight, Clock, LucideIcon, ShieldAlert, Edit, Trash2 } from '../ui/Icons';
 import { CardSkeleton } from '../ui/Skeleton';
 import { Badge } from '../ui/Badge';
 import { SafeHTML } from '../ui/SafeHTML';

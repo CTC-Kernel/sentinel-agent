@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { WifiOff } from 'lucide-react';
+import { WifiOff } from './Icons';
 
 export const OfflineBanner: React.FC = () => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);

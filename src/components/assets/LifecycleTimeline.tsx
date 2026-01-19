@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, Wrench, ShieldCheck, Trash2, Archive, CheckCircle2 } from 'lucide-react';
+import { ShoppingCart, Wrench, ShieldCheck, Trash2, Archive, CheckCircle2 } from '../ui/Icons';
 
 interface LifecycleTimelineProps {
     status: string;

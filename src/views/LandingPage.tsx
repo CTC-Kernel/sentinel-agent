@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from '../components/ui/Icons';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Shield, Layers, CheckCircle2 } from '../components/ui/Icons';
 import { SEO } from '../components/SEO';

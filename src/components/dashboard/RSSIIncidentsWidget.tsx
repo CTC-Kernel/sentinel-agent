@@ -12,7 +12,7 @@ import {
   SEVERITY_COLOR_CLASSES,
   type IncidentListItem,
 } from '../../hooks/useActiveIncidents';
-import { ChevronRight, AlertCircle, RefreshCw, ShieldAlert } from 'lucide-react';
+import { ChevronRight, AlertCircle, RefreshCw, ShieldAlert } from '../ui/Icons';
 
 /**
  * Props for RSSIIncidentsWidget

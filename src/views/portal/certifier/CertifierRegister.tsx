@@ -7,7 +7,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
 import { auth, functions } from '../../../firebase';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, ShieldCheck, Mail, Lock, Building2, Ticket } from 'lucide-react';
+import { Loader2, ShieldCheck, Mail, Lock, Building2, Ticket } from '../../../components/ui/Icons';
 import { toast } from '@/lib/toast';
 
 const registerSchema = z.object({

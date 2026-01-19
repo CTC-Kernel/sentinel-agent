@@ -1,6 +1,6 @@
 import React, { memo, useState } from "react";
 import { createPortal } from "react-dom";
-import { AlertTriangle, Shield, Activity } from "lucide-react";
+import { AlertTriangle, Shield, Activity } from '../ui/Icons';
 import {
     ComposableMap,
     Geographies,

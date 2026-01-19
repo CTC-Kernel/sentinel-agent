@@ -7,7 +7,7 @@ import {
     Target,
     ShieldAlert,
     Trash
-} from 'lucide-react';
+} from '../../ui/Icons';
 import { Button } from '../../ui/button';
 
 interface TLPTInspectorProps {

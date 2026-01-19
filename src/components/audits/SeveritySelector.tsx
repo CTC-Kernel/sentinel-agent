@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, AlertTriangle, Info, Lightbulb } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info, Lightbulb } from '../ui/Icons';
 
 interface SeveritySelectorProps {
     value: string;

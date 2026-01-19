@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Monitor, Smartphone, Globe, Trash2, ShieldCheck, Clock } from 'lucide-react';
+import { Monitor, Smartphone, Globe, Trash2, ShieldCheck, Clock } from '../ui/Icons';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { Tooltip } from '../ui/Tooltip';

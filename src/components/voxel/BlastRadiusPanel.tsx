@@ -40,7 +40,7 @@ import {
   Sliders,
   BarChart3,
   Check,
-} from 'lucide-react';
+} from '../ui/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { VoxelNode, VoxelNodeType } from '@/types/voxel';
 import type {

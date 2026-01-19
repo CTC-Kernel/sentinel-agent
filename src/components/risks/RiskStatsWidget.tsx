@@ -1,7 +1,7 @@
 import React from 'react';
 import { Risk } from '../../types';
 import { GlassCard } from '../ui/GlassCard';
-import { ShieldAlert, AlertTriangle, Activity, TrendingUp } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Activity, TrendingUp } from '../ui/Icons';
 import { cn } from '../../utils/cn';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../../constants/RiskConstants';
 

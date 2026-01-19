@@ -4,7 +4,7 @@ import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/f
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../../firebase';
 import { useStore } from '../../store';
-import { Handshake, Plus, Mail, Loader2, Building2, Clock, Trash2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Handshake, Plus, Mail, Loader2, Building2, Clock, Trash2, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { toast } from '@/lib/toast';
 import { ErrorLogger } from '../../services/errorLogger';
 import { ConfirmModal } from '../ui/ConfirmModal';

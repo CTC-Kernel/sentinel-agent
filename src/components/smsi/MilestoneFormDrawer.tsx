@@ -18,7 +18,7 @@ import { FieldValues } from 'react-hook-form';
 import { Milestone, PDCAPhase } from '../../types/ebios';
 import { PHASE_CONFIG, PHASE_STYLES } from './constants';
 import { cn } from '../../utils/cn';
-import { Users } from 'lucide-react';
+import { Users } from '../ui/Icons';
 
 const milestoneSchema = z.object({
   name: z.string().min(3, 'Le nom doit contenir au moins 3 caractères'),
@@ -136,7 +136,8 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
                 const config = PHASE_CONFIG[phase];
                 const style = PHASE_STYLES[phase];
                 const isSelected = selectedPhase === phase;
-                const PhaseIcon = config.icon;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const PhaseIcon = config.icon as any;
 
                 return (
                   <button

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Shield, Clock, CheckCircle2, TrendingUp } from 'lucide-react';
+import { Shield, Clock, CheckCircle2, TrendingUp } from '../ui/Icons';
 import { GlassCard } from '../ui/GlassCard';
 import { EbiosAnalysis } from '../../types/ebios';
 

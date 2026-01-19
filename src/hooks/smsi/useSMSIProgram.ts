@@ -15,11 +15,17 @@ interface UseSMSIProgramReturn {
   loading: boolean;
   error: string | null;
   createProgram: (data: { name: string; description?: string; targetCertificationDate?: string; template?: 'standard' | 'fast-track' | 'maintenance' }) => Promise<SMSIProgram | null>;
+  updateProgram: (data: Partial<Pick<SMSIProgram, 'name' | 'description' | 'targetCertificationDate' | 'status'>>) => Promise<SMSIProgram | null>;
+  deleteProgram: () => Promise<void>;
+  advancePhase: () => Promise<void>;
   createMilestone: (data: Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt' | 'status'>) => Promise<Milestone | null>;
   updateMilestone: (milestoneId: string, data: Partial<Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt'>>) => Promise<Milestone | null>;
   updateMilestoneStatus: (milestoneId: string, status: Milestone['status']) => Promise<void>;
+  deleteMilestone: (milestoneId: string) => Promise<void>;
   getMilestonesByPhase: (phase: PDCAPhase) => Milestone[];
   getOverdueMilestones: () => Milestone[];
+  getUpcomingMilestones: (days?: number) => Milestone[];
+  getPhaseProgress: (phase: PDCAPhase) => number;
   refreshData: () => Promise<void>;
 }
 
@@ -147,17 +153,106 @@ export function useSMSIProgram(): UseSMSIProgramReturn {
     );
   }, [milestones]);
 
+  const getUpcomingMilestones = useCallback((days: number = 7): Milestone[] => {
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+    return milestones.filter(m =>
+      m.status !== 'completed' &&
+      new Date(m.dueDate) >= now &&
+      new Date(m.dueDate) <= futureDate
+    ).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }, [milestones]);
+
+  const getPhaseProgress = useCallback((phase: PDCAPhase): number => {
+    const phaseMilestones = milestones.filter(m => m.phase === phase);
+    if (phaseMilestones.length === 0) return 0;
+    const completed = phaseMilestones.filter(m => m.status === 'completed').length;
+    return Math.round((completed / phaseMilestones.length) * 100);
+  }, [milestones]);
+
+  const updateProgram = useCallback(async (
+    data: Partial<Pick<SMSIProgram, 'name' | 'description' | 'targetCertificationDate' | 'status'>>
+  ): Promise<SMSIProgram | null> => {
+    if (!organizationId || !program) return null;
+
+    try {
+      const updatedProgram = await EbiosService.updateSMSIProgram(organizationId, data);
+      setProgram(updatedProgram);
+      return updatedProgram;
+    } catch (err) {
+      ErrorLogger.error(err, 'useSMSIProgram.updateProgram');
+      throw err;
+    }
+  }, [organizationId, program]);
+
+  const deleteProgram = useCallback(async (): Promise<void> => {
+    if (!organizationId) return;
+
+    try {
+      await EbiosService.deleteSMSIProgram(organizationId);
+      setProgram(null);
+      setMilestones([]);
+    } catch (err) {
+      ErrorLogger.error(err, 'useSMSIProgram.deleteProgram');
+      throw err;
+    }
+  }, [organizationId]);
+
+  const advancePhase = useCallback(async (): Promise<void> => {
+    if (!organizationId || !program) return;
+
+    const phaseOrder: PDCAPhase[] = ['plan', 'do', 'check', 'act'];
+    const currentIndex = phaseOrder.indexOf(program.currentPhase);
+    if (currentIndex === -1 || currentIndex >= phaseOrder.length - 1) return;
+
+    const nextPhase = phaseOrder[currentIndex + 1];
+
+    try {
+      await EbiosService.updateSMSIProgramPhase(organizationId, nextPhase);
+      setProgram(prev => prev ? {
+        ...prev,
+        currentPhase: nextPhase,
+        phases: {
+          ...prev.phases,
+          [program.currentPhase]: { ...prev.phases[program.currentPhase], status: 'completed' },
+          [nextPhase]: { ...prev.phases[nextPhase], status: 'in_progress' }
+        }
+      } : null);
+    } catch (err) {
+      ErrorLogger.error(err, 'useSMSIProgram.advancePhase');
+      throw err;
+    }
+  }, [organizationId, program]);
+
+  const deleteMilestone = useCallback(async (milestoneId: string): Promise<void> => {
+    if (!organizationId) return;
+
+    try {
+      await EbiosService.deleteMilestone(organizationId, milestoneId);
+      setMilestones(prev => prev.filter(m => m.id !== milestoneId));
+    } catch (err) {
+      ErrorLogger.error(err, 'useSMSIProgram.deleteMilestone');
+      throw err;
+    }
+  }, [organizationId]);
+
   return {
     program,
     milestones,
     loading,
     error,
     createProgram,
+    updateProgram,
+    deleteProgram,
+    advancePhase,
     createMilestone,
     updateMilestone,
     updateMilestoneStatus,
+    deleteMilestone,
     getMilestonesByPhase,
     getOverdueMilestones,
+    getUpcomingMilestones,
+    getPhaseProgress,
     refreshData: fetchData,
   };
 }

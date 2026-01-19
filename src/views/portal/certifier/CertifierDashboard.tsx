@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../firebase';
-import { Loader2, Building2, FileCheck, Clock, CheckCircle, Search, ChevronRight, LogOut, Shield } from 'lucide-react';
+import { Loader2, Building2, FileCheck, Clock, CheckCircle, Search, ChevronRight, LogOut, Shield } from '../../../components/ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/lib/toast';
 import { signOut } from 'firebase/auth';

@@ -2,7 +2,7 @@
 import React from 'react';
 import { GlassCard } from '../ui/GlassCard';
 import { Button } from '../ui/button';
-import { Plus } from 'lucide-react';
+import { Plus } from '../ui/Icons';
 import { Milestone, PDCAPhase } from '../../types/ebios';
 import { cn } from '../../utils/cn';
 import { motion } from 'framer-motion';
@@ -29,10 +29,10 @@ export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({
     return (
         <GlassCard className="p-6">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-foreground">
                     Jalons du programme
                     {filterPhase && (
-                        <span className="ml-2 text-sm font-normal text-gray-500">
+                        <span className="ml-2 text-sm font-normal text-muted-foreground">
                             ({PHASE_CONFIG[filterPhase].label})
                         </span>
                     )}
@@ -49,7 +49,7 @@ export const SMSIMilestoneList: React.FC<SMSIMilestoneListProps> = ({
             </div>
 
             {displayedMilestones.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-muted-foreground">
                     {filterPhase
                         ? `Aucun jalon pour la phase ${PHASE_CONFIG[filterPhase].label}.`
                         : 'Aucun jalon défini. Ajoutez des jalons pour suivre l\'avancement du programme.'
@@ -77,6 +77,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
     const phaseStyle = PHASE_STYLES[milestone.phase];
     const statusStyle = MILESTONE_STATUS_STYLES[milestone.status];
     const StatusIcon = statusConfig.icon;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const PhaseIcon = phaseConfig.icon as any;
 
     const dueDate = new Date(milestone.dueDate);
     const isOverdue = milestone.status !== 'completed' && dueDate < new Date();
@@ -84,10 +86,10 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
     return (
         <motion.div
             className={cn(
-                "flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer",
+                "glass-panel flex items-center gap-4 p-4 rounded-xl border transition-all hover:scale-105 cursor-pointer",
                 isOverdue
-                    ? "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-900/10"
-                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50"
+                    ? "border-error-border bg-error-bg/50"
+                    : "hover:border-primary-500/30"
             )}
             whileHover={{ x: 4 }}
             onClick={onClick}
@@ -96,18 +98,18 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
                 "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
                 phaseStyle.iconBg
             )}>
-                <phaseConfig.icon className={cn("w-5 h-5", phaseStyle.iconText)} />
+                <PhaseIcon className={cn("w-5 h-5", phaseStyle.iconText)} />
             </div>
 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-gray-900 dark:text-white truncate">{milestone.name}</h4>
+                    <h4 className="font-medium text-foreground truncate">{milestone.name}</h4>
                     <Badge variant="outline" size="sm">
                         {phaseConfig.label}
                     </Badge>
                 </div>
                 {milestone.description && (
-                    <p className="text-sm text-gray-500 truncate mt-0.5">{milestone.description}</p>
+                    <p className="text-sm text-muted-foreground truncate mt-0.5">{milestone.description}</p>
                 )}
             </div>
 
@@ -115,11 +117,11 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone, onClick }) => 
                 <div className="text-right hidden sm:block">
                     <div className={cn(
                         "text-sm font-medium",
-                        isOverdue ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"
+                        isOverdue ? "text-error-text" : "text-muted-foreground"
                     )}>
                         {dueDate.toLocaleDateString('fr-FR')}
                     </div>
-                    <div className="text-xs text-gray-400">Échéance</div>
+                    <div className="text-xs text-muted-foreground">Échéance</div>
                 </div>
 
                 <div className={cn(

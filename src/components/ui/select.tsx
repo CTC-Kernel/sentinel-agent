@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown } from './Icons'
 import { cn } from "@/lib/utils"
 
 // Simplified Context-based Select to mock the Radix API structure

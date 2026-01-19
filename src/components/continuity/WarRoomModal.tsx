@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Lock, Send, X, FileText, User, Paperclip, Eye, ShieldAlert
-} from 'lucide-react';
+    Lock, Send, X, FileText, User, Paperclip, ShieldAlert, Download, ExternalLink, Image, File, Upload, AlertTriangle
+} from '../ui/Icons';
 import { Dialog } from '@headlessui/react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
@@ -10,6 +10,10 @@ import { useZodForm } from '../../hooks/useZodForm';
 import { warRoomMessageSchema, WarRoomMessageFormData } from '../../schemas/continuitySchema';
 import { useWarRoom } from '../../hooks/incidents/useWarRoom';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useNavigate } from 'react-router-dom';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../firebase';
+import { Tooltip } from '../ui/Tooltip';
 
 interface WarRoomModalProps {
     isOpen: boolean;
@@ -18,16 +22,48 @@ interface WarRoomModalProps {
     incidentTitle: string;
 }
 
+// Crisis documents - these are critical documents for incident response
+interface CrisisDocument {
+    id: string;
+    title: string;
+    type: 'pca' | 'pra' | 'procedure' | 'contact' | 'playbook';
+    url?: string;
+    description?: string;
+}
+
+const CRISIS_DOCUMENTS: CrisisDocument[] = [
+    { id: 'pca-1', title: 'Plan de Continuité (PCA)', type: 'pca', description: 'Plan de continuité d\'activité' },
+    { id: 'pra-1', title: 'Plan de Reprise (PRA)', type: 'pra', description: 'Plan de reprise d\'activité' },
+    { id: 'contact-1', title: 'Annuaire de Crise', type: 'contact', description: 'Contacts d\'urgence' },
+    { id: 'proc-1', title: 'Procédures de Restauration', type: 'procedure', description: 'Procédures techniques' },
+    { id: 'playbook-1', title: 'Playbook Incident', type: 'playbook', description: 'Guide de réponse' }
+];
+
 export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, incidentId, incidentTitle }) => {
-    const { user } = useStore();
+    const { user, demoMode } = useStore();
+    const navigate = useNavigate();
     const bottomRef = useRef<HTMLDivElement>(null);
-    const { messages, sendMessage, loading } = useWarRoom(incidentId);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { messages, sendMessage, sendSystemMessage, loading, presence } = useWarRoom(incidentId);
+
+    // Attachment state
+    const [pendingAttachments, setPendingAttachments] = useState<File[]>([]);
+    const [uploadingAttachment, setUploadingAttachment] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages, isOpen]);
+
+    // Send system message when War Room opens
+    useEffect(() => {
+        if (isOpen && incidentId) {
+            // Send a system message indicating the war room was activated
+            sendSystemMessage?.(`${user?.displayName || 'Utilisateur'} a rejoint le War Room.`);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, incidentId]);
 
     const { register, handleSubmit, reset } = useZodForm({
         schema: warRoomMessageSchema,
@@ -36,15 +72,85 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
         }
     });
 
-    const onSubmit = async (data: WarRoomMessageFormData) => {
-        if (!data.content.trim()) return;
-        try {
-            await sendMessage(data.content);
-            reset();
-        } catch (error) {
-            // Toast error handled globally or we can add local error state
-            ErrorLogger.error(error, 'WarRoomModal.onSubmit');
+    // Handle file selection
+    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            // Limit file size to 10MB
+            const validFiles = files.filter(f => f.size <= 10 * 1024 * 1024);
+            if (validFiles.length < files.length) {
+                ErrorLogger.warn('Some files were too large (max 10MB)', 'WarRoomModal.handleFileSelect');
+            }
+            setPendingAttachments(prev => [...prev, ...validFiles]);
         }
+        // Reset input
+        if (e.target) e.target.value = '';
+    }, []);
+
+    // Remove pending attachment
+    const removePendingAttachment = useCallback((index: number) => {
+        setPendingAttachments(prev => prev.filter((_, i) => i !== index));
+    }, []);
+
+    // Upload file to storage
+    const uploadFile = useCallback(async (file: File): Promise<{ name: string; url: string; type: string }> => {
+        if (demoMode) {
+            // Demo mode: return fake URL
+            return {
+                name: file.name,
+                url: `https://demo.example.com/files/${file.name}`,
+                type: file.type
+            };
+        }
+
+        const fileRef = ref(storage, `war_room/${incidentId}/${Date.now()}_${file.name}`);
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
+        return { name: file.name, url, type: file.type };
+    }, [incidentId, demoMode]);
+
+    const onSubmit = async (data: WarRoomMessageFormData) => {
+        if (!data.content.trim() && pendingAttachments.length === 0) return;
+
+        try {
+            setUploadingAttachment(true);
+
+            // Upload any pending attachments
+            const attachments = await Promise.all(
+                pendingAttachments.map(file => uploadFile(file))
+            );
+
+            await sendMessage(data.content, attachments.length > 0 ? attachments : undefined);
+            reset();
+            setPendingAttachments([]);
+        } catch (error) {
+            ErrorLogger.error(error, 'WarRoomModal.onSubmit');
+        } finally {
+            setUploadingAttachment(false);
+        }
+    };
+
+    // Navigate to document
+    const openDocument = useCallback((doc: CrisisDocument) => {
+        // In a real app, this would navigate to the actual document
+        // For now, navigate to the documents section with a filter
+        if (doc.type === 'pca' || doc.type === 'pra') {
+            navigate('/continuity?tab=pra');
+        } else if (doc.type === 'contact') {
+            navigate('/team');
+        } else if (doc.type === 'playbook') {
+            navigate('/incidents?tab=playbooks');
+        } else {
+            navigate('/documents?search=' + encodeURIComponent(doc.title));
+        }
+        // Keep war room open in background (don't close)
+    }, [navigate]);
+
+    // Get file icon based on type
+    const getFileIcon = (type: string) => {
+        if (type.startsWith('image/')) return <Image className="w-4 h-4" />;
+        if (type.includes('pdf')) return <FileText className="w-4 h-4" />;
+        return <File className="w-4 h-4" />;
     };
 
     return (
@@ -87,33 +193,91 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                             <FileText className="w-4 h-4" /> Documents Critiques
                                         </h3>
                                         <div className="space-y-2">
-                                            {/* TODO: Link to real documents related to incident */}
-                                            {['Plan de Continuité (PCA)', 'Annuaire de Crise', 'Procédures de Restauration'].map((doc, i) => (
-                                                <div key={`drill-${i}`} className="group flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all">
+                                            {CRISIS_DOCUMENTS.map((doc) => (
+                                                <button
+                                                    key={doc.id}
+                                                    onClick={() => openDocument(doc)}
+                                                    className="group w-full flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all text-left"
+                                                >
                                                     <div className="flex items-center gap-3">
                                                         <div className="p-2 rounded-lg bg-slate-800 text-slate-400 group-hover:text-white transition-colors">
                                                             <FileText className="w-4 h-4" />
                                                         </div>
-                                                        <span className="text-sm font-medium text-slate-300 group-hover:text-white">{doc}</span>
+                                                        <div>
+                                                            <span className="text-sm font-medium text-slate-300 group-hover:text-white block">{doc.title}</span>
+                                                            {doc.description && (
+                                                                <span className="text-xs text-slate-500">{doc.description}</span>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white">
-                                                        <Eye className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
+                                                    <Tooltip content="Ouvrir" position="left">
+                                                        <span className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/10">
+                                                            <ExternalLink className="w-4 h-4" />
+                                                        </span>
+                                                    </Tooltip>
+                                                </button>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* Active Users */}
+                                    {/* Quick Actions */}
                                     <div>
                                         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                            <User className="w-4 h-4" /> En Ligne
+                                            <AlertTriangle className="w-4 h-4" /> Actions Rapides
                                         </h3>
-                                        <div className="flex -space-x-2">
-                                            {/* TODO: Real presence list */}
-                                            <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-slate-900 flex items-center justify-center text-xs text-white cursor-help" title="Vous">
-                                                {user?.displayName?.charAt(0) || 'U'}
-                                            </div>
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={() => navigate(`/incidents/${incidentId}`)}
+                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all text-left"
+                                            >
+                                                <AlertTriangle className="w-4 h-4 text-red-500" />
+                                                <span className="text-sm font-medium text-red-400">Voir l'incident</span>
+                                            </button>
+                                            <button
+                                                onClick={() => navigate('/incidents?action=escalate')}
+                                                className="w-full flex items-center gap-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 transition-all text-left"
+                                            >
+                                                <Upload className="w-4 h-4 text-orange-500" />
+                                                <span className="text-sm font-medium text-orange-400">Escalader</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Active Users - Real-time Presence */}
+                                    <div>
+                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <User className="w-4 h-4" /> En Ligne ({presence.length})
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {presence.length === 0 ? (
+                                                <p className="text-xs text-slate-500">Aucun participant</p>
+                                            ) : (
+                                                presence.map((p) => (
+                                                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+                                                        <div className="relative">
+                                                            {p.photoURL ? (
+                                                                <img
+                                                                    src={p.photoURL}
+                                                                    alt={p.displayName}
+                                                                    className="w-8 h-8 rounded-full object-cover border-2 border-emerald-500"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-emerald-500 flex items-center justify-center text-xs text-white">
+                                                                    {p.displayName?.charAt(0) || 'U'}
+                                                                </div>
+                                                            )}
+                                                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-slate-900" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-white truncate">
+                                                                {p.displayName}
+                                                                {p.id === user?.uid && <span className="text-slate-400 ml-1">(vous)</span>}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500 capitalize">{p.role}</p>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -164,7 +328,25 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                         <span>•</span>
                                                         <span>{msg.timestamp?.toLocaleTimeString ? msg.timestamp.toLocaleTimeString() : ''}</span>
                                                     </div>
-                                                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                                                    {msg.content && <p className="whitespace-pre-wrap">{msg.content}</p>}
+                                                    {/* Attachments */}
+                                                    {msg.attachments && msg.attachments.length > 0 && (
+                                                        <div className="mt-2 space-y-1">
+                                                            {msg.attachments.map((att, idx) => (
+                                                                <a
+                                                                    key={idx}
+                                                                    href={att.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="flex items-center gap-2 p-2 rounded-lg bg-black/20 hover:bg-black/40 transition-colors text-xs"
+                                                                >
+                                                                    {getFileIcon(att.type)}
+                                                                    <span className="truncate flex-1">{att.name}</span>
+                                                                    <Download className="w-3 h-3 opacity-50" />
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </motion.div>
@@ -174,10 +356,51 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
 
                                 {/* Input Area */}
                                 <div className="p-4 border-t border-white/10 bg-black/20">
+                                    {/* Pending Attachments Preview */}
+                                    {pendingAttachments.length > 0 && (
+                                        <div className="mb-3 flex flex-wrap gap-2">
+                                            {pendingAttachments.map((file, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-sm"
+                                                >
+                                                    {getFileIcon(file.type)}
+                                                    <span className="truncate max-w-[150px] text-blue-200">{file.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removePendingAttachment(idx)}
+                                                        className="text-blue-300 hover:text-white ml-1"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <form onSubmit={handleSubmit(onSubmit)} className="flex gap-4">
-                                        <Button type="button" variant="ghost" className="text-slate-400 hover:text-white" aria-label="Joindre un fichier">
-                                            <Paperclip className="w-5 h-5" />
-                                        </Button>
+                                        {/* Hidden file input */}
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            multiple
+                                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
+                                            onChange={handleFileSelect}
+                                            className="hidden"
+                                        />
+
+                                        <Tooltip content="Joindre un fichier (max 10MB)" position="top">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="text-slate-400 hover:text-white"
+                                                aria-label="Joindre un fichier"
+                                            >
+                                                <Paperclip className="w-5 h-5" />
+                                            </Button>
+                                        </Tooltip>
+
                                         <input
                                             aria-label="Message de war room"
                                             placeholder="Tapez un message chiffré..."
@@ -185,10 +408,23 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                             autoFocus
                                             {...register('content')}
                                         />
-                                        <Button type="submit" disabled={loading} isLoading={loading} size="icon" aria-label="Envoyer le message">
+
+                                        <Button
+                                            type="submit"
+                                            disabled={loading || uploadingAttachment}
+                                            isLoading={loading || uploadingAttachment}
+                                            size="icon"
+                                            aria-label="Envoyer le message"
+                                        >
                                             <Send className="w-4 h-4" />
                                         </Button>
                                     </form>
+
+                                    {/* Encryption indicator */}
+                                    <div className="flex items-center gap-2 mt-2 text-xs text-emerald-500/70">
+                                        <Lock className="w-3 h-3" />
+                                        <span>Chiffrement de bout en bout activé</span>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

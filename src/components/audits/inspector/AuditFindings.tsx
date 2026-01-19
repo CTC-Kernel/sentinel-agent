@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertOctagon, Plus, Loader2, Upload, Trash2 } from 'lucide-react';
+import { AlertOctagon, Plus, Loader2, Upload, Trash2 } from '../../ui/Icons';
 
 import { Audit, Control, Finding } from '../../../types';
 import { findingSchema, FindingFormData } from '../../../schemas/findingSchema';

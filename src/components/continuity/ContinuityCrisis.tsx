@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Phone, ShieldAlert, CheckCircle2, User, Megaphone, Lock } from 'lucide-react';
+import { AlertTriangle, Phone, ShieldAlert, CheckCircle2, User, Megaphone, Lock } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { UserProfile } from '../../types';

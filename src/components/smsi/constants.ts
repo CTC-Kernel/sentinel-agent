@@ -30,7 +30,16 @@ export const PHASE_CONFIG: Record<PDCAPhase, { label: string; color: string; ico
 };
 
 // Static color mappings for Tailwind JIT
-export const PHASE_STYLES = {
+export const PHASE_STYLES: Record<PDCAPhase, {
+    borderActive: string;
+    bgActive: string;
+    badge: string;
+    iconBg: string;
+    iconText: string;
+    textActive: string;
+    cardBorder: string;
+    text: string;
+}> = {
     plan: {
         borderActive: 'border-blue-500',
         bgActive: 'bg-blue-50 dark:bg-blue-900/20',

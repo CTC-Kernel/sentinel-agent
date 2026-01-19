@@ -3,7 +3,7 @@ import React from 'react';
 import {
     FileSpreadsheet, MoreVertical,
     Plus, BrainCircuit, Calendar as CalendarIcon, Upload, Trash2
-} from 'lucide-react';
+} from '../ui/Icons';
 import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/button';

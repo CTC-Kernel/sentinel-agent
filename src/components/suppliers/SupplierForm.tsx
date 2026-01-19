@@ -6,12 +6,12 @@ import { supplierSchema, SupplierFormData } from '../../schemas/supplierSchema';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Criticality, UserProfile, BusinessProcess, Asset, Risk, Document } from '../../types';
-import { ShieldAlert, Building2, Wand2, Link as LinkIcon, FileText } from 'lucide-react';
+import { ShieldAlert, Building2, Wand2, Link as LinkIcon, FileText } from '../ui/Icons';
 import { aiService } from '../../services/aiService';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { integrationService, CompanySearchResult } from '../../services/integrationService';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { AIAssistantHeader, BaseTemplate } from '../ui/AIAssistantHeader';
 

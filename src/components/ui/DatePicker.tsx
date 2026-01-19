@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon } from './Icons';
 import { Calendar } from './Calendar';
 
 interface DatePickerProps {

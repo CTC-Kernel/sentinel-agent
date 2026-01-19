@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Dialog, Transition, Tab } from '@headlessui/react';
-import { X, Users, Database, Shield, AlertTriangle, CreditCard, Save } from 'lucide-react';
+import { X, Users, Database, Shield, AlertTriangle, CreditCard, Save } from '../../../components/ui/Icons';
 import { Organization, PlanType } from '../../../types';
 import { AdminService } from '../../../services/adminService';
 import { toast } from '../../../lib/toast';

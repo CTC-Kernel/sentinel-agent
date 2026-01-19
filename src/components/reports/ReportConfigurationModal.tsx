@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Button } from '../ui/button';
-import { FileText, ShieldAlert, CheckSquare, Server, Activity, ArrowRight } from 'lucide-react';
+import { FileText, ShieldAlert, CheckSquare, Server, Activity, ArrowRight } from '../ui/Icons';
 
 export interface ReportConfig {
     title: string;

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Check } from "lucide-react" // Assuming lucide-react is available, or use a simple svg
+import { Check } from './Icons' // Assuming lucide-react is available, or use a simple svg
 import { cn } from "@/lib/utils"
 
 // Simple implementation without radix primitive for speed/simplicity if primitive not available, 

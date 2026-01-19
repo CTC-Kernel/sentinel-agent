@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from '../ui/Icons';
 
 export interface EmptyStateProps {
     image?: string;
@@ -24,17 +24,16 @@ export const EmptyState = ({
 }: EmptyStateProps) => {
     const colorStyles = {
         slate: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-        blue: 'bg-blue-50 dark:bg-slate-900 text-blue-600 dark:bg-slate-900/20 dark:text-blue-400',
-        indigo: 'bg-indigo-50 dark:bg-slate-900 text-indigo-600 dark:bg-slate-900/20 dark:text-indigo-400',
-        rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400',
-        amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
-        emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
+        blue: 'bg-primary-50 dark:bg-primary-950/30 text-primary-600 dark:text-primary-400',
+        indigo: 'bg-brand-50 dark:bg-brand-950/30 text-brand-600 dark:text-brand-400',
+        rose: 'bg-error-bg text-error-text',
+        amber: 'bg-warning-bg text-warning-text',
+        emerald: 'bg-success-bg text-success-text',
     };
 
     return (
         <div className={cn(
-            "flex flex-col items-center justify-center p-8 text-center min-h-[400px]",
-            "rounded-xl border border-white/5 bg-white/5 backdrop-blur-sm",
+            "glass-panel flex flex-col items-center justify-center p-8 text-center min-h-[400px]",
             className
         )}>
             {image && !Icon && (
@@ -61,7 +60,7 @@ export const EmptyState = ({
                     className="mb-6 relative"
                 >
                     <div className={cn(
-                        "w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm",
+                        "w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-sm backdrop-blur-sm",
                         colorStyles[color]
                     )}>
                         <Icon className="w-10 h-10" />
@@ -74,11 +73,11 @@ export const EmptyState = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
             >
-                <h3 className="text-xl font-medium text-white mb-2">
+                <h3 className="text-xl font-medium text-foreground mb-2">
                     {title}
                 </h3>
 
-                <p className="text-slate-400 max-w-md mx-auto mb-6 text-sm leading-relaxed">
+                <p className="text-muted-foreground max-w-md mx-auto mb-6 text-sm leading-relaxed">
                     {description}
                 </p>
 

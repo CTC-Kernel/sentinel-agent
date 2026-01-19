@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { Upload, CheckCircle, AlertTriangle, Loader2 } from '../../components/ui/Icons';
 import { httpsCallable } from 'firebase/functions';
 import { functions, storage } from '../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';

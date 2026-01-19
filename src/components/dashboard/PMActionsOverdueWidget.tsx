@@ -12,7 +12,7 @@ import {
   OVERDUE_SEVERITY_COLOR_CLASSES,
   type OverdueActionItem,
 } from '../../hooks/useOverdueActions';
-import { ChevronRight, Clock, AlertTriangle, RefreshCw, CheckCircle } from 'lucide-react';
+import { ChevronRight, Clock, AlertTriangle, RefreshCw, CheckCircle } from '../ui/Icons';
 
 /**
  * Props for PMActionsOverdueWidget

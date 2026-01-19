@@ -3,7 +3,7 @@ import { TlptCampaign } from '../../../types/tlpt';
 import { Vulnerability } from '../../../types/risks';
 import { useVulnerabilities } from '../../../hooks/useVulnerabilities';
 import { Button } from '../../ui/button';
-import { Plus, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Plus, AlertTriangle, ShieldAlert } from '../../ui/Icons';
 import { VulnerabilityForm } from '../../vulnerabilities/VulnerabilityForm';
 import { Modal } from '../../ui/Modal';
 import { EmptyState } from '../../ui/EmptyState';

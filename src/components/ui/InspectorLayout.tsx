@@ -1,7 +1,7 @@
 import React from 'react';
 import { Drawer } from './Drawer';
 import { ScrollableTabs } from './ScrollableTabs';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from './Icons';
 
 interface TabItem {
     id: string;

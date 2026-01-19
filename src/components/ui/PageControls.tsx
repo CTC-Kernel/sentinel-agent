@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, X, Filter, LayoutGrid, List, Loader2, Grid3X3 } from 'lucide-react';
+import { Search, X, Filter, LayoutGrid, List, Loader2, Grid3X3 } from './Icons';
 import { Tooltip } from './Tooltip';
 
 interface PageControlsProps {

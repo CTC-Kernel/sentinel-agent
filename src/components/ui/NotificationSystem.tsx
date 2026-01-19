@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
+import { X, CheckCircle, AlertCircle, Info, AlertTriangle, XCircle } from './Icons';
 import { cn } from '../../lib/utils';
 import { Notification, NotificationContext, NotificationType } from '../../contexts/NotificationContext';
 import { useNotifications } from '../../hooks/useNotifications';

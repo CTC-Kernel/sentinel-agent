@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
-import { Activity, Trash2, AlertTriangle, Download } from 'lucide-react';
+import { Activity, Trash2, AlertTriangle, Download } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Timestamp } from 'firebase/firestore';
 import { auth } from '../../firebase';

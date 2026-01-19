@@ -180,15 +180,15 @@ describe('calculateMitigationCoverage', () => {
         expect(calculateMitigationCoverage(controls)).toBe(0);
     });
 
-    it('calculates mixed status correctly', () => {
+    it('calculates mixed status correctly (excludes non-applicable)', () => {
         const controls = [
             createControl('Implémenté'),  // 1.0
             createControl('Partiel'),     // 0.5
             createControl('En cours'),    // 0.3
-            createControl('Non applicable') // 0
+            createControl('Non applicable') // excluded from calculation
         ];
-        // Average: (1.0 + 0.5 + 0.3 + 0) / 4 = 0.45 = 45%
-        expect(calculateMitigationCoverage(controls)).toBe(45);
+        // Average: (1.0 + 0.5 + 0.3) / 3 = 0.6 = 60% (Non applicable is excluded)
+        expect(calculateMitigationCoverage(controls)).toBe(60);
     });
 
     it('handles unknown status as 0', () => {

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, Lock } from 'lucide-react';
+import { CheckCircle, Lock } from '../ui/Icons';
 import { cn } from '../../utils/cn';
 import { WORKSHOP_INFO, WORKSHOP_STATUS_LABELS } from '../../data/ebiosLibrary';
 import type { EbiosWorkshops, EbiosWorkshopNumber, EbiosWorkshopStatus } from '../../types/ebios';

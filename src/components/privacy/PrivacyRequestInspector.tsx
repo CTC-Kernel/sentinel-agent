@@ -1,6 +1,6 @@
 import { PrivacyRequest } from './PrivacyRequests';
 import { InspectorLayout } from '../ui/InspectorLayout';
-import { User, Mail, Calendar, Flag, AlertTriangle } from 'lucide-react';
+import { User, Mail, Calendar, Flag, AlertTriangle } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';

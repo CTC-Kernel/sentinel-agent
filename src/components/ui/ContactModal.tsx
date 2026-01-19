@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { X, Send, Mail, User, MessageSquare } from 'lucide-react';
+import { X, Send, Mail, User, MessageSquare } from './Icons';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';

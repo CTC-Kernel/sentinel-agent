@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import "gantt-task-react/dist/index.css";
 import { ProjectTask, UserProfile } from '../../types';
-import { CalendarDays, User } from 'lucide-react';
+import { CalendarDays, User } from '../ui/Icons';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
 

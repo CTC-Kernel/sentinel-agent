@@ -26,7 +26,7 @@ import {
   Clock,
   Shield,
   LucideIcon,
-} from 'lucide-react';
+} from '../ui/Icons';
 
 import { Switch } from '@/components/ui/Switch';
 import { Separator } from '@/components/ui/separator';

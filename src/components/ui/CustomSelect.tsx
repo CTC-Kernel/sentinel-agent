@@ -1,6 +1,6 @@
 import React from 'react';
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption, ListboxLabel } from '@headlessui/react';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown } from './Icons';
 
 interface Option {
     value: string;

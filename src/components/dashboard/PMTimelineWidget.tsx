@@ -13,7 +13,7 @@ import {
   getTimelineItemTypeLabel,
   type TimelineItem,
 } from '../../hooks/useUpcomingDeadlines';
-import { ChevronRight, Calendar, AlertTriangle, RefreshCw, CalendarCheck } from 'lucide-react';
+import { ChevronRight, Calendar, AlertTriangle, RefreshCw, CalendarCheck } from '../ui/Icons';
 
 /**
  * Props for PMTimelineWidget

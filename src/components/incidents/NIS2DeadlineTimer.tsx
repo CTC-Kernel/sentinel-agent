@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Incident } from '../../types';
 import { getIncidentDeadlines, DeadlineStatus } from '../../utils/nis2Utils';
-import { Clock, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, AlertCircle } from '../ui/Icons';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

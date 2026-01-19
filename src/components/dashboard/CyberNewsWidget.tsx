@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { integrationService, CyberNewsItem } from '../../services/integrationService';
-import { Shield, ExternalLink, RefreshCw } from 'lucide-react';
+import { Shield, ExternalLink, RefreshCw } from '../ui/Icons';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useStore } from '../../store';

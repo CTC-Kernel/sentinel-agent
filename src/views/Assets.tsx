@@ -20,7 +20,7 @@ import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssetLogic } from '../hooks/assets/useAssetLogic';
 import { useAssetDependencies } from '../hooks/assets/useAssetDependencies';
-import { FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, MoreVertical, List, LayoutGrid, Upload } from 'lucide-react';
+import { FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, MoreVertical, List, LayoutGrid, Upload, LayoutDashboard } from '../components/ui/Icons';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
@@ -31,11 +31,14 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { Menu, Transition } from '@headlessui/react';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { AnimatePresence } from 'framer-motion';
 
 const Assets: React.FC = () => {
     const { user, t } = useStore();
     const canEdit = canEditResource(user, 'Asset');
     // UI State
+    const [activeTab, setActiveTab] = usePersistedState<string>('assets-active-tab', 'overview');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('assets-view-mode', 'grid');
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
@@ -44,20 +47,20 @@ const Assets: React.FC = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
 
-    // Optimized Data Fetching
+    // Dependencies and Loading Logic...
+    // (Preserve existing lines 48-58)
     const { assets, loading: assetsLoading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, checkDependencies } = useAssetLogic();
-
-    // Lazy load dependencies only when needed (Inspector or Import)
     const shouldLoadDependencies = inspectorOpen || importModalOpen;
     const { usersList, suppliers, processes, loading: depsLoading } = useAssetDependencies({
-        fetchUsers: shouldLoadDependencies || viewMode === 'list', // List view might show owners
+        fetchUsers: shouldLoadDependencies || viewMode === 'list',
         fetchSuppliers: shouldLoadDependencies,
         fetchProcesses: shouldLoadDependencies
     });
-
     const loading = assetsLoading || (shouldLoadDependencies && depsLoading);
     const { limits } = usePlanLimits();
     const reachedAssetLimit = assets.length >= limits.maxAssets;
+
+    // ... (Keep existing effects lines 63-130)
 
     // Start module tour
     React.useEffect(() => {
@@ -67,9 +70,6 @@ const Assets: React.FC = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    // UI State
-
-
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkAssetId = searchParams.get('id');
@@ -78,6 +78,7 @@ const Assets: React.FC = () => {
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [assetToDelete, setAssetToDelete] = useState<{ id: string, name: string } | null>(null);
+    const [dependencies, setDependencies] = useState<{ id: string; name: string; type: string }[]>([]);
 
     // Deep Linking Effect
     React.useEffect(() => {
@@ -88,23 +89,23 @@ const Assets: React.FC = () => {
             if (asset) {
                 setSelectedAsset(asset);
                 setInspectorOpen(true);
+                setActiveTab('assets');
             }
         } else if (deepLinkAction === 'create') {
             setSelectedAsset(null);
             setInspectorOpen(true);
+            setActiveTab('assets');
             // Consume action immediately
             setSearchParams(params => {
                 params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [loading, deepLinkAssetId, assets, deepLinkAction, setSearchParams]);
+    }, [loading, deepLinkAssetId, assets, deepLinkAction, setSearchParams, setActiveTab]);
 
     // Cleanup Effect
     React.useEffect(() => {
-        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
-
         if (!inspectorOpen && deepLinkAssetId) {
             setSearchParams(params => {
                 params.delete('id');
@@ -142,14 +143,15 @@ const Assets: React.FC = () => {
         setInspectorOpen(true);
     }, [reachedAssetLimit, assets.length, limits.maxAssets, t]);
 
-    const handleCreateNew = React.useCallback(() => handleOpenInspector(undefined), [handleOpenInspector]);
+    const handleCreateNew = React.useCallback(() => {
+        setActiveTab('assets');
+        handleOpenInspector(undefined);
+    }, [handleOpenInspector, setActiveTab]);
 
     const handleCloseInspector = React.useCallback(() => {
         setInspectorOpen(false);
         setSelectedAsset(null);
     }, []);
-
-    const [dependencies, setDependencies] = useState<{ id: string; name: string; type: string }[]>([]);
 
     const handleDeleteClick = React.useCallback(async (id: string, name: string) => {
         const depCheck = await checkDependencies(id);
@@ -282,8 +284,6 @@ const Assets: React.FC = () => {
     }, [createAsset, t]);
 
     // Import Handlers
-
-
     const assetGuidelines = useMemo(() => ({
         required: [
             t('common.columns.name'),
@@ -307,23 +307,18 @@ const Assets: React.FC = () => {
     const handleImportAssets = React.useCallback(async (file: File) => {
         const text = await file.text();
         const { data, errors } = ImportService.parseAssets(text, user?.displayName || 'Unknown');
-
         let successCount = 0;
-
         // Process sequentially to avoid overwhelming Firestore
         for (const assetData of data) {
             await createAsset(assetData, null);
             successCount++;
         }
-
         if (successCount > 0) {
             toast.success(t('common.import.summary', { count: successCount, total: data.length + errors.length }));
         }
-
         if (errors.length > 0) {
             toast.warning(t('common.import.partialErrors'), `${errors.length} erreurs: ` + errors.slice(0, 3).join(', ') + (errors.length > 3 ? '...' : ''));
         }
-
         if (successCount === 0 && errors.length === 0) {
             toast.warning(t('common.import.noData'));
         }
@@ -332,6 +327,11 @@ const Assets: React.FC = () => {
     const handleDownloadTemplate = React.useCallback(() => {
         ImportService.downloadAssetTemplate(t);
     }, [t]);
+
+    const tabs = [
+        { id: 'overview', label: t('common.overview'), icon: LayoutDashboard },
+        { id: 'assets', label: t('assets.title'), icon: List, count: assets.length }
+    ];
 
     return (
         <motion.div
@@ -364,189 +364,217 @@ const Assets: React.FC = () => {
                     />
                 </motion.div>
 
-                {/* Dashboard KPIs */}
                 <motion.div variants={slideUpVariants}>
-                    {reachedAssetLimit && (
-                        <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
-                            <span>{t('assets.limitReached', { count: assets.length, max: limits.maxAssets })}</span>
-                            <Button
-                                variant="link"
-                                aria-label={t('assets.upgradePlan')}
-                                onClick={() => toast.info(t('assets.contactSupport'))}
-                                className="text-amber-900 underline font-bold"
-                            >
-                                {t('assets.upgradePlan')}
-                            </Button>
-                        </div>
-                    )}
-                    <AssetDashboard
-                        assets={filteredAssets}
-                        onFilterChange={handleFilterChange}
-                        loading={loading}
+                    <ScrollableTabs
+                        tabs={tabs}
+                        activeTab={activeTab}
+                        onTabChange={setActiveTab}
+                        className="mb-6"
                     />
                 </motion.div>
 
-                {/* Search & List */}
-                <motion.div variants={slideUpVariants} className="space-y-6">
-                    {showAdvancedSearch && (
-                        <AdvancedSearch
-                            onSearch={handleSearch}
-                            onClose={handleCloseSearch}
-                        />
+                <AnimatePresence mode="wait">
+                    {activeTab === 'overview' ? (
+                        <motion.div
+                            key="overview"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {reachedAssetLimit && (
+                                <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
+                                    <span>{t('assets.limitReached', { count: assets.length, max: limits.maxAssets })}</span>
+                                    <Button
+                                        variant="link"
+                                        aria-label={t('assets.upgradePlan')}
+                                        onClick={() => toast.info(t('assets.contactSupport'))}
+                                        className="text-amber-900 underline font-bold"
+                                    >
+                                        {t('assets.upgradePlan')}
+                                    </Button>
+                                </div>
+                            )}
+                            <AssetDashboard
+                                assets={filteredAssets}
+                                onFilterChange={handleFilterChange}
+                                loading={loading}
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="assets"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="space-y-6"
+                        >
+                            {/* Search & List */}
+                            <div className="space-y-6">
+                                {showAdvancedSearch && (
+                                    <AdvancedSearch
+                                        onSearch={handleSearch}
+                                        onClose={handleCloseSearch}
+                                    />
+                                )}
+
+                                <PremiumPageControl
+                                    searchQuery={activeFilters.query || ''}
+                                    onSearchChange={handleSearchQueryChange}
+                                    searchPlaceholder={t('assets.searchPlaceholder')}
+                                    activeView={viewMode}
+                                    onViewChange={handleViewModeChange}
+                                    viewOptions={[
+                                        { id: 'list', label: t('assets.viewList'), icon: List },
+                                        { id: 'grid', label: t('assets.viewGrid'), icon: LayoutGrid }
+                                    ]}
+                                    actions={
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={handleStartTour}
+                                                className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                                                title={t('assets.startTour')}
+                                            >
+                                                <HelpCircle className="h-5 w-5" />
+                                            </Button>
+                                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={handleToggleSearch}
+                                                className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
+                                                    ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
+                                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
+                                                    }`}
+                                                title={t('assets.advancedFilters')}
+                                            >
+                                                <Filter className="h-5 w-5" />
+                                            </Button>
+                                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                                            {canEdit && (
+                                                <CustomTooltip content={t('assets.createAsset')}>
+                                                    <Button
+                                                        aria-label={t('assets.aiAnalysis')}
+                                                        onClick={handleAnalyze}
+                                                        disabled={isAnalyzing}
+                                                        isLoading={isAnalyzing}
+                                                        className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                                    >
+                                                        {!isAnalyzing && <BrainCircuit className="h-4 w-4 mr-2" />}
+                                                        <span className="hidden xl:inline">{isAnalyzing ? t('assets.analyzing') : t('assets.aiAnalysis')}</span>
+                                                    </Button>
+                                                </CustomTooltip>
+                                            )}
+
+                                            {canEdit && (
+                                                <CustomTooltip content={t('assets.createAsset')}>
+                                                    <Button
+                                                        aria-label={t('assets.newAsset')}
+                                                        data-tour="assets-add"
+                                                        onClick={handleCreateNew}
+                                                        disabled={reachedAssetLimit}
+                                                        className={`flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
+                                                    >
+                                                        <Plus className="h-4 w-4 mr-2" />
+                                                        <span className="hidden sm:inline">{t('assets.newAsset')}</span>
+                                                        <span className="sm:hidden">{t('assets.new')}</span>
+                                                    </Button>
+                                                </CustomTooltip>
+                                            )}
+
+                                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                                            <Menu as="div" className="relative inline-block text-left">
+                                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                    <MoreVertical className="h-5 w-5" />
+                                                </Menu.Button>
+                                                <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                        <div className="p-1">
+                                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('assets.tools')}</div>
+                                                            {canEdit && (
+                                                                <Menu.Item>
+                                                                    {({ active }) => (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            aria-label={t('assets.importCsv')}
+                                                                            onClick={() => setImportModalOpen(true)}
+                                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                        >
+                                                                            <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                                            {t('assets.importCsv')}
+                                                                        </Button>
+                                                                    )}
+                                                                </Menu.Item>
+                                                            )}
+                                                            <Menu.Item>
+                                                                {({ active }) => (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        aria-label={t('assets.exportCsv')}
+                                                                        data-tour="assets-export"
+                                                                        onClick={handleExportCSV}
+                                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                    >
+                                                                        <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
+                                                                        {t('assets.exportCsv')}
+                                                                    </Button>
+                                                                )}
+                                                            </Menu.Item>
+                                                            <Menu.Item>
+                                                                {({ active }) => (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        aria-label={t('assets.kioskLink')}
+                                                                        onClick={handleGenerateKioskLink}
+                                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                    >
+                                                                        <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                                        {t('assets.kioskLink')}
+                                                                    </Button>
+                                                                )}
+                                                            </Menu.Item>
+                                                        </div>
+                                                    </Menu.Items>
+                                                </Transition>
+                                            </Menu>
+                                        </>
+                                    }
+                                />
+
+                                <div data-tour="assets-list">
+                                    <AssetList
+                                        assets={paginatedItems}
+                                        loading={loading}
+                                        viewMode={viewMode}
+                                        user={user}
+                                        canEdit={canEdit}
+                                        onEdit={handleOpenInspector}
+                                        onDelete={handleDeleteClick}
+                                        onGenerateLabel={handleGenerateLabel}
+                                        isGeneratingLabels={false}
+                                        activeFiltersQuery={activeFilters.query}
+                                        onBulkDelete={bulkDeleteAssets}
+                                        users={usersList}
+                                    />
+                                </div>
+
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalItems={totalItems}
+                                    itemsPerPage={itemsPerPage}
+                                    onPageChange={setCurrentPage}
+                                    onItemsPerPageChange={setItemsPerPage}
+                                />
+                            </div>
+                        </motion.div>
                     )}
+                </AnimatePresence>
 
-                    <PremiumPageControl
-                        searchQuery={activeFilters.query || ''}
-                        onSearchChange={handleSearchQueryChange}
-                        searchPlaceholder={t('assets.searchPlaceholder')}
-                        activeView={viewMode}
-                        onViewChange={handleViewModeChange}
-                        viewOptions={[
-                            { id: 'list', label: t('assets.viewList'), icon: List },
-                            { id: 'grid', label: t('assets.viewGrid'), icon: LayoutGrid }
-                        ]}
-                        actions={
-                            <>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={handleStartTour}
-                                    className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
-                                    title={t('assets.startTour')}
-                                >
-                                    <HelpCircle className="h-5 w-5" />
-                                </Button>
-                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={handleToggleSearch}
-                                    className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
-                                        ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
-                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
-                                        }`}
-                                    title={t('assets.advancedFilters')}
-                                >
-                                    <Filter className="h-5 w-5" />
-                                </Button>
-                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-
-                                {canEdit && (
-                                    <CustomTooltip content={t('assets.createAsset')}>
-                                        <Button
-                                            aria-label={t('assets.aiAnalysis')}
-                                            onClick={handleAnalyze}
-                                            disabled={isAnalyzing}
-                                            isLoading={isAnalyzing}
-                                            className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                                        >
-                                            {!isAnalyzing && <BrainCircuit className="h-4 w-4 mr-2" />}
-                                            <span className="hidden xl:inline">{isAnalyzing ? t('assets.analyzing') : t('assets.aiAnalysis')}</span>
-                                        </Button>
-                                    </CustomTooltip>
-                                )}
-
-                                {canEdit && (
-                                    <CustomTooltip content={t('assets.createAsset')}>
-                                        <Button
-                                            aria-label={t('assets.newAsset')}
-                                            data-tour="assets-add"
-                                            onClick={handleCreateNew}
-                                            disabled={reachedAssetLimit}
-                                            className={`flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
-                                        >
-                                            <Plus className="h-4 w-4 mr-2" />
-                                            <span className="hidden sm:inline">{t('assets.newAsset')}</span>
-                                            <span className="sm:hidden">{t('assets.new')}</span>
-                                        </Button>
-                                    </CustomTooltip>
-                                )}
-
-                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-
-                                <Menu as="div" className="relative inline-block text-left">
-                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                        <MoreVertical className="h-5 w-5" />
-                                    </Menu.Button>
-                                    <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                            <div className="p-1">
-                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('assets.tools')}</div>
-                                                {canEdit && (
-                                                    <Menu.Item>
-                                                        {({ active }) => (
-                                                            <Button
-                                                                variant="ghost"
-                                                                aria-label={t('assets.importCsv')}
-                                                                onClick={() => setImportModalOpen(true)}
-                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                            >
-                                                                <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
-                                                                {t('assets.importCsv')}
-                                                            </Button>
-                                                        )}
-                                                    </Menu.Item>
-                                                )}
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <Button
-                                                            variant="ghost"
-                                                            aria-label={t('assets.exportCsv')}
-                                                            data-tour="assets-export"
-                                                            onClick={handleExportCSV}
-                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                        >
-                                                            <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
-                                                            {t('assets.exportCsv')}
-                                                        </Button>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <Button
-                                                            variant="ghost"
-                                                            aria-label={t('assets.kioskLink')}
-                                                            onClick={handleGenerateKioskLink}
-                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                        >
-                                                            <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
-                                                            {t('assets.kioskLink')}
-                                                        </Button>
-                                                    )}
-                                                </Menu.Item>
-                                            </div>
-                                        </Menu.Items>
-                                    </Transition>
-                                </Menu>
-                            </>
-                        }
-                    />
-
-                    <div data-tour="assets-list">
-                        <AssetList
-                            assets={paginatedItems}
-                            loading={loading}
-                            viewMode={viewMode}
-                            user={user}
-                            canEdit={canEdit}
-                            onEdit={handleOpenInspector}
-                            onDelete={handleDeleteClick}
-                            onGenerateLabel={handleGenerateLabel}
-                            isGeneratingLabels={false}
-                            activeFiltersQuery={activeFilters.query}
-                            onBulkDelete={bulkDeleteAssets}
-                            users={usersList}
-                        />
-                    </div>
-
-                    <Pagination
-                        currentPage={currentPage}
-                        totalItems={totalItems}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={setCurrentPage}
-                        onItemsPerPageChange={setItemsPerPage}
-                    />
-                </motion.div>
                 {/* Inspector Drawer */}
                 <AssetInspector
                     isOpen={inspectorOpen}

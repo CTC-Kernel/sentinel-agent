@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, Home } from './Icons';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 

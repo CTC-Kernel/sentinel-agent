@@ -1,6 +1,11 @@
-import { sign, verify, decode, JwtPayload } from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+import { decode, JwtPayload } from 'jsonwebtoken';
 import { ErrorLogger } from './errorLogger';
+
+/**
+ * SECURITY NOTE: JWT signing/verification MUST be done server-side only.
+ * This client-side service only provides token decoding (without verification).
+ * For token generation and verification, use Firebase Auth or Cloud Functions.
+ */
 
 interface TokenPayload extends JwtPayload {
   userId: string;
@@ -8,68 +13,47 @@ interface TokenPayload extends JwtPayload {
   role: string;
 }
 
-// JWT_SECRET must be set in environment variables for production security
-const getJwtSecret = (): string => {
-  const secret = import.meta.env.VITE_JWT_SECRET || process.env.JWT_SECRET;
-  if (!secret) {
-    // In development/demo mode, use a default secret with warning
-    if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
-      ErrorLogger.warn('JWT_SECRET not configured. Using default for development only.', 'TokenService.getJwtSecret');
-      return 'SENTINEL_DEV_JWT_SECRET_NOT_FOR_PRODUCTION';
-    }
-    throw new Error('JWT_SECRET must be configured in production environment');
-  }
-  return secret;
+// SECURITY: No JWT secret on client - use Firebase Auth tokens instead
+const throwServerOnlyError = (methodName: string): never => {
+  const error = new Error(
+    `TokenService.${methodName} is not available on the client. ` +
+    'Use Firebase Auth for authentication or move this logic to Cloud Functions.'
+  );
+  ErrorLogger.error(error.message, `TokenService.${methodName}`);
+  throw error;
 };
-
-const JWT_SECRET = getJwtSecret();
-const ACCESS_TOKEN_EXPIRY = '15m';
-const REFRESH_TOKEN_EXPIRY = '7d';
 
 export class TokenService {
   /**
-   * Generate access and refresh tokens
+   * @deprecated Use Firebase Auth instead. Token generation must be server-side.
+   * @throws Error - This method is not available on the client
    */
-  static generateTokens(userId: string, role: string) {
-    const sessionId = uuidv4();
-    const accessToken = this.generateAccessToken(userId, sessionId, role);
-    const refreshToken = this.generateRefreshToken(userId, sessionId, role);
-
-    return { accessToken, refreshToken, sessionId };
+  static generateTokens(_userId: string, _role: string): never {
+    throwServerOnlyError('generateTokens');
   }
 
   /**
-   * Generate access token with short expiry
+   * @deprecated Use Firebase Auth instead. Token generation must be server-side.
+   * @throws Error - This method is not available on the client
    */
-  private static generateAccessToken(userId: string, sessionId: string, role: string) {
-    return sign(
-      { userId, sessionId, role },
-      JWT_SECRET,
-      { expiresIn: ACCESS_TOKEN_EXPIRY }
-    );
+  private static generateAccessToken(_userId: string, _sessionId: string, _role: string): never {
+    throwServerOnlyError('generateAccessToken');
   }
 
   /**
-   * Generate refresh token with longer expiry
+   * @deprecated Use Firebase Auth instead. Token generation must be server-side.
+   * @throws Error - This method is not available on the client
    */
-  private static generateRefreshToken(userId: string, sessionId: string, role: string) {
-    return sign(
-      { userId, sessionId, role, isRefreshToken: true },
-      JWT_SECRET,
-      { expiresIn: REFRESH_TOKEN_EXPIRY }
-    );
+  private static generateRefreshToken(_userId: string, _sessionId: string, _role: string): never {
+    throwServerOnlyError('generateRefreshToken');
   }
 
   /**
-   * Verify and decode a token
+   * @deprecated Use Firebase Auth instead. Token verification must be server-side.
+   * @throws Error - This method is not available on the client
    */
-  static verifyToken(token: string): TokenPayload {
-    try {
-      return verify(token, JWT_SECRET) as TokenPayload;
-    } catch (error) {
-      ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'TokenService.verifyToken');
-      throw new Error('Invalid or expired token');
-    }
+  static verifyToken(_token: string): never {
+    throwServerOnlyError('verifyToken');
   }
 
   /**
@@ -94,15 +78,10 @@ export class TokenService {
   }
 
   /**
-   * Refresh access token using refresh token
+   * @deprecated Use Firebase Auth instead. Token refresh must be server-side.
+   * @throws Error - This method is not available on the client
    */
-  static refreshTokens(refreshToken: string) {
-    const decoded = this.verifyToken(refreshToken);
-
-    if (decoded.isRefreshToken) {
-      return this.generateTokens(decoded.userId, decoded.role);
-    }
-
-    throw new Error('Invalid refresh token');
+  static refreshTokens(_refreshToken: string): never {
+    throwServerOnlyError('refreshTokens');
   }
 }

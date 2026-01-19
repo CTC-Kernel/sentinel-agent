@@ -12,7 +12,8 @@ import { Button } from '../../ui/button';
 import { Badge } from '../../ui/Badge';
 import { Skeleton } from '../../ui/Skeleton';
 import { EmptyState } from '../../ui/EmptyState';
-import { cn } from '../../../utils/cn';
+import { usePersistedState } from '../../../hooks/usePersistedState';
+import { ScrollableTabs } from '../../ui/ScrollableTabs';
 import {
   Building2,
   Scale,
@@ -27,7 +28,7 @@ import {
   FileText,
   Shield,
   Clock,
-} from 'lucide-react';
+} from '../../ui/Icons';
 import type { RiskContext, ApplicableRegulation, ScaleDefinition } from '../../../types/ebios';
 import { FRAMEWORKS } from '../../../types/common';
 
@@ -61,8 +62,15 @@ export const RiskContextManager: React.FC = () => {
     removeRegulation,
   } = useRiskContext();
 
-  const [activeTab, setActiveTab] = useState<TabId>('business');
+  const [activeTab, setActiveTab] = usePersistedState<string>('risk-context-tab', 'business');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Map TABS to format expected by ScrollableTabs
+  const tabs = React.useMemo(() => TABS.map(t => ({
+    id: t.id,
+    label: t.label,
+    icon: t.icon
+  })), []);
 
   if (loading) {
     return (
@@ -105,27 +113,11 @@ export const RiskContextManager: React.FC = () => {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2">
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all",
-                isActive
-                  ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25"
-                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      <ScrollableTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">

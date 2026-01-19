@@ -161,19 +161,47 @@ const getAllowedActions = (role: string, resource: ResourceType, customRoles: Cu
     return [];
 };
 
-export const hasPermission = (user: UserProfile | null, resource: ResourceType, action: ActionType, orgOwnerId?: string, resourceOwnerId?: string): boolean => {
+export const hasPermission = (
+    user: UserProfile | null,
+    resource: ResourceType,
+    action: ActionType,
+    orgOwnerId?: string,
+    resourceOwnerId?: string,
+    resourceOrganizationId?: string
+): boolean => {
     if (!user) return false;
 
-    // Organization Owner has full access
+    // Organization Owner has full access to their own organization
     if (orgOwnerId && user.uid === orgOwnerId) return true;
 
     const userRole = user.role || 'user';
 
-    // Admin override (explicit validation)
+    // SECURITY FIX: Admin must respect tenant isolation
+    // Admin has full access ONLY within their own organization
     if (userRole === 'admin') {
+        // Critical resources require organization owner check
         if (action === 'delete' && ['User', 'Organization'].includes(resource)) {
-            return orgOwnerId ? user.uid === orgOwnerId : true;
+            return orgOwnerId ? user.uid === orgOwnerId : false; // CHANGED: false instead of true
         }
+
+        // SECURITY: Verify admin belongs to the resource's organization
+        // If resourceOrganizationId is provided, it must match user's org
+        if (resourceOrganizationId && user.organizationId) {
+            if (resourceOrganizationId !== user.organizationId) {
+                ErrorLogger.warn('Admin attempted cross-tenant access', 'permissions.hasPermission', {
+                    metadata: {
+                        userId: user.uid,
+                        userOrgId: user.organizationId,
+                        resourceOrgId: resourceOrganizationId,
+                        resource,
+                        action,
+                        timestamp: new Date().toISOString()
+                    }
+                });
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -253,18 +281,33 @@ export const hasFeatureAccess = (planId: PlanType, feature: keyof PlanConfig['li
 };
 
 // Helper exports that now delegate fully to hasPermission
-export const canEditResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {
-    return hasPermission(user, resource, 'update', orgOwnerId, resourceOwnerId);
+// SECURITY: Added resourceOrganizationId parameter for tenant isolation
+export const canEditResource = (
+    user: UserProfile | null,
+    resource: ResourceType,
+    resourceOwnerId?: string,
+    orgOwnerId?: string,
+    resourceOrganizationId?: string
+): boolean => {
+    return hasPermission(user, resource, 'update', orgOwnerId, resourceOwnerId, resourceOrganizationId);
 };
 
-export const canDeleteResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {
-    return hasPermission(user, resource, 'delete', orgOwnerId, resourceOwnerId);
+export const canDeleteResource = (
+    user: UserProfile | null,
+    resource: ResourceType,
+    resourceOwnerId?: string,
+    orgOwnerId?: string,
+    resourceOrganizationId?: string
+): boolean => {
+    return hasPermission(user, resource, 'delete', orgOwnerId, resourceOwnerId, resourceOrganizationId);
 };
 
-export const canUpdateResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {
-    // Helper specifically for Update to handle the "Owner" edge case cleaner than inside canEditResource if we wanted to split behavior,
-    // but for now we keep using canEditResource as the main entry point or just modify it.
-    // Actually, let's just modify the existing logic inside canEditResource above or here.
-    // Re-reading canEditResource... it calls hasPermission(..., 'update').
-    return canEditResource(user, resource, resourceOwnerId, orgOwnerId);
+export const canUpdateResource = (
+    user: UserProfile | null,
+    resource: ResourceType,
+    resourceOwnerId?: string,
+    orgOwnerId?: string,
+    resourceOrganizationId?: string
+): boolean => {
+    return canEditResource(user, resource, resourceOwnerId, orgOwnerId, resourceOrganizationId);
 };

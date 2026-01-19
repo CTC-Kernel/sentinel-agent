@@ -31,7 +31,7 @@ import {
   FileDown,
   X,
   Loader2,
-} from 'lucide-react';
+} from '../ui/Icons';
 import { Button } from '../ui/button';
 import { VaultAuditService, AuditLogEntry, DocumentAction, AuditFilters } from '@/services/vaultAuditService';
 import { getUserAvatarUrl } from '@/utils/avatarUtils';

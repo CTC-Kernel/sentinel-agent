@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useNotifications } from '../../hooks/useNotifications';
 import { NotificationItem } from './NotificationItem';
-import { Bell, CheckCheck, Filter } from 'lucide-react';
+import { Bell, CheckCheck, Filter } from '../ui/Icons';
 import { useOnClickOutside } from '../../hooks/utils/useOnClickOutside';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';

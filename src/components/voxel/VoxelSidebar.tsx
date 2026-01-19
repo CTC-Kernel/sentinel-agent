@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, XCircle, Network } from 'lucide-react';
+import { Search, XCircle, Network } from '../ui/Icons';
 import { LayerType } from '../../types';
 import { VoxelSilhouettes } from './VoxelSilhouettes';
 

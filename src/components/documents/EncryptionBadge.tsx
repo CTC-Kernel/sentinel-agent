@@ -5,9 +5,9 @@
  */
 
 import React from 'react';
-import { Lock, LockOpen, Loader2, AlertTriangle } from 'lucide-react';
+import { Lock, LockOpen, Loader2, AlertTriangle } from '../ui/Icons';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import type { DocumentEncryptionMetadata } from '@/types/vault';
 import { useLocale } from '@/hooks/useLocale';

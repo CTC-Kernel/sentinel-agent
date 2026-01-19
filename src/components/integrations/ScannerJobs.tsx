@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { integrationService } from '../../services/integrationService';
 import { ScannerJob, ScannerJobCreate } from '../../types/job';
-import { Play, Clock, Calendar, AlertCircle, CheckCircle, XCircle, Trash2, Plus, RefreshCw, Layers } from 'lucide-react';
+import { Play, Clock, Calendar, AlertCircle, CheckCircle, XCircle, Trash2, Plus, RefreshCw, Layers } from '../ui/Icons';
 import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
 import { Modal } from '../ui/Modal';

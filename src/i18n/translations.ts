@@ -41,6 +41,18 @@ export const translations = {
             clear: 'Effacer',
             all: 'Tous',
             none: 'Aucun',
+            noData: 'Aucune donnée',
+            noHistory: 'Aucun historique',
+            emptyChart: {
+                noData: 'Aucune donnée disponible',
+                addData: 'Commencez par ajouter des données pour visualiser ce graphique.'
+            },
+            emptyState: {
+                noItems: 'Aucun élément',
+                noResults: 'Aucun résultat trouvé',
+                noComments: 'Aucun commentaire',
+                addFirst: 'Créez votre premier élément pour commencer.'
+            },
             action: 'Action',
             select: 'Sélectionner',
             selected: 'Sélectionné(s)',
@@ -1543,6 +1555,14 @@ export const translations = {
         audits: {
             title: 'Audits',
             subtitle: 'Gestion des audits et vérifications de conformité',
+            tabs: {
+                details: 'Détails',
+                findings: 'Constats',
+                checklist: 'Checklist',
+                linked: 'Éléments Liés',
+                dashboard: 'Tableau de bord',
+                history: 'Historique'
+            },
             form: {
                 templates: {
                     internal: 'Vérification de conformité annuelle sur le périmètre complet',
@@ -1662,6 +1682,33 @@ export const translations = {
                 drills: 'Exercices',
                 tlpt: 'Tests de Résilience (TLPT)',
                 crisis: 'Gestion de Crise'
+            },
+            pra: {
+                emptyTitle: 'Aucun PRA défini',
+                emptyDescription: 'Créez votre premier Plan de Reprise d\'Activité pour sécuriser vos opérations.',
+                createPra: 'Créer un PRA',
+                noDescription: 'Aucune description fournie.',
+                draft: 'Brouillon'
+            },
+            processes: {
+                emptyTitle: 'Aucun processus défini',
+                emptyDescription: 'Définissez vos processus métier pour l\'analyse d\'impact.'
+            },
+            strategies: {
+                emptyTitle: 'Aucune stratégie définie',
+                emptyDescription: 'Définissez vos stratégies de reprise pour chaque processus critique.'
+            },
+            drills: {
+                emptyTitle: 'Aucun exercice enregistré',
+                emptyDescription: 'Planifiez vos exercices de continuité pour tester vos plans.'
+            },
+            tlpt: {
+                emptyTitle: 'Aucune campagne TLPT',
+                emptyDescription: 'Lancez une campagne de test de résilience opérationnelle.',
+                noFindings: 'Aucune constatation'
+            },
+            crisis: {
+                noIncident: 'Aucun incident critique en cours. Les systèmes sont nominaux.'
             }
         },
         privacy: {

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from './Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type TabIconComponent = React.ElementType<{ className?: string }>;

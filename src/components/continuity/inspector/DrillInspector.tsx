@@ -3,7 +3,7 @@ import { Controller } from 'react-hook-form';
 import { useZodForm } from '../../../hooks/useZodForm';
 import { bcpDrillSchema, BcpDrillFormData } from '../../../schemas/continuitySchema';
 import { BusinessProcess, BcpDrill } from '../../../types';
-import { Loader2, Zap, Save, Calendar } from 'lucide-react';
+import { Loader2, Zap, Save, Calendar } from '../../ui/Icons';
 import { InspectorLayout } from '../../ui/InspectorLayout';
 import { Button } from '../../ui/button';
 import { CustomSelect } from '../../ui/CustomSelect';

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk } from '../../types';
 import { motion } from 'framer-motion';
-import { Info } from 'lucide-react';
+import { Info } from '../ui/Icons';
 
 interface RiskMatrixProps {
     risks: Risk[];

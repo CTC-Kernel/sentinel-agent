@@ -6,7 +6,7 @@ import { SystemLog } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Activity, User, Shield } from 'lucide-react';
+import { Activity, User, Shield } from '../ui/Icons';
 
 interface ActivityLogListProps {
     logs: SystemLog[];

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSyncStatus } from '../../hooks/useSyncStatus';
-import { Cloud, CloudOff } from 'lucide-react';
+import { Cloud, CloudOff } from './Icons';
 import { useStore } from '../../store';
 import { Tooltip } from './Tooltip';
 

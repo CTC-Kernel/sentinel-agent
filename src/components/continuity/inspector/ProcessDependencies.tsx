@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../../../store';
-import { Server, Truck, AlertTriangle } from 'lucide-react';
+import { Server, Truck, AlertTriangle } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
 import { Asset, Supplier, Risk } from '../../../types';
 

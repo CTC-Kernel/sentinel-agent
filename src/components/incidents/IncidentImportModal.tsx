@@ -3,7 +3,7 @@ import { integrationService, SecurityEvent } from '../../services/integrationSer
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
-import { Shield, Activity, CheckCircle, Disc } from 'lucide-react';
+import { Shield, Activity, CheckCircle, Disc } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { toast } from '@/lib/toast';
 import { useStore } from '../../store';

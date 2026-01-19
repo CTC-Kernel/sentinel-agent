@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../../../store';
-import { Zap } from 'lucide-react';
+import { Zap } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
 import { BcpDrill } from '../../../types';
 

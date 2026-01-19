@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Sparkles,
   Filter,
-} from 'lucide-react';
+} from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import { ISO_DOMAINS, ISO_SEED_CONTROLS } from '../../../data/complianceData';

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Check, AlertCircle, Shield, Scale, Landmark } from 'lucide-react';
+import { Check, AlertCircle, Shield, Scale, Landmark } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { useStore } from '../../store';

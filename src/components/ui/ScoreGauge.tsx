@@ -7,7 +7,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from './Icons';
 import { cn } from '../../lib/utils';
 import { getScoreTextColor, getScoreLevel } from '../../utils/scoreUtils';
 import { SCORE_GRADIENT_COLORS } from '../../theme/chartTheme';

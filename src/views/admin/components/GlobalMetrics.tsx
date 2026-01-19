@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, Building, Activity, Zap } from 'lucide-react';
+import { Users, Building, Activity, Zap } from '../../../components/ui/Icons';
 import { collection, getCountFromServer, query, where } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { ErrorLogger } from '../../../services/errorLogger';

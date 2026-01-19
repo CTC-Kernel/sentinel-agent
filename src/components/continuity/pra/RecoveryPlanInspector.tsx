@@ -7,7 +7,7 @@ import { CustomSelect } from '../../ui/CustomSelect';
 import { Button } from '../../ui/button';
 import { UserProfile, Asset, RecoveryPlan } from '../../../types';
 import { Controller, useFieldArray, useWatch } from 'react-hook-form';
-import { Clock, Save, Loader2, FileText, Shield, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { Clock, Save, Loader2, FileText, Shield, Plus, Trash2, AlertTriangle } from '../../ui/Icons';
 
 interface RecoveryPlanInspectorProps {
     isOpen: boolean;

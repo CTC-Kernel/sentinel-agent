@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, Shield, Globe, Loader2 } from 'lucide-react';
+import { ChevronRight, Shield, Globe, Loader2 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 import { LandingMap } from './LandingMap';

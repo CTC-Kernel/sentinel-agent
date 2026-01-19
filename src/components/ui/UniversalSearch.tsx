@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Command, Clock, TrendingUp, FileText, Users, Shield, Database } from 'lucide-react';
+import { Search, Command, Clock, TrendingUp, FileText, Users, Shield, Database } from './Icons';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../../hooks/utils/useDebounce';

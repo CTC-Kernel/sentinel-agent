@@ -14,7 +14,7 @@ import {
   Layers,
   LayoutGrid,
   Camera,
-} from 'lucide-react';
+} from '../ui/Icons';
 import {
   Dialog,
   DialogContent,

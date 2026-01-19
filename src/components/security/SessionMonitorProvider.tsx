@@ -12,7 +12,7 @@
 import React, { useEffect, useState } from 'react';
 import { SessionMonitor } from '../../services/sessionMonitoringService';
 import { useStore } from '../../store';
-import { X } from 'lucide-react';
+import { X } from '../ui/Icons';
 
 interface SessionMonitorProviderProps {
   children: React.ReactNode;

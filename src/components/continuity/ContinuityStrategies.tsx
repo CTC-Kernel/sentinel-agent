@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Server, Shield } from 'lucide-react';
+import { Plus, Trash2, Server, Shield } from '../ui/Icons';
 import { Asset, Strategy } from '../../types';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';

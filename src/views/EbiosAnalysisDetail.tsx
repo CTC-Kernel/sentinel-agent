@@ -13,11 +13,14 @@ import { EbiosWizard } from '../components/ebios/EbiosWizard';
 import { Workshop1Content } from '../components/ebios/workshops/Workshop1Content';
 import { Workshop2Content } from '../components/ebios/workshops/Workshop2Content';
 import { Workshop3Content } from '../components/ebios/workshops/Workshop3Content';
-import { Workshop4Content } from '../components/ebios/workshops/Workshop4Content';
+import { Workshop4Content, CreateRiskFromEbiosData } from '../components/ebios/workshops/Workshop4Content';
 import { Workshop5Content } from '../components/ebios/workshops/Workshop5Content';
 import { EbiosService } from '../services/ebiosService';
 import { ErrorLogger } from '../services/errorLogger';
 import { toast } from '@/lib/toast';
+import { db } from '../firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { sanitizeData } from '../utils/dataSanitizer';
 import type {
   EbiosAnalysis,
   EbiosWorkshopNumber,
@@ -287,6 +290,57 @@ export const EbiosAnalysisDetail: React.FC = () => {
     }
   }, [analysis, organizationId, user?.uid, t, navigate]);
 
+  // Create risk from EBIOS operational scenario (Story 18.5)
+  const handleCreateRisk = useCallback(async (
+    scenarioId: string,
+    riskData: CreateRiskFromEbiosData
+  ): Promise<string | null> => {
+    if (!organizationId || !user?.uid) return null;
+
+    try {
+      const score = riskData.probability * riskData.impact;
+
+      const newRisk = sanitizeData({
+        organizationId,
+        threat: riskData.threat,
+        scenario: riskData.scenario,
+        vulnerability: 'Identifié via analyse EBIOS RM',
+        probability: riskData.probability,
+        impact: riskData.impact,
+        score,
+        strategy: score >= 16 ? 'Atténuer' : score >= 9 ? 'Atténuer' : 'Accepter',
+        status: 'Ouvert',
+        source: 'ebios_rm',
+        mitreTechniques: riskData.mitreTechniques,
+        ebiosReference: riskData.ebiosReference,
+        owner: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        history: [{
+          date: new Date().toISOString(),
+          user: user.displayName || user.email,
+          action: 'Création depuis EBIOS RM',
+          changes: `Créé à partir du scénario opérationnel ${riskData.ebiosReference.scenarioCode || scenarioId}`,
+          previousScore: 0,
+          newScore: score,
+          changedBy: user.uid
+        }]
+      });
+
+      const docRef = await addDoc(collection(db, 'risks'), newRisk);
+      toast.success(t('ebios.riskCreatedFromScenario') || 'Risque créé depuis le scénario EBIOS');
+      return docRef.id;
+    } catch (error) {
+      ErrorLogger.error(error, 'EbiosAnalysisDetail.handleCreateRisk', {
+        component: 'EbiosAnalysisDetail',
+        action: 'createRiskFromEbios',
+        metadata: { scenarioId }
+      });
+      toast.error(t('ebios.errors.riskCreationFailed') || 'Erreur lors de la création du risque');
+      return null;
+    }
+  }, [organizationId, user, t]);
+
   // Render workshop content based on current workshop
   const renderWorkshopContent = useMemo(() => {
     if (!analysis) return null;
@@ -321,6 +375,9 @@ export const EbiosAnalysisDetail: React.FC = () => {
             data={analysis.workshops[4].data}
             workshop3Data={analysis.workshops[3].data}
             onDataChange={handleWorkshop4DataChange}
+            analysisId={analysis.id}
+            analysisName={analysis.name}
+            onCreateRisk={handleCreateRisk}
           />
         );
       case 5:
@@ -342,6 +399,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
     handleWorkshop3DataChange,
     handleWorkshop4DataChange,
     handleWorkshop5DataChange,
+    handleCreateRisk,
   ]);
 
   if (loading) {

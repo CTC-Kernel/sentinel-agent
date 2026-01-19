@@ -7,7 +7,7 @@
 import React, { useMemo } from 'react';
 import { Control, Framework } from '../../types';
 import { FRAMEWORKS } from '../../data/frameworks';
-import { Check, TrendingUp, Layers, Clock, Target, ChevronRight } from 'lucide-react';
+import { Check, TrendingUp, Layers, Clock, Target, ChevronRight } from '../ui/Icons';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../lib/utils';
 import { ErrorLogger } from '../../services/errorLogger';

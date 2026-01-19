@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Loader2, ShieldAlert } from 'lucide-react';
+import { Check, Loader2, ShieldAlert } from '../ui/Icons';
 import { AIActionType, AIActionExecutor, ActionRegistry } from '../../services/ai/actionRegistry';
 import { useAuth } from '../../hooks/useAuth';
 import { ErrorLogger } from '../../services/errorLogger';

@@ -1,7 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TrendSparkline } from '../TrendSparkline';
 import type { ScoreHistory } from '../../../types/score.types';
+
+// Mock useStore
+vi.mock('../../../store', () => ({
+  useStore: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'common.noHistory': 'Aucun historique'
+      };
+      return translations[key] || key;
+    }
+  })
+}));
 
 describe('TrendSparkline', () => {
   const mockHistory: ScoreHistory[] = [

@@ -8,7 +8,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from '@/lib/toast';
 import { Drawer } from '../ui/Drawer';
 import { Button } from '../ui/button';
-import { Mail, Link, ShieldCheck, Loader2, Copy, Building } from 'lucide-react';
+import { Mail, Link, ShieldCheck, Loader2, Copy, Building } from '../ui/Icons';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 

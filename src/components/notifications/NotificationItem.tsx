@@ -1,7 +1,7 @@
 import React from 'react';
 import { Notification } from '../../types/notification';
 import { cn } from '../../utils/cn';
-import { Bell, AlertTriangle, CheckCircle, Info, XCircle, Clock } from 'lucide-react';
+import { Bell, AlertTriangle, CheckCircle, Info, XCircle, Clock } from '../ui/Icons';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Link } from 'react-router-dom';

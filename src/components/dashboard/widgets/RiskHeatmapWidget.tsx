@@ -3,7 +3,7 @@ import { useFirestoreCollection } from '../../../hooks/useFirestore';
 import { Risk } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from '../../ui/Icons';
 
 interface RiskHeatmapWidgetProps {
     navigate?: (path: string) => void;

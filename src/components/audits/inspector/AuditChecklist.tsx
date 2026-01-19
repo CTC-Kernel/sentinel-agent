@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClipboardCheck, BrainCircuit } from 'lucide-react';
+import { ClipboardCheck, BrainCircuit } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { useStore } from '../../../store';
 import { AuditChecklist as AuditChecklistType } from '../../../types';

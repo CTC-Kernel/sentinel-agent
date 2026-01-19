@@ -19,7 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RotateCcw,
-} from 'lucide-react';
+} from '../ui/Icons';
 import { format, subDays, addDays, isAfter, isBefore, isEqual } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';

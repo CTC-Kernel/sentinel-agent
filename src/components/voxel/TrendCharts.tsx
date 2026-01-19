@@ -28,7 +28,7 @@ import {
   Layers,
   ShieldAlert,
   CheckCircle2,
-} from 'lucide-react';
+} from '../ui/Icons';
 import { format, parseISO, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

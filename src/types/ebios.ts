@@ -544,6 +544,9 @@ export interface DomainMaturityScore {
   maturityLevel: 1 | 2 | 3 | 4 | 5;
 }
 
+// Alias for compatibility
+export type DomainScore = DomainMaturityScore;
+
 // ============================================================================
 // Default Workshop Data Factories
 // ============================================================================

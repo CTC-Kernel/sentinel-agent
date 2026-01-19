@@ -54,10 +54,22 @@ export function calculateRiskScore(impact: number, probability: number): number 
 }
 
 /**
+ * Status values that should be excluded from mitigation calculation
+ * These controls are not meant to contribute to risk mitigation
+ */
+const EXCLUDED_STATUSES = ['Non applicable', 'Exclu', 'Inactif', 'Non appliqué'];
+
+/**
  * Calculate mitigation coverage percentage based on control implementation status
+ * Only counts controls that are meant to be applicable (excludes inactive/non-applicable)
  */
 export function calculateMitigationCoverage(linkedControls: Control[]): number {
-    if (linkedControls.length === 0) return 0;
+    // Filter out controls that shouldn't be counted in coverage calculation
+    const applicableControls = linkedControls.filter(
+        ctrl => !EXCLUDED_STATUSES.includes(ctrl.status)
+    );
+
+    if (applicableControls.length === 0) return 0;
 
     const statusWeightMap: Record<string, number> = {
         'Implémenté': 1.0,
@@ -66,15 +78,12 @@ export function calculateMitigationCoverage(linkedControls: Control[]): number {
         'En cours': 0.3,
         'En revue': 0.2,
         'Non commencé': 0.1,
-        'Non applicable': 0,
-        'Exclu': 0,
-        'Inactif': 0,
-        'Non appliqué': 0
+        'Non conforme': 0
     };
 
-    const effectiveScore = linkedControls.reduce((sum, ctrl) => {
+    const effectiveScore = applicableControls.reduce((sum, ctrl) => {
         return sum + (statusWeightMap[ctrl.status] ?? 0);
     }, 0);
 
-    return Math.min(Math.round((effectiveScore / linkedControls.length) * 100), 100);
+    return Math.min(Math.round((effectiveScore / applicableControls.length) * 100), 100);
 }

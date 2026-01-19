@@ -12,14 +12,22 @@ import { Milestone } from '../../types/ebios';
 import { Badge } from '../ui/Badge';
 import { PHASE_CONFIG, MILESTONE_STATUS_CONFIG, PHASE_STYLES, MILESTONE_STATUS_STYLES } from './constants';
 import { GlassCard } from '../ui/GlassCard';
-import { Calendar, Users, Pencil } from 'lucide-react';
+import { Calendar, Users, Pencil, Trash2, Link, FileText, AlertTriangle } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { cn } from '../../utils/cn';
+import { ConfirmModal } from '../ui/ConfirmModal';
+import { useState } from 'react';
 
 interface TeamMember {
     id: string;
     displayName: string;
     email: string;
+}
+
+interface LinkedItem {
+    id: string;
+    title: string;
+    type: 'document' | 'control' | 'risk';
 }
 
 interface SMSIInspectorProps {
@@ -28,7 +36,9 @@ interface SMSIInspectorProps {
     milestone: Milestone | null;
     onStatusChange?: (id: string, status: Milestone['status']) => void;
     onEdit?: (milestone: Milestone) => void;
+    onDelete?: (id: string) => Promise<void>;
     teamMembers?: TeamMember[];
+    linkedItems?: LinkedItem[];
 }
 
 export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
@@ -37,14 +47,33 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
     milestone,
     onStatusChange,
     onEdit,
-    teamMembers = []
+    onDelete,
+    teamMembers = [],
+    linkedItems = []
 }) => {
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     // Get responsible person's display name - Story 20.4
     const responsibleName = useMemo(() => {
         if (!milestone?.responsibleId) return 'Non assigné';
         const member = teamMembers.find(m => m.id === milestone.responsibleId);
         return member?.displayName || member?.email || milestone.responsibleId;
     }, [milestone, teamMembers]);
+
+    const handleDelete = async () => {
+        if (!milestone || !onDelete) return;
+        setIsDeleting(true);
+        try {
+            await onDelete(milestone.id);
+            setShowDeleteConfirm(false);
+            onClose();
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const isOverdue = milestone && milestone.status !== 'completed' && new Date(milestone.dueDate) < new Date();
 
     if (!milestone) return null;
 
@@ -115,21 +144,67 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                     </div>
                 </GlassCard>
 
-                {(onStatusChange || onEdit) && (
+                {/* Overdue Warning */}
+                {isOverdue && (
+                    <GlassCard className="p-4 border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-900/10">
+                        <div className="flex items-center gap-3">
+                            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                            <div>
+                                <p className="font-medium text-red-700 dark:text-red-400">Jalon en retard</p>
+                                <p className="text-sm text-red-600/80 dark:text-red-400/80">
+                                    Échéance dépassée depuis le {new Date(milestone.dueDate).toLocaleDateString('fr-FR')}
+                                </p>
+                            </div>
+                        </div>
+                    </GlassCard>
+                )}
+
+                {/* Linked Items */}
+                {linkedItems.length > 0 && (
+                    <GlassCard className="p-6">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <Link className="w-5 h-5" />
+                            Éléments liés
+                        </h3>
+                        <div className="space-y-2">
+                            {linkedItems.map(item => (
+                                <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                                    <FileText className="w-4 h-4 text-gray-400" />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">{item.title}</span>
+                                    <Badge variant="outline" size="sm" className="ml-auto capitalize">{item.type}</Badge>
+                                </div>
+                            ))}
+                        </div>
+                    </GlassCard>
+                )}
+
+                {(onStatusChange || onEdit || onDelete) && (
                     <GlassCard className="p-6">
                         <h3 className="text-lg font-semibold mb-4">Actions</h3>
                         <div className="space-y-4">
-                            {onEdit && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => onEdit(milestone)}
-                                    className="w-full justify-start"
-                                >
-                                    <Pencil className="w-4 h-4 mr-2" />
-                                    Modifier le jalon
-                                </Button>
-                            )}
+                            <div className="flex gap-2">
+                                {onEdit && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => onEdit(milestone)}
+                                        className="flex-1 justify-center"
+                                    >
+                                        <Pencil className="w-4 h-4 mr-2" />
+                                        Modifier
+                                    </Button>
+                                )}
+                                {onDelete && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowDeleteConfirm(true)}
+                                        className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                )}
+                            </div>
 
                             {onStatusChange && (
                                 <div>
@@ -163,6 +238,19 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                     </GlassCard>
                 )}
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleDelete}
+                title="Supprimer le jalon"
+                message={`Êtes-vous sûr de vouloir supprimer le jalon "${milestone.name}" ? Cette action est irréversible.`}
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                type="danger"
+                loading={isDeleting}
+            />
         </InspectorLayout>
     );
 };

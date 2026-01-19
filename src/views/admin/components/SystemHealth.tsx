@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { CheckCircle, AlertTriangle, XCircle, Server, Database, Cloud, Activity, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, Server, Database, Cloud, Activity, RefreshCw } from '../../../components/ui/Icons';
 import { ConnectivityService, ServiceHealth } from '../../../services/connectivityService';
 import { ErrorLogger } from '../../../services/errorLogger';
 

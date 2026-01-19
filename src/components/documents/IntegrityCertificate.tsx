@@ -26,7 +26,7 @@ import {
   ChevronDown,
   ChevronUp,
   History,
-} from 'lucide-react';
+} from '../ui/Icons';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { jsPDF } from 'jspdf';

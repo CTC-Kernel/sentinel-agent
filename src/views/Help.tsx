@@ -26,7 +26,7 @@ import {
     Users,
     Link,
     Play
-} from 'lucide-react';
+} from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { ContactModal } from '../components/ui/ContactModal';
 import { FeedbackModal } from '../components/ui/FeedbackModal';

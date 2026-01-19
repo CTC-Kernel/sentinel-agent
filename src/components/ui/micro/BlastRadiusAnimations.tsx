@@ -13,7 +13,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Shield, AlertTriangle, TrendingDown, TrendingUp, Zap, Check } from 'lucide-react';
+import { Shield, AlertTriangle, TrendingDown, TrendingUp, Zap, Check } from './Icons';
 import { cn } from '@/lib/utils';
 import {
   appleEasing,

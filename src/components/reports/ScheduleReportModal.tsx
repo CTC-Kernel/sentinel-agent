@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { X, Calendar, Mail, Clock, FileText, Plus, Trash2 } from 'lucide-react';
+import { X, Calendar, Mail, Clock, FileText, Plus, Trash2 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 import {

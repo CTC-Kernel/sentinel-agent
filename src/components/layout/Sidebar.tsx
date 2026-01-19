@@ -7,7 +7,7 @@ import {
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
   Scale, Shield, Printer, LucideIcon, RefreshCcw, Target, BarChart3
-} from 'lucide-react';
+} from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
 import { hasPermission } from '../../utils/permissions';
@@ -141,9 +141,9 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
 
       <aside className={`
         fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-modal w-[82vw] max-w-[320px] lg:w-[260px]
-        bg-white/80 dark:bg-slate-950/80
-        backdrop-blur-3xl border-r border-slate-200 dark:border-white/5
-        shadow-[0_20px_60px_rgba(15,23,42,0.15)] lg:shadow-none
+        bg-[var(--glass-bg)] dark:bg-[var(--glass-bg)]
+        backdrop-blur-xl border-r border-[var(--glass-border)]
+        shadow-[var(--glass-shadow)] lg:shadow-none
         transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         flex flex-col pb-8 pt-4 pt-safe pb-safe lg:pb-6 min-h-0 lg:h-screen

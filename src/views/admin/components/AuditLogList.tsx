@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AdminService, AuditLog } from '../../../services/adminService';
-import { Search, User, Clock, Info, Download } from 'lucide-react';
+import { Search, User, Clock, Info, Download } from '../../../components/ui/Icons';
 import { ErrorLogger } from '../../../services/errorLogger';
 
 export const AuditLogList: React.FC = () => {

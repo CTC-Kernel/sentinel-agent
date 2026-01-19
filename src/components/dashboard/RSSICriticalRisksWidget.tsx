@@ -12,7 +12,7 @@ import {
   CRITICALITY_COLOR_CLASSES,
   type RiskListItem,
 } from '../../hooks/useCriticalRisksList';
-import { ChevronRight, AlertTriangle, RefreshCw } from 'lucide-react';
+import { ChevronRight, AlertTriangle, RefreshCw } from '../ui/Icons';
 
 /**
  * Props for RSSICriticalRisksWidget

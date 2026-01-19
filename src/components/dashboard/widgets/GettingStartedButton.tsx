@@ -1,5 +1,5 @@
 import React from 'react';
-import { Rocket } from 'lucide-react';
+import { Rocket } from '../../ui/Icons';
 import { useStore } from '../../../store';
 
 interface GettingStartedButtonProps {

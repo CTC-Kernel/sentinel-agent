@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Search, MoreVertical, LayoutGrid, List, LayoutDashboard, RefreshCcw } from 'lucide-react';
+import { Search, MoreVertical, LayoutGrid, List, LayoutDashboard, RefreshCcw } from './Icons';
 
 interface PremiumPageControlProps {
     searchQuery: string;

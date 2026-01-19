@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Clock, Users, CheckCircle } from 'lucide-react';
+import { Play, Clock, Users, CheckCircle } from '../ui/Icons';
 import { Button } from '../ui/button';
 
 interface TutorialStepProps {

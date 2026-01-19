@@ -30,7 +30,7 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { ImportService } from '../services/ImportService';
-import { Upload } from 'lucide-react';
+import { Upload } from '../components/ui/Icons';
 
 const Team: React.FC = () => {
     const { t } = useTranslation();

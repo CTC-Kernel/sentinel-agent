@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TlptCampaign } from '../../../types/tlpt';
 import { Button } from '../../ui/button';
-import { Plus, Shield, Calendar, Users, Target } from 'lucide-react';
+import { Plus, Shield, Calendar, Users, Target } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { TLPTInspector } from './TLPTInspector';
 

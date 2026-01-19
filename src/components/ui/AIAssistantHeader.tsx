@@ -1,4 +1,4 @@
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2 } from './Icons';
 import { Button } from './button';
 
 export interface BaseTemplate {

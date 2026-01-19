@@ -55,7 +55,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
     const [highlightedComment, setHighlightedComment] = useState<string | null>(null);
 
-    const { user } = useStore();
+    const { user, t } = useStore();
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     // Enhanced comment query with filters - handled inline in useFirestoreCollection call
@@ -492,7 +492,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                     <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
                         <MessageSquare className="h-12 w-12 mb-3" />
                         <p className="text-sm font-medium">
-                            {searchQuery ? 'Aucun résultat trouvé' : 'Aucun commentaire'}
+                            {searchQuery ? t('common.emptyState.noResults') : t('common.emptyState.noComments')}
                         </p>
                         {searchQuery && (
                             <button

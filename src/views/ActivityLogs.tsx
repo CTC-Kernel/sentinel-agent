@@ -5,7 +5,7 @@ import { useStore } from '../store';
 import { ActivityLogList } from '../components/activity/ActivityLogList';
 import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { Activity, RefreshCw, Download, Shield, AlertTriangle } from 'lucide-react';
+import { Activity, RefreshCw, Download, Shield, AlertTriangle } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../components/ui/animationVariants';

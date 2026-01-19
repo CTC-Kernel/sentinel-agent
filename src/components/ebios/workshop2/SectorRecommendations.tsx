@@ -7,7 +7,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Building2, Lightbulb, Check, X, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Building2, Lightbulb, Check, X, ChevronDown, ChevronUp, Sparkles } from '../../ui/Icons';
 import { GlassCard } from '../../ui/GlassCard';
 import {
   SECTOR_PROFILES,

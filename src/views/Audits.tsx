@@ -16,7 +16,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
-import { Calendar as CalendarIcon, List, LayoutDashboard, ClipboardCheck } from 'lucide-react';
+import { Calendar as CalendarIcon, List, LayoutDashboard, ClipboardCheck } from '../components/ui/Icons';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
 import { AuditCalendar } from '../components/audits/AuditCalendar';

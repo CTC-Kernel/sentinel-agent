@@ -1,7 +1,7 @@
 import React from 'react';
 import { Audit, Finding } from '../../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { FINDING_COLORS } from '../../theme/chartTheme';

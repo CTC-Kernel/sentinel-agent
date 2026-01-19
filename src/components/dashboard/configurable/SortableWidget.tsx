@@ -2,7 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { WidgetLayout } from '../../../hooks/useDashboardPreferences';
-import { GripVertical, X } from 'lucide-react';
+import { GripVertical, X } from '../../ui/Icons';
 import { Tooltip } from '../../ui/Tooltip';
 
 interface SortableWidgetProps {

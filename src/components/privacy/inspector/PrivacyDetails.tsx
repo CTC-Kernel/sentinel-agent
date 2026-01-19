@@ -4,7 +4,7 @@ import { ProcessingActivity, UserProfile } from '../../../types';
 import { ProcessingActivityFormData } from '../../../schemas/privacySchema';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
-import { User, Calendar, Tag } from 'lucide-react';
+import { User, Calendar, Tag } from '../../ui/Icons';
 
 interface PrivacyDetailsProps {
     activity: ProcessingActivity;

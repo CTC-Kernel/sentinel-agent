@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from 'react-i18next';
-import { Pencil, Check, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Pencil, Check, RotateCcw, AlertTriangle } from '../ui/Icons';
 
 export interface DashboardEditModeToggleProps {
   /** Current edit mode state */

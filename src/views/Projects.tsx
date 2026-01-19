@@ -34,7 +34,7 @@ import { slideUpVariants, staggerContainerVariants } from '../components/ui/anim
 import { Menu, Transition } from '@headlessui/react';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { LayoutDashboard, List, CalendarDays, FolderKanban } from 'lucide-react';
+import { LayoutDashboard, List, CalendarDays, FolderKanban } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 // Form validation: useForm with required fields
 

@@ -5,7 +5,7 @@ import { useZodForm } from '../../hooks/useZodForm';
 import { businessProcessSchema, BusinessProcessFormData } from '../../schemas/continuitySchema';
 import { Drawer } from '../ui/Drawer';
 import { aiService } from '../../services/aiService';
-import { Sparkles, Plus, Trash2, Server, Truck } from 'lucide-react';
+import { Sparkles, Plus, Trash2, Server, Truck } from '../ui/Icons';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Asset, Supplier, Risk, UserProfile } from '../../types';

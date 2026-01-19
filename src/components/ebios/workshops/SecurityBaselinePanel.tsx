@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, AlertCircle, MinusCircle, Search, Filter } from 'lucide-react';
+import { CheckCircle, AlertCircle, MinusCircle, Search, Filter } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { ProgressRing } from '../../ui/ProgressRing';
 import type { SecurityBaseline, SecurityBaselineMeasure } from '../../../types/ebios';

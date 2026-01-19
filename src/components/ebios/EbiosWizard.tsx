@@ -12,10 +12,11 @@
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, X } from '../ui/Icons';
 import { cn } from '../../utils/cn';
 import { GlassCard } from '../ui/GlassCard';
 import { ProgressRing } from '../ui/ProgressRing';
+import { MasterpieceBackground } from '../ui/MasterpieceBackground';
 import { EbiosWorkshopStepper } from './EbiosWorkshopStepper';
 import { GenerateReportButtonCompact } from './workshops/GenerateReportButton';
 import { WORKSHOP_INFO } from '../../data/ebiosLibrary';
@@ -95,24 +96,25 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
   }, [hasUnsavedChanges, navigate, onSave]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+    <div className="min-h-screen relative">
+      <MasterpieceBackground />
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-gray-200/50 dark:border-gray-700/50">
+      <header className="sticky top-0 z-50 glass-premium border-b border-white/10 shadow-sm backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Back Button & Title */}
             <div className="flex items-center gap-4">
               <button
                 onClick={handleExit}
-                className="p-2 -ml-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-slate-500" />
               </button>
               <div>
-                <h1 className="font-semibold text-gray-900 dark:text-white truncate max-w-[200px] sm:max-w-none">
+                <h1 className="font-semibold text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-none">
                   {analysis.name}
                 </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   EBIOS RM
                 </p>
               </div>
@@ -132,7 +134,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
             <div className="flex items-center gap-3">
               {/* Save Indicator */}
               {isSaving && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-slate-500">
                   <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                   <span className="hidden sm:inline">{t('common.saving')}</span>
                 </div>
@@ -152,7 +154,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                 showLabel={false}
                 className="hidden sm:block"
               />
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400 sm:hidden">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400 sm:hidden">
                 {analysis.completionPercentage}%
               </span>
             </div>
@@ -171,30 +173,30 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                   {currentWorkshop}
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                     {workshopInfo.name[locale]}
                   </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     {t('ebios.workshop')} {currentWorkshop} / 5
                   </p>
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 max-w-lg">
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
               {workshopInfo.description[locale]}
             </p>
           </div>
 
           {/* Workshop Objectives */}
-          <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+          <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
               {t('ebios.objectives')}
             </p>
             <div className="flex flex-wrap gap-2">
               {workshopInfo.objectives[locale].map((objective, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                 >
                   {objective}
                 </span>
@@ -204,7 +206,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
 
           {/* Workshop Report Generation - Story 15.6 */}
           {currentWorkshop === 1 && (
-            <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+            <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
               <GenerateReportButtonCompact
                 analysis={analysis}
                 workshopNumber={1}
@@ -231,7 +233,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
         </div>
 
         {/* Navigation Footer */}
-        <div className="mt-8 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+        <div className="mt-8 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center justify-between">
             <button
               onClick={handlePrevious}
@@ -239,8 +241,8 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
               className={cn(
                 "flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-200",
                 canGoBack
-                  ? "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  : "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                  ? "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  : "text-slate-400 dark:text-slate-600 cursor-not-allowed"
               )}
             >
               <ArrowLeft className="w-4 h-4" />
@@ -256,8 +258,8 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                   className={cn(
                     "px-5 py-2.5 rounded-xl font-medium transition-all duration-200",
                     hasUnsavedChanges && !isSaving
-                      ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                      : "bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                      : "bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                   )}
                 >
                   {t('common.save')}
@@ -284,7 +286,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     "flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all duration-200",
                     canGoForward
                       ? "bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/25"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                   )}
                 >
                   <span className="hidden sm:inline">{t('ebios.nextWorkshop')}</span>
@@ -301,10 +303,10 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
       {showExitConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <GlassCard className="max-w-md w-full">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
               {t('ebios.unsavedChangesTitle')}
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
               {t('ebios.unsavedChangesMessage')}
             </p>
             <div className="flex justify-end gap-3">

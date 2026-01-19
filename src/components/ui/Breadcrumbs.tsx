@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, Home } from './Icons';
 
 const routeNameMap: Record<string, string> = {
     'assets': 'Actifs',

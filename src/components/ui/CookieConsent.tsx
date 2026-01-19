@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cookie, X } from 'lucide-react';
+import { Cookie, X } from './Icons';
 import { LegalModal } from './LegalModal';
 import { useStore } from '../../store';
 import { hybridService } from '../../services/hybridService';

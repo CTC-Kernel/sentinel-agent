@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { IntegrationCard } from '../components/integrations/IntegrationCard';
 import { Modal } from '../components/ui/Modal';
-import { Search, ShieldCheck, Cloud, Code, LayoutGrid, Key } from 'lucide-react';
+import { Search, ShieldCheck, Cloud, Code, LayoutGrid, Key } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { toast } from '@/lib/toast';
 

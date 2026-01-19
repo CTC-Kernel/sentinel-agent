@@ -27,7 +27,7 @@ import {
   RefreshCw,
   Settings,
   MoreVertical,
-} from 'lucide-react';
+} from '../ui/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import type {
   VoxelAnomaly,

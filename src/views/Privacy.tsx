@@ -15,7 +15,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Drawer } from '../components/ui/Drawer';
 import { Badge } from '../components/ui/Badge';
 
-import { Target } from 'lucide-react';
+import { Target } from '../components/ui/Icons';
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';

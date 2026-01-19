@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
-import { GripVertical, Settings, X } from 'lucide-react';
+import { GripVertical, Settings, X } from './Icons';
 import { cn } from '../../lib/utils';
 
 interface Widget {

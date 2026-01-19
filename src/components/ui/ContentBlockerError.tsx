@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, RefreshCw, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, RefreshCw, AlertTriangle } from './Icons';
 import { useAuth } from '../../hooks/useAuth';
 
 export const ContentBlockerError: React.FC = () => {

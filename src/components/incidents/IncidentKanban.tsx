@@ -5,7 +5,7 @@ import { Badge } from '../ui/Badge';
 import { Edit, Trash2 } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { EmptyState } from '../ui/EmptyState';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from '../ui/Icons';
 
 // Columns definition
 const COLUMNS = [

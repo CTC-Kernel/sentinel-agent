@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../../../store';
-import { Clock, Activity } from 'lucide-react';
+import { Clock, Activity } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
 import { BusinessProcess } from '../../../types';
 

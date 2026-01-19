@@ -5,7 +5,7 @@ import { Drawer } from '../ui/Drawer';
 import { CustomSelect } from '../ui/CustomSelect';
 import { useSupplierDependencies } from '../../hooks/suppliers/useSupplierDependencies';
 import { Supplier } from '../../types';
-import { AlertCircle, FileText, Play } from 'lucide-react';
+import { AlertCircle, FileText, Play } from '../ui/Icons';
 import { toast } from '@/lib/toast';
 import { SupplierService } from '../../services/SupplierService';
 import { ErrorLogger } from '../../services/errorLogger';

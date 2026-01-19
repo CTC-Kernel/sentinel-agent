@@ -12,7 +12,7 @@ import {
   PROGRESS_COLOR_CLASSES,
   type CategoryProgress,
 } from '../../hooks/useProjectProgress';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, RefreshCw, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, RefreshCw, Target } from '../ui/Icons';
 import type { TrendType } from '../../types/score.types';
 
 /**

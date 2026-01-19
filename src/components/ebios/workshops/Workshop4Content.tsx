@@ -24,7 +24,7 @@ import {
   FileCheck,
   Loader2,
   ExternalLink,
-} from 'lucide-react';
+} from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import type {

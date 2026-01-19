@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, RotateCw, Minimize2, CheckCheck, MonitorPlay } from 'lucide-react';
+import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, RotateCw, Minimize2, CheckCheck, MonitorPlay } from '../components/ui/Icons';
 
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';

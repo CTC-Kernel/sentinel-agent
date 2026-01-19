@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, MessageSquare, Bug, Lightbulb, Star, Send } from 'lucide-react';
+import { X, MessageSquare, Bug, Lightbulb, Star, Send } from './Icons';
 import { Button } from './button';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';

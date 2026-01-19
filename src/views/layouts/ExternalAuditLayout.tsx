@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { Loader2, ShieldCheck } from '../../components/ui/Icons';
 
 export const ExternalAuditLayout: React.FC = () => {
     return (

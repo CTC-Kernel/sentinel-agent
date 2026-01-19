@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { OrganizationService } from '../../services/organizationService';
 import { Button } from '../ui/button';
-import { Shield, Lock, Save, Globe, AlertTriangle } from 'lucide-react';
+import { Shield, Lock, Save, Globe, AlertTriangle } from '../ui/Icons';
 import { SsoProvider, SsoSettings } from '../../types/sso';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 

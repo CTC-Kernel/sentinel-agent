@@ -32,7 +32,7 @@ import {
 import { cn } from '@/lib/utils';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '@/firebase';
-import { Calendar, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Activity, ChevronLeft, ChevronRight } from '../ui/Icons';
 
 // ============================================================================
 // Types

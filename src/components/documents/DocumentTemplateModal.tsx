@@ -7,7 +7,7 @@
 import React, { useState, useMemo } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { DOCUMENT_TEMPLATES, getTemplatesByCategory, DocumentTemplate } from '../../data/documentTemplates';
-import { X, FileText, Shield, Lock, AlertTriangle, Database, FileCheck, UserCheck, ChevronRight, Search } from 'lucide-react';
+import { X, FileText, Shield, Lock, AlertTriangle, Database, FileCheck, UserCheck, ChevronRight, Search } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../lib/utils';

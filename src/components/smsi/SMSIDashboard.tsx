@@ -8,7 +8,7 @@ import {
     ChevronRight,
     AlertTriangle,
     Users
-} from 'lucide-react';
+} from '../ui/Icons';
 
 import { PHASE_CONFIG, PHASE_STYLES } from './constants';
 
@@ -48,8 +48,8 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
             {/* Progress Overview */}
             <GlassCard className="p-6">
                 <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cycle PDCA</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Pilotage du cycle de vie SMSI</p>
+                    <h3 className="text-lg font-semibold text-foreground">Cycle PDCA</h3>
+                    <p className="text-sm text-muted-foreground">Pilotage du cycle de vie SMSI</p>
                 </div>
 
                 {/* PDCA Progress Ring */}
@@ -58,7 +58,8 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                         const config = PHASE_CONFIG[phase];
                         const styles = PHASE_STYLES[phase];
                         const phaseData = program.phases[phase];
-                        const Icon = config.icon;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const Icon = config.icon as any;
                         const isCurrentPhase = program.currentPhase === phase;
                         const phaseMilestones = getMilestonesByPhase(phase);
 
@@ -94,7 +95,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                         "text-sm font-bold",
                                         isCurrentPhase
                                             ? styles.textActive
-                                            : "text-gray-600 dark:text-gray-400"
+                                            : "text-muted-foreground"
                                     )}>
                                         {config.label}
                                     </span>
@@ -149,7 +150,8 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
     const config = PHASE_CONFIG[phase];
     const styles = PHASE_STYLES[phase];
     const phaseData = program.phases[phase];
-    const Icon = config.icon;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Icon = config.icon as any;
 
     const completedMilestones = milestones.filter(m => m.status === 'completed').length;
 
@@ -180,23 +182,23 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
                     <p className="text-gray-600 dark:text-gray-400 mb-4">{config.description}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+                        <div className="glass-panel p-4 rounded-xl">
                             <div className="text-2xl font-bold text-gray-900 dark:text-white">{phaseData.progress}%</div>
-                            <div className="text-sm text-gray-500">Progression</div>
+                            <div className="text-sm text-muted-foreground">Progression</div>
                         </div>
-                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+                        <div className="glass-panel p-4 rounded-xl">
                             <div className="text-2xl font-bold text-gray-900 dark:text-white">{completedMilestones}/{milestones.length}</div>
-                            <div className="text-sm text-gray-500">Jalons</div>
+                            <div className="text-sm text-muted-foreground">Jalons</div>
                         </div>
-                        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+                        <div className="glass-panel p-4 rounded-xl">
                             <div className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                                 {phaseData.responsibleId ? (
-                                    <Users className="w-5 h-5 text-blue-500" />
+                                    <Users className="w-5 h-5 text-brand-500" />
                                 ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-muted-foreground">-</span>
                                 )}
                             </div>
-                            <div className="text-sm text-gray-500">Responsable</div>
+                            <div className="text-sm text-muted-foreground">Responsable</div>
                         </div>
                     </div>
                 </div>

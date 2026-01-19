@@ -12,7 +12,7 @@ import { AddToCalendar } from '../ui/AddToCalendar';
 import { Drawer } from '../ui/Drawer';
 import { CreateEventDrawer } from './CreateEventDrawer';
 import { generateICS, downloadICS } from '../../utils/calendarUtils';
-import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck, Filter, MapPin, Download } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck, Filter, MapPin, Download } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from '@/lib/toast';
 

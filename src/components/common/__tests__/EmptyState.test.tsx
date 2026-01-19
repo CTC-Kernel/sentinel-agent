@@ -7,7 +7,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { EmptyState } from '../EmptyState';
-import { Search } from 'lucide-react';
+import { Search } from '../../ui/Icons';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({

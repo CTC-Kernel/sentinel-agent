@@ -3,7 +3,7 @@ import {
     ShieldAlert, CheckCircle2, LayoutDashboard, FolderKanban,
     History, MessageSquare, Network, Copy, Edit, Trash2,
     Server
-} from 'lucide-react';
+} from '../ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';

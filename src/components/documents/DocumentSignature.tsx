@@ -1,6 +1,6 @@
 import React from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from '../ui/Icons';
 import { Modal } from '../ui/Modal';
 
 interface DocumentSignatureProps {

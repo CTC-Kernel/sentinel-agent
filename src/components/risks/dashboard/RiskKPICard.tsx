@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from '../../ui/Icons';
 
 interface RiskKPICardProps {
     title: string;

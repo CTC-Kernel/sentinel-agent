@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../../firebase';
-import { Loader2, Trash2, ExternalLink, ShieldAlert, Clock } from 'lucide-react';
+import { Loader2, Trash2, ExternalLink, ShieldAlert, Clock } from '../ui/Icons';
 import { toast } from '@/lib/toast';
 import { ErrorLogger } from '../../services/errorLogger';
 import { formatDistanceToNow } from 'date-fns';

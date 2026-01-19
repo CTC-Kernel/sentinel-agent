@@ -767,22 +767,96 @@ export class EbiosService {
   static async updateSMSIProgramPhase(
     organizationId: string,
     phase: PDCAPhase,
-    phaseData: Partial<PDCAPhaseData>
+    phaseData?: Partial<PDCAPhaseData>
   ): Promise<void> {
     try {
       const programRef = doc(db, 'organizations', organizationId, 'smsiProgram', 'current');
 
-      await updateDoc(programRef, {
-        [`phases.${phase}`]: phaseData,
+      const updates: Record<string, unknown> = {
         currentPhase: phase,
         updatedAt: new Date().toISOString(),
-      });
+      };
+
+      if (phaseData) {
+        updates[`phases.${phase}`] = phaseData;
+      }
+
+      await updateDoc(programRef, updates);
     } catch (error) {
       ErrorLogger.error(error, 'EbiosService.updateSMSIProgramPhase', {
         component: 'EbiosService',
         action: 'updateSMSIProgramPhase',
         organizationId,
         metadata: { phase },
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Update SMSI Program details
+   */
+  static async updateSMSIProgram(
+    organizationId: string,
+    data: Partial<Pick<SMSIProgram, 'name' | 'description' | 'targetCertificationDate' | 'status'>>
+  ): Promise<SMSIProgram> {
+    try {
+      const programRef = doc(db, 'organizations', organizationId, 'smsiProgram', 'current');
+
+      await updateDoc(programRef, {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      });
+
+      const updatedSnap = await getDoc(programRef);
+      return updatedSnap.data() as SMSIProgram;
+    } catch (error) {
+      ErrorLogger.error(error, 'EbiosService.updateSMSIProgram', {
+        component: 'EbiosService',
+        action: 'updateSMSIProgram',
+        organizationId,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Delete SMSI Program and all associated milestones
+   */
+  static async deleteSMSIProgram(organizationId: string): Promise<void> {
+    try {
+      // Delete all milestones first (using correct path under smsiProgram/current/milestones)
+      const milestonesRef = collection(db, 'organizations', organizationId, 'smsiProgram', 'current', 'milestones');
+      const milestonesSnap = await getDocs(milestonesRef);
+      const deletePromises = milestonesSnap.docs.map(docSnap => deleteDoc(docSnap.ref));
+      await Promise.all(deletePromises);
+
+      // Delete the program
+      const programRef = doc(db, 'organizations', organizationId, 'smsiProgram', 'current');
+      await deleteDoc(programRef);
+    } catch (error) {
+      ErrorLogger.error(error, 'EbiosService.deleteSMSIProgram', {
+        component: 'EbiosService',
+        action: 'deleteSMSIProgram',
+        organizationId,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a milestone
+   */
+  static async deleteMilestone(organizationId: string, milestoneId: string): Promise<void> {
+    try {
+      const milestoneRef = doc(db, 'organizations', organizationId, 'smsiProgram', 'current', 'milestones', milestoneId);
+      await deleteDoc(milestoneRef);
+    } catch (error) {
+      ErrorLogger.error(error, 'EbiosService.deleteMilestone', {
+        component: 'EbiosService',
+        action: 'deleteMilestone',
+        organizationId,
+        metadata: { milestoneId },
       });
       throw error;
     }

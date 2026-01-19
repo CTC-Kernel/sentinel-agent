@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Shield, FileText, Scale } from 'lucide-react';
+import { X, Shield, FileText, Scale } from './Icons';
 
 interface LegalModalProps {
     isOpen: boolean;

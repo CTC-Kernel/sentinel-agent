@@ -15,7 +15,7 @@ import {
   Trash2,
   Copy,
   Archive,
-} from 'lucide-react';
+} from '../components/ui/Icons';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -178,7 +178,13 @@ export const EbiosAnalyses: React.FC = () => {
         <PageHeader
           title={t('ebios.title')}
           subtitle={t('ebios.description')}
-          icon={<ShieldCheck className="w-8 h-8" />}
+          icon={
+            <img
+              src="/images/gouvernance.png"
+              alt="EBIOS"
+              className="w-full h-full object-contain"
+            />
+          }
           actions={
             <button
               onClick={() => setShowCreateModal(true)}

@@ -3,7 +3,7 @@ import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { Organization } from '../../../types';
 import { ErrorLogger } from '../../../services/errorLogger';
-import { Search, Filter, MoreVertical, ExternalLink, Shield } from 'lucide-react';
+import { Search, Filter, MoreVertical, ExternalLink, Shield } from '../../../components/ui/Icons';
 import { TenantDetailModal } from './TenantDetailModal';
 
 export const TenantList: React.FC = () => {

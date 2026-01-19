@@ -7,7 +7,7 @@ import {
     PlayCircle,
     BarChart3,
     Settings2
-} from 'lucide-react';
+} from '../ui/Icons';
 import { GlassCard } from '../ui/GlassCard';
 import { SMSIProgram, PDCAPhase } from '../../types/ebios';
 import { cn } from '../../utils/cn';

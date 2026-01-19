@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Target } from 'lucide-react';
+import { Target } from '../ui/Icons';
 import { ProjectTask, UserProfile } from '../../types';
 import { AddToCalendar } from '../../components/ui/AddToCalendar';
 import { useForm, useWatch, Controller, Resolver } from 'react-hook-form';

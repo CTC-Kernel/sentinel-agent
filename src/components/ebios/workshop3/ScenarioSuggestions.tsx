@@ -7,7 +7,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Lightbulb, ChevronDown, ChevronUp, Sparkles, Check, X, AlertTriangle } from 'lucide-react';
+import { Lightbulb, ChevronDown, ChevronUp, Sparkles, Check, X, AlertTriangle } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import {

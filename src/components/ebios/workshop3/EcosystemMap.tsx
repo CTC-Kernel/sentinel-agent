@@ -30,7 +30,7 @@ import {
   EyeOff,
   ArrowRight,
   AlertTriangle,
-} from 'lucide-react';
+} from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import type {
   EcosystemParty,

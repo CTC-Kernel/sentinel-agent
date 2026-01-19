@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Cpu, AlertCircle, Info } from 'lucide-react';
+import { X, Cpu, AlertCircle, Info } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import type { OperationalScenario, StrategicScenario } from '../../../types/ebios';

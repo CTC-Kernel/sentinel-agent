@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Audit, Control, Document as GRCDocument, Asset, Risk, Project, UserProfile } from '../../types';
 import { useAuditDetails } from '../../hooks/audits/useAuditDetails';
 import { InspectorLayout } from '../ui/InspectorLayout';
-import { AlertOctagon, ClipboardCheck, FileText, Target, Trash2, CheckCheck, Loader2, History, ShieldCheck, Download } from 'lucide-react';
+import { AlertOctagon, ClipboardCheck, FileText, Target, Trash2, CheckCheck, Loader2, History, ShieldCheck, Download, Link } from '../ui/Icons';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { SingleAuditStats } from './SingleAuditStats';
@@ -17,6 +17,7 @@ import { toast } from '@/lib/toast';
 import { AuditFindings } from './inspector/AuditFindings';
 import { AuditChecklist } from './inspector/AuditChecklist';
 import { AuditCertification } from './inspector/AuditCertification';
+import { AuditLinkedItems } from './inspector/AuditLinkedItems';
 
 interface AuditInspectorProps {
     audit: Audit;
@@ -58,6 +59,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
         { id: 'details', label: t('audits.tabs.details'), icon: FileText },
         { id: 'findings', label: t('audits.tabs.findings'), icon: AlertOctagon },
         { id: 'checklist', label: t('audits.tabs.checklist'), icon: ClipboardCheck },
+        { id: 'linked', label: t('audits.tabs.linked'), icon: Link },
         { id: 'dashboard', label: t('audits.tabs.dashboard'), icon: Target },
         { id: 'certification', label: 'Certification / Externe', icon: ShieldCheck },
         { id: 'history', label: t('audits.tabs.history'), icon: History },
@@ -146,6 +148,16 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                         canEdit={canEdit}
                         onGenerate={generateChecklist}
                         onAnswer={handleChecklistAnswer}
+                    />
+                )}
+
+                {activeTab === 'linked' && (
+                    <AuditLinkedItems
+                        audit={audit}
+                        controls={controls}
+                        risks={risks}
+                        assets={assets}
+                        projects={projects}
                     />
                 )}
 

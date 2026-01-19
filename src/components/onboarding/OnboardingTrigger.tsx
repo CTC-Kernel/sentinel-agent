@@ -12,16 +12,16 @@ interface OnboardingBannerProps {
 export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onDismiss }) => {
     const { t } = useTranslation();
     return (
-        <div className="fixed bottom-6 left-6 lg:left-[284px] z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
+        <div className="glass-panel fixed bottom-6 left-6 lg:left-[284px] z-40 p-6 rounded-2xl w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="bg-gradient-to-r from-brand-600 to-purple-600 rounded-2xl shadow-2xl p-6 text-white">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 rounded-xl">
+                        <div className="p-2 bg-white/20 dark:bg-white/10 rounded-xl">
                             <HelpCircle className="h-6 w-6" />
                         </div>
                         <div>
                             <h3 className="text-lg font-bold">{t('tour.banner.title')}</h3>
-                            <p className="text-sm text-white/80">{t('tour.banner.desc')}</p>
+                            <p className="text-sm text-white/90">{t('tour.banner.desc')}</p>
                         </div>
                     </div>
                     <button

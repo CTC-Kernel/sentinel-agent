@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { RecoveryPlan, UserProfile, Asset } from '../../../types';
 import { RecoveryPlanFormData } from '../../../schemas/continuitySchema';
+import { useStore } from '../../../store';
 import { Button } from '../../ui/button';
-import { Plus, Shield, Search, FileText, Clock, Trash2, Edit2, PlayCircle, User as UserIcon } from 'lucide-react';
+import { Plus, Shield, Search, FileText, Clock, Trash2, Edit2, PlayCircle, User as UserIcon } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { Badge } from '../../ui/Badge';
 import { RecoveryPlanInspector } from './RecoveryPlanInspector';
@@ -27,6 +28,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
     onUpdate,
     onDelete
 }) => {
+    const { t } = useStore();
     const [isInspectorOpen, setIsInspectorOpen] = useState(false);
     const [editingPlan, setEditingPlan] = useState<RecoveryPlan | undefined>(undefined);
     const [searchQuery, setSearchQuery] = useState('');
@@ -95,9 +97,9 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
             ) : filteredPlans.length === 0 ? (
                 <EmptyState
                     icon={Shield}
-                    title="Aucun PRA défini"
-                    description="Créez votre premier Plan de Reprise d'Activité pour sécuriser vos opérations."
-                    actionLabel="Créer un PRA"
+                    title={t('continuity.pra.emptyTitle')}
+                    description={t('continuity.pra.emptyDescription')}
+                    actionLabel={t('continuity.pra.createPra')}
                     onAction={() => setIsInspectorOpen(true)}
                 />
             ) : (
@@ -121,14 +123,14 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                                     <h3 className="font-bold text-slate-900 dark:text-white truncate" title={plan.title}>{plan.title}</h3>
                                     <div className="mt-1">
                                         <Badge variant="soft" status={getStatusColor(plan.status)} size="sm">
-                                            {plan.status === 'Draft' ? 'Brouillon' : plan.status}
+                                            {plan.status === 'Draft' ? t('continuity.pra.draft') : plan.status}
                                         </Badge>
                                     </div>
                                 </div>
                             </div>
 
                             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 h-10">
-                                {plan.description || "Aucune description fournie."}
+                                {plan.description || t('continuity.pra.noDescription')}
                             </p>
 
                             <div className="grid grid-cols-2 gap-3 mb-4 mt-auto">

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useActivityLogs } from '../../hooks/useActivityLogs';
-import { Loader2, History, ArrowRight, User } from 'lucide-react';
+import { Loader2, History, ArrowRight, User } from '../ui/Icons';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

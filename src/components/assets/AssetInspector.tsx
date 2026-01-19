@@ -26,7 +26,7 @@ import {
 } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, RefreshCw, Shield, Network, BrainCircuit, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Shield, Network, BrainCircuit, MessageSquare } from '../ui/Icons';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 interface AssetInspectorProps {

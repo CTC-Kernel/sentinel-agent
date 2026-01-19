@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Map, Save, Trash2, AlertTriangle, Lightbulb } from 'lucide-react';
+import { X, Map, Save, Trash2, AlertTriangle, Lightbulb } from '../../ui/Icons';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';

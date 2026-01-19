@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FileSpreadsheet, Lock, LayoutTemplate, Star, ArrowRight } from 'lucide-react';
+import { FileSpreadsheet, Lock, LayoutTemplate, Star, ArrowRight } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 

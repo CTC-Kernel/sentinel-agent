@@ -1,7 +1,7 @@
 import React from 'react';
 import { Audit } from '../../types';
 import { GlassCard } from '../ui/GlassCard';
-import { Calendar, ClipboardCheck, AlertOctagon } from 'lucide-react';
+import { Calendar, ClipboardCheck, AlertOctagon } from '../ui/Icons';
 import { cn } from '../../utils/cn';
 
 interface AuditStatsWidgetProps {

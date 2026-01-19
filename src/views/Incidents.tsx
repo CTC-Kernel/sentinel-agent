@@ -12,8 +12,8 @@ import { useIncidentStats } from '../hooks/incidents/useIncidentStats';
 import { useIncidentExport } from '../hooks/incidents/useIncidentExport';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, Plus, BrainCircuit, MoreVertical } from '../components/ui/Icons';
-import { Download, Loader } from 'lucide-react';
+import { Siren, Plus, BrainCircuit, MoreVertical, LayoutDashboard, List as ListIcon } from '../components/ui/Icons';
+import { Download, Loader } from '../components/ui/Icons';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
@@ -36,12 +36,12 @@ import { ImportService } from '../services/ImportService';
 import { SecurityEvent } from '../services/integrationService';
 
 import { SEO } from '../components/SEO';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
-// Form validation: useForm with required fields
-
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { OnboardingService } from '../services/onboardingService';
 
 // Inline Loader
@@ -70,6 +70,7 @@ export const Incidents: React.FC = () => {
     const [filter, setFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [severityFilter, setSeverityFilter] = useState('');
+    const [activeTab, setActiveTab] = usePersistedState<string>('incidents-active-tab', 'overview');
 
     // Optimized Data Hooks
     const {
@@ -110,9 +111,6 @@ export const Incidents: React.FC = () => {
         if (user && user.uid) return [user as UserProfile];
         return [];
     }, [usersList, user]);
-
-    // State Declarations
-
 
     // Derived State
     const incidents = React.useMemo(() => {
@@ -173,7 +171,6 @@ export const Incidents: React.FC = () => {
         }
     }, [simulateAttack]);
 
-    // ... useEffect restored ...
     // URL Params
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkIncidentId = searchParams.get('id');
@@ -188,23 +185,25 @@ export const Incidents: React.FC = () => {
             const incident = incidents.find(i => i.id === deepLinkIncidentId);
             if (incident && selectedIncident?.id !== incident.id) {
                 setSelectedIncident(incident);
+                // Also switch to incidents tab if inspecting
+                setActiveTab('incidents');
             }
         }
 
         // 2. Open Creation Mode
         if (deepLinkAction === 'create' && !creationMode) {
             setCreationMode(true);
+            setActiveTab('incidents');
             // Consume action immediately
             setSearchParams(params => {
                 params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [loading, deepLinkIncidentId, deepLinkAction, incidents, creationMode, selectedIncident, setSearchParams]);
+    }, [loading, deepLinkIncidentId, deepLinkAction, incidents, creationMode, selectedIncident, setSearchParams, setActiveTab]);
 
     // Cleanup Effect
     useEffect(() => {
-        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
         if (!selectedIncident && deepLinkIncidentId) {
@@ -222,8 +221,9 @@ export const Incidents: React.FC = () => {
         const incident = incidents.find(i => i.id === state.voxelSelectedId);
         if (incident) {
             setSelectedIncident(incident);
+            setActiveTab('incidents');
         }
-    }, [location.state, loading, incidents]);
+    }, [location.state, loading, incidents, setActiveTab]);
 
     const handleCreate = useCallback(async (data: IncidentFormData) => {
         if (!user?.organizationId || (!canEditResource(user, 'Incident') && !hasPermission(user, 'Incident', 'create'))) return;
@@ -236,7 +236,7 @@ export const Incidents: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    }, [user, addIncident]); // removed canEdit since we use canEditResource directly inside
+    }, [user, addIncident]);
 
     const handleUpdate = useCallback(async (data: IncidentFormData) => {
         if (!user?.organizationId || !selectedIncident || !canEditResource(user, 'Incident')) return;
@@ -335,6 +335,11 @@ export const Incidents: React.FC = () => {
     const handleCloseCreateDrawer = useCallback(() => setCreationMode(false), []);
     const handleCancelCreate = useCallback(() => setCreationMode(false), []);
 
+    const tabs = [
+        { id: 'overview', label: t('common.overview'), icon: LayoutDashboard },
+        { id: 'incidents', label: t('incidents.title'), icon: ListIcon, count: incidents.length }
+    ];
+
     return (
         <motion.div
             variants={staggerContainerVariants}
@@ -366,6 +371,15 @@ export const Incidents: React.FC = () => {
                 />
             </motion.div>
 
+            <motion.div variants={slideUpVariants}>
+                <ScrollableTabs
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    className="mb-6"
+                />
+            </motion.div>
+
             <IncidentImportModal
                 isOpen={importModalOpen}
                 onClose={handleImportModalClose}
@@ -381,177 +395,195 @@ export const Incidents: React.FC = () => {
                 onDownloadTemplate={handleDownloadTemplate}
             />
 
-            {/* Carte de synthèse Incidents */}
-            <motion.div variants={slideUpVariants}>
-                <IncidentStats stats={incidentStats} loading={loading} />
-            </motion.div>
-
-            {/* Standardized Page Control */}
-            <PremiumPageControl
-                searchQuery={filter}
-                onSearchChange={setFilter}
-                onRefresh={refreshIncidents}
-                searchPlaceholder={t('risks.searchPlaceholder')}
-                viewMode={viewMode}
-                onViewModeChange={handleViewModeChange}
-                actions={
-                    <>
-                        <div className="hidden md:block w-40 mr-2">
-                            <CustomSelect
-                                value={statusFilter}
-                                onChange={handleStatusFilterChange}
-                                options={[
-                                    { value: '', label: t('incidents.allStatuses') },
-                                    { value: 'Nouveau', label: 'Nouveau' },
-                                    { value: 'Analyse', label: 'Analyse' },
-                                    { value: 'Contenu', label: 'Contenu' },
-                                    { value: 'Résolu', label: 'Résolu' },
-                                    { value: 'Fermé', label: 'Fermé' }
-                                ]}
-                                placeholder="Statut"
-                            />
-                        </div>
-                        <div className="hidden md:block w-40 mr-4">
-                            <CustomSelect
-                                value={severityFilter}
-                                onChange={handleSeverityFilterChange}
-                                options={[
-                                    { value: '', label: t('incidents.allSeverities') },
-                                    { value: Criticality.CRITICAL, label: 'Critique' },
-                                    { value: Criticality.HIGH, label: 'Élevé' },
-                                    { value: Criticality.MEDIUM, label: 'Moyen' },
-                                    { value: Criticality.LOW, label: 'Faible' }
-                                ]}
-                                placeholder="Sévérité"
-                            />
-                        </div>
-                        <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
-
-                        <Menu as="div" className="relative inline-block text-left">
-                            <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                <MoreVertical className="h-5 w-5" />
-                            </Menu.Button>
-                            <Transition
-                                as={React.Fragment}
-                                enter="transition ease-out duration-100"
-                                enterFrom="transform opacity-0 scale-95"
-                                enterTo="transform opacity-100 scale-100"
-                                leave="transition ease-in duration-75"
-                                leaveFrom="transform opacity-100 scale-100"
-                                leaveTo="transform opacity-0 scale-95"
-                            >
-                                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                    <div className="p-1">
-                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            {t('incidents.tools')}
-                                        </div>
-                                        {canEdit && (
-                                            <>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button
-                                                            aria-label={t('incidents.importSiem')}
-                                                            onClick={handleOpenImport}
-                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                        >
-                                                            <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                            {t('incidents.importSiem')}
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button
-                                                            aria-label={t('incidents.simulateAttack')}
-                                                            onClick={handleSimulateAttack}
-                                                            className={`${active ? 'bg-red-500 text-white' : 'text-red-600 dark:text-red-400'
-                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                        >
-                                                            <Siren className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-red-500'}`} />
-                                                            {t('incidents.simulateAttack')}
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                            </>
-                                        )}
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button
-                                                    onClick={() => setCsvImportOpen(true)}
-                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                >
-                                                    <MoreVertical className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                    {t('common.importCsv')}
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button
-                                                    aria-label={t('common.exportCsv')}
-                                                    onClick={handleExportCSV}
-                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                >
-                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                    {t('common.exportCsv')}
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                    </div>
-                                </Menu.Items>
-                            </Transition>
-                        </Menu>
-
-                        {(canEdit || canCreate) && (
-                            <CustomTooltip content={t('incidents.declare')}>
-                                <button
-                                    aria-label={t('incidents.declare')}
-                                    onClick={handleOpenCreate}
-                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
-                                >
-                                    <Plus className="h-5 w-5 mr-2" />
-                                    <span className="hidden sm:inline">{t('incidents.declare')}</span>
-                                </button>
-                            </CustomTooltip>
-                        )}
-                    </>
-                }
-            />
-
-            {/* Incidents Board */}
-            <motion.div variants={slideUpVariants} className={viewMode === 'kanban' ? 'h-[600px]' : ''}>
-                {viewMode === 'kanban' ? (
-                    <React.Suspense fallback={<Spinner />}>
-                        <IncidentKanban
-                            incidents={incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))}
-                            onSelect={handleSelectIncident}
-                            onEdit={(inc) => {
-                                setSelectedIncident(inc);
-                                setCreationMode(false);
-                                setSelectedIncident(inc);
-                            }}
-                            onDelete={initiateDelete}
-                            canEdit={canEdit}
-                            loading={loading}
-                        />
-                    </React.Suspense>
+            <AnimatePresence mode="wait">
+                {activeTab === 'overview' ? (
+                    <motion.div
+                        key="overview"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <IncidentStats stats={incidentStats} loading={loading} />
+                    </motion.div>
                 ) : (
-                    <IncidentDashboard
-                        incidents={incidents}
-                        filter={filter}
-                        viewMode={viewMode}
-                        onCreate={handleOpenCreate}
-                        onSelect={handleSelectIncident}
-                        loading={loading}
-                        onDelete={initiateDelete}
-                        onBulkDelete={handleBulkDelete}
-                        users={effectiveUsers}
-                    />
+                    <motion.div
+                        key="incidents"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-6"
+                    >
+                        {/* Standardized Page Control */}
+                        <PremiumPageControl
+                            searchQuery={filter}
+                            onSearchChange={setFilter}
+                            onRefresh={refreshIncidents}
+                            searchPlaceholder={t('risks.searchPlaceholder')}
+                            viewMode={viewMode}
+                            onViewModeChange={handleViewModeChange}
+                            actions={
+                                <>
+                                    <div className="hidden md:block w-40 mr-2">
+                                        <CustomSelect
+                                            value={statusFilter}
+                                            onChange={handleStatusFilterChange}
+                                            options={[
+                                                { value: '', label: t('incidents.allStatuses') },
+                                                { value: 'Nouveau', label: 'Nouveau' },
+                                                { value: 'Analyse', label: 'Analyse' },
+                                                { value: 'Contenu', label: 'Contenu' },
+                                                { value: 'Résolu', label: 'Résolu' },
+                                                { value: 'Fermé', label: 'Fermé' }
+                                            ]}
+                                            placeholder="Statut"
+                                        />
+                                    </div>
+                                    <div className="hidden md:block w-40 mr-4">
+                                        <CustomSelect
+                                            value={severityFilter}
+                                            onChange={handleSeverityFilterChange}
+                                            options={[
+                                                { value: '', label: t('incidents.allSeverities') },
+                                                { value: Criticality.CRITICAL, label: 'Critique' },
+                                                { value: Criticality.HIGH, label: 'Élevé' },
+                                                { value: Criticality.MEDIUM, label: 'Moyen' },
+                                                { value: Criticality.LOW, label: 'Faible' }
+                                            ]}
+                                            placeholder="Sévérité"
+                                        />
+                                    </div>
+                                    <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
+
+                                    <Menu as="div" className="relative inline-block text-left">
+                                        <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                            <MoreVertical className="h-5 w-5" />
+                                        </Menu.Button>
+                                        <Transition
+                                            as={React.Fragment}
+                                            enter="transition ease-out duration-100"
+                                            enterFrom="transform opacity-0 scale-95"
+                                            enterTo="transform opacity-100 scale-100"
+                                            leave="transition ease-in duration-75"
+                                            leaveFrom="transform opacity-100 scale-100"
+                                            leaveTo="transform opacity-0 scale-95"
+                                        >
+                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                <div className="p-1">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                        {t('incidents.tools')}
+                                                    </div>
+                                                    {canEdit && (
+                                                        <>
+                                                            <Menu.Item>
+                                                                {({ active }) => (
+                                                                    <button
+                                                                        aria-label={t('incidents.importSiem')}
+                                                                        onClick={handleOpenImport}
+                                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                    >
+                                                                        <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                                        {t('incidents.importSiem')}
+                                                                    </button>
+                                                                )}
+                                                            </Menu.Item>
+                                                            <Menu.Item>
+                                                                {({ active }) => (
+                                                                    <button
+                                                                        aria-label={t('incidents.simulateAttack')}
+                                                                        onClick={handleSimulateAttack}
+                                                                        className={`${active ? 'bg-red-500 text-white' : 'text-red-600 dark:text-red-400'
+                                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                    >
+                                                                        <Siren className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-red-500'}`} />
+                                                                        {t('incidents.simulateAttack')}
+                                                                    </button>
+                                                                )}
+                                                            </Menu.Item>
+                                                        </>
+                                                    )}
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button
+                                                                onClick={() => setCsvImportOpen(true)}
+                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                            >
+                                                                <MoreVertical className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                                {t('common.importCsv')}
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button
+                                                                aria-label={t('common.exportCsv')}
+                                                                onClick={handleExportCSV}
+                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                            >
+                                                                <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                                {t('common.exportCsv')}
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                </div>
+                                            </Menu.Items>
+                                        </Transition>
+                                    </Menu>
+
+                                    {(canEdit || canCreate) && (
+                                        <CustomTooltip content={t('incidents.declare')}>
+                                            <button
+                                                aria-label={t('incidents.declare')}
+                                                onClick={handleOpenCreate}
+                                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
+                                            >
+                                                <Plus className="h-5 w-5 mr-2" />
+                                                <span className="hidden sm:inline">{t('incidents.declare')}</span>
+                                            </button>
+                                        </CustomTooltip>
+                                    )}
+                                </>
+                            }
+                        />
+
+                        {/* Incidents Board */}
+                        <motion.div variants={slideUpVariants} className={viewMode === 'kanban' ? 'h-[600px]' : ''}>
+                            {viewMode === 'kanban' ? (
+                                <React.Suspense fallback={<Spinner />}>
+                                    <IncidentKanban
+                                        incidents={incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))}
+                                        onSelect={handleSelectIncident}
+                                        onEdit={(inc) => {
+                                            setSelectedIncident(inc);
+                                            setCreationMode(false);
+                                            setSelectedIncident(inc);
+                                        }}
+                                        onDelete={initiateDelete}
+                                        canEdit={canEdit}
+                                        loading={loading}
+                                    />
+                                </React.Suspense>
+                            ) : (
+                                <IncidentDashboard
+                                    incidents={incidents}
+                                    filter={filter}
+                                    viewMode={viewMode}
+                                    onCreate={handleOpenCreate}
+                                    onSelect={handleSelectIncident}
+                                    loading={loading}
+                                    onDelete={initiateDelete}
+                                    onBulkDelete={handleBulkDelete}
+                                    users={effectiveUsers}
+                                />
+                            )}
+                        </motion.div>
+                    </motion.div>
                 )}
-            </motion.div>
+            </AnimatePresence>
 
             {/* Inspector */}
             <React.Suspense fallback={null}>

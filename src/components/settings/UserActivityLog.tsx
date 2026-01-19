@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
-import { Activity, Globe, User } from 'lucide-react';
+import { Activity, Globe, User } from '../ui/Icons';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';

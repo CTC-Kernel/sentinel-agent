@@ -24,7 +24,7 @@ import {
   Paperclip,
   Check,
   GripVertical,
-} from 'lucide-react';
+} from '../ui/Icons';
 import type {
   Position3D,
   AnnotationType,

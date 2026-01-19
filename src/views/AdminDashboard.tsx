@@ -5,7 +5,7 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 
 import { UserProfile } from '../types';
 import { useStore } from '../store';
-import { ShieldAlert, Users, Building, Activity, Search } from 'lucide-react';
+import { ShieldAlert, Users, Building, Activity, Search } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 

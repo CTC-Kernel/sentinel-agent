@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { X, Command, Keyboard } from 'lucide-react';
+import { X, Command, Keyboard } from './Icons';
 
 interface ShortcutsHelpProps {
     isOpen: boolean;

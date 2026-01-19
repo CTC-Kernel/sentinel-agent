@@ -15,7 +15,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SessionMonitor } from '../../services/sessionMonitoringService';
 import { ErrorLogger } from '../../services/errorLogger';
-import { Shield, AlertTriangle, Activity, Clock, Users } from 'lucide-react';
+import { Shield, AlertTriangle, Activity, Clock, Users } from '../ui/Icons';
 
 interface SecurityMetrics {
   sessionMetrics: {

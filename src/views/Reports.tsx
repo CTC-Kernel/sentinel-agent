@@ -23,7 +23,7 @@ import {
     Plus,
     Mail,
     Clock
-} from 'lucide-react';
+} from '../components/ui/Icons';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { CompliancePackService } from '../services/CompliancePackService';
 import { ErrorLogger } from '../services/errorLogger';

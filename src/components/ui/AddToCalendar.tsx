@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, Download, ExternalLink } from 'lucide-react';
+import { Calendar, Download, ExternalLink } from './Icons';
 import { CalendarService } from '../../services/calendarService';
 
 export interface CalendarEventDetails {

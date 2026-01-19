@@ -3,7 +3,7 @@ import { Button } from '../ui/button';
 import { Document, Control, UserProfile } from '../../types';
 import { Drawer } from '../ui/Drawer';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
-import { FileText, History, MessageSquare, Eye, ShieldCheck, List, Edit, Trash2 } from 'lucide-react';
+import { FileText, History, MessageSquare, Eye, ShieldCheck, List, Edit, Trash2 } from '../ui/Icons';
 import { WorkflowStatusBadge } from './WorkflowStatusBadge';
 import { ApprovalFlow } from './ApprovalFlow';
 import { DocumentVersionHistory } from './DocumentVersionHistory';

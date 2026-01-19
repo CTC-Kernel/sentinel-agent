@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, Activity, ShieldCheck, Users, AlertTriangle, LayoutDashboard, Check } from '../../ui/Icons';
-import { Rocket } from 'lucide-react';
+import { Rocket } from '../../ui/Icons';
+import { GlassCard } from '../../ui/GlassCard';
 import { ShinyText } from '../../ui/ShinyText';
 
 type DashboardInsight = {
@@ -95,8 +96,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
     if (isEmpty && !loading) {
         return (
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-card text-card-foreground shadow-2xl dark:shadow-none border border-border p-8 md:p-16 text-center animate-fade-in group">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/20 via-slate-50/50 to-white dark:from-indigo-900/40 dark:via-slate-900/50 dark:to-slate-900 pointer-events-none" />
+            <GlassCard className="relative overflow-hidden rounded-[2.5rem] p-8 md:p-16 text-center animate-fade-in group" gradientOverlay={true}>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-500/20 via-background/0 to-background/0 dark:from-brand-500/10 dark:via-background/0 dark:to-background/0 opacity-50 transition-opacity duration-1000 group-hover:opacity-70" />
                 <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto">
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-4 backdrop-blur-md shadow-sm">
                         <span className="relative flex h-2.5 w-2.5 mr-3">
@@ -135,7 +136,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         })}
                     </div>
                 </div>
-            </div>
+            </GlassCard>
         );
     }
 
@@ -149,7 +150,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             {/* Animated Glow Border */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-500/50 to-transparent animate-shine opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-            <div className="glass-premium relative rounded-[2rem] overflow-hidden">
+            <GlassCard className="glass-premium relative rounded-[2rem] overflow-hidden">
                 {/* Aurora Dynamic Background */}
                 <div className="absolute inset-0 bg-aurora animate-aurora opacity-40 dark:opacity-20 pointer-events-none" />
                 <div className="absolute inset-0 bg-grid-slate-900/5 dark:bg-grid-white/5 opacity-50 pointer-events-none" />
@@ -286,7 +287,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         </div>
                     </div>
                 </div>
-            </div>
-        </motion.div>
+            </GlassCard>
+
+        </motion.div >
     );
 };

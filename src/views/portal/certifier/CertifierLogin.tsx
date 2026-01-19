@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../firebase';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { Loader2, ShieldCheck, Mail, Lock } from '../../../components/ui/Icons';
 import { toast } from '@/lib/toast';
 import { MasterpieceBackground } from '../../../components/ui/MasterpieceBackground';
 import { ErrorLogger } from '../../../services/errorLogger';

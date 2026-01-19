@@ -9,7 +9,7 @@ import { Button } from '../../ui/button';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { DatePicker } from '../../ui/DatePicker';
-import { Loader2, ArrowRight, Trash, FileText, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowRight, Trash, FileText, AlertTriangle } from '../../ui/Icons';
 
 interface Props {
     isOpen: boolean;

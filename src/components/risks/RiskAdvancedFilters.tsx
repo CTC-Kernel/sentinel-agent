@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { X } from 'lucide-react';
+import { X } from '../ui/Icons';
 import { Button } from '../ui/button';
 
 interface RiskAdvancedFiltersProps {

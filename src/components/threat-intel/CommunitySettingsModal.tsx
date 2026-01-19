@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import { Shield, Globe, Lock, Users, X, Save, AlertTriangle, Check, UserMinus } from 'lucide-react';
+import { Shield, Globe, Lock, Users, X, Save, AlertTriangle, Check, UserMinus } from '../ui/Icons';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { SharingPreferences, TrustRelationship } from '../../types';

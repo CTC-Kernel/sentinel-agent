@@ -7,7 +7,7 @@ import { ContinuityPRA } from './pra/ContinuityPRA';
 import { ContinuityDrills } from './ContinuityDrills';
 import { ContinuityCrisis } from './ContinuityCrisis';
 import { EmptyState } from '../ui/EmptyState';
-import { AlertOctagon, Download, Plus, Upload } from 'lucide-react';
+import { AlertOctagon, Download, Plus, Upload } from '../ui/Icons';
 import { BusinessProcess, BcpDrill, Asset, UserProfile } from '../../types';
 import { TlptCampaign } from '../../types/tlpt';
 import { TlptDashboard } from './tlpt/TlptDashboard';

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { auth } from '../../firebase';
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from '../ui/Icons';
 
 interface CertifierAuthGuardProps {
     children: React.ReactNode;

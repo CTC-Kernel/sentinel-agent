@@ -7,7 +7,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Search, Link2, Package, Check, AlertCircle } from 'lucide-react';
+import { X, Search, Link2, Package, Check, AlertCircle } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import { useAssets } from '../../../hooks/assets/useAssets';

@@ -17,7 +17,7 @@ import { DashboardEditModeToggle } from './DashboardEditModeToggle';
 import { EmptyState } from '../ui/EmptyState';
 import { WIDGET_REGISTRY, type WidgetId } from './configurable/WidgetRegistry';
 import { useTranslation } from 'react-i18next';
-import { Plus } from 'lucide-react';
+import { Plus } from '../ui/Icons';
 import type { UserRole } from '../../utils/roleUtils';
 
 export interface ConfigurableDashboardProps {

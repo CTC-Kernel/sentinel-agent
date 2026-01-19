@@ -1,7 +1,7 @@
 import React from 'react';
 import { TechCorner } from '../ui/TechCorner';
 import { GlassCard } from '../ui/GlassCard';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2 } from '../ui/Icons';
 import { Skeleton } from '../../components/ui/Skeleton';
 
 interface DashboardCardProps {

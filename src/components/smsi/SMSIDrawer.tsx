@@ -6,7 +6,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { useZodForm } from '../../hooks/useZodForm';
 import { z } from 'zod';
-import { Shield, Clock, Settings, CheckCircle2 } from 'lucide-react';
+import { Shield, Clock, Settings, CheckCircle2 } from '../ui/Icons';
 import { cn } from '../../utils/cn';
 import { FieldValues } from 'react-hook-form';
 import { SMSIProgram } from '../../types/ebios';
