@@ -5,20 +5,6 @@
  * Story: EBIOS RM Test Coverage
  */
 
-// Mock Firestore - declare before vi.mock to avoid hoisting issues
-const mockSetDoc = vi.fn().mockResolvedValue(undefined);
-const mockGetDoc = vi.fn();
-const mockUpdateDoc = vi.fn().mockResolvedValue(undefined);
-const mockDeleteDoc = vi.fn().mockResolvedValue(undefined);
-const mockGetDocs = vi.fn();
-const mockOnSnapshot = vi.fn();
-const mockDoc = vi.fn(() => ({ id: 'mock-doc-id' }));
-const mockCollection = vi.fn(() => ({}));
-const mockQuery = vi.fn(() => ({}));
-const mockWhere = vi.fn(() => ({}));
-const mockOrderBy = vi.fn(() => ({}));
-const mockLimit = vi.fn(() => ({}));
-
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EbiosService } from '../ebiosService';
 import {
@@ -31,6 +17,22 @@ import {
   createRiskContext,
   resetEbiosCounters,
 } from '../../tests/factories/ebiosFactory';
+
+// Mock Firestore - use vi.hoisted to properly handle hoisting
+const { mockSetDoc, mockGetDoc, mockUpdateDoc, mockDeleteDoc, mockGetDocs, mockOnSnapshot, mockDoc, mockCollection, mockQuery, mockWhere, mockOrderBy, mockLimit } = vi.hoisted(() => ({
+  mockSetDoc: vi.fn().mockResolvedValue(undefined),
+  mockGetDoc: vi.fn(),
+  mockUpdateDoc: vi.fn().mockResolvedValue(undefined),
+  mockDeleteDoc: vi.fn().mockResolvedValue(undefined),
+  mockGetDocs: vi.fn(),
+  mockOnSnapshot: vi.fn(),
+  mockDoc: vi.fn(() => ({ id: 'mock-doc-id' })),
+  mockCollection: vi.fn(() => ({})),
+  mockQuery: vi.fn(() => ({})),
+  mockWhere: vi.fn(() => ({})),
+  mockOrderBy: vi.fn(() => ({})),
+  mockLimit: vi.fn(() => ({})),
+}));
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
