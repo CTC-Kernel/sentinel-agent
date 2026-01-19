@@ -16,8 +16,8 @@ vi.mock('lucide-react', () => {
     return {
         Shield: Icon,
         FileSpreadsheet: Icon,
-        AlertTriangle: Icon,
-        Eye: Icon,
+        AlertTriangle: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'alert-triangle-icon', ...props }),
+        Eye: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'eye-icon', ...props }),
         History: Icon,
         Settings: Icon,
         Grid3X3: Icon,

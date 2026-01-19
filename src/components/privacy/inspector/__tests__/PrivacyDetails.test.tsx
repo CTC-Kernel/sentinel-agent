@@ -14,8 +14,8 @@ vi.mock('lucide-react', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
-        User: Icon,
-        Calendar: Icon,
+        User: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'user-icon', ...props }),
+        Calendar: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'calendar-icon', ...props }),
         Tag: Icon,
         Settings: Icon,
         Grid3X3: Icon,

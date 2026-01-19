@@ -23,7 +23,7 @@ vi.mock('lucide-react', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
-        WifiOff: Icon,
+        WifiOff: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'wifi-off-icon', ...props }),
         Settings: Icon,
         Grid3X3: Icon,
         Unlock: Icon,
