@@ -47,7 +47,7 @@ describe('UserCard', () => {
         uid: 'user-1',
         email: 'test@example.com',
         displayName: 'Test User',
-        role: 'Admin',
+        role: 'admin',
         photoURL: null,
         organizationId: 'org-1',
         department: 'IT',
@@ -78,7 +78,7 @@ describe('UserCard', () => {
             render(<UserCard user={mockUser} canAdmin={true} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
 
             expect(screen.getByTestId('role-badge')).toBeInTheDocument();
-            expect(screen.getByText('Admin')).toBeInTheDocument();
+            expect(screen.getByText('admin')).toBeInTheDocument();
         });
 
         it('renders department', () => {

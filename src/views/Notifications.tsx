@@ -1,171 +1,178 @@
-
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Bell, CheckCircle2, AlertTriangle, Info, X, ArrowRight } from '../components/ui/Icons';
-import { motion } from 'framer-motion';
-import { staggerContainerVariants } from '../components/ui/animationVariants';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { SEO } from '../components/SEO';
+import React, { useState, useMemo } from 'react';
+import { useNotifications } from '../hooks/useNotifications';
 import { useStore } from '../store';
-import { EmptyState } from '../components/common/EmptyState';
-import { PageHeader } from '../components/ui/PageHeader';
-import { CardSkeleton } from '../components/ui/Skeleton';
-import { Notification } from '../types/notification';
-import { NotificationService } from '../services/notificationService';
-import { ErrorLogger } from '../services/errorLogger';
-import { Button } from '../components/ui/button';
-import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { GlassCard } from '../components/ui/GlassCard';
+import { CheckCircle2, AlertTriangle, Info, X, ArrowRight, Bell, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Notifications: React.FC = () => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
+    const { t } = useStore(); // Assuming useStore provides t, matching SystemSettings usage
+    const { notifications, markAsRead, markAllAsRead, removeNotification } = useNotifications();
     const [filterStatus, setFilterStatus] = useState<'all' | 'unread'>('all');
-    const { user } = useStore();
-    const { t } = useTranslation();
+    const [searchQuery, setSearchQuery] = useState('');
 
-    // Real-time subscription
-    useEffect(() => {
-        if (!user?.uid) return;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLoading(true);
-
-        const unsubscribe = NotificationService.subscribeToNotifications(user.uid, (data) => {
-            setNotifications(data);
-            setLoading(false);
+    const filteredNotifications = useMemo(() => {
+        return notifications.filter(n => {
+            const matchesSearch = n.title.toLowerCase().includes(searchQuery.toLowerCase()) || (n.message || '').toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesFilter = filterStatus === 'all' ? true : !n.read;
+            return matchesSearch && matchesFilter;
         });
-
-        return () => unsubscribe();
-    }, [user?.uid]);
-
-    const markAsRead = async (id: string) => {
-        try {
-            await NotificationService.markAsRead(id);
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Notifications.markAsRead', 'UPDATE_FAILED');
-        }
-    };
-
-    const markAll = async () => {
-        if (!user?.uid) return;
-        try {
-            await NotificationService.markAllAsRead(user.uid);
-            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Notifications.markAll', 'UPDATE_FAILED');
-        }
-    };
+    }, [notifications, searchQuery, filterStatus]);
 
     const getIcon = (type: string) => {
         switch (type) {
-            case 'warning': return <AlertTriangle className="h-5 w-5 text-amber-500" />;
-            case 'danger':
-            case 'error': return <X className="h-5 w-5 text-red-500" />;
-            case 'success': return <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
-            case 'mention': return <div className="h-5 w-5 text-brand-500 font-bold flex items-center justify-center">@</div>;
-            case 'assignment': return <Bell className="h-5 w-5 text-blue-500" />;
-            default: return <Info className="h-5 w-5 text-blue-500" />;
+            case 'success': return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
+            case 'warning': return <AlertTriangle className="w-5 h-5 text-amber-500" />;
+            case 'error': return <AlertTriangle className="w-5 h-5 text-rose-500" />;
+            default: return <Info className="w-5 h-5 text-blue-500" />;
         }
     };
 
-    const filteredNotifications = notifications.filter(n => {
-        const matchesSearch = (n.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (n.message || '').toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilter = filterStatus === 'all' ? true : !n.read;
-        return matchesSearch && matchesFilter;
-    });
-
     return (
         <motion.div
-            variants={staggerContainerVariants}
-            initial="initial"
-            animate="visible"
-            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6 max-w-4xl mx-auto p-6"
         >
-            <MasterpieceBackground />
-            <SEO title="Notifications" />
-            <PageHeader
-                title={t('notifications.title')}
-                subtitle={t('notifications.subtitle')}
-                breadcrumbs={[
-                    { label: t('notifications.title') }
-                ]}
-                icon={<Bell className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={notifications.some(n => !n.read) && (
-                    <Button
-                        aria-label={t('notifications.markAll')}
-                        onClick={markAll}
-                        variant="outline"
-                        className="gap-2"
-                    >
-                        <CheckCircle2 className="h-4 w-4" />
-                        {t('notifications.markAll')}
-                    </Button>
-                )}
-            />
-
-            <PremiumPageControl
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                searchPlaceholder={t('notifications.searchPlaceholder')}
-            >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                        <Bell className="w-6 h-6 text-brand-500" />
+                        {t('notifications.title', { defaultValue: 'Notifications' })}
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">
+                        {t('notifications.subtitle', { defaultValue: 'Gérez vos alertes et messages importants' })}
+                    </p>
+                </div>
                 <div className="flex gap-2">
-                    <button
-                        aria-label={t('notifications.filter.all')}
-                        onClick={() => setFilterStatus('all')}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filterStatus === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'}`}
-                    >
-                        {t('notifications.filter.all')}
-                    </button>
-                    <button
-                        aria-label={t('notifications.filter.unread')}
-                        onClick={() => setFilterStatus('unread')}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filterStatus === 'unread' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'}`}
-                    >
-                        {t('notifications.filter.unread')}
-                    </button>
+                    {notifications.some(n => !n.read) && (
+                        <button
+                            onClick={markAllAsRead}
+                            className="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 px-4 py-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                        >
+                            {t('notifications.markAllRead', { defaultValue: 'Tout marquer comme lu' })}
+                        </button>
+                    )}
                 </div>
-            </PremiumPageControl>
+            </div>
 
-            {loading ? (
-                <div className="space-y-4">
-                    <CardSkeleton count={3} />
+            {/* Filters & Search */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => setFilterStatus('all')}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus === 'all'
+                            ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25'
+                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
+                            }`}
+                    >
+                        {t('common.all', { defaultValue: 'Toutes' })}
+                    </button>
+                    <button
+                        onClick={() => setFilterStatus('unread')}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus === 'unread'
+                            ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25'
+                            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
+                            }`}
+                    >
+                        {t('notifications.unread', { defaultValue: 'Non lues' })}
+                    </button>
                 </div>
-            ) : filteredNotifications.length === 0 ? (
-                <EmptyState
-                    image="/images/generated-empty-state-general.png"
-                    title={t('notifications.emptyTitle')}
-                    description={filterStatus === 'unread' ? t('notifications.emptyDescUnread') : t('notifications.emptyDescAll')}
-                />
-            ) : (
-                <div className="space-y-4">
-                    {filteredNotifications.map(notif => (
-                        <div key={notif.id} className="glass-premium p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex gap-4 group">
-                            <div className={`p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-white/5 h-fit`}>
-                                {getIcon(notif.type)}
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                    <h3 className="text-base font-bold text-slate-900 dark:text-white">{notif.title}</h3>
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{new Date(notif.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{notif.message}</p>
-                                {notif.link && (
-                                    <a href={notif.link} aria-label={t('notifications.viewDetails')} className="inline-flex items-center mt-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
-                                        {t('notifications.viewDetails')} <ArrowRight className="h-3 w-3 ml-1" />
-                                    </a>
-                                )}
-                            </div>
-                            {!notif.read && (
-                                <button aria-label="Marquer comme lu" onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all self-center">
-                                    <X className="h-4 w-4" />
-                                </button>
-                            )}
+
+                <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder={t('common.search', { defaultValue: 'Rechercher...' })}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
+                    />
+                </div>
+            </div>
+
+            {/* Notifications List */}
+            <AnimatePresence mode="popLayout">
+                {filteredNotifications.length > 0 ? (
+                    <div className="space-y-4">
+                        {filteredNotifications.map(notif => (
+                            <motion.div
+                                key={notif.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                            >
+                                <GlassCard
+                                    className={`p-5 flex gap-4 group items-start relative overflow-hidden transition-all ${!notif.read ? 'border-l-4 border-l-brand-500' : ''}`}
+                                    hoverEffect={true}
+                                >
+                                    <div className={`p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-white/5 h-fit shrink-0`}>
+                                        {getIcon(notif.type)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start gap-4">
+                                            <h3 className={`text-base font-bold ${!notif.read ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                {notif.title}
+                                            </h3>
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                                                {new Date(notif.createdAt).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                                            {notif.message}
+                                        </p>
+                                        {notif.link && (
+                                            <a
+                                                href={notif.link}
+                                                className="inline-flex items-center mt-3 text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline group/link"
+                                            >
+                                                {t('notifications.viewDetails', { defaultValue: 'Voir les détails' })}
+                                                <ArrowRight className="h-3 w-3 ml-1 transition-transform group-hover/link:translate-x-1" />
+                                            </a>
+                                        )}
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-1 rounded-lg">
+                                        {!notif.read && (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); markAsRead(notif.id); }}
+                                                className="p-2 text-slate-400 hover:text-brand-500 transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                title={t('notifications.markRead', { defaultValue: 'Marquer comme lu' })}
+                                            >
+                                                <CheckCircle2 className="h-4 w-4" />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); removeNotification(notif.id); }}
+                                            className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            title={t('common.delete', { defaultValue: 'Supprimer' })}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </GlassCard>
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-20">
+                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Bell className="w-8 h-8 text-slate-400" />
                         </div>
-                    ))}
-                </div>
-            )}
+                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">
+                            {t('notifications.emptyTitle', { defaultValue: 'Aucune notification' })}
+                        </h3>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1">
+                            {filterStatus === 'unread'
+                                ? t('notifications.emptyUnread', { defaultValue: 'Vous êtes à jour !' })
+                                : t('notifications.emptyAll', { defaultValue: 'Rien à signaler pour le moment.' })}
+                        </p>
+                    </div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };

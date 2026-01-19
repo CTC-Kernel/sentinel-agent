@@ -66,12 +66,12 @@ describe('PageHeader', () => {
         render(
             <PageHeader
                 title="Secure Page"
-                trustType="encryption"
+                trustType="storage"
             />
         );
 
         expect(screen.getByTestId('security-badge')).toBeInTheDocument();
-        expect(screen.getByText('encryption')).toBeInTheDocument();
+        expect(screen.getByText('storage')).toBeInTheDocument();
     });
 
     it('should not render security badge when trustType is not provided', () => {

@@ -120,7 +120,7 @@ export function configureViteSecurityHeaders() {
   return {
     name: 'security-headers',
     configureServer(server: { middlewares: { use: (arg0: (req: unknown, res: { setHeader: (arg0: string, arg1: string) => void; }, next: () => void) => void) => void; }; }) {
-      server.middlewares.use((req, res, next) => {
+      server.middlewares.use((_req, res, next) => {
         const headers = getSecurityHeaders({
           enableCSP: true,
           enableHSTS: false, // Pas de HSTS en dev (localhost)

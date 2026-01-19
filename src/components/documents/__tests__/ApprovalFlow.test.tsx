@@ -78,12 +78,15 @@ describe('ApprovalFlow', () => {
 
     const draftDocument: Document = {
         id: 'doc-1',
-        name: 'Security Policy',
+        organizationId: 'org-1',
+        title: 'Security Policy',
         type: 'Politique',
+        version: '1.0',
         status: 'Brouillon',
         ownerId: 'user-1',
         owner: 'Current User',
         createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
         workflowHistory: []
     };
 
@@ -98,7 +101,9 @@ describe('ApprovalFlow', () => {
                 userId: 'user-2',
                 userName: 'Reviewer User',
                 date: '2024-01-15T10:00:00Z',
-                comment: 'Please review this policy'
+                comment: 'Please review this policy',
+                version: '1.0',
+                step: 'En revue'
             }
         ]
     };
@@ -112,7 +117,9 @@ describe('ApprovalFlow', () => {
                 action: 'soumettre',
                 userId: 'user-1',
                 userName: 'Current User',
-                date: '2024-01-15T10:00:00Z'
+                date: '2024-01-15T10:00:00Z',
+                version: '1.0',
+                step: 'En revue'
             },
             {
                 id: 'hist-2',
@@ -120,7 +127,9 @@ describe('ApprovalFlow', () => {
                 userId: 'user-2',
                 userName: 'Reviewer User',
                 date: '2024-01-16T14:00:00Z',
-                comment: 'Looks good!'
+                comment: 'Looks good!',
+                version: '1.0',
+                step: 'Approbation'
             }
         ]
     };
@@ -134,7 +143,9 @@ describe('ApprovalFlow', () => {
                 userId: 'user-1',
                 userName: 'Current User',
                 date: '2024-01-15T10:00:00Z',
-                comment: 'Initial submission'
+                comment: 'Initial submission',
+                version: '1.0',
+                step: 'En revue'
             },
             {
                 id: 'hist-2',
@@ -142,7 +153,9 @@ describe('ApprovalFlow', () => {
                 userId: 'user-2',
                 userName: 'Reviewer User',
                 date: '2024-01-16T11:00:00Z',
-                comment: 'Needs more detail'
+                comment: 'Needs more detail',
+                version: '1.0',
+                step: 'Brouillon'
             }
         ]
     };

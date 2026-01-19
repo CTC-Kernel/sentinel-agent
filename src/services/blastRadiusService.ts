@@ -131,7 +131,7 @@ const IMPACT_THRESHOLDS = {
 const calculateImpact = (
   depth: number,
   edgeWeight: number,
-  decayRate: number,
+  _decayRate: number,
   customDecayRates?: number[]
 ): number => {
   const rates = customDecayRates || DEFAULT_DECAY_RATES;
@@ -284,11 +284,11 @@ export class BlastRadiusService {
     const {
       maxDepth,
       minProbability = 0.1,
-      decayRate = 0.25,
       bidirectional = false,
       edgeTypes,
       includeNodeTypes,
     } = config;
+    const _decayRate = 0.25; // Default decay rate for impact calculation (used by calculateImpact)
 
     // Build adjacency list
     const adjacencyList = buildAdjacencyList(nodes, edges, bidirectional, edgeTypes);
@@ -317,7 +317,7 @@ export class BlastRadiusService {
 
       // Skip if already visited with better impact
       const existingVisit = visited.get(nodeId);
-      if (existingVisit && existingVisit.impact >= calculateImpact(depth, cumulativeWeight, decayRate)) {
+      if (existingVisit && existingVisit.impact >= calculateImpact(depth, cumulativeWeight, _decayRate)) {
         continue;
       }
 
@@ -331,7 +331,7 @@ export class BlastRadiusService {
           continue;
         }
 
-        const impact = calculateImpact(depth, cumulativeWeight, decayRate);
+        const impact = calculateImpact(depth, cumulativeWeight, _decayRate);
 
         // Skip if below minimum probability/impact threshold
         if (impact < minProbability) {
@@ -581,6 +581,7 @@ export class BlastRadiusService {
           label: scenario.node.label || 'New Node',
           status: scenario.node.status || 'normal',
           position: scenario.node.position || { x: 0, y: 0, z: 0 },
+          size: scenario.node.size ?? 1,
           data: scenario.node.data || {},
           connections: [],
           createdAt: new Date(),

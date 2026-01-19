@@ -31,11 +31,10 @@ describe('generateContinuityReport', () => {
         rto: '4h',
         rpo: '1h',
         owner: 'John Doe',
-        ownerId: 'user-123',
-        status: 'Actif',
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        supportingAssetIds: [],
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
         ...overrides
     });
 
@@ -47,8 +46,7 @@ describe('generateContinuityReport', () => {
         result: 'Succès',
         notes: 'Test drill notes',
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: '2024-01-01T00:00:00.000Z',
         ...overrides
     });
 

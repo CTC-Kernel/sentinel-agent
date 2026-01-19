@@ -77,14 +77,12 @@ describe('useComplianceActions', () => {
     const mockControl: Control = {
         id: 'ctrl-1',
         code: 'A.1.1',
-        title: 'Test Control',
+        name: 'Test Control',
         description: 'Description',
         status: 'Non commencé',
         framework: 'ISO27001',
         organizationId: 'org-1',
-        applicability: 'Applicable',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        applicability: 'Applicable'
     };
 
     beforeEach(() => {
@@ -129,7 +127,7 @@ describe('useComplianceActions', () => {
 
             let success: boolean | undefined;
             await act(async () => {
-                success = await result.current.updateControl('ctrl-1', { status: 'Conforme' }, 'Updated');
+                success = await result.current.updateControl('ctrl-1', { status: 'Implémenté' }, 'Updated');
             });
 
             expect(success).toBe(true);
@@ -144,7 +142,7 @@ describe('useComplianceActions', () => {
 
             let success: boolean | undefined;
             await act(async () => {
-                success = await result.current.updateControl('ctrl-1', { status: 'Conforme' });
+                success = await result.current.updateControl('ctrl-1', { status: 'Implémenté' });
             });
 
             expect(success).toBe(false);
@@ -162,7 +160,7 @@ describe('useComplianceActions', () => {
             const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             const updatePromise = act(async () => {
-                await result.current.updateControl('ctrl-1', { status: 'Conforme' });
+                await result.current.updateControl('ctrl-1', { status: 'Implémenté' });
             });
 
             resolveUpdate!();
@@ -177,7 +175,7 @@ describe('useComplianceActions', () => {
             const { result } = renderHook(() => useComplianceActions(mockUser as unknown as User));
 
             await act(async () => {
-                await result.current.handleStatusChange(mockControl, 'Conforme');
+                await result.current.handleStatusChange(mockControl, 'Implémenté');
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();

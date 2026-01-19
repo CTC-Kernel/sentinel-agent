@@ -129,12 +129,7 @@ describe('ProjectTasks', () => {
             startDate: '2024-01-01',
             dueDate: '2024-01-15',
             assigneeId: 'user-1',
-            priority: 'medium',
-            comments: [],
-            attachments: [],
-            createdAt: '2024-01-01',
-            updatedAt: '2024-01-01',
-            createdBy: 'user-1'
+            priority: 'medium'
         },
         {
             id: 'task-2',
@@ -144,12 +139,7 @@ describe('ProjectTasks', () => {
             startDate: '2024-01-10',
             dueDate: '2024-01-30',
             assigneeId: 'user-1',
-            priority: 'high',
-            comments: [],
-            attachments: [],
-            createdAt: '2024-01-01',
-            updatedAt: '2024-01-01',
-            createdBy: 'user-1'
+            priority: 'high'
         },
         {
             id: 'task-3',
@@ -159,12 +149,7 @@ describe('ProjectTasks', () => {
             startDate: '2024-02-01',
             dueDate: '2024-02-15',
             assigneeId: 'user-1',
-            priority: 'low',
-            comments: [],
-            attachments: [],
-            createdAt: '2024-01-01',
-            updatedAt: '2024-01-01',
-            createdBy: 'user-1'
+            priority: 'low'
         }
     ];
 

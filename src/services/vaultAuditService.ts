@@ -15,7 +15,7 @@ import { functions, db } from '@/firebase';
 import { ErrorLogger } from './errorLogger';
 
 // Constants
-const _DOCUMENT_AUDIT_LOGS_COLLECTION = 'document_audit_logs';
+const DOCUMENT_AUDIT_LOGS_COLLECTION = 'document_audit_logs';
 
 /**
  * Document action types for audit logging
@@ -170,7 +170,7 @@ export const VaultAuditService = {
       const result = await fn({
         documentId,
         limit: options.limit || 50,
-        startAfter: options.startAfter || null,
+        startAfter: options.startAfter,
         filters: options.filters || {},
       });
 
@@ -216,7 +216,7 @@ export const VaultAuditService = {
       const result = await fn({
         userId,
         limit: options.limit || 50,
-        startAfter: options.startAfter || null,
+        startAfter: options.startAfter,
         filters: options.filters || {},
       });
 
@@ -256,7 +256,7 @@ export const VaultAuditService = {
 
       const result = await fn({
         limit: options.limit || 100,
-        startAfter: options.startAfter || null,
+        startAfter: options.startAfter,
         filters: options.filters || {},
       });
 

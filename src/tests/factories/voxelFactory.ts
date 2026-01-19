@@ -57,6 +57,7 @@ const DEFAULT_NODE: Omit<VoxelNode, 'id'> = {
   label: 'Test Node',
   status: 'normal',
   position: { x: 0, y: 0, z: 0 },
+  size: 1,
   data: {},
   connections: [],
   createdAt: new Date(),

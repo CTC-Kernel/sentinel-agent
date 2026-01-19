@@ -196,7 +196,7 @@ describe('AdminService', () => {
         it('should throw on error', async () => {
             const { httpsCallable } = await import('firebase/functions');
             vi.mocked(httpsCallable).mockReturnValueOnce(
-                vi.fn().mockRejectedValueOnce(new Error('Function error')) as ReturnType<typeof httpsCallable>
+                vi.fn().mockRejectedValueOnce(new Error('Function error')) as unknown as ReturnType<typeof httpsCallable>
             );
 
             await expect(AdminService.impersonateUser('target-user-id')).rejects.toThrow(
@@ -209,12 +209,12 @@ describe('AdminService', () => {
         it('should update subscription plan', async () => {
             const { updateDoc } = await import('firebase/firestore');
 
-            await AdminService.updateTenantSubscription('org-id', 'pro', {});
+            await AdminService.updateTenantSubscription('org-id', 'professional', {});
 
             expect(updateDoc).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
-                    'subscription.planId': 'pro'
+                    'subscription.planId': 'professional'
                 })
             );
         });
@@ -243,7 +243,7 @@ describe('AdminService', () => {
             vi.mocked(updateDoc).mockRejectedValueOnce(new Error('Firestore error'));
 
             await expect(
-                AdminService.updateTenantSubscription('org-id', 'pro', {})
+                AdminService.updateTenantSubscription('org-id', 'professional', {})
             ).rejects.toThrow();
         });
     });

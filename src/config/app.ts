@@ -26,7 +26,8 @@ export const configureApp = (): Express => {
   configureSecurity(app);
 
   // Routes publiques
-  app.get('/api/health', (_req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  app.get('/api/health', (_req: any, res: any) => {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
@@ -34,7 +35,8 @@ export const configureApp = (): Express => {
   app.use('/api', authenticate());
 
   // Gestion des erreurs 404
-  app.use((req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  app.use((req: any, res: any) => {
     res.status(404).json({
       error: 'Not Found',
       message: `La ressource demandée (${req.originalUrl}) n'existe pas.`
@@ -42,7 +44,8 @@ export const configureApp = (): Express => {
   });
 
   // Gestion des erreurs globales
-  app.use((_err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  app.use((_err: Error, _req: any, res: any, _next: any) => {
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Une erreur inattendue est survenue.'

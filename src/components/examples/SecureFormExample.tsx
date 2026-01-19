@@ -15,6 +15,7 @@ import { SessionMonitor } from '../../services/sessionMonitoringService';
 import { useStore } from '../../store';
 
 interface ExampleFormData {
+  [key: string]: unknown;
   name: string;
   email: string;
   description: string;

@@ -13,7 +13,7 @@ describe('useAuth', () => {
     const mockAuthContext = {
         user: { id: 'user-1', email: 'test@example.com' },
         loading: false,
-        error: null,
+        error: null as Error | null,
         login: vi.fn(),
         logout: vi.fn()
     };
@@ -66,12 +66,12 @@ describe('useAuth', () => {
     });
 
     it('provides error state', () => {
-        const errorContext = { ...mockAuthContext, error: 'Authentication failed' };
+        const errorContext = { ...mockAuthContext, error: new Error('Authentication failed') };
 
         const { result } = renderHook(() => useAuth(), {
-            wrapper: createWrapper(errorContext as typeof mockAuthContext)
+            wrapper: createWrapper(errorContext)
         });
 
-        expect(result.current.error).toBe('Authentication failed');
+        expect(result.current.error?.message).toBe('Authentication failed');
     });
 });

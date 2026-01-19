@@ -22,7 +22,9 @@ describe('useAutoNotification', () => {
     const testNotification = {
         type: 'warning' as const,
         title: 'Test Warning',
-        message: 'This is a test notification'
+        message: 'This is a test notification',
+        read: false,
+        createdAt: Date.now()
     };
 
     beforeEach(() => {
@@ -115,7 +117,9 @@ describe('useAutoNotification', () => {
                 useAutoNotification(true, {
                     type: 'error',
                     title: 'Error Title',
-                    message: 'Error message'
+                    message: 'Error message',
+                    read: false,
+                    createdAt: Date.now()
                 })
             );
 
@@ -137,7 +141,9 @@ describe('useAutoNotification', () => {
                     useAutoNotification(true, {
                         type,
                         title: `${type} notification`,
-                        message: 'Test message'
+                        message: 'Test message',
+                        read: false,
+                        createdAt: Date.now()
                     })
                 );
 
@@ -183,7 +189,7 @@ describe('useAutoNotification', () => {
                 ({ notification }) => useAutoNotification(true, notification),
                 {
                     initialProps: {
-                        notification: { type: 'info' as const, title: 'Test', message: 'Msg' }
+                        notification: { type: 'info' as const, title: 'Test', message: 'Msg', read: false, createdAt: Date.now() }
                     }
                 }
             );
@@ -192,7 +198,7 @@ describe('useAutoNotification', () => {
 
             // Rerender with identical content but new object reference
             rerender({
-                notification: { type: 'info' as const, title: 'Test', message: 'Msg' }
+                notification: { type: 'info' as const, title: 'Test', message: 'Msg', read: false, createdAt: Date.now() }
             });
 
             // Should not add again due to JSON comparison

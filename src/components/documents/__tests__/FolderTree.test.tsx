@@ -82,23 +82,35 @@ describe('FolderTree', () => {
     const mockFolders: DocumentFolder[] = [
         {
             id: 'folder-1',
+            organizationId: 'org-1',
             name: 'Policies',
-            parentId: undefined
+            parentId: undefined,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z'
         },
         {
             id: 'folder-2',
+            organizationId: 'org-1',
             name: 'Procedures',
-            parentId: undefined
+            parentId: undefined,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z'
         },
         {
             id: 'folder-3',
+            organizationId: 'org-1',
             name: 'Security Policies',
-            parentId: 'folder-1'
+            parentId: 'folder-1',
+            createdAt: '2024-01-02T00:00:00Z',
+            updatedAt: '2024-01-02T00:00:00Z'
         },
         {
             id: 'folder-4',
+            organizationId: 'org-1',
             name: 'HR Policies',
-            parentId: 'folder-1'
+            parentId: 'folder-1',
+            createdAt: '2024-01-02T00:00:00Z',
+            updatedAt: '2024-01-02T00:00:00Z'
         }
     ];
 

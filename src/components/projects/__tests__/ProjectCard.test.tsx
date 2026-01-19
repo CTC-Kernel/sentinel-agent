@@ -30,14 +30,16 @@ describe('ProjectCard', () => {
             { id: 't1', title: 'Task 1', status: 'En cours', assigneeId: 'user-1' }
         ],
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        manager: 'Test Manager',
+        dueDate: '2024-12-31',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
 
     const mockUser: UserProfile = {
         uid: 'user-1',
         email: 'test@example.com',
-        role: 'Admin',
+        role: 'admin',
         displayName: 'Test User',
         photoURL: null,
         organizationId: 'org-1'
@@ -48,7 +50,7 @@ describe('ProjectCard', () => {
         {
             uid: 'user-2',
             email: 'user2@example.com',
-            role: 'Member',
+            role: 'user',
             displayName: 'User Two',
             photoURL: null,
             organizationId: 'org-1'
@@ -224,9 +226,9 @@ describe('ProjectCard', () => {
         it('shows +N indicator when more than 3 members', () => {
             const manyMembers: UserProfile[] = [
                 ...mockUsersList,
-                { uid: 'user-3', email: 'u3@test.com', role: 'Member', displayName: 'User 3', photoURL: null, organizationId: 'org-1' },
-                { uid: 'user-4', email: 'u4@test.com', role: 'Member', displayName: 'User 4', photoURL: null, organizationId: 'org-1' },
-                { uid: 'user-5', email: 'u5@test.com', role: 'Member', displayName: 'User 5', photoURL: null, organizationId: 'org-1' }
+                { uid: 'user-3', email: 'u3@test.com', role: 'user', displayName: 'User 3', photoURL: null, organizationId: 'org-1' },
+                { uid: 'user-4', email: 'u4@test.com', role: 'user', displayName: 'User 4', photoURL: null, organizationId: 'org-1' },
+                { uid: 'user-5', email: 'u5@test.com', role: 'user', displayName: 'User 5', photoURL: null, organizationId: 'org-1' }
             ];
 
             render(

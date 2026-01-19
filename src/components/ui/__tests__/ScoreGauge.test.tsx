@@ -17,7 +17,7 @@ vi.mock('framer-motion', () => ({
 // Mock microInteractions utilities
 vi.mock('../../../utils/microInteractions', () => ({
   appleEasing: [0.16, 1, 0.3, 1],
-  animateCounter: vi.fn((from: number, to: number, duration: number, onUpdate: (v: number) => void, onComplete?: () => void) => {
+  animateCounter: vi.fn((_from: number, to: number, _duration: number, onUpdate: (v: number) => void, onComplete?: () => void) => {
     // Immediately set to final value for tests
     onUpdate(to);
     if (onComplete) onComplete();
@@ -27,11 +27,13 @@ vi.mock('../../../utils/microInteractions', () => ({
   triggerHaptic: vi.fn(),
 }));
 
-// Mock lucide-react icons
-vi.mock('lucide-react', () => {
+// Mock lucide-react icons with importOriginal to include all exports
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('lucide-react')>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Icon = ({ className, ...props }: any) => <span className={`icon ${className}`} {...props} />;
   return {
+    ...actual,
     TrendingUp: Icon,
     TrendingDown: Icon,
     Minus: Icon,

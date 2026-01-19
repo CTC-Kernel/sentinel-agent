@@ -30,7 +30,7 @@ const DropdownMenuContent = React.forwardRef<
                     align === "start" && "left-0",
                     align === "end" && "right-0",
                     align === "center" && "left-1/2 -translate-x-1/2",
-                    className
+                    className as string | undefined
                 )}
                 {...props}
             />
@@ -60,7 +60,7 @@ const DropdownMenuItem = React.forwardRef<
                     onClick={!disabled ? onClick : undefined}
                     {...props}
                 >
-                    {children}
+                    {children as React.ReactNode}
                 </div>
             )}
         </MenuItem>

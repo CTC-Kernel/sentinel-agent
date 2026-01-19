@@ -53,7 +53,7 @@ const generateAnomalyId = (): string => {
  */
 const calculateSeverity = (
   type: VoxelAnomalyType,
-  details: Record<string, unknown> = {}
+  details: VoxelAnomalyDetails = {}
 ): VoxelAnomalySeverity => {
   switch (type) {
     case 'circular_dependency':
@@ -139,7 +139,7 @@ export const detectOrphanControls = (
 
   // Find orphan controls
   controls.forEach((control) => {
-    if (!linkedControlIds.has(control.id) && control.status !== 'inactive') {
+    if (!linkedControlIds.has(control.id) && control.status !== 'Inactif') {
       anomalies.push(
         createAnomaly(
           'orphan_control',
@@ -181,14 +181,14 @@ export const detectCoverageGaps = (
       r.mitigationControlIds.length > 0;
 
     // Skip accepted risks
-    if (r.strategy === 'Accepter' || r.strategy === 'accept') return;
+    if (r.strategy === 'Accepter') return;
 
     if (!hasControls) {
       anomalies.push(
         createAnomaly(
           'coverage_gap',
           r.id,
-          `Risque "${r.threat || r.name}" sans contrôle de mitigation`,
+          `Risque "${r.threat}" sans contrôle de mitigation`,
           {
             context: {
               riskScore: r.score || 0,
@@ -222,7 +222,7 @@ export const detectStaleAssessments = (
   // Check controls
   controls.forEach((control) => {
     const c = control as ControlWithAssessment;
-    if (c.status === 'inactive') return;
+    if (c.status === 'Inactif') return;
 
     let lastAssessment: Date | null = null;
     if (c.lastAssessmentDate) {
@@ -276,7 +276,7 @@ export const detectStaleAssessments = (
         createAnomaly(
           'stale_assessment',
           r.id,
-          `Risque "${r.threat || r.name}" non réévalué depuis ${daysSince} jours`,
+          `Risque "${r.threat}" non réévalué depuis ${daysSince} jours`,
           {
             daysSinceAssessment: daysSince,
             threshold: STALE_THRESHOLD_DAYS,
@@ -304,7 +304,7 @@ export const detectComplianceDrift = (
 
   controls.forEach((control) => {
     const c = control as ControlWithAssessment;
-    if (c.status === 'inactive') return;
+    if (c.status === 'Inactif') return;
 
     const effectiveness =
       c.effectiveness ?? c.maturity ?? c.score;

@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ContentBlockerError } from '../ContentBlockerError';
 
@@ -16,15 +16,19 @@ vi.mock('../../../hooks/useAuth', () => ({
     })
 }));
 
-// Mock lucide-react
-vi.mock('lucide-react', () => ({
-    ShieldAlert: (props: React.ComponentProps<'svg'>) =>
-        React.createElement('svg', { ...props, 'data-testid': 'shield-alert-icon' }),
-    RefreshCw: (props: React.ComponentProps<'svg'>) =>
-        React.createElement('svg', { ...props, 'data-testid': 'refresh-icon' }),
-    AlertTriangle: (props: React.ComponentProps<'svg'>) =>
-        React.createElement('svg', { ...props, 'data-testid': 'alert-triangle-icon' })
-}));
+// Mock lucide-react with importOriginal to include all exports
+vi.mock('lucide-react', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('lucide-react')>();
+    return {
+        ...actual,
+        ShieldAlert: (props: React.ComponentProps<'svg'>) =>
+            React.createElement('svg', { ...props, 'data-testid': 'shield-alert-icon' }),
+        RefreshCw: (props: React.ComponentProps<'svg'>) =>
+            React.createElement('svg', { ...props, 'data-testid': 'refresh-icon' }),
+        AlertTriangle: (props: React.ComponentProps<'svg'>) =>
+            React.createElement('svg', { ...props, 'data-testid': 'alert-triangle-icon' })
+    };
+});
 
 describe('ContentBlockerError', () => {
     let originalLocation: Location;

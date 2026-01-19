@@ -150,7 +150,7 @@ function MetricCard({
   label: string;
   value: number | string;
   delta?: number;
-  icon?: React.ElementType;
+  icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
     <div className="bg-muted/50 rounded-lg p-3">

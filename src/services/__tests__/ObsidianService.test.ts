@@ -37,8 +37,8 @@ describe('ObsidianService', () => {
         owner: 'Security Team',
         residualScore: 8,
         organizationId: 'org-1',
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-06-15'),
+        createdAt: new Date('2024-01-15').toISOString(),
+        updatedAt: new Date('2024-06-15').toISOString(),
         ...overrides
     });
 
@@ -46,15 +46,14 @@ describe('ObsidianService', () => {
         id: 'asset-123',
         name: 'Production Server',
         type: 'Matériel',
-        description: 'Main production server',
         location: 'Datacenter Paris',
         owner: 'IT Team',
         confidentiality: Criticality.HIGH,
         integrity: Criticality.HIGH,
         availability: Criticality.CRITICAL,
         organizationId: 'org-1',
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-06-01'),
+        createdAt: new Date('2024-01-01').toISOString(),
+        updatedAt: new Date('2024-06-01').toISOString(),
         ...overrides
     });
 
@@ -212,11 +211,11 @@ describe('ObsidianService', () => {
         it('includes data details when available', () => {
             const asset = createAsset({
                 type: 'Données',
-                dataDetails: { format: 'JSON', dataCategory: 'Client' }
+                dataDetails: { format: 'Numérique', dataCategory: 'Client' }
             });
             const result = ObsidianService.formatAssetToMarkdown(asset);
 
-            expect(result).toContain('**Data Format**: JSON');
+            expect(result).toContain('**Data Format**: Numérique');
         });
     });
 

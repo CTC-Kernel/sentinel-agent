@@ -72,9 +72,9 @@ describe('useGlobalSearch', () => {
             const { result } = renderHook(() => useGlobalSearch());
 
             act(() => {
-                result.current.performSearch('test', {}, 'all');
-                result.current.performSearch('test2', {}, 'all');
-                result.current.performSearch('test3', {}, 'all');
+                result.current.performSearch('test', { query: 'test' }, 'all');
+                result.current.performSearch('test2', { query: 'test2' }, 'all');
+                result.current.performSearch('test3', { query: 'test3' }, 'all');
             });
 
             // Only the last search should execute after debounce
@@ -87,7 +87,7 @@ describe('useGlobalSearch', () => {
             const { result } = renderHook(() => useGlobalSearch());
 
             act(() => {
-                result.current.performSearch('test', {}, 'all');
+                result.current.performSearch('test', { query: 'test' }, 'all');
             });
 
             // Advance timer past debounce delay
@@ -110,7 +110,7 @@ describe('useGlobalSearch', () => {
             const { result } = renderHook(() => useGlobalSearch());
 
             act(() => {
-                result.current.performSearch('test', {}, 'all');
+                result.current.performSearch('test', { query: 'test' }, 'all');
             });
 
             act(() => {

@@ -6,10 +6,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SupplierContractCompliance } from '../SupplierContractCompliance';
-import { Supplier } from '../../../../types';
+import { Supplier, Criticality } from '../../../../types';
 
-// Mock lucide-react icons
-vi.mock('lucide-react', () => ({
+// Mock UI icons
+vi.mock('../../../ui/Icons', () => ({
     Check: () => <span data-testid="check-icon" />,
     ShieldCheck: () => <span data-testid="shield-check-icon" />,
     AlertTriangle: () => <span data-testid="alert-triangle-icon" />,
@@ -41,9 +41,10 @@ describe('SupplierContractCompliance', () => {
 
     const mockSupplier: Supplier = {
         id: 'supplier-1',
+        organizationId: 'org-1',
         name: 'Cloud Provider Inc',
-        category: 'Cloud',
-        criticality: 'Élevé',
+        category: 'SaaS',
+        criticality: Criticality.HIGH,
         status: 'Actif',
         doraContractClauses: {
             auditRights: true,
@@ -52,6 +53,19 @@ describe('SupplierContractCompliance', () => {
             subcontractingConditions: false,
             incidentNotification: true,
             exitStrategy: false
+        },
+        riskAssessment: {
+            overallScore: 75
+        },
+        contract: {
+            endDate: '2025-12-31'
+        },
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-06-01T00:00:00Z',
+        reviewDates: {
+            contractReview: '2024-03-01',
+            securityReview: '2024-03-15',
+            complianceReview: '2024-04-01'
         }
     };
 

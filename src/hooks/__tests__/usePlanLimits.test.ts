@@ -24,27 +24,30 @@ vi.mock('../../store', () => ({
 // Mock plan config
 vi.mock('../../config/plans', () => ({
     getPlanLimits: (plan: string) => {
-        const plans: Record<string, { maxUsers: number; maxProjects: number; maxAssets: number; maxStorageGB: number; features: { customReports: boolean; apiAccess: boolean; advancedAnalytics: boolean } }> = {
+        const plans: Record<string, { maxUsers: number; maxProjects: number; maxAssets: number; maxStorageGB: number; maxFrameworks: number; features: { apiAccess: boolean; sso: boolean; whiteLabelReports: boolean; customTemplates: boolean; aiAssistant: boolean } }> = {
             discovery: {
                 maxUsers: 5,
                 maxProjects: 1,
                 maxAssets: 100,
                 maxStorageGB: 1,
-                features: { customReports: false, apiAccess: false, advancedAnalytics: false },
+                maxFrameworks: 2,
+                features: { apiAccess: false, sso: false, whiteLabelReports: false, customTemplates: false, aiAssistant: false },
             },
             professional: {
                 maxUsers: 25,
                 maxProjects: 10,
                 maxAssets: 1000,
                 maxStorageGB: 10,
-                features: { customReports: true, apiAccess: true, advancedAnalytics: false },
+                maxFrameworks: 5,
+                features: { apiAccess: true, sso: true, whiteLabelReports: false, customTemplates: true, aiAssistant: true },
             },
             enterprise: {
                 maxUsers: 999999,
                 maxProjects: 999999,
                 maxAssets: 999999,
                 maxStorageGB: 999999,
-                features: { customReports: true, apiAccess: true, advancedAnalytics: true },
+                maxFrameworks: 999999,
+                features: { apiAccess: true, sso: true, whiteLabelReports: true, customTemplates: true, aiAssistant: true },
             },
         };
         return plans[plan] || plans.discovery;
@@ -97,14 +100,14 @@ describe('usePlanLimits', () => {
     it('should check hasFeature correctly for true features', () => {
         const { result } = renderHook(() => usePlanLimits());
 
-        expect(result.current.hasFeature('customReports')).toBe(true);
         expect(result.current.hasFeature('apiAccess')).toBe(true);
+        expect(result.current.hasFeature('sso')).toBe(true);
     });
 
     it('should check hasFeature correctly for false features', () => {
         const { result } = renderHook(() => usePlanLimits());
 
-        expect(result.current.hasFeature('advancedAnalytics')).toBe(false);
+        expect(result.current.hasFeature('whiteLabelReports')).toBe(false);
     });
 
     it('should return false for non-existent features', () => {
@@ -140,6 +143,6 @@ describe('usePlanLimits', () => {
         const { result } = renderHook(() => usePlanLimits());
 
         expect(result.current.limits.maxUsers).toBe(999999);
-        expect(result.current.hasFeature('advancedAnalytics')).toBe(true);
+        expect(result.current.hasFeature('whiteLabelReports')).toBe(true);
     });
 });

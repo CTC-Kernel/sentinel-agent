@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { NIS2DeadlineTimer } from '../NIS2DeadlineTimer';
-import { Incident } from '../../../types';
+import { Incident, Criticality } from '../../../types';
 import { DeadlineStatus } from '../../../utils/nis2Utils';
 
 // Mock nis2Utils
@@ -26,12 +26,12 @@ describe('NIS2DeadlineTimer', () => {
         id: 'inc-1',
         title: 'Security Incident',
         description: 'Test incident',
-        status: 'En cours',
-        severity: 'Critique',
+        status: 'Analyse',
+        severity: Criticality.CRITICAL,
         isSignificant: true,
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        dateReported: new Date().toISOString(),
+        reporter: 'Test User'
     };
 
     const mockDeadlines = [

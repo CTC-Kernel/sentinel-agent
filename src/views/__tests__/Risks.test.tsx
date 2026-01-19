@@ -51,42 +51,12 @@ vi.mock('react-helmet-async', () => ({
     HelmetProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('../../components/ui/Icons', () => ({
-    Plus: () => <span data-testid="icon-plus" />,
-    Search: () => <span data-testid="icon-search" />,
-    ShieldAlert: () => <span data-testid="icon-shield-alert" />,
-    Server: () => <span data-testid="icon-server" />,
-    Trash2: () => <span data-testid="icon-trash" />,
-    History: () => <span data-testid="icon-history" />,
-    MessageSquare: () => <span data-testid="icon-message" />,
-    FileSpreadsheet: () => <span data-testid="icon-spreadsheet" />,
-    Clock: () => <span data-testid="icon-clock" />,
-    Copy: () => <span data-testid="icon-copy" />,
-    FolderKanban: () => <span data-testid="icon-folder" />,
-    Network: () => <span data-testid="icon-network" />,
-    Circle: () => <span data-testid="icon-circle" />,
-    CheckCircle2: () => <span data-testid="icon-check-circle" />,
-    CalendarDays: () => <span data-testid="icon-calendar" />,
-    Download: () => <span data-testid="icon-download" />,
-    TrendingUp: () => <span data-testid="icon-trending-up" />,
-    TrendingDown: () => <span data-testid="icon-trending-down" />,
-    ArrowRight: () => <span data-testid="icon-arrow-right" />,
-    Upload: () => <span data-testid="icon-upload" />,
-    LayoutDashboard: () => <span data-testid="icon-dashboard" />,
-    Filter: () => <span data-testid="icon-filter" />,
-    RefreshCw: () => <span data-testid="icon-refresh" />,
-    Edit: () => <span data-testid="icon-edit" />,
-    FileText: () => <span data-testid="icon-file-text" />,
-    BrainCircuit: () => <span data-testid="icon-brain" />,
-    LayoutGrid: () => <span data-testid="icon-layout-grid" />,
-    List: () => <span data-testid="icon-list" />,
-    Activity: () => <span data-testid="icon-activity" />,
-    AlertTriangle: () => <span data-testid="icon-alert" />,
-    Layers: () => <span data-testid="icon-layers" />,
-    Target: () => <span data-testid="icon-target" />,
-    PieChart: () => <span data-testid="icon-pie-chart" />,
-    X: () => <span data-testid="icon-x" />,
-}));
+vi.mock('../../components/ui/Icons', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../components/ui/Icons')>();
+    return {
+        ...actual,
+    };
+});
 // Mock other components to simplify test
 vi.mock('../../components/ui/PageHeader', () => ({
     PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>

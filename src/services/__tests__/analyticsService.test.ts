@@ -36,7 +36,7 @@ describe('AnalyticsService', () => {
         mockLogEvent = firebaseAnalytics.logEvent as ReturnType<typeof vi.fn>;
 
         const errorLoggerModule = await import('../errorLogger');
-        mockErrorLogger = errorLoggerModule.ErrorLogger as typeof mockErrorLogger;
+        mockErrorLogger = errorLoggerModule.ErrorLogger as unknown as typeof mockErrorLogger;
 
         // Re-import service to get fresh instance
         vi.resetModules();
@@ -62,7 +62,7 @@ describe('AnalyticsService', () => {
         const firebaseAnalyticsNew = await import('firebase/analytics');
         mockLogEvent = firebaseAnalyticsNew.logEvent as ReturnType<typeof vi.fn>;
         const errorLoggerNew = await import('../errorLogger');
-        mockErrorLogger = errorLoggerNew.ErrorLogger as typeof mockErrorLogger;
+        mockErrorLogger = errorLoggerNew.ErrorLogger as unknown as typeof mockErrorLogger;
     });
 
     afterEach(() => {

@@ -3,7 +3,6 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ProgressRing } from '../ProgressRing';

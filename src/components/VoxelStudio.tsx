@@ -5,7 +5,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Billboard, Text, Float, Environment } from '@react-three/drei';
 import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, CanvasTexture, CatmullRomCurve3, Points as ThreePoints, DoubleSide, Group } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, AISuggestedLink } from '../types';
+import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, VoxelNodeType, VoxelNodeStatus, AISuggestedLink } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 import { VoxelMesh } from './voxel/VoxelMesh';
 import { ModelLibraryProvider } from '../contexts/ModelLibraryContext';
@@ -219,7 +219,7 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
     if (!controls) return;
 
     if (target) {
-      focusVec.current.set(...target.position);
+      focusVec.current.set(target.position.x, target.position.y, target.position.z);
       if (focusOnCardRef.current) {
         const cardOffsetX = -5 + overlayOffset.x * 0.01;
         const cardOffsetY = 1 - overlayOffset.y * 0.01;
@@ -414,8 +414,14 @@ const PresentationManager: React.FC<{ presentationMode: boolean | undefined; vox
 
   const criticalNodes = useMemo(() => {
     return voxelNodes.filter(node => {
-      if (node.type === 'risk') return (node.data as Risk).score >= 12;
-      if (node.type === 'incident') return (node.data as Incident).severity === 'Critique' || (node.data as Incident).severity === 'Élevée';
+      if (node.type === 'risk') {
+        const riskData = node.data as unknown as Risk;
+        return riskData.score >= 12;
+      }
+      if (node.type === 'incident') {
+        const incidentData = node.data as unknown as Incident;
+        return incidentData.severity === 'Critique' || incidentData.severity === 'Élevée';
+      }
       return false;
     });
   }, [voxelNodes]);
@@ -440,8 +446,39 @@ const PresentationManager: React.FC<{ presentationMode: boolean | undefined; vox
   return null;
 };
 
-const SCENE_OFFSET: [number, number, number] = [5.5, 0, 0];
-const applySceneOffset = (x: number, y: number, z: number): [number, number, number] => [x + SCENE_OFFSET[0], y + SCENE_OFFSET[1], z + SCENE_OFFSET[2]];
+const SCENE_OFFSET = { x: 5.5, y: 0, z: 0 };
+const applySceneOffset = (x: number, y: number, z: number): { x: number; y: number; z: number } => ({
+  x: x + SCENE_OFFSET.x,
+  y: y + SCENE_OFFSET.y,
+  z: z + SCENE_OFFSET.z
+});
+
+// Helper to convert object position to array for Three.js
+const positionToArray = (pos: { x: number; y: number; z: number }): [number, number, number] => [pos.x, pos.y, pos.z];
+
+// Helper to get color from node type and status
+const getNodeColor = (type: VoxelNodeType, status: VoxelNodeStatus, data?: Record<string, unknown>): string => {
+  // Status-based coloring takes priority for critical states
+  if (status === 'critical') return '#ef4444';
+  if (status === 'warning') return '#f59e0b';
+
+  // Type-based default colors
+  switch (type) {
+    case 'asset': return '#3b82f6';
+    case 'risk': {
+      const score = (data as { score?: number })?.score ?? 0;
+      if (score >= 15) return '#ef4444';
+      if (score >= 10) return '#f59e0b';
+      return '#22c55e';
+    }
+    case 'project': return '#a855f7';
+    case 'audit': return '#06b6d4';
+    case 'incident': return '#f43f5e';
+    case 'supplier': return '#22c55e';
+    case 'control': return '#14b8a6';
+    default: return '#6b7280';
+  }
+};
 
 export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   assets = [], risks = [], projects = [], audits = [], incidents = [], suppliers = [], controls = [],
@@ -477,11 +514,30 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     const spacing = 4;
     const currentVisible = visibleTypes || [];
 
+    const now = new Date();
+
     if (currentVisible.includes('asset')) {
       safeAssets.forEach((asset, i) => {
         const row = Math.floor(i / GRID_SIZE);
         const col = i % GRID_SIZE;
-        nodes.push({ id: asset.id, position: applySceneOffset(col * 3 - (GRID_SIZE * 1.5), 0, row * 3 - (GRID_SIZE * 1.5)), color: '#3b82f6', size: 1, type: 'asset', data: asset, connections: [] });
+        // Determine status from highest criticality among C/I/A
+        const maxCriticality = [asset.confidentiality, asset.integrity, asset.availability]
+          .find(c => c === 'Critique') ? 'Critique' :
+          [asset.confidentiality, asset.integrity, asset.availability]
+          .find(c => c === 'Élevée') ? 'Élevée' : 'Normal';
+        const status: VoxelNodeStatus = maxCriticality === 'Critique' ? 'critical' : maxCriticality === 'Élevée' ? 'warning' : 'normal';
+        nodes.push({
+          id: asset.id,
+          type: 'asset',
+          label: asset.name || 'Asset',
+          status,
+          position: applySceneOffset(col * 3 - (GRID_SIZE * 1.5), 0, row * 3 - (GRID_SIZE * 1.5)),
+          size: 1,
+          data: asset as unknown as Record<string, unknown>,
+          connections: [],
+          createdAt: now,
+          updatedAt: now
+        });
       });
     }
     if (currentVisible.includes('risk')) {
@@ -489,22 +545,60 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         const x = (index % GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
         const z = Math.floor(index / GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
         const safeScore = Number.isFinite(risk.score) ? risk.score : 0;
-        const riskColor = safeScore >= 15 ? '#ef4444' : safeScore >= 10 ? '#f59e0b' : '#22c55e';
-        nodes.push({ id: risk.id, type: 'risk', position: applySceneOffset(x, -4, z), color: riskColor, size: 0.6 + (safeScore / 25) * 0.4, data: risk, connections: [risk.assetId] });
+        const status: VoxelNodeStatus = safeScore >= 15 ? 'critical' : safeScore >= 10 ? 'warning' : 'normal';
+        nodes.push({
+          id: risk.id,
+          type: 'risk',
+          label: risk.threat || 'Risk',
+          status,
+          position: applySceneOffset(x, -4, z),
+          size: 0.6 + (safeScore / 25) * 0.4,
+          data: risk as unknown as Record<string, unknown>,
+          connections: risk.assetId ? [risk.assetId] : [],
+          createdAt: now,
+          updatedAt: now
+        });
       });
     }
     if (currentVisible.includes('project')) {
       safeProjects.forEach((project, index) => {
         const x = (index % GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
         const z = Math.floor(index / GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
-        nodes.push({ id: project.id, type: 'project', position: applySceneOffset(x, 0, z), color: '#a855f7', size: 1.2, data: project, connections: project.relatedRiskIds || [] });
+        const status: VoxelNodeStatus = (project.status || '').toLowerCase().includes('retard') ? 'warning' : 'normal';
+        nodes.push({
+          id: project.id,
+          type: 'project',
+          label: project.name || 'Project',
+          status,
+          position: applySceneOffset(x, 0, z),
+          size: 1.2,
+          data: project as unknown as Record<string, unknown>,
+          connections: project.relatedRiskIds || [],
+          createdAt: now,
+          updatedAt: now
+        });
       });
     }
     if (currentVisible.includes('audit')) {
       safeAudits.forEach((audit, i) => {
         const angle = (i / (safeAudits.length || 1)) * Math.PI * 2;
         const radius = 12;
-        nodes.push({ id: audit.id, position: applySceneOffset(Math.cos(angle) * radius, 8, Math.sin(angle) * radius), color: '#06b6d4', size: 0.9, type: 'audit', data: audit, connections: [...(Array.isArray(audit.relatedAssetIds) ? audit.relatedAssetIds : []), ...(Array.isArray(audit.relatedRiskIds) ? audit.relatedRiskIds : []), ...(Array.isArray(audit.relatedProjectIds) ? audit.relatedProjectIds : [])] });
+        nodes.push({
+          id: audit.id,
+          type: 'audit',
+          label: audit.name || 'Audit',
+          status: 'normal',
+          position: applySceneOffset(Math.cos(angle) * radius, 8, Math.sin(angle) * radius),
+          size: 0.9,
+          data: audit as unknown as Record<string, unknown>,
+          connections: [
+            ...(Array.isArray(audit.relatedAssetIds) ? audit.relatedAssetIds : []),
+            ...(Array.isArray(audit.relatedRiskIds) ? audit.relatedRiskIds : []),
+            ...(Array.isArray(audit.relatedProjectIds) ? audit.relatedProjectIds : [])
+          ],
+          createdAt: now,
+          updatedAt: now
+        });
       });
     }
     if (currentVisible.includes('incident')) {
@@ -512,7 +606,19 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         const angle = (i / (safeIncidents.length || 1)) * Math.PI * 2 + 1;
         const radius = 15;
         const isCritical = incident.severity === 'Critique' || incident.severity === 'Élevée';
-        nodes.push({ id: incident.id, position: applySceneOffset(Math.cos(angle) * radius, isCritical ? 12 : 6, Math.sin(angle) * radius), color: '#f43f5e', size: isCritical ? 1.5 : 1, type: 'incident', data: incident, connections: incident.affectedAssetId ? [incident.affectedAssetId] : [] });
+        const status: VoxelNodeStatus = incident.severity === 'Critique' ? 'critical' : incident.severity === 'Élevée' ? 'warning' : 'normal';
+        nodes.push({
+          id: incident.id,
+          type: 'incident',
+          label: incident.title || 'Incident',
+          status,
+          position: applySceneOffset(Math.cos(angle) * radius, isCritical ? 12 : 6, Math.sin(angle) * radius),
+          size: isCritical ? 1.5 : 1,
+          data: incident as unknown as Record<string, unknown>,
+          connections: incident.affectedAssetId ? [incident.affectedAssetId] : [],
+          createdAt: now,
+          updatedAt: now
+        });
       });
     }
     if (currentVisible.includes('supplier')) {
@@ -522,7 +628,18 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         const connections: string[] = [];
         if (Array.isArray(s.relatedAssetIds)) connections.push(...s.relatedAssetIds);
         if (Array.isArray(s.relatedProjectIds)) connections.push(...s.relatedProjectIds);
-        nodes.push({ id: s.id, type: 'supplier', data: s, position: applySceneOffset(x, 1, z), color: '#22c55e', size: 1.1, connections });
+        nodes.push({
+          id: s.id,
+          type: 'supplier',
+          label: s.name || 'Supplier',
+          status: 'normal',
+          position: applySceneOffset(x, 1, z),
+          size: 1.1,
+          data: s as unknown as Record<string, unknown>,
+          connections,
+          createdAt: now,
+          updatedAt: now
+        });
       });
     }
     if (currentVisible.includes('control')) {
@@ -534,7 +651,18 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
         const connections: string[] = [];
         if (Array.isArray(c.relatedAssetIds)) connections.push(...c.relatedAssetIds);
         if (Array.isArray(c.relatedRiskIds)) connections.push(...c.relatedRiskIds);
-        nodes.push({ id: c.id, type: 'control', data: c, position: applySceneOffset(x, 2, z), color: '#14b8a6', size: 1.0, connections });
+        nodes.push({
+          id: c.id,
+          type: 'control',
+          label: c.name || 'Control',
+          status: 'normal',
+          position: applySceneOffset(x, 2, z),
+          size: 1.0,
+          data: c as unknown as Record<string, unknown>,
+          connections,
+          createdAt: now,
+          updatedAt: now
+        });
       });
     }
     return nodes;
@@ -575,7 +703,7 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     setSelectedNode(node);
     focusOnCardRef.current = true;
     shouldSnapToTarget.current = true;
-    setImpactPosition(node.position);
+    setImpactPosition(positionToArray(node.position));
     setImpactKey(prev => prev + 1);
     onNodeClick?.(node); // Explicitly call parent, removing the loop
   }, [onNodeClick]);
@@ -681,8 +809,19 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       node.connections.forEach(connectionId => {
         const target = voxelNodes.find(n => n.id === connectionId);
         if (target) {
-          const distance = Math.sqrt((node.position[0] - target.position[0]) ** 2 + (node.position[1] - target.position[1]) ** 2 + (node.position[2] - target.position[2]) ** 2);
-          pairs.push({ start: node.position, end: target.position, strength: Math.max(0.3, 1 - distance / 25), sourceId: node.id, targetId: target.id, type: node.type });
+          const distance = Math.sqrt(
+            (node.position.x - target.position.x) ** 2 +
+            (node.position.y - target.position.y) ** 2 +
+            (node.position.z - target.position.z) ** 2
+          );
+          pairs.push({
+            start: positionToArray(node.position),
+            end: positionToArray(target.position),
+            strength: Math.max(0.3, 1 - distance / 25),
+            sourceId: node.id,
+            targetId: target.id,
+            type: node.type
+          });
         }
       });
     });
@@ -695,7 +834,14 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       const source = voxelNodes.find(n => n.id === link.sourceId);
       const target = voxelNodes.find(n => n.id === link.targetId);
       if (source && target) {
-        pairs.push({ start: source.position, end: target.position, strength: link.confidence, type: link.type, sourceId: source.id, targetId: target.id });
+        pairs.push({
+          start: positionToArray(source.position),
+          end: positionToArray(target.position),
+          strength: link.confidence,
+          type: link.type,
+          sourceId: source.id,
+          targetId: target.id
+        });
       }
     });
     return pairs;
@@ -726,7 +872,11 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
               <ScanRing radius={25} color="#f97316" speed={0.1} />
               <Environment preset="city" />
               {selectedNode && (
-                <TargetReticle position={selectedNode.position} size={selectedNode.size} color={selectedNode.color} />
+                <TargetReticle
+                  position={positionToArray(selectedNode.position)}
+                  size={selectedNode.size}
+                  color={getNodeColor(selectedNode.type, selectedNode.status, selectedNode.data)}
+                />
               )}
               {impactPosition && (
                 <ImpactWave key={impactKey} position={impactPosition} />

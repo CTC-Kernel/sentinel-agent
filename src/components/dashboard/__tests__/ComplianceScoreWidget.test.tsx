@@ -17,7 +17,7 @@ vi.mock('framer-motion', () => ({
 // Mock microInteractions utilities
 vi.mock('../../../utils/microInteractions', () => ({
   appleEasing: [0.16, 1, 0.3, 1],
-  animateCounter: vi.fn((from: number, to: number, duration: number, onUpdate: (v: number) => void, onComplete?: () => void) => {
+  animateCounter: vi.fn((_from: number, to: number, _duration: number, onUpdate: (v: number) => void, onComplete?: () => void) => {
     onUpdate(to);
     if (onComplete) onComplete();
     return () => {};

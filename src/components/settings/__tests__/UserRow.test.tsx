@@ -75,9 +75,16 @@ describe('UserRow', () => {
     const mockOrg: Organization = {
         id: 'org-1',
         name: 'Test Org',
+        slug: 'test-org',
         ownerId: 'owner-user',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        subscription: {
+            planId: 'professional',
+            status: 'active',
+            currentPeriodEnd: new Date().toISOString(),
+            cancelAtPeriodEnd: false,
+        },
     };
 
     const mockOnUpdateRole = vi.fn();

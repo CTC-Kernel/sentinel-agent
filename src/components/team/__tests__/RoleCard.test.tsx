@@ -32,13 +32,13 @@ describe('RoleCard', () => {
         name: 'Developer',
         description: 'Development team role with code access',
         permissions: {
-            Risk: ['read', 'write'],
+            Risk: ['read', 'update'],
             Control: ['read'],
-            Asset: ['read', 'write', 'delete']
+            Asset: ['read', 'update', 'delete']
         },
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z'
     };
 
     const mockOnEdit = vi.fn();
@@ -165,7 +165,7 @@ describe('RoleCard', () => {
         });
 
         it('shows correct count for many resources', () => {
-            const manyPermissions = {
+            const manyPermissions: CustomRole['permissions'] = {
                 Risk: ['read'],
                 Control: ['read'],
                 Asset: ['read'],

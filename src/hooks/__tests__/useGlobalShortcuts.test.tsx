@@ -174,8 +174,8 @@ describe('useGlobalShortcuts', () => {
     describe('shortcut handler behavior', () => {
         it('navigation shortcut calls navigate', () => {
             // Capture the handler for ctrl+1
-            let navigationHandler: ((e: KeyboardEvent) => void) | null = null;
-            mockUseHotkeys.mockImplementation((keys, handler) => {
+            let navigationHandler: ((e: KeyboardEvent) => void) | undefined;
+            mockUseHotkeys.mockImplementation((keys: string, handler: (e: KeyboardEvent) => void) => {
                 if (typeof keys === 'string' && keys.includes('ctrl+1')) {
                     navigationHandler = handler;
                 }
@@ -193,8 +193,8 @@ describe('useGlobalShortcuts', () => {
         });
 
         it('theme shortcut calls toggleTheme', () => {
-            let themeHandler: ((e: KeyboardEvent) => void) | null = null;
-            mockUseHotkeys.mockImplementation((keys, handler) => {
+            let themeHandler: ((e: KeyboardEvent) => void) | undefined;
+            mockUseHotkeys.mockImplementation((keys: string, handler: (e: KeyboardEvent) => void) => {
                 if (typeof keys === 'string' && keys.includes('ctrl+shift+t')) {
                     themeHandler = handler;
                 }

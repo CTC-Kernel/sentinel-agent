@@ -99,7 +99,7 @@ describe('AnomalyDetectionService', () => {
     });
 
     it('should not flag inactive controls', () => {
-      const controls = [createMockControl({ id: 'ctrl-1', name: 'Inactive Control', status: 'inactive' })];
+      const controls = [createMockControl({ id: 'ctrl-1', name: 'Inactive Control', status: 'Inactif' })];
 
       const risks: Parameters<typeof detectOrphanControls>[1] = [];
 
@@ -377,7 +377,7 @@ describe('AnomalyDetectionService', () => {
       const controls = [
         createMockControl({
           id: 'ctrl-1',
-          status: 'inactive',
+          status: 'Inactif',
           lastAssessmentDate: staleDate.toISOString(),
         }),
       ];
@@ -454,7 +454,7 @@ describe('AnomalyDetectionService', () => {
         createMockControl({
           id: 'ctrl-1',
           effectiveness: 20,
-          status: 'inactive',
+          status: 'Inactif',
         }),
       ];
 

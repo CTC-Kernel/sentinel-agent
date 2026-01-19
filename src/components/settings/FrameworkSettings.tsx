@@ -73,7 +73,7 @@ export const FrameworkSettings: React.FC = () => {
                     addToast(
                         t('settings.frameworkLimitReached') ||
                         `Votre plan est limité à ${maxFrameworks} framework(s). Passez à un plan supérieur pour en activer plus.`,
-                        'warning'
+                        'info'
                     );
                     return prev;
                 }
@@ -111,7 +111,7 @@ export const FrameworkSettings: React.FC = () => {
         if (!acc[fw.type]) acc[fw.type] = [];
         acc[fw.type].push(fw);
         return acc;
-    }, {} as Record<string, typeof FRAMEWORKS>);
+    }, {} as Record<string, Array<typeof FRAMEWORKS[number]>>);
 
     if (!hasPermission(user, 'Settings', 'manage')) {
         return (

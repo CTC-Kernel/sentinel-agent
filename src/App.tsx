@@ -308,7 +308,7 @@ const router = createHashRouter([
         v7_skipActionErrorRevalidation: true,
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any); // Type assertion to bypass potential type definition mismatch in v6.29
+} as any);
 
 const AppContent: React.FC = () => {
     console.log("Router Future Config:", router.future);

@@ -16,26 +16,15 @@ vi.mock('framer-motion', () => ({
     }
 }));
 
-// Mock Icons
-vi.mock('../../../ui/Icons', () => ({
-    Server: () => <span data-testid="server-icon" />,
-    ClipboardCheck: () => <span data-testid="clipboard-icon" />,
-    FileText: () => <span data-testid="file-icon" />,
-    ArrowRight: () => <span data-testid="arrow-icon" />,
-    CalendarDays: () => <span data-testid="calendar-icon" />,
-    Loader2: () => <span data-testid="loader-icon" />,
-    Activity: () => <span data-testid="activity-icon" />,
-    ShieldCheck: () => <span data-testid="shield-icon" />,
-    Users: () => <span data-testid="users-icon" />,
-    AlertTriangle: () => <span data-testid="alert-icon" />,
-    LayoutDashboard: () => <span data-testid="layout-icon" />,
-    Check: () => <span data-testid="check-icon" />
-}));
-
-// Mock lucide-react Rocket
-vi.mock('lucide-react', () => ({
-    Rocket: () => <span data-testid="rocket-icon" />
-}));
+// Mock Icons - use importOriginal to include all icons
+vi.mock('../../../ui/Icons', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../../ui/Icons')>();
+    return {
+        ...actual,
+        // Override specific icons for testing if needed
+        Loader2: () => <span data-testid="loader-icon" />
+    };
+});
 
 // Mock ShinyText
 vi.mock('../../../ui/ShinyText', () => ({

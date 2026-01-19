@@ -5,7 +5,7 @@
  * Includes keyboard shortcuts, preset previews, and custom view management.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { ChevronDown, Check, Plus, Link2, Settings2 } from '../ui/Icons';
 import {
   DropdownMenu,
@@ -16,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useVoxelStore, useCurrentPreset } from '@/stores/voxelStore';
 import { VIEW_PRESETS, getAvailablePresets, type ExtendedViewPresetConfig } from '@/stores/viewPresets';
@@ -81,7 +80,6 @@ export function ViewSelector({
   const currentPreset = useCurrentPreset();
   const applyPreset = useVoxelStore((s) => s.applyPreset);
   const presets = getAvailablePresets();
-  const [isOpen, setIsOpen] = useState(false);
 
   const currentConfig = VIEW_PRESETS[currentPreset];
 
@@ -113,41 +111,37 @@ export function ViewSelector({
   }, [applyPreset]);
 
   // Handle copy link action
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
-  const handleCopyLink = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopyLink = useCallback(() => {
     onCopyLink?.();
-    setIsOpen(false);
   }, [onCopyLink]);
 
   // Handle save custom view action
-  const handleSaveCustomView = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleSaveCustomView = useCallback(() => {
     onSaveCustomView?.();
-    setIsOpen(false);
-  }, [onSaveCustomView, setIsOpen]);
+  }, [onSaveCustomView]);
 
   // Handle manage views action
-  const handleManageViews = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleManageViews = useCallback(() => {
     onManageViews?.();
-    setIsOpen(false);
-  }, [onManageViews, setIsOpen]);
+  }, [onManageViews]);
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn('gap-2', className)}
-        >
-          <span className="text-lg">{currentConfig.icon}</span>
-          <span className="hidden sm:inline">
-            {t(`voxel.presets.${currentPreset}`, currentConfig.description)}
-          </span>
-          <ChevronDown className="h-4 w-4 opacity-50" />
-        </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className={cn(
+          'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          'disabled:pointer-events-none disabled:opacity-50',
+          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+          'h-9 px-3 gap-2',
+          className
+        )}
+      >
+        <span className="text-lg">{currentConfig.icon}</span>
+        <span className="hidden sm:inline">
+          {t(`voxel.presets.${currentPreset}`, currentConfig.description)}
+        </span>
+        <ChevronDown className="h-4 w-4 opacity-50" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
         <DropdownMenuLabel>

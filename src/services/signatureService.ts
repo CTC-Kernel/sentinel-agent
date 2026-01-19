@@ -223,8 +223,8 @@ export const SignatureService = {
         // Filter by status if specified
         if (!options?.status || options.status.includes(data.status)) {
           requests.push({
-            id: docSnap.id,
             ...data,
+            id: docSnap.id,
           });
         }
       });

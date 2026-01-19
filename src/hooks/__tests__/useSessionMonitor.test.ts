@@ -51,14 +51,14 @@ describe('useSessionMetrics', () => {
 
         const { result } = renderHook(() => useSessionMetrics());
 
-        expect(result.current.sessionDuration).toBe(60000);
+        expect(result.current?.sessionDuration).toBe(60000);
 
         // Advance timer by 5 seconds
         act(() => {
             vi.advanceTimersByTime(5000);
         });
 
-        expect(result.current.sessionDuration).toBe(65000);
+        expect(result.current?.sessionDuration).toBe(65000);
     });
 
     it('should clear interval on unmount', () => {

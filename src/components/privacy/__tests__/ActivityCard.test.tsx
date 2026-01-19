@@ -41,11 +41,13 @@ describe('ActivityCard', () => {
         status: 'Actif',
         legalBasis: 'Consentement',
         dataCategories: ['Email', 'Prénom'],
+        dataSubjects: ['Abonnés'],
         retentionPeriod: '3 ans',
         hasDPIA: true,
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        manager: 'John Doe',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
 
     const mockOnClick = vi.fn();
@@ -174,10 +176,10 @@ describe('ActivityCard', () => {
             expect(statusBadge).toHaveClass('bg-green-50');
         });
 
-        it('shows gray styling for Inactif status', () => {
-            render(<ActivityCard activity={{ ...mockActivity, status: 'Inactif' }} onClick={mockOnClick} onDelete={mockOnDelete} canEdit={true} />);
+        it('shows gray styling for Archivé status', () => {
+            render(<ActivityCard activity={{ ...mockActivity, status: 'Archivé' }} onClick={mockOnClick} onDelete={mockOnDelete} canEdit={true} />);
 
-            const statusBadge = screen.getByText('Inactif');
+            const statusBadge = screen.getByText('Archivé');
             expect(statusBadge).toHaveClass('bg-gray-50');
         });
     });

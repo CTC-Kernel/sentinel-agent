@@ -3,13 +3,13 @@
  * Story 4.1: Framework Activation
  */
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FrameworkSettings } from '../FrameworkSettings';
 import { useStore } from '../../../store';
 import { useSettingsData } from '../../../hooks/settings/useSettingsData';
 import { hasPermission } from '../../../utils/permissions';
+import type { Organization, Subscription } from '../../../types';
 
 // Mock dependencies
 vi.mock('../../../store', () => ({
@@ -42,13 +42,21 @@ describe('FrameworkSettings', () => {
         role: 'admin',
     };
 
-    const mockOrganization = {
+    const mockSubscription: Subscription = {
+        planId: 'professional',
+        status: 'active',
+        currentPeriodEnd: '2024-12-31T00:00:00.000Z',
+        cancelAtPeriodEnd: false,
+    };
+
+    const mockOrganization: Organization = {
         id: 'test-org',
         name: 'Test Organization',
-        subscription: {
-            planId: 'professional',
-            status: 'active',
-        },
+        slug: 'test-org',
+        ownerId: 'test-user',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+        subscription: mockSubscription,
         enabledFrameworks: ['ISO27001'],
     };
 
@@ -217,11 +225,25 @@ describe('FrameworkSettings', () => {
     });
 
     describe('Plan limits', () => {
+        const discoverySubscription: Subscription = {
+            planId: 'discovery',
+            status: 'active',
+            currentPeriodEnd: '2024-12-31T00:00:00.000Z',
+            cancelAtPeriodEnd: false,
+        };
+
+        const enterpriseSubscription: Subscription = {
+            planId: 'enterprise',
+            status: 'active',
+            currentPeriodEnd: '2024-12-31T00:00:00.000Z',
+            cancelAtPeriodEnd: false,
+        };
+
         it('should enforce discovery plan limit of 1 framework', () => {
             vi.mocked(useSettingsData).mockReturnValue({
                 organization: {
                     ...mockOrganization,
-                    subscription: { planId: 'discovery', status: 'active' },
+                    subscription: discoverySubscription,
                     enabledFrameworks: ['ISO27001'],
                 },
                 updateOrganization: mockUpdateOrganization,
@@ -247,7 +269,7 @@ describe('FrameworkSettings', () => {
             vi.mocked(useSettingsData).mockReturnValue({
                 organization: {
                     ...mockOrganization,
-                    subscription: { planId: 'discovery', status: 'active' },
+                    subscription: discoverySubscription,
                     enabledFrameworks: ['ISO27001'],
                 },
                 updateOrganization: mockUpdateOrganization,
@@ -268,7 +290,7 @@ describe('FrameworkSettings', () => {
             vi.mocked(useSettingsData).mockReturnValue({
                 organization: {
                     ...mockOrganization,
-                    subscription: { planId: 'enterprise', status: 'active' },
+                    subscription: enterpriseSubscription,
                     enabledFrameworks: ['ISO27001', 'NIS2', 'DORA'],
                 },
                 updateOrganization: mockUpdateOrganization,

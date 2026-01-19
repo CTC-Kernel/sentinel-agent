@@ -6,15 +6,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PrivacyLinks } from '../PrivacyLinks';
-import { ProcessingActivity, Asset, Risk } from '../../../../types';
+import { ProcessingActivity, Asset, Risk, Criticality } from '../../../../types';
 
-// Mock lucide-react icons
-vi.mock('lucide-react', () => ({
-    Server: () => <span data-testid="server-icon" />,
-    AlertTriangle: () => <span data-testid="alert-triangle-icon" />,
-    Plus: () => <span data-testid="plus-icon" />,
-    X: () => <span data-testid="x-icon" />
-}));
+// Mock lucide-react icons with importOriginal to include all exports
+vi.mock('lucide-react', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('lucide-react')>();
+    return {
+        ...actual,
+        Server: () => <span data-testid="server-icon" />,
+        AlertTriangle: () => <span data-testid="alert-triangle-icon" />,
+        Plus: () => <span data-testid="plus-icon" />,
+        X: () => <span data-testid="x-icon" />
+    };
+});
 
 describe('PrivacyLinks', () => {
     const mockSetValue = vi.fn();
@@ -28,54 +32,84 @@ describe('PrivacyLinks', () => {
     const mockAssetsList: Asset[] = [
         {
             id: 'asset-1',
+            organizationId: 'org-1',
             name: 'HR Server',
-            type: 'server',
-            status: 'Actif',
-            criticality: 'Élevé'
+            type: 'Matériel',
+            owner: 'IT Team',
+            confidentiality: Criticality.HIGH,
+            integrity: Criticality.HIGH,
+            availability: Criticality.HIGH,
+            location: 'Data Center',
+            createdAt: new Date().toISOString()
         },
         {
             id: 'asset-2',
+            organizationId: 'org-1',
             name: 'Employee Database',
-            type: 'database',
-            status: 'Actif',
-            criticality: 'Critique'
+            type: 'Données',
+            owner: 'IT Team',
+            confidentiality: Criticality.CRITICAL,
+            integrity: Criticality.CRITICAL,
+            availability: Criticality.HIGH,
+            location: 'Data Center',
+            createdAt: new Date().toISOString()
         },
         {
             id: 'asset-3',
+            organizationId: 'org-1',
             name: 'Backup Server',
-            type: 'server',
-            status: 'Actif',
-            criticality: 'Moyen'
+            type: 'Matériel',
+            owner: 'IT Team',
+            confidentiality: Criticality.MEDIUM,
+            integrity: Criticality.MEDIUM,
+            availability: Criticality.HIGH,
+            location: 'Data Center',
+            createdAt: new Date().toISOString()
         }
     ];
 
     const mockRisksList: Risk[] = [
         {
             id: 'risk-1',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
             threat: 'Data Breach',
             vulnerability: 'Weak encryption',
             score: 15,
             residualScore: 8,
-            likelihood: 3,
+            probability: 3,
             impact: 5,
-            status: 'Identifié'
+            strategy: 'Atténuer',
+            owner: 'Security Team',
+            status: 'Ouvert'
         },
         {
             id: 'risk-2',
+            organizationId: 'org-1',
+            assetId: 'asset-2',
             threat: 'Unauthorized Access',
             vulnerability: 'Poor access control',
             score: 12,
             residualScore: 6,
-            likelihood: 3,
+            probability: 3,
             impact: 4,
-            status: 'En traitement'
+            strategy: 'Atténuer',
+            owner: 'Security Team',
+            status: 'En cours'
         }
     ];
 
     const mockActivity: ProcessingActivity = {
         id: 'activity-1',
+        organizationId: 'org-1',
         name: 'Employee Processing',
         purpose: 'HR management',
+        manager: 'Jane Smith',
+        legalBasis: 'Contrat',
+        dataCategories: ['Etat Civil', 'Coordonnées'],
+        dataSubjects: ['Employés'],
+        retentionPeriod: '5 ans',
+        hasDPIA: false,
         relatedAssetIds: ['asset-1', 'asset-2'],
         relatedRiskIds: ['risk-1'],
         status: 'Actif'
@@ -90,7 +124,7 @@ describe('PrivacyLinks', () => {
     const defaultProps = {
         activity: mockActivity,
         isEditing: false,
-        form: mockForm as unknown as ReturnType<typeof import('react-hook-form').useForm>,
+        form: mockForm as any,
         assetsList: mockAssetsList,
         risksList: mockRisksList
     };
@@ -121,8 +155,8 @@ describe('PrivacyLinks', () => {
         it('displays asset types', () => {
             render(<PrivacyLinks {...defaultProps} />);
 
-            expect(screen.getAllByText('server').length).toBeGreaterThan(0);
-            expect(screen.getByText('database')).toBeInTheDocument();
+            expect(screen.getAllByText('Matériel').length).toBeGreaterThan(0);
+            expect(screen.getByText('Données')).toBeInTheDocument();
         });
 
         it('does not show unlinked assets', () => {

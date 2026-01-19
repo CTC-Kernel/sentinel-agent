@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AuditPlannerService } from '../AuditPlannerService';
-import { Risk, Asset, Audit } from '../../types';
+import { Risk, Asset, Audit, Criticality } from '../../types';
 
 describe('AuditPlannerService', () => {
     const mockDate = new Date('2024-06-15');
@@ -31,8 +31,8 @@ describe('AuditPlannerService', () => {
         strategy: 'Atténuer',
         owner: 'Owner',
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         ...overrides
     });
 
@@ -40,13 +40,14 @@ describe('AuditPlannerService', () => {
         id: 'asset-1',
         name: 'Test Asset',
         type: 'Données',
-        description: 'Test',
-        confidentiality: 'Moyenne',
-        integrity: 'Moyenne',
-        availability: 'Moyenne',
+        confidentiality: Criticality.MEDIUM,
+        integrity: Criticality.MEDIUM,
+        availability: Criticality.MEDIUM,
+        owner: 'Test Owner',
+        location: 'Test Location',
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         ...overrides
     });
 
@@ -55,9 +56,12 @@ describe('AuditPlannerService', () => {
         name: 'Existing Audit',
         type: 'Interne',
         status: 'Planifié',
+        auditor: 'Test Auditor',
+        dateScheduled: new Date().toISOString(),
+        findingsCount: 0,
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         ...overrides
     });
 
@@ -126,7 +130,7 @@ describe('AuditPlannerService', () => {
 
         describe('critical asset audits', () => {
             it('suggests audits for critical confidentiality assets', () => {
-                const assets = [createAsset({ confidentiality: 'Critique' })];
+                const assets = [createAsset({ confidentiality: Criticality.CRITICAL })];
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions([], assets);
 
@@ -136,7 +140,7 @@ describe('AuditPlannerService', () => {
             });
 
             it('suggests audits for critical integrity assets', () => {
-                const assets = [createAsset({ integrity: 'Critique' })];
+                const assets = [createAsset({ integrity: Criticality.CRITICAL })];
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions([], assets);
 
@@ -144,7 +148,7 @@ describe('AuditPlannerService', () => {
             });
 
             it('suggests audits for critical availability assets', () => {
-                const assets = [createAsset({ availability: 'Critique' })];
+                const assets = [createAsset({ availability: Criticality.CRITICAL })];
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions([], assets);
 
@@ -153,9 +157,9 @@ describe('AuditPlannerService', () => {
 
             it('does not suggest for non-critical assets', () => {
                 const assets = [createAsset({
-                    confidentiality: 'Moyenne',
-                    integrity: 'Moyenne',
-                    availability: 'Moyenne'
+                    confidentiality: Criticality.MEDIUM,
+                    integrity: Criticality.MEDIUM,
+                    availability: Criticality.MEDIUM
                 })];
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions([], assets);
@@ -164,7 +168,7 @@ describe('AuditPlannerService', () => {
             });
 
             it('schedules asset audits within 6 months', () => {
-                const assets = [createAsset({ confidentiality: 'Critique' })];
+                const assets = [createAsset({ confidentiality: Criticality.CRITICAL })];
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions([], assets);
 
@@ -176,7 +180,7 @@ describe('AuditPlannerService', () => {
             });
 
             it('does not duplicate if asset is already covered', () => {
-                const assets = [createAsset({ id: 'asset-1', confidentiality: 'Critique' })];
+                const assets = [createAsset({ id: 'asset-1', confidentiality: Criticality.CRITICAL })];
                 const existingAudits = [createAudit({
                     status: 'En cours',
                     relatedAssetIds: ['asset-1']
@@ -245,7 +249,7 @@ describe('AuditPlannerService', () => {
                     createRisk({ id: 'risk-iso', framework: 'ISO27001', score: 5 })
                 ];
                 const assets = [
-                    createAsset({ id: 'asset-critical', confidentiality: 'Critique' })
+                    createAsset({ id: 'asset-critical', confidentiality: Criticality.CRITICAL })
                 ];
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions(risks, assets);
@@ -256,9 +260,9 @@ describe('AuditPlannerService', () => {
             it('returns empty array when no criteria are met', () => {
                 const risks = [createRisk({ score: 5, status: 'Ouvert' })];
                 const assets = [createAsset({
-                    confidentiality: 'Faible',
-                    integrity: 'Faible',
-                    availability: 'Faible'
+                    confidentiality: Criticality.LOW,
+                    integrity: Criticality.LOW,
+                    availability: Criticality.LOW
                 })];
 
                 const suggestions = AuditPlannerService.generateAuditSuggestions(risks, assets);

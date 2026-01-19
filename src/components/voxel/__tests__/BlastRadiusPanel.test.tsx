@@ -34,41 +34,10 @@ vi.mock('@/utils/microInteractions', () => ({
 }));
 
 // Mock lucide-react icons components
-vi.mock('lucide-react', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Icon = ({ className, ...props }: any) => <span className={`icon ${className}`} {...props} />;
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('lucide-react')>();
   return {
-    Activity: Icon,
-    AlertTriangle: Icon,
-    AlertCircle: Icon,
-    Target: Icon,
-    Layers: Icon,
-    TrendingUp: Icon,
-    TrendingDown: Icon,
-    ChevronDown: Icon,
-    ChevronUp: Icon,
-    Search: Icon,
-    Filter: Icon,
-    X: Icon,
-    Play: Icon,
-    Pause: Icon,
-    RefreshCw: Icon,
-    Eye: Icon,
-    Download: Icon,
-    FileText: Icon,
-    Plus: Icon,
-    Minus: Icon,
-    GitBranch: Icon,
-    Shield: Icon,
-    Server: Icon,
-    Briefcase: Icon,
-    Users: Icon,
-    ClipboardCheck: Icon,
-    Bell: Icon,
-    Sliders: Icon,
-    BarChart3: Icon,
-    Zap: Icon,
-    Check: Icon,
+    ...actual,
   };
 });
 

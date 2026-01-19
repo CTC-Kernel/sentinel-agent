@@ -86,9 +86,13 @@ describe('PrivacyData', () => {
 
     const mockActivity: ProcessingActivity = {
         id: 'activity-1',
+        organizationId: 'org-1',
         name: 'Employee Data Processing',
         purpose: 'HR management',
+        manager: 'Jane Smith',
+        legalBasis: 'Contrat',
         dataCategories: ['Etat Civil', 'Coordonnées', 'Vie Professionnelle'],
+        dataSubjects: ['Employés'],
         retentionPeriod: '5 ans après la fin du contrat',
         hasDPIA: true,
         status: 'Actif'
@@ -107,7 +111,7 @@ describe('PrivacyData', () => {
     const defaultProps = {
         activity: mockActivity,
         isEditing: false,
-        form: mockForm as unknown as ReturnType<typeof import('react-hook-form').useForm>,
+        form: mockForm as any,
         onStartDPIA: mockOnStartDPIA,
         onViewDPIA: mockOnViewDPIA
     };

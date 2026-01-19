@@ -71,7 +71,7 @@ describe('CommunitySettingsModal', () => {
             targetOrgId: 'org-2',
             targetOrgName: 'Partner Corp',
             status: 'trusted',
-            createdAt: new Date()
+            createdAt: '2024-01-01T00:00:00.000Z'
         },
         {
             id: 'rel-2',
@@ -79,7 +79,7 @@ describe('CommunitySettingsModal', () => {
             targetOrgId: 'org-3',
             targetOrgName: 'Blocked Inc',
             status: 'blocked',
-            createdAt: new Date()
+            createdAt: '2024-01-01T00:00:00.000Z'
         },
         {
             id: 'rel-3',
@@ -87,7 +87,7 @@ describe('CommunitySettingsModal', () => {
             targetOrgId: 'org-4',
             targetOrgName: 'Pending Ltd',
             status: 'pending',
-            createdAt: new Date()
+            createdAt: '2024-01-01T00:00:00.000Z'
         }
     ];
 

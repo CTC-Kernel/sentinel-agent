@@ -149,7 +149,7 @@ describe('AccountService', () => {
     describe('deleteOrganization', () => {
         it('should call cloud function to delete organization', async () => {
             const mockFn = vi.fn().mockResolvedValue({ data: {} });
-            vi.mocked(httpsCallable).mockReturnValue(mockFn);
+            vi.mocked(httpsCallable).mockReturnValue(mockFn as unknown as ReturnType<typeof httpsCallable>);
 
             await AccountService.deleteOrganization('org-123');
 
@@ -165,7 +165,7 @@ describe('AccountService', () => {
 
         it('should handle cloud function errors', async () => {
             const mockFn = vi.fn().mockRejectedValue(new Error('Cloud function error'));
-            vi.mocked(httpsCallable).mockReturnValue(mockFn);
+            vi.mocked(httpsCallable).mockReturnValue(mockFn as unknown as ReturnType<typeof httpsCallable>);
 
             await expect(
                 AccountService.deleteOrganization('org-123')

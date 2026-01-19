@@ -38,22 +38,20 @@ const mockWhere = vi.fn(() => ({}));
 const mockOrderBy = vi.fn(() => ({}));
 const mockLimit = vi.fn(() => ({}));
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 vi.mock('firebase/firestore', () => ({
-  doc: (...args: any[]) => mockDoc(...args),
-  getDoc: (...args: any[]) => mockGetDoc(...args),
-  setDoc: (...args: any[]) => mockSetDoc(...args),
-  updateDoc: (...args: any[]) => mockUpdateDoc(...args),
-  deleteDoc: (...args: any[]) => mockDeleteDoc(...args),
-  getDocs: (...args: any[]) => mockGetDocs(...args),
-  onSnapshot: (...args: any[]) => mockOnSnapshot(...args),
-  collection: (...args: any[]) => mockCollection(...args),
-  query: (...args: any[]) => mockQuery(...args),
-  where: (...args: any[]) => mockWhere(...args),
-  orderBy: (...args: any[]) => mockOrderBy(...args),
-  limit: (...args: any[]) => mockLimit(...args),
+  doc: mockDoc,
+  getDoc: mockGetDoc,
+  setDoc: mockSetDoc,
+  updateDoc: mockUpdateDoc,
+  deleteDoc: mockDeleteDoc,
+  getDocs: mockGetDocs,
+  onSnapshot: mockOnSnapshot,
+  collection: mockCollection,
+  query: mockQuery,
+  where: mockWhere,
+  orderBy: mockOrderBy,
+  limit: mockLimit,
 }));
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Mock ErrorLogger
 vi.mock('../errorLogger', () => ({

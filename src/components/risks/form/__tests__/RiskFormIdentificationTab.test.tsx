@@ -80,6 +80,10 @@ vi.mock('../../../../data/riskConstants', () => ({
     STANDARD_THREATS: ['Ransomware', 'Phishing', 'DDoS Attack', 'Data Breach']
 }));
 
+import type { Asset } from '../../../../types';
+import { Criticality } from '../../../../types/common';
+import type { RiskFormIdentificationTabProps } from '../riskFormTypes';
+
 describe('RiskFormIdentificationTab', () => {
     const mockSetValue = vi.fn();
     const mockSetShowLibraryModal = vi.fn();
@@ -90,19 +94,42 @@ describe('RiskFormIdentificationTab', () => {
         register: mockRegister
     };
 
-    const mockAssets = [
-        { id: 'asset-1', name: 'Server-01', type: 'server' },
-        { id: 'asset-2', name: 'Database-01', type: 'database' }
+    const mockAssets: Asset[] = [
+        {
+            id: 'asset-1',
+            name: 'Server-01',
+            type: 'Matériel',
+            organizationId: 'org-1',
+            owner: 'IT Team',
+            confidentiality: Criticality.HIGH,
+            integrity: Criticality.HIGH,
+            availability: Criticality.HIGH,
+            location: 'Datacenter',
+            createdAt: '2024-01-01'
+        },
+        {
+            id: 'asset-2',
+            name: 'Database-01',
+            type: 'Logiciel',
+            organizationId: 'org-1',
+            owner: 'DBA Team',
+            confidentiality: Criticality.CRITICAL,
+            integrity: Criticality.CRITICAL,
+            availability: Criticality.HIGH,
+            location: 'Cloud',
+            createdAt: '2024-01-01'
+        }
     ];
 
     const defaultProps = {
-        control: mockControl as unknown,
+        control: mockControl as unknown as RiskFormIdentificationTabProps['control'],
         errors: {},
         assets: mockAssets,
-        getValues: mockGetValues,
-        setValue: mockSetValue,
-        setShowLibraryModal: mockSetShowLibraryModal
-    };
+        getValues: mockGetValues as unknown as RiskFormIdentificationTabProps['getValues'],
+        setValue: mockSetValue as unknown as RiskFormIdentificationTabProps['setValue'],
+        setShowLibraryModal: mockSetShowLibraryModal,
+        showLibraryModal: false
+    } satisfies RiskFormIdentificationTabProps;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -216,9 +243,9 @@ describe('RiskFormIdentificationTab', () => {
 
     describe('validation errors', () => {
         it('displays threat error when present', () => {
-            const propsWithError = {
+            const propsWithError: RiskFormIdentificationTabProps = {
                 ...defaultProps,
-                errors: { threat: { message: 'La menace est requise' } }
+                errors: { threat: { message: 'La menace est requise', type: 'required' } }
             };
 
             render(<RiskFormIdentificationTab {...propsWithError} />);

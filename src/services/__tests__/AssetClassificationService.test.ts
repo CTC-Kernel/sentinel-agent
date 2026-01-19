@@ -13,7 +13,7 @@ describe('AssetClassificationService', () => {
             it('suggests critical confidentiality for financial data', () => {
                 const asset: Partial<Asset> = {
                     type: 'Données',
-                    dataDetails: { dataCategory: 'Financier' }
+                    dataDetails: { format: 'Numérique', dataCategory: 'Financier' }
                 };
                 const result = AssetClassificationService.suggestClassification(asset);
                 expect(result.confidentiality).toBe(Criticality.CRITICAL);
@@ -24,7 +24,7 @@ describe('AssetClassificationService', () => {
             it('suggests critical confidentiality for IP data', () => {
                 const asset: Partial<Asset> = {
                     type: 'Données',
-                    dataDetails: { dataCategory: 'Propriété Intellectuelle' }
+                    dataDetails: { format: 'Numérique', dataCategory: 'Propriété Intellectuelle' }
                 };
                 const result = AssetClassificationService.suggestClassification(asset);
                 expect(result.confidentiality).toBe(Criticality.CRITICAL);
@@ -33,7 +33,7 @@ describe('AssetClassificationService', () => {
             it('suggests high confidentiality for client data (GDPR)', () => {
                 const asset: Partial<Asset> = {
                     type: 'Données',
-                    dataDetails: { dataCategory: 'Client' }
+                    dataDetails: { format: 'Numérique', dataCategory: 'Client' }
                 };
                 const result = AssetClassificationService.suggestClassification(asset);
                 expect(result.confidentiality).toBe(Criticality.HIGH);
@@ -43,7 +43,7 @@ describe('AssetClassificationService', () => {
             it('suggests high confidentiality for employee data', () => {
                 const asset: Partial<Asset> = {
                     type: 'Données',
-                    dataDetails: { dataCategory: 'Employé' }
+                    dataDetails: { format: 'Numérique', dataCategory: 'Employé' }
                 };
                 const result = AssetClassificationService.suggestClassification(asset);
                 expect(result.confidentiality).toBe(Criticality.HIGH);
@@ -52,7 +52,7 @@ describe('AssetClassificationService', () => {
             it('suggests medium confidentiality for generic data', () => {
                 const asset: Partial<Asset> = {
                     type: 'Données',
-                    dataDetails: {}
+                    dataDetails: { format: 'Numérique' }
                 };
                 const result = AssetClassificationService.suggestClassification(asset);
                 expect(result.confidentiality).toBe(Criticality.MEDIUM);
@@ -182,13 +182,14 @@ describe('AssetClassificationService', () => {
             id: 'asset-1',
             name: 'Test Asset',
             type: 'Données',
-            description: 'Test',
             confidentiality: Criticality.MEDIUM,
             integrity: Criticality.MEDIUM,
             availability: Criticality.MEDIUM,
+            owner: 'Test Owner',
+            location: 'Test Location',
             organizationId: 'org-1',
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
             ...overrides
         });
 
@@ -204,8 +205,8 @@ describe('AssetClassificationService', () => {
             strategy: 'Atténuer',
             owner: 'Owner',
             organizationId: 'org-1',
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
             ...overrides
         });
 

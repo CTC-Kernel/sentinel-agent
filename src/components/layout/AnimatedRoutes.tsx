@@ -98,7 +98,7 @@ export const AnimatedRoutes: React.FC = () => {
                     </RoleGuardComponent>
                 } />
                 <Route path="/settings" element={
-                    <RoleGuardComponent allowedRoles={['admin', 'rssi']}>
+                    <RoleGuardComponent allowedRoles={['admin', 'rssi', 'user', 'project_manager', 'direction', 'auditor']}>
                         <AnimatedPage><Settings /></AnimatedPage>
                     </RoleGuardComponent>
                 } />

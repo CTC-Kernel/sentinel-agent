@@ -6,7 +6,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { IncidentTimeline } from '../IncidentTimeline';
-import { Incident } from '../../../types';
+import { Incident, Criticality } from '../../../types';
 
 // Mock Icons
 vi.mock('../../ui/Icons', () => ({
@@ -19,16 +19,17 @@ vi.mock('../../ui/Icons', () => ({
 describe('IncidentTimeline', () => {
     const mockIncident: Incident = {
         id: 'incident-1',
+        organizationId: 'org-1',
         title: 'Security Breach',
         description: 'Unauthorized access detected',
-        type: 'Cyberattaque',
-        severity: 'Critique',
+        category: 'Autre',
+        severity: Criticality.CRITICAL,
         status: 'Contenu',
         dateReported: '2024-01-15T10:00:00Z',
         dateAnalysis: '2024-01-15T11:00:00Z',
         dateContained: '2024-01-15T14:00:00Z',
         reporter: 'John Doe',
-        impactAssessment: 'High impact on operations'
+        impact: 'High impact on operations'
     };
 
     const newIncident: Incident = {

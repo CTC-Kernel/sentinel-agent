@@ -41,19 +41,12 @@ vi.mock('@/components/ui/popover', () => ({
   PopoverContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-vi.mock('lucide-react', () => ({
-  Calendar: () => null,
-  Clock: () => null,
-  ChevronLeft: () => null,
-  ChevronRight: () => null,
-  Play: () => null,
-  Pause: () => null,
-  SkipBack: () => null,
-  SkipForward: () => null,
-  Loader2: () => null,
-  GitCompare: () => null,
-  X: () => null,
-}));
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('lucide-react')>();
+  return {
+    ...actual,
+  };
+});
 
 vi.mock('framer-motion', () => ({
   motion: { div: 'div' },

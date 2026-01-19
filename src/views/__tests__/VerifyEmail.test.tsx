@@ -43,12 +43,12 @@ vi.mock('../../components/ui/MasterpieceBackground', () => ({
     MasterpieceBackground: () => <div data-testid="masterpiece-background" />
 }));
 
-vi.mock('../../components/ui/Icons', () => ({
-    Mail: () => <span>MailIcon</span>,
-    RefreshCw: () => <span>RefreshCwIcon</span>,
-    LogOut: () => <span>LogOutIcon</span>,
-    CheckCircle2: () => <span>CheckCircle2Icon</span>
-}));
+vi.mock('../../components/ui/Icons', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../components/ui/Icons')>();
+    return {
+        ...actual,
+    };
+});
 
 describe('VerifyEmail', () => {
     beforeEach(() => {

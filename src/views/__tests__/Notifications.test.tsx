@@ -7,7 +7,8 @@ vi.mock('framer-motion', () => ({
     motion: {
         div: ({ children, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>) =>
             <div {...props}>{children}</div>
-    }
+    },
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // Mock i18n
@@ -20,25 +21,26 @@ vi.mock('react-i18next', () => ({
 // Mock store
 vi.mock('../../store', () => ({
     useStore: () => ({
-        user: { uid: 'user-1', organizationId: 'org-1' }
+        user: { uid: 'user-1', organizationId: 'org-1' },
+        t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue || key
     })
 }));
 
-// Mock NotificationService
-// Mock NotificationService
+// Mock useNotifications hook
+const mockMarkAsRead = vi.fn();
+const mockMarkAllAsRead = vi.fn();
+const mockRemoveNotification = vi.fn();
 
-vi.mock('../../services/notificationService', () => ({
-    NotificationService: {
-        subscribeToNotifications: (_userId: string, callback: (data: unknown[]) => void) => {
-            callback([
-                { id: 'notif-1', title: 'Test Notification', message: 'Test message', type: 'info', read: false, createdAt: '2024-01-01' },
-                { id: 'notif-2', title: 'Warning', message: 'Warning message', type: 'warning', read: true, createdAt: '2024-01-02' }
-            ]);
-            return () => { };
-        },
-        markAsRead: vi.fn().mockResolvedValue(undefined),
-        markAllAsRead: vi.fn().mockResolvedValue(undefined)
-    }
+vi.mock('../../hooks/useNotifications', () => ({
+    useNotifications: () => ({
+        notifications: [
+            { id: 'notif-1', title: 'Test Notification', message: 'Test message', type: 'info', read: false, createdAt: '2024-01-01' },
+            { id: 'notif-2', title: 'Warning', message: 'Warning message', type: 'warning', read: true, createdAt: '2024-01-02' }
+        ],
+        markAsRead: mockMarkAsRead,
+        markAllAsRead: mockMarkAllAsRead,
+        removeNotification: mockRemoveNotification
+    })
 }));
 
 // Mock ErrorLogger
@@ -48,56 +50,12 @@ vi.mock('../../services/errorLogger', () => ({
     }
 }));
 
-// Mock components
-vi.mock('../../components/ui/MasterpieceBackground', () => ({
-    MasterpieceBackground: () => <div data-testid="masterpiece-background" />
-}));
 
-vi.mock('../../components/SEO', () => ({
-    SEO: ({ title }: { title: string }) => <div data-testid="seo" data-title={title} />
-}));
-
-vi.mock('../../components/ui/PageHeader', () => ({
-    PageHeader: ({ title, actions }: { title: string; actions?: React.ReactNode }) => (
-        <div data-testid="page-header">
-            <h1>{title}</h1>
-            {actions}
-        </div>
+// Mock GlassCard component
+vi.mock('../../components/ui/GlassCard', () => ({
+    GlassCard: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+        <div className={className} data-testid="glass-card">{children}</div>
     )
-}));
-
-vi.mock('../../components/ui/PremiumPageControl', () => ({
-    PremiumPageControl: ({ children, searchQuery, onSearchChange }: { children: React.ReactNode; searchQuery: string; onSearchChange: (v: string) => void }) => (
-        <div data-testid="premium-control">
-            <input
-                data-testid="search-input"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-            />
-            {children}
-        </div>
-    )
-}));
-
-vi.mock('../../components/common/EmptyState', () => ({
-    EmptyState: ({ title }: { title: string }) => <div data-testid="empty-state">{title}</div>
-}));
-
-vi.mock('../../components/ui/Skeleton', () => ({
-    CardSkeleton: () => <div data-testid="card-skeleton" />
-}));
-
-vi.mock('../../components/ui/animationVariants', () => ({
-    staggerContainerVariants: {}
-}));
-
-vi.mock('../../components/ui/Icons', () => ({
-    Bell: () => <span>BellIcon</span>,
-    CheckCircle2: () => <span>CheckCircle2Icon</span>,
-    AlertTriangle: () => <span>AlertTriangleIcon</span>,
-    Info: () => <span>InfoIcon</span>,
-    X: () => <span>XIcon</span>,
-    ArrowRight: () => <span>ArrowRightIcon</span>
 }));
 
 // Import after mocks
@@ -116,19 +74,14 @@ describe('Notifications View', () => {
         );
     };
 
-    it('should render SEO component', () => {
+    it('should render page header with title', () => {
         renderComponent();
-        expect(screen.getByTestId('seo')).toHaveAttribute('data-title', 'Notifications');
+        expect(screen.getByText('Notifications')).toBeInTheDocument();
     });
 
-    it('should render MasterpieceBackground', () => {
+    it('should render subtitle', () => {
         renderComponent();
-        expect(screen.getByTestId('masterpiece-background')).toBeInTheDocument();
-    });
-
-    it('should render page header', () => {
-        renderComponent();
-        expect(screen.getByText('notifications.title')).toBeInTheDocument();
+        expect(screen.getByText('Gérez vos alertes et messages importants')).toBeInTheDocument();
     });
 
     it('should render notifications list', () => {
@@ -139,33 +92,34 @@ describe('Notifications View', () => {
 
     it('should render filter buttons', () => {
         renderComponent();
-        expect(screen.getByLabelText('notifications.filter.all')).toBeInTheDocument();
-        expect(screen.getByLabelText('notifications.filter.unread')).toBeInTheDocument();
+        expect(screen.getByText('Toutes')).toBeInTheDocument();
+        expect(screen.getByText('Non lues')).toBeInTheDocument();
+    });
+
+    it('should render search input', () => {
+        renderComponent();
+        expect(screen.getByPlaceholderText('Rechercher...')).toBeInTheDocument();
     });
 
     it('should call markAsRead when clicking mark as read button', async () => {
-        const { NotificationService } = await import('../../services/notificationService');
-
         renderComponent();
 
-        const markReadButton = screen.getByLabelText('Marquer comme lu');
+        const markReadButton = screen.getByTitle('Marquer comme lu');
         fireEvent.click(markReadButton);
 
         await waitFor(() => {
-            expect(NotificationService.markAsRead).toHaveBeenCalledWith('notif-1');
+            expect(mockMarkAsRead).toHaveBeenCalledWith('notif-1');
         });
     });
 
     it('should call markAllAsRead when clicking mark all button', async () => {
-        const { NotificationService } = await import('../../services/notificationService');
-
         renderComponent();
 
-        const markAllButton = screen.getByLabelText('notifications.markAll');
+        const markAllButton = screen.getByText('Tout marquer comme lu');
         fireEvent.click(markAllButton);
 
         await waitFor(() => {
-            expect(NotificationService.markAllAsRead).toHaveBeenCalledWith('user-1');
+            expect(mockMarkAllAsRead).toHaveBeenCalled();
         });
     });
 });

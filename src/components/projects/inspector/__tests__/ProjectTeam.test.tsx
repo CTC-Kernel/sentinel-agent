@@ -63,10 +63,16 @@ describe('ProjectTeam', () => {
 
     const mockProject: Project = {
         id: 'project-1',
+        organizationId: 'org-1',
         name: 'Security Project',
         description: 'A security project',
         status: 'En cours',
+        manager: 'Project Manager',
+        dueDate: '2024-12-31',
+        progress: 30,
+        tasks: [],
         startDate: '2024-01-01',
+        createdAt: '2024-01-01',
         members: ['user-1', 'user-2']
     };
 

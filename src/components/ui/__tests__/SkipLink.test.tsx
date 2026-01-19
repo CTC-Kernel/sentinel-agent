@@ -3,7 +3,6 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SkipLink, SkipLinks } from '../SkipLink';

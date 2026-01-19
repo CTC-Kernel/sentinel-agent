@@ -20,6 +20,7 @@ import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key suppo
 import { UserRow } from './UserRow';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
 import { Switch } from '../ui/Switch';
+import { GlassCard } from '../ui/GlassCard';
 
 const SECONDS_TO_MS = 1000;
 
@@ -294,7 +295,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Admin Details */}
             {hasPermission(user, 'Settings', 'manage') && (
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <GlassCard className="p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 -mx-6 -mt-6 mb-6 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
@@ -393,12 +394,12 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </GlassCard>
             )}
 
             {/* User Management */}
             {user && hasPermission(user, 'User', 'manage') && (
-                <div className="glass-panel p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <GlassCard className="p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -439,7 +440,7 @@ export const OrganizationSettings: React.FC = () => {
                             />
                         ))}
                     </div>
-                </div>
+                </GlassCard>
             )}
         </div>
     );

@@ -27,7 +27,7 @@ describe('ExecutiveKPIWidget', () => {
 
     // Default mock implementations
     vi.mocked(useComplianceScore).mockReturnValue({
-      score: { global: 75, byFramework: {}, trend: 'up', lastCalculated: new Date(), breakdown: {} as never },
+      score: { global: 75, byFramework: { iso27001: 80, nis2: 70, dora: 65, rgpd: 85 }, trend: 'up', lastCalculated: new Date(), breakdown: {} as never },
       breakdown: null,
       trend: 'up',
       history: [],

@@ -46,16 +46,20 @@ vi.mock('../../../../services/errorLogger', () => ({
     },
 }));
 
-// Mock Lucide icons
-vi.mock('lucide-react', () => ({
-    X: () => <span data-testid="icon-x" />,
-    Users: () => <span data-testid="icon-users" />,
-    Database: () => <span data-testid="icon-database" />,
-    Shield: () => <span data-testid="icon-shield" />,
-    AlertTriangle: () => <span data-testid="icon-alert" />,
-    CreditCard: () => <span data-testid="icon-credit" />,
-    Save: () => <span data-testid="icon-save" />,
-}));
+// Mock Lucide icons with importOriginal to include all exports
+vi.mock('lucide-react', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('lucide-react')>();
+    return {
+        ...actual,
+        X: () => <span data-testid="icon-x" />,
+        Users: () => <span data-testid="icon-users" />,
+        Database: () => <span data-testid="icon-database" />,
+        Shield: () => <span data-testid="icon-shield" />,
+        AlertTriangle: () => <span data-testid="icon-alert" />,
+        CreditCard: () => <span data-testid="icon-credit" />,
+        Save: () => <span data-testid="icon-save" />,
+    };
+});
 
 // Mock HeadlessUI with compound components properly
 vi.mock('@headlessui/react', () => {

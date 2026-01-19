@@ -190,6 +190,7 @@ function transformToVoxelNode(
     label,
     status: determineNodeStatus(type, data),
     position,
+    size: data.size ?? 1,
     data: {
       ...data,
       entityType: type,

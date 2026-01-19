@@ -27,22 +27,28 @@ describe('DocumentVersionHistory', () => {
     const mockVersions: DocumentVersion[] = [
         {
             id: 'ver-1',
-            version: 3,
+            documentId: 'doc-1',
+            version: '3',
             uploadedAt: '2024-01-15T10:00:00Z',
+            uploadedBy: 'user-1',
             changeLog: 'Major security updates',
             url: 'https://example.com/doc-v3.pdf'
         },
         {
             id: 'ver-2',
-            version: 2,
+            documentId: 'doc-1',
+            version: '2',
             uploadedAt: '2024-01-10T09:00:00Z',
+            uploadedBy: 'user-1',
             changeLog: 'Fixed typos',
             url: 'https://example.com/doc-v2.pdf'
         },
         {
             id: 'ver-3',
-            version: 1,
+            documentId: 'doc-1',
+            version: '1',
             uploadedAt: '2024-01-01T08:00:00Z',
+            uploadedBy: 'user-1',
             changeLog: '',
             url: 'https://example.com/doc-v1.pdf'
         }
@@ -151,9 +157,12 @@ describe('DocumentVersionHistory', () => {
             const versionsNoUrl: DocumentVersion[] = [
                 {
                     id: 'ver-1',
-                    version: 1,
+                    documentId: 'doc-1',
+                    version: '1',
                     uploadedAt: '2024-01-01',
-                    changeLog: 'Test'
+                    uploadedBy: 'user-1',
+                    changeLog: 'Test',
+                    url: ''
                 }
             ];
 
@@ -166,8 +175,12 @@ describe('DocumentVersionHistory', () => {
             const versionsNoDate: DocumentVersion[] = [
                 {
                     id: 'ver-1',
-                    version: 1,
-                    changeLog: 'Test'
+                    documentId: 'doc-1',
+                    version: '1',
+                    uploadedAt: '',
+                    uploadedBy: 'user-1',
+                    changeLog: 'Test',
+                    url: 'https://example.com/doc.pdf'
                 }
             ];
 

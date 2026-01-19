@@ -222,13 +222,14 @@ describe('Login View', () => {
             expect(screen.getByText('auth.signup')).toBeInTheDocument();
         });
 
+        // Password must satisfy validation: 8+ chars, 1 uppercase, 1 digit, 1 special char
         fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'new@example.com' } });
-        fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'newpass123' } });
+        fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'NewPass123!' } });
 
         fireEvent.click(screen.getByText('auth.signup'));
 
         await waitFor(() => {
-            expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), 'new@example.com', 'newpass123');
+            expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), 'new@example.com', 'NewPass123!');
         });
     });
 

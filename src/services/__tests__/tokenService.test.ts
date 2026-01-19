@@ -1,17 +1,13 @@
 /**
  * TokenService Tests
  * Story 13-4: Test Coverage Improvement
+ *
+ * NOTE: Token generation and verification methods are now server-only.
+ * These tests verify the client-side methods (decodeToken, isTokenExpired) work correctly
+ * and that server-only methods throw appropriate errors.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-// Mock environment first
-vi.stubEnv('VITE_JWT_SECRET', 'test-jwt-secret-for-testing');
-
-// Mock uuid
-vi.mock('uuid', () => ({
-    v4: vi.fn(() => 'test-session-id'),
-}));
 
 vi.mock('../errorLogger', () => ({
     ErrorLogger: {
@@ -29,87 +25,95 @@ describe('TokenService', () => {
         vi.clearAllMocks();
     });
 
-    describe('generateTokens', () => {
-        it('should generate access and refresh tokens', () => {
-            const { accessToken, refreshToken, sessionId } = TokenService.generateTokens('user-1', 'admin');
-
-            expect(accessToken).toBeTruthy();
-            expect(refreshToken).toBeTruthy();
-            expect(sessionId).toBe('test-session-id');
-            expect(typeof accessToken).toBe('string');
-            expect(typeof refreshToken).toBe('string');
-        });
-
-        it('should generate different tokens for different users', () => {
-            const tokens1 = TokenService.generateTokens('user-1', 'admin');
-            const tokens2 = TokenService.generateTokens('user-2', 'user');
-
-            expect(tokens1.accessToken).not.toBe(tokens2.accessToken);
-            expect(tokens1.refreshToken).not.toBe(tokens2.refreshToken);
+    describe('generateTokens (server-only)', () => {
+        it('should throw error indicating method is not available on client', () => {
+            expect(() => TokenService.generateTokens('user-1', 'admin')).toThrow(
+                'TokenService.generateTokens is not available on the client'
+            );
         });
     });
 
-    describe('verifyToken', () => {
-        it('should verify a valid access token', () => {
-            const { accessToken } = TokenService.generateTokens('user-1', 'admin');
-            const decoded = TokenService.verifyToken(accessToken);
-
-            expect(decoded.userId).toBe('user-1');
-            expect(decoded.role).toBe('admin');
-        });
-
-        it('should throw for invalid token', () => {
-            expect(() => TokenService.verifyToken('invalid-token')).toThrow('Invalid or expired token');
-        });
-
-        it('should throw for malformed token', () => {
-            expect(() => TokenService.verifyToken('not.a.valid.jwt')).toThrow('Invalid or expired token');
+    describe('verifyToken (server-only)', () => {
+        it('should throw error indicating method is not available on client', () => {
+            expect(() => TokenService.verifyToken('some-token')).toThrow(
+                'TokenService.verifyToken is not available on the client'
+            );
         });
     });
 
     describe('decodeToken', () => {
-        it('should decode a valid token without verification', () => {
-            const { accessToken } = TokenService.generateTokens('user-1', 'rssi');
-            const decoded = TokenService.decodeToken(accessToken);
-
-            expect(decoded).not.toBeNull();
-            expect(decoded?.userId).toBe('user-1');
-            expect(decoded?.role).toBe('rssi');
-        });
-
         it('should return null for invalid token', () => {
             const result = TokenService.decodeToken('invalid');
             expect(result).toBeNull();
         });
+
+        it('should return null for malformed JWT', () => {
+            const result = TokenService.decodeToken('not.a.valid.jwt.format');
+            expect(result).toBeNull();
+        });
+
+        it('should decode a valid JWT without verification', () => {
+            // Create a valid JWT structure (header.payload.signature)
+            // This is a test JWT with payload: { userId: 'user-1', role: 'admin', sessionId: 'test-session', exp: future_timestamp }
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({
+                userId: 'user-1',
+                role: 'admin',
+                sessionId: 'test-session',
+                exp: Math.floor(Date.now() / 1000) + 3600
+            }));
+            const signature = 'test-signature';
+            const testJwt = `${header}.${payload}.${signature}`;
+
+            const decoded = TokenService.decodeToken(testJwt);
+
+            expect(decoded).not.toBeNull();
+            expect(decoded?.userId).toBe('user-1');
+            expect(decoded?.role).toBe('admin');
+        });
     });
 
     describe('isTokenExpired', () => {
-        it('should return false for fresh token', () => {
-            const { accessToken } = TokenService.generateTokens('user-1', 'admin');
-            expect(TokenService.isTokenExpired(accessToken)).toBe(false);
+        it('should return true for invalid token', () => {
+            expect(TokenService.isTokenExpired('invalid')).toBe(true);
         });
 
-        it('should return true for token without exp', () => {
-            expect(TokenService.isTokenExpired('invalid')).toBe(true);
+        it('should return true for token without exp claim', () => {
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({ userId: 'user-1' })); // No exp
+            const testJwt = `${header}.${payload}.signature`;
+
+            expect(TokenService.isTokenExpired(testJwt)).toBe(true);
+        });
+
+        it('should return false for token with future exp', () => {
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({
+                userId: 'user-1',
+                exp: Math.floor(Date.now() / 1000) + 3600 // 1 hour in future
+            }));
+            const testJwt = `${header}.${payload}.signature`;
+
+            expect(TokenService.isTokenExpired(testJwt)).toBe(false);
+        });
+
+        it('should return true for expired token', () => {
+            const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({
+                userId: 'user-1',
+                exp: Math.floor(Date.now() / 1000) - 3600 // 1 hour in past
+            }));
+            const testJwt = `${header}.${payload}.signature`;
+
+            expect(TokenService.isTokenExpired(testJwt)).toBe(true);
         });
     });
 
-    describe('refreshTokens', () => {
-        it('should refresh tokens using valid refresh token', () => {
-            const { refreshToken } = TokenService.generateTokens('user-1', 'admin');
-            const newTokens = TokenService.refreshTokens(refreshToken);
-
-            expect(newTokens.accessToken).toBeTruthy();
-            expect(newTokens.refreshToken).toBeTruthy();
-        });
-
-        it('should throw when using access token as refresh token', () => {
-            const { accessToken } = TokenService.generateTokens('user-1', 'admin');
-            expect(() => TokenService.refreshTokens(accessToken)).toThrow('Invalid refresh token');
-        });
-
-        it('should throw for invalid refresh token', () => {
-            expect(() => TokenService.refreshTokens('invalid-refresh-token')).toThrow('Invalid or expired token');
+    describe('refreshTokens (server-only)', () => {
+        it('should throw error indicating method is not available on client', () => {
+            expect(() => TokenService.refreshTokens('some-refresh-token')).toThrow(
+                'TokenService.refreshTokens is not available on the client'
+            );
         });
     });
 });

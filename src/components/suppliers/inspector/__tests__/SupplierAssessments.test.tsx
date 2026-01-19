@@ -60,30 +60,40 @@ describe('SupplierAssessments', () => {
     const mockAssessments: SupplierQuestionnaireResponse[] = [
         {
             id: 'assessment-1',
+            organizationId: 'org-1',
             supplierId: 'supplier-1',
+            supplierName: 'Test Supplier',
             templateId: 'template-1',
             status: 'Submitted',
             overallScore: 85,
             answers: {},
-            updatedAt: { seconds: 1704067200 } as unknown as Date // 2024-01-01
+            sentDate: '2024-01-01T00:00:00.000Z',
+            // Cast to match what the component actually expects (Firebase timestamp format)
+            updatedAt: { seconds: 1704067200 } as unknown as string // 2024-01-01
         },
         {
             id: 'assessment-2',
+            organizationId: 'org-1',
             supplierId: 'supplier-1',
+            supplierName: 'Test Supplier',
             templateId: 'template-1',
             status: 'In Progress',
             overallScore: 45,
             answers: {},
-            updatedAt: { seconds: 1703980800 } as unknown as Date // 2023-12-31
+            sentDate: '2023-12-31T00:00:00.000Z',
+            updatedAt: { seconds: 1703980800 } as unknown as string // 2023-12-31
         },
         {
             id: 'assessment-3',
+            organizationId: 'org-1',
             supplierId: 'supplier-1',
+            supplierName: 'Test Supplier',
             templateId: 'template-1',
             status: 'Draft',
             overallScore: 0,
             answers: {},
-            updatedAt: { seconds: 1703894400 } as unknown as Date // 2023-12-30
+            sentDate: '2023-12-30T00:00:00.000Z',
+            updatedAt: { seconds: 1703894400 } as unknown as string // 2023-12-30
         }
     ];
 

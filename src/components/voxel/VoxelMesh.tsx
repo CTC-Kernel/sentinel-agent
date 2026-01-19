@@ -3,7 +3,34 @@ import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Html, Text, Line } from '@react-three/drei';
 import { Group, Mesh, MeshPhysicalMaterial, DoubleSide, AdditiveBlending } from 'three';
 import { animated, useSpring, config } from '@react-spring/three';
-import { VoxelNode, Risk, Project, Incident } from '../../types';
+import { VoxelNode, VoxelNodeType, VoxelNodeStatus, Risk, Project, Incident } from '../../types';
+
+// Helper to convert object position to array for Three.js
+const positionToArray = (pos: { x: number; y: number; z: number }): [number, number, number] => [pos.x, pos.y, pos.z];
+
+// Helper to get color from node type and status
+const getNodeColor = (type: VoxelNodeType, status: VoxelNodeStatus, data?: Record<string, unknown>): string => {
+  // Status-based coloring takes priority for critical states
+  if (status === 'critical') return '#ef4444';
+  if (status === 'warning') return '#f59e0b';
+
+  // Type-based default colors
+  switch (type) {
+    case 'asset': return '#3b82f6';
+    case 'risk': {
+      const score = (data as { score?: number })?.score ?? 0;
+      if (score >= 15) return '#ef4444';
+      if (score >= 10) return '#f59e0b';
+      return '#22c55e';
+    }
+    case 'project': return '#a855f7';
+    case 'audit': return '#06b6d4';
+    case 'incident': return '#f43f5e';
+    case 'supplier': return '#22c55e';
+    case 'control': return '#14b8a6';
+    default: return '#6b7280';
+  }
+};
 import { VoxelDetailOverlay } from '../VoxelDetailOverlay';
 import { useModelLibrary } from '../../hooks/useModelLibrary';
 import { MODEL_LIBRARY_CONFIG } from '../../contexts/modelLibraryConstants';
@@ -90,9 +117,9 @@ const VoxelModelGeometry: React.FC<{
 }> = React.memo(({ node, libraryPrimitive, sharedMaterialProps, emissiveColor, opacity, xRayMode, cameraPosition, lodLevel = 0 }) => {
     // Calculer la distance depuis la caméra pour le LOD
     const distance = cameraPosition ? Math.sqrt(
-        Math.pow(cameraPosition[0] - node.position[0], 2) +
-        Math.pow(cameraPosition[1] - node.position[1], 2) +
-        Math.pow(cameraPosition[2] - node.position[2], 2)
+        Math.pow(cameraPosition[0] - node.position.x, 2) +
+        Math.pow(cameraPosition[1] - node.position.y, 2) +
+        Math.pow(cameraPosition[2] - node.position.z, 2)
     ) : 50; // Distance par défaut
 
     const calculatedLODLevel = Math.floor(distance / 20);
@@ -296,13 +323,16 @@ export const VoxelMesh: React.FC<{
 
     const isCritical = useMemo(() => {
         if (node.type === 'risk') {
-            return (node.data as Risk).score >= 15;
+            const riskData = node.data as unknown as Risk;
+            return riskData.score >= 15;
         }
         if (node.type === 'incident') {
-            return (node.data as Incident).severity === 'Critique';
+            const incidentData = node.data as unknown as Incident;
+            return incidentData.severity === 'Critique';
         }
         if (node.type === 'project') {
-            return ((node.data as Project).status || '').toLowerCase().includes('retard');
+            const projectData = node.data as unknown as Project;
+            return (projectData.status || '').toLowerCase().includes('retard');
         }
         return false;
     }, [node]);
@@ -341,8 +371,9 @@ export const VoxelMesh: React.FC<{
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
     }, []);
 
-    let baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
-    let emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;
+    const nodeColor = getNodeColor(node.type, node.status, node.data);
+    let baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : nodeColor;
+    let emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : nodeColor;
 
     if (node.type === 'risk' && usesLibraryModel) {
         baseColor = isSelected ? '#fdba74' : hovered ? '#fb923c' : '#f97316';
@@ -425,7 +456,7 @@ export const VoxelMesh: React.FC<{
     const AnimatedGroup = animated.group as any;
 
     return (
-        <group position={node.position}>
+        <group position={positionToArray(node.position)}>
             <AnimatedGroup
                 ref={meshRef}
                 onClick={handleClick}
@@ -447,7 +478,7 @@ export const VoxelMesh: React.FC<{
                 <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -safeSize / 2, 0]}>
                     <ringGeometry args={[safeSize * 0.8, safeSize * 1.6, 64]} />
                     <meshBasicMaterial
-                        color={node.color}
+                        color={nodeColor}
                         transparent
                         opacity={isSelected ? 0.8 : 0.4}
                         blending={AdditiveBlending}
@@ -507,9 +538,10 @@ export const VoxelMesh: React.FC<{
         prev.xRayMode === next.xRayMode &&
         prev.isImpacted === next.isImpacted &&
         prev.node.id === next.node.id &&
-        prev.node.position[0] === next.node.position[0] &&
-        prev.node.position[1] === next.node.position[1] &&
-        prev.node.position[2] === next.node.position[2] &&
-        prev.node.color === next.node.color
+        prev.node.position.x === next.node.position.x &&
+        prev.node.position.y === next.node.position.y &&
+        prev.node.position.z === next.node.position.z &&
+        prev.node.status === next.node.status &&
+        prev.node.type === next.node.type
     );
 });

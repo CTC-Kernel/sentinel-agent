@@ -10,6 +10,7 @@ const mockActions: OverdueActionItem[] = [
     id: 'action-1',
     title: 'Mise a jour politique securite',
     description: 'Revision annuelle',
+    type: 'policy',
     dueDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     daysOverdue: 5,
     status: 'pending',
@@ -18,6 +19,7 @@ const mockActions: OverdueActionItem[] = [
   {
     id: 'action-2',
     title: 'Formation phishing',
+    type: 'training',
     dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     daysOverdue: 2,
     status: 'in_progress',
@@ -25,6 +27,7 @@ const mockActions: OverdueActionItem[] = [
   {
     id: 'action-3',
     title: 'Audit conformite',
+    type: 'audit',
     dueDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
     daysOverdue: 10,
     status: 'pending',

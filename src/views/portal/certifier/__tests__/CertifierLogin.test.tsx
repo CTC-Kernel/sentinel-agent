@@ -58,13 +58,17 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Mock lucide icons
-vi.mock('lucide-react', () => ({
-    Loader2: () => <span data-testid="loader" />,
-    ShieldCheck: () => <span data-testid="icon-shield" />,
-    Mail: () => <span data-testid="icon-mail" />,
-    Lock: () => <span data-testid="icon-lock" />,
-}));
+// Mock lucide icons - use importOriginal to preserve all icons
+vi.mock('lucide-react', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('lucide-react')>();
+    return {
+        ...actual,
+        Loader2: () => <span data-testid="loader" />,
+        ShieldCheck: () => <span data-testid="icon-shield" />,
+        Mail: () => <span data-testid="icon-mail" />,
+        Lock: () => <span data-testid="icon-lock" />,
+    };
+});
 
 // Mock MasterpieceBackground
 vi.mock('../../../../components/ui/MasterpieceBackground', () => ({

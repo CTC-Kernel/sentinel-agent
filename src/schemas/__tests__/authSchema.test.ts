@@ -93,9 +93,10 @@ describe('loginSchema', () => {
 });
 
 describe('registerSchema', () => {
+    // Password must be: 8+ chars, 1 uppercase, 1 digit, 1 special char
     const validRegister = {
         email: 'newuser@example.com',
-        password: 'securepass123'
+        password: 'SecurePass123!'
     };
 
     describe('required fields', () => {
@@ -144,26 +145,50 @@ describe('registerSchema', () => {
     });
 
     describe('password validation', () => {
-        it('accepts password with 6+ characters', () => {
+        it('accepts password meeting all requirements (8+ chars, uppercase, digit, special)', () => {
             const result = registerSchema.safeParse({
                 ...validRegister,
-                password: '123456'
+                password: 'Abcdefg1!'
             });
             expect(result.success).toBe(true);
         });
 
-        it('rejects password shorter than 6 characters', () => {
+        it('rejects password shorter than 8 characters', () => {
             const result = registerSchema.safeParse({
                 ...validRegister,
-                password: '12345'
+                password: 'Abc1!xy'
             });
             expect(result.success).toBe(false);
         });
 
-        it('accepts long passwords', () => {
+        it('rejects password without uppercase letter', () => {
             const result = registerSchema.safeParse({
                 ...validRegister,
-                password: 'a'.repeat(100)
+                password: 'abcdefg1!'
+            });
+            expect(result.success).toBe(false);
+        });
+
+        it('rejects password without digit', () => {
+            const result = registerSchema.safeParse({
+                ...validRegister,
+                password: 'Abcdefgh!'
+            });
+            expect(result.success).toBe(false);
+        });
+
+        it('rejects password without special character', () => {
+            const result = registerSchema.safeParse({
+                ...validRegister,
+                password: 'Abcdefg12'
+            });
+            expect(result.success).toBe(false);
+        });
+
+        it('accepts long passwords with all requirements', () => {
+            const result = registerSchema.safeParse({
+                ...validRegister,
+                password: 'A' + 'a'.repeat(97) + '1!'
             });
             expect(result.success).toBe(true);
         });

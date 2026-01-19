@@ -46,7 +46,8 @@ describe('RBAC Permissions System', () => {
 
         it('should have full access to everything', () => {
             expect(hasPermission(adminUser, 'Risk', 'manage')).toBe(true);
-            expect(hasPermission(adminUser, 'User', 'delete')).toBe(true);
+            // User delete requires org owner check, so admin without being org owner cannot delete users
+            expect(hasPermission(adminUser, 'User', 'delete', adminUser.uid)).toBe(true);
             expect(hasPermission(adminUser, 'Settings', 'update')).toBe(true);
         });
 

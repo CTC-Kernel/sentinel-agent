@@ -71,8 +71,9 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Mock lucide icons - must use factory function to avoid hoisting issues
-vi.mock('lucide-react', async () => {
+// Mock lucide icons - use importOriginal to preserve all icons
+vi.mock('lucide-react', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('lucide-react')>();
     const MockLoader2 = () => <span data-testid="loader" className="animate-spin" />;
     const MockBuilding2 = () => <span data-testid="icon-building" />;
     const MockFileCheck = () => <span data-testid="icon-filecheck" />;
@@ -84,6 +85,7 @@ vi.mock('lucide-react', async () => {
     const MockShield = () => <span data-testid="icon-shield" />;
 
     return {
+        ...actual,
         Loader2: MockLoader2,
         Building2: MockBuilding2,
         FileCheck: MockFileCheck,

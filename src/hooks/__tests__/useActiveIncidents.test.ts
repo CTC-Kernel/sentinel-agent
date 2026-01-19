@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useActiveIncidents, getSeverityColorScheme, SEVERITY_COLOR_CLASSES } from '../useActiveIncidents';
+import { Criticality } from '../../types/common';
 
 // Mock Firebase
 vi.mock('../../firebase', () => ({
@@ -13,7 +14,7 @@ vi.mock('firebase/firestore', () => ({
   where: vi.fn(),
   orderBy: vi.fn(),
   limit: vi.fn(),
-  onSnapshot: vi.fn((q, onSuccess) => {
+  onSnapshot: vi.fn((_q, onSuccess) => {
     // Simulate successful data fetch
     onSuccess({
       docs: [
@@ -113,19 +114,19 @@ describe('useActiveIncidents', () => {
 
 describe('getSeverityColorScheme', () => {
   it('should return danger for Critique severity', () => {
-    expect(getSeverityColorScheme('Critique')).toBe('danger');
+    expect(getSeverityColorScheme(Criticality.CRITICAL)).toBe('danger');
   });
 
   it('should return warning for Élevée severity', () => {
-    expect(getSeverityColorScheme('Élevée')).toBe('warning');
+    expect(getSeverityColorScheme(Criticality.HIGH)).toBe('warning');
   });
 
   it('should return caution for Moyenne severity', () => {
-    expect(getSeverityColorScheme('Moyenne')).toBe('caution');
+    expect(getSeverityColorScheme(Criticality.MEDIUM)).toBe('caution');
   });
 
   it('should return success for Faible severity', () => {
-    expect(getSeverityColorScheme('Faible')).toBe('success');
+    expect(getSeverityColorScheme(Criticality.LOW)).toBe('success');
   });
 });
 

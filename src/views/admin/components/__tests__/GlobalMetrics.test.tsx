@@ -39,13 +39,17 @@ vi.mock('recharts', () => ({
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="responsive-container">{children}</div>,
 }));
 
-// Mock Lucide icons
-vi.mock('lucide-react', () => ({
-    Users: () => <span data-testid="icon-users" />,
-    Building: () => <span data-testid="icon-building" />,
-    Activity: () => <span data-testid="icon-activity" />,
-    Zap: () => <span data-testid="icon-zap" />,
-}));
+// Mock Lucide icons with importOriginal to include all exports
+vi.mock('lucide-react', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('lucide-react')>();
+    return {
+        ...actual,
+        Users: () => <span data-testid="icon-users" />,
+        Building: () => <span data-testid="icon-building" />,
+        Activity: () => <span data-testid="icon-activity" />,
+        Zap: () => <span data-testid="icon-zap" />,
+    };
+});
 
 describe('GlobalMetrics', () => {
     beforeEach(() => {

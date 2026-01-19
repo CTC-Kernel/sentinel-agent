@@ -226,9 +226,9 @@ describe('useContinuity', () => {
             await act(async () => {
                 await result.current.addDrill({
                     processId: 'process-1',
-                    date: new Date(),
-                    name: 'Test Drill',
-                    result: 'Success'
+                    date: new Date().toISOString(),
+                    type: 'Tabletop',
+                    result: 'Succès'
                 });
             });
 
@@ -243,9 +243,9 @@ describe('useContinuity', () => {
 
             await act(async () => {
                 await result.current.addDrill({
-                    name: 'General Drill',
-                    date: new Date(),
-                    result: 'Pass'
+                    type: 'Simulation',
+                    date: new Date().toISOString(),
+                    result: 'Succès partiel'
                 });
             });
 
@@ -259,7 +259,7 @@ describe('useContinuity', () => {
             const { result } = renderHook(() => useContinuity());
 
             await act(async () => {
-                await result.current.updateDrill('drill-1', { result: 'Failed' });
+                await result.current.updateDrill('drill-1', { result: 'Échec' });
             });
 
             expect(mockUpdateDoc).toHaveBeenCalled();

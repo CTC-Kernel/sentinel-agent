@@ -3,6 +3,12 @@ import { TokenService } from '../services/tokenService';
 import { logger } from '../utils/logger';
 import { ErrorLogger } from '../services/errorLogger';
 
+interface TokenPayload {
+  userId: string;
+  sessionId: string;
+  role: string;
+}
+
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
@@ -27,8 +33,23 @@ export const authenticate = (requiredRole?: string) => {
       const token = authHeader.split(' ')[1];
 
       try {
-        // Vérifier et décoder le token
-        const decoded = TokenService.verifyToken(token);
+        // Décoder le token (note: verification should be done server-side via Firebase Auth)
+        const decoded = TokenService.decodeToken(token) as TokenPayload | null;
+
+        if (!decoded) {
+          return res.status(401).json({
+            error: 'Unauthorized',
+            message: 'Invalid token format'
+          });
+        }
+
+        // Check if token is expired
+        if (TokenService.isTokenExpired(token)) {
+          return res.status(401).json({
+            error: 'Unauthorized',
+            message: 'Token has expired'
+          });
+        }
 
         // Vérifier les rôles si nécessaire
         if (requiredRole && decoded.role !== requiredRole) {
@@ -69,6 +90,8 @@ export const authenticate = (requiredRole?: string) => {
 };
 
 // Middleware pour le renouvellement de token
+// Note: Token refresh should be handled via Firebase Auth on the client
+// This endpoint is deprecated - use Firebase Auth refresh mechanism instead
 export const refreshTokenMiddleware = async (
   req: Request,
   res: Response
@@ -83,12 +106,12 @@ export const refreshTokenMiddleware = async (
       });
     }
 
-    const tokens = TokenService.refreshTokens(refreshToken);
-
-    res.json({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresIn: 900 // 15 minutes en secondes
+    // Token refresh is not available on client-side
+    // This should be handled via Firebase Auth
+    logger.warn('refreshTokenMiddleware called - this is deprecated, use Firebase Auth');
+    return res.status(501).json({
+      error: 'Not Implemented',
+      message: 'Token refresh should be handled via Firebase Auth'
     });
   } catch (_error) {
     logger.error({ err: _error }, 'Token refresh error');
@@ -96,7 +119,7 @@ export const refreshTokenMiddleware = async (
       error: 'Unauthorized',
       message: 'Invalid refresh token'
     });
-    return; // Ajout d'un return pour éviter l'appel à next()
+    return;
   }
 };
 

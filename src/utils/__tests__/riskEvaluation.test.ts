@@ -9,7 +9,7 @@ import {
     calculateRiskScore,
     calculateMitigationCoverage
 } from '../riskEvaluation';
-import { Control } from '../../types';
+import { Control, ControlStatus } from '../../types';
 
 describe('getRiskLevelFromScore', () => {
     describe('critical level (score >= 15)', () => {
@@ -109,15 +109,14 @@ describe('calculateRiskScore', () => {
 });
 
 describe('calculateMitigationCoverage', () => {
-    const createControl = (status: string): Control => ({
+    const createControl = (status: ControlStatus): Control => ({
         id: 'ctrl-1',
+        organizationId: 'org-1',
         code: 'A.1.1',
-        title: 'Test Control',
+        name: 'Test Control',
         description: 'Description',
         status,
         framework: 'ISO27001',
-        createdAt: new Date(),
-        updatedAt: new Date()
     });
 
     it('returns 0 for empty controls array', () => {
@@ -172,10 +171,10 @@ describe('calculateMitigationCoverage', () => {
         expect(calculateMitigationCoverage(controls)).toBe(0);
     });
 
-    it('returns 0 for inactive or non-applied controls', () => {
+    it('returns 0 for inactive controls', () => {
         const controls = [
             createControl('Inactif'),
-            createControl('Non appliqué')
+            createControl('Inactif')
         ];
         expect(calculateMitigationCoverage(controls)).toBe(0);
     });
@@ -191,9 +190,9 @@ describe('calculateMitigationCoverage', () => {
         expect(calculateMitigationCoverage(controls)).toBe(60);
     });
 
-    it('handles unknown status as 0', () => {
+    it('handles non-conforme status as 0', () => {
         const controls = [
-            createControl('Unknown Status')
+            createControl('Non conforme')
         ];
         expect(calculateMitigationCoverage(controls)).toBe(0);
     });

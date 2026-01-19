@@ -18,10 +18,16 @@ vi.mock('../../../ui/Icons', () => ({
 describe('ProjectOverview', () => {
     const mockProject: Project = {
         id: 'project-1',
+        organizationId: 'org-1',
         name: 'Security Enhancement',
         description: 'Comprehensive security enhancement project to improve organizational resilience.',
         status: 'En cours',
+        manager: 'John Doe',
+        dueDate: '2024-12-31',
+        progress: 50,
+        tasks: [],
         startDate: '2024-01-01',
+        createdAt: '2024-01-01',
         relatedAssetIds: ['asset-1', 'asset-2', 'asset-3'],
         relatedRiskIds: ['risk-1', 'risk-2'],
         relatedControlIds: ['control-1', 'control-2', 'control-3', 'control-4']

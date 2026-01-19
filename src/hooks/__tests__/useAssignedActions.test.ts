@@ -22,7 +22,7 @@ vi.mock('firebase/firestore', () => ({
   where: vi.fn(),
   orderBy: vi.fn(),
   limit: vi.fn(),
-  onSnapshot: vi.fn((q, onSuccess) => {
+  onSnapshot: vi.fn((_q, onSuccess) => {
     // Simulate successful data fetch
     onSuccess({
       docs: [

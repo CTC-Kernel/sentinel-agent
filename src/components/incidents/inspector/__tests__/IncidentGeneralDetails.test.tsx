@@ -49,7 +49,6 @@ describe('IncidentGeneralDetails', () => {
         status: 'Nouveau',
         dateReported: '2024-01-15T10:00:00Z',
         reporter: 'Alice Martin',
-        reporterId: 'user-1',
         financialImpact: 50000,
         isSignificant: false
     };

@@ -6,7 +6,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProjectDependencies } from '../ProjectDependencies';
-import { Risk, Control, Asset, Audit } from '../../../../types';
+import { Risk, Control, Asset, Audit, Criticality } from '../../../../types';
 
 // Mock Icons
 vi.mock('../../../ui/Icons', () => ({
@@ -49,29 +49,38 @@ describe('ProjectDependencies', () => {
     const mockRisks: Risk[] = [
         {
             id: 'risk-1',
+            organizationId: 'org-1',
+            assetId: 'asset-1',
             threat: 'Data Breach',
             vulnerability: 'Weak encryption',
             score: 15,
-            likelihood: 3,
+            probability: 3,
             impact: 5,
-            status: 'Identifié',
-            category: 'Technical'
+            status: 'Ouvert',
+            category: 'Technical',
+            strategy: 'Atténuer',
+            owner: 'User 1'
         },
         {
             id: 'risk-2',
+            organizationId: 'org-1',
+            assetId: 'asset-2',
             threat: 'DDoS Attack',
             vulnerability: 'No rate limiting',
             score: 8,
-            likelihood: 2,
+            probability: 2,
             impact: 4,
-            status: 'En traitement',
-            category: 'Operational'
+            status: 'En cours',
+            category: 'Operational',
+            strategy: 'Atténuer',
+            owner: 'User 2'
         }
     ];
 
     const mockControls: Control[] = [
         {
             id: 'ctrl-1',
+            organizationId: 'org-1',
             code: 'A.8.1',
             name: 'User access management',
             description: 'Access control for users',
@@ -80,6 +89,7 @@ describe('ProjectDependencies', () => {
         },
         {
             id: 'ctrl-2',
+            organizationId: 'org-1',
             code: 'A.12.3',
             name: 'Data backup',
             description: 'Regular data backup procedures',
@@ -91,36 +101,52 @@ describe('ProjectDependencies', () => {
     const mockAssets: Asset[] = [
         {
             id: 'asset-1',
+            organizationId: 'org-1',
             name: 'Production Server',
-            type: 'server',
-            status: 'Actif',
-            criticality: 'Critique'
+            type: 'Matériel',
+            owner: 'IT Admin',
+            confidentiality: Criticality.HIGH,
+            integrity: Criticality.HIGH,
+            availability: Criticality.CRITICAL,
+            location: 'Data Center',
+            createdAt: '2024-01-01'
         },
         {
             id: 'asset-2',
+            organizationId: 'org-1',
             name: 'Customer Database',
-            type: 'database',
-            status: 'Actif',
-            criticality: 'Élevé'
+            type: 'Données',
+            owner: 'DBA',
+            confidentiality: Criticality.CRITICAL,
+            integrity: Criticality.CRITICAL,
+            availability: Criticality.HIGH,
+            location: 'Cloud',
+            createdAt: '2024-01-01'
         }
     ];
 
     const mockAudits: Audit[] = [
         {
             id: 'audit-1',
+            organizationId: 'org-1',
             name: 'ISO 27001 Audit',
-            type: 'ISO27001',
+            type: 'Certification',
+            auditor: 'External Auditor',
             reference: 'AUD-2024-001',
             status: 'Terminé',
-            dateScheduled: '2024-01-15'
+            dateScheduled: '2024-01-15',
+            findingsCount: 3
         },
         {
             id: 'audit-2',
+            organizationId: 'org-1',
             name: 'Security Review',
-            type: 'Custom',
+            type: 'Interne',
+            auditor: 'Internal Team',
             reference: 'AUD-2024-002',
             status: 'En cours',
-            dateScheduled: '2024-02-01'
+            dateScheduled: '2024-02-01',
+            findingsCount: 0
         }
     ];
 
@@ -241,8 +267,8 @@ describe('ProjectDependencies', () => {
         it('renders asset types', () => {
             render(<ProjectDependencies type="assets" items={mockAssets} canEdit={true} />);
 
-            expect(screen.getByText('server')).toBeInTheDocument();
-            expect(screen.getByText('database')).toBeInTheDocument();
+            expect(screen.getByText('Matériel')).toBeInTheDocument();
+            expect(screen.getByText('Données')).toBeInTheDocument();
         });
 
         it('opens asset inspector on click', () => {

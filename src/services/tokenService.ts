@@ -29,23 +29,7 @@ export class TokenService {
    * @throws Error - This method is not available on the client
    */
   static generateTokens(_userId: string, _role: string): never {
-    throwServerOnlyError('generateTokens');
-  }
-
-  /**
-   * @deprecated Use Firebase Auth instead. Token generation must be server-side.
-   * @throws Error - This method is not available on the client
-   */
-  private static generateAccessToken(_userId: string, _sessionId: string, _role: string): never {
-    throwServerOnlyError('generateAccessToken');
-  }
-
-  /**
-   * @deprecated Use Firebase Auth instead. Token generation must be server-side.
-   * @throws Error - This method is not available on the client
-   */
-  private static generateRefreshToken(_userId: string, _sessionId: string, _role: string): never {
-    throwServerOnlyError('generateRefreshToken');
+    return throwServerOnlyError('generateTokens');
   }
 
   /**
@@ -53,7 +37,7 @@ export class TokenService {
    * @throws Error - This method is not available on the client
    */
   static verifyToken(_token: string): never {
-    throwServerOnlyError('verifyToken');
+    return throwServerOnlyError('verifyToken');
   }
 
   /**
@@ -82,6 +66,6 @@ export class TokenService {
    * @throws Error - This method is not available on the client
    */
   static refreshTokens(_refreshToken: string): never {
-    throwServerOnlyError('refreshTokens');
+    return throwServerOnlyError('refreshTokens');
   }
 }

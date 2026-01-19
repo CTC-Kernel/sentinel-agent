@@ -63,7 +63,9 @@ describe('DashboardSkeleton', () => {
         it('renders 4 stat panels', () => {
             const { container } = render(<DashboardSkeleton />);
 
-            const panels = container.querySelectorAll('.glass-panel');
+            // Select only stat panels inside the lg:grid-cols-4 grid (Quick Stats Grid)
+            const statsGrid = container.querySelector('.lg\\:grid-cols-4');
+            const panels = statsGrid?.querySelectorAll('.glass-panel') ?? [];
             expect(panels.length).toBe(4);
         });
     });

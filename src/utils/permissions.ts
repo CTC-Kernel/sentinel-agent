@@ -181,7 +181,7 @@ export const hasPermission = (
     if (userRole === 'admin') {
         // Critical resources require organization owner check
         if (action === 'delete' && ['User', 'Organization'].includes(resource)) {
-            return orgOwnerId ? user.uid === orgOwnerId : false; // CHANGED: false instead of true
+            return typeof orgOwnerId === 'string' && orgOwnerId.length > 0 && user.uid === orgOwnerId;
         }
 
         // SECURITY: Verify admin belongs to the resource's organization

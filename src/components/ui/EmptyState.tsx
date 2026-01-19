@@ -1,6 +1,6 @@
 import React from 'react';
 import { LucideIcon } from './Icons';
-import { motion } from 'framer-motion';
+import { motion, TargetAndTransition } from 'framer-motion';
 import { appleEasing } from '../../utils/microInteractions';
 
 interface EmptyStateProps {
@@ -15,7 +15,7 @@ interface EmptyStateProps {
 }
 
 // Floating animation for the icon
-const floatingAnimation = {
+const floatingAnimation: TargetAndTransition = {
     y: [0, -8, 0],
     transition: {
         duration: 3,

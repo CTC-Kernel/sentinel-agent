@@ -42,14 +42,12 @@ vi.mock('recharts', () => ({
   Bar: () => <div />,
 }));
 
-vi.mock('lucide-react', () => ({
-  TrendingUp: () => null,
-  TrendingDown: () => null,
-  Loader2: () => null,
-  AlertTriangle: () => null,
-  RefreshCw: () => null,
-  Calendar: () => null,
-}));
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('lucide-react')>();
+  return {
+    ...actual,
+  };
+});
 
 vi.mock('framer-motion', () => ({
   motion: { div: 'div' },

@@ -341,8 +341,11 @@ describe('useAuthActions', () => {
 
             // Mock window.location
             const originalLocation = window.location;
-            delete (window as { location?: Location }).location;
-            window.location = { href: '' } as Location;
+            Object.defineProperty(window, 'location', {
+                value: { href: '' },
+                writable: true,
+                configurable: true
+            });
 
             const { result } = renderHook(() => useAuthActions());
 
@@ -354,7 +357,7 @@ describe('useAuthActions', () => {
             expect(mockAddToast).toHaveBeenCalledWith('auth.logoutSuccess', 'success');
 
             // Restore
-            window.location = originalLocation;
+            Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
         });
     });
 
@@ -404,8 +407,11 @@ describe('useAuthActions', () => {
 
             // Mock window.location
             const originalLocation = window.location;
-            delete (window as { location?: Location }).location;
-            window.location = { hash: '' } as Location;
+            Object.defineProperty(window, 'location', {
+                value: { hash: '' },
+                writable: true,
+                configurable: true
+            });
 
             renderHook(() => useAuthActions());
 
@@ -413,7 +419,7 @@ describe('useAuthActions', () => {
                 expect(mockAddToast).toHaveBeenCalledWith('auth.success', 'success');
             });
 
-            window.location = originalLocation;
+            Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
         });
     });
 });

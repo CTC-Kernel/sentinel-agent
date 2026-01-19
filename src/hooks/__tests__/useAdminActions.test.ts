@@ -131,7 +131,8 @@ describe('useAdminActions', () => {
             const originalLocation = window.location;
             Object.defineProperty(window, 'location', {
                 value: { href: '' },
-                writable: true
+                writable: true,
+                configurable: true
             });
 
             const { result } = renderHook(() => useAdminActions());
@@ -147,7 +148,7 @@ describe('useAdminActions', () => {
             expect(mockToastSuccess).toHaveBeenCalled();
 
             // Restore
-            window.location = originalLocation;
+            Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
         });
 
         it('calls switch organization function', async () => {
@@ -158,7 +159,8 @@ describe('useAdminActions', () => {
             const originalLocation = window.location;
             Object.defineProperty(window, 'location', {
                 value: { href: '' },
-                writable: true
+                writable: true,
+                configurable: true
             });
 
             const { result } = renderHook(() => useAdminActions());
@@ -170,7 +172,7 @@ describe('useAdminActions', () => {
             expect(mockHttpsCallable).toHaveBeenCalledWith(expect.anything(), 'switchOrganization');
             expect(mockCallable).toHaveBeenCalledWith({ targetOrgId: 'org-456' });
 
-            window.location = originalLocation;
+            Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
         });
 
         it('refreshes ID token after switch', async () => {
@@ -181,7 +183,8 @@ describe('useAdminActions', () => {
             const originalLocation = window.location;
             Object.defineProperty(window, 'location', {
                 value: { href: '' },
-                writable: true
+                writable: true,
+                configurable: true
             });
 
             const { result } = renderHook(() => useAdminActions());
@@ -192,7 +195,7 @@ describe('useAdminActions', () => {
 
             expect(mockGetIdToken).toHaveBeenCalledWith(true);
 
-            window.location = originalLocation;
+            Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
         });
 
         it('shows success toast on successful switch', async () => {
@@ -203,7 +206,8 @@ describe('useAdminActions', () => {
             const originalLocation = window.location;
             Object.defineProperty(window, 'location', {
                 value: { href: '' },
-                writable: true
+                writable: true,
+                configurable: true
             });
 
             const { result } = renderHook(() => useAdminActions());
@@ -216,7 +220,7 @@ describe('useAdminActions', () => {
                 expect.stringContaining('admin.toast.switchSuccess')
             );
 
-            window.location = originalLocation;
+            Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
         });
 
         it('handles error during switch', async () => {
@@ -254,7 +258,8 @@ describe('useAdminActions', () => {
             const originalLocation = window.location;
             Object.defineProperty(window, 'location', {
                 value: { href: '' },
-                writable: true
+                writable: true,
+                configurable: true
             });
 
             const { result } = renderHook(() => useAdminActions());
@@ -265,7 +270,7 @@ describe('useAdminActions', () => {
 
             expect(window.location.href).toBe('/');
 
-            window.location = originalLocation;
+            Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
         });
     });
 });

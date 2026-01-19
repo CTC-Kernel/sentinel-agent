@@ -27,7 +27,7 @@ describe('NotificationItem', () => {
         message: 'A critical risk has been identified in your system',
         type: 'warning',
         read: false,
-        createdAt: new Date('2024-01-15T10:00:00'),
+        createdAt: new Date('2024-01-15T10:00:00').toISOString(),
         userId: 'user-1',
         organizationId: 'org-1'
     };

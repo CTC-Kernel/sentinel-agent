@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RSSIIncidentsWidget } from '../RSSIIncidentsWidget';
+import { Criticality } from '../../../types/common';
+import type { IncidentListItem } from '../../../hooks/useActiveIncidents';
 
 // Mock the hook
 vi.mock('../../../hooks/useActiveIncidents', () => ({
@@ -23,12 +25,12 @@ import { useActiveIncidents } from '../../../hooks/useActiveIncidents';
 
 describe('RSSIIncidentsWidget', () => {
   const mockRefetch = vi.fn();
-  const mockIncidents = [
+  const mockIncidents: IncidentListItem[] = [
     {
       id: 'incident-1',
       title: 'Tentative de phishing',
       description: 'Email de phishing detecte',
-      severity: 'Critique' as const,
+      severity: Criticality.CRITICAL,
       status: 'Analyse',
       category: 'Phishing',
       dateReported: '2026-01-10T10:00:00Z',
@@ -38,7 +40,7 @@ describe('RSSIIncidentsWidget', () => {
       id: 'incident-2',
       title: 'Indisponibilite serveur',
       description: 'Serveur web inaccessible',
-      severity: 'Élevée' as const,
+      severity: Criticality.HIGH,
       status: 'Contenu',
       category: 'Indisponibilité',
       dateReported: '2026-01-09T14:30:00Z',

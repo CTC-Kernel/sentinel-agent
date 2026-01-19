@@ -34,23 +34,12 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('lucide-react', () => ({
-  AlertTriangle: () => null,
-  AlertCircle: () => null,
-  AlertOctagon: () => null,
-  Info: () => null,
-  Check: () => null,
-  X: () => null,
-  Eye: () => null,
-  EyeOff: () => null,
-  Filter: () => null,
-  ChevronDown: () => null,
-  ChevronUp: () => null,
-  ListTodo: () => null,
-  RefreshCw: () => null,
-  Settings: () => null,
-  MoreVertical: () => null,
-}));
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('lucide-react')>();
+  return {
+    ...actual,
+  };
+});
 
 describe('AnomalyPanel', () => {
   describe('module tests', () => {

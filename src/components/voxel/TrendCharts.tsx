@@ -292,7 +292,7 @@ function MetricSummary({
   label: string;
   value: number | string;
   change?: number;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   trend?: 'up' | 'down' | 'stable';
 }) {
   return (

@@ -71,7 +71,9 @@ describe('GroupCard', () => {
         organizationId: 'org-1',
         name: 'Security Team',
         description: 'Handles security operations',
-        members: ['user-1', 'user-2']
+        members: ['user-1', 'user-2'],
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z'
     };
 
     const groupWithoutDescription: UserGroup = {
