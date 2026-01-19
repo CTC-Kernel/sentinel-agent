@@ -20,7 +20,6 @@ vi.mock('framer-motion', () => ({
 
 // Mock lucide-react
 vi.mock('lucide-react', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
         WifiOff: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'wifi-off-icon', ...props }),

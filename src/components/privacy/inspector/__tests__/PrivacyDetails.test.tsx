@@ -13,7 +13,6 @@ import { UseFormReturn } from 'react-hook-form';
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
         User: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'user-icon', ...props }),
@@ -271,7 +270,6 @@ describe('PrivacyDetails', () => {
                 }
             };
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             render(<PrivacyDetails {...defaultProps} isEditing={true} form={formWithErrors as unknown as UseFormReturn<ProcessingActivityFormData>} />);
 
             expect(screen.getByText('Le nom est requis')).toBeInTheDocument();

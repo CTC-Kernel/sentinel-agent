@@ -12,7 +12,6 @@ import { Notification } from '../../../types';
 
 // Mock lucide-react
 vi.mock('lucide-react', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
         Bell: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'bell-icon', ...props }),

@@ -11,8 +11,6 @@ vi.mock('framer-motion', () => ({
     span: ({ children, className, ...props }: React.ComponentProps<'span'>) => <span className={className} {...props}>{children}</span>,
     circle: (props: React.SVGProps<SVGCircleElement>) => <circle {...props} />,
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
@@ -30,7 +28,7 @@ vi.mock('../../../utils/microInteractions', () => ({
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => {
-  const Icon = ({ className, ...props }: any) => <span className={`icon ${className}`} {...props} />;
+  const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => <svg className={`icon ${className}`} {...props} />;
   return {
     TrendingUp: Icon,
     TrendingDown: Icon,

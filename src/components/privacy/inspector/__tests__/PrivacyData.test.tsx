@@ -13,7 +13,6 @@ import { UseFormReturn } from 'react-hook-form';
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
         Shield: Icon,

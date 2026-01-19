@@ -11,7 +11,6 @@ import { Breadcrumbs } from '../Breadcrumbs';
 
 // Mock lucide-react - must be before any imports that use it
 vi.mock('lucide-react', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
         ChevronRight: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'chevron-right', ...props }),

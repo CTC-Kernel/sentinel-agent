@@ -76,7 +76,7 @@ describe('useOngoingAudits', () => {
       originalError(...args);
     });
 
-    vi.mocked(onSnapshot).mockImplementation((...args: any[]) => {
+    vi.mocked(onSnapshot).mockImplementation((...args: unknown[]) => {
       // onSnapshot(query, next, error) -> error is index 2.
       if (args.length >= 3 && typeof args[2] === 'function') {
         args[2](mockError as unknown as FirestoreError);
