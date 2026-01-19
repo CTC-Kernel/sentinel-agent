@@ -3,13 +3,24 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AddToCalendar, CalendarEventDetails } from '../AddToCalendar';
-import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
-// Mock lucide-react
-vi.mock('lucide-react', createLucideMock);
+// Mock lucide-react - must be before any imports that use it
+vi.mock('lucide-react', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    return {
+        Calendar: Icon,
+        Download: Icon,
+        ExternalLink: Icon,
+        Settings: Icon,
+        Grid3X3: Icon,
+        Unlock: Icon,
+    };
+});
 
 // Mock CalendarService
 vi.mock('../../../services/calendarService', () => ({

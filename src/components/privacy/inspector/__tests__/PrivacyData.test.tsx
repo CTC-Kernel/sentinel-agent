@@ -3,14 +3,27 @@
  * Tests data categories, DPIA, and retention display/edit
  */
 
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PrivacyData } from '../PrivacyData';
 import { ProcessingActivity } from '../../../../types';
-import { createLucideMock } from '../../../../tests/mocks/lucideMock';
 
 // Mock lucide-react icons
-vi.mock('lucide-react', createLucideMock);
+vi.mock('lucide-react', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    return {
+        Shield: Icon,
+        FileSpreadsheet: Icon,
+        AlertTriangle: Icon,
+        Eye: Icon,
+        History: Icon,
+        Settings: Icon,
+        Grid3X3: Icon,
+        Unlock: Icon,
+    };
+});
 
 // Mock FloatingLabelInput
 vi.mock('../../../ui/FloatingLabelInput', () => ({

@@ -19,6 +19,7 @@ vi.mock('lucide-react', () => {
         Settings: Icon,
         Grid3X3: Icon,
         LockOpen: Icon,
+        Unlock: Icon,
     };
 });
 

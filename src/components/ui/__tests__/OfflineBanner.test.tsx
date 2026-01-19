@@ -7,7 +7,6 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { OfflineBanner } from '../OfflineBanner';
-import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -20,7 +19,16 @@ vi.mock('framer-motion', () => ({
 }));
 
 // Mock lucide-react
-vi.mock('lucide-react', createLucideMock);
+vi.mock('lucide-react', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    return {
+        WifiOff: Icon,
+        Settings: Icon,
+        Grid3X3: Icon,
+        Unlock: Icon,
+    };
+});
 
 describe('OfflineBanner', () => {
     let originalOnLine: boolean;

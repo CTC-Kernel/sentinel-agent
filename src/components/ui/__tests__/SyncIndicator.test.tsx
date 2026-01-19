@@ -7,7 +7,6 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SyncIndicator } from '../SyncIndicator';
-import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
 // Mock useSyncStatus hook
 const mockUseSyncStatus = vi.fn();
@@ -37,7 +36,17 @@ vi.mock('../Tooltip', () => ({
 }));
 
 // Mock lucide-react
-vi.mock('lucide-react', createLucideMock);
+vi.mock('lucide-react', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    return {
+        Cloud: Icon,
+        CloudOff: Icon,
+        Settings: Icon,
+        Grid3X3: Icon,
+        Unlock: Icon,
+    };
+});
 
 describe('SyncIndicator', () => {
     beforeEach(() => {
