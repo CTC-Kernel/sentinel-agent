@@ -62,7 +62,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                 {/* DPIA */}
                 <div>
                     <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-white mb-4">
-                        <Shield className="h-4 w-4 text-purple-500" />
+                        <Shield className="h-4 w-4 text-purple-500" data-testid="shield-icon" />
                         Analyse d'Impact (DPIA)
                     </h4>
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -131,7 +131,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-white dark:bg-slate-800 rounded-xl text-purple-600">
-                            <Shield className="h-6 w-6" />
+                            <Shield className="h-6 w-6" data-testid="shield-icon" />
                         </div>
                         <div>
                             <h4 className="font-bold text-slate-900 dark:text-white">Analyse d'Impact (DPIA)</h4>
