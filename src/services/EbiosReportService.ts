@@ -6,7 +6,11 @@
  */
 
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
+
+// Apply the plugin to jsPDF
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(jsPDF.API as any).autoTable = autoTable;
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PdfService, ReportOptions } from './PdfService';

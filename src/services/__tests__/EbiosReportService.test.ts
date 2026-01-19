@@ -47,11 +47,16 @@ const mockJsPDF = {
   output: vi.fn(() => new Blob(['pdf content'], { type: 'application/pdf' })),
 };
 
-vi.mock('jspdf', () => ({
-  jsPDF: vi.fn(() => mockJsPDF),
-}));
+vi.mock('jspdf', () => {
+  const MockJsPDF = vi.fn(() => mockJsPDF);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (MockJsPDF as any).API = {};
+  return { jsPDF: MockJsPDF };
+});
 
-vi.mock('jspdf-autotable', () => ({}));
+vi.mock('jspdf-autotable', () => ({
+  default: vi.fn(),
+}));
 
 // Mock PdfService
 vi.mock('../PdfService', () => ({

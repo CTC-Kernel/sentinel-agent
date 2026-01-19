@@ -25,28 +25,22 @@ const latLonToVector3 = (lat: number, lon: number, radius: number): THREE.Vector
     return new THREE.Vector3(x, y, z);
 };
 
-const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity: number; country: string; type?: string; severity?: string }> = ({ position, name, intensity, country, type, severity }) => {
-    const meshRef = useRef<THREE.Mesh>(null);
-    const beamRef = useRef<THREE.Mesh>(null);
-    const [hovered, setHovered] = useState(false);
 
-    useFrame((state) => {
-        const t = state.clock.getElapsedTime();
-        if (meshRef.current) {
-            // Pulse base
-            const scale = 1 + Math.sin(t * 3) * 0.3;
-            meshRef.current.scale.setScalar(scale);
-        }
-        if (beamRef.current) {
-            // Pulse beam height and opacity
-            beamRef.current.scale.y = 1 + Math.sin(t * 2 + position.x) * 0.2;
-            (beamRef.current.material as THREE.MeshBasicMaterial).opacity = 0.5 + Math.sin(t * 4) * 0.2;
-        }
-    });
+// Optimized Marker Component (No useFrame)
+const ThreatMarker = React.memo(({ position, name, intensity, country, type, severity, markerRef, beamRef }: {
+    position: THREE.Vector3;
+    name: string;
+    intensity: number;
+    country: string;
+    type?: string;
+    severity?: string;
+    markerRef: React.Ref<THREE.Mesh>;
+    beamRef: React.Ref<THREE.Mesh>;
+}) => {
+    const [hovered, setHovered] = useState(false);
 
     const isHigh = intensity > 5 || severity === 'Critical';
     const color = isHigh ? "#ef4444" : "#f97316";
-    // Beam height proportional to intensity
     const beamHeight = 0.5 + (intensity / 10) * 2.5;
 
     // Orient group to face center (so Y axis points OUT)
@@ -54,19 +48,19 @@ const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity:
 
     return (
         <group position={position} lookAt={lookAtPos}>
-            {/* Base Ring (Country Highlight Effect) */}
+            {/* Base Ring (Country Highlight Effect) - Static */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
                 <ringGeometry args={[0.08, 0.12, 32]} />
                 <meshBasicMaterial color={color} opacity={0.3} transparent side={THREE.DoubleSide} />
             </mesh>
 
-            {/* Base Dot */}
-            <mesh ref={meshRef}>
+            {/* Base Dot - Animated via Ref */}
+            <mesh ref={markerRef}>
                 <sphereGeometry args={[0.05, 16, 16]} />
                 <meshBasicMaterial color={color} transparent opacity={0.9} />
             </mesh>
 
-            {/* The Beam */}
+            {/* The Beam - Animated via Ref */}
             <mesh
                 ref={beamRef}
                 rotation={[Math.PI / 2, 0, 0]}
@@ -124,15 +118,42 @@ const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity:
             </mesh>
         </group>
     );
-};
+});
 
 const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
     const groupRef = useRef<THREE.Group>(null);
 
-    useFrame(() => {
+    // Store refs for all markers to animate them in a single loop
+    const markerRefs = useRef<Array<{ mesh: THREE.Mesh | null, beam: THREE.Mesh | null, position: THREE.Vector3 }>>([]);
+
+    // Reset refs when data changes
+    useMemo(() => {
+        markerRefs.current = [];
+    }, [data]);
+
+    useFrame((state) => {
+        const t = state.clock.getElapsedTime();
+
+        // Rotate Earth
         if (groupRef.current) {
-            groupRef.current.rotation.y += 0.0005; // Slow majestic rotation
+            groupRef.current.rotation.y += 0.0005;
         }
+
+        // Animate all markers in one loop
+        markerRefs.current.forEach((ref) => {
+            if (ref.mesh) {
+                const scale = 1 + Math.sin(t * 3) * 0.3;
+                ref.mesh.scale.setScalar(scale);
+            }
+            if (ref.beam) {
+                // Pulse beam height and opacity
+                // Note: ref.position is available if we store it, or we can use generic wave
+                ref.beam.scale.y = 1 + Math.sin(t * 2 + ref.position.x) * 0.2;
+                if (ref.beam.material instanceof THREE.MeshBasicMaterial) {
+                    ref.beam.material.opacity = 0.5 + Math.sin(t * 4) * 0.2;
+                }
+            }
+        });
     });
 
     const markers = useMemo(() => {
@@ -187,9 +208,30 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
                 />
             </Sphere>
 
-            {markers.map((m, i) => (
-                <ThreatMarker key={i} position={m.vec3} name={m.name} intensity={m.intensity} country={m.country} type={m.type} severity={m.severity} />
-            ))}
+            {markers.map((m, i) => {
+                // Register refs immediately (render time) - mutable push is okay here as long as we reset on data change
+                // or better, use a callback ref, but simpler to just push if we are careful.
+                // Actually, best way is to set it in the component.
+                // Let's pass a callback to the child? Or just use RefObject and push to array?
+                // Wait, passing RefObject down is fine, but we need to populate markerRefs.current
+
+                // Safer approach: use a function to add to refs array.
+                if (!markerRefs.current[i]) markerRefs.current[i] = { mesh: null, beam: null, position: m.vec3 };
+
+                return (
+                    <ThreatMarker
+                        key={i}
+                        position={m.vec3}
+                        name={m.name}
+                        intensity={m.intensity}
+                        country={m.country}
+                        type={m.type}
+                        severity={m.severity}
+                        markerRef={(el) => { if (el) markerRefs.current[i].mesh = el }}
+                        beamRef={(el) => { if (el) markerRefs.current[i].beam = el }}
+                    />
+                );
+            })}
         </group>
     );
 };

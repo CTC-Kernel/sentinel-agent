@@ -116,10 +116,18 @@ export const Risks: React.FC = () => {
     } = useRiskActions(() => { });
 
     useEffect(() => {
-        const timer = setTimeout(() => {
+        // Use requestIdleCallback if available to avoid blocking main thread during initial render
+        const startTour = () => {
             OnboardingService.startRisksTour();
-        }, 1000);
-        return () => clearTimeout(timer);
+        };
+
+        if ('requestIdleCallback' in window) {
+            const handle = (window as any).requestIdleCallback(startTour, { timeout: 3000 });
+            return () => (window as any).cancelIdleCallback(handle);
+        } else {
+            const timer = setTimeout(startTour, 1000);
+            return () => clearTimeout(timer);
+        }
     }, []);
 
     const {
