@@ -8,6 +8,37 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { SystemHealth } from '../SystemHealth';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'systemHealth.title': 'État du Système',
+                'systemHealth.subtitle': 'Tableau de bord de supervision technique et disponibilité des services.',
+                'common.administration': 'Administration',
+                'systemHealth.metrics.activeUsers': 'Utilisateurs Actifs',
+                'systemHealth.metrics.totalAccounts': 'Comptes total',
+                'systemHealth.metrics.systemLoad': 'Charge Système',
+                'systemHealth.metrics.cpuUsage': 'Usage vCPU',
+                'systemHealth.metrics.memory': 'Mémoire',
+                'systemHealth.metrics.ramAllocated': 'RAM Allouée',
+                'systemHealth.metrics.latency': 'Latence',
+                'systemHealth.metrics.globalPing': 'Ping Global',
+                'systemHealth.servicesStatus': 'État des Services',
+                'systemHealth.operational': 'Systèmes Opérationnels',
+                'systemHealth.recentAlerts': 'Alertes Récentes (Dernières 24h)',
+                'systemHealth.alerts.networkLatency': 'Latence Réseau Élevée (Europe-West)',
+                'systemHealth.alerts.networkLatencyDesc': 'Pic de latence à 145ms détecté à 14:00. Résolu automatiquement.',
+                'systemHealth.alerts.backupComplete': 'Sauvegarde Automatique Complète',
+                'systemHealth.alerts.backupCompleteDesc': 'Backup chiffré #GH-9082 validé et archivé.',
+                'systemHealth.alerts.twoHoursAgo': 'Il y a 2h',
+                'systemHealth.alerts.fourHoursAgo': 'Il y a 4h'
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
     motion: {

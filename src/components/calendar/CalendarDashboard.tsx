@@ -10,7 +10,7 @@ import { CalendarService, CalendarEvent } from '../../services/calendarService';
 import { GoogleCalendarService } from '../../services/googleCalendarService';
 import { AddToCalendar } from '../ui/AddToCalendar';
 import { Drawer } from '../ui/Drawer';
-import { CreateEventModal } from './CreateEventModal';
+import { CreateEventDrawer } from './CreateEventDrawer';
 import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck, Filter, MapPin, Download } from 'lucide-react';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -458,7 +458,7 @@ export const CalendarDashboard: React.FC = () => {
                 )}
             </Drawer>
 
-            <CreateEventModal
+            <CreateEventDrawer
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onEventCreated={loadEvents}

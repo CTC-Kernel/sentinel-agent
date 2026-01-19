@@ -4,6 +4,67 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Continuity } from '../Continuity';
 import { MemoryRouter } from 'react-router-dom';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'continuity.title': 'Continuité d\'Activité',
+                'continuity.subtitle': 'Gestion de la continuité d\'activité et de la résilience',
+                'continuity.keywords': 'BIA, PCA, PRA, Crise, Audit',
+                'continuity.deleteDrillTitle': 'Supprimer l\'exercice',
+                'continuity.deleteDrillMessage': 'Êtes-vous sûr de vouloir supprimer cet exercice de continuité ?',
+                'continuity.editProcess': 'Modifier Processus',
+                'continuity.newProcess': 'Nouveau Processus',
+                'continuity.tabs.overview': 'Vue d\'ensemble',
+                'continuity.tabs.bia': 'BIA',
+                'continuity.tabs.strategies': 'Stratégies',
+                'continuity.tabs.pra': 'PRA',
+                'continuity.tabs.drills': 'Exercices',
+                'continuity.tabs.tlpt': 'Tests de Résilience (TLPT)',
+                'continuity.tabs.crisis': 'Gestion de Crise'
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
+// Mock useLocale to provide the required locale data
+vi.mock('../../hooks/useLocale', async () => {
+    const { fr } = await import('date-fns/locale');
+    return {
+        useLocale: () => ({
+            locale: 'fr',
+            dateFnsLocale: fr,
+            zodMessages: {
+                required: 'Ce champ est requis',
+                invalidType: 'Type de valeur invalide',
+                invalidString: 'Ce champ doit être du texte',
+                tooShort: (min: number) => `Minimum ${min} caractères requis`,
+                tooLong: (max: number) => `Maximum ${max} caractères autorisés`,
+                invalidEmail: 'Adresse email invalide',
+                invalidUrl: 'URL invalide',
+                invalidUuid: 'Identifiant invalide',
+                invalidRegex: 'Format invalide',
+                invalidNumber: 'Veuillez entrer un nombre valide',
+                notInteger: 'Veuillez entrer un nombre entier',
+                tooSmall: (min: number) => `La valeur doit être au moins ${min}`,
+                tooBig: (max: number) => `La valeur doit être au maximum ${max}`,
+                notPositive: 'La valeur doit être positive',
+                notNegative: 'La valeur doit être négative',
+                notNonNegative: 'La valeur ne peut pas être négative',
+                invalidDate: 'Date invalide',
+                arrayTooShort: (min: number) => `Sélectionnez au moins ${min} élément${min > 1 ? 's' : ''}`,
+                arrayTooLong: (max: number) => `Maximum ${max} élément${max > 1 ? 's' : ''} autorisé${max > 1 ? 's' : ''}`,
+                invalidEnum: (options: string[]) => `Valeur invalide. Options: ${options.join(', ')}`,
+                custom: 'Valeur invalide',
+            },
+            formatDate: (date: Date) => date.toLocaleDateString('fr-FR'),
+            formatNumber: (num: number) => num.toLocaleString('fr-FR'),
+        }),
+    };
+});
+
 // Mock Firebase Firestore
 vi.mock('firebase/firestore', () => ({
     __esModule: true,

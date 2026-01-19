@@ -9,8 +9,8 @@ import { SingleAuditStats } from './SingleAuditStats';
 import { useStore } from '../../store';
 import { canDeleteResource } from '../../utils/permissions';
 import { AuditForm } from './AuditForm';
-import { ShareAuditModal } from './ShareAuditModal';
-import { AssignPartnerModal } from './AssignPartnerModal';
+import { ShareAuditDrawer } from './ShareAuditDrawer';
+import { AssignPartnerDrawer } from './AssignPartnerDrawer';
 import { toast } from '@/lib/toast';
 
 // Sub-components
@@ -166,14 +166,14 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                 )}
             </div>
 
-            <ShareAuditModal
+            <ShareAuditDrawer
                 isOpen={isShareModalOpen}
                 onClose={() => setIsShareModalOpen(false)}
                 auditId={audit.id}
                 auditName={audit.name}
             />
 
-            <AssignPartnerModal
+            <AssignPartnerDrawer
                 isOpen={isAssignModalOpen}
                 onClose={() => setIsAssignModalOpen(false)}
                 auditId={audit.id}

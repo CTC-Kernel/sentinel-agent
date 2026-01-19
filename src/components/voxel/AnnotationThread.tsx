@@ -28,7 +28,6 @@ import {
   ChevronUp,
   MoreHorizontal,
   Clock,
-  User,
   AlertTriangle,
   StickyNote,
   HelpCircle,
@@ -41,7 +40,6 @@ import type {
   AnnotationType,
 } from '../../types/voxelAnnotation';
 import {
-  ANNOTATION_TYPE_COLORS,
   ANNOTATION_TYPE_LABELS,
   ANNOTATION_STATUS_COLORS,
   ANNOTATION_STATUS_LABELS,
@@ -245,11 +243,10 @@ const ReplyForm: React.FC<{
         <button
           onClick={handleSubmit}
           disabled={!content.trim() || isSubmitting}
-          className={`p-3 rounded-xl transition-all ${
-            content.trim() && !isSubmitting
+          className={`p-3 rounded-xl transition-all ${content.trim() && !isSubmitting
               ? 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25'
               : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
-          }`}
+            }`}
         >
           {isSubmitting ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

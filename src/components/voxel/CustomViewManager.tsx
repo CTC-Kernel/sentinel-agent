@@ -251,7 +251,7 @@ export function CustomViewManager({
       } else {
         setError('Impossible de sauvegarder la vue');
       }
-    } catch (_err) {
+    } catch {
       setError('Une erreur est survenue');
     } finally {
       setIsSaving(false);
@@ -281,7 +281,7 @@ export function CustomViewManager({
       } else {
         setError('Impossible de mettre a jour la vue');
       }
-    } catch (_err) {
+    } catch {
       setError('Une erreur est survenue');
     } finally {
       setIsSaving(false);

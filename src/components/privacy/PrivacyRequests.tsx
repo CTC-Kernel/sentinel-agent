@@ -7,42 +7,9 @@ import { EmptyState } from '../ui/EmptyState';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-// Placeholder type for DSAR
-export interface PrivacyRequest {
-    id: string;
-    requestType: 'Access' | 'Deletion' | 'Rectification' | 'Portability' | 'Restriction' | 'Objection';
-    dataSubject: string; // Name of the person
-    email: string;
-    status: 'New' | 'Verifying' | 'Processing' | 'Review' | 'Completed' | 'Rejected';
-    submissionDate: string;
-    dueDate: string;
-    priority: 'Low' | 'Medium' | 'High';
-    assignedTo?: string;
-}
-
-// Mock Data
-const MOCK_REQUESTS: PrivacyRequest[] = [
-    {
-        id: 'REQ-2024-001',
-        requestType: 'Deletion',
-        dataSubject: 'Jean Dupont',
-        email: 'jean.dupont@example.com',
-        status: 'Processing',
-        submissionDate: new Date().toISOString(),
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        priority: 'High'
-    },
-    {
-        id: 'REQ-2024-002',
-        requestType: 'Access',
-        dataSubject: 'Marie Martin',
-        email: 'marie.martin@example.com',
-        status: 'New',
-        submissionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        dueDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
-        priority: 'Medium'
-    }
-];
+import { usePrivacyRequests } from '../../hooks/privacy/usePrivacyRequests';
+import { PrivacyRequest } from '../../types';
+import { Loader2 } from 'lucide-react';
 
 interface PrivacyRequestsProps {
     onCreate?: () => void;
@@ -50,10 +17,11 @@ interface PrivacyRequestsProps {
 }
 
 export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSelect }) => {
+    const { requests, loading } = usePrivacyRequests();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('All');
 
-    const filteredRequests = MOCK_REQUESTS.filter(req =>
+    const filteredRequests = requests.filter(req =>
         (req.dataSubject.toLowerCase().includes(searchTerm.toLowerCase()) ||
             req.id.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (filterStatus === 'All' || req.status === filterStatus)
@@ -104,7 +72,11 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
 
             {/* List */}
             <div className="grid gap-4">
-                {filteredRequests.length > 0 ? (
+                {loading ? (
+                    <div className="flex justify-center p-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+                    </div>
+                ) : filteredRequests.length > 0 ? (
                     filteredRequests.map(req => (
                         <motion.div
                             key={req.id}

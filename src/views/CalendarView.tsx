@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { CalendarDashboard } from '../components/calendar/CalendarDashboard';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -8,6 +9,8 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
 
 export const CalendarView: React.FC = () => {
+    const { t } = useTranslation();
+
     return (
         <motion.div
             variants={staggerContainerVariants}
@@ -17,18 +20,18 @@ export const CalendarView: React.FC = () => {
         >
             <MasterpieceBackground />
             <SEO
-                title="Calendrier"
-                description="Vue d'ensemble des échéances, audits et maintenances."
-                keywords="Calendrier, Planning, Echéances, Audits, Projets"
+                title={t('calendar.title')}
+                description={t('calendar.subtitle')}
+                keywords={t('calendar.keywords')}
             />
             <PageHeader
-                title="Calendrier"
-                subtitle="Vue d'ensemble des échéances, audits et maintenances."
-                breadcrumbs={[{ label: 'Calendrier' }]}
+                title={t('calendar.title')}
+                subtitle={t('calendar.subtitle')}
+                breadcrumbs={[{ label: t('calendar.title') }]}
                 icon={
-                    <img 
-                        src="/images/pilotage.png" 
-                        alt="PILOTAGE" 
+                    <img
+                        src="/images/pilotage.png"
+                        alt="PILOTAGE"
                         className="w-full h-full object-contain"
                     />
                 }

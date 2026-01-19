@@ -48,7 +48,7 @@ const getImpactColor = (impact: number): string => {
   return IMPACT_COLORS.low;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// 
 const A = animated as any;
 
 
@@ -406,7 +406,6 @@ interface BlastRadiusVisualizationProps {
  * Main blast radius visualization component
  */
 export const BlastRadiusVisualization: React.FC<BlastRadiusVisualizationProps> = React.memo(({
-  // sourceNodeId,
   sourceNode,
   affectedNodes,
   allNodes,

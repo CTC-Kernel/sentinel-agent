@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -12,6 +13,7 @@ import { hasPermission } from '../utils/permissions';
 import { useConnectivity } from '../hooks/useConnectivity';
 
 export const SystemHealth: React.FC = () => {
+    const { t } = useTranslation();
     const { userCount, loading, metrics } = useSystemHealth();
     const { user } = useStore();
     const { authStatus, dbStatus, storageStatus, edgeStatus } = useConnectivity();
@@ -38,8 +40,8 @@ export const SystemHealth: React.FC = () => {
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
             <MasterpieceBackground />
             <PageHeader
-                title="État du Système"
-                subtitle="Tableau de bord de supervision technique et disponibilité des services."
+                title={t('systemHealth.title')}
+                subtitle={t('systemHealth.subtitle')}
                 icon={
                     <img
                         src="/images/administration.png"
@@ -47,17 +49,17 @@ export const SystemHealth: React.FC = () => {
                         className="w-full h-full object-contain"
                     />
                 }
-                breadcrumbs={[{ label: 'Administration' }, { label: 'Santé Système' }]}
+                breadcrumbs={[{ label: t('common.administration') }, { label: t('systemHealth.title') }]}
                 trustType="admin"
             />
 
             {/* Voxel Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Utilisateurs Actifs', value: loading ? '...' : userCount, icon: Users, color: 'text-blue-500', sub: 'Comptes total' },
-                    { label: 'Charge Système', value: `${Math.round(metrics.systemLoad)}%`, icon: Cpu, color: 'text-violet-500', sub: 'Usage vCPU' },
-                    { label: 'Mémoire', value: `${Math.round(metrics.memoryUsage)}%`, icon: Server, color: 'text-emerald-500', sub: 'RAM Allouée' },
-                    { label: 'Latence', value: `${Math.round(metrics.networkLatency)}ms`, icon: Activity, color: 'text-amber-500', sub: 'Ping Global' },
+                    { label: t('systemHealth.metrics.activeUsers'), value: loading ? '...' : userCount, icon: Users, color: 'text-blue-500', sub: t('systemHealth.metrics.totalAccounts') },
+                    { label: t('systemHealth.metrics.systemLoad'), value: `${Math.round(metrics.systemLoad)}%`, icon: Cpu, color: 'text-violet-500', sub: t('systemHealth.metrics.cpuUsage') },
+                    { label: t('systemHealth.metrics.memory'), value: `${Math.round(metrics.memoryUsage)}%`, icon: Server, color: 'text-emerald-500', sub: t('systemHealth.metrics.ramAllocated') },
+                    { label: t('systemHealth.metrics.latency'), value: `${Math.round(metrics.networkLatency)}ms`, icon: Activity, color: 'text-amber-500', sub: t('systemHealth.metrics.globalPing') },
                 ].map((metric) => (
                     <motion.div
                         key={metric.label}
@@ -85,10 +87,10 @@ export const SystemHealth: React.FC = () => {
             <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-2xl">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <Globe className="h-5 w-5 text-brand-500" />
-                    État des Services
+                    {t('systemHealth.servicesStatus')}
                     <span className="ml-auto flex items-center gap-2 text-xs font-normal text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full border border-emerald-100 dark:border-emerald-800">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Systèmes Opérationnels
+                        {t('systemHealth.operational')}
                     </span>
                 </h3>
 
@@ -118,24 +120,24 @@ export const SystemHealth: React.FC = () => {
             <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-2xl">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <AlertCircle className="h-5 w-5 text-amber-500" />
-                    Alertes Récentes (Dernières 24h)
+                    {t('systemHealth.recentAlerts')}
                 </h3>
                 <div className="space-y-3">
                     <div className="flex items-start gap-4 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-xl">
                         <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
                         <div>
-                            <p className="text-sm font-bold text-slate-900 dark:text-white">Latence Réseau Élevée (Europe-West)</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Pic de latence à 145ms détecté à 14:00. Résolu automatiquement.</p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">{t('systemHealth.alerts.networkLatency')}</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('systemHealth.alerts.networkLatencyDesc')}</p>
                         </div>
-                        <span className="text-xs text-slate-400 ml-auto whitespace-nowrap">Il y a 2h</span>
+                        <span className="text-xs text-slate-400 ml-auto whitespace-nowrap">{t('systemHealth.alerts.twoHoursAgo')}</span>
                     </div>
                     <div className="flex items-start gap-4 p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl">
                         <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
                         <div>
-                            <p className="text-sm font-bold text-slate-900 dark:text-white">Sauvegarde Automatique Complète</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Backup chiffré #GH-9082 validé et archivé.</p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">{t('systemHealth.alerts.backupComplete')}</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('systemHealth.alerts.backupCompleteDesc')}</p>
                         </div>
-                        <span className="text-xs text-slate-400 ml-auto whitespace-nowrap">Il y a 4h</span>
+                        <span className="text-xs text-slate-400 ml-auto whitespace-nowrap">{t('systemHealth.alerts.fourHoursAgo')}</span>
                     </div>
                 </div>
             </motion.div>

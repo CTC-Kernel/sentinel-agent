@@ -30,7 +30,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { QuestionnaireBuilder } from '../components/suppliers/QuestionnaireBuilder';
 import { AssessmentView } from '../components/suppliers/AssessmentView';
-import { SupplierAssessmentModal } from '../components/suppliers/SupplierAssessmentModal';
+import SupplierAssessmentDrawer from '../components/suppliers/SupplierAssessmentDrawer';
 
 import { ImportService } from '../services/ImportService';
 import { SupplierCard } from '../components/suppliers/SupplierCard';
@@ -196,10 +196,8 @@ export const Suppliers: React.FC = () => {
         try {
             await updateSupplier(id, data);
             // Close inspector? No, usually stays open or updates
-        } catch (error) {
-            console.error("Supplier update failed", error);
-            // ErrorLogger handled in hook? If not, valid to log here but likely hook does.
-            // hook usually shows toast.
+        } catch {
+            // ErrorLogger handled in hook - error is logged there and toast shown
         } finally {
             setIsSubmitting(false);
         }
@@ -642,9 +640,9 @@ export const Suppliers: React.FC = () => {
                 onImport={handleImportFile}
                 onDownloadTemplate={handleDownloadTemplate}
             />
-
+            {/* Assessment Drawer */}
             {assessmentSupplier && (
-                <SupplierAssessmentModal
+                <SupplierAssessmentDrawer
                     isOpen={assessmentModalOpen}
                     onClose={() => setAssessmentModalOpen(false)}
                     supplier={assessmentSupplier}

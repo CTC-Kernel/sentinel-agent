@@ -577,6 +577,16 @@ service cloud.firestore {
         
       allow delete: if false;
     }
+
+    // Privacy Requests (DSR)
+    match /privacy_requests/{requestId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+    }
     
     // BCP Drills
     match /bcp_drills/{drillId} {

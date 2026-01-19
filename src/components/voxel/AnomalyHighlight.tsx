@@ -11,8 +11,14 @@ import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Line, Text } from '@react-three/drei';
 import { animated, useSpring, config } from '@react-spring/three';
+import * as THREE from 'three';
 import { AdditiveBlending, Group, Vector3 } from 'three';
 import type { VoxelAnomaly, VoxelAnomalySeverity, VoxelNode } from '../../types/voxel';
+
+// Fix for strict type checking on animated.meshBasicMaterial
+// Fix for strict type checking on animated.meshBasicMaterial
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AnimatedMeshBasicMaterial = (animated as any).meshBasicMaterial;
 
 // ============================================================================
 // Constants
@@ -25,12 +31,7 @@ const SEVERITY_COLORS: Record<VoxelAnomalySeverity, string> = {
   low: '#3b82f6',      // Blue
 };
 
-const SEVERITY_EMISSIVE: Record<VoxelAnomalySeverity, string> = {
-  critical: '#dc2626',
-  high: '#ea580c',
-  medium: '#ca8a04',
-  low: '#2563eb',
-};
+// const SEVERITY_EMISSIVE: Record<VoxelAnomalySeverity, string> = { ... };
 
 const PULSE_SPEEDS: Record<VoxelAnomalySeverity, number> = {
   critical: 4,
@@ -65,9 +66,9 @@ export const AnomalyPulseRing: React.FC<AnomalyPulseRingProps> = React.memo(({
   const color = SEVERITY_COLORS[severity];
 
   // Animated scale for pulse effect
-  const { scale, opacity } = useSpring({
+  const [{ scale, opacity }] = useSpring(() => ({
     from: { scale: 1, opacity: 0.8 },
-    to: async (next) => {
+    to: async (next: any) => {
       while (visible) {
         await next({ scale: 1.5, opacity: 0 });
         await next({ scale: 1, opacity: 0.8 });
@@ -75,7 +76,7 @@ export const AnomalyPulseRing: React.FC<AnomalyPulseRingProps> = React.memo(({
     },
     config: { duration: 1000 / pulseSpeed },
     loop: true,
-  });
+  }), [visible, pulseSpeed]);
 
   if (!visible) return null;
 
@@ -83,7 +84,8 @@ export const AnomalyPulseRing: React.FC<AnomalyPulseRingProps> = React.memo(({
   const AnimatedMesh = animated.mesh as unknown as React.FC<{
     rotation: [number, number, number];
     position: [number, number, number];
-    scale: ReturnType<typeof useSpring>['scale'];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    scale: any;
     children: React.ReactNode;
   }>;
 
@@ -107,7 +109,7 @@ export const AnomalyPulseRing: React.FC<AnomalyPulseRingProps> = React.memo(({
         scale={scale}
       >
         <ringGeometry args={[size * 1.3, size * 1.5, 32]} />
-        <animated.meshBasicMaterial
+        <AnimatedMeshBasicMaterial
           ref={materialRef}
           color={color}
           transparent
@@ -141,7 +143,7 @@ export const AnomalyGlow: React.FC<AnomalyGlowProps> = React.memo(({
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const color = SEVERITY_COLORS[severity];
-  const emissive = SEVERITY_EMISSIVE[severity];
+  // const emissive = SEVERITY_EMISSIVE[severity];
   const speed = PULSE_SPEEDS[severity];
 
   useFrame(({ clock }) => {
@@ -206,7 +208,8 @@ export const CycleDependencyLines: React.FC<CycleDependencyLinesProps> = React.m
   // Animate line dash offset
   useFrame(({ clock }) => {
     if (lineRef.current?.material) {
-      const material = lineRef.current.material as THREE.LineDashedMaterial;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const material = lineRef.current.material as any;
       if (material.dashOffset !== undefined) {
         material.dashOffset = -clock.getElapsedTime() * 2;
       }
@@ -217,7 +220,8 @@ export const CycleDependencyLines: React.FC<CycleDependencyLinesProps> = React.m
 
   return (
     <Line
-      ref={lineRef}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ref={lineRef as any}
       points={points}
       color={color}
       lineWidth={3}
@@ -258,16 +262,17 @@ export const AnomalyBadge: React.FC<AnomalyBadgeProps> = React.memo(({
     position[2],
   ];
 
-  const { scale } = useSpring({
+  const [{ scale }] = useSpring(() => ({
     from: { scale: 0 },
     to: { scale: 1 },
     config: config.wobbly,
-  });
+  }), []);
 
   // @ts-expect-error: react-spring group type
   const AnimatedGroup = animated.group as React.FC<{
     position: [number, number, number];
-    scale: ReturnType<typeof useSpring>['scale'];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    scale: any;
     children: React.ReactNode;
   }>;
 

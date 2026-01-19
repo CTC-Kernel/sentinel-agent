@@ -16,6 +16,7 @@ import { Workshop3Content } from '../components/ebios/workshops/Workshop3Content
 import { Workshop4Content } from '../components/ebios/workshops/Workshop4Content';
 import { Workshop5Content } from '../components/ebios/workshops/Workshop5Content';
 import { EbiosService } from '../services/ebiosService';
+import { ErrorLogger } from '../services/errorLogger';
 import { toast } from '@/lib/toast';
 import type {
   EbiosAnalysis,
@@ -62,7 +63,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
           navigate('/ebios');
         }
       } catch (error) {
-        console.error('Error fetching EBIOS analysis:', error);
+        ErrorLogger.error(error, 'EbiosAnalysisDetail.fetchAnalysis');
         toast.error(t('ebios.errors.fetchFailed'));
         navigate('/ebios');
       } finally {
@@ -89,7 +90,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
       setHasUnsavedChanges(false);
       setPendingChanges(null);
     } catch (error) {
-      console.error('Error saving workshop data:', error);
+      ErrorLogger.error(error, 'EbiosAnalysisDetail.saveChanges');
       toast.error(t('ebios.errors.saveFailed'));
     } finally {
       setSaving(false);
@@ -122,7 +123,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
       );
       setAnalysis((prev) => prev ? { ...prev, currentWorkshop: workshopNumber } : null);
     } catch (error) {
-      console.error('Error changing workshop:', error);
+      ErrorLogger.error(error, 'EbiosAnalysisDetail.handleWorkshopChange');
       toast.error(t('ebios.errors.workshopChangeFailed'));
     }
   }, [analysis, organizationId, user?.uid, hasUnsavedChanges, pendingChanges, saveChanges, t]);
@@ -281,7 +282,7 @@ export const EbiosAnalysisDetail: React.FC = () => {
       toast.success(t('ebios.analysisCompleted'));
       navigate('/ebios');
     } catch (error) {
-      console.error('Error completing analysis:', error);
+      ErrorLogger.error(error, 'EbiosAnalysisDetail.handleCompleteAnalysis');
       toast.error(t('ebios.errors.completeFailed'));
     }
   }, [analysis, organizationId, user?.uid, t, navigate]);

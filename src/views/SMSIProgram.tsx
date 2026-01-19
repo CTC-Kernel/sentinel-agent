@@ -9,6 +9,7 @@
  */
 
 import React, { useState, Suspense, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSMSIProgram } from '../hooks/smsi/useSMSIProgram';
 import { useTeamData } from '../hooks/team/useTeamData';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -39,6 +40,7 @@ import { Milestone, PDCAPhase } from '../types/ebios';
 // const CreateProgramModal = React.lazy(() => import('../components/smsi/CreateProgramModal'));
 
 export const SMSIProgramView: React.FC = () => {
+  const { t } = useTranslation();
   const {
     program,
     milestones,
@@ -75,7 +77,7 @@ export const SMSIProgramView: React.FC = () => {
     [users]);
 
 
-  const handleCreateProgram = async (data: { name: string; description?: string; targetCertificationDate?: string }) => {
+  const handleCreateProgram = async (data: { name: string; description?: string; targetCertificationDate?: string; template?: 'standard' | 'fast-track' | 'maintenance' }) => {
     await createProgram(data);
     setIsDrawerOpen(false);
   };
@@ -138,9 +140,9 @@ export const SMSIProgramView: React.FC = () => {
   };
 
   const tabs = useMemo(() => [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-    { id: 'planning', label: 'Planning & Jalons', icon: List },
-  ], []);
+    { id: 'overview', label: t('smsi.tabs.overview'), icon: LayoutDashboard },
+    { id: 'planning', label: t('smsi.tabs.planning'), icon: List },
+  ], [t]);
 
   if (loading) {
     return (
@@ -160,15 +162,15 @@ export const SMSIProgramView: React.FC = () => {
     return (
       <div className="p-6">
         <PageHeader
-          title="Programme SMSI"
-          subtitle="Gestion du Système de Management de la Sécurité de l'Information (ISO 27003)"
+          title={t('smsi.title')}
+          subtitle={t('smsi.subtitle')}
         />
         <div className="mt-8">
           <EmptyState
             icon={Shield}
-            title="Aucun programme SMSI"
-            description="Créez votre premier programme SMSI pour commencer à gérer votre système de management selon le cycle PDCA."
-            actionLabel="Créer un programme"
+            title={t('smsi.emptyTitle')}
+            description={t('smsi.emptyDescription')}
+            actionLabel={t('smsi.createProgram')}
             onAction={() => setIsDrawerOpen(true)}
           />
         </div>
@@ -193,7 +195,7 @@ export const SMSIProgramView: React.FC = () => {
     >
       <PageHeader
         title={program.name}
-        subtitle="Programme SMSI - Cycle PDCA (ISO 27003)"
+        subtitle={`${t('smsi.title')} - ${t('smsi.pdcaCycle')}`}
         actions={
           <div className="flex items-center gap-3">
             <Button
@@ -203,18 +205,18 @@ export const SMSIProgramView: React.FC = () => {
               className="gap-1.5"
             >
               <Download className="w-4 h-4" />
-              Rapport
+              {t('smsi.report')}
             </Button>
             {program.targetCertificationDate && (
               <Badge variant="outline" className="gap-1.5">
                 <Calendar className="w-3.5 h-3.5" />
-                Objectif: {new Date(program.targetCertificationDate).toLocaleDateString('fr-FR')}
+                {t('smsi.objective')}: {new Date(program.targetCertificationDate).toLocaleDateString('fr-FR')}
               </Badge>
             )}
             <Badge
               status={program.status === 'active' ? 'success' : program.status === 'paused' ? 'warning' : 'info'}
             >
-              {program.status === 'active' ? 'Actif' : program.status === 'paused' ? 'En pause' : 'Terminé'}
+              {t(`smsi.status.${program.status}`)}
             </Badge>
           </div>
         }

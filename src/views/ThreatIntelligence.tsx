@@ -16,9 +16,9 @@ import { Tooltip } from 'react-tooltip';
 import { Badge } from '../components/ui/Badge';
 import { ThreatPlanet } from '../components/map/ThreatPlanet';
 import { ThreatDiscussion } from '../components/threat-intel/ThreatDiscussion';
-import { SubmitThreatModal } from '../components/threat-intel/SubmitThreatModal';
+import { SubmitThreatDrawer } from '../components/threat-intel/SubmitThreatDrawer';
 import { CommunitySettingsModal } from '../components/threat-intel/CommunitySettingsModal';
-import { ThreatToRiskModal } from '../components/threat-intel/ThreatToRiskModal';
+import { ThreatToRiskDrawer } from '../components/threat-intel/ThreatToRiskDrawer';
 import { logAction } from '../services/logger';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
@@ -324,8 +324,8 @@ export const ThreatIntelligence: React.FC = () => {
 
             <CommunitySettingsModal isOpen={isSettingsOpen} onClose={handleCommunitySettingsClose} partners={myPartners} onTrustAction={handleTrustAction} />
             <ThreatDiscussion threatId={selectedThreatId || ''} threatTitle={selectedThreatTitle} isOpen={!!selectedThreatId} onClose={handleDiscussionClose} />
-            <SubmitThreatModal isOpen={isSubmitModalOpen} onClose={handleSubmitModalClose} onSuccess={handleSubmitSuccess} />
-            <ThreatToRiskModal isOpen={isRiskModalOpen} threat={threatForRisk} onClose={handleRiskModalClose} />
+            <SubmitThreatDrawer isOpen={isSubmitModalOpen} onClose={handleSubmitModalClose} onSuccess={handleSubmitSuccess} />
+            <ThreatToRiskDrawer isOpen={isRiskModalOpen} threat={threatForRisk} onClose={handleRiskModalClose} />
             {/* FocusTrap and keyboard navigation are handled internally by Headless UI's Dialog/Drawer components */}
 
             {

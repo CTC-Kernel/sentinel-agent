@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-
+import { useTranslation } from 'react-i18next';
 import { FieldErrors } from 'react-hook-form';
 import { useZodForm } from '../hooks/useZodForm';
 import { processingActivitySchema, ProcessingActivityFormData } from '../schemas/privacySchema';
@@ -32,6 +32,7 @@ import { PrivacyInspector } from '../components/privacy/PrivacyInspector';
 import { CreateActivityForm } from '../components/privacy/CreateActivityForm';
 
 export const Privacy: React.FC = () => {
+    const { t } = useTranslation();
     const { user } = useStore();
     const {
         activities,
@@ -71,7 +72,7 @@ export const Privacy: React.FC = () => {
 
     const onInvalid = (errors: FieldErrors<ProcessingActivityFormData>) => {
         const missingFields = Object.keys(errors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        toast.error(`${t('privacy.formInvalid')}: ${missingFields}`);
     };
 
     // Reset edit form when selected activity changes
@@ -156,23 +157,23 @@ export const Privacy: React.FC = () => {
         >
             <MasterpieceBackground />
             <SEO
-                title="Registre RGPD"
-                description="Registre des Activités de Traitement (ROPA) - Art. 30."
-                keywords="RGPD, ROPA, Privacy, Confidentialité"
+                title={t('privacy.title')}
+                description={t('privacy.subtitle')}
+                keywords={t('privacy.keywords')}
             />
             <ConfirmModal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Supprimer le traitement ?"
-                message={`Êtes-vous sûr de vouloir supprimer ${activityToDelete?.name} ?`}
+                title={t('privacy.deleteTitle')}
+                message={t('privacy.deleteMessage', { name: activityToDelete?.name })}
             />
 
             <PageHeader
-                title="Registre RGPD"
-                subtitle="Registre des Activités de Traitement (ROPA) - Art. 30."
+                title={t('privacy.title')}
+                subtitle={t('privacy.subtitle')}
                 breadcrumbs={[
-                    { label: 'RGPD' }
+                    { label: t('privacy.breadcrumb') }
                 ]}
                 icon={
                     <img
@@ -190,14 +191,14 @@ export const Privacy: React.FC = () => {
                                 onClick={() => fileInputRef.current?.click()}
                                 className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
-                                <Upload className="h-4 w-4 mr-2" /> Importer
+                                <Upload className="h-4 w-4 mr-2" /> {t('common.import')}
                             </button>
                             <button
                                 aria-label="Nouveau Traitement"
                                 onClick={handleAddActivity}
                                 className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
-                                <Plus className="h-4 w-4 mr-2" /> Nouveau Traitement
+                                <Plus className="h-4 w-4 mr-2" /> {t('privacy.newActivity')}
                             </button>
                         </div>
                     </>
@@ -212,11 +213,11 @@ export const Privacy: React.FC = () => {
                 <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
                         <span className="inline-flex h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
-                        Registre des Traitements
+                        {t('privacy.registryLabel')}
                     </p>
                     <div className="flex items-baseline gap-3">
                         <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
-                        <span className="text-sm font-bold text-slate-600">Traitements identifiés</span>
+                        <span className="text-sm font-bold text-slate-600">{t('privacy.activitiesIdentified')}</span>
                     </div>
                 </div>
 
@@ -224,32 +225,32 @@ export const Privacy: React.FC = () => {
 
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Données Sensibles</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t('privacy.stats.sensitiveData')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-orange-500">{stats.sensitive}</span>
-                            <Badge status="warning" variant="soft" size="sm">Prioritaire</Badge>
+                            <Badge status="warning" variant="soft" size="sm">{t('privacy.stats.priority')}</Badge>
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">DPIA Requis</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t('privacy.stats.dpiaRequired')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.dpiaMissing}
                             </span>
-                            <span className="text-xs font-medium text-slate-500">à réaliser</span>
+                            <span className="text-xs font-medium text-slate-500">{t('privacy.stats.toComplete')}</span>
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">En Projet</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t('privacy.stats.inProgress')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-blue-500">
                                 {stats.review}
                             </span>
-                            <span className="text-xs font-medium text-slate-500">Traitements</span>
+                            <span className="text-xs font-medium text-slate-500">{t('privacy.stats.activities')}</span>
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Conformité Actifs</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t('privacy.stats.activeCompliance')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-emerald-500">
                                 {stats.total > 0 ? Math.round(((stats.total - stats.review) / stats.total) * 100) : 0}%
@@ -263,9 +264,9 @@ export const Privacy: React.FC = () => {
             <PremiumPageControl
                 searchQuery={filter}
                 onSearchChange={setFilter}
-                searchPlaceholder="Rechercher un traitement (ex: Paie, CRM)..."
+                searchPlaceholder={t('privacy.searchPlaceholder')}
                 actions={
-                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" title="Exporter le Registre">
+                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" title={t('privacy.exportRegistry')}>
                         <FileSpreadsheet className="h-4 w-4" />
                     </button>
                 }
@@ -278,9 +279,9 @@ export const Privacy: React.FC = () => {
                     <div className="col-span-full">
                         <EmptyState
                             icon={Fingerprint}
-                            title="Aucun traitement trouvé"
-                            description={filter ? "Aucun traitement ne correspond à votre recherche." : "Commencez par ajouter vos activités de traitement au registre."}
-                            actionLabel={filter ? undefined : "Nouveau Traitement"}
+                            title={t('privacy.emptyTitle')}
+                            description={filter ? t('privacy.emptySearch') : t('privacy.emptyDescription')}
+                            actionLabel={filter ? undefined : t('privacy.newActivity')}
                             onAction={filter ? undefined : () => {
                                 setShowCreateModal(true);
                             }}
@@ -373,8 +374,8 @@ export const Privacy: React.FC = () => {
             < Drawer
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
-                title="Nouveau Traitement"
-                subtitle="Ajoutez une nouvelle activité de traitement au registre."
+                title={t('privacy.newActivity')}
+                subtitle={t('privacy.newActivitySubtitle')}
                 width="max-w-6xl"
             >
                 <CreateActivityForm

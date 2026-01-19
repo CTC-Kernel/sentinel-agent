@@ -3,7 +3,7 @@ import { Project, ProjectTask, UserProfile } from '../../../types';
 import { Button } from '../../ui/button';
 import { Plus, CheckSquare, CalendarDays, Trash2 } from '../../ui/Icons';
 import { KanbanColumn } from '../KanbanColumn';
-import { TaskFormModal } from '../TaskFormModal';
+import { TaskFormDrawer } from '../TaskFormDrawer';
 import { ConfirmModal } from '../../ui/ConfirmModal';
 import { generateICS, downloadICS } from '../../../utils/calendarUtils';
 import { sanitizeData } from '../../../utils/dataSanitizer';
@@ -150,7 +150,7 @@ export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, us
                 </div>
             )}
 
-            <TaskFormModal
+            <TaskFormDrawer
                 isOpen={showTaskModal}
                 onClose={() => setShowTaskModal(false)}
                 onSubmit={handleTaskSubmit}

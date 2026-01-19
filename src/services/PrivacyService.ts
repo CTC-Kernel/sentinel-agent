@@ -1,6 +1,6 @@
 import { db } from '../firebase';
 import { collection, doc, addDoc, updateDoc, deleteDoc, setDoc, getDocs, query, where, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
-import { ProcessingActivity, UserProfile, SystemLog } from '../types';
+import { ProcessingActivity, UserProfile, SystemLog, PrivacyRequest } from '../types';
 import { ErrorLogger } from './errorLogger';
 import { logAction } from './logger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -200,5 +200,79 @@ export const PrivacyService = {
             return docs[0].id;
         }
         return null;
+    },
+
+    // --- Privacy Requests (DSR) ---
+
+    async fetchRequests(organizationId: string): Promise<PrivacyRequest[]> {
+        try {
+            const q = query(collection(db, 'privacy_requests'), where('organizationId', '==', organizationId));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PrivacyRequest));
+        } catch (error) {
+            ErrorLogger.error(error, 'PrivacyService.fetchRequests');
+            return [];
+        }
+    },
+
+    async createRequest(request: Omit<PrivacyRequest, 'id'>, user: UserProfile): Promise<string> {
+        try {
+            const requestData = {
+                ...sanitizeData(request),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            const docRef = await addDoc(collection(db, 'privacy_requests'), requestData);
+
+            await logAction(
+                user,
+                'CREATE',
+                'Privacy',
+                `Nouvelle demande DSR: ${request.requestType} - ${request.dataSubject}`,
+                undefined,
+                docRef.id
+            );
+            return docRef.id;
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.createRequest');
+            throw error;
+        }
+    },
+
+    async updateRequest(id: string, updates: Partial<PrivacyRequest>, user: UserProfile): Promise<void> {
+        try {
+            const docRef = doc(db, 'privacy_requests', id);
+            await updateDoc(docRef, { ...sanitizeData(updates), updatedAt: serverTimestamp() });
+
+            await logAction(
+                user,
+                'UPDATE',
+                'Privacy',
+                `Mise à jour DSR ${id}: ${updates.status || 'Détails'}`,
+                undefined,
+                id
+            );
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.updateRequest');
+            throw error;
+        }
+    },
+
+    async deleteRequest(id: string, user: UserProfile): Promise<void> {
+        try {
+            await deleteDoc(doc(db, 'privacy_requests', id));
+            await logAction(
+                user,
+                'DELETE',
+                'Privacy',
+                `Suppression demande DSR ${id}`,
+                undefined,
+                id
+            );
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'PrivacyService.deleteRequest');
+            throw error;
+        }
     }
 };

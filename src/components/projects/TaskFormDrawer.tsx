@@ -1,26 +1,27 @@
 import React, { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Target } from 'lucide-react';
+import { Target } from 'lucide-react';
 import { ProjectTask, UserProfile } from '../../types';
 import { AddToCalendar } from '../../components/ui/AddToCalendar';
 import { useForm, useWatch, Controller, Resolver } from 'react-hook-form';
+import { Drawer } from '../ui/Drawer';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectTaskSchema, ProjectTaskFormData } from '../../schemas/projectSchema';
+import { Button } from '../ui/button';
 
-interface TaskFormModalProps {
+interface TaskFormDrawerProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (task: Omit<ProjectTask, 'id'>) => void;
     existingTask?: ProjectTask;
     availableTasks?: ProjectTask[]; // For dependencies
     availableUsers?: UserProfile[]; // For assignee selection
-    onCancel?: () => void; // Add optional onCancel
+    onCancel?: () => void;
 }
 
-export const TaskFormModal: React.FC<TaskFormModalProps> = ({
+export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
     isOpen,
     onClose,
     onSubmit,
@@ -35,7 +36,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         reset,
         setValue,
         control,
-        formState: { errors }
+        formState: { errors, isSubmitting }
     } = useForm<ProjectTaskFormData>({
         resolver: zodResolver(projectTaskSchema) as Resolver<ProjectTaskFormData>,
         defaultValues: {
@@ -84,33 +85,16 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
     const watchedStartDate = useWatch({ control, name: 'startDate' });
     const watchedDueDate = useWatch({ control, name: 'dueDate' });
 
-    if (!isOpen) return null;
-
-    return createPortal(
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="glass-panel rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20 animate-scale-in relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
-                {/* Header */}
-                {/* Header */}
-                <div className="sticky top-0 glass-panel border-b border-white/10 px-8 py-6 flex items-center justify-between z-10 backdrop-blur-md">
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {existingTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
-                        </h2>
-                        <p className="text-sm text-slate-600 mt-1">
-                            Définissez les détails de la tâche du projet
-                        </p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit(onFormSubmit)} className="p-8 space-y-6 relative z-10">
+    return (
+        <Drawer
+            isOpen={isOpen}
+            onClose={onClose}
+            title={existingTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
+            subtitle="Définissez les détails de la tâche du projet"
+            width="max-w-2xl"
+        >
+            <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col h-full pt-6 px-1">
+                <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-2 pb-6">
                     {/* Title */}
                     <div>
                         <Controller
@@ -221,9 +205,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             />
                         </div>
 
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                {/* Spacer or Label hidden? DatePicker handles label */}
+                        <div className="relative">
+                            <div className="absolute right-0 -top-8 z-10">
                                 {watchedDueDate && watchedTitle && (
                                     <AddToCalendar
                                         event={{
@@ -233,7 +216,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                             end: new Date(watchedDueDate),
                                             location: 'Sentinel GRC'
                                         }}
-                                        className="scale-75 origin-right absolute right-0 top-0 z-10" // Adjust positioning if needed
+                                        className="scale-75 origin-right"
                                     />
                                 )}
                             </div>
@@ -287,8 +270,8 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     </div>
 
                     {/* Progress */}
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 flex items-center gap-2">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-white/5">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 flex items-center gap-2">
                             <Target className="h-3.5 w-3.5" />
                             Progression ({progress}%)
                         </label>
@@ -296,7 +279,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             type="range"
                             min="0"
                             max="100"
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 accent-brand-600"
                             aria-label="Progression de la tâche"
                         />
                         {errors.progress && <p className="text-red-500 text-xs mt-1">{errors.progress.message}</p>}
@@ -310,7 +293,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
-                                        label="Dépendances"
+                                        label="Dépendances (Tâches bloquantes)"
                                         options={availableTasks.filter(t => t.id !== existingTask?.id).map(t => ({ value: t.id, label: t.title }))}
                                         value={field.value || []}
                                         onChange={field.onChange}
@@ -320,28 +303,28 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             />
                         </div>
                     )}
+                </div>
 
-                    {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <button
-                            type="button"
-                            onClick={onClose || onCancel}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-                        >
-                            Annuler
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-8 py-3 bg-gradient-to-r from-brand-600 to-brand-500 text-white rounded-xl hover:from-brand-500 hover:to-brand-400 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-brand-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-                        >
-                            {existingTask ? 'Mettre à jour' : 'Créer la tâche'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>,
-        document.body
+                {/* Actions */}
+                <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10 shrink-0">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={onClose || onCancel}
+                        disabled={isSubmitting}
+                    >
+                        Annuler
+                    </Button>
+                    <Button
+                        type="submit"
+                        isLoading={isSubmitting}
+                    >
+                        {existingTask ? 'Mettre à jour' : 'Créer la tâche'}
+                    </Button>
+                </div>
+            </form>
+        </Drawer>
     );
 };
 
-// Headless UI handles FocusTrap and keyboard navigation
+export default TaskFormDrawer;

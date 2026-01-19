@@ -99,25 +99,7 @@ export interface SupplierAssessment {
     approvedDate?: string;
 }
 
-export interface ProcessingActivity {
-    id: string;
-    organizationId: string;
-    name: string;
-    purpose: string;
-    manager: string;
-    managerId?: string;
-    legalBasis: 'Consentement' | 'Contrat' | 'Obligation Légale' | 'Intérêt Légitime' | 'Sauvegarde Intérêts' | 'Mission Publique';
-    dataCategories: string[];
-    dataSubjects: string[];
-    retentionPeriod: string;
-    hasDPIA: boolean;
-    status: 'Actif' | 'En projet' | 'Archivé';
-    createdAt?: string;
-    updatedAt?: string;
-    createdBy?: string;
-    relatedAssetIds?: string[]; // Linked Assets (Storage, Processing, etc.)
-    relatedRiskIds?: string[]; // Linked Risks (DPIA)
-}
+// ProcessingActivity moved to privacy.ts
 
 export interface BusinessProcess {
     id: string;

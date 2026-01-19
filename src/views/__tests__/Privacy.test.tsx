@@ -8,6 +8,41 @@ import { MemoryRouter } from 'react-router-dom';
 // Mocks
 // ---------------------------------------------------------------------
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, params?: Record<string, unknown>) => {
+            const translations: Record<string, string> = {
+                'privacy.title': 'Registre RGPD',
+                'privacy.subtitle': 'Registre des Activités de Traitement (ROPA) - Art. 30.',
+                'privacy.keywords': 'RGPD, ROPA, Privacy, Confidentialité',
+                'privacy.breadcrumb': 'RGPD',
+                'privacy.formInvalid': 'Formulaire invalide. Champs en erreur',
+                'privacy.deleteTitle': 'Supprimer le traitement ?',
+                'privacy.deleteMessage': `Êtes-vous sûr de vouloir supprimer ${params?.name || ''} ?`,
+                'privacy.newActivity': 'Nouveau Traitement',
+                'privacy.newActivitySubtitle': 'Ajoutez une nouvelle activité de traitement au registre.',
+                'privacy.registryLabel': 'Registre des Traitements',
+                'privacy.activitiesIdentified': 'Traitements identifiés',
+                'privacy.searchPlaceholder': 'Rechercher un traitement (ex: Paie, CRM)...',
+                'privacy.exportRegistry': 'Exporter le Registre',
+                'privacy.emptyTitle': 'Aucun traitement trouvé',
+                'privacy.emptySearch': 'Aucun traitement ne correspond à votre recherche.',
+                'privacy.emptyDescription': 'Commencez par ajouter vos activités de traitement au registre.',
+                'privacy.stats.sensitiveData': 'Données Sensibles',
+                'privacy.stats.priority': 'Prioritaire',
+                'privacy.stats.dpiaRequired': 'DPIA Requis',
+                'privacy.stats.toComplete': 'à réaliser',
+                'privacy.stats.inProgress': 'En Projet',
+                'privacy.stats.activities': 'Traitements',
+                'privacy.stats.activeCompliance': 'Conformité Actifs',
+                'common.import': 'Importer'
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
 // Mock Store
 vi.mock('../../store', () => ({
     useStore: vi.fn().mockReturnValue({

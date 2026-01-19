@@ -43,12 +43,6 @@ import {
     frequencyLabels
 } from '../types/reports';
 
-const templateLabels: Record<ReportTemplateId, string> = {
-    iso27001: 'Pack ISO 27001',
-    gdpr: 'Pack RGPD',
-    custom: 'Rapport Exécutif'
-};
-
 export const Reports: React.FC = () => {
     const { user, t, organization, addToast } = useStore();
     const [activeTab, setActiveTab] = useState('templates');
@@ -113,7 +107,7 @@ export const Reports: React.FC = () => {
                 user.displayName || user.email || 'Unknown',
                 data
             );
-            addToast('Rapport planifié avec succès', 'success');
+            addToast(t('reports.toast.scheduleSuccess'), 'success');
             fetchScheduledReports();
         } catch (error) {
             ErrorLogger.error('Failed to schedule report', 'Reports.handleScheduleReport', { metadata: { error } });
@@ -125,13 +119,13 @@ export const Reports: React.FC = () => {
         try {
             await ScheduledReportsService.toggleScheduledReportStatus(report.id, report.status);
             addToast(
-                report.status === 'active' ? 'Rapport mis en pause' : 'Rapport réactivé',
+                report.status === 'active' ? t('reports.toast.paused') : t('reports.toast.reactivated'),
                 'success'
             );
             fetchScheduledReports();
         } catch (error) {
             ErrorLogger.error('Failed to toggle report status', 'Reports.handleToggleStatus', { metadata: { error } });
-            addToast('Erreur lors de la mise à jour', 'error');
+            addToast(t('reports.toast.updateError'), 'error');
         }
     };
 
@@ -140,12 +134,12 @@ export const Reports: React.FC = () => {
 
         try {
             await ScheduledReportsService.deleteScheduledReport(deleteConfirm.reportId);
-            addToast('Rapport planifié supprimé', 'success');
+            addToast(t('reports.toast.deleteSuccess'), 'success');
             setDeleteConfirm({ isOpen: false, reportId: null });
             fetchScheduledReports();
         } catch (error) {
             ErrorLogger.error('Failed to delete scheduled report', 'Reports.handleDeleteReport', { metadata: { error } });
-            addToast('Erreur lors de la suppression', 'error');
+            addToast(t('reports.toast.deleteError'), 'error');
         }
     };
 
@@ -303,7 +297,8 @@ export const Reports: React.FC = () => {
             <MasterpieceBackground />
             <SEO
                 title={t('reports.title')}
-                description="Génération de rapports de conformité et d'audit."
+                description={t('reports.seoDescription')}
+                keywords={t('reports.keywords')}
             />
 
             <motion.div variants={slideUpVariants}>
@@ -348,7 +343,7 @@ export const Reports: React.FC = () => {
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.iso27001.title')}</h3>
                                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 mt-1">
-                                                Recommandé
+                                                {t('reports.badges.recommended')}
                                             </span>
                                         </div>
                                     </div>
@@ -367,7 +362,7 @@ export const Reports: React.FC = () => {
                                             variant="outline"
                                             size="icon"
                                             onClick={() => openScheduleModal('iso27001')}
-                                            title="Planifier ce rapport"
+                                            title={t('reports.scheduleThis')}
                                         >
                                             <Calendar className="h-4 w-4" />
                                         </Button>
@@ -401,7 +396,7 @@ export const Reports: React.FC = () => {
                                             variant="outline"
                                             size="icon"
                                             onClick={() => openScheduleModal('gdpr')}
-                                            title="Planifier ce rapport"
+                                            title={t('reports.scheduleThis')}
                                         >
                                             <Calendar className="h-4 w-4" />
                                         </Button>
@@ -428,7 +423,7 @@ export const Reports: React.FC = () => {
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.custom.title')}</h3>
                                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 mt-1">
-                                                Complet
+                                                {t('reports.badges.complete')}
                                             </span>
                                         </div>
                                     </div>
@@ -447,7 +442,7 @@ export const Reports: React.FC = () => {
                                             variant="outline"
                                             size="icon"
                                             onClick={() => openScheduleModal('custom')}
-                                            title="Planifier ce rapport"
+                                            title={t('reports.scheduleThis')}
                                         >
                                             <Calendar className="h-4 w-4" />
                                         </Button>
@@ -475,16 +470,16 @@ export const Reports: React.FC = () => {
                                 <h3 className="font-bold text-slate-900 dark:text-white mb-1 truncate" title={doc.title}>{doc.title}</h3>
                                 <p className="text-xs text-slate-500 mb-4">v{doc.version} • {new Date(doc.createdAt).toLocaleDateString()}</p>
                                 <Button size="sm" variant="ghost" className="w-full justify-between group-hover:bg-slate-100 dark:group-hover:bg-slate-800">
-                                    Télécharger <Archive className="h-4 w-4" />
+                                    {t('common.download')} <Archive className="h-4 w-4" />
                                 </Button>
                             </div>
                         ))
                     ) : (
                         <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-500 glass-panel rounded-3xl border-dashed">
                             <Archive className="h-12 w-12 opacity-20 mb-4" />
-                            <p className="font-medium">Aucun rapport généré pour le moment.</p>
+                            <p className="font-medium">{t('reports.generated.empty')}</p>
                             <Button variant="link" onClick={() => setActiveTab('templates')}>
-                                Créer un nouveau rapport
+                                {t('reports.generated.createNew')}
                             </Button>
                         </div>
                     )}
@@ -496,12 +491,12 @@ export const Reports: React.FC = () => {
                     {/* Header with Add Button */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Rapports planifiés</h2>
-                            <p className="text-sm text-slate-500">Recevez vos rapports automatiquement par email</p>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.scheduledSection.title')}</h2>
+                            <p className="text-sm text-slate-500">{t('reports.scheduledSection.subtitle')}</p>
                         </div>
                         <Button onClick={() => openScheduleModal('custom')} className="gap-2">
                             <Plus className="h-4 w-4" />
-                            Planifier un rapport
+                            {t('reports.scheduledSection.scheduleReport')}
                         </Button>
                     </div>
 
@@ -535,7 +530,7 @@ export const Reports: React.FC = () => {
                                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                                         }`}>
-                                            {report.status === 'active' ? 'Actif' : 'En pause'}
+                                            {report.status === 'active' ? t('reports.status.active') : t('reports.status.paused')}
                                         </span>
                                     </div>
 
@@ -546,7 +541,7 @@ export const Reports: React.FC = () => {
                                     <div className="space-y-2 text-sm text-slate-500 mb-4">
                                         <div className="flex items-center gap-2">
                                             <FileText className="h-4 w-4" />
-                                            <span>{templateLabels[report.templateId]}</span>
+                                            <span>{t(`reports.templateLabels.${report.templateId}`)}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Clock className="h-4 w-4" />
@@ -554,12 +549,12 @@ export const Reports: React.FC = () => {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Mail className="h-4 w-4" />
-                                            <span className="truncate">{report.recipients.length} destinataire{report.recipients.length > 1 ? 's' : ''}</span>
+                                            <span className="truncate">{report.recipients.length} {t('reports.scheduledSection.recipients', { count: report.recipients.length })}</span>
                                         </div>
                                     </div>
 
                                     <div className="text-xs text-slate-400 mb-4">
-                                        Prochaine exécution: {new Date(report.nextRunAt).toLocaleDateString('fr-FR', {
+                                        {t('reports.scheduledSection.nextRun')}: {new Date(report.nextRunAt).toLocaleDateString('fr-FR', {
                                             day: 'numeric',
                                             month: 'short',
                                             year: 'numeric'
@@ -600,11 +595,11 @@ export const Reports: React.FC = () => {
                     ) : (
                         <div className="text-center py-16 text-slate-500 font-medium glass-panel rounded-3xl border-dashed">
                             <History className="h-16 w-16 mx-auto mb-6 opacity-20" />
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun rapport planifié</h3>
-                            <p className="max-w-md mx-auto mb-6">Automatisez la génération de vos rapports pour recevoir des mises à jour régulières directement dans votre boîte mail.</p>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t('reports.scheduledSection.emptyTitle')}</h3>
+                            <p className="max-w-md mx-auto mb-6">{t('reports.scheduledSection.emptyDescription')}</p>
                             <Button onClick={() => openScheduleModal('custom')}>
                                 <Plus className="h-4 w-4 mr-2" />
-                                Planifier un rapport
+                                {t('reports.scheduledSection.scheduleReport')}
                             </Button>
                         </div>
                     )}
@@ -629,8 +624,8 @@ export const Reports: React.FC = () => {
                 isOpen={deleteConfirm.isOpen}
                 onClose={() => setDeleteConfirm({ isOpen: false, reportId: null })}
                 onConfirm={handleDeleteReport}
-                title="Supprimer le rapport planifié"
-                message="Êtes-vous sûr de vouloir supprimer ce rapport planifié ? Cette action est irréversible."
+                title={t('reports.deleteScheduled.title')}
+                message={t('reports.deleteScheduled.message')}
             />
         </motion.div>
     );

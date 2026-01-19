@@ -29,12 +29,13 @@ import { slideUpVariants, staggerContainerVariants } from '../components/ui/anim
 import { EbiosService } from '../services/ebiosService';
 import { toast } from '@/lib/toast';
 import { cn } from '../utils/cn';
+import { ErrorLogger } from '../services/errorLogger';
 import type { EbiosAnalysis, EbiosAnalysisStatus } from '../types/ebios';
 
 import { EbiosStatsWidget } from '../components/ebios/EbiosStatsWidget';
 
 // Create Analysis Inspector
-const CreateAnalysisInspector = React.lazy(() => import('../components/ebios/CreateAnalysisInspector'));
+const CreateAnalysisDrawer = React.lazy(() => import('../components/ebios/CreateAnalysisDrawer'));
 
 export const EbiosAnalyses: React.FC = () => {
   const { t } = useStore();
@@ -62,7 +63,7 @@ export const EbiosAnalyses: React.FC = () => {
         const data = await EbiosService.listAnalyses(organizationId);
         setAnalyses(data);
       } catch (error) {
-        console.error('Error fetching EBIOS analyses:', error);
+        ErrorLogger.error(error, 'EbiosAnalyses.fetchAnalyses');
         toast.error(t('ebios.errors.fetchFailed'));
       } finally {
         setLoading(false);
@@ -97,7 +98,7 @@ export const EbiosAnalyses: React.FC = () => {
       toast.success(t('ebios.analysisCreated'));
       navigate(`/ebios/${newAnalysis.id}`);
     } catch (error) {
-      console.error('Error creating analysis:', error);
+      ErrorLogger.error(error, 'EbiosAnalyses.handleCreateAnalysis');
       toast.error(t('ebios.errors.createFailed'));
     }
   }, [organizationId, user?.uid, t, navigate]);
@@ -112,7 +113,7 @@ export const EbiosAnalyses: React.FC = () => {
       setSelectedAnalysis(null);
       toast.success(t('ebios.analysisDeleted'));
     } catch (error) {
-      console.error('Error deleting analysis:', error);
+      ErrorLogger.error(error, 'EbiosAnalyses.handleDeleteAnalysis');
       toast.error(t('ebios.errors.deleteFailed'));
     }
   }, [organizationId, selectedAnalysis, t]);
@@ -127,7 +128,7 @@ export const EbiosAnalyses: React.FC = () => {
       );
       toast.success(t('ebios.analysisArchived'));
     } catch (error) {
-      console.error('Error archiving analysis:', error);
+      ErrorLogger.error(error, 'EbiosAnalyses.handleArchiveAnalysis');
       toast.error(t('ebios.errors.archiveFailed'));
     }
   }, [organizationId, user?.uid, t]);
@@ -140,7 +141,7 @@ export const EbiosAnalyses: React.FC = () => {
       setAnalyses((prev) => [duplicated, ...prev]);
       toast.success(t('ebios.analysisDuplicated'));
     } catch (error) {
-      console.error('Error duplicating analysis:', error);
+      ErrorLogger.error(error, 'EbiosAnalyses.handleDuplicateAnalysis');
       toast.error(t('ebios.errors.duplicateFailed'));
     }
   }, [organizationId, user?.uid, t]);
@@ -380,7 +381,7 @@ export const EbiosAnalyses: React.FC = () => {
       {/* Create Inspector */}
       {showCreateModal && (
         <React.Suspense fallback={<Spinner />}>
-          <CreateAnalysisInspector
+          <CreateAnalysisDrawer
             isOpen={true}
             onSave={handleCreateAnalysis}
             onClose={() => setShowCreateModal(false)}

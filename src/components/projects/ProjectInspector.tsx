@@ -16,8 +16,8 @@ import { ProjectTasks } from './inspector/ProjectTasks';
 import { ProjectDependencies } from './inspector/ProjectDependencies';
 import { ProjectTeam } from './inspector/ProjectTeam';
 import { ErrorLogger } from '../../services/errorLogger';
-import { TaskFormModal } from './TaskFormModal';
-import { Drawer } from '../ui/Drawer';
+import { TaskFormDrawer } from './TaskFormDrawer';
+
 
 import './gantt.css';
 // Form validation: useForm with required fields
@@ -62,7 +62,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 
     // Local Data - use hook for milestones
     const { milestones: projectMilestones } = useProjectMilestones(project?.id);
-    
+
     // Task editing state
     const [editingTask, setEditingTask] = useState<ProjectTask | null>(null);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -85,12 +85,12 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 
     const handleTaskUpdate = React.useCallback(async (updatedTask: ProjectTask) => {
         if (!project) return;
-        
+
         try {
-            const updatedTasks = project.tasks?.map(t => 
+            const updatedTasks = project.tasks?.map(t =>
                 t.id === updatedTask.id ? updatedTask : t
             ) || [];
-            
+
             await updateTasks(project, updatedTasks);
             setEditingTask(null);
             setIsTaskModalOpen(false);
@@ -232,24 +232,17 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                         </div>
                     )}
 
-                    {/* Task Modal */}
-                    <Drawer
-                        isOpen={isTaskModalOpen}
-                        onClose={handleTaskModalClose}
-                        title={editingTask ? `Modifier la tâche: ${editingTask.title}` : 'Nouvelle tâche'}
-                        width="max-w-2xl"
-                    >
-                        {editingTask && (
-                            <TaskFormModal
-                                isOpen={true}
-                                existingTask={editingTask}
-                                availableUsers={usersList}
-                                onSubmit={(taskData) => handleTaskUpdate({ ...editingTask, ...taskData })}
-                                onCancel={handleTaskModalClose}
-                                onClose={handleTaskModalClose}
-                            />
-                        )}
-                    </Drawer>
+                    {/* Task Drawer */}
+                    {isTaskModalOpen && editingTask && (
+                        <TaskFormDrawer
+                            isOpen={isTaskModalOpen}
+                            onClose={handleTaskModalClose}
+                            existingTask={editingTask}
+                            availableUsers={usersList}
+                            onSubmit={(taskData) => handleTaskUpdate({ ...editingTask, ...taskData })}
+                            onCancel={handleTaskModalClose}
+                        />
+                    )}
 
                     {/* Milestones */}
                     {inspectorTab === 'milestones' && (

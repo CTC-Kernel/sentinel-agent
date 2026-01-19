@@ -6,6 +6,8 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { useZodForm } from '../../hooks/useZodForm';
 import { z } from 'zod';
+import { Shield, Clock, Settings, CheckCircle2 } from 'lucide-react';
+import { cn } from '../../utils/cn';
 import { FieldValues } from 'react-hook-form';
 import { SMSIProgram } from '../../types/ebios';
 
@@ -14,7 +16,29 @@ const smsiSchema = z.object({
     description: z.string().optional(),
     targetCertificationDate: z.string().optional(),
     isCertified: z.boolean().optional(),
+    template: z.enum(['standard', 'fast-track', 'maintenance']).default('standard'),
 });
+
+const PROGRAM_TEMPLATES = [
+    {
+        id: 'standard',
+        name: 'Implémentation Standard ISO 27001',
+        description: 'Cycle complet PDCA avec tous les jalons classiques.',
+        icon: Shield
+    },
+    {
+        id: 'fast-track',
+        name: 'Fast Track (Startup/PME)',
+        description: 'Focus sur les risques critiques et contrôles essentiels.',
+        icon: Clock
+    },
+    {
+        id: 'maintenance',
+        name: 'Maintien & Amélioration',
+        description: 'Pour les organisations déjà certifiées (Cycle annuel).',
+        icon: Settings
+    }
+] as const;
 
 type SMSIFormData = z.infer<typeof smsiSchema>;
 
@@ -34,16 +58,20 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
     isLoading = false
 }) => {
     const { t } = useStore();
+    const isEditing = !!program;
 
-    const { register, handleSubmit, formState: { errors }, reset } = useZodForm({
+    const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useZodForm({
         schema: smsiSchema,
         defaultValues: {
             name: program?.name || '',
             description: program?.description || '',
             targetCertificationDate: program?.targetCertificationDate ? new Date(program.targetCertificationDate).toISOString().split('T')[0] : '',
-            isCertified: false
+            isCertified: false,
+            template: 'standard'
         }
     });
+
+    const selectedTemplate = watch('template');
 
     useEffect(() => {
         if (isOpen) {
@@ -51,7 +79,8 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                 name: program?.name || '',
                 description: program?.description || '',
                 targetCertificationDate: program?.targetCertificationDate ? new Date(program.targetCertificationDate).toISOString().split('T')[0] : '',
-                isCertified: false
+                isCertified: false,
+                template: 'standard'
             });
         }
     }, [isOpen, program, reset]);
@@ -95,6 +124,51 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                         error={errors.targetCertificationDate?.message}
                         {...register('targetCertificationDate')}
                     />
+
+                    {!isEditing && (
+                        <div className="pt-4">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                                Modèle de programme
+                            </label>
+                            <div className="grid gap-3">
+                                {PROGRAM_TEMPLATES.map((template) => (
+                                    <div
+                                        key={template.id}
+                                        onClick={() => setValue('template', template.id)}
+                                        className={cn(
+                                            "relative flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                                            selectedTemplate === template.id
+                                                ? "border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 ring-1 ring-brand-500"
+                                                : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-white dark:bg-slate-900"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "p-2 rounded-lg",
+                                            selectedTemplate === template.id ? "bg-brand-100 text-brand-600 dark:bg-brand-900/40 dark:text-brand-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                                        )}>
+                                            <template.icon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className={cn(
+                                                "text-sm font-medium mb-0.5",
+                                                selectedTemplate === template.id ? "text-brand-900 dark:text-brand-100" : "text-slate-900 dark:text-white"
+                                            )}>
+                                                {template.name}
+                                            </h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                {template.description}
+                                            </p>
+                                        </div>
+                                        {selectedTemplate === template.id && (
+                                            <div className="absolute top-3 right-3 text-brand-500">
+                                                <CheckCircle2 className="w-5 h-5 fill-current" />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">

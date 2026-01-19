@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk } from '../../types';
 import { motion } from 'framer-motion';
@@ -13,9 +13,15 @@ interface RiskMatrixProps {
 
 export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, setMatrixFilter, frameworkFilter }) => {
 
+    const [viewMode, setViewMode] = useState<'inherent' | 'residual'>('inherent');
+
     // Helper within the component to count risks per cell
     const getRisksForCell = (prob: number, impact: number) =>
-        risks.filter(r => (Number(r.probability) === prob) && (Number(r.impact) === impact) && (!frameworkFilter || r.framework === frameworkFilter));
+        risks.filter(r => {
+            const p = viewMode === 'inherent' ? Number(r.probability) : Number(r.residualProbability || r.probability);
+            const i = viewMode === 'inherent' ? Number(r.impact) : Number(r.residualImpact || r.impact);
+            return p === prob && i === impact && (!frameworkFilter || r.framework === frameworkFilter);
+        });
 
     const PROBABILITY_LABELS = [
         { val: 5, label: "Très Élevé", sub: "Certain" },
@@ -43,6 +49,28 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         Visualisation de l'exposition aux risques selon la norme {frameworkFilter || 'ISO 27005'}.
                         Cliquez sur une case pour filtrer les risques associés.
                     </p>
+
+                    {/* View Mode Toggle */}
+                    <div className="flex items-center gap-2 mt-4 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+                        <button
+                            onClick={() => setViewMode('inherent')}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'inherent'
+                                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                                }`}
+                        >
+                            Risque Inhérent
+                        </button>
+                        <button
+                            onClick={() => setViewMode('residual')}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'residual'
+                                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                                }`}
+                        >
+                            Risque Résiduel
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3 bg-white dark:bg-slate-900/50 p-3 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm backdrop-blur-sm">

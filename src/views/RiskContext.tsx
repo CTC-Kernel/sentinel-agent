@@ -4,17 +4,33 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Target } from 'lucide-react';
 import { PageHeader } from '../components/ui/PageHeader';
 import { RiskContextManager } from '../components/risks/context/RiskContextManager';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { SEO } from '../components/SEO';
 
 export const RiskContextView: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
-    <div className="p-6 space-y-6">
-      <PageHeader
-        title="Contexte de Risque"
-        subtitle="Configuration du contexte organisationnel pour l'analyse des risques (ISO 27005)"
+    <div className="min-h-screen">
+      <MasterpieceBackground />
+      <SEO
+        title={t('riskContext.title')}
+        description={t('riskContext.subtitle')}
+        keywords={t('riskContext.keywords')}
       />
-      <RiskContextManager />
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <PageHeader
+          title={t('riskContext.title')}
+          subtitle={t('riskContext.subtitle')}
+          icon={<Target className="w-8 h-8" />}
+          breadcrumbs={[{ label: t('riskContext.title') }]}
+        />
+        <RiskContextManager />
+      </div>
     </div>
   );
 };

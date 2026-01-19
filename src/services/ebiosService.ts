@@ -577,6 +577,7 @@ export class EbiosService {
       name: string;
       description?: string;
       targetCertificationDate?: string;
+      template?: 'standard' | 'fast-track' | 'maintenance';
     },
     userId: string
   ): Promise<SMSIProgram> {
@@ -605,6 +606,9 @@ export class EbiosService {
       };
 
       await setDoc(programRef, program);
+
+      // Generate milestones based on template
+      await this.generateMilestonesForTemplate(organizationId, data.template || 'standard');
 
       return program;
     } catch (error) {
@@ -809,6 +813,77 @@ export class EbiosService {
       });
       throw error;
     }
+  }
+
+  // ============================================================================
+  // Helper Methods
+  // ============================================================================
+
+  /**
+   * Generate milestones based on the selected template
+   */
+  private static async generateMilestonesForTemplate(
+    organizationId: string,
+    template: 'standard' | 'fast-track' | 'maintenance'
+  ): Promise<void> {
+    const milestones: Array<Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt' | 'status'>> = [];
+    const now = new Date();
+
+    const addDays = (date: Date, days: number) => {
+      const result = new Date(date);
+      result.setDate(result.getDate() + days);
+      return result.toISOString();
+    };
+
+    if (template === 'standard') {
+      // PLAN
+      milestones.push(
+        { phase: 'plan', name: 'Définition du périmètre SMSI', description: 'Identifier les limites organisationnelles et physiques.', dueDate: addDays(now, 7) },
+        { phase: 'plan', name: 'Politique de Sécurité (PSSI)', description: 'Rédaction et validation par la direction.', dueDate: addDays(now, 14) },
+        { phase: 'plan', name: 'Appréciation des Risques', description: 'Méthodologie EBIOS RM et identification des risques.', dueDate: addDays(now, 30) }
+      );
+      // DO
+      milestones.push(
+        { phase: 'do', name: 'Plan de Traitement des Risques (PTR)', description: 'Sélection et implémentation des mesures.', dueDate: addDays(now, 45) },
+        { phase: 'do', name: 'Déclaration d\'Applicabilité (DDA)', description: 'Justification des contrôles ISO 27001.', dueDate: addDays(now, 60) },
+        { phase: 'do', name: 'Sensibilisation des collaborateurs', description: 'Campagne de formation et simulation phishing.', dueDate: addDays(now, 75) }
+      );
+      // CHECK
+      milestones.push(
+        { phase: 'check', name: 'Audit Interne', description: 'Vérification de la conformité du SMSI.', dueDate: addDays(now, 90) },
+        { phase: 'check', name: 'Indicateurs & Métriques', description: 'Revue des KPIs de sécurité.', dueDate: addDays(now, 100) }
+      );
+      // ACT
+      milestones.push(
+        { phase: 'act', name: 'Revue de Direction', description: 'Validation de l\'efficacité du SMSI par le COMEX.', dueDate: addDays(now, 110) },
+        { phase: 'act', name: 'Audit de Certification', description: 'Audit externe par l\'organisme certificateur.', dueDate: addDays(now, 120) }
+      );
+    } else if (template === 'fast-track') {
+      // Focus on essentials for startups
+      milestones.push(
+        { phase: 'plan', name: 'Identification des actifs critiques', description: 'Inventaire des données et systèmes majeurs.', dueDate: addDays(now, 5) },
+        { phase: 'plan', name: 'Analyse des risques flash', description: 'Focus sur les Top 10 risques.', dueDate: addDays(now, 10) },
+        { phase: 'do', name: 'Sécurité Postes & Accès', description: 'MFA, Chiffrement, Antivirus.', dueDate: addDays(now, 20) },
+        { phase: 'do', name: 'Charte IT', description: 'Règles d\'or pour les employés.', dueDate: addDays(now, 25) },
+        { phase: 'check', name: 'Revue des incidents', description: 'Analyse des incidents passés.', dueDate: addDays(now, 45) },
+        { phase: 'act', name: 'Plan d\'amélioration', description: 'Roadmap sécurité S2.', dueDate: addDays(now, 60) }
+      );
+    } else if (template === 'maintenance') {
+      // Annual cycle for certified orgs
+      milestones.push(
+        { phase: 'plan', name: 'Mise à jour de l\'analyse de risques', description: 'Réévaluation annuelle.', dueDate: addDays(now, 30) },
+        { phase: 'do', name: 'Mise à jour des politiques', description: 'Adaptation aux nouvelles menaces.', dueDate: addDays(now, 60) },
+        { phase: 'check', name: 'Audit de surveillance', description: 'Préparation audit n+1.', dueDate: addDays(now, 200) },
+        { phase: 'act', name: 'Correction des non-conformités', description: 'Traitement des écarts d\'audit.', dueDate: addDays(now, 240) }
+      );
+    }
+
+    // Batch create milestones
+    // Note: In a real batch transaction we would use writeBatch, but for now we iterate
+    // to reuse the helper logic inside createMilestone or just create refs manually.
+    // To match current architecture, let's just loop sequentially or parallelize.
+
+    await Promise.all(milestones.map(m => this.createMilestone(organizationId, m)));
   }
 
   /**

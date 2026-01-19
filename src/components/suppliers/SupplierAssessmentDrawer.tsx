@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Drawer } from '../ui/Drawer';
 import { CustomSelect } from '../ui/CustomSelect';
 import { useSupplierDependencies } from '../../hooks/suppliers/useSupplierDependencies';
 import { Supplier } from '../../types';
-import { AlertCircle, FileText, Play } from '../ui/Icons';
+import { AlertCircle, FileText, Play } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import { SupplierService } from '../../services/SupplierService';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -17,7 +17,7 @@ interface Props {
     onAssessmentCreated: (assessmentId: string) => void;
 }
 
-export const SupplierAssessmentModal: React.FC<Props> = ({ isOpen, onClose, supplier, onAssessmentCreated }) => {
+export const SupplierAssessmentDrawer: React.FC<Props> = ({ isOpen, onClose, supplier, onAssessmentCreated }) => {
     const { user } = useStore();
     const { templates, addTemplate, loading } = useSupplierDependencies({ fetchTemplates: true });
 
@@ -95,24 +95,29 @@ export const SupplierAssessmentModal: React.FC<Props> = ({ isOpen, onClose, supp
             onAssessmentCreated(assessmentId);
             onClose();
         } catch (error) {
-            ErrorLogger.error(error, 'SupplierAssessmentModal.handleCreate');
-            toast.error("Erreur lors de la création de l'évaluation");
+            ErrorLogger.handleErrorWithToast(error, 'SupplierAssessmentDrawer.handleCreate');
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <Dialog open={isOpen} onClose={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-brand-600" />
-                        Nouvelle Évaluation Fournisseur
-                    </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-6 py-4">
+        <Drawer
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 shadow-sm border border-slate-200 dark:border-white/5">
+                        <FileText className="w-5 h-5" />
+                    </div>
+                    <span>Nouvelle Évaluation Fournisseur</span>
+                </div>
+            }
+            subtitle={`Évaluer ${supplier.name}`}
+            width="max-w-xl"
+        >
+            <div className="flex flex-col h-full pt-6 px-1">
+                <div className="space-y-6 flex-1">
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3">
                         <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                         <div className="text-sm text-blue-800 dark:text-blue-300">
@@ -122,14 +127,15 @@ export const SupplierAssessmentModal: React.FC<Props> = ({ isOpen, onClose, supp
                     </div>
 
                     <div className="space-y-3">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Modèle de questionnaire
-                        </label>
                         {loading ? (
-                            <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                            <div className="h-14 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
                         ) : (
                             <CustomSelect
-                                options={templates.map(t => ({ value: t.id, label: t.title }))}
+                                label="Modèle de questionnaire"
+                                options={[
+                                    { value: "", label: "Sélectionner un modèle..." },
+                                    ...templates.map(t => ({ value: t.id, label: t.title }))
+                                ]}
                                 value={selectedTemplateId}
                                 onChange={(val) => setSelectedTemplateId(val as string)}
                                 placeholder="Sélectionner un modèle..."
@@ -141,18 +147,21 @@ export const SupplierAssessmentModal: React.FC<Props> = ({ isOpen, onClose, supp
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3">
+                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
                     <Button variant="ghost" onClick={onClose}>Annuler</Button>
                     <Button
                         onClick={handleCreate}
                         disabled={!selectedTemplateId || isSubmitting}
-                        className="gap-2"
+                        isLoading={isSubmitting}
+                        className="gap-2 bg-brand-600 hover:bg-brand-700 text-white"
                     >
-                        <Play className="w-4 h-4" />
+                        {!isSubmitting && <Play className="w-4 h-4" />}
                         Lancer l'évaluation
                     </Button>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </div>
+        </Drawer>
     );
 };
+
+export default SupplierAssessmentDrawer;

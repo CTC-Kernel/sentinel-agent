@@ -14,7 +14,7 @@ interface UseSMSIProgramReturn {
   milestones: Milestone[];
   loading: boolean;
   error: string | null;
-  createProgram: (data: { name: string; description?: string; targetCertificationDate?: string }) => Promise<SMSIProgram | null>;
+  createProgram: (data: { name: string; description?: string; targetCertificationDate?: string; template?: 'standard' | 'fast-track' | 'maintenance' }) => Promise<SMSIProgram | null>;
   createMilestone: (data: Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt' | 'status'>) => Promise<Milestone | null>;
   updateMilestone: (milestoneId: string, data: Partial<Omit<Milestone, 'id' | 'programId' | 'organizationId' | 'createdAt'>>) => Promise<Milestone | null>;
   updateMilestoneStatus: (milestoneId: string, status: Milestone['status']) => Promise<void>;
@@ -63,13 +63,16 @@ export function useSMSIProgram(): UseSMSIProgramReturn {
   }, [fetchData]);
 
   const createProgram = useCallback(async (
-    data: { name: string; description?: string; targetCertificationDate?: string }
+    data: { name: string; description?: string; targetCertificationDate?: string; template?: 'standard' | 'fast-track' | 'maintenance' }
   ): Promise<SMSIProgram | null> => {
     if (!organizationId || !user?.uid) return null;
 
     try {
       const newProgram = await EbiosService.createSMSIProgram(organizationId, data, user.uid);
       setProgram(newProgram);
+      // Refresh milestones since they are auto-generated
+      const newMilestones = await EbiosService.getMilestones(organizationId);
+      setMilestones(newMilestones);
       return newProgram;
     } catch (err) {
       ErrorLogger.error(err, 'useSMSIProgram.createProgram');

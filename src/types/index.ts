@@ -15,3 +15,4 @@ export * from './sso';
 export * from './voxel';
 export * from './tlpt';
 export * from './score.types';
+export * from './privacy';

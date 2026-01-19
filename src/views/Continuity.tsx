@@ -15,7 +15,7 @@ import { BusinessProcess, TlptCampaign } from '../types';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useCallback } from 'react';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
-import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
+import { ProcessFormDrawer } from '../components/continuity/ProcessFormDrawer';
 import { ProcessInspector } from '../components/continuity/ProcessInspector';
 import { DrillInspector } from '../components/continuity/inspector/DrillInspector';
 import { generateContinuityReport } from '../utils/pdfGenerator';
@@ -188,8 +188,8 @@ export const Continuity: React.FC = () => {
     const handleDeleteDrill = useCallback((id: string) => {
         setConfirmData({
             isOpen: true,
-            title: "Supprimer l'exercice",
-            message: "Êtes-vous sûr de vouloir supprimer cet exercice de continuité ?",
+            title: t('continuity.deleteDrillTitle'),
+            message: t('continuity.deleteDrillMessage'),
             onConfirm: async () => {
                 setConfirmData(prev => ({ ...prev, loading: true }));
                 try {
@@ -202,7 +202,7 @@ export const Continuity: React.FC = () => {
                 }
             }
         });
-    }, [deleteDrill]);
+    }, [deleteDrill, t]);
 
     const handleGenerateReport = useCallback(async () => {
         try {
@@ -232,7 +232,7 @@ export const Continuity: React.FC = () => {
         { id: 'strategies', label: t('continuity.tabs.strategies'), icon: ShieldCheck },
         { id: 'pra', label: t('continuity.tabs.pra'), icon: FileText },
         { id: 'drills', label: t('continuity.tabs.drills'), icon: Zap },
-        { id: 'tlpt', label: "Tests de Résilience (TLPT)", icon: ShieldCheck },
+        { id: 'tlpt', label: t('continuity.tabs.tlpt'), icon: ShieldCheck },
         { id: 'crisis', label: t('continuity.tabs.crisis'), icon: FileText },
     ], [t]);
 
@@ -249,7 +249,7 @@ export const Continuity: React.FC = () => {
             <SEO
                 title={t('continuity.title')}
                 description={t('continuity.subtitle')}
-                keywords="BIA, PCA, PRA, Crise, Audit"
+                keywords={t('continuity.keywords')}
             />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
@@ -314,12 +314,12 @@ export const Continuity: React.FC = () => {
             />
 
             {/* Modals */}
-            <ProcessFormModal
+            <ProcessFormDrawer
                 isOpen={isProcessModalOpen}
                 onClose={handleCloseProcessModal}
                 onSubmit={selectedProcess ? handleUpdateProcess : handleCreateProcess}
                 isLoading={loadingAction}
-                title={selectedProcess ? "Modifier Processus" : "Nouveau Processus"}
+                title={selectedProcess ? t('continuity.editProcess') : t('continuity.newProcess')}
                 initialData={selectedProcess || undefined}
                 isEditing={!!selectedProcess}
                 assets={assets}

@@ -3,8 +3,8 @@
  * Extracted from RiskForm.tsx for better maintainability
  */
 
-import React, { useCallback } from 'react';
-import { Layers, AlertTriangle, Shield, Sparkles } from '../../ui/Icons';
+import React, { useCallback, useState } from 'react';
+import { Layers, AlertTriangle, Shield, Sparkles, Search } from '../../ui/Icons';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { RiskTreatmentPlan } from '../RiskTreatmentPlan';
 import { Risk } from '../../../types';
@@ -32,6 +32,8 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
             setValue('mitigationControlIds', [...currentIds, controlId], { shouldDirty: true });
         }
     }, [getValues, setValue]);
+
+    const [searchTerm, setSearchTerm] = useState('');
 
     const showJustification = strategy === 'Accepter' && (probability * impact) >= 12;
 
@@ -96,9 +98,26 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                     <Shield className="h-4 w-4 mr-2 text-brand-500" />
                     Mesures de Sécurité Existantes (Contrôles)
                 </label>
+
+                {/* Search Bar */}
+                <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="Rechercher un contrôle..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                    />
+                </div>
+
                 <div className="border border-slate-200 dark:border-slate-700 rounded-xl max-h-[250px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50">
                     {controls.length > 0 ? (
                         controls
+                            .filter(c =>
+                                c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                c.code.toLowerCase().includes(searchTerm.toLowerCase())
+                            )
                             .sort((a, b) => {
                                 const aLinked = mitigationControlIds?.includes(a.id) ? 1 : 0;
                                 const bLinked = mitigationControlIds?.includes(b.id) ? 1 : 0;

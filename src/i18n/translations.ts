@@ -143,6 +143,8 @@ export const translations = {
             continuity: 'Continuité',
             team: 'Équipe',
             admin: 'Administration',
+            administration: 'Administration',
+            operations: 'Opérations',
             security: 'Sécurité',
             appearance: 'Apparence',
             subscription: 'Abonnement',
@@ -1566,12 +1568,204 @@ export const translations = {
                 assignPartner: 'Assigner un partenaire'
             }
         },
+        riskContext: {
+            title: 'Contexte de Risque',
+            subtitle: 'Configuration du contexte organisationnel pour l\'analyse des risques (ISO 27005)',
+            keywords: 'Contexte, Risque, ISO 27005, Organisation'
+        },
+        smsi: {
+            title: 'Programme SMSI',
+            subtitle: 'Gestion du Système de Management de la Sécurité de l\'Information (ISO 27003)',
+            emptyTitle: 'Aucun programme SMSI',
+            emptyDescription: 'Créez votre premier programme SMSI pour commencer à gérer votre système de management selon le cycle PDCA.',
+            createProgram: 'Créer un programme',
+            pdcaCycle: 'Cycle PDCA (ISO 27003)',
+            report: 'Rapport',
+            objective: 'Objectif',
+            status: {
+                active: 'Actif',
+                paused: 'En pause',
+                completed: 'Terminé'
+            },
+            tabs: {
+                overview: 'Vue d\'ensemble',
+                planning: 'Planning & Jalons'
+            }
+        },
+        calendar: {
+            title: 'Calendrier',
+            subtitle: 'Vue d\'ensemble des échéances, audits et maintenances.',
+            keywords: 'Calendrier, Planning, Échéances, Audits, Projets',
+            messages: {
+                allDay: 'Journée',
+                previous: 'Précédent',
+                next: 'Suivant',
+                today: 'Aujourd\'hui',
+                month: 'Mois',
+                week: 'Semaine',
+                day: 'Jour',
+                agenda: 'Agenda',
+                noEventsInRange: 'Aucun événement dans cette période.'
+            },
+            export: 'Exporter le calendrier',
+            addEvent: 'Ajouter',
+            newEvent: 'Nouvel Événement',
+            details: 'Détails',
+            description: 'Description',
+            location: 'Lieu',
+            filters: {
+                google: 'Google'
+            }
+        },
+        systemHealth: {
+            title: 'État du Système',
+            subtitle: 'Tableau de bord de supervision technique et disponibilité des services.',
+            serviceStatus: 'État des Services',
+            operationalSystems: 'Systèmes Opérationnels',
+            recentAlerts: 'Alertes Récentes (Dernières 24h)',
+            servicesStatus: 'État des Services',
+            operational: 'Systèmes Opérationnels',
+            metrics: {
+                activeUsers: 'Utilisateurs Actifs',
+                totalAccounts: 'Comptes total',
+                systemLoad: 'Charge Système',
+                cpuUsage: 'Usage vCPU',
+                memory: 'Mémoire',
+                ramAllocated: 'RAM Allouée',
+                latency: 'Latence',
+                globalPing: 'Ping Global'
+            },
+            alerts: {
+                networkLatency: 'Latence Réseau Élevée (Europe-West)',
+                networkLatencyDesc: 'Pic de latence à 145ms détecté à 14:00. Résolu automatiquement.',
+                backupComplete: 'Sauvegarde Automatique Complète',
+                backupCompleteDesc: 'Backup chiffré #GH-9082 validé et archivé.',
+                twoHoursAgo: 'Il y a 2h',
+                fourHoursAgo: 'Il y a 4h'
+            }
+        },
+        continuity: {
+            title: 'Plan de Continuité',
+            subtitle: 'Gestion de la continuité d\'activité et de la résilience',
+            keywords: 'BIA, PCA, PRA, Crise, Audit',
+            deleteProcessTitle: 'Supprimer le processus',
+            deleteProcessMessage: 'Êtes-vous sûr de vouloir supprimer ce processus métier ?',
+            deleteDrillTitle: 'Supprimer l\'exercice',
+            deleteDrillMessage: 'Êtes-vous sûr de vouloir supprimer cet exercice de continuité ?',
+            editProcess: 'Modifier Processus',
+            newProcess: 'Nouveau Processus',
+            tabs: {
+                overview: 'Vue d\'ensemble',
+                bia: 'BIA',
+                strategies: 'Stratégies',
+                pra: 'PRA',
+                drills: 'Exercices',
+                tlpt: 'Tests de Résilience (TLPT)',
+                crisis: 'Gestion de Crise'
+            }
+        },
+        privacy: {
+            title: 'Registre RGPD',
+            subtitle: 'Registre des Activités de Traitement (ROPA) - Art. 30.',
+            keywords: 'RGPD, ROPA, Privacy, Confidentialité',
+            breadcrumb: 'RGPD',
+            formInvalid: 'Formulaire invalide. Champs en erreur',
+            deleteTitle: 'Supprimer le traitement ?',
+            deleteMessage: 'Êtes-vous sûr de vouloir supprimer {{name}} ?',
+            newActivity: 'Nouveau Traitement',
+            newActivitySubtitle: 'Ajoutez une nouvelle activité de traitement au registre.',
+            registryLabel: 'Registre des Traitements',
+            activitiesIdentified: 'Traitements identifiés',
+            searchPlaceholder: 'Rechercher un traitement (ex: Paie, CRM)...',
+            exportRegistry: 'Exporter le Registre',
+            emptyTitle: 'Aucun traitement trouvé',
+            emptySearch: 'Aucun traitement ne correspond à votre recherche.',
+            emptyDescription: 'Commencez par ajouter vos activités de traitement au registre.',
+            stats: {
+                sensitiveData: 'Données Sensibles',
+                priority: 'Prioritaire',
+                dpiaRequired: 'DPIA Requis',
+                toComplete: 'à réaliser',
+                inProgress: 'En Projet',
+                activities: 'Traitements',
+                activeCompliance: 'Conformité Actifs'
+            }
+        },
+        vulnerabilities: {
+            title: 'Vulnérabilités',
+            subtitle: 'Gestion et suivi des vulnérabilités de sécurité',
+            declare: 'Déclarer',
+            importScan: 'Importer un scan',
+            newSubtitle: 'Nouvelle vulnérabilité',
+            details: 'Détails de la vulnérabilité',
+            searchPlaceholder: 'Rechercher une vulnérabilité...'
+        },
         reports: {
             title: 'Rapports',
             subtitle: 'Génération de rapports de conformité et d\'audit',
+            seoDescription: 'Génération de rapports de conformité et d\'audit.',
+            keywords: 'Rapports, ISO 27001, RGPD, Conformité, Audit',
             templates: 'Modèles',
             history: 'Historique',
             scheduled: 'Planifiés',
+            scheduledSuccess: 'Rapport planifié avec succès',
+            pausedSuccess: 'Rapport mis en pause',
+            resumedSuccess: 'Rapport réactivé',
+            deletedSuccess: 'Rapport planifié supprimé',
+            updateError: 'Erreur lors de la mise à jour',
+            deleteError: 'Erreur lors de la suppression',
+            download: 'Télécharger',
+            noReports: 'Aucun rapport généré',
+            noReportsDesc: 'Générez votre premier rapport depuis les modèles.',
+            noScheduled: 'Aucun rapport planifié',
+            noScheduledDesc: 'Planifiez des rapports automatiques.',
+            addScheduled: 'Planifier un rapport',
+            deleteConfirmTitle: 'Supprimer ce rapport planifié ?',
+            deleteConfirmMessage: 'Cette action est irréversible.',
+            published: 'Publié',
+            scheduleThis: 'Planifier ce rapport',
+            badges: {
+                recommended: 'Recommandé',
+                complete: 'Complet'
+            },
+            categories: {
+                compliance: 'Packs de Conformité',
+                executive: 'Rapports Exécutifs'
+            },
+            toast: {
+                scheduleSuccess: 'Rapport planifié avec succès',
+                paused: 'Rapport mis en pause',
+                reactivated: 'Rapport réactivé',
+                updateError: 'Erreur lors de la mise à jour',
+                deleteSuccess: 'Rapport planifié supprimé',
+                deleteError: 'Erreur lors de la suppression'
+            },
+            generated: {
+                empty: 'Aucun rapport généré pour le moment.',
+                createNew: 'Créer un nouveau rapport'
+            },
+            scheduledSection: {
+                title: 'Rapports planifiés',
+                subtitle: 'Recevez vos rapports automatiquement par email',
+                scheduleReport: 'Planifier un rapport',
+                recipients: 'destinataire(s)',
+                nextRun: 'Prochaine exécution',
+                emptyTitle: 'Aucun rapport planifié',
+                emptyDescription: 'Automatisez la génération de vos rapports pour recevoir des mises à jour régulières directement dans votre boîte mail.'
+            },
+            status: {
+                active: 'Actif',
+                paused: 'En pause'
+            },
+            templateLabels: {
+                iso27001: 'Pack ISO 27001',
+                gdpr: 'Pack RGPD',
+                custom: 'Rapport Exécutif'
+            },
+            deleteScheduled: {
+                title: 'Supprimer le rapport planifié',
+                message: 'Êtes-vous sûr de vouloir supprimer ce rapport planifié ? Cette action est irréversible.'
+            },
             templateCards: {
                 iso27001: {
                     title: 'Pack ISO 27001',

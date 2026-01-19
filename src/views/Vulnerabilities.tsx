@@ -271,7 +271,7 @@ export const Vulnerabilities: React.FC = () => {
                                                                 } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                         >
                                                             <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                            Import Scan
+                                                            {t('vulnerabilities.importScan')}
                                                         </Button>
                                                     )}
                                                 </Menu.Item>
@@ -321,7 +321,7 @@ export const Vulnerabilities: React.FC = () => {
                 isOpen={creationMode}
                 onClose={handleCloseCreateDrawer}
                 title={t('vulnerabilities.declare')}
-                subtitle="Nouvealle vulnérabilité"
+                subtitle={t('vulnerabilities.newSubtitle')}
                 width="max-w-6xl"
             // Headless UI handles FocusTrap and keyboard navigation
             >
@@ -342,7 +342,7 @@ export const Vulnerabilities: React.FC = () => {
                 isOpen={!!selectedVulnerability}
                 onClose={handleCloseEditDrawer}
                 title={selectedVulnerability?.title || ''}
-                subtitle="Détails de la vulnérabilité"
+                subtitle={t('vulnerabilities.details')}
                 width="max-w-6xl"
             >
                 <div className="p-6">

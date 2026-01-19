@@ -8,6 +8,20 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { CalendarView } from '../CalendarView';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'calendar.title': 'Calendrier',
+                'calendar.subtitle': 'Vue d\'ensemble des échéances, audits et maintenances.',
+                'calendar.keywords': 'Calendrier, Planning, Échéances, Audits, Projets'
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
     motion: {
