@@ -7,7 +7,7 @@
 
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, Globe, Save, Trash2, Users, Building, Cloud, Truck } from '../../ui/Icons';
@@ -92,8 +92,8 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-    watch,
     setValue,
+    control,
   } = useForm<EcosystemPartyFormData>({
     resolver: zodResolver(ecosystemPartySchema),
     defaultValues: {
@@ -108,7 +108,11 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     },
   });
 
-  const watchedType = watch('type');
+  const watchedType = useWatch({ control, name: 'type' });
+  const watchedTrustLevel = useWatch({ control, name: 'trustLevel' });
+  const watchedExposure = useWatch({ control, name: 'exposure' });
+  const watchedCyberDependency = useWatch({ control, name: 'cyberDependency' });
+  const watchedPenetration = useWatch({ control, name: 'penetration' });
 
   useEffect(() => {
     if (party) {
@@ -157,9 +161,9 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     label: string,
     description: string,
     lowLabel: string,
-    highLabel: string
+    highLabel: string,
+    value: number
   ) => {
-    const value = watch(name);
     return (
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -311,7 +315,8 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               t('ebios.workshop3.trustLevel', 'Niveau de confiance'),
               t('ebios.workshop3.trustLevelHelp', 'Fiabilité et réputation de cette partie'),
               t('ebios.workshop3.lowTrust', 'Faible'),
-              t('ebios.workshop3.highTrust', 'Élevée')
+              t('ebios.workshop3.highTrust', 'Élevée'),
+              watchedTrustLevel
             )}
 
             {renderSlider(
@@ -319,7 +324,8 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               t('ebios.workshop3.exposure', 'Exposition'),
               t('ebios.workshop3.exposureHelp', 'Niveau d\'accès à vos systèmes et données'),
               t('ebios.workshop3.lowExposure', 'Limitée'),
-              t('ebios.workshop3.highExposure', 'Forte')
+              t('ebios.workshop3.highExposure', 'Forte'),
+              watchedExposure
             )}
 
             {renderSlider(
@@ -327,7 +333,8 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               t('ebios.workshop3.cyberDependency', 'Cyber-dépendance'),
               t('ebios.workshop3.cyberDependencyHelp', 'Dépendance de vos opérations à cette partie'),
               t('ebios.workshop3.lowDependency', 'Faible'),
-              t('ebios.workshop3.highDependency', 'Critique')
+              t('ebios.workshop3.highDependency', 'Critique'),
+              watchedCyberDependency
             )}
 
             {renderSlider(
@@ -335,7 +342,8 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               t('ebios.workshop3.penetration', 'Maturité cyber'),
               t('ebios.workshop3.penetrationHelp', 'Niveau de maturité cyber de cette partie'),
               t('ebios.workshop3.lowMaturity', 'Faible'),
-              t('ebios.workshop3.highMaturity', 'Élevée')
+              t('ebios.workshop3.highMaturity', 'Élevée'),
+              watchedPenetration
             )}
           </div>
 

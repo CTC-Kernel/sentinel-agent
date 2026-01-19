@@ -7,7 +7,7 @@
 
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, Cpu, AlertCircle, Info } from '../../ui/Icons';
@@ -49,7 +49,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
     handleSubmit,
     reset,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<OperationalScenarioFormData>({
     resolver: zodResolver(operationalScenarioSchema),
@@ -60,7 +60,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
     },
   });
 
-  const watchedStrategicId = watch('strategicScenarioId');
+  const watchedStrategicId = useWatch({ control, name: 'strategicScenarioId' });
   const selectedStrategic = strategicScenarios.find(s => s.id === watchedStrategicId);
 
   // Generate scenario code
@@ -86,7 +86,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
     }
   }, [scenario, reset]);
 
-  const currentName = watch('name');
+  const currentName = useWatch({ control, name: 'name' });
 
   // Auto-fill name when strategic scenario is selected (only for new scenarios)
   useEffect(() => {

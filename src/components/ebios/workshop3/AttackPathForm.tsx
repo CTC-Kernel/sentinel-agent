@@ -7,7 +7,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, TrendingUp, Save, Trash2, ArrowRight } from '../../ui/Icons';
@@ -64,8 +64,8 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-    watch,
     setValue,
+    control,
   } = useForm<AttackPathFormData>({
     resolver: zodResolver(attackPathSchema),
     defaultValues: {
@@ -79,10 +79,11 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
     },
   });
 
-  const watchedSourceId = watch('sourcePartyId');
-  const watchedIntermediates = watch('intermediatePartyIds');
-  const watchedLikelihood = watch('likelihood');
-  const watchedComplexity = watch('complexity');
+  const watchedSourceId = useWatch({ control, name: 'sourcePartyId' });
+  const watchedIntermediates = useWatch({ control, name: 'intermediatePartyIds' });
+  const watchedLikelihood = useWatch({ control, name: 'likelihood' });
+  const watchedComplexity = useWatch({ control, name: 'complexity' });
+  const watchedTargetAssetId = useWatch({ control, name: 'targetAssetId' });
 
   // Get available parties for intermediates (exclude source)
   const availableIntermediates = useMemo(() => {
@@ -246,7 +247,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           </div>
 
           {/* Path Preview */}
-          {watchedSourceId && watch('targetAssetId') && (
+          {watchedSourceId && watchedTargetAssetId && (
             <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
               <p className="text-sm text-gray-500 mb-2">{t('ebios.workshop3.pathPreview', 'Aperçu du chemin')}:</p>
               <div className="flex items-center flex-wrap gap-2">
@@ -263,7 +264,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                 ))}
                 <ArrowRight className="w-4 h-4 text-gray-400" />
                 <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-medium">
-                  {getAssetName(watch('targetAssetId'))}
+                  {getAssetName(watchedTargetAssetId)}
                 </span>
               </div>
             </div>

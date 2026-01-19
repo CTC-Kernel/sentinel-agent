@@ -8,16 +8,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PrivacyData } from '../PrivacyData';
 import { ProcessingActivity } from '../../../../types';
+import { ProcessingActivityFormData } from '../../../../schemas/privacySchema';
+import { UseFormReturn } from 'react-hook-form';
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
         Shield: Icon,
         FileSpreadsheet: Icon,
-        AlertTriangle: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'alert-triangle-icon', ...props }),
-        Eye: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'eye-icon', ...props }),
+        AlertTriangle: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'alert-triangle-icon', ...props }),
+        Eye: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'eye-icon', ...props }),
         History: Icon,
         Settings: Icon,
         Grid3X3: Icon,
@@ -119,8 +121,7 @@ describe('PrivacyData', () => {
     const defaultProps = {
         activity: mockActivity,
         isEditing: false,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form: mockForm as any,
+        form: mockForm as unknown as UseFormReturn<ProcessingActivityFormData>,
         onStartDPIA: mockOnStartDPIA,
         onViewDPIA: mockOnViewDPIA
     };

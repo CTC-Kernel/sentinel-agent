@@ -14,7 +14,7 @@ vi.mock('../../firebase', () => ({
   db: {},
 }));
 
-import { onSnapshot } from 'firebase/firestore';
+import { onSnapshot, FirestoreError } from 'firebase/firestore';
 
 describe('useOngoingAudits', () => {
   beforeEach(() => {
@@ -75,9 +75,12 @@ describe('useOngoingAudits', () => {
       if (args[0] === mockError || args[0]?.message === 'Test error') return;
       originalError(...args);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(onSnapshot).mockImplementation((_query: any, _next: any, onError: any) => {
-      onError(mockError);
+
+    vi.mocked(onSnapshot).mockImplementation((...args: any[]) => {
+      // onSnapshot(query, next, error) -> error is index 2.
+      if (args.length >= 3 && typeof args[2] === 'function') {
+        args[2](mockError as unknown as FirestoreError);
+      }
       return () => { };
     });
 

@@ -8,7 +8,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, Map, Save, Trash2, AlertTriangle, Lightbulb } from '../../ui/Icons';
@@ -71,8 +71,8 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-    watch,
     setValue,
+    control,
   } = useForm<StrategicScenarioFormData>({
     resolver: zodResolver(strategicScenarioSchema),
     defaultValues: {
@@ -86,9 +86,9 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
     },
   });
 
-  const watchedAttackPathIds = watch('attackPathIds');
-  const watchedFearedEventIds = watch('fearedEventIds');
-  const watchedGravity = watch('gravity');
+  const watchedAttackPathIds = useWatch({ control, name: 'attackPathIds' });
+  const watchedFearedEventIds = useWatch({ control, name: 'fearedEventIds' });
+  const watchedGravity = useWatch({ control, name: 'gravity' });
 
   // Get suggested gravity from linked feared event
   const suggestedGravity = useMemo(() => {

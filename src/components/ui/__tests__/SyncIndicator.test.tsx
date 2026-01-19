@@ -38,10 +38,10 @@ vi.mock('../Tooltip', () => ({
 // Mock lucide-react
 vi.mock('lucide-react', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
-        Cloud: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'cloud-icon', ...props }),
-        CloudOff: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'cloud-off-icon', ...props }),
+        Cloud: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'cloud-icon', ...props }),
+        CloudOff: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'cloud-off-icon', ...props }),
         Settings: Icon,
         Grid3X3: Icon,
         Unlock: Icon,

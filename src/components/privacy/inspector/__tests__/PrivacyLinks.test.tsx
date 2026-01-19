@@ -7,6 +7,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PrivacyLinks } from '../PrivacyLinks';
 import { ProcessingActivity, Asset, Risk, Criticality } from '../../../../types';
+import { ProcessingActivityFormData } from '../../../../schemas/privacySchema';
+import { UseFormReturn } from 'react-hook-form';
 
 // Mock lucide-react icons with importOriginal to include all exports
 vi.mock('lucide-react', async (importOriginal) => {
@@ -124,8 +126,7 @@ describe('PrivacyLinks', () => {
     const defaultProps = {
         activity: mockActivity,
         isEditing: false,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form: mockForm as any,
+        form: mockForm as unknown as UseFormReturn<ProcessingActivityFormData>,
         assetsList: mockAssetsList,
         risksList: mockRisksList
     };

@@ -9,10 +9,11 @@ import { RetentionService } from '../retentionService';
 import { Timestamp } from 'firebase/firestore';
 import { subDays } from 'date-fns';
 
-// Mock Firebase
 vi.mock('../../firebase', () => ({
     db: {},
 }));
+
+type MockFn = (...args: unknown[]) => unknown;
 
 // Mock Firestore
 const mockSetDoc = vi.fn().mockResolvedValue(undefined);
@@ -27,7 +28,6 @@ const mockQuery = vi.fn(() => ({}));
 const mockWhere = vi.fn(() => ({}));
 const mockOrderBy = vi.fn(() => ({}));
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 vi.mock('firebase/firestore', async () => {
     const actual = await vi.importActual('firebase/firestore');
 
@@ -45,21 +45,20 @@ vi.mock('firebase/firestore', async () => {
 
     return {
         ...actual,
-        doc: (...args: any[]) => (mockDoc as any)(...args),
-        getDoc: (...args: any[]) => (mockGetDoc as any)(...args),
-        setDoc: (...args: any[]) => (mockSetDoc as any)(...args),
-        addDoc: (...args: any[]) => (mockAddDoc as any)(...args),
-        updateDoc: (...args: any[]) => (mockUpdateDoc as any)(...args),
-        deleteDoc: (...args: any[]) => (mockDeleteDoc as any)(...args),
-        getDocs: (...args: any[]) => (mockGetDocs as any)(...args),
-        collection: (...args: any[]) => (mockCollection as any)(...args),
-        query: (...args: any[]) => (mockQuery as any)(...args),
-        where: (...args: any[]) => (mockWhere as any)(...args),
-        orderBy: (...args: any[]) => (mockOrderBy as any)(...args),
+        doc: (...args: unknown[]) => (mockDoc as unknown as MockFn)(...args),
+        getDoc: (...args: unknown[]) => (mockGetDoc as unknown as MockFn)(...args),
+        setDoc: (...args: unknown[]) => (mockSetDoc as unknown as MockFn)(...args),
+        addDoc: (...args: unknown[]) => (mockAddDoc as unknown as MockFn)(...args),
+        updateDoc: (...args: unknown[]) => (mockUpdateDoc as unknown as MockFn)(...args),
+        deleteDoc: (...args: unknown[]) => (mockDeleteDoc as unknown as MockFn)(...args),
+        getDocs: (...args: unknown[]) => (mockGetDocs as unknown as MockFn)(...args),
+        collection: (...args: unknown[]) => (mockCollection as unknown as MockFn)(...args),
+        query: (...args: unknown[]) => (mockQuery as unknown as MockFn)(...args),
+        where: (...args: unknown[]) => (mockWhere as unknown as MockFn)(...args),
+        orderBy: (...args: unknown[]) => (mockOrderBy as unknown as MockFn)(...args),
         Timestamp: MockTimestamp,
     };
 });
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Mock ErrorLogger
 vi.mock('../errorLogger', () => ({
@@ -115,8 +114,7 @@ describe('RetentionService', () => {
                     mockPolicies.forEach((p) => cb({ id: p.id, data: () => p }));
                 },
                 size: 2,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                map: (cb: any) => mockPolicies.map((p) => cb({ id: p.id, data: () => p })),
+                map: (cb: (item: { id: string; data: () => object }) => unknown) => mockPolicies.map((p) => cb({ id: p.id, data: () => p })),
             });
 
             const result = await RetentionService.getPolicies(organizationId);
@@ -175,14 +173,11 @@ describe('RetentionService', () => {
             // Mock getDocs sequence: 1. Documents, 2. Policies
             mockGetDocs
                 .mockResolvedValueOnce({ // First call: getDocs(documents)
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    forEach: (cb: any) => docs.forEach(d => cb({ id: d.id, data: () => d }))
+                    forEach: (cb: (item: { id: string; data: () => object }) => unknown) => docs.forEach(d => cb({ id: d.id, data: () => d }))
                 })
                 .mockResolvedValueOnce({ // Second call: getPolicies -> getDocs
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    forEach: (cb: any) => policies.forEach(p => cb({ id: p.id, data: () => p })),
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    map: (cb: any) => policies.map(p => cb({ id: p.id, data: () => p })),
+                    forEach: (cb: (item: { id: string; data: () => object }) => unknown) => policies.forEach(p => cb({ id: p.id, data: () => p })),
+                    map: (cb: (item: { id: string; data: () => object }) => unknown) => policies.map(p => cb({ id: p.id, data: () => p })),
                     size: policies.length
                 });
 

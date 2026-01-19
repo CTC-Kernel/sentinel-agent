@@ -12,7 +12,8 @@ vi.mock('framer-motion', () => ({
     circle: (props: React.SVGProps<SVGCircleElement>) => <circle {...props} />,
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock microInteractions utilities
@@ -21,7 +22,7 @@ vi.mock('../../../utils/microInteractions', () => ({
   animateCounter: vi.fn((_from: number, to: number, _duration: number, onUpdate: (v: number) => void, onComplete?: () => void) => {
     onUpdate(to);
     if (onComplete) onComplete();
-    return () => {};
+    return () => { };
   }),
   triggerConfetti: vi.fn(),
   triggerHaptic: vi.fn(),
@@ -29,7 +30,6 @@ vi.mock('../../../utils/microInteractions', () => ({
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Icon = ({ className, ...props }: any) => <span className={`icon ${className}`} {...props} />;
   return {
     TrendingUp: Icon,

@@ -232,7 +232,7 @@ describe('toast', () => {
             toast.promise(promise, {
                 loading: 'Loading...',
                 success: 'Done!',
-                error: (err: any) => `Error: ${err.message}` // eslint-disable-line @typescript-eslint/no-explicit-any
+                error: (err: unknown) => `Error: ${(err as Error).message}`
             });
 
             // Wait for promise rejection and handler to complete

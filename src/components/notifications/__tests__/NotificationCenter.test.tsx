@@ -13,11 +13,11 @@ import { Notification } from '../../../types';
 // Mock lucide-react
 vi.mock('lucide-react', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
-        Bell: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'bell-icon', ...props }),
-        CheckCheck: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'check-all-icon', ...props }),
-        Filter: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'filter-icon', ...props }),
+        Bell: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'bell-icon', ...props }),
+        CheckCheck: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'check-all-icon', ...props }),
+        Filter: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'filter-icon', ...props }),
         Settings: Icon,
         Grid3X3: Icon,
         Unlock: Icon,

@@ -12,10 +12,10 @@ import { Breadcrumbs } from '../Breadcrumbs';
 // Mock lucide-react - must be before any imports that use it
 vi.mock('lucide-react', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
-        ChevronRight: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'chevron-right', ...props }),
-        Home: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'home-icon', ...props }),
+        ChevronRight: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'chevron-right', ...props }),
+        Home: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'home-icon', ...props }),
         Settings: Icon,
         Grid3X3: Icon,
         LockOpen: Icon,

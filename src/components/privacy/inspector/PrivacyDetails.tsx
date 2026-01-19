@@ -6,7 +6,7 @@ import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { User, Calendar, Tag } from '../../ui/Icons';
 
-interface PrivacyDetailsProps {
+export interface PrivacyDetailsProps {
     activity: ProcessingActivity;
     isEditing: boolean;
     form: UseFormReturn<ProcessingActivityFormData>;

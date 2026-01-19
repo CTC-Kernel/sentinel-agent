@@ -4,7 +4,7 @@ import { Asset, Risk, ProcessingActivity } from '../../../types';
 import { ProcessingActivityFormData } from '../../../schemas/privacySchema';
 import { Server, AlertTriangle, Plus, X } from '../../ui/Icons';
 
-interface PrivacyLinksProps {
+export interface PrivacyLinksProps {
     activity: ProcessingActivity;
     isEditing: boolean;
     form: UseFormReturn<ProcessingActivityFormData>;

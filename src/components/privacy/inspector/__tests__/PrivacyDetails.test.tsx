@@ -8,14 +8,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PrivacyDetails } from '../PrivacyDetails';
 import { ProcessingActivity, UserProfile } from '../../../../types';
+import { ProcessingActivityFormData } from '../../../../schemas/privacySchema';
+import { UseFormReturn } from 'react-hook-form';
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    const Icon = ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, ...props });
     return {
-        User: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'user-icon', ...props }),
-        Calendar: ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'calendar-icon', ...props }),
+        User: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'user-icon', ...props }),
+        Calendar: ({ className, ...props }: React.ComponentProps<'svg'>) => React.createElement('span', { className: `icon ${className}`, 'data-testid': 'calendar-icon', ...props }),
         Tag: Icon,
         Settings: Icon,
         Grid3X3: Icon,
@@ -131,8 +133,7 @@ describe('PrivacyDetails', () => {
     const defaultProps = {
         activity: mockActivity,
         isEditing: false,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form: mockForm as any,
+        form: mockForm as unknown as UseFormReturn<ProcessingActivityFormData>,
         usersList: mockUsersList
     };
 
@@ -271,7 +272,7 @@ describe('PrivacyDetails', () => {
             };
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            render(<PrivacyDetails {...defaultProps} isEditing={true} form={formWithErrors as any} />);
+            render(<PrivacyDetails {...defaultProps} isEditing={true} form={formWithErrors as unknown as UseFormReturn<ProcessingActivityFormData>} />);
 
             expect(screen.getByText('Le nom est requis')).toBeInTheDocument();
         });

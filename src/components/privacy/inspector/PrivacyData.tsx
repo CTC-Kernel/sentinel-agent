@@ -7,7 +7,7 @@ import { CustomSelect } from '../../ui/CustomSelect';
 // Imports
 import { Shield, FileSpreadsheet, AlertTriangle, Eye, History as HistoryIcon } from '../../ui/Icons';
 
-interface PrivacyDataProps {
+export interface PrivacyDataProps {
     activity: ProcessingActivity;
     isEditing: boolean;
     form: UseFormReturn<ProcessingActivityFormData>;
