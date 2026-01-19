@@ -25,7 +25,9 @@ import {
   Truck,
   ShieldAlert,
   Network,
+  Crosshair,
   X,
+  Info,
 } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
@@ -237,23 +239,25 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
     <div className="space-y-6">
       {/* Ecosystem Map Visualization (Story 17.5) */}
       {showEcosystemMap && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="relative w-full max-w-6xl h-[80vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="absolute top-4 right-4 z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-6xl h-[85vh] bg-white/90 dark:bg-slate-900/90 rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-scale-in">
+            <div className="absolute top-6 right-6 z-10">
               <button
                 onClick={() => setShowEcosystemMap(false)}
-                className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="p-3 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg hover:scale-110 transition-transform hover:bg-slate-50 dark:hover:bg-slate-700"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-slate-500" />
               </button>
             </div>
-            <div className="absolute top-4 left-4 z-10">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                <Network className="w-5 h-5 text-indigo-500" />
-                {t('ebios.ecosystem.legend')} - {t('ebios.workshop3.ecosystem')}
+            <div className="absolute top-6 left-6 z-10 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/30">
+                  <Network className="w-5 h-5" />
+                </div>
+                {t('ebios.ecosystem.legend')}
               </h3>
             </div>
-            <div className="pt-16 pb-4 px-4 h-full">
+            <div className="pt-24 pb-6 px-6 h-full">
               <EcosystemMap
                 parties={data.ecosystem}
                 attackPaths={data.attackPaths}
@@ -274,390 +278,454 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
       )}
 
       {/* Ecosystem Section */}
-      <GlassCard>
-        <div className="flex items-center justify-between">
+      <div className="animate-fade-in-up delay-0">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5 hover:border-indigo-500/20">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => toggleSection('ecosystem')}
+              className="flex-1 flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300">
+                  <Globe className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    {t('ebios.workshop3.ecosystem')}
+                  </h3>
+                  <p className="text-sm text-slate-500 font-medium">
+                    {data.ecosystem.length} {t('ebios.workshop3.partiesCount')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                {expandedSections.has('ecosystem') ? (
+                  <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                    <ChevronUp className="w-5 h-5" />
+                  </div>
+                ) : (
+                  <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+                    <ChevronDown className="w-5 h-5" />
+                  </div>
+                )}
+              </div>
+            </button>
+
+            {/* Visualization Button (Story 17.5) */}
+            {data.ecosystem.length > 0 && expandedSections.has('ecosystem') && (
+              <div className="ml-4 pl-4 border-l border-slate-200 dark:border-slate-700 hidden sm:block">
+                <button
+                  onClick={() => setShowEcosystemMap(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all transform hover:-translate-y-0.5 hover:shadow-md font-medium"
+                  title={t('ebios.ecosystem.legend')}
+                >
+                  <Network className="w-4 h-4" />
+                  <span>Visualiser</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {expandedSections.has('ecosystem') && (
+            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
+                {t('ebios.workshop3.ecosystemHelp')}
+              </p>
+
+              {/* Ecosystem Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {data.ecosystem.map((party) => {
+                  const Icon = PARTY_TYPE_ICONS[party.type];
+                  const trustColor = getTrustLevelColor(party.trustLevel);
+
+                  return (
+                    <div
+                      key={party.id}
+                      className={cn(
+                        "group relative p-5 rounded-2xl border transition-all duration-300",
+                        "bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm hover:shadow-lg hover:-translate-y-1",
+                        party.category === 'internal'
+                          ? "border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600"
+                          : "border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700"
+                      )}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "p-3 rounded-xl shadow-sm",
+                            party.category === 'internal'
+                              ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
+                          )}>
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-900 dark:text-white text-base">
+                              {party.name}
+                            </h4>
+                            <span className={cn(
+                              "inline-block px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider mt-1",
+                              party.category === 'internal'
+                                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                            )}>
+                              {t(`ebios.partyTypes.${party.type}`)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {!readOnly && (
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingParty(party);
+                                setShowPartyForm(true);
+                              }}
+                              className="p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-500 transition-colors shadow-sm"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteParty(party.id);
+                              }}
+                              className="p-2 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-400 hover:text-red-500 transition-colors shadow-sm"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Trust Level Indicator */}
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700/50">
+                        <span className="text-xs font-medium text-slate-500">{t('ebios.workshop3.trustLevel')}</span>
+                        <div className="flex gap-1.5">
+                          {[1, 2, 3, 4, 5].map((level) => (
+                            <div
+                              key={level}
+                              className={cn(
+                                "w-2 h-2 rounded-full ring-2 ring-white dark:ring-slate-800", // Add ring for separation
+                                level <= party.trustLevel
+                                  ? `bg-${trustColor}-500 shadow-[0_0_8px_rgba(var(--${trustColor}-500-rgb),0.5)]`
+                                  : "bg-slate-200 dark:bg-slate-700"
+                              )}
+                              title={`${level}/5`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {!readOnly && (
+                  <button
+                    onClick={handleAddParty}
+                    className="group relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all duration-300 min-h-[160px]"
+                  >
+                    <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300 mb-3 shadow-sm group-hover:shadow-indigo-500/30 group-hover:scale-110">
+                      <Plus className="w-6 h-6" />
+                    </div>
+                    <span className="font-bold text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      {t('ebios.workshop3.addParty')}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </GlassCard>
+      </div>
+
+      {/* Attack Paths Section */}
+      <div className="animate-fade-in-up delay-100">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:border-orange-500/20">
           <button
-            onClick={() => toggleSection('ecosystem')}
-            className="flex-1 flex items-center justify-between"
+            onClick={() => toggleSection('attackPaths')}
+            className="w-full flex items-center justify-between group"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
-                <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform duration-300">
+                <TrendingUp className="w-6 h-6" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  {t('ebios.workshop3.ecosystem')}
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                  {t('ebios.workshop3.attackPaths')}
                 </h3>
-                <p className="text-sm text-gray-500">
-                  {data.ecosystem.length} {t('ebios.workshop3.partiesCount')}
+                <p className="text-sm text-slate-500 font-medium">
+                  {data.attackPaths.length} {t('ebios.workshop3.pathsCount')}
                 </p>
               </div>
             </div>
-            {expandedSections.has('ecosystem') ? (
-              <ChevronUp className="w-5 h-5 text-gray-400" />
+            {expandedSections.has('attackPaths') ? (
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                <ChevronUp className="w-5 h-5" />
+              </div>
             ) : (
-              <ChevronDown className="w-5 h-5 text-gray-400" />
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+                <ChevronDown className="w-5 h-5" />
+              </div>
             )}
           </button>
-          {/* Visualization Button (Story 17.5) */}
-          {data.ecosystem.length > 0 && (
-            <button
-              onClick={() => setShowEcosystemMap(true)}
-              className="ml-4 flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
-              title={t('ebios.ecosystem.legend')}
-            >
-              <Network className="w-4 h-4" />
-              <span className="text-sm font-medium hidden sm:inline">Visualiser</span>
-            </button>
-          )}
-        </div>
 
-        {expandedSections.has('ecosystem') && (
-          <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            <p className="text-sm text-gray-500 mb-4">
-              {t('ebios.workshop3.ecosystemHelp')}
-            </p>
+          {expandedSections.has('attackPaths') && (
+            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
+                {t('ebios.workshop3.attackPathsHelp')}
+              </p>
 
-            {/* Ecosystem Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {data.ecosystem.map((party) => {
-                const Icon = PARTY_TYPE_ICONS[party.type];
-                const trustColor = getTrustLevelColor(party.trustLevel);
-
-                return (
-                  <div
-                    key={party.id}
-                    className={cn(
-                      "p-4 rounded-xl border transition-all",
-                      "bg-white/50 dark:bg-gray-800/50",
-                      party.category === 'internal'
-                        ? "border-blue-200 dark:border-blue-800"
-                        : "border-gray-200 dark:border-gray-700"
-                    )}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "p-2 rounded-lg",
-                          party.category === 'internal'
-                            ? "bg-blue-100 dark:bg-blue-900/30"
-                            : "bg-gray-100 dark:bg-gray-800"
-                        )}>
-                          <Icon className={cn(
-                            "w-4 h-4",
-                            party.category === 'internal'
-                              ? "text-blue-600 dark:text-blue-400"
-                              : "text-gray-600 dark:text-gray-400"
-                          )} />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm text-gray-900 dark:text-white">
-                            {party.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {t(`ebios.partyTypes.${party.type}`)}
-                          </p>
-                        </div>
-                      </div>
-                      {!readOnly && (
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => {
-                              setEditingParty(party);
-                              setShowPartyForm(true);
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <Pencil className="w-4 h-4 text-gray-400" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteParty(party.id)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-400" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Trust Level Indicator */}
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="text-xs text-gray-500">{t('ebios.workshop3.trustLevel')}:</span>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((level) => (
-                          <div
-                            key={level}
-                            className={cn(
-                              "w-3 h-3 rounded-full",
-                              level <= party.trustLevel
-                                ? `bg-${trustColor}-500`
-                                : "bg-gray-200 dark:bg-gray-700"
-                            )}
-                          />
-                        ))}
-                      </div>
-                    </div>
+              {data.ecosystem.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                    <Globe className="w-8 h-8 text-slate-400" />
                   </div>
-                );
-              })}
+                  <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                    {t('ebios.workshop3.ecosystemRequired', 'Ecosystème requis')}
+                  </h4>
+                  <p className="text-slate-500">{t('ebios.workshop3.addEcosystemFirst')}</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {data.attackPaths.map((path) => {
+                    const sourceParty = getPartyById(path.sourcePartyId);
+                    const targetAsset = getAssetById(path.targetAssetId);
+                    const likelihoodScale = LIKELIHOOD_SCALE.find(l => l.level === path.likelihood);
 
-              {!readOnly && (
-                <button
-                  onClick={handleAddParty}
-                  className="p-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-indigo-500 min-h-[120px]"
-                >
-                  <Plus className="w-5 h-5" />
-                  {t('ebios.workshop3.addParty')}
-                </button>
+                    return (
+                      <div
+                        key={path.id}
+                        className="group relative p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm hover:shadow-lg hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-300"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-slate-900 dark:text-white mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                              {path.name}
+                            </h4>
+
+                            <div className="flex flex-wrap items-center gap-3 text-sm">
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/50">
+                                <Globe className="w-3.5 h-3.5" />
+                                <span className="font-medium">{sourceParty?.name || '?'}</span>
+                              </div>
+
+                              <div className="flex items-center text-slate-400">
+                                <span className="w-8 h-px bg-current"></span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider px-1">Via</span>
+                                <span className="w-8 h-px bg-current"></span>
+                              </div>
+
+                              {path.intermediatePartyIds.length > 0 && (
+                                <>
+                                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                    <span className="font-medium">{path.intermediatePartyIds.length} {t('ebios.workshop3.intermediaries')}</span>
+                                  </div>
+                                  <div className="text-slate-400">→</div>
+                                </>
+                              )}
+
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-800/50">
+                                <ShieldAlert className="w-3.5 h-3.5" />
+                                <span className="font-medium">{targetAsset?.name || '?'}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800/50">
+                            <div className="flex flex-col items-end">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">{t('ebios.workshop3.likelihood')}</span>
+                              <span className={cn(
+                                "px-3 py-1 rounded-lg text-sm font-bold shadow-sm border",
+                                `bg-${likelihoodScale?.color || 'gray'}-50 dark:bg-${likelihoodScale?.color || 'gray'}-900/20`,
+                                `text-${likelihoodScale?.color || 'gray'}-700 dark:text-${likelihoodScale?.color || 'gray'}-400`,
+                                `border-${likelihoodScale?.color || 'gray'}-200 dark:border-${likelihoodScale?.color || 'gray'}-800`
+                              )}>
+                                V{path.likelihood}
+                              </span>
+                            </div>
+
+                            {!readOnly && (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingPath(path);
+                                    setShowPathForm(true);
+                                  }}
+                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeletePath(path.id)}
+                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {!readOnly && (
+                    <button
+                      onClick={handleAddPath}
+                      className="w-full p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-orange-600 font-medium group"
+                    >
+                      <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-200 dark:group-hover:bg-orange-800 transition-colors">
+                        <Plus className="w-4 h-4" />
+                      </div>
+                      {t('ebios.workshop3.addAttackPath')}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
-          </div>
-        )}
-      </GlassCard>
-
-      {/* Attack Paths Section */}
-      <GlassCard>
-        <button
-          onClick={() => toggleSection('attackPaths')}
-          className="w-full flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/30">
-              <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {t('ebios.workshop3.attackPaths')}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {data.attackPaths.length} {t('ebios.workshop3.pathsCount')}
-              </p>
-            </div>
-          </div>
-          {expandedSections.has('attackPaths') ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
           )}
-        </button>
-
-        {expandedSections.has('attackPaths') && (
-          <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            <p className="text-sm text-gray-500 mb-4">
-              {t('ebios.workshop3.attackPathsHelp')}
-            </p>
-
-            {data.ecosystem.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                {t('ebios.workshop3.addEcosystemFirst')}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {data.attackPaths.map((path) => {
-                  const sourceParty = getPartyById(path.sourcePartyId);
-                  const targetAsset = getAssetById(path.targetAssetId);
-                  const likelihoodScale = LIKELIHOOD_SCALE.find(l => l.level === path.likelihood);
-
-                  return (
-                    <div
-                      key={path.id}
-                      className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {path.name}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2 text-sm">
-                            <span className="px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
-                              {sourceParty?.name || '?'}
-                            </span>
-                            <span className="text-gray-400">→</span>
-                            {path.intermediatePartyIds.length > 0 && (
-                              <>
-                                <span className="text-gray-500">
-                                  {path.intermediatePartyIds.length} {t('ebios.workshop3.intermediaries')}
-                                </span>
-                                <span className="text-gray-400">→</span>
-                              </>
-                            )}
-                            <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
-                              {targetAsset?.name || '?'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">{t('ebios.workshop3.likelihood')}</p>
-                            <span className={cn(
-                              "inline-block px-2 py-1 rounded text-sm font-medium mt-1",
-                              `bg-${likelihoodScale?.color || 'gray'}-100 dark:bg-${likelihoodScale?.color || 'gray'}-900/30`,
-                              `text-${likelihoodScale?.color || 'gray'}-700 dark:text-${likelihoodScale?.color || 'gray'}-400`
-                            )}>
-                              {path.likelihood}
-                            </span>
-                          </div>
-
-                          {!readOnly && (
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => {
-                                  setEditingPath(path);
-                                  setShowPathForm(true);
-                                }}
-                                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                <Pencil className="w-4 h-4 text-gray-400" />
-                              </button>
-                              <button
-                                onClick={() => handleDeletePath(path.id)}
-                                className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                              >
-                                <Trash2 className="w-4 h-4 text-red-400" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {!readOnly && (
-                  <button
-                    onClick={handleAddPath}
-                    className="w-full p-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-orange-500"
-                  >
-                    <Plus className="w-5 h-5" />
-                    {t('ebios.workshop3.addAttackPath')}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </GlassCard>
+        </GlassCard>
+      </div>
 
       {/* Strategic Scenarios Section */}
-      <GlassCard>
-        <button
-          onClick={() => toggleSection('strategicScenarios')}
-          className="w-full flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30">
-              <Map className="w-5 h-5 text-red-600 dark:text-red-400" />
+      <div className="animate-fade-in-up delay-200">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-red-500/5 hover:border-red-500/20">
+          <button
+            onClick={() => toggleSection('strategicScenarios')}
+            className="w-full flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform duration-300">
+                <Map className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                  {t('ebios.workshop3.strategicScenarios')}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium">
+                  {data.strategicScenarios.length} {t('ebios.workshop3.scenariosCount')}
+                </p>
+              </div>
             </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {t('ebios.workshop3.strategicScenarios')}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {data.strategicScenarios.length} {t('ebios.workshop3.scenariosCount')}
-              </p>
-            </div>
-          </div>
-          {expandedSections.has('strategicScenarios') ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
-        </button>
-
-        {expandedSections.has('strategicScenarios') && (
-          <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            <p className="text-sm text-gray-500 mb-4">
-              {t('ebios.workshop3.strategicScenariosHelp')}
-            </p>
-
-            {retainedPairs.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                {t('ebios.workshop3.noRetainedPairs')}
+            {expandedSections.has('strategicScenarios') ? (
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-red-500 group-hover:text-white transition-all">
+                <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="space-y-3">
-                {data.strategicScenarios.map((scenario) => {
-                  const gravityScale = GRAVITY_SCALE.find(g => g.level === scenario.gravity);
-
-                  return (
-                    <div
-                      key={scenario.id}
-                      className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {scenario.name}
-                          </p>
-                          {scenario.description && (
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                              {scenario.description}
-                            </p>
-                          )}
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
-                              <TrendingUp className="w-3 h-3" />
-                              {scenario.attackPathIds.length} {t('ebios.workshop3.paths')}
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-                              <ShieldAlert className="w-3 h-3" />
-                              {scenario.fearedEventIds.length} {t('ebios.workshop3.fearedEvents')}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">{t('ebios.workshop3.gravity')}</p>
-                            <span className={cn(
-                              "inline-block px-3 py-1.5 rounded-lg text-sm font-bold mt-1",
-                              `bg-${gravityScale?.color || 'gray'}-100 dark:bg-${gravityScale?.color || 'gray'}-900/30`,
-                              `text-${gravityScale?.color || 'gray'}-700 dark:text-${gravityScale?.color || 'gray'}-400`
-                            )}>
-                              G{scenario.gravity}
-                            </span>
-                          </div>
-
-                          {!readOnly && (
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => {
-                                  setEditingScenario(scenario);
-                                  setShowScenarioForm(true);
-                                }}
-                                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                <Pencil className="w-4 h-4 text-gray-400" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteScenario(scenario.id)}
-                                className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                              >
-                                <Trash2 className="w-4 h-4 text-red-400" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {!readOnly && (
-                  <button
-                    onClick={handleAddScenario}
-                    className="w-full p-4 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-red-500"
-                  >
-                    <Plus className="w-5 h-5" />
-                    {t('ebios.workshop3.addScenario')}
-                  </button>
-                )}
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+                <ChevronDown className="w-5 h-5" />
               </div>
             )}
-          </div>
-        )}
-      </GlassCard>
+          </button>
+
+          {expandedSections.has('strategicScenarios') && (
+            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
+                {t('ebios.workshop3.strategicScenariosHelp')}
+              </p>
+
+              {retainedPairs.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                    <Crosshair className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                    {t('ebios.workshop3.noRetainedPairs', 'Aucun pair retenu')}
+                  </h4>
+                  <p className="text-slate-500">{t('ebios.workshop3.retainPairsFirst')}</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {data.strategicScenarios.map((scenario) => {
+                    const gravityScale = GRAVITY_SCALE.find(g => g.level === scenario.gravity);
+
+                    return (
+                      <div
+                        key={scenario.id}
+                        className="group relative p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm hover:shadow-lg hover:border-red-300 dark:hover:border-red-700 transition-all duration-300"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-slate-900 dark:text-white text-lg mb-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                              {scenario.name}
+                            </h4>
+                            {scenario.description && (
+                              <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-3">
+                                {scenario.description}
+                              </p>
+                            )}
+                            <div className="flex flex-wrap gap-2">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-100 dark:border-orange-800/50">
+                                <TrendingUp className="w-3.5 h-3.5" />
+                                {scenario.attackPathIds.length} {t('ebios.workshop3.paths')}
+                              </span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-800/50">
+                                <ShieldAlert className="w-3.5 h-3.5" />
+                                {scenario.fearedEventIds.length} {t('ebios.workshop3.fearedEvents')}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800/50">
+                            <div className="flex flex-col items-end">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">{t('ebios.workshop3.gravity')}</span>
+                              <span className={cn(
+                                "inline-block px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border",
+                                `bg-${gravityScale?.color || 'gray'}-50 dark:bg-${gravityScale?.color || 'gray'}-900/20`,
+                                `text-${gravityScale?.color || 'gray'}-700 dark:text-${gravityScale?.color || 'gray'}-400`,
+                                `border-${gravityScale?.color || 'gray'}-200 dark:border-${gravityScale?.color || 'gray'}-800`
+                              )}>
+                                G{scenario.gravity}
+                              </span>
+                            </div>
+
+                            {!readOnly && (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingScenario(scenario);
+                                    setShowScenarioForm(true);
+                                  }}
+                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteScenario(scenario.id)}
+                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {!readOnly && (
+                    <button
+                      onClick={handleAddScenario}
+                      className="w-full p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-red-500/50 hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-red-600 font-medium group"
+                    >
+                      <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-red-200 dark:group-hover:bg-red-800 transition-colors">
+                        <Plus className="w-4 h-4" />
+                      </div>
+                      {t('ebios.workshop3.addScenario')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </GlassCard>
+      </div>
 
       {/* Modal Forms */}
       {showPartyForm && (

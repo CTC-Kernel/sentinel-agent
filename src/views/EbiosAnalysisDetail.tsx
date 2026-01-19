@@ -8,7 +8,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
 import { useAutoSave } from '../hooks/useAutoSave';
-import { Spinner } from '../components/ui/Spinner';
 import { EbiosWizard } from '../components/ebios/EbiosWizard';
 import { Workshop1Content } from '../components/ebios/workshops/Workshop1Content';
 import { Workshop2Content } from '../components/ebios/workshops/Workshop2Content';
@@ -404,8 +403,39 @@ export const EbiosAnalysisDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="lg" />
+      <div className="min-h-screen relative flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[100px]" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[100px]" />
+        </div>
+
+        {/* Skeleton Header */}
+        <div className="sticky top-0 z-50 h-20 border-b border-white/10 glass-premium">
+          <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+              <div className="space-y-2">
+                <div className="w-48 h-5 rounded-md bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                <div className="w-24 h-3 rounded-md bg-slate-200 dark:bg-slate-800 animate-pulse" />
+              </div>
+            </div>
+            <div className="hidden lg:flex gap-4">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+              ))}
+            </div>
+            <div className="w-32 h-10 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
+          </div>
+        </div>
+
+        {/* Skeleton Body */}
+        <main className="flex-1 max-w-7xl mx-auto px-4 w-full py-8 space-y-8">
+          <div className="w-full h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="w-full h-80 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div className="w-full h-80 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+          </div>
+        </main>
       </div>
     );
   }

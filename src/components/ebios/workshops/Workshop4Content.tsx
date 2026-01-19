@@ -15,7 +15,6 @@ import {
   List,
   Plus,
   ChevronDown,
-  ChevronUp,
   Trash2,
   AlertTriangle,
   Link2,
@@ -24,6 +23,7 @@ import {
   FileCheck,
   Loader2,
   ExternalLink,
+  Info,
 } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
@@ -157,11 +157,11 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
     const operationalScenarios = data.operationalScenarios.map(s =>
       s.id === scenarioId
         ? {
-            ...s,
-            attackSequence: s.attackSequence.map(step =>
-              step.id === stepId ? { ...step, ...updates } : step
-            ),
-          }
+          ...s,
+          attackSequence: s.attackSequence.map(step =>
+            step.id === stepId ? { ...step, ...updates } : step
+          ),
+        }
         : s
     );
     onDataChange({ operationalScenarios });
@@ -171,11 +171,11 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
     const operationalScenarios = data.operationalScenarios.map(s =>
       s.id === scenarioId
         ? {
-            ...s,
-            attackSequence: s.attackSequence
-              .filter(step => step.id !== stepId)
-              .map((step, idx) => ({ ...step, order: idx + 1 })),
-          }
+          ...s,
+          attackSequence: s.attackSequence
+            .filter(step => step.id !== stepId)
+            .map((step, idx) => ({ ...step, order: idx + 1 })),
+        }
         : s
     );
     onDataChange({ operationalScenarios });
@@ -228,13 +228,13 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
     const operationalScenarios = data.operationalScenarios.map(s =>
       s.id === mitreTargetStep.scenarioId
         ? {
-            ...s,
-            attackSequence: s.attackSequence.map(step =>
-              step.id === mitreTargetStep.stepId
-                ? { ...step, mitreReference: reference }
-                : step
-            ),
-          }
+          ...s,
+          attackSequence: s.attackSequence.map(step =>
+            step.id === mitreTargetStep.stepId
+              ? { ...step, mitreReference: reference }
+              : step
+          ),
+        }
         : s
     );
     onDataChange({ operationalScenarios });
@@ -307,322 +307,418 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <GlassCard className="text-center">
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalScenarios}</p>
-          <p className="text-sm text-gray-500 mt-1">{t('ebios.workshop4.totalScenarios')}</p>
+      {/* Summary Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-indigo-200/50 dark:border-indigo-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+            <Cpu className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{totalScenarios}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop4.totalScenarios')}</p>
         </GlassCard>
-        <GlassCard className="text-center">
-          <p className="text-3xl font-bold text-red-600 dark:text-red-400">{criticalScenarios}</p>
-          <p className="text-sm text-gray-500 mt-1">{t('ebios.workshop4.criticalScenarios')}</p>
+
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-red-200/50 dark:border-red-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">{criticalScenarios}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop4.criticalScenarios')}</p>
         </GlassCard>
-        <GlassCard className="text-center">
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
+
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-orange-200/50 dark:border-orange-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
+            <List className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
             {data.operationalScenarios.reduce((sum, s) => sum + s.attackSequence.length, 0)}
           </p>
-          <p className="text-sm text-gray-500 mt-1">{t('ebios.workshop4.totalSteps')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop4.totalSteps')}</p>
         </GlassCard>
-        <GlassCard className="text-center">
-          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-purple-200/50 dark:border-purple-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+            <Shield className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
             {strategicScenarios.length}
           </p>
-          <p className="text-sm text-gray-500 mt-1">{t('ebios.workshop4.sourceScenarios')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop4.sourceScenarios')}</p>
         </GlassCard>
       </div>
 
-      {/* Operational Scenarios by Strategic Scenario */}
-      {strategicScenarios.length === 0 ? (
-        <GlassCard>
-          <div className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-500">{t('ebios.workshop4.noStrategicScenarios')}</p>
-            <p className="text-sm text-gray-400 mt-1">{t('ebios.workshop4.completeWorkshop3First')}</p>
-          </div>
-        </GlassCard>
-      ) : (
-        <div className="space-y-4">
-          {strategicScenarios.map((strategicScenario) => {
-            const relatedOps = data.operationalScenarios.filter(
-              op => op.strategicScenarioId === strategicScenario.id
-            );
-            const gravityScale = GRAVITY_SCALE.find(g => g.level === strategicScenario.gravity);
+      {/* Strategic Scenarios List */}
+      <div className="space-y-6">
+        {strategicScenarios.length === 0 ? (
+          <GlassCard className="animate-fade-in-up delay-100">
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+              </div>
+              <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                {t('ebios.workshop4.noStrategicScenarios')}
+              </h4>
+              <p className="text-slate-500">{t('ebios.workshop4.completeWorkshop3First')}</p>
+            </div>
+          </GlassCard>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 animate-fade-in-up delay-100">
+              <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                {t('ebios.workshop4.helpText', 'Déclinaison des scénarios stratégiques en scénarios opérationnels. Pour chaque scénario, définissez la séquence d\'attaque technique (mode opératoire) et évaluez la vraisemblance.')}
+              </p>
+            </div>
 
-            return (
-              <GlassCard key={strategicScenario.id}>
-                {/* Strategic Scenario Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-700/50">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "p-2 rounded-xl",
-                      `bg-${gravityScale?.color || 'gray'}-100 dark:bg-${gravityScale?.color || 'gray'}-900/30`
-                    )}>
-                      <Cpu className={cn(
-                        "w-5 h-5",
-                        `text-${gravityScale?.color || 'gray'}-600 dark:text-${gravityScale?.color || 'gray'}-400`
-                      )} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {strategicScenario.name}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {relatedOps.length} {t('ebios.workshop4.operationalScenarios')} · Gravité G{strategicScenario.gravity}
-                      </p>
-                    </div>
-                  </div>
+            {strategicScenarios.map((strategicScenario, index) => {
+              const relatedOps = data.operationalScenarios.filter(
+                op => op.strategicScenarioId === strategicScenario.id
+              );
+              const gravityScale = GRAVITY_SCALE.find(g => g.level === strategicScenario.gravity);
 
-                  {!readOnly && (
-                    <button
-                      onClick={() => handleAddScenario(strategicScenario.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      {t('ebios.workshop4.addOperational')}
-                    </button>
-                  )}
-                </div>
-
-                {/* Operational Scenarios */}
-                {relatedOps.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    {t('ebios.workshop4.noOperationalYet')}
-                  </div>
-                ) : (
-                  <div className="mt-4 space-y-4">
-                    {relatedOps.map((opScenario) => {
-                      const isExpanded = expandedScenario === opScenario.id;
-                      const riskLevel = getRiskLevel(strategicScenario.gravity, opScenario.likelihood);
-                      const riskColor = getRiskColor(riskLevel);
-                      const likelihoodScale = LIKELIHOOD_SCALE.find(l => l.level === opScenario.likelihood);
-
-                      return (
-                        <div
-                          key={opScenario.id}
-                          className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
-                        >
-                          {/* Scenario Header */}
-                          <div
-                            onClick={() => setExpandedScenario(isExpanded ? null : opScenario.id)}
-                            className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className={cn(
-                                "px-2.5 py-1 rounded-lg text-xs font-bold",
-                                `bg-${riskColor}-100 dark:bg-${riskColor}-900/30`,
-                                `text-${riskColor}-700 dark:text-${riskColor}-400`
-                              )}>
-                                R{opScenario.riskLevel}
-                              </span>
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">
-                                  {opScenario.name}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {opScenario.attackSequence.length} {t('ebios.workshop4.attackSteps')}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                              {/* Likelihood Selector */}
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500">{t('ebios.workshop4.likelihood')}:</span>
-                                {!readOnly ? (
-                                  <div className="flex gap-1">
-                                    {LIKELIHOOD_SCALE.map((level) => (
-                                      <button
-                                        key={level.level}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleUpdateLikelihood(opScenario.id, level.level as 1 | 2 | 3 | 4);
-                                        }}
-                                        className={cn(
-                                          "w-7 h-7 rounded text-xs font-bold transition-colors",
-                                          opScenario.likelihood === level.level
-                                            ? `bg-${level.color}-500 text-white`
-                                            : "bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200"
-                                        )}
-                                      >
-                                        {level.level}
-                                      </button>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <span className={cn(
-                                    "px-2 py-1 rounded text-xs font-medium",
-                                    `bg-${likelihoodScale?.color || 'gray'}-100`,
-                                    `text-${likelihoodScale?.color || 'gray'}-700`
-                                  )}>
-                                    V{opScenario.likelihood}
-                                  </span>
-                                )}
-                              </div>
-
-                              {isExpanded ? (
-                                <ChevronUp className="w-5 h-5 text-gray-400" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-gray-400" />
-                              )}
-                            </div>
+              return (
+                <div key={strategicScenario.id} className={`animate-fade-in-up delay-${(index + 2) * 100}`}>
+                  <GlassCard className="overflow-visible hover:shadow-lg transition-shadow duration-300">
+                    {/* Strategic Scenario Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/50 dark:border-slate-700/50">
+                      <div className="flex items-start gap-4">
+                        <div className={cn(
+                          "p-3 rounded-2xl shadow-sm",
+                          `bg-${gravityScale?.color || 'gray'}-100 dark:bg-${gravityScale?.color || 'gray'}-900/30`,
+                          `text-${gravityScale?.color || 'gray'}-600 dark:text-${gravityScale?.color || 'gray'}-400`
+                        )}>
+                          <Cpu className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
+                            {strategicScenario.name}
+                          </h3>
+                          <div className="flex items-center gap-3 text-sm">
+                            <span className={cn(
+                              "font-bold",
+                              `text-${gravityScale?.color || 'gray'}-600 dark:text-${gravityScale?.color || 'gray'}-400`
+                            )}>
+                              Gravité G{strategicScenario.gravity}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                            <span className="text-slate-500">
+                              {relatedOps.length} {t('ebios.workshop4.operationalScenarios')}
+                            </span>
                           </div>
+                        </div>
+                      </div>
 
-                          {/* Expanded Content - Attack Sequence */}
-                          {isExpanded && (
-                            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                              <div className="flex items-center justify-between mb-4">
-                                <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                                  <List className="w-4 h-4" />
-                                  {t('ebios.workshop4.attackSequence')}
-                                </h4>
-                                {!readOnly && (
-                                  <button
-                                    onClick={() => handleAddAttackStep(opScenario.id)}
-                                    className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                    {t('ebios.workshop4.addStep')}
-                                  </button>
-                                )}
+                      {!readOnly && (
+                        <button
+                          onClick={() => handleAddScenario(strategicScenario.id)}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all transform hover:-translate-y-0.5"
+                        >
+                          <Plus className="w-4 h-4" />
+                          {t('ebios.workshop4.addOperational')}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Operational Scenarios List */}
+                    <div className="mt-6 space-y-4">
+                      {relatedOps.length === 0 ? (
+                        <div className="text-center py-10 px-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20">
+                          <p className="text-slate-500 font-medium mb-1">
+                            {t('ebios.workshop4.noOperationalYet')}
+                          </p>
+                          {!readOnly && (
+                            <button
+                              onClick={() => handleAddScenario(strategicScenario.id)}
+                              className="text-sm text-blue-500 hover:text-blue-600 font-medium hover:underline"
+                            >
+                              {t('ebios.workshop4.clickToAdd', 'Cliquez pour commencer')}
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        relatedOps.map((opScenario) => {
+                          const isExpanded = expandedScenario === opScenario.id;
+                          const riskLevel = getRiskLevel(strategicScenario.gravity, opScenario.likelihood);
+                          const riskColor = getRiskColor(riskLevel);
+                          const likelihoodScale = LIKELIHOOD_SCALE.find(l => l.level === opScenario.likelihood);
+
+                          return (
+                            <div
+                              key={opScenario.id}
+                              className={cn(
+                                "rounded-2xl border transition-all duration-300 overflow-hidden",
+                                isExpanded
+                                  ? "bg-white/60 dark:bg-slate-800/60 border-indigo-200 dark:border-indigo-800 shadow-md ring-1 ring-indigo-500/10"
+                                  : "bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md"
+                              )}
+                            >
+                              {/* Scenario Item Header */}
+                              <div
+                                onClick={() => setExpandedScenario(isExpanded ? null : opScenario.id)}
+                                className="flex items-center justify-between p-5 cursor-pointer group"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className={cn(
+                                    "flex flex-col items-center justify-center w-12 h-12 rounded-xl shadow-sm border",
+                                    `bg-${riskColor}-50 dark:bg-${riskColor}-900/20`,
+                                    `border-${riskColor}-200 dark:border-${riskColor}-800`,
+                                    `text-${riskColor}-700 dark:text-${riskColor}-400`
+                                  )}>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">Risk</span>
+                                    <span className="text-lg font-bold leading-none">R{opScenario.riskLevel}</span>
+                                  </div>
+
+                                  <div>
+                                    <h4 className={cn(
+                                      "font-bold text-base transition-colors",
+                                      isExpanded ? "text-indigo-600 dark:text-indigo-400" : "text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                                    )}>
+                                      {opScenario.name}
+                                    </h4>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                                        <List className="w-3 h-3" />
+                                        {opScenario.attackSequence.length} {t('ebios.workshop4.attackSteps')}
+                                      </span>
+                                      {opScenario.linkedRiskId && (
+                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800">
+                                          <FileCheck className="w-3 h-3" />
+                                          {t('ebios.workshop4.riskCreated')}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-6">
+                                  {/* Likelihood Selector (Compact) */}
+                                  <div className="flex flex-col items-end mr-4">
+                                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
+                                    <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+                                      {!readOnly ? (
+                                        LIKELIHOOD_SCALE.map((level) => (
+                                          <button
+                                            key={level.level}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleUpdateLikelihood(opScenario.id, level.level as 1 | 2 | 3 | 4);
+                                            }}
+                                            className={cn(
+                                              "w-8 h-8 rounded-md text-xs font-bold transition-all relative z-10",
+                                              opScenario.likelihood === level.level
+                                                ? `bg-${level.color}-500 text-white shadow-sm scale-110`
+                                                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                            )}
+                                            title={t(`ebios.likelihood.${level.level}`)}
+                                          >
+                                            {level.level}
+                                          </button>
+                                        ))
+                                      ) : (
+                                        <div className={cn(
+                                          "px-3 py-1.5 rounded-md text-sm font-bold",
+                                          `bg-${likelihoodScale?.color || 'gray'}-500 text-white`
+                                        )}>
+                                          V{opScenario.likelihood}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className={cn(
+                                    "p-2 rounded-full transition-all duration-300",
+                                    isExpanded
+                                      ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rotate-180"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
+                                  )}>
+                                    <ChevronDown className="w-5 h-5" />
+                                  </div>
+                                </div>
                               </div>
 
-                              {opScenario.attackSequence.length === 0 ? (
-                                <p className="text-sm text-gray-500 italic py-4 text-center">
-                                  {t('ebios.workshop4.noStepsYet')}
-                                </p>
-                              ) : (
-                                <div className="space-y-3">
-                                  {opScenario.attackSequence.map((step) => (
-                                    <div
-                                      key={step.id}
-                                      className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50"
-                                    >
-                                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-400">
-                                        {step.order}
-                                      </div>
-                                      <div className="flex-1">
-                                        {!readOnly ? (
-                                          <input
-                                            type="text"
-                                            value={step.description}
-                                            onChange={(e) => handleUpdateAttackStep(opScenario.id, step.id, { description: e.target.value })}
-                                            placeholder={t('ebios.workshop4.stepDescriptionPlaceholder')}
-                                            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
-                                          />
-                                        ) : (
-                                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                                            {step.description}
-                                          </p>
-                                        )}
-                                        {step.mitreReference ? (
-                                          <div className="flex items-center gap-2 mt-2">
-                                            <Link2 className="w-3 h-3 text-gray-400" />
-                                            <span className="text-xs text-purple-600 dark:text-purple-400 font-mono">
-                                              {step.mitreReference.techniqueId}
-                                            </span>
-                                            <span className="text-xs text-gray-500">
-                                              {step.mitreReference.techniqueName}
-                                            </span>
-                                            {!readOnly && (
-                                              <button
-                                                onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
-                                                className="text-xs text-blue-500 hover:text-blue-600 ml-2"
-                                              >
-                                                {t('common.change')}
-                                              </button>
-                                            )}
-                                          </div>
-                                        ) : !readOnly && (
-                                          <button
-                                            onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
-                                            className="mt-2 flex items-center gap-1.5 text-xs text-purple-500 hover:text-purple-600"
-                                          >
-                                            <Shield className="w-3 h-3" />
-                                            {t('ebios.workshop4.addMitreRef')}
-                                          </button>
-                                        )}
-                                      </div>
+                              {/* Expanded Content - Attack Sequence */}
+                              {isExpanded && (
+                                <div className="px-5 pb-5 pt-0 animate-accordion-down">
+                                  <div className="p-5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
+                                    <div className="flex items-center justify-between mb-5">
+                                      <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                        <div className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                                          <List className="w-4 h-4" />
+                                        </div>
+                                        {t('ebios.workshop4.attackSequence')}
+                                      </h4>
                                       {!readOnly && (
                                         <button
-                                          onClick={() => handleDeleteAttackStep(opScenario.id, step.id)}
-                                          className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                                          onClick={() => handleAddAttackStep(opScenario.id)}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm"
                                         >
-                                          <Trash2 className="w-4 h-4 text-red-400" />
+                                          <Plus className="w-4 h-4" />
+                                          {t('ebios.workshop4.addStep')}
                                         </button>
                                       )}
                                     </div>
-                                  ))}
+
+                                    <div className="space-y-0 relative pl-4">
+                                      {/* Vertical Line */}
+                                      <div className="absolute top-4 bottom-4 left-[27px] w-px bg-slate-200 dark:bg-slate-700"></div>
+
+                                      {opScenario.attackSequence.length === 0 ? (
+                                        <div className="text-center py-8 text-slate-400 italic bg-white dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                                          {t('ebios.workshop4.noStepsYet')}
+                                        </div>
+                                      ) : (
+                                        opScenario.attackSequence.map((step) => (
+                                          <div key={step.id} className="relative flex items-start group/step">
+                                            {/* Step Number Bubble */}
+                                            <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-slate-50 dark:ring-slate-800/80">
+                                              {step.order}
+                                            </div>
+
+                                            {/* Step Content */}
+                                            <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-3 transition-all hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md">
+                                              <div className="flex items-start gap-4">
+                                                <div className="flex-1">
+                                                  {!readOnly ? (
+                                                    <textarea
+                                                      value={step.description}
+                                                      onChange={(e) => handleUpdateAttackStep(opScenario.id, step.id, { description: e.target.value })}
+                                                      placeholder={t('ebios.workshop4.stepDescriptionPlaceholder')}
+                                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm resize-none min-h-[60px]"
+                                                    />
+                                                  ) : (
+                                                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                                      {step.description}
+                                                    </p>
+                                                  )}
+
+                                                  {/* MITRE Reference */}
+                                                  {step.mitreReference ? (
+                                                    <div className="flex items-center flex-wrap gap-2 mt-3">
+                                                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/50 text-xs font-medium text-orange-700 dark:text-orange-400 group/mitre relative">
+                                                        <Shield className="w-3 h-3" />
+                                                        <span className="font-mono font-bold">{step.mitreReference.techniqueId}</span>
+                                                        <span className="w-px h-3 bg-orange-200 dark:bg-orange-800"></span>
+                                                        <span className="truncate max-w-[200px]">{step.mitreReference.techniqueName}</span>
+
+                                                        {!readOnly && (
+                                                          <button
+                                                            onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
+                                                            className="ml-1.5 p-0.5 rounded hover:bg-orange-200 dark:hover:bg-orange-800 transition-colors"
+                                                            title={t('common.change')}
+                                                          >
+                                                            <Edit2 className="w-3 h-3" />
+                                                          </button>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  ) : !readOnly && (
+                                                    <button
+                                                      onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
+                                                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-indigo-600 transition-colors py-1 px-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800"
+                                                    >
+                                                      <Link2 className="w-3 h-3" />
+                                                      {t('ebios.workshop4.addMitreRef')}
+                                                    </button>
+                                                  )}
+                                                </div>
+
+                                                {!readOnly && (
+                                                  <button
+                                                    onClick={() => handleDeleteAttackStep(opScenario.id, step.id)}
+                                                    className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover/step:opacity-100"
+                                                    title={t('common.delete')}
+                                                  >
+                                                    <Trash2 className="w-4 h-4" />
+                                                  </button>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))
+                                      )}
+                                    </div>
+
+                                    {/* Footer Actions */}
+                                    <div className="flex items-center justify-between mt-6 pt-5 border-t border-slate-200/50 dark:border-slate-700/50">
+                                      {/* Risk creation */}
+                                      <div>
+                                        {opScenario.linkedRiskId ? (
+                                          <button
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              // Navigate or open risk
+                                            }}
+                                            className="group flex items-center gap-3 px-4 py-2 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 hover:shadow-md transition-all"
+                                          >
+                                            <div className="p-1 rounded-full bg-green-100 dark:bg-green-800">
+                                              <FileCheck className="w-4 h-4" />
+                                            </div>
+                                            <div className="text-left">
+                                              <p className="text-xs font-bold uppercase tracking-wider opacity-70">{t('ebios.workshop4.riskCreated')}</p>
+                                              <div className="flex items-center gap-1 font-bold text-sm">
+                                                {t('ebios.workshop4.viewRisk')}
+                                                <ExternalLink className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                              </div>
+                                            </div>
+                                          </button>
+                                        ) : onCreateRisk && analysisId ? (
+                                          <button
+                                            onClick={() => handleCreateRiskFromScenario(opScenario)}
+                                            disabled={creatingRiskForScenario === opScenario.id}
+                                            className={cn(
+                                              "flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
+                                              "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100"
+                                            )}
+                                          >
+                                            {creatingRiskForScenario === opScenario.id ? (
+                                              <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                {t('ebios.workshop4.creatingRisk')}
+                                              </>
+                                            ) : (
+                                              <>
+                                                <FileCheck className="w-4 h-4" />
+                                                {t('ebios.workshop4.createRisk')}
+                                              </>
+                                            )}
+                                          </button>
+                                        ) : null}
+                                      </div>
+
+                                      {/* Edit/Delete Scenario */}
+                                      {!readOnly && (
+                                        <div className="flex gap-2">
+                                          <button
+                                            onClick={() => handleEditScenario(opScenario)}
+                                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                          >
+                                            <Edit2 className="w-4 h-4" />
+                                            {t('common.edit')}
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteScenario(opScenario.id)}
+                                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                            {t('common.delete')}
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                               )}
-
-                              {/* Actions */}
-                              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                                {/* Risk link status */}
-                                <div>
-                                  {opScenario.linkedRiskId ? (
-                                    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                                      <FileCheck className="w-4 h-4" />
-                                      <span>{t('ebios.workshop4.riskCreated')}</span>
-                                      <a
-                                        href={`/risks/${opScenario.linkedRiskId}`}
-                                        className="flex items-center gap-1 text-blue-500 hover:text-blue-600"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <ExternalLink className="w-3 h-3" />
-                                        {t('ebios.workshop4.viewRisk')}
-                                      </a>
-                                    </div>
-                                  ) : onCreateRisk && analysisId ? (
-                                    <button
-                                      onClick={() => handleCreateRiskFromScenario(opScenario)}
-                                      disabled={creatingRiskForScenario === opScenario.id}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-medium transition-colors"
-                                    >
-                                      {creatingRiskForScenario === opScenario.id ? (
-                                        <>
-                                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                          {t('ebios.workshop4.creatingRisk')}
-                                        </>
-                                      ) : (
-                                        <>
-                                          <FileCheck className="w-3.5 h-3.5" />
-                                          {t('ebios.workshop4.createRisk')}
-                                        </>
-                                      )}
-                                    </button>
-                                  ) : null}
-                                </div>
-
-                                {/* Edit/Delete buttons */}
-                                {!readOnly && (
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => handleEditScenario(opScenario)}
-                                      className="px-3 py-1.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm flex items-center gap-1"
-                                    >
-                                      <Edit2 className="w-3.5 h-3.5" />
-                                      {t('common.edit')}
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteScenario(opScenario.id)}
-                                      className="px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm"
-                                    >
-                                      {t('common.delete')}
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </GlassCard>
-            );
-          })}
-        </div>
-      )}
+                          );
+                        })
+                      )}
+                    </div>
+                  </GlassCard>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Operational Scenario Form Modal */}
       <OperationalScenarioForm

@@ -20,7 +20,6 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
-  UserPlus,
 } from '../../ui/Icons';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
@@ -299,189 +298,93 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
       )}
 
       {/* Risk Sources Section */}
-      <GlassCard>
-        <button
-          onClick={() => toggleSection('riskSources')}
-          className="w-full flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30">
-              <Users className="w-5 h-5 text-red-600 dark:text-red-400" />
+      <div className="animate-fade-in-up delay-100">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-red-500/5 hover:border-red-500/20">
+          <button
+            onClick={() => toggleSection('riskSources')}
+            className="w-full flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform duration-300">
+                <Users className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                  {t('ebios.workshop2.riskSources')}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium">
+                  {selectedSourcesCount} {t('ebios.workshop2.selectedSources')}
+                </p>
+              </div>
             </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {t('ebios.workshop2.riskSources')}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {selectedSourcesCount} {t('ebios.workshop2.selectedSources')}
+            {expandedSections.has('riskSources') ? (
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-red-500 group-hover:text-white transition-all">
+                <ChevronUp className="w-5 h-5" />
+              </div>
+            ) : (
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+                <ChevronDown className="w-5 h-5" />
+              </div>
+            )}
+          </button>
+
+          {expandedSections.has('riskSources') && (
+            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
+                {t('ebios.workshop2.riskSourcesHelp')}
               </p>
-            </div>
-          </div>
-          {expandedSections.has('riskSources') ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
-        </button>
 
-        {expandedSections.has('riskSources') && (
-          <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            <p className="text-sm text-gray-500 mb-4">
-              {t('ebios.workshop2.riskSourcesHelp')}
-            </p>
-
-            <div className="space-y-4">
-              {Object.entries(riskSourcesByCategory).map(([category, sources]) => (
-                <div key={category} className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <span className={cn(
-                      "w-2 h-2 rounded-full",
-                      category.includes('state') ? "bg-purple-500" :
-                        category.includes('crime') ? "bg-red-500" :
-                          category.includes('terrorist') ? "bg-orange-500" :
-                            category.includes('activist') ? "bg-yellow-500" :
-                              category.includes('competitor') ? "bg-blue-500" :
-                                category.includes('insider') ? "bg-pink-500" :
-                                  "bg-gray-500"
-                    )} />
-                    {RISK_SOURCE_CATEGORY_LABELS[category as keyof typeof RISK_SOURCE_CATEGORY_LABELS]?.[locale] || category}
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {sources.map((source) => (
-                      <button
-                        key={source.id}
-                        onClick={() => toggleRiskSource(source.id)}
-                        disabled={readOnly}
-                        className={cn(
-                          "p-3 rounded-xl border text-left transition-all",
-                          isRiskSourceSelected(source.id)
-                            ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                            : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
-                          readOnly && "cursor-default"
-                        )}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={cn(
-                            "w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5",
-                            isRiskSourceSelected(source.id)
-                              ? "border-red-500 bg-red-500"
-                              : "border-gray-300 dark:border-gray-600"
-                          )}>
-                            {isRiskSourceSelected(source.id) && (
-                              <Check className="w-3 h-3 text-white" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm text-gray-900 dark:text-white">
-                              {source.code} - {source.name}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                              {source.description}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              {/* Add Custom Source Button */}
-              {!readOnly && onCustomRiskSourceSave && (
-                <button
-                  onClick={() => {
-                    setEditingRiskSource(null);
-                    setShowRiskSourceForm(true);
-                  }}
-                  className="w-full mt-4 p-3 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-red-500"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  {t('ebios.workshop2.addCustomSource', 'Ajouter une source personnalisée')}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </GlassCard>
-
-      {/* Targeted Objectives Section */}
-      <GlassCard>
-        <button
-          onClick={() => toggleSection('targetedObjectives')}
-          className="w-full flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30">
-              <Flag className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {t('ebios.workshop2.targetedObjectives')}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {selectedObjectivesCount} {t('ebios.workshop2.selectedObjectives')}
-              </p>
-            </div>
-          </div>
-          {expandedSections.has('targetedObjectives') ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
-        </button>
-
-        {expandedSections.has('targetedObjectives') && (
-          <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            <p className="text-sm text-gray-500 mb-4">
-              {t('ebios.workshop2.targetedObjectivesHelp')}
-            </p>
-
-            <div className="space-y-4">
-              {Object.entries(objectivesByImpact).map(([impactType, objectives]) => {
-                const impactInfo = IMPACT_TYPE_LABELS[impactType as keyof typeof IMPACT_TYPE_LABELS];
-                return (
-                  <div key={impactType} className="space-y-2">
-                    <h4 className={cn(
-                      "text-sm font-medium flex items-center gap-2",
-                      `text-${impactInfo?.color || 'gray'}-600 dark:text-${impactInfo?.color || 'gray'}-400`
-                    )}>
+              <div className="space-y-6">
+                {Object.entries(riskSourcesByCategory).map(([category, sources]) => (
+                  <div key={category} className="space-y-3">
+                    <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
                       <span className={cn(
-                        "w-2 h-2 rounded-full",
-                        `bg-${impactInfo?.color || 'gray'}-500`
+                        "w-2.5 h-2.5 rounded-full ring-4 ring-opacity-20",
+                        category.includes('state') ? "bg-purple-500 ring-purple-500" :
+                          category.includes('crime') ? "bg-red-500 ring-red-500" :
+                            category.includes('terrorist') ? "bg-orange-500 ring-orange-500" :
+                              category.includes('activist') ? "bg-yellow-500 ring-yellow-500" :
+                                category.includes('competitor') ? "bg-blue-500 ring-blue-500" :
+                                  category.includes('insider') ? "bg-pink-500 ring-pink-500" :
+                                    "bg-slate-500 ring-slate-500"
                       )} />
-                      {impactInfo?.[locale] || impactType}
+                      {RISK_SOURCE_CATEGORY_LABELS[category as keyof typeof RISK_SOURCE_CATEGORY_LABELS]?.[locale] || category}
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {objectives.map((objective) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {sources.map((source) => (
                         <button
-                          key={objective.id}
-                          onClick={() => toggleTargetedObjective(objective.id)}
+                          key={source.id}
+                          onClick={() => toggleRiskSource(source.id)}
                           disabled={readOnly}
                           className={cn(
-                            "p-3 rounded-xl border text-left transition-all",
-                            isTargetedObjectiveSelected(objective.id)
-                              ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20"
-                              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
-                            readOnly && "cursor-default"
+                            "group relative p-4 rounded-2xl border text-left transition-all duration-200",
+                            isRiskSourceSelected(source.id)
+                              ? "border-red-500 bg-red-50/50 dark:bg-red-900/20 shadow-sm"
+                              : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-red-300 dark:hover:border-red-700 hover:shadow-md",
+                            readOnly && "cursor-default opacity-80"
                           )}
                         >
                           <div className="flex items-start gap-3">
                             <div className={cn(
-                              "w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5",
-                              isTargetedObjectiveSelected(objective.id)
-                                ? "border-amber-500 bg-amber-500"
-                                : "border-gray-300 dark:border-gray-600"
+                              "w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                              isRiskSourceSelected(source.id)
+                                ? "border-red-500 bg-red-500 shadow-sm"
+                                : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-red-400"
                             )}>
-                              {isTargetedObjectiveSelected(objective.id) && (
-                                <Check className="w-3 h-3 text-white" />
+                              {isRiskSourceSelected(source.id) && (
+                                <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm text-gray-900 dark:text-white">
-                                {objective.code} - {objective.name}
+                              <p className={cn(
+                                "font-bold text-sm transition-colors",
+                                isRiskSourceSelected(source.id) ? "text-red-700 dark:text-red-400" : "text-slate-900 dark:text-white"
+                              )}>
+                                {source.code} - {source.name}
                               </p>
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                                {objective.description}
+                              <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                {source.description}
                               </p>
                             </div>
                           </div>
@@ -489,187 +392,348 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                       ))}
                     </div>
                   </div>
-                );
-              })}
+                ))}
 
-              {/* Add Custom Objective Button */}
-              {!readOnly && onCustomObjectiveSave && (
-                <button
-                  onClick={() => {
-                    setEditingObjective(null);
-                    setShowObjectiveForm(true);
-                  }}
-                  className="w-full mt-4 p-3 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-amber-500"
-                >
-                  <Plus className="w-4 h-4" />
-                  {t('ebios.workshop2.addCustomObjective', 'Ajouter un objectif personnalisé')}
-                </button>
-              )}
+                {/* Add Custom Source Button */}
+                {!readOnly && onCustomRiskSourceSave && (
+                  <button
+                    onClick={() => {
+                      setEditingRiskSource(null);
+                      setShowRiskSourceForm(true);
+                    }}
+                    className="w-full mt-6 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-red-500/50 hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-red-600 font-medium group"
+                  >
+                    <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-red-200 dark:group-hover:bg-red-800 transition-colors">
+                      <Plus className="w-4 h-4" />
+                    </div>
+                    {t('ebios.workshop2.addCustomSource', 'Ajouter une source personnalisée')}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </GlassCard>
-
-      {/* SR/OV Pairs Section */}
-      <GlassCard>
-        <button
-          onClick={() => toggleSection('srOvPairs')}
-          className="w-full flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
-              <Crosshair className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {t('ebios.workshop2.srOvPairs')}
-              </h3>
-              <p className="text-sm text-gray-500">
-                {retainedPairsCount}/{pairsCount} {t('ebios.workshop2.retainedPairs')}
-              </p>
-            </div>
-          </div>
-          {expandedSections.has('srOvPairs') ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
           )}
-        </button>
+        </GlassCard>
+      </div>
 
-        {expandedSections.has('srOvPairs') && (
-          <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            {selectedSourcesCount === 0 || selectedObjectivesCount === 0 ? (
-              <div className="text-center py-8">
-                <Info className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-500">
-                  {t('ebios.workshop2.selectSourcesAndObjectivesFirst')}
+      {/* Targeted Objectives Section */}
+      <div className="animate-fade-in-up delay-200">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/5 hover:border-amber-500/20">
+          <button
+            onClick={() => toggleSection('targetedObjectives')}
+            className="w-full flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300">
+                <Flag className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                  {t('ebios.workshop2.targetedObjectives')}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium">
+                  {selectedObjectivesCount} {t('ebios.workshop2.selectedObjectives')}
                 </p>
               </div>
+            </div>
+            {expandedSections.has('targetedObjectives') ? (
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                <ChevronUp className="w-5 h-5" />
+              </div>
             ) : (
-              <>
-                {!readOnly && (
-                  <div className="flex justify-end mb-4">
-                    <button
-                      onClick={generatePairs}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      {t('ebios.workshop2.generatePairs')}
-                    </button>
-                  </div>
-                )}
-
-                {data.srOvPairs.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">
-                      {t('ebios.workshop2.noPairsYet')}
-                    </p>
-                    {!readOnly && (
-                      <p className="text-sm text-gray-400 mt-1">
-                        {t('ebios.workshop2.clickGeneratePairs')}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {data.srOvPairs.map((pair) => {
-                      const source = getRiskSourceById(pair.riskSourceId);
-                      const objective = getObjectiveById(pair.targetedObjectiveId);
-                      const relevanceScale = GRAVITY_SCALE.find((s) => s.level === pair.relevance);
-
-                      return (
-                        <div
-                          key={pair.id}
-                          className={cn(
-                            "p-4 rounded-xl border transition-all",
-                            pair.retainedForAnalysis
-                              ? "border-green-500 bg-green-50/50 dark:bg-green-900/10"
-                              : "border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-                          )}
-                        >
-                          <div className="flex flex-col md:flex-row md:items-center gap-4">
-                            {/* Source -> Objective */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 text-sm">
-                                <span className="font-medium text-red-600 dark:text-red-400 truncate">
-                                  {source?.code || '?'}
-                                </span>
-                                <span className="text-gray-400">→</span>
-                                <span className="font-medium text-amber-600 dark:text-amber-400 truncate">
-                                  {objective?.code || '?'}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                                {source?.name} → {objective?.name}
-                              </p>
-                            </div>
-
-                            {/* Relevance */}
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500">{t('ebios.workshop2.relevance')}:</span>
-                              {!readOnly ? (
-                                <div className="flex items-center gap-1">
-                                  {GRAVITY_SCALE.map((level) => (
-                                    <button
-                                      key={level.level}
-                                      onClick={() => updatePair(pair.id, { relevance: level.level as 1 | 2 | 3 | 4 })}
-                                      className={cn(
-                                        "w-7 h-7 rounded-lg text-xs font-bold transition-colors",
-                                        pair.relevance === level.level
-                                          ? `bg-${level.color}-500 text-white`
-                                          : "bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                      )}
-                                    >
-                                      {level.level}
-                                    </button>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span className={cn(
-                                  "px-2 py-1 rounded text-xs font-medium",
-                                  `bg-${relevanceScale?.color || 'gray'}-100 dark:bg-${relevanceScale?.color || 'gray'}-900/30`,
-                                  `text-${relevanceScale?.color || 'gray'}-600 dark:text-${relevanceScale?.color || 'gray'}-400`
-                                )}>
-                                  {pair.relevance}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Retain Toggle */}
-                            <button
-                              onClick={() => !readOnly && updatePair(pair.id, { retainedForAnalysis: !pair.retainedForAnalysis })}
-                              disabled={readOnly}
-                              className={cn(
-                                "flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm transition-colors",
-                                pair.retainedForAnalysis
-                                  ? "bg-green-500 text-white"
-                                  : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700",
-                                readOnly && "cursor-default"
-                              )}
-                            >
-                              {pair.retainedForAnalysis ? (
-                                <>
-                                  <Check className="w-4 h-4" />
-                                  {t('ebios.workshop2.retained')}
-                                </>
-                              ) : (
-                                <>
-                                  <X className="w-4 h-4" />
-                                  {t('ebios.workshop2.notRetained')}
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+                <ChevronDown className="w-5 h-5" />
+              </div>
             )}
-          </div>
-        )}
-      </GlassCard>
+          </button>
+
+          {expandedSections.has('targetedObjectives') && (
+            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
+                {t('ebios.workshop2.targetedObjectivesHelp')}
+              </p>
+
+              <div className="space-y-6">
+                {Object.entries(objectivesByImpact).map(([impactType, objectives]) => {
+                  const impactInfo = IMPACT_TYPE_LABELS[impactType as keyof typeof IMPACT_TYPE_LABELS];
+                  return (
+                    <div key={impactType} className="space-y-3">
+                      <h4 className={cn(
+                        "flex items-center gap-2 text-sm font-bold uppercase tracking-wider",
+                        `text-${impactInfo?.color || 'gray'}-600 dark:text-${impactInfo?.color || 'gray'}-400`
+                      )}>
+                        <span className={cn(
+                          "w-2.5 h-2.5 rounded-full ring-4 ring-opacity-20",
+                          `bg-${impactInfo?.color || 'gray'}-500 ring-${impactInfo?.color || 'gray'}-500`
+                        )} />
+                        {impactInfo?.[locale] || impactType}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {objectives.map((objective) => (
+                          <button
+                            key={objective.id}
+                            onClick={() => toggleTargetedObjective(objective.id)}
+                            disabled={readOnly}
+                            className={cn(
+                              "group relative p-4 rounded-2xl border text-left transition-all duration-200",
+                              isTargetedObjectiveSelected(objective.id)
+                                ? "border-amber-500 bg-amber-50/50 dark:bg-amber-900/20 shadow-sm"
+                                : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md",
+                              readOnly && "cursor-default opacity-80"
+                            )}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={cn(
+                                "w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                                isTargetedObjectiveSelected(objective.id)
+                                  ? "border-amber-500 bg-amber-500 shadow-sm"
+                                  : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-amber-400"
+                              )}>
+                                {isTargetedObjectiveSelected(objective.id) && (
+                                  <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={cn(
+                                  "font-bold text-sm transition-colors",
+                                  isTargetedObjectiveSelected(objective.id) ? "text-amber-700 dark:text-amber-400" : "text-slate-900 dark:text-white"
+                                )}>
+                                  {objective.code} - {objective.name}
+                                </p>
+                                <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                  {objective.description}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Add Custom Objective Button */}
+                {!readOnly && onCustomObjectiveSave && (
+                  <button
+                    onClick={() => {
+                      setEditingObjective(null);
+                      setShowObjectiveForm(true);
+                    }}
+                    className="w-full mt-6 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-amber-500/50 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-amber-600 font-medium group"
+                  >
+                    <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-amber-200 dark:group-hover:bg-amber-800 transition-colors">
+                      <Plus className="w-4 h-4" />
+                    </div>
+                    {t('ebios.workshop2.addCustomObjective', 'Ajouter un objectif personnalisé')}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </GlassCard>
+      </div>
+
+      {/* SR/OV Pairs Section */}
+      <div className="animate-fade-in-up delay-300">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5 hover:border-indigo-500/20">
+          <button
+            onClick={() => toggleSection('srOvPairs')}
+            className="w-full flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300">
+                <Crosshair className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  {t('ebios.workshop2.srOvPairs')}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium">
+                  {retainedPairsCount}/{pairsCount} {t('ebios.workshop2.retainedPairs')}
+                </p>
+              </div>
+            </div>
+            {expandedSections.has('srOvPairs') ? (
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                <ChevronUp className="w-5 h-5" />
+              </div>
+            ) : (
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+                <ChevronDown className="w-5 h-5" />
+              </div>
+            )}
+          </button>
+
+          {expandedSections.has('srOvPairs') && (
+            <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+              {selectedSourcesCount === 0 || selectedObjectivesCount === 0 ? (
+                <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                    <Info className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                    {t('ebios.workshop2.noSelectionTitle', 'Pas de sélection')}
+                  </h4>
+                  <p className="text-slate-500 max-w-sm mx-auto">
+                    {t('ebios.workshop2.selectSourcesAndObjectivesFirst')}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {!readOnly && (
+                    <div className="flex justify-end mb-6">
+                      <button
+                        onClick={generatePairs}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all transform hover:-translate-y-0.5"
+                      >
+                        <Plus className="w-5 h-5" />
+                        {t('ebios.workshop2.generatePairs')}
+                      </button>
+                    </div>
+                  )}
+
+                  {data.srOvPairs.length === 0 ? (
+                    <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                      <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                        {t('ebios.workshop2.noPairsYet')}
+                      </p>
+                      {!readOnly && (
+                        <p className="text-slate-500">
+                          {t('ebios.workshop2.clickGeneratePairs')}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {data.srOvPairs.map((pair) => {
+                        const source = getRiskSourceById(pair.riskSourceId);
+                        const objective = getObjectiveById(pair.targetedObjectiveId);
+                        const relevanceScale = GRAVITY_SCALE.find((s) => s.level === pair.relevance);
+
+                        return (
+                          <div
+                            key={pair.id}
+                            className={cn(
+                              "group p-5 rounded-2xl border transition-all duration-300",
+                              pair.retainedForAnalysis
+                                ? "border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-900/10 shadow-sm"
+                                : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md"
+                            )}
+                          >
+                            <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                              {/* Source -> Objective Visualization */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-4 mb-2">
+                                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0 text-red-600 dark:text-red-400 font-bold text-xs ring-1 ring-red-500/20">
+                                      SR
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                                        {source?.name || '?'}
+                                      </p>
+                                      <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+                                        {source?.code}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col items-center px-4">
+                                    <div className="w-full h-px bg-slate-200 dark:bg-slate-700 w-16 relative">
+                                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2 min-w-0 flex-1 justify-end text-right">
+                                    <div className="min-w-0">
+                                      <p className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                                        {objective?.name || '?'}
+                                      </p>
+                                      <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                                        {objective?.code}
+                                      </p>
+                                    </div>
+                                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 text-amber-600 dark:text-amber-400 font-bold text-xs ring-1 ring-amber-500/20">
+                                      OV
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between lg:justify-end gap-6 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-700/50">
+                                {/* Relevance Selector */}
+                                <div className="flex flex-col items-center lg:items-end gap-2">
+                                  <span className="text-[10px] items-center uppercase font-bold text-slate-400 tracking-wider">
+                                    {t('ebios.workshop2.relevance')}
+                                  </span>
+                                  {!readOnly ? (
+                                    <div className="flex items-center gap-1 p-1 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                                      {GRAVITY_SCALE.map((level) => (
+                                        <button
+                                          key={level.level}
+                                          onClick={() => updatePair(pair.id, { relevance: level.level as 1 | 2 | 3 | 4 })}
+                                          className={cn(
+                                            "w-8 h-8 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center transform hover:scale-105",
+                                            pair.relevance === level.level
+                                              ? `bg-${level.color}-500 text-white shadow-sm`
+                                              : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-800"
+                                          )}
+                                        >
+                                          {level.level}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span className={cn(
+                                      "px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border",
+                                      `bg-${relevanceScale?.color || 'gray'}-50 dark:bg-${relevanceScale?.color || 'gray'}-900/20`,
+                                      `text-${relevanceScale?.color || 'gray'}-700 dark:text-${relevanceScale?.color || 'gray'}-400`,
+                                      `border-${relevanceScale?.color || 'gray'}-200 dark:border-${relevanceScale?.color || 'gray'}-800`
+                                    )}>
+                                      {relevanceScale?.[locale as 'fr' | 'en'] || relevanceScale?.fr} ({pair.relevance})
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Retain Toggle */}
+                                <div className="h-10 w-px bg-slate-200 dark:bg-slate-700 hidden lg:block" />
+
+                                <button
+                                  onClick={() => !readOnly && updatePair(pair.id, { retainedForAnalysis: !pair.retainedForAnalysis })}
+                                  disabled={readOnly}
+                                  className={cn(
+                                    "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 transform active:scale-95",
+                                    pair.retainedForAnalysis
+                                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-300",
+                                    readOnly && "cursor-default active:scale-100"
+                                  )}
+                                >
+                                  {pair.retainedForAnalysis ? (
+                                    <>
+                                      <Check className="w-4 h-4 stroke-[3]" />
+                                      {t('ebios.workshop2.retained')}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <X className="w-4 h-4 stroke-[3]" />
+                                      {t('ebios.workshop2.notRetained')}
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </GlassCard>
+      </div>
 
       {/* Custom Risk Source Form Modal */}
       {showRiskSourceForm && onCustomRiskSourceSave && (

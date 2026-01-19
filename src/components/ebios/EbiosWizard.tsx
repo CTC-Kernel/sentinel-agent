@@ -96,32 +96,35 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
   }, [hasUnsavedChanges, navigate, onSave]);
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
       <MasterpieceBackground />
       {/* Header */}
-      <header className="sticky top-0 z-50 glass-premium border-b border-white/10 shadow-sm backdrop-blur-md">
+      <header className="sticky top-0 z-50 glass-premium border-b border-white/10 shadow-sm backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             {/* Left: Back Button & Title */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5">
               <button
                 onClick={handleExit}
-                className="p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                className="p-2.5 -ml-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                title={t('common.exit')}
               >
-                <X className="w-5 h-5 text-slate-500" />
+                <X className="w-5 h-5" />
               </button>
-              <div>
-                <h1 className="font-semibold text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-none">
-                  {analysis.name}
-                </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  EBIOS RM
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h1 className="font-bold text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-xs text-lg">
+                    {analysis.name}
+                  </h1>
+                </div>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  EBIOS RM Analysis
                 </p>
               </div>
             </div>
 
             {/* Center: Compact Stepper (Desktop) */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block flex-1 max-w-2xl px-8">
               <EbiosWorkshopStepper
                 workshops={analysis.workshops}
                 currentWorkshop={currentWorkshop}
@@ -131,94 +134,49 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
             </div>
 
             {/* Right: Progress & Save */}
-            <div className="flex items-center gap-3">
-              {/* Save Indicator */}
-              {isSaving && (
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="hidden sm:inline">{t('common.saving')}</span>
-                </div>
-              )}
-              {hasUnsavedChanges && !isSaving && (
-                <div className="flex items-center gap-1.5 text-sm text-amber-500">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span className="hidden sm:inline">{t('common.unsavedChanges')}</span>
-                </div>
-              )}
+            <div className="flex items-center gap-4">
+              {/* Save Status */}
+              <div className="flex items-center">
+                {isSaving ? (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/50 text-xs font-medium text-blue-600 dark:text-blue-400">
+                    <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="hidden sm:inline">{t('common.saving')}...</span>
+                  </div>
+                ) : hasUnsavedChanges ? (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-xs font-medium text-amber-600 dark:text-amber-400">
+                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="hidden sm:inline">{t('common.unsavedChanges')}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-slate-400 dark:text-slate-500">
+                    {t('common.saved')}
+                  </div>
+                )}
+              </div>
+
+              <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-2 hidden sm:block" />
 
               {/* Progress Ring */}
-              <ProgressRing
-                progress={analysis.completionPercentage}
-                size={44}
-                strokeWidth={4}
-                showLabel={false}
-                className="hidden sm:block"
-              />
-              <span className="text-sm font-medium text-slate-600 dark:text-slate-400 sm:hidden">
-                {analysis.completionPercentage}%
-              </span>
+              <div className="flex items-center gap-3">
+                <ProgressRing
+                  progress={analysis.completionPercentage}
+                  size={48}
+                  strokeWidth={4}
+                  showLabel={true}
+                  className="scale-90"
+                />
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Workshop Header Card */}
-        <GlassCard className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500 text-white font-bold">
-                  {currentWorkshop}
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                    {workshopInfo.name[locale]}
-                  </h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t('ebios.workshop')} {currentWorkshop} / 5
-                  </p>
-                </div>
-              </div>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
-              {workshopInfo.description[locale]}
-            </p>
-          </div>
-
-          {/* Workshop Objectives */}
-          <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
-              {t('ebios.objectives')}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {workshopInfo.objectives[locale].map((objective, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                >
-                  {objective}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Workshop Report Generation - Story 15.6 */}
-          {currentWorkshop === 1 && (
-            <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
-              <GenerateReportButtonCompact
-                analysis={analysis}
-                workshopNumber={1}
-                organizationName={organizationName}
-              />
-            </div>
-          )}
-        </GlassCard>
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Full Stepper (Mobile/Tablet) */}
-        <div className="lg:hidden mb-6">
-          <GlassCard>
+        <div className="lg:hidden mb-8">
+          <GlassCard className="p-4">
             <EbiosWorkshopStepper
               workshops={analysis.workshops}
               currentWorkshop={currentWorkshop}
@@ -227,39 +185,87 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
           </GlassCard>
         </div>
 
+        {/* Workshop Header & Description */}
+        <div className="mb-8 animate-fade-in-up">
+          <GlassCard className="relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+
+            <div className="relative flex flex-col md:flex-row md:items-start justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
+                    {t('ebios.workshop')} {currentWorkshop}
+                  </span>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {workshopInfo.name[locale]}
+                  </h2>
+                </div>
+                <p className="text-slate-600 dark:text-slate-400 max-w-3xl text-lg leading-relaxed">
+                  {workshopInfo.description[locale]}
+                </p>
+
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {workshopInfo.objectives[locale].map((objective, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-sm text-slate-600 dark:text-slate-300"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
+                      {objective}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions per workshop */}
+              {currentWorkshop === 1 && (
+                <div className="flex-shrink-0">
+                  <GenerateReportButtonCompact
+                    analysis={analysis}
+                    workshopNumber={1}
+                    organizationName={organizationName}
+                  />
+                </div>
+              )}
+            </div>
+          </GlassCard>
+        </div>
+
         {/* Workshop Content */}
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in-up delay-100">
           {children}
         </div>
 
         {/* Navigation Footer */}
-        <div className="mt-8 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
+        <div className="mt-12 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 pb-20">
           <div className="flex items-center justify-between">
             <button
               onClick={handlePrevious}
               disabled={!canGoBack}
               className={cn(
-                "flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-200",
+                "group flex items-center gap-3 px-6 py-3 rounded-2xl font-medium transition-all duration-300",
                 canGoBack
-                  ? "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  : "text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                  ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-sm hover:translate-x-1"
+                  : "opacity-50 cursor-not-allowed text-slate-400 dark:text-slate-600"
               )}
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('ebios.previousWorkshop')}</span>
-              <span className="sm:hidden">{t('common.previous')}</span>
+              <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+              <div>
+                <span className="text-xs text-slate-400 block uppercase tracking-wider font-semibold text-left">{t('common.previous')}</span>
+                <span className="hidden sm:block">{currentWorkshop > 1 ? WORKSHOP_INFO[(currentWorkshop - 1) as EbiosWorkshopNumber].shortName[locale] : t('ebios.previousWorkshop')}</span>
+              </div>
             </button>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {onSave && (
                 <button
                   onClick={onSave}
                   disabled={isSaving || !hasUnsavedChanges}
                   className={cn(
-                    "px-5 py-2.5 rounded-xl font-medium transition-all duration-200",
+                    "px-6 py-3 rounded-2xl font-medium transition-all duration-300 border",
                     hasUnsavedChanges && !isSaving
-                      ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                      : "bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                      ? "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
+                      : "bg-transparent border-transparent text-slate-400 dark:text-slate-600 cursor-not-allowed"
                   )}
                 >
                   {t('common.save')}
@@ -271,11 +277,11 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                   onClick={onComplete}
                   disabled={!onComplete}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all duration-200",
-                    "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/25"
+                    "flex items-center gap-3 px-8 py-3 rounded-2xl font-bold transition-all duration-300",
+                    "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5"
                   )}
                 >
-                  <Check className="w-4 h-4" />
+                  <Check className="w-5 h-5" />
                   {t('ebios.completeAnalysis')}
                 </button>
               ) : (
@@ -283,15 +289,17 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                   onClick={handleNext}
                   disabled={!canGoForward}
                   className={cn(
-                    "flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all duration-200",
+                    "group flex items-center gap-3 px-8 py-3 rounded-2xl font-bold transition-all duration-300",
                     canGoForward
-                      ? "bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/25"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                   )}
                 >
-                  <span className="hidden sm:inline">{t('ebios.nextWorkshop')}</span>
-                  <span className="sm:hidden">{t('common.next')}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <div className="text-right">
+                    <span className="text-[10px] opacity-80 block uppercase tracking-wider font-medium text-white">{t('common.next')}</span>
+                    <span className="hidden sm:block">{currentWorkshop < 5 ? WORKSHOP_INFO[(currentWorkshop + 1) as EbiosWorkshopNumber].shortName[locale] : t('ebios.nextWorkshop')}</span>
+                  </div>
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </button>
               )}
             </div>
@@ -301,30 +309,37 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
 
       {/* Exit Confirmation Modal */}
       {showExitConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <GlassCard className="max-w-md w-full">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-              {t('ebios.unsavedChangesTitle')}
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <GlassCard className="max-w-md w-full p-6 shadow-2xl border-white/20">
+            <div className="flex items-center gap-3 mb-4 text-amber-500">
+              <div className="p-2 bg-amber-500/10 rounded-lg">
+                <div className="w-6 h-6 rounded-full border-2 border-amber-500 flex items-center justify-center">?</div>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                {t('ebios.unsavedChangesTitle')}
+              </h3>
+            </div>
+
+            <p className="text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">
               {t('ebios.unsavedChangesMessage')}
             </p>
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowExitConfirm(false)}
-                className="px-4 py-2 rounded-xl font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="px-5 py-2.5 rounded-xl font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={() => navigate(-1)}
-                className="px-4 py-2 rounded-xl font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="px-5 py-2.5 rounded-xl font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 {t('common.discardChanges')}
               </button>
               <button
                 onClick={confirmExit}
-                className="px-4 py-2 rounded-xl font-medium bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+                className="px-6 py-2.5 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5"
               >
                 {t('common.saveAndExit')}
               </button>

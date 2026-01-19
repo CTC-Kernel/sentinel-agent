@@ -16,7 +16,6 @@ import {
   BarChart3,
   Plus,
   ChevronDown,
-  ChevronUp,
   Trash2,
   AlertTriangle,
   CheckCircle,
@@ -268,523 +267,625 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <GlassCard className="text-center">
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{operationalScenarios.length}</p>
-          <p className="text-sm text-gray-500 mt-1">{t('ebios.workshop5.totalRisks')}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-indigo-200/50 dark:border-indigo-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{operationalScenarios.length}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop5.totalRisks')}</p>
         </GlassCard>
-        <GlassCard className="text-center">
-          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{treatedCount}</p>
-          <p className="text-sm text-gray-500 mt-1">{t('ebios.workshop5.treatedRisks')}</p>
+
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-blue-200/50 dark:border-blue-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{treatedCount}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop5.treatedRisks')}</p>
         </GlassCard>
-        <GlassCard className="text-center">
-          <p className="text-3xl font-bold text-green-600 dark:text-green-400">{acceptedCount}</p>
-          <p className="text-sm text-gray-500 mt-1">{t('ebios.workshop5.acceptedRisks')}</p>
+
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-green-200/50 dark:border-green-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
+            <CheckCircle className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{acceptedCount}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop5.acceptedRisks')}</p>
         </GlassCard>
-        <GlassCard className="text-center">
-          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{averageEffectiveness}%</p>
-          <p className="text-sm text-gray-500 mt-1">{t('ebios.workshop5.avgEffectiveness')}</p>
+
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-purple-200/50 dark:border-purple-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+            <BarChart3 className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">{averageEffectiveness}%</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop5.avgEffectiveness')}</p>
         </GlassCard>
       </div>
 
       {/* Treatment Overview Progress */}
-      <GlassCard>
+      <GlassCard className="animate-fade-in-up delay-100">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <FileCheck className="w-5 h-5 text-blue-500" />
+          <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600">
+              <FileCheck className="w-4 h-4" />
+            </div>
             {t('ebios.workshop5.treatmentProgress')}
           </h3>
-          <span className="text-sm text-gray-500">
+          <span className="text-xs font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
             {treatedCount}/{operationalScenarios.length} {t('ebios.workshop5.scenarios')}
           </span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+
+        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-4 overflow-hidden border border-slate-200 dark:border-slate-700 p-0.5">
           <div
-            className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full transition-all duration-700 ease-out shadow-sm relative group"
             style={{ width: `${operationalScenarios.length > 0 ? (treatedCount / operationalScenarios.length) * 100 : 0}%` }}
-          />
+          >
+            <div className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-colors animate-pulse-slow"></div>
+          </div>
         </div>
-        <div className="flex justify-between mt-4 text-xs text-gray-500">
-          <span>{t('ebios.workshop5.strategyDistribution')}</span>
-        </div>
-        <div className="flex gap-2 mt-2">
-          {TREATMENT_STRATEGIES.map((strategy) => {
-            const count = data.treatmentPlan.filter(tp => tp.strategy === strategy.value).length;
-            return (
-              <div
-                key={strategy.value}
-                className={cn(
-                  "flex-1 p-2 rounded-lg text-center",
-                  `bg-${strategy.color}-50 dark:bg-${strategy.color}-900/20`
-                )}
-              >
-                <p className={cn("text-lg font-bold", `text-${strategy.color}-600 dark:text-${strategy.color}-400`)}>
-                  {count}
-                </p>
-                <p className="text-xs text-gray-500">{strategy.label[locale]}</p>
-              </div>
-            );
-          })}
+
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700"></div>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{t('ebios.workshop5.strategyDistribution')}</span>
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700"></div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {TREATMENT_STRATEGIES.map((strategy) => {
+              const count = data.treatmentPlan.filter(tp => tp.strategy === strategy.value).length;
+              return (
+                <div
+                  key={strategy.value}
+                  className={cn(
+                    "flex flex-col items-center p-3 rounded-xl border transition-all duration-300 hover:shadow-md",
+                    `bg-${strategy.color}-50/50 dark:bg-${strategy.color}-900/10`,
+                    `border-${strategy.color}-100 dark:border-${strategy.color}-800/30`,
+                    `hover:border-${strategy.color}-200 dark:hover:border-${strategy.color}-700`
+                  )}
+                >
+                  <span className={cn("text-2xl font-bold mb-1", `text-${strategy.color}-600 dark:text-${strategy.color}-400`)}>
+                    {count}
+                  </span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{strategy.label[locale]}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </GlassCard>
 
       {/* Risk Treatment List */}
-      {operationalScenarios.length === 0 ? (
-        <GlassCard>
-          <div className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-500">{t('ebios.workshop5.noOperationalScenarios')}</p>
-            <p className="text-sm text-gray-400 mt-1">{t('ebios.workshop5.completeWorkshop4First')}</p>
-          </div>
-        </GlassCard>
-      ) : (
-        <div className="space-y-4">
-          {operationalScenarios.map((opScenario) => {
-            const strategicScenario = getStrategicScenario(opScenario);
-            const treatment = getTreatmentPlan(opScenario.id);
-            const residualRisk = getResidualRisk(opScenario.id);
-            const isExpanded = expandedScenario === opScenario.id;
+      <div className="space-y-6">
+        {operationalScenarios.length === 0 ? (
+          <GlassCard className="animate-fade-in-up delay-200">
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+              </div>
+              <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                {t('ebios.workshop5.noOperationalScenarios')}
+              </h4>
+              <p className="text-slate-500">{t('ebios.workshop5.completeWorkshop4First')}</p>
+            </div>
+          </GlassCard>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 animate-fade-in-up delay-200">
+              <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                {t('ebios.workshop5.helpText', 'Définissez la stratégie de traitement pour chaque risque. L\'objectif est de ramener le risque résiduel à un niveau acceptable.')}
+              </p>
+            </div>
 
-            const gravity = strategicScenario?.gravity || 2;
-            const initialRiskLevel = getRiskLevel(gravity, opScenario.likelihood);
-            const initialRiskColor = getRiskColor(initialRiskLevel);
+            {operationalScenarios.map((opScenario, index) => {
+              const strategicScenario = getStrategicScenario(opScenario);
+              const treatment = getTreatmentPlan(opScenario.id);
+              const residualRisk = getResidualRisk(opScenario.id);
+              const isExpanded = expandedScenario === opScenario.id;
 
-            const residualRiskLevel = residualRisk
-              ? getRiskLevel(
-                Math.ceil(residualRisk.residualRiskLevel / opScenario.likelihood),
-                opScenario.likelihood
-              )
-              : initialRiskLevel;
-            const residualRiskColor = getRiskColor(residualRiskLevel);
+              const gravity = strategicScenario?.gravity || 2;
+              const initialRiskLevel = getRiskLevel(gravity, opScenario.likelihood);
+              const initialRiskColor = getRiskColor(initialRiskLevel);
 
-            return (
-              <GlassCard key={opScenario.id} className="overflow-hidden">
-                {/* Scenario Header */}
-                <div
-                  onClick={() => setExpandedScenario(isExpanded ? null : opScenario.id)}
-                  className="flex items-center justify-between cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/50 -m-4 p-4 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Risk Badge */}
-                    <div className="flex flex-col items-center gap-1">
-                      <span className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-bold",
-                        `bg-${initialRiskColor}-100 dark:bg-${initialRiskColor}-900/30`,
-                        `text-${initialRiskColor}-700 dark:text-${initialRiskColor}-400`
-                      )}>
-                        R{opScenario.riskLevel}
-                      </span>
-                      {residualRisk && (
-                        <span className={cn(
-                          "px-2 py-0.5 rounded text-[10px] font-medium",
-                          `bg-${residualRiskColor}-100 dark:bg-${residualRiskColor}-900/30`,
-                          `text-${residualRiskColor}-700 dark:text-${residualRiskColor}-400`
-                        )}>
-                          → R{residualRisk.residualRiskLevel}
-                        </span>
-                      )}
-                    </div>
+              const residualRiskLevel = residualRisk
+                ? getRiskLevel(
+                  Math.ceil(residualRisk.residualRiskLevel / opScenario.likelihood),
+                  opScenario.likelihood
+                )
+                : initialRiskLevel;
+              const residualRiskColor = getRiskColor(residualRiskLevel);
 
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white">
-                        {opScenario.name}
-                      </h4>
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        {strategicScenario?.name} · G{gravity} × V{opScenario.likelihood}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {/* Treatment Status */}
-                    {treatment ? (
-                      <div className="flex items-center gap-2">
-                        {TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy) && (
-                          <span className={cn(
-                            "flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium",
-                            `bg-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-100`,
-                            `text-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-700`,
-                            `dark:bg-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-900/30`,
-                            `dark:text-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-400`
+              return (
+                <div key={opScenario.id} className={`animate-fade-in-up delay-${(index + 3) * 100}`}>
+                  <GlassCard className={cn(
+                    "overflow-hidden transition-all duration-300 hover:shadow-lg",
+                    isExpanded ? "ring-1 ring-blue-500/20" : ""
+                  )}>
+                    {/* Scenario Header */}
+                    <div
+                      onClick={() => setExpandedScenario(isExpanded ? null : opScenario.id)}
+                      className="flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/50 -m-6 p-6 transition-colors"
+                    >
+                      <div className="flex items-center gap-5">
+                        {/* Risk Badge Transition */}
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "flex flex-col items-center justify-center w-14 h-14 rounded-xl shadow-sm border transition-all",
+                            `bg-${initialRiskColor}-50 dark:bg-${initialRiskColor}-900/20`,
+                            `border-${initialRiskColor}-100 dark:border-${initialRiskColor}-800`,
+                            `text-${initialRiskColor}-700 dark:text-${initialRiskColor}-400`
                           )}>
-                            {React.createElement(
-                              TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.icon || ShieldCheck,
-                              { className: 'w-3.5 h-3.5' }
-                            )}
-                            {TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.label[locale]}
-                          </span>
-                        )}
-                        {residualRisk?.acceptedBy && (
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-400">{t('ebios.workshop5.notTreated')}</span>
-                    )}
-
-                    {isExpanded ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    )}
-                  </div>
-                </div>
-
-                {/* Expanded Content */}
-                {isExpanded && (
-                  <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50 space-y-6">
-                    {/* Treatment Strategy Selection */}
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4" />
-                        {t('ebios.workshop5.treatmentStrategy')}
-                      </h5>
-
-                      {!treatment ? (
-                        <button
-                          onClick={() => handleCreateTreatment(opScenario.id)}
-                          disabled={readOnly}
-                          className="w-full py-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors flex items-center justify-center gap-2 text-gray-500 hover:text-blue-600"
-                        >
-                          <Plus className="w-5 h-5" />
-                          {t('ebios.workshop5.defineTreatment')}
-                        </button>
-                      ) : (
-                        <div className="space-y-4">
-                          {/* Strategy Cards */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {TREATMENT_STRATEGIES.map((strategy) => {
-                              const isSelected = treatment.strategy === strategy.value;
-                              const StrategyIcon = strategy.icon;
-                              return (
-                                <button
-                                  key={strategy.value}
-                                  onClick={() => !readOnly && handleUpdateTreatment(opScenario.id, { strategy: strategy.value })}
-                                  disabled={readOnly}
-                                  className={cn(
-                                    "p-4 rounded-xl border-2 transition-all text-left",
-                                    isSelected
-                                      ? `border-${strategy.color}-500 bg-${strategy.color}-50 dark:bg-${strategy.color}-900/20`
-                                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                                  )}
-                                >
-                                  <StrategyIcon className={cn(
-                                    "w-6 h-6 mb-2",
-                                    isSelected
-                                      ? `text-${strategy.color}-600 dark:text-${strategy.color}-400`
-                                      : "text-gray-400"
-                                  )} />
-                                  <p className={cn(
-                                    "font-medium text-sm",
-                                    isSelected
-                                      ? `text-${strategy.color}-700 dark:text-${strategy.color}-300`
-                                      : "text-gray-700 dark:text-gray-300"
-                                  )}>
-                                    {strategy.label[locale]}
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {strategy.description[locale]}
-                                  </p>
-                                </button>
-                              );
-                            })}
+                            <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">Initial</span>
+                            <span className="text-xl font-bold leading-none">R{opScenario.riskLevel}</span>
                           </div>
 
-                          {/* Strategy Justification */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              {t('ebios.workshop5.strategyJustification')}
-                            </label>
-                            {!readOnly ? (
-                              <textarea
-                                value={treatment.strategyJustification || ''}
-                                onChange={(e) => handleUpdateTreatment(opScenario.id, { strategyJustification: e.target.value })}
-                                placeholder={t('ebios.workshop5.justificationPlaceholder')}
-                                rows={2}
-                                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm resize-none"
-                              />
-                            ) : (
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {treatment.strategyJustification || '-'}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Implementation Details (for mitigate/transfer strategies) */}
-                          {(treatment.strategy === 'mitigate' || treatment.strategy === 'transfer') && (
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                                    <UserCircle className="w-4 h-4" />
-                                    {t('ebios.workshop5.responsible')}
-                                  </label>
-                                  {!readOnly ? (
-                                    <input
-                                      type="text"
-                                      value={treatment.responsibleId || ''}
-                                      onChange={(e) => handleUpdateTreatment(opScenario.id, { responsibleId: e.target.value })}
-                                      placeholder={t('ebios.workshop5.responsiblePlaceholder')}
-                                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
-                                    />
-                                  ) : (
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      {treatment.responsibleId || '-'}
-                                    </p>
-                                  )}
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                                    <Calendar className="w-4 h-4" />
-                                    {t('ebios.workshop5.deadline')}
-                                  </label>
-                                  {!readOnly ? (
-                                    <input
-                                      type="date"
-                                      value={treatment.deadline || ''}
-                                      onChange={(e) => handleUpdateTreatment(opScenario.id, { deadline: e.target.value })}
-                                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
-                                    />
-                                  ) : (
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      {treatment.deadline || '-'}
-                                    </p>
-                                  )}
-                                </div>
+                          {residualRisk && (
+                            <>
+                              <div className="text-slate-300 dark:text-slate-600">
+                                <TrendingDown className="w-5 h-5 -rotate-90" />
                               </div>
-
-                              {/* ISO 27002 Control Selection - Story 19.2 */}
-                              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                                <div className="flex items-center justify-between mb-3">
-                                  <label className="text-sm font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2">
-                                    <Shield className="w-4 h-4" />
-                                    {t('ebios.workshop5.selectedControls')}
-                                  </label>
-                                  {!readOnly && (
-                                    <button
-                                      onClick={() => setShowControlSelector(opScenario.id)}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
-                                    >
-                                      <Plus className="w-4 h-4" />
-                                      {t('ebios.workshop5.selectControls')}
-                                    </button>
-                                  )}
-                                </div>
-
-                                {/* Suggested controls hint */}
-                                {getSuggestedControls(opScenario.id).length > 0 && treatment.selectedControlIds.length === 0 && (
-                                  <div className="flex items-center gap-2 mb-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                                    <Sparkles className="w-4 h-4 text-purple-500" />
-                                    <span className="text-xs text-purple-700 dark:text-purple-400">
-                                      {t('ebios.workshop5.controlSuggestionsAvailable', { count: getSuggestedControls(opScenario.id).length })}
-                                    </span>
-                                  </div>
-                                )}
-
-                                {/* Selected controls list */}
-                                {treatment.selectedControlIds.length > 0 ? (
-                                  <div className="space-y-2">
-                                    {treatment.selectedControlIds.map((code) => (
-                                      <div
-                                        key={code}
-                                        className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded-lg border border-blue-200 dark:border-blue-800"
-                                      >
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-mono text-xs text-blue-600 dark:text-blue-400">{code}</span>
-                                          <span className="text-sm text-gray-700 dark:text-gray-300">{getControlName(code)}</span>
-                                        </div>
-                                        {!readOnly && (
-                                          <button
-                                            onClick={() => handleUpdateControls(opScenario.id, treatment.selectedControlIds.filter(c => c !== code))}
-                                            className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                                          >
-                                            <XCircle className="w-4 h-4" />
-                                          </button>
-                                        )}
-                                      </div>
-                                    ))}
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                                      {treatment.selectedControlIds.length} {locale === 'fr' ? 'contrôle(s) sélectionné(s)' : 'control(s) selected'}
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <p className="text-sm text-blue-600 dark:text-blue-400 italic">
-                                    {t('ebios.workshop5.noControlsSelected')}
-                                  </p>
-                                )}
+                              <div className={cn(
+                                "flex flex-col items-center justify-center w-14 h-14 rounded-xl shadow-sm border transition-all",
+                                `bg-${residualRiskColor}-50 dark:bg-${residualRiskColor}-900/20`,
+                                `border-${residualRiskColor}-100 dark:border-${residualRiskColor}-800`,
+                                `text-${residualRiskColor}-700 dark:text-${residualRiskColor}-400`
+                              )}>
+                                <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">Resid.</span>
+                                <span className="text-xl font-bold leading-none">R{residualRisk.residualRiskLevel}</span>
                               </div>
-                            </div>
+                            </>
                           )}
-
-                          {/* Status */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              {t('ebios.workshop5.implementationStatus')}
-                            </label>
-                            <div className="flex gap-2">
-                              {TREATMENT_STATUS_OPTIONS.map((status) => (
-                                <button
-                                  key={status.value}
-                                  onClick={() => !readOnly && handleUpdateTreatment(opScenario.id, { status: status.value })}
-                                  disabled={readOnly}
-                                  className={cn(
-                                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                    treatment.status === status.value
-                                      ? `bg-${status.color}-500 text-white`
-                                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200"
-                                  )}
-                                >
-                                  {status.label[locale]}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Residual Risk Assessment */}
-                    {treatment && treatment.strategy !== 'accept' && (
-                      <div className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                          <BarChart3 className="w-4 h-4" />
-                          {t('ebios.workshop5.residualRiskAssessment')}
-                        </h5>
-
-                        <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl space-y-4">
-                          {/* Control Effectiveness Slider */}
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <label className="text-sm text-gray-600 dark:text-gray-400">
-                                {t('ebios.workshop5.controlEffectiveness')}
-                              </label>
-                              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                {residualRisk?.controlEffectiveness || 0}%
-                              </span>
-                            </div>
-                            {!readOnly ? (
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="5"
-                                value={residualRisk?.controlEffectiveness || 0}
-                                onChange={(e) => handleUpdateResidualRisk(opScenario.id, Number(e.target.value))}
-                                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                              />
-                            ) : (
-                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div
-                                  className="bg-blue-500 h-2 rounded-full"
-                                  style={{ width: `${residualRisk?.controlEffectiveness || 0}%` }}
-                                />
-                              </div>
-                            )}
-                            <div className="flex justify-between text-xs text-gray-400 mt-1">
-                              <span>0%</span>
-                              <span>25%</span>
-                              <span>50%</span>
-                              <span>75%</span>
-                              <span>100%</span>
-                            </div>
-                          </div>
-
-                          {/* Risk Comparison */}
-                          <div className="flex items-center justify-center gap-8 py-4">
-                            <div className="text-center">
-                              <p className="text-xs text-gray-500 mb-1">{t('ebios.workshop5.initialRisk')}</p>
-                              <span className={cn(
-                                "inline-block px-4 py-2 rounded-xl text-lg font-bold",
-                                `bg-${initialRiskColor}-100 dark:bg-${initialRiskColor}-900/30`,
-                                `text-${initialRiskColor}-700 dark:text-${initialRiskColor}-400`
-                              )}>
-                                R{opScenario.riskLevel}
-                              </span>
-                            </div>
-                            <TrendingDown className="w-6 h-6 text-gray-400" />
-                            <div className="text-center">
-                              <p className="text-xs text-gray-500 mb-1">{t('ebios.workshop5.residualRisk')}</p>
-                              <span className={cn(
-                                "inline-block px-4 py-2 rounded-xl text-lg font-bold",
-                                residualRisk
-                                  ? `bg-${residualRiskColor}-100 dark:bg-${residualRiskColor}-900/30 text-${residualRiskColor}-700 dark:text-${residualRiskColor}-400`
-                                  : "bg-gray-100 dark:bg-gray-800 text-gray-400"
-                              )}>
-                                R{residualRisk?.residualRiskLevel || opScenario.riskLevel}
-                              </span>
-                            </div>
+                        <div>
+                          <h4 className={cn(
+                            "text-lg font-bold transition-colors",
+                            isExpanded ? "text-blue-600 dark:text-blue-400" : "text-slate-900 dark:text-white"
+                          )}>
+                            {opScenario.name}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
+                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                              {strategicScenario?.name}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                            <span>G{gravity} × V{opScenario.likelihood}</span>
                           </div>
                         </div>
                       </div>
-                    )}
 
-                    {/* Risk Acceptance */}
-                    {treatment && residualRisk && (
-                      <div className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                          <ClipboardCheck className="w-4 h-4" />
-                          {t('ebios.workshop5.riskAcceptance')}
-                        </h5>
-
-                        {residualRisk.acceptedBy ? (
-                          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                            <div className="flex items-center gap-3">
-                              <CheckCircle className="w-8 h-8 text-green-500" />
-                              <div>
-                                <p className="font-medium text-green-700 dark:text-green-400">
-                                  {t('ebios.workshop5.riskAccepted')}
-                                </p>
-                                <p className="text-sm text-green-600 dark:text-green-500">
-                                  {residualRisk.acceptanceDate && new Date(residualRisk.acceptanceDate).toLocaleDateString(locale)}
-                                </p>
-                              </div>
-                            </div>
-                            {residualRisk.acceptanceJustification && (
-                              <p className="mt-3 text-sm text-green-600 dark:text-green-500 italic">
-                                "{residualRisk.acceptanceJustification}"
-                              </p>
+                      <div className="flex items-center gap-4">
+                        {/* Treatment Status Badge */}
+                        {treatment ? (
+                          <div className="flex items-center gap-3">
+                            {TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy) && (
+                              <span className={cn(
+                                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm",
+                                `bg-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-50`,
+                                `text-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-700`,
+                                `border-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-200`,
+                                `dark:bg-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-900/30`,
+                                `dark:text-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-400`,
+                                `dark:border-${TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.color}-800`
+                              )}>
+                                {React.createElement(
+                                  TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.icon || ShieldCheck,
+                                  { className: 'w-3.5 h-3.5' }
+                                )}
+                                {TREATMENT_STRATEGIES.find(s => s.value === treatment.strategy)?.label[locale]}
+                              </span>
                             )}
+
+                            {residualRisk?.acceptedBy ? (
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800" title={t('ebios.workshop5.riskAccepted')}>
+                                <CheckCircle className="w-5 h-5" />
+                              </div>
+                            ) : treatment.status === 'completed' ? (
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800" title={t('ebios.workshop5.treatmentCompleted')}>
+                                <CheckCircle className="w-5 h-5" />
+                              </div>
+                            ) : null}
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
-                            <div className="flex items-center gap-3">
-                              <AlertTriangle className="w-6 h-6 text-amber-500" />
-                              <p className="text-sm text-amber-700 dark:text-amber-400">
-                                {t('ebios.workshop5.pendingAcceptance')}
-                              </p>
+                          <span className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-bold uppercase tracking-wide border border-slate-200 dark:border-slate-700">
+                            {t('ebios.workshop5.notTreated')}
+                          </span>
+                        )}
+
+                        <div className={cn(
+                          "p-2 rounded-full transition-all duration-300",
+                          isExpanded
+                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 rotate-180"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
+                        )}>
+                          <ChevronDown className="w-5 h-5" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Expanded Content */}
+                    {isExpanded && (
+                      <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                          {/* Left Column: Treatment Strategy */}
+                          <div className="lg:col-span-7 space-y-6">
+                            <div>
+                              <h5 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
+                                <ShieldCheck className="w-4 h-4 text-blue-500" />
+                                {t('ebios.workshop5.treatmentStrategy')}
+                              </h5>
+
+                              {!treatment ? (
+                                <button
+                                  onClick={() => handleCreateTreatment(opScenario.id)}
+                                  disabled={readOnly}
+                                  className="w-full py-8 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all group/add flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-blue-600"
+                                >
+                                  <div className="p-3 rounded-full bg-slate-100 dark:bg-slate-800 group-hover/add:bg-blue-100 dark:group-hover/add:bg-blue-900/30 transition-colors">
+                                    <Plus className="w-6 h-6" />
+                                  </div>
+                                  <span className="font-medium">{t('ebios.workshop5.defineTreatment')}</span>
+                                </button>
+                              ) : (
+                                <div className="space-y-6">
+                                  {/* Strategy Cards */}
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {TREATMENT_STRATEGIES.map((strategy) => {
+                                      const isSelected = treatment.strategy === strategy.value;
+                                      const StrategyIcon = strategy.icon;
+                                      return (
+                                        <button
+                                          key={strategy.value}
+                                          onClick={() => !readOnly && handleUpdateTreatment(opScenario.id, { strategy: strategy.value })}
+                                          disabled={readOnly}
+                                          className={cn(
+                                            "relative p-4 rounded-xl border-2 transition-all text-left overflow-hidden group/card",
+                                            isSelected
+                                              ? `border-${strategy.color}-500 bg-${strategy.color}-50 dark:bg-${strategy.color}-900/20 shadow-md`
+                                              : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                          )}
+                                        >
+                                          {isSelected && (
+                                            <div className={cn("absolute top-0 right-0 p-1 rounded-bl-lg text-white", `bg-${strategy.color}-500`)}>
+                                              <CheckCircle className="w-3.5 h-3.5" />
+                                            </div>
+                                          )}
+                                          <StrategyIcon className={cn(
+                                            "w-6 h-6 mb-2 transition-transform group-hover/card:scale-110",
+                                            isSelected
+                                              ? `text-${strategy.color}-600 dark:text-${strategy.color}-400`
+                                              : "text-slate-400 group-hover/card:text-slate-600 dark:group-hover/card:text-slate-300"
+                                          )} />
+                                          <p className={cn(
+                                            "font-bold text-sm mb-0.5",
+                                            isSelected
+                                              ? `text-${strategy.color}-700 dark:text-${strategy.color}-300`
+                                              : "text-slate-700 dark:text-slate-300"
+                                          )}>
+                                            {strategy.label[locale]}
+                                          </p>
+                                          <p className="text-[10px] leading-tight text-slate-500 line-clamp-2">
+                                            {strategy.description[locale]}
+                                          </p>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* Strategy Details Form */}
+                                  <div className="bg-slate-50/80 dark:bg-slate-800/30 rounded-xl p-5 border border-slate-200/50 dark:border-slate-700/50 space-y-4">
+                                    {/* Justification */}
+                                    <div>
+                                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+                                        {t('ebios.workshop5.strategyJustification')}
+                                      </label>
+                                      {!readOnly ? (
+                                        <textarea
+                                          value={treatment.strategyJustification || ''}
+                                          onChange={(e) => handleUpdateTreatment(opScenario.id, { strategyJustification: e.target.value })}
+                                          placeholder={t('ebios.workshop5.justificationPlaceholder')}
+                                          rows={2}
+                                          className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm resize-none"
+                                        />
+                                      ) : (
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 italic">
+                                          {treatment.strategyJustification || '-'}
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    {/* Implementation Details */}
+                                    {(treatment.strategy === 'mitigate' || treatment.strategy === 'transfer') && (
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                            <UserCircle className="w-3.5 h-3.5" />
+                                            {t('ebios.workshop5.responsible')}
+                                          </label>
+                                          {!readOnly ? (
+                                            <input
+                                              type="text"
+                                              value={treatment.responsibleId || ''}
+                                              onChange={(e) => handleUpdateTreatment(opScenario.id, { responsibleId: e.target.value })}
+                                              placeholder={t('ebios.workshop5.responsiblePlaceholder')}
+                                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                            />
+                                          ) : (
+                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                              {treatment.responsibleId || '-'}
+                                            </p>
+                                          )}
+                                        </div>
+                                        <div>
+                                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            {t('ebios.workshop5.deadline')}
+                                          </label>
+                                          {!readOnly ? (
+                                            <input
+                                              type="date"
+                                              value={treatment.deadline || ''}
+                                              onChange={(e) => handleUpdateTreatment(opScenario.id, { deadline: e.target.value })}
+                                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                            />
+                                          ) : (
+                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                              {treatment.deadline || '-'}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Controls Selection */}
+                                    {(treatment.strategy === 'mitigate' || treatment.strategy === 'transfer') && (
+                                      <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                                        <div className="flex items-center justify-between mb-3">
+                                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
+                                            <Shield className="w-3.5 h-3.5 text-blue-500" />
+                                            {t('ebios.workshop5.selectedControls')}
+                                          </label>
+                                          {!readOnly && (
+                                            <button
+                                              onClick={() => setShowControlSelector(opScenario.id)}
+                                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                            >
+                                              <Plus className="w-3.5 h-3.5" />
+                                              {t('ebios.workshop5.selectControls')}
+                                            </button>
+                                          )}
+                                        </div>
+
+                                        {/* Suggested controls hint */}
+                                        {getSuggestedControls(opScenario.id).length > 0 && treatment.selectedControlIds.length === 0 && (
+                                          <div className="flex items-center gap-2 mb-3 p-2.5 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                                            <Sparkles className="w-4 h-4 text-purple-500" />
+                                            <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                                              {t('ebios.workshop5.controlSuggestionsAvailable', { count: getSuggestedControls(opScenario.id).length })}
+                                            </span>
+                                          </div>
+                                        )}
+
+                                        {/* Selected controls list */}
+                                        {treatment.selectedControlIds.length > 0 ? (
+                                          <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                                            {treatment.selectedControlIds.map((code) => (
+                                              <div
+                                                key={code}
+                                                className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"
+                                              >
+                                                <div className="flex items-center gap-3">
+                                                  <div className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-mono font-bold">
+                                                    {code}
+                                                  </div>
+                                                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 line-clamp-1">{getControlName(code)}</span>
+                                                </div>
+                                                {!readOnly && (
+                                                  <button
+                                                    onClick={() => handleUpdateControls(opScenario.id, treatment.selectedControlIds.filter(c => c !== code))}
+                                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                  >
+                                                    <XCircle className="w-4 h-4" />
+                                                  </button>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/50">
+                                            <p className="text-sm text-slate-400 dark:text-slate-500 italic">
+                                              {t('ebios.workshop5.noControlsSelected')}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* Action buttons */}
+                                    {!readOnly && (
+                                      <div className="flex justify-between items-center pt-2">
+                                        <div className="flex gap-2">
+                                          {TREATMENT_STATUS_OPTIONS.map((status) => (
+                                            <button
+                                              key={status.value}
+                                              onClick={() => !readOnly && handleUpdateTreatment(opScenario.id, { status: status.value })}
+                                              disabled={readOnly}
+                                              className={cn(
+                                                "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border",
+                                                treatment.status === status.value
+                                                  ? `bg-${status.color}-500 text-white border-${status.color}-500 shadow-sm`
+                                                  : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                              )}
+                                            >
+                                              {status.label[locale]}
+                                            </button>
+                                          ))}
+                                        </div>
+                                        <button
+                                          onClick={() => handleDeleteTreatment(opScenario.id)}
+                                          className="text-xs font-medium text-red-500 hover:text-red-600 hover:underline flex items-center gap-1"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                          {t('ebios.workshop5.removeTreatment')}
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            {!readOnly && (
-                              <button
-                                onClick={() => setShowAcceptanceModal(opScenario.id)}
-                                className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-colors"
-                              >
-                                {t('ebios.workshop5.acceptRisk')}
-                              </button>
+                          </div>
+
+                          {/* Right Column: Residual Risk & Acceptance */}
+                          <div className="lg:col-span-5 space-y-6">
+                            {(treatment && treatment.strategy !== 'accept') && (
+                              <div className="h-full flex flex-col">
+                                <h5 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
+                                  <BarChart3 className="w-4 h-4 text-purple-500" />
+                                  {t('ebios.workshop5.residualRiskAssessment')}
+                                </h5>
+
+                                <div className="flex-1 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col gap-6">
+                                  {/* Risk Comparison Visualization */}
+                                  <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                    <div className="text-center">
+                                      <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('ebios.workshop5.initialRisk')}</span>
+                                      <span className={cn(
+                                        "inline-block px-3 py-1 rounded-lg text-lg font-bold",
+                                        `bg-${initialRiskColor}-100 dark:bg-${initialRiskColor}-900/30`,
+                                        `text-${initialRiskColor}-700 dark:text-${initialRiskColor}-400`
+                                      )}>
+                                        R{opScenario.riskLevel}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex flex-col items-center px-4">
+                                      <TrendingDown className="w-6 h-6 text-slate-300 dark:text-slate-600 animate-bounce" />
+                                      <span className="text-xs font-bold text-green-600 dark:text-green-400">-{Math.round((residualRisk?.controlEffectiveness || 0))}%</span>
+                                    </div>
+
+                                    <div className="text-center">
+                                      <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('ebios.workshop5.residualRisk')}</span>
+                                      <span className={cn(
+                                        "inline-block px-3 py-1 rounded-lg text-lg font-bold transition-all duration-500",
+                                        residualRisk
+                                          ? `bg-${residualRiskColor}-100 dark:bg-${residualRiskColor}-900/30 text-${residualRiskColor}-700 dark:text-${residualRiskColor}-400 ring-2 ring-${residualRiskColor}-500/20`
+                                          : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                                      )}>
+                                        R{residualRisk?.residualRiskLevel || opScenario.riskLevel}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Effectiveness Control */}
+                                  <div className="flex-1 flex flex-col justify-center">
+                                    <div className="flex items-end justify-between mb-4">
+                                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        {t('ebios.workshop5.controlEffectiveness')}
+                                      </label>
+                                      <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-mono">
+                                        {residualRisk?.controlEffectiveness || 0}<span className="text-sm text-slate-400">%</span>
+                                      </span>
+                                    </div>
+
+                                    <div className="relative h-10 flex items-center">
+                                      {/* Track background */}
+                                      <div className="absolute w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div
+                                          className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300"
+                                          style={{ width: `${residualRisk?.controlEffectiveness || 0}%` }}
+                                        ></div>
+                                      </div>
+
+                                      {!readOnly ? (
+                                        <input
+                                          type="range"
+                                          min="0"
+                                          max="100"
+                                          step="5"
+                                          value={residualRisk?.controlEffectiveness || 0}
+                                          onChange={(e) => handleUpdateResidualRisk(opScenario.id, Number(e.target.value))}
+                                          className="absolute w-full h-full opacity-0 cursor-pointer z-10"
+                                        />
+                                      ) : null}
+
+                                      {/* Thumb (Visual Only if readOnly) */}
+                                      <div
+                                        className="absolute h-6 w-6 bg-white dark:bg-slate-800 rounded-full shadow-md border-2 border-blue-500 pointer-events-none transition-all duration-300 flex items-center justify-center transform -translate-x-1/2"
+                                        style={{ left: `${residualRisk?.controlEffectiveness || 0}%` }}
+                                      >
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-2">
+                                      <span>Ineffective</span>
+                                      <span>Effective</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Acceptance Status */}
+                                  <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
+                                    <h6 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                      <ClipboardCheck className="w-3.5 h-3.5" />
+                                      {t('ebios.workshop5.riskAcceptance')}
+                                    </h6>
+
+                                    {residualRisk?.acceptedBy ? (
+                                      <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800/50">
+                                        <div className="flex items-start gap-3">
+                                          <div className="p-1 rounded-full bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-400 mt-0.5">
+                                            <CheckCircle className="w-5 h-5" />
+                                          </div>
+                                          <div>
+                                            <p className="font-bold text-green-700 dark:text-green-400 text-sm">
+                                              {t('ebios.workshop5.riskAccepted')}
+                                            </p>
+                                            <p className="text-xs text-green-600 dark:text-green-500 mt-0.5">
+                                              {residualRisk.acceptanceDate && new Date(residualRisk.acceptanceDate).toLocaleDateString(locale)}
+                                            </p>
+                                            {residualRisk.acceptanceJustification && (
+                                              <p className="mt-2 text-xs text-green-600/80 dark:text-green-400/80 italic pl-2 border-l-2 border-green-200 dark:border-green-700">
+                                                "{residualRisk.acceptanceJustification}"
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800/30">
+                                        <div className="flex flex-col gap-3">
+                                          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
+                                            <AlertTriangle className="w-5 h-5" />
+                                            <span className="text-sm font-bold">{t('ebios.workshop5.pendingAcceptance')}</span>
+                                          </div>
+                                          {!readOnly && (
+                                            <button
+                                              onClick={() => setShowAcceptanceModal(opScenario.id)}
+                                              className="w-full py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-bold shadow-sm shadow-green-500/20 transition-all active:scale-95"
+                                            >
+                                              {t('ebios.workshop5.acceptRisk')}
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             )}
                           </div>
-                        )}
+                        </div>
                       </div>
                     )}
-
-                    {/* Actions */}
-                    {!readOnly && treatment && (
-                      <div className="flex justify-end pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                        <button
-                          onClick={() => handleDeleteTreatment(opScenario.id)}
-                          className="px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm flex items-center gap-1"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          {t('ebios.workshop5.removeTreatment')}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </GlassCard>
-            );
-          })}
-        </div>
-      )}
+                  </GlassCard>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Control Selector Modal - Story 19.2 */}
       {showControlSelector && (
