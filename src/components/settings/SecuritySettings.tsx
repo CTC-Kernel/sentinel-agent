@@ -131,6 +131,6 @@ export const SecuritySettings: React.FC = () => {
 
         {/* SSO Configuration */}
         <SSOManager />
-    </div >
+    </div>
     );
 };
