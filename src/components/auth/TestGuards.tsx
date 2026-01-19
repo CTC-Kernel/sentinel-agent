@@ -10,9 +10,13 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
     const [hydrated, setHydrated] = React.useState(false);
 
     // In test mode, hydrate user and allow access
+    // In test mode, hydrate user and allow access
     const isTestMode = import.meta.env.MODE === 'test' ||
         import.meta.env.VITE_USE_EMULATORS === 'true' ||
-        (typeof window !== 'undefined' && (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__);
+        (typeof window !== 'undefined' && (
+            (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__ ||
+            (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
+        ));
 
     useEffect(() => {
         if (isTestMode) {

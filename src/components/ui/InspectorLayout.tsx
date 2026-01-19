@@ -80,10 +80,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
             <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-900/50 relative overflow-hidden">
                 {/* Header Background Pattern */}
                 <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-brand-500/5 to-transparent pointer-events-none z-0" />
-                <div
-                    className="absolute top-0 right-0 w-[600px] h-[300px] opacity-[0.15] dark:opacity-[0.1] pointer-events-none z-0 bg-no-repeat bg-cover -mr-20 -mt-20 mix-blend-overlay"
-                    style={{ backgroundImage: "url('/images/generated-inspector-header-bg.png')" }}
-                />
+
 
                 {/* Sticky Tabs Header */}
                 {tabs.length > 0 && onTabChange && (

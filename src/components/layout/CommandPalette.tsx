@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Search, Command, LayoutDashboard, Siren, FolderKanban, Server, ShieldAlert, Building, Briefcase, FileText, Activity, Users, Settings, ArrowRight, Fingerprint, HelpCircle, HeartPulse, Plus, Zap } from '../ui/Icons';
-import { useStore } from '../../store';
+import { useTranslation } from 'react-i18next';
 import { useLayoutData } from '../../hooks/layout/useLayoutData';
 import { validateUrl } from '../../utils/urlValidation';
 
@@ -24,7 +24,7 @@ export const CommandPalette: React.FC = () => {
     const [queryStr, setQueryStr] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(0);
     const navigate = useNavigate();
-    const { t } = useStore();
+    const { t } = useTranslation();
     const { assets, risks, documents, incidents, projects, loading } = useLayoutData();
 
     const NAVIGATION_ITEMS: CommandItem[] = React.useMemo(() => [

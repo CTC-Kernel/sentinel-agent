@@ -53,7 +53,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                 <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                     <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
                     <div className="space-y-2 mb-4">
-                        {control.relatedAssetIds?.map(assetId => {
+                        {(Array.isArray(control.relatedAssetIds) ? control.relatedAssetIds : []).map(assetId => {
                             const asset = safeAssets.find(a => a.id === assetId);
                             return asset ? (
                                 <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
@@ -80,7 +80,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                 <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                     <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
                     <div className="space-y-2 mb-4">
-                        {control.relatedSupplierIds?.map(supplierId => {
+                        {(Array.isArray(control.relatedSupplierIds) ? control.relatedSupplierIds : []).map(supplierId => {
                             const supplier = safeSuppliers.find(s => s.id === supplierId);
                             return supplier ? (
                                 <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from '../../store';
+import { useAuth } from '../../hooks/useAuth';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { where, orderBy, limit } from 'firebase/firestore';
 import { Risk, Control, Audit, Project, StatsHistoryEntry, Document as AppDocument, Asset, SystemLog, Supplier, Incident } from '../../types';
@@ -36,8 +37,6 @@ export interface DashboardData {
     } | null;
 }
 
-
-
 // Cache for counts with organization-specific keys to prevent race conditions
 const countsCache = new Map<string, {
     timestamp: number;
@@ -68,6 +67,7 @@ const setCachedCounts = (orgId: string, value: { activeIncidentsCount: number; o
 
 export const useDashboardData = (): DashboardData => {
     const { user, demoMode } = useStore();
+    const { claimsSynced } = useAuth();
     const [manualLoading, setManualLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [organizationName, setOrganizationName] = useState<string>('');
@@ -144,10 +144,12 @@ export const useDashboardData = (): DashboardData => {
     const needsAssets = isAdmin || isDirection;
     const needsSuppliers = isAdmin || isDirection;
 
-    // Hooks - Conditional Fetching (Only if NOT demoMode)
-    const { data: controlsData, loading: controlsLoading } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && needsGlobalStats && !!user?.organizationId });
-    const { data: recentActivityData, loading: logsLoading } = useFirestoreCollection<SystemLog>('system_logs', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('timestamp', 'desc'), limit(10)], { logError: true, realtime: true, enabled: !demoMode && needsLogs && !!user?.organizationId });
-    const { data: historyStatsData, loading: historyLoading } = useFirestoreCollection<StatsHistoryEntry>('stats_history', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: !demoMode && (needsGlobalStats || isAuditor) && !!user?.organizationId });
+    // Hooks - Conditional Fetching (Only if NOT demoMode AND claimsSynced)
+    const canFetch = !demoMode && !!user?.organizationId && claimsSynced;
+
+    const { data: controlsData, loading: controlsLoading } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: canFetch && needsGlobalStats });
+    const { data: recentActivityData, loading: logsLoading } = useFirestoreCollection<SystemLog>('system_logs', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('timestamp', 'desc'), limit(10)], { logError: true, realtime: true, enabled: canFetch && needsLogs });
+    const { data: historyStatsData, loading: historyLoading } = useFirestoreCollection<StatsHistoryEntry>('stats_history', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: canFetch && (needsGlobalStats || isAuditor) });
 
     // Optimizations: Fetch only user's risks or limit to top/recent if needed.
     // For global lists (allRisks), we now rely on aggregated stats for numbers, and only fetch a small subset for "Top Risks" display if really needed.
@@ -157,7 +159,7 @@ export const useDashboardData = (): DashboardData => {
         where('score', '>=', 8), // Optimization: Only fetch significant risks
         orderBy('score', 'desc'),
         limit(20)
-    ], { logError: true, realtime: false, enabled: !demoMode && !!user?.organizationId });
+    ], { logError: true, realtime: false, enabled: canFetch });
 
     // Specific query for "My Risks" to ensure user sees their own critical risks even if not in global top 20
     const { data: myRisksData, loading: myRisksLoading } = useFirestoreCollection<Risk>('risks', [
@@ -165,23 +167,23 @@ export const useDashboardData = (): DashboardData => {
         where('ownerId', '==', user?.uid || 'ignore'),
         orderBy('score', 'desc'),
         limit(5)
-    ], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId && !!user?.uid });
+    ], { logError: true, realtime: true, enabled: canFetch && !!user?.uid });
 
     // For Assets, we typically don't show a list of 1000 assets on dashboard, just the count and maybe top value. 
     // We'll limit this too.
     const { data: topAssetsData, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [
         where('organizationId', '==', user?.organizationId || 'ignore'),
         limit(20) // Only fetch a few for display if needed
-    ], { logError: true, realtime: false, enabled: !demoMode && needsAssets && !!user?.organizationId });
+    ], { logError: true, realtime: false, enabled: canFetch && needsAssets });
 
     // Suppliers - limit
-    const { data: allSuppliersData, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(20)], { logError: true, realtime: false, enabled: !demoMode && needsSuppliers && !!user?.organizationId });
+    const { data: allSuppliersData, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(20)], { logError: true, realtime: false, enabled: canFetch && needsSuppliers });
 
     // Personal/Role specific data
-    const { data: allProjectsData, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isPM || isAdmin) && !!user?.organizationId });
-    const { data: allAuditsData, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: !demoMode && (isAuditor || isAdmin) && !!user?.organizationId });
-    const { data: allDocumentsData, loading: myDocsLoading } = useFirestoreCollection<AppDocument>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(50)], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId });
-    const { data: allIncidentsData, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '!=', 'Fermé'), limit(20)], { logError: true, realtime: true, enabled: !demoMode && !!user?.organizationId });
+    const { data: allProjectsData, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: canFetch && (isPM || isAdmin) });
+    const { data: allAuditsData, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: canFetch && (isAuditor || isAdmin) });
+    const { data: allDocumentsData, loading: myDocsLoading } = useFirestoreCollection<AppDocument>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(50)], { logError: true, realtime: true, enabled: canFetch });
+    const { data: allIncidentsData, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '!=', 'Fermé'), limit(20)], { logError: true, realtime: true, enabled: canFetch });
 
     // Unified Data Sources
     const controls = demoMode ? mockData.controls : controlsData;
@@ -246,7 +248,7 @@ export const useDashboardData = (): DashboardData => {
         return allIncidents.filter(i => i.status !== 'Fermé');
     }, [allIncidents]);
 
-    const loading = demoMode ? mockData.loading : (manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || myIncidentsLoading || myRisksLoading);
+    const loading = demoMode ? mockData.loading : (!claimsSynced || manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || myIncidentsLoading || myRisksLoading);
 
     // New State for Aggregated Stats
     const [aggregatedStats, setAggregatedStats] = useState<{
@@ -258,8 +260,11 @@ export const useDashboardData = (): DashboardData => {
 
     const fetchCounts = useCallback(async () => {
         if (demoMode) return; // Skip in demo mode
-        if (!user?.organizationId) {
-            setManualLoading(false);
+        if (!user?.organizationId || !claimsSynced) {
+            // Keep loading true while waiting for claims
+            // But only if we are still waiting for sync
+            if (!claimsSynced && user?.organizationId) setManualLoading(true);
+            else setManualLoading(false);
             return;
         }
 
@@ -272,7 +277,6 @@ export const useDashboardData = (): DashboardData => {
             if (cachedCounts) {
                 setActiveIncidentsCount(cachedCounts.activeIncidentsCount);
                 setOpenAuditsCount(cachedCounts.openAuditsCount);
-                // Can also cache aggregated stats if we extended the cache structure
             }
 
             // Fetch organization details if needed
@@ -316,7 +320,7 @@ export const useDashboardData = (): DashboardData => {
         } finally {
             setManualLoading(false);
         }
-    }, [user?.organizationId, user?.organizationName, organizationName, demoMode]);
+    }, [user?.organizationId, user?.organizationName, organizationName, demoMode, claimsSynced]);
 
     useEffect(() => {
         fetchCounts();

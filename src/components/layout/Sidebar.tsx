@@ -30,8 +30,13 @@ interface NavGroup {
   items: NavItem[];
 }
 
+import { useTranslation } from 'react-i18next';
+
+// ...
+
 export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean) => void }> = ({ mobileOpen, setMobileOpen }) => {
-  const { user, t } = useStore();
+  const { user } = useStore();
+  const { t } = useTranslation();
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);

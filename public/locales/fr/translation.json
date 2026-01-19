@@ -2,6 +2,8 @@
   "common": {
     "all": "Tous",
     "save": "Enregistrer",
+    "next": "Suivant",
+    "previous": "Précédent",
     "cancel": "Annuler",
     "delete": "Supprimer",
     "edit": "Modifier",
@@ -1140,6 +1142,7 @@
     }
   },
   "settings": {
+    "mentionsLegales": "Mentions Légales",
     "title": "Paramètres",
     "subtitle": "Configuration globale de l'organisation et préférences utilisateur.",
     "accountConnected": "Compte connecté",
@@ -1263,7 +1266,6 @@
       "discovery": "Plan Découverte"
     },
     "plansAndBilling": "Abonnement & Facturation",
-    "mentionsLegales": "Mentions Légales",
     "myProfile": "Mon Profil",
     "securityPage": {
       "mfaTitle": "Authentification à Deux Facteurs (2FA)",
@@ -1617,6 +1619,9 @@
   },
   "audits": {
     "title": "Audits",
+    "actions": {
+      "assignPartner": "Assigner un Partenaire"
+    },
     "subtitle": "Planifiez et réalisez vos audits de conformité (Interne, Externe, Fournisseur).",
     "title_admin": "Pilotage des Audits",
     "subtitle_admin": "Supervisez le programme d'audit annuel et les résultats.",
@@ -1672,6 +1677,11 @@
     "allTypes": "Tous types",
     "allStatuses": "Tous statuts",
     "form": {
+      "templates": {
+        "internal": "Vérification de conformité annuelle sur le périmètre complet.",
+        "supplier": "Évaluation de sécurité d'un hébergeur de données de santé.",
+        "access": "Revue trimestrielle des comptes à privilèges."
+      },
       "name": "Nom de l'audit",
       "namePlaceholder": "Ex: Audit Interne ISO 27001",
       "scope": "Périmètre",
@@ -1722,9 +1732,18 @@
         "description": "Description du constat",
         "descriptionPlaceholder": "Détails de l'observation...",
         "type": {
+          "observation": "Observation",
+          "nonconformity": "Non-conformité",
+          "opportunity": "Opportunité",
           "major": "Non-Conformité Majeure",
-          "minor": "Non-Conformité Mineure",
-          "opportunity": "Opportunité d'Amélioration"
+          "minor": "Non-Conformité Mineure"
+        },
+        "severity": {
+          "critical": "Critique",
+          "high": "Élevée",
+          "medium": "Moyenne",
+          "low": "Faible",
+          "info": "Info"
         },
         "linkControl": "Lier à un contrôle"
       },
@@ -1960,6 +1979,7 @@
       "completeFailed": "Erreur lors de la finalisation"
     },
     "workshop1": {
+      "importFromInventory": "Importer depuis l'inventaire",
       "missions": "Missions",
       "missionCount": "missions définies",
       "addMission": "Ajouter une mission",
@@ -2157,5 +2177,12 @@
     "validation": {
       "residualRiskTooHigh": "Le risque résiduel ne peut pas être supérieur au risque initial"
     }
+  },
+  "smsi": {
+    "newProgram": "Nouveau Programme",
+    "programDetails": "Détails du Programme",
+    "targetDate": "Date Cible",
+    "title": "Programme SMSI",
+    "description": "Gérez vos programmes de sécurité et conformité."
   }
 }

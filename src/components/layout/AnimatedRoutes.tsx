@@ -58,7 +58,9 @@ import { NotFound } from '../../views/NotFound';
 
 export const AnimatedRoutes: React.FC = () => {
     const location = useLocation();
-    const isTestMode = import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true';
+    const isTestMode = import.meta.env.MODE === 'test' ||
+        import.meta.env.VITE_USE_EMULATORS === 'true' ||
+        (typeof window !== 'undefined' && (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })());
     const RoleGuardComponent = isTestMode ? TestRoleGuard : RoleGuard;
 
     const allRoles: Role[] = ['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user'];
