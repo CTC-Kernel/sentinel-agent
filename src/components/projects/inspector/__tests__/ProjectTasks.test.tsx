@@ -13,7 +13,10 @@ vi.mock('../../../ui/Icons', () => ({
     Plus: () => <span data-testid="plus-icon" />,
     CheckSquare: () => <span data-testid="check-square-icon" />,
     CalendarDays: () => <span data-testid="calendar-days-icon" />,
-    Trash2: () => <span data-testid="trash2-icon" />
+    Trash2: () => <span data-testid="trash2-icon" />,
+    X: () => <span data-testid="x-icon" />,
+    ChevronLeft: () => <span data-testid="chevron-left-icon" />,
+    ChevronRight: () => <span data-testid="chevron-right-icon" />
 }));
 
 // Mock Button
@@ -56,9 +59,9 @@ vi.mock('../../KanbanColumn', () => ({
     )
 }));
 
-// Mock TaskFormModal
-vi.mock('../../TaskFormModal', () => ({
-    TaskFormModal: ({ isOpen, onClose, onSubmit }: {
+// Mock TaskFormDrawer
+vi.mock('../../TaskFormDrawer', () => ({
+    TaskFormDrawer: ({ isOpen, onClose, onSubmit }: {
         isOpen: boolean;
         onClose: () => void;
         onSubmit: (data: Partial<ProjectTask>) => void;
@@ -95,6 +98,12 @@ vi.mock('../../../ui/ConfirmModal', () => ({
             <button onClick={onConfirm} data-testid="confirm-delete">Confirm</button>
         </div>
     ) : null
+}));
+
+// Mock Drawer
+vi.mock('../../../ui/Drawer', () => ({
+    Drawer: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
+        isOpen ? <div data-testid="drawer">{children}</div> : null
 }));
 
 // Mock calendarUtils

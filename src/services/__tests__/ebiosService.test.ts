@@ -71,6 +71,8 @@ describe('EbiosService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetEbiosCounters();
+    // Re-establish default mock implementation after clearAllMocks
+    mockDoc.mockImplementation(() => ({ id: 'mock-doc-id' }));
   });
 
   afterEach(() => {

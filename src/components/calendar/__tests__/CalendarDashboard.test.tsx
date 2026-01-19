@@ -95,6 +95,14 @@ vi.mock('../../../services/errorLogger', () => ({
     }
 }));
 
+// Mock useAuth
+vi.mock('../../../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'user-1', email: 'test@example.com' },
+        loading: false
+    })
+}));
+
 // Mock Drawer
 vi.mock('../../ui/Drawer', () => ({
     Drawer: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
@@ -105,6 +113,12 @@ vi.mock('../../ui/Drawer', () => ({
 vi.mock('../CreateEventModal', () => ({
     CreateEventModal: ({ isOpen }: { isOpen: boolean }) =>
         isOpen ? <div data-testid="create-modal">Create Event Modal</div> : null
+}));
+
+// Mock CreateEventDrawer
+vi.mock('../CreateEventDrawer', () => ({
+    CreateEventDrawer: ({ isOpen }: { isOpen: boolean }) =>
+        isOpen ? <div data-testid="create-modal">Create Event Drawer</div> : null
 }));
 
 // Mock AddToCalendar
