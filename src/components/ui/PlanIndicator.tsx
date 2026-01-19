@@ -84,6 +84,17 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; pulse?: bool
 export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', compact = false }) => {
     const { organization } = useStore();
     const [isHovered, setIsHovered] = useState(false);
+    
+    // Calculate days until renewal - move hooks before early return
+    const [currentTime, setCurrentTime] = React.useState(() => Date.now());
+    
+    React.useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(Date.now());
+        }, 60000); // Update every minute
+        
+        return () => clearInterval(timer);
+    }, []);
 
     if (!organization?.subscription) {
         return null;
@@ -98,8 +109,9 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
 
     // Calculate days until renewal
     const periodEnd = organization.subscription.currentPeriodEnd;
+    
     const daysUntilRenewal = periodEnd
-        ? Math.ceil((new Date(periodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        ? Math.ceil((new Date(periodEnd).getTime() - currentTime) / (1000 * 60 * 60 * 24))
         : null;
 
     const isTrialing = status === 'trialing';

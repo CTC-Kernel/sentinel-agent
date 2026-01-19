@@ -36,7 +36,7 @@ export const ControlEffectivenessView: React.FC = () => {
     setShowAssessmentForm(true);
   };
 
-  const handleAssessmentSubmit = async (data: any) => {
+  const handleAssessmentSubmit = async (data: { controlId: string; controlCode: string; effectivenessScore: number; assessmentMethod: string; }) => {
     await createAssessment(data);
     setShowAssessmentForm(false);
     setSelectedControl(null);

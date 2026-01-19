@@ -124,6 +124,7 @@ describe('PrivacyLinks', () => {
     const defaultProps = {
         activity: mockActivity,
         isEditing: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         form: mockForm as any,
         assetsList: mockAssetsList,
         risksList: mockRisksList

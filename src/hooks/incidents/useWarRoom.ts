@@ -138,11 +138,11 @@ export const useWarRoom = (incidentId: string) => {
     useEffect(() => {
         if (!demoMode || !user) return;
 
-        setPresence([
+        const demoPresence: WarRoomPresence[] = [
             {
                 id: user.uid || 'demo-user',
                 displayName: user.displayName || 'Demo User',
-                photoURL: user.photoURL,
+                photoURL: user.photoURL || undefined,
                 role: user.role || 'admin',
                 joinedAt: new Date(),
                 lastActive: new Date()
@@ -155,7 +155,13 @@ export const useWarRoom = (incidentId: string) => {
                 joinedAt: new Date(Date.now() - 1000 * 60 * 10),
                 lastActive: new Date()
             }
-        ] as WarRoomPresence[]);
+        ];
+
+        const timer = setTimeout(() => {
+            setPresence(demoPresence);
+        }, 0);
+
+        return () => clearTimeout(timer);
     }, [demoMode, user]);
 
     const messages = useMemo(() => {

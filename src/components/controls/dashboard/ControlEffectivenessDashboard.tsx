@@ -104,7 +104,7 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                             </span>
                         </div>
                         <div className="space-y-2">
-                            {lowEffectivenessControls.slice(0, 3).map((a: { controlId: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; id: React.Key | null | undefined; effectivenessScore: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; }) => (
+                            {lowEffectivenessControls.slice(0, 3).map((a: { controlId: string; id: string; effectivenessScore: number; }) => (
                                 <div key={a.id} className="text-sm text-amber-600 dark:text-amber-400 flex items-center justify-between">
                                     <span>{a.controlId}</span>
                                     <Badge variant="outline" size="sm">{a.effectivenessScore}%</Badge>
@@ -127,7 +127,7 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                             </span>
                         </div>
                         <div className="space-y-2">
-                            {dueForReview.slice(0, 3).map((a: { id: React.Key | null | undefined; controlId: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; }) => (
+                            {dueForReview.slice(0, 3).map((a: { id: string; controlId: string; }) => (
                                 <div key={a.id} className="text-sm text-blue-600 dark:text-blue-400">
                                     {a.controlId}
                                 </div>

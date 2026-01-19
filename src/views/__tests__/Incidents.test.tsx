@@ -74,10 +74,13 @@ vi.mock('../../hooks/incidents/useIncidentExport', () => ({
 // Mock persisted state to start on incidents tab
 vi.mock('../../hooks/usePersistedState', () => ({
     usePersistedState: (key: string, defaultVal: unknown) => {
+        const [incidentsTab] = React.useState<string>('incidents');
+        const [defaultState] = React.useState(defaultVal);
+        
         if (key === 'incidents-active-tab') {
-            return React.useState<string>('incidents');
+            return [incidentsTab, vi.fn()];
         }
-        return React.useState(defaultVal);
+        return [defaultState, vi.fn()];
     }
 }));
 

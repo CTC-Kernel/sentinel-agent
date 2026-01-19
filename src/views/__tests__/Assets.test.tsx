@@ -118,10 +118,13 @@ vi.mock('../../hooks/usePlanLimits', () => ({
 // Mock usePersistedState to return 'assets' tab so AssetList is rendered
 vi.mock('../../hooks/usePersistedState', () => ({
     usePersistedState: (key: string, defaultVal: unknown) => {
+        const [assetsTab] = React.useState<string>('assets');
+        const [defaultState] = React.useState(defaultVal);
+        
         if (key === 'assets-active-tab') {
-            return React.useState<string>('assets');
+            return [assetsTab, vi.fn()];
         }
-        return React.useState(defaultVal);
+        return [defaultState, vi.fn()];
     }
 }));
 

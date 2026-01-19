@@ -44,7 +44,7 @@ export const configureApp = (): Express => {
   });
 
   // Gestion des erreurs globales
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   app.use((_err: Error, _req: any, res: any, _next: any) => {
     res.status(500).json({
       error: 'Internal Server Error',

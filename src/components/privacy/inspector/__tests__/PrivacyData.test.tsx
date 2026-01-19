@@ -82,7 +82,7 @@ describe('PrivacyData', () => {
         setValue: mockSetValue,
         watch: mockWatch,
         formState: { errors: {} }
-    };
+    } as Record<string, unknown>;
 
     const mockActivity: ProcessingActivity = {
         id: 'activity-1',
@@ -111,6 +111,7 @@ describe('PrivacyData', () => {
     const defaultProps = {
         activity: mockActivity,
         isEditing: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         form: mockForm as any,
         onStartDPIA: mockOnStartDPIA,
         onViewDPIA: mockOnViewDPIA
