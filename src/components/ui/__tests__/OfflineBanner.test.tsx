@@ -7,6 +7,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { OfflineBanner } from '../OfflineBanner';
+import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -19,10 +20,7 @@ vi.mock('framer-motion', () => ({
 }));
 
 // Mock lucide-react
-vi.mock('lucide-react', () => ({
-    WifiOff: (props: React.ComponentProps<'svg'>) =>
-        React.createElement('svg', { ...props, 'data-testid': 'wifi-off-icon' })
-}));
+vi.mock('lucide-react', createLucideMock);
 
 describe('OfflineBanner', () => {
     let originalOnLine: boolean;

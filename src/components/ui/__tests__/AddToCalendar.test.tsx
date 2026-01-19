@@ -3,17 +3,13 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AddToCalendar, CalendarEventDetails } from '../AddToCalendar';
+import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
 // Mock lucide-react
-vi.mock('lucide-react', () => ({
-    Calendar: (props: React.ComponentProps<'svg'>) => React.createElement('svg', { ...props, 'data-testid': 'calendar-icon' }),
-    Download: (props: React.ComponentProps<'svg'>) => React.createElement('svg', { ...props, 'data-testid': 'download-icon' }),
-    ExternalLink: (props: React.ComponentProps<'svg'>) => React.createElement('svg', { ...props, 'data-testid': 'external-link-icon' })
-}));
+vi.mock('lucide-react', createLucideMock);
 
 // Mock CalendarService
 vi.mock('../../../services/calendarService', () => ({

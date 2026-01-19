@@ -8,13 +8,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { NotificationCenter } from '../NotificationCenter';
 import { Notification } from '../../../types';
+import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
 // Mock lucide-react
-vi.mock('lucide-react', () => ({
-    Bell: () => <span data-testid="bell-icon" />,
-    CheckCheck: () => <span data-testid="check-all-icon" />,
-    Filter: () => <span data-testid="filter-icon" />
-}));
+vi.mock('lucide-react', createLucideMock);
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({

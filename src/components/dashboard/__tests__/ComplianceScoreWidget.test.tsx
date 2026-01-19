@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ComplianceScoreWidget } from '../ComplianceScoreWidget';
 import type { ComplianceScore, ScoreHistory } from '../../../types/score.types';
+import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -27,15 +28,7 @@ vi.mock('../../../utils/microInteractions', () => ({
 }));
 
 // Mock lucide-react icons
-vi.mock('lucide-react', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Icon = ({ className, ...props }: any) => <span className={`icon ${className}`} {...props} />;
-  return {
-    TrendingUp: Icon,
-    TrendingDown: Icon,
-    Minus: Icon,
-  };
-});
+vi.mock('lucide-react', createLucideMock);
 
 // Mock the useComplianceScore hook
 vi.mock('../../../hooks/useComplianceScore', () => ({

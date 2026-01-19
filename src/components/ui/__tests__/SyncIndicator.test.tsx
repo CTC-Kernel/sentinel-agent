@@ -7,6 +7,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SyncIndicator } from '../SyncIndicator';
+import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
 // Mock useSyncStatus hook
 const mockUseSyncStatus = vi.fn();
@@ -36,12 +37,7 @@ vi.mock('../Tooltip', () => ({
 }));
 
 // Mock lucide-react
-vi.mock('lucide-react', () => ({
-    Cloud: (props: React.ComponentProps<'svg'>) =>
-        React.createElement('svg', { ...props, 'data-testid': 'cloud-icon' }),
-    CloudOff: (props: React.ComponentProps<'svg'>) =>
-        React.createElement('svg', { ...props, 'data-testid': 'cloud-off-icon' })
-}));
+vi.mock('lucide-react', createLucideMock);
 
 describe('SyncIndicator', () => {
     beforeEach(() => {

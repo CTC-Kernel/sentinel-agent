@@ -7,15 +7,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PrivacyData } from '../PrivacyData';
 import { ProcessingActivity } from '../../../../types';
+import { createLucideMock } from '../../../../tests/mocks/lucideMock';
 
 // Mock lucide-react icons
-vi.mock('lucide-react', () => ({
-    Shield: () => <span data-testid="shield-icon" />,
-    FileSpreadsheet: () => <span data-testid="file-spreadsheet-icon" />,
-    AlertTriangle: () => <span data-testid="alert-triangle-icon" />,
-    Eye: () => <span data-testid="eye-icon" />,
-    History: () => <span data-testid="history-icon" />
-}));
+vi.mock('lucide-react', createLucideMock);
 
 // Mock FloatingLabelInput
 vi.mock('../../../ui/FloatingLabelInput', () => ({

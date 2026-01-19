@@ -9,11 +9,18 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Breadcrumbs } from '../Breadcrumbs';
 
-// Mock lucide-react
-vi.mock('lucide-react', () => ({
-    ChevronRight: () => React.createElement('span', { 'data-testid': 'chevron-right' }),
-    Home: () => React.createElement('span', { 'data-testid': 'home-icon' })
-}));
+// Mock lucide-react - must be before any imports that use it
+vi.mock('lucide-react', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Icon = ({ className, ...props }: any) => React.createElement('span', { className: `icon ${className}`, ...props });
+    return {
+        ChevronRight: Icon,
+        Home: Icon,
+        Settings: Icon,
+        Grid3X3: Icon,
+        LockOpen: Icon,
+    };
+});
 
 const renderWithRouter = (initialRoute: string) => {
     return render(

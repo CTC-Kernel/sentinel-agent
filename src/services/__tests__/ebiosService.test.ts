@@ -5,6 +5,20 @@
  * Story: EBIOS RM Test Coverage
  */
 
+// Mock Firestore - declare before vi.mock to avoid hoisting issues
+const mockSetDoc = vi.fn().mockResolvedValue(undefined);
+const mockGetDoc = vi.fn();
+const mockUpdateDoc = vi.fn().mockResolvedValue(undefined);
+const mockDeleteDoc = vi.fn().mockResolvedValue(undefined);
+const mockGetDocs = vi.fn();
+const mockOnSnapshot = vi.fn();
+const mockDoc = vi.fn(() => ({ id: 'mock-doc-id' }));
+const mockCollection = vi.fn(() => ({}));
+const mockQuery = vi.fn(() => ({}));
+const mockWhere = vi.fn(() => ({}));
+const mockOrderBy = vi.fn(() => ({}));
+const mockLimit = vi.fn(() => ({}));
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EbiosService } from '../ebiosService';
 import {
@@ -25,19 +39,6 @@ vi.mock('../../firebase', () => ({
 }));
 
 // Mock Firestore
-const mockSetDoc = vi.fn().mockResolvedValue(undefined);
-const mockGetDoc = vi.fn();
-const mockUpdateDoc = vi.fn().mockResolvedValue(undefined);
-const mockDeleteDoc = vi.fn().mockResolvedValue(undefined);
-const mockGetDocs = vi.fn();
-const mockOnSnapshot = vi.fn();
-const mockDoc = vi.fn(() => ({ id: 'mock-doc-id' }));
-const mockCollection = vi.fn(() => ({}));
-const mockQuery = vi.fn(() => ({}));
-const mockWhere = vi.fn(() => ({}));
-const mockOrderBy = vi.fn(() => ({}));
-const mockLimit = vi.fn(() => ({}));
-
 vi.mock('firebase/firestore', () => ({
   doc: mockDoc,
   getDoc: mockGetDoc,

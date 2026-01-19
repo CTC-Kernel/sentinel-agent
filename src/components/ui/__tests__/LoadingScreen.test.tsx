@@ -7,27 +7,10 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { LoadingScreen } from '../LoadingScreen';
-
-// Mock react-dom createPortal
-vi.mock('react-dom', async () => {
-    const actual = await vi.importActual('react-dom');
-    return {
-        ...actual,
-        createPortal: (node: React.ReactNode) => node
-    };
-});
-
-// Mock Button
-vi.mock('../button', () => ({
-    Button: ({ children, onClick, className }: React.ComponentProps<'button'>) =>
-        React.createElement('button', { onClick, className, 'data-testid': 'reload-button' }, children)
-}));
+import { createLucideMock } from '../../../tests/mocks/lucideMock';
 
 // Mock lucide-react
-vi.mock('lucide-react', () => ({
-    Lock: (props: React.ComponentProps<'svg'>) =>
-        React.createElement('svg', { ...props, 'data-testid': 'lock-icon' })
-}));
+vi.mock('lucide-react', createLucideMock);
 
 describe('LoadingScreen', () => {
     beforeEach(() => {

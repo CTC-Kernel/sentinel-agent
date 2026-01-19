@@ -7,13 +7,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PrivacyDetails } from '../PrivacyDetails';
 import { ProcessingActivity, UserProfile } from '../../../../types';
+import { createLucideMock } from '../../../../tests/mocks/lucideMock';
 
 // Mock lucide-react icons
-vi.mock('lucide-react', () => ({
-    User: () => <span data-testid="user-icon" />,
-    Calendar: () => <span data-testid="calendar-icon" />,
-    Tag: () => <span data-testid="tag-icon" />
-}));
+vi.mock('lucide-react', createLucideMock);
 
 // Mock FloatingLabelInput
 vi.mock('../../../ui/FloatingLabelInput', () => ({
