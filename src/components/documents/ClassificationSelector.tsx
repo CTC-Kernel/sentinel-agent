@@ -94,19 +94,18 @@ export function ClassificationSelector({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={disabled}
-            className={cn('gap-2 justify-between min-w-[160px]', className)}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-base">{currentConfig.icon}</span>
-              <span>{currentConfig.label}</span>
-            </div>
-            <ChevronDown className="h-4 w-4 opacity-50" />
-          </Button>
+        <DropdownMenuTrigger
+          disabled={disabled}
+          className={cn(
+            'inline-flex items-center gap-2 justify-between min-w-[160px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+            className
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-base">{currentConfig.icon}</span>
+            <span>{currentConfig.label}</span>
+          </div>
+          <ChevronDown className="h-4 w-4 opacity-50" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuLabel className="flex items-center gap-2">

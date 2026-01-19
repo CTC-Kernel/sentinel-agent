@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Lock, LockOpen, Loader2, AlertTriangle } from '../ui/Icons';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import type { DocumentEncryptionMetadata } from '@/types/vault';
@@ -30,7 +30,7 @@ function getEncryptionState(encryption?: DocumentEncryptionMetadata): Encryption
 }
 
 const stateConfig: Record<EncryptionState, {
-  icon: React.ElementType;
+  icon: React.FC<{ size?: number; className?: string }>;
   color: string;
   bgColor: string;
   labelKey: string;
@@ -132,33 +132,26 @@ export function EncryptionBadge({
   );
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge
-            variant="outline"
-            className={cn(
-              'gap-1 border cursor-help transition-colors',
-              config.bgColor,
-              config.color,
-              sizes.badge,
-              className
-            )}
-          >
-            <Icon
-              size={sizes.icon}
-              className={cn(state === 'pending' && 'animate-spin')}
-            />
-            {showLabel && (
-              <span>{t(`encryption.label.${config.labelKey}`, config.labelKey)}</span>
-            )}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs">
-          {tooltipContent}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip content={tooltipContent} position="bottom">
+      <Badge
+        variant="outline"
+        className={cn(
+          'gap-1 border cursor-help transition-colors',
+          config.bgColor,
+          config.color,
+          sizes.badge,
+          className
+        )}
+      >
+        <Icon
+          size={sizes.icon}
+          className={cn(state === 'pending' && 'animate-spin')}
+        />
+        {showLabel && (
+          <span>{t(`encryption.label.${config.labelKey}`, config.labelKey)}</span>
+        )}
+      </Badge>
+    </Tooltip>
   );
 }
 

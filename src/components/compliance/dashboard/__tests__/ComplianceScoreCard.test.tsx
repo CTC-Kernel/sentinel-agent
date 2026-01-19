@@ -11,14 +11,12 @@ import { Control } from '../../../../types';
 describe('ComplianceScoreCard', () => {
     const createControl = (overrides: Partial<Control> = {}): Control => ({
         id: 'ctrl-1',
-        reference: 'A.5.1',
+        code: 'A.5.1',
         name: 'Test Control',
         description: 'Test description',
         status: 'Implémenté',
         framework: 'ISO27001',
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
         ...overrides
     });
 

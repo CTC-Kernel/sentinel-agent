@@ -1,4 +1,4 @@
-import { PrivacyRequest } from './PrivacyRequests';
+import { PrivacyRequest } from '../../types/privacy';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { User, Mail, Calendar, Flag, AlertTriangle } from '../ui/Icons';
 import { Badge } from '../ui/Badge';

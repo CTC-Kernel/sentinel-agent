@@ -67,7 +67,7 @@ interface IntegrityCertificateProps {
 const statusConfig: Record<
   IntegrityStatus,
   {
-    icon: React.ElementType;
+    icon: React.FC<{ className?: string }>;
     label: string;
     description: string;
     badgeStatus: 'success' | 'warning' | 'error' | 'neutral';

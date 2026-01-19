@@ -34,19 +34,18 @@ vi.mock('../../../ui/Badge', () => ({
 describe('ProcessGeneralDetails', () => {
     const mockProcess: BusinessProcess = {
         id: 'proc-1',
+        organizationId: 'org-1',
         name: 'Payment Processing',
         description: 'Critical payment processing workflow that handles all customer transactions.',
-        criticality: 'critical',
-        rto: 4,
-        rpo: 1,
-        mtpd: 24,
+        priority: 'Critique',
+        rto: '4h',
+        rpo: '1h',
         owner: 'user-1',
-        dependencies: ['db-1', 'service-1'],
-        status: 'active',
+        supportingAssetIds: ['db-1', 'service-1'],
         recoveryTasks: [
-            { title: 'Notify stakeholders', owner: 'Manager', duration: '15 min' },
-            { title: 'Activate backup systems', owner: 'IT Lead', duration: '30 min' },
-            { title: 'Verify data integrity', owner: 'DBA', duration: '1 hour' }
+            { id: 'task-1', title: 'Notify stakeholders', owner: 'Manager', duration: '15 min', order: 1 },
+            { id: 'task-2', title: 'Activate backup systems', owner: 'IT Lead', duration: '30 min', order: 2 },
+            { id: 'task-3', title: 'Verify data integrity', owner: 'DBA', duration: '1 hour', order: 3 }
         ]
     };
 
@@ -71,14 +70,13 @@ describe('ProcessGeneralDetails', () => {
         it('displays RTO value', () => {
             render(<ProcessGeneralDetails process={mockProcess} />);
 
-            expect(screen.getByText('4')).toBeInTheDocument();
+            expect(screen.getByText('4h')).toBeInTheDocument();
         });
 
         it('displays RPO value', () => {
             render(<ProcessGeneralDetails process={mockProcess} />);
 
-            // RPO value is 1, but multiple "1"s exist so use getAllBy
-            expect(screen.getAllByText('1').length).toBeGreaterThan(0);
+            expect(screen.getByText('1h')).toBeInTheDocument();
         });
     });
 

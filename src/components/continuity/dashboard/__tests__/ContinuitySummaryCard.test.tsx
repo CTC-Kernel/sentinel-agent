@@ -12,30 +12,33 @@ describe('ContinuitySummaryCard', () => {
     const createProcess = (overrides: Partial<BusinessProcess> = {}): BusinessProcess => ({
         id: 'proc-1',
         name: 'Test Process',
-        priority: 'Élevé',
-        status: 'Actif',
+        description: 'Test description',
+        owner: 'Test Owner',
+        rto: '4h',
+        rpo: '1h',
+        priority: 'Élevée',
+        supportingAssetIds: [],
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         ...overrides
     });
 
     const createDrill = (overrides: Partial<BcpDrill> = {}): BcpDrill => ({
         id: 'drill-1',
-        name: 'Test Drill',
-        type: 'Desktop',
-        status: 'Planifié',
+        processId: 'proc-1',
+        date: new Date().toISOString(),
+        type: 'Tabletop',
         result: 'Succès',
         organizationId: 'org-1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
         ...overrides
     });
 
     const mockProcesses: BusinessProcess[] = [
         createProcess({ id: '1', priority: 'Critique', lastTestDate: new Date().toISOString() }),
-        createProcess({ id: '2', priority: 'Élevé', lastTestDate: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000).toISOString() }), // Expired
-        createProcess({ id: '3', priority: 'Normal' })
+        createProcess({ id: '2', priority: 'Élevée', lastTestDate: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000).toISOString() }), // Expired
+        createProcess({ id: '3', priority: 'Moyenne' })
     ];
 
     const mockDrills: BcpDrill[] = [

@@ -24,7 +24,8 @@ export interface VoxelNode {
   type: VoxelNodeType;
   label: string;
   status: VoxelNodeStatus;
-  position: { x: number; y: number; z: number };
+  position: [number, number, number];
+  size: number;
   data: Record<string, unknown>;
   connections: string[];
   anomalyIds?: string[];
