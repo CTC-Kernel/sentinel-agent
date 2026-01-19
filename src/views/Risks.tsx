@@ -121,9 +121,14 @@ export const Risks: React.FC = () => {
             OnboardingService.startRisksTour();
         };
 
+        interface IOSWindow {
+            requestIdleCallback: (cb: () => void, options?: { timeout: number }) => number;
+            cancelIdleCallback: (handle: number) => void;
+        }
+
         if ('requestIdleCallback' in window) {
-            const handle = (window as any).requestIdleCallback(startTour, { timeout: 3000 });
-            return () => (window as any).cancelIdleCallback(handle);
+            const handle = (window as unknown as IOSWindow).requestIdleCallback(startTour, { timeout: 3000 });
+            return () => (window as unknown as IOSWindow).cancelIdleCallback(handle);
         } else {
             const timer = setTimeout(startTour, 1000);
             return () => clearTimeout(timer);

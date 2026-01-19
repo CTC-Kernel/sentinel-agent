@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Html, Sphere } from '@react-three/drei';
 import { AlertTriangle } from '../ui/Icons';
@@ -126,10 +126,19 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
     // Store refs for all markers to animate them in a single loop
     const markerRefs = useRef<Array<{ mesh: THREE.Mesh | null, beam: THREE.Mesh | null, position: THREE.Vector3 }>>([]);
 
-    // Reset refs when data changes
-    useMemo(() => {
-        markerRefs.current = [];
+    const markers = useMemo(() => {
+        return data.flatMap(d => d.markers.map(m => ({
+            ...m,
+            intensity: d.value,
+            country: d.country,
+            vec3: latLonToVector3(m.coordinates[1], m.coordinates[0], 2.05)
+        })));
     }, [data]);
+
+    // Cleanup refs when markers change
+    useEffect(() => {
+        markerRefs.current = markerRefs.current.slice(0, markers.length);
+    }, [markers]);
 
     useFrame((state) => {
         const t = state.clock.getElapsedTime();
@@ -141,13 +150,12 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
 
         // Animate all markers in one loop
         markerRefs.current.forEach((ref) => {
-            if (ref.mesh) {
+            if (ref && ref.mesh) {
                 const scale = 1 + Math.sin(t * 3) * 0.3;
                 ref.mesh.scale.setScalar(scale);
             }
-            if (ref.beam) {
+            if (ref && ref.beam) {
                 // Pulse beam height and opacity
-                // Note: ref.position is available if we store it, or we can use generic wave
                 ref.beam.scale.y = 1 + Math.sin(t * 2 + ref.position.x) * 0.2;
                 if (ref.beam.material instanceof THREE.MeshBasicMaterial) {
                     ref.beam.material.opacity = 0.5 + Math.sin(t * 4) * 0.2;
@@ -155,15 +163,6 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
             }
         });
     });
-
-    const markers = useMemo(() => {
-        return data.flatMap(d => d.markers.map(m => ({
-            ...m,
-            intensity: d.value,
-            country: d.country,
-            vec3: latLonToVector3(m.coordinates[1], m.coordinates[0], 2.05)
-        })));
-    }, [data]);
 
     return (
         <group ref={groupRef}>
@@ -209,15 +208,6 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
             </Sphere>
 
             {markers.map((m, i) => {
-                // Register refs immediately (render time) - mutable push is okay here as long as we reset on data change
-                // or better, use a callback ref, but simpler to just push if we are careful.
-                // Actually, best way is to set it in the component.
-                // Let's pass a callback to the child? Or just use RefObject and push to array?
-                // Wait, passing RefObject down is fine, but we need to populate markerRefs.current
-
-                // Safer approach: use a function to add to refs array.
-                if (!markerRefs.current[i]) markerRefs.current[i] = { mesh: null, beam: null, position: m.vec3 };
-
                 return (
                     <ThreatMarker
                         key={i}
@@ -227,8 +217,15 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
                         country={m.country}
                         type={m.type}
                         severity={m.severity}
-                        markerRef={(el) => { if (el) markerRefs.current[i].mesh = el }}
-                        beamRef={(el) => { if (el) markerRefs.current[i].beam = el }}
+                        markerRef={(el) => {
+                            if (!markerRefs.current[i]) markerRefs.current[i] = { mesh: el, beam: null, position: m.vec3 };
+                            else markerRefs.current[i].mesh = el;
+                            if (markerRefs.current[i]) markerRefs.current[i].position = m.vec3;
+                        }}
+                        beamRef={(el) => {
+                            if (!markerRefs.current[i]) markerRefs.current[i] = { mesh: null, beam: el, position: m.vec3 };
+                            else markerRefs.current[i].beam = el;
+                        }}
                     />
                 );
             })}
