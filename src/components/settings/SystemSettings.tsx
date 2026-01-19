@@ -1,21 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { useStore } from '../store';
+import { useStore } from '../../store';
 import { Activity, Trash2, AlertTriangle, Download } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Timestamp } from 'firebase/firestore';
-import { auth } from '../firebase';
-import { ErrorLogger } from '../services/errorLogger';
-import { DataExportService } from '../services/dataExportService';
-import { hasPermission } from '../utils/permissions';
+import { auth } from '../../firebase';
+import { ErrorLogger } from '../../services/errorLogger';
+import { DataExportService } from '../../services/dataExportService';
+import { hasPermission } from '../../utils/permissions';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { SystemLog } from '../types';
+import { SystemLog } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { useAuditLogs } from '../hooks/audit/useAuditLogs';
+import { useAuditLogs } from '../../hooks/audit/useAuditLogs';
 import { GlassCard } from '../ui/GlassCard';
 
 export const SystemSettings: React.FC = () => {
