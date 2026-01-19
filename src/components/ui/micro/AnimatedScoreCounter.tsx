@@ -138,6 +138,16 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
   const delta = previousValue !== undefined ? value - previousValue : 0;
   const shouldCelebrate = delta >= celebrateThreshold;
 
+  // Use refs for values that shouldn't trigger re-animation but are needed inside effect
+  const callbackRef = useRef(onAnimationComplete);
+  const celebrationRef = useRef({ shouldCelebrate, hasAnimated });
+
+  // Update refs
+  useEffect(() => {
+    callbackRef.current = onAnimationComplete;
+    celebrationRef.current = { shouldCelebrate, hasAnimated };
+  }, [onAnimationComplete, shouldCelebrate, hasAnimated]);
+
   // Run counter animation on mount or value change
   useEffect(() => {
     // Cleanup previous animation
@@ -145,7 +155,8 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
       animationRef.current();
     }
 
-    const startValue = hasAnimated ? displayValue : (previousValue ?? 0);
+    // We use the previous value stored in state for continuity, or the prop if first run
+    const startValue = displayValue;
     const targetValue = value;
 
     // Animate the counter
@@ -158,12 +169,13 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
         setHasAnimated(true);
 
         // Trigger celebration if threshold met
-        if (shouldCelebrate && !hasAnimated) {
+        const { shouldCelebrate: should, hasAnimated: has } = celebrationRef.current;
+        if (should && !has) {
           triggerConfetti({ particleCount: 80, spread: 60 });
           triggerHaptic('medium');
         }
 
-        onAnimationComplete?.();
+        callbackRef.current?.();
       }
     );
 
@@ -172,7 +184,10 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
         animationRef.current();
       }
     };
-  }, [value]);
+    // displayValue is updated by the animation itself, so we don't want it in dependencies to avoid loops
+    // We only want to restart animation when 'value' (target) changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, duration]);
 
   const formattedValue = displayValue.toFixed(decimals);
 

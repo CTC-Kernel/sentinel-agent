@@ -14,7 +14,7 @@
  * ```
  */
 
-import React, { Children, isValidElement, cloneElement } from 'react';
+import React, { Children, isValidElement } from 'react';
 import { motion, Variants, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { appleEasing, cardHover } from '@/utils/microInteractions';
@@ -74,20 +74,6 @@ const getDirectionOffset = (direction: AnimatedWidgetGridProps['direction']) => 
 };
 
 /**
- * Container variants for orchestrating children
- */
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-/**
  * Create item variants based on direction
  */
 const createItemVariants = (
@@ -116,14 +102,9 @@ const createItemVariants = (
     },
   };
 };
-
-/**
- * Individual animated widget wrapper
- */
 interface AnimatedWidgetItemProps extends HTMLMotionProps<'div'> {
   children: React.ReactNode;
   index: number;
-  staggerDelay: number;
   itemDuration: number;
   hoverEffect: boolean;
   direction: AnimatedWidgetGridProps['direction'];
@@ -132,7 +113,6 @@ interface AnimatedWidgetItemProps extends HTMLMotionProps<'div'> {
 const AnimatedWidgetItem: React.FC<AnimatedWidgetItemProps> = ({
   children,
   index,
-  staggerDelay,
   itemDuration,
   hoverEffect,
   direction,
@@ -144,7 +124,8 @@ const AnimatedWidgetItem: React.FC<AnimatedWidgetItemProps> = ({
     <motion.div
       variants={itemVariants}
       custom={index}
-      whileHover={hoverEffect ? cardHover : undefined}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      whileHover={hoverEffect ? (cardHover as any) : undefined}
       className="will-change-transform"
       {...props}
     >
@@ -184,7 +165,6 @@ export const AnimatedWidgetGrid: React.FC<AnimatedWidgetGridProps> = ({
       <AnimatedWidgetItem
         key={child.key || index}
         index={index}
-        staggerDelay={staggerDelay}
         itemDuration={itemDuration}
         hoverEffect={hoverEffect}
         direction={direction}
@@ -233,7 +213,8 @@ export const AnimatedWidgetCard: React.FC<AnimatedWidgetCardProps> = ({
 }) => {
   return (
     <motion.div
-      whileHover={onClick ? cardHover : undefined}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      whileHover={onClick ? (cardHover as any) : undefined}
       whileTap={onClick ? { scale: 0.98 } : undefined}
       onClick={onClick}
       className={cn(

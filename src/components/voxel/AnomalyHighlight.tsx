@@ -68,6 +68,7 @@ export const AnomalyPulseRing: React.FC<AnomalyPulseRingProps> = React.memo(({
   // Animated scale for pulse effect
   const [{ scale, opacity }] = useSpring(() => ({
     from: { scale: 1, opacity: 0.8 },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     to: async (next: any) => {
       while (visible) {
         await next({ scale: 1.5, opacity: 0 });

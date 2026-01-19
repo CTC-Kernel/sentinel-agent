@@ -9,10 +9,10 @@
  * - Pinch to scale, drag to move
  */
 
-import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { useXR, useHitTest, Interactive } from '@react-three/xr';
-import { Vector3, Matrix4, Quaternion, Mesh, Group, RingGeometry, CircleGeometry } from 'three';
+import { Vector3, Quaternion, Mesh, Group } from 'three';
 import { Html, Text } from '@react-three/drei';
 
 // ============================================================================
@@ -107,7 +107,6 @@ const ARReticle: React.FC<ARReticleProps> = ({
   position,
   rotation,
   isValid,
-  color,
   validColor,
   invalidColor,
 }) => {
@@ -399,7 +398,7 @@ export const ARPlacement: React.FC<ARPlacementProps> = ({
   // Gesture state
   const [isScaling, setIsScaling] = useState(false);
   const initialPinchDistance = useRef<number | null>(null);
-  const initialScale = useRef<number>(state.scale);
+  const initialScaleRef = useRef<number>(state.scale);
 
   // Handle hit test results
   const handleHitTest = useCallback((position: Vector3, rotation: Quaternion, isValid: boolean) => {
@@ -463,7 +462,7 @@ export const ARPlacement: React.FC<ARPlacementProps> = ({
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         initialPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
-        initialScale.current = state.scale;
+        initialScaleRef.current = state.scale;
         setIsScaling(true);
       }
     };
@@ -474,7 +473,7 @@ export const ARPlacement: React.FC<ARPlacementProps> = ({
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         const currentDistance = Math.sqrt(dx * dx + dy * dy);
         const scaleFactor = currentDistance / initialPinchDistance.current;
-        handleScaleChange(initialScale.current * scaleFactor);
+        handleScaleChange(initialScaleRef.current * scaleFactor);
       }
     };
 

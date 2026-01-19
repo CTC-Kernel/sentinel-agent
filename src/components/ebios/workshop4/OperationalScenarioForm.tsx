@@ -86,12 +86,14 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
     }
   }, [scenario, reset]);
 
+  const currentName = watch('name');
+
   // Auto-fill name when strategic scenario is selected (only for new scenarios)
   useEffect(() => {
-    if (!isEdit && selectedStrategic && !watch('name')) {
+    if (!isEdit && selectedStrategic && !currentName) {
       setValue('name', `${selectedStrategic.name} - Opérationnel`);
     }
-  }, [selectedStrategic, isEdit, setValue, watch]);
+  }, [selectedStrategic, isEdit, setValue, currentName]);
 
   const onSubmit = (data: OperationalScenarioFormData) => {
     onSave({

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Link as LinkIcon } from 'lucide-react';
+import { Link as LinkIcon } from 'lucide-react';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
@@ -60,6 +60,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
         if (isOpen) {
             const connected = !!sessionStorage.getItem('google_access_token');
             if (connected !== isGoogleConnected) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setIsGoogleConnected(connected);
             }
         }

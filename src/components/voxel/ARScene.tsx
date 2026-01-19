@@ -10,12 +10,13 @@
  */
 
 import React, { useState, useCallback, useMemo, Suspense, useRef, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { XR, ARButton, useXR, Interactive, useHitTest } from '@react-three/xr';
-import { Vector3, Quaternion, Group, Color } from 'three';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { XR, ARButton, Interactive } from '@react-three/xr'; // Removed unused imports
+import { Vector3, Quaternion, Group } from 'three'; // Removed Color
 import { Html, Text, Billboard } from '@react-three/drei';
 import type { VoxelNode, VoxelNodeType } from '@/types/voxel';
-import { ARPlacement, PlacementControls } from './ARPlacement';
+import { ARPlacement } from './ARPlacement';
+// import { PlacementControls } from './ARPlacement';
 
 // ============================================================================
 // Types
@@ -323,6 +324,7 @@ const AREdges: React.FC<AREdgesProps> = ({ nodes, scaleFactor }) => {
           count={linePoints.length / 3}
           array={linePoints}
           itemSize={3}
+          args={[linePoints, 3]}
         />
       </bufferGeometry>
       <lineBasicMaterial color="#475569" transparent opacity={0.4} linewidth={1} />
@@ -361,8 +363,8 @@ const ARSceneContent: React.FC<ARSceneContentProps> = ({
 }) => {
   const [selectedNode, setSelectedNode] = useState<VoxelNode | null>(null);
   const [placedScale, setPlacedScale] = useState(initialScale);
-  const [isPlaced, setIsPlaced] = useState(false);
-  const [placementPosition, setPlacementPosition] = useState(new Vector3());
+  // const [isPlaced, setIsPlaced] = useState(false);
+  // const [placementPosition, setPlacementPosition] = useState(new Vector3());
 
   // Handle node tap
   const handleNodeTap = useCallback(
@@ -381,15 +383,12 @@ const ARSceneContent: React.FC<ARSceneContentProps> = ({
   );
 
   // Handle placement
-  const handlePlace = useCallback((position: Vector3, _rotation: Quaternion, scale: number) => {
-    setPlacementPosition(position);
+  const handlePlace = useCallback((_position: Vector3, _rotation: Quaternion, scale: number) => {
     setPlacedScale(scale);
-    setIsPlaced(true);
   }, []);
 
   // Handle reset
   const handleReset = useCallback(() => {
-    setIsPlaced(false);
     setSelectedNode(null);
     onNodeSelect?.(null);
   }, [onNodeSelect]);
@@ -406,7 +405,6 @@ const ARSceneContent: React.FC<ARSceneContentProps> = ({
   }, [onSessionStart]);
 
   const handleSessionEnd = useCallback(() => {
-    setIsPlaced(false);
     setSelectedNode(null);
     onSessionEnd?.();
   }, [onSessionEnd]);

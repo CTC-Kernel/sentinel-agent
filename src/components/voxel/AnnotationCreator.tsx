@@ -127,7 +127,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [panelOffset, setPanelOffset] = useState(initialOffset);
-  const [isDragging, setIsDragging] = useState(false);
+  // const [isDragging, setIsDragging] = useState(false);
 
   // Initialize form with editing annotation data
   useEffect(() => {
@@ -250,7 +250,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
   // Handle drag
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    setIsDragging(true);
+    // setIsDragging(true);
 
     const startX = e.clientX - panelOffset.x;
     const startY = e.clientY - panelOffset.y;
@@ -263,7 +263,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
     };
 
     const handleMouseUp = () => {
-      setIsDragging(false);
+      // setIsDragging(false);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
@@ -333,11 +333,10 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                   <button
                     key={option.value}
                     onClick={() => setType(option.value)}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${
-                      type === option.value
-                        ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-400'
-                        : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${type === option.value
+                      ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-400'
+                      : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
+                      }`}
                   >
                     {option.icon}
                     <span className="text-xs font-medium">{option.label}</span>
@@ -369,9 +368,8 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                   <button
                     key={presetColor}
                     onClick={() => setColor(presetColor)}
-                    className={`w-8 h-8 rounded-full transition-transform hover:scale-110 ${
-                      color === presetColor ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900' : ''
-                    }`}
+                    className={`w-8 h-8 rounded-full transition-transform hover:scale-110 ${color === presetColor ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900' : ''
+                      }`}
                     style={{ backgroundColor: presetColor }}
                   />
                 ))}
@@ -386,11 +384,10 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                   <button
                     key={option.value}
                     onClick={() => setVisibility(option.value)}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${
-                      visibility === option.value
-                        ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-400'
-                        : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${visibility === option.value
+                      ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-400'
+                      : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
+                      }`}
                   >
                     {option.icon}
                     <span className="text-xs font-medium">{option.label}</span>
@@ -443,11 +440,10 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
               <button
                 onClick={handleSave}
                 disabled={isSaving || !content.trim()}
-                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  isSaving || !content.trim()
-                    ? 'bg-blue-500/30 text-blue-300/50 cursor-not-allowed'
-                    : 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25'
-                }`}
+                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${isSaving || !content.trim()
+                  ? 'bg-blue-500/30 text-blue-300/50 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25'
+                  }`}
               >
                 {isSaving ? (
                   <>
