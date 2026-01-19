@@ -77,8 +77,8 @@ class ResourceManager {
                 { col: 'projects', field: 'relatedRiskIds', array: true, label: 'Projets' }
             ],
             controls: [
-                { col: 'risks', field: 'controlIds', array: true, label: 'Risques' },
-                { col: 'audits', field: 'controlIds', array: true, label: 'Audits' }
+                { col: 'risks', field: 'mitigationControlIds', array: true, label: 'Risques' },
+                { col: 'audits', field: 'relatedControlIds', array: true, label: 'Audits' }
             ],
             suppliers: [
                 { col: 'risks', field: 'relatedSupplierIds', array: true, label: 'Risques' },
