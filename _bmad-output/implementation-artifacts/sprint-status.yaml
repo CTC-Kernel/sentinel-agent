@@ -1,4 +1,5 @@
-# generated: 2026-01-10
+# generated: 2026-01-20 (updated)
+# previous: 2026-01-10
 # project: sentinel-grc-v2-prod
 # project_key: sentinel-grc
 # tracking_system: file-system
@@ -418,3 +419,53 @@ development_status:
   34-4-ar-mobile-preview: done # ARScene.tsx + ARPlacement.tsx with hit-test and pinch-to-scale
   34-5-gltf-export-vr-headsets: done # VRExportDialog.tsx + exportForVR() in voxelExportService.ts
   epic-34-retrospective: optional
+
+  # =============================================================================
+  # Q1-Q2 2026 VERTICAL PRIORITIES (Epics 35-39)
+  # Source: epics.md v2.0 (2026-01-20 update)
+  # =============================================================================
+
+  # Epic 35: DORA ICT Register (P0 - Finance - Deadline 30 avril 2025)
+  # ADR-008 - Registre ICT automatisé pour conformité DORA Art. 28
+  epic-35: backlog
+  35-1-ict-provider-management: backlog
+  35-2-ict-risk-assessment: backlog
+  35-3-dora-register-export: backlog
+  35-4-contract-expiration-alerts: backlog
+  epic-35-retrospective: optional
+
+  # Epic 36: SCADA/ICS Integration (P1 - Industrie NIS2)
+  # ADR-009 - Connecteur SCADA/ICS pour assets OT
+  epic-36: backlog
+  36-1-ot-asset-import-wizard: backlog
+  36-2-ot-connector-configuration: backlog
+  36-3-it-ot-voxel-mapping: backlog
+  36-4-ot-vulnerability-correlation: backlog
+  epic-36-retrospective: optional
+
+  # Epic 37: Third-Party Risk Management (P1 - All Verticals)
+  # ADR-010 - Module TPRM avec questionnaires automatisés
+  epic-37: backlog
+  37-1-vendor-assessment-creation: backlog
+  37-2-vendor-self-service-portal: backlog
+  37-3-automated-vendor-scoring: backlog
+  37-4-vendor-concentration-dashboard: backlog
+  epic-37-retrospective: optional
+
+  # Epic 38: ANSSI Homologation (P0 - Public Sector)
+  # ADR-011 - Templates homologation RGS pour secteur public
+  epic-38: backlog
+  38-1-homologation-level-selector: backlog
+  38-2-homologation-document-generation: backlog
+  38-3-homologation-validity-tracking: backlog
+  38-4-ebios-homologation-link: backlog
+  epic-38-retrospective: optional
+
+  # Epic 39: Financial Risk Quantification (P1 - All Verticals)
+  # ADR-012 - Quantification financière avancée (FAIR, Monte Carlo)
+  epic-39: backlog
+  39-1-fair-model-configuration: backlog
+  39-2-monte-carlo-simulation: backlog
+  39-3-security-roi-calculator: backlog
+  39-4-comex-financial-dashboard: backlog
+  epic-39-retrospective: optional
