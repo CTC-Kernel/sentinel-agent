@@ -23,7 +23,7 @@ const getKeyPath = () => {
  */
 exports.encryptOnUpload = onObjectFinalized(
   {
-    bucket: 'sentinel-documents',
+    bucket: 'sentinel-grc-a8701.appspot.com',
     region: 'europe-west1',
     timeoutSeconds: 540,
     memory: '1GiB',
