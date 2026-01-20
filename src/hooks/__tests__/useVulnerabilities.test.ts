@@ -6,6 +6,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { Vulnerability } from '../../types';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 
 // Mock Firebase Firestore
 const mockAddDoc = vi.fn();
@@ -21,7 +23,7 @@ vi.mock('firebase/firestore', () => ({
     deleteDoc: (...args: unknown[]) => mockDeleteDoc(...args),
     doc: vi.fn(),
     query: vi.fn(),
-    where: vi.fn(),
+    where: vi.fn((field, op, value) => ({ type: 'where', fieldPath: field, opStr: op, value })),
     onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
     getDocs: (...args: unknown[]) => mockGetDocs(...args),
     serverTimestamp: () => 'server-timestamp'
@@ -68,6 +70,19 @@ vi.mock('../../services/logger', () => ({
 
 import { useVulnerabilities } from '../useVulnerabilities';
 
+const createWrapper = () => {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: {
+                retry: false,
+            },
+        },
+    });
+
+    return ({ children }: { children: React.ReactNode }) =>
+        React.createElement(QueryClientProvider, { client: queryClient }, children);
+};
+
 describe('useVulnerabilities', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -91,14 +106,14 @@ describe('useVulnerabilities', () => {
 
     describe('initialization', () => {
         it('initializes with loading state', () => {
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             // After onSnapshot fires, loading should be false
             expect(result.current.loading).toBe(false);
         });
 
         it('loads vulnerabilities from Firestore', async () => {
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await waitFor(() => {
                 expect(result.current.vulnerabilities.length).toBe(1);
@@ -108,7 +123,7 @@ describe('useVulnerabilities', () => {
         });
 
         it('provides all expected functions', () => {
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             expect(typeof result.current.addVulnerability).toBe('function');
             expect(typeof result.current.updateVulnerability).toBe('function');
@@ -122,7 +137,7 @@ describe('useVulnerabilities', () => {
         it('adds vulnerability to Firestore', async () => {
             mockAddDoc.mockResolvedValue({ id: 'new-vuln-id' });
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await act(async () => {
                 await result.current.addVulnerability({
@@ -139,7 +154,7 @@ describe('useVulnerabilities', () => {
         it('returns true on success', async () => {
             mockAddDoc.mockResolvedValue({ id: 'new-id' });
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             let success: boolean | undefined;
             await act(async () => {
@@ -154,7 +169,7 @@ describe('useVulnerabilities', () => {
         it('handles errors', async () => {
             mockAddDoc.mockRejectedValue(new Error('Database error'));
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await expect(
                 act(async () => {
@@ -173,7 +188,7 @@ describe('useVulnerabilities', () => {
             mockUpdateDoc.mockResolvedValue(undefined);
             mockGetDocs.mockResolvedValue({ empty: true });
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await act(async () => {
                 await result.current.updateVulnerability('vuln-1', {
@@ -195,7 +210,7 @@ describe('useVulnerabilities', () => {
                 }]
             });
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await act(async () => {
                 await result.current.updateVulnerability('vuln-1', {
@@ -212,7 +227,7 @@ describe('useVulnerabilities', () => {
         it('handles errors', async () => {
             mockUpdateDoc.mockRejectedValue(new Error('Update failed'));
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await expect(
                 act(async () => {
@@ -228,7 +243,7 @@ describe('useVulnerabilities', () => {
         it('deletes vulnerability from Firestore', async () => {
             mockDeleteDoc.mockResolvedValue(undefined);
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await act(async () => {
                 await result.current.deleteVulnerability('vuln-1');
@@ -241,7 +256,7 @@ describe('useVulnerabilities', () => {
         it('returns true on success', async () => {
             mockDeleteDoc.mockResolvedValue(undefined);
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             let success: boolean | undefined;
             await act(async () => {
@@ -254,7 +269,7 @@ describe('useVulnerabilities', () => {
         it('handles errors', async () => {
             mockDeleteDoc.mockRejectedValue(new Error('Delete failed'));
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await expect(
                 act(async () => {
@@ -271,7 +286,7 @@ describe('useVulnerabilities', () => {
             mockAddDoc.mockResolvedValue({ id: 'new-risk-id' });
             mockUpdateDoc.mockResolvedValue(undefined);
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await act(async () => {
                 await result.current.createRiskFromVuln({
@@ -290,7 +305,7 @@ describe('useVulnerabilities', () => {
         });
 
         it('does nothing without vuln id', async () => {
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await act(async () => {
                 await result.current.createRiskFromVuln({
@@ -305,7 +320,7 @@ describe('useVulnerabilities', () => {
         it('handles errors', async () => {
             mockAddDoc.mockRejectedValue(new Error('Create risk failed'));
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await expect(
                 act(async () => {
@@ -325,7 +340,7 @@ describe('useVulnerabilities', () => {
         it('imports multiple vulnerabilities', async () => {
             mockAddDoc.mockResolvedValue({ id: 'imported-id' });
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             await act(async () => {
                 await result.current.importVulnerabilities([
@@ -342,7 +357,7 @@ describe('useVulnerabilities', () => {
         it('returns true on success', async () => {
             mockAddDoc.mockResolvedValue({ id: 'id' });
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             let success: boolean | undefined;
             await act(async () => {
@@ -357,7 +372,7 @@ describe('useVulnerabilities', () => {
         it('handles errors', async () => {
             mockAddDoc.mockRejectedValue(new Error('Import failed'));
 
-            const { result } = renderHook(() => useVulnerabilities());
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
             try {
                 await act(async () => {
@@ -373,18 +388,20 @@ describe('useVulnerabilities', () => {
     });
 
     describe('error handling on subscribe', () => {
-        it('shows error toast on subscription error', () => {
+        it('shows error toast on subscription error', async () => {
             mockOnSnapshot.mockImplementation((_, __, errorCallback) => {
                 errorCallback(new Error('Subscription error'));
                 return vi.fn();
             });
 
-            renderHook(() => useVulnerabilities());
+            renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
-            expect(mockAddToast).toHaveBeenCalledWith(
-                'Erreur lors du chargement des vulnérabilités',
-                'error'
-            );
+            await waitFor(() => {
+                expect(mockAddToast).toHaveBeenCalledWith(
+                    'Erreur lors du chargement des vulnérabilités',
+                    'error'
+                );
+            });
         });
     });
 });

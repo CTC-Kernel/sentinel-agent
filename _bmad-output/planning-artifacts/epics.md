@@ -1,19 +1,22 @@
 ---
 stepsCompleted: [1, 2, 3, 4]
-inputDocuments: ['_bmad-output/planning-artifacts/prd.md', '_bmad-output/planning-artifacts/architecture.md', '_bmad-output/planning-artifacts/ux-design-specification.md']
+inputDocuments: ['_bmad-output/planning-artifacts/prd.md', '_bmad-output/planning-artifacts/architecture.md', '_bmad-output/planning-artifacts/ux-design-specification.md', '_bmad-output/planning-artifacts/product-brief-sentinel-grc-2026-01-20.md']
 workflowType: 'epics-and-stories'
 workflow_completed: true
 lastStep: 4
 completedAt: '2026-01-10'
+updatedAt: '2026-01-20'
+version: '2.0'
 project_name: 'Sentinel-GRC'
 user_name: 'Thibaultllopis'
 date: '2026-01-10'
 validation_results:
   fr_coverage: '53/53 (100%)'
-  stories_count: 55
-  epics_count: 12
+  stories_count: 75
+  epics_count: 17
   architecture_alignment: 'passed'
   dependency_check: 'passed'
+  q1q2_2026_adrs: 'ADR-008 to ADR-012 covered'
 ---
 
 # Sentinel-GRC - Epic Breakdown
@@ -174,6 +177,13 @@ This document provides the complete epic and story breakdown for Sentinel-GRC, d
 - UX-005: Feature Components (ScoreGauge, RiskCard, AuditChecklist, WizardStepper, DashboardWidget)
 - UX-006: Navigation sidebar 240px avec collapse mobile
 - UX-007: Skeleton loading states pour tous les contenus
+
+**Q1-Q2 2026 Priorities (ADR-008 to ADR-012):**
+- ADR-008: Registre ICT automatisé DORA Art. 28 (Finance vertical) - P0
+- ADR-009: Connecteur SCADA/ICS pour assets OT (Industrie vertical) - P1
+- ADR-010: Module Third-Party Risk Management avec questionnaires - P1
+- ADR-011: Templates Homologation ANSSI pour secteur public - P0
+- ADR-012: Quantification financière avancée (FAIR, Monte Carlo) - P1
 
 **Brownfield Constraints (Existing Codebase):**
 - EXIST-001: 14 modules fonctionnels existants à préserver
@@ -1392,5 +1402,425 @@ So that **I implement relevant controls**.
 | 11. Enterprise Authentication | 4 | FR46-FR49 |
 | 12. SMSI Wizard | 5 | FR50-FR53 |
 
-**Total: 55 Stories covering 53 FRs**
+**Total: 55 Stories covering 53 FRs (Core)**
+
+---
+
+# Q1-Q2 2026 Epics (Vertical Priorities)
+
+## Epic 13: DORA ICT Register (Finance)
+
+**Goal:** Les institutions financières gèrent leur registre ICT DORA-compliant pour le reporting ESA.
+
+**ADR:** ADR-008
+**Priority:** P0 - Deadline réglementaire 30 avril 2025
+**Vertical:** Finance (DORA)
+
+### Story 13.1: ICT Provider Management
+
+As a **RSSI Finance**,
+I want **to manage my ICT providers inventory**,
+So that **I maintain a complete DORA-compliant register**.
+
+**Acceptance Criteria:**
+
+**Given** the user has DORA framework enabled
+**When** they access ICT Providers
+**Then** they can create providers with: Name, Category (critical/important/standard), Services
+**And** contract information is captured: Start date, End date, Exit strategy, Audit rights
+**And** compliance info is tracked: DORA-compliant, Certifications, EU location
+
+---
+
+### Story 13.2: ICT Risk Assessment
+
+As a **RSSI Finance**,
+I want **to assess concentration and substitutability risks**,
+So that **I comply with DORA requirements**.
+
+**Acceptance Criteria:**
+
+**Given** the user views an ICT provider
+**When** they complete the risk assessment
+**Then** concentration risk is calculated (0-100)
+**And** substitutability is evaluated (low/medium/high)
+**And** last assessment date is tracked
+**And** alerts trigger when reassessment is due
+
+---
+
+### Story 13.3: DORA Register Export
+
+As a **RSSI Finance**,
+I want **to export my ICT register in ESA-compliant format**,
+So that **I can submit regulatory reports**.
+
+**Acceptance Criteria:**
+
+**Given** the user has ICT providers configured
+**When** they click "Export DORA Register"
+**Then** an ESA-compliant report is generated (XML/JSON)
+**And** report includes: Entity info, All providers, Concentration analysis
+**And** generation timestamp is recorded
+**And** historical exports are archived
+
+---
+
+### Story 13.4: Contract Expiration Alerts
+
+As a **RSSI Finance**,
+I want **to receive alerts for expiring contracts**,
+So that **I maintain continuous compliance**.
+
+**Acceptance Criteria:**
+
+**Given** ICT provider contracts have end dates
+**When** a contract expires within 90/60/30 days
+**Then** the responsible user receives alert notifications
+**And** the provider is flagged in the dashboard
+**And** alerts include contract details and renewal actions
+
+---
+
+## Epic 14: SCADA/ICS Integration (Industrie)
+
+**Goal:** Les RSSI industriels obtiennent une visibilité complète sur leurs assets OT.
+
+**ADR:** ADR-009
+**Priority:** P1 - NIS2 Compliance
+**Vertical:** Industrie (NIS2)
+
+### Story 14.1: OT Asset Import Wizard
+
+As a **RSSI Industrie**,
+I want **to import my SCADA/ICS inventory**,
+So that **I have visibility on OT assets**.
+
+**Acceptance Criteria:**
+
+**Given** the user accesses Assets > OT Import
+**When** they upload a CSV with OT assets
+**Then** assets are created with OT metadata: Protocol, Manufacturer, Model, Firmware
+**And** network segment is captured (IT/OT/DMZ)
+**And** criticality level is assigned (safety/production/monitoring)
+**And** import validation shows success/error summary
+
+---
+
+### Story 14.2: OT Connector Configuration
+
+As a **RSSI Industrie**,
+I want **to configure automated OT asset sync**,
+So that **my inventory stays current**.
+
+**Acceptance Criteria:**
+
+**Given** the user has OT systems with APIs
+**When** they configure a connector
+**Then** they can select type: Modbus, OPC-UA, CSV import, API
+**And** sync schedule is configurable
+**And** connector status shows: Active, Error, Paused
+**And** last sync timestamp is displayed
+
+---
+
+### Story 14.3: IT/OT Voxel Mapping
+
+As a **RSSI Industrie**,
+I want **to visualize IT and OT assets in Voxel 3D**,
+So that **I understand my full infrastructure**.
+
+**Acceptance Criteria:**
+
+**Given** the user has both IT and OT assets
+**When** they view the Voxel map
+**Then** OT assets display with distinct visual style
+**And** IT-OT connections are visible
+**And** network segmentation (DMZ) is represented
+**And** filtering by IT/OT/DMZ is available
+
+---
+
+### Story 14.4: OT Vulnerability Correlation
+
+As a **RSSI Industrie**,
+I want **to correlate vulnerabilities with OT assets**,
+So that **I prioritize industrial risks**.
+
+**Acceptance Criteria:**
+
+**Given** the user has OT assets with firmware versions
+**When** vulnerabilities are detected for those versions
+**Then** alerts link vulnerabilities to specific OT assets
+**And** production criticality influences risk score
+**And** remediation suggestions consider OT constraints
+
+---
+
+## Epic 15: Third-Party Risk Management
+
+**Goal:** Les RSSI évaluent et surveillent les risques fournisseurs de manière systématique.
+
+**ADR:** ADR-010
+**Priority:** P1 - 85% RSSI gap
+**Vertical:** Tous
+
+### Story 15.1: Vendor Assessment Creation
+
+As a **RSSI**,
+I want **to create vendor risk assessments**,
+So that **I evaluate third-party security**.
+
+**Acceptance Criteria:**
+
+**Given** the user accesses Suppliers > Assessments
+**When** they create a new assessment
+**Then** they can select a vendor and questionnaire template
+**And** templates exist for: ISO 27001, NIS2, DORA, HDS, General
+**And** assessment status tracks: Pending, In Progress, Completed, Expired
+**And** next review date is scheduled
+
+---
+
+### Story 15.2: Vendor Self-Service Portal
+
+As a **vendor contact**,
+I want **to complete security questionnaires online**,
+So that **I provide assessment information efficiently**.
+
+**Acceptance Criteria:**
+
+**Given** an assessment is assigned to a vendor
+**When** the vendor receives the portal link
+**Then** they can login with limited credentials
+**And** they see only their assigned questionnaire
+**And** they can save progress and submit when complete
+**And** their access expires after submission or deadline
+
+---
+
+### Story 15.3: Automated Vendor Scoring
+
+As a **RSSI**,
+I want **to see automatic risk scores for vendors**,
+So that **I can prioritize high-risk relationships**.
+
+**Acceptance Criteria:**
+
+**Given** a vendor completes their questionnaire
+**When** the assessment is submitted
+**Then** an automatic score is calculated (0-100)
+**And** inherent and residual risk levels are assigned
+**And** scoring weights are configurable per template
+**And** vendors can be compared on a dashboard
+
+---
+
+### Story 15.4: Vendor Concentration Dashboard
+
+As a **RSSI**,
+I want **to visualize vendor concentration risks**,
+So that **I avoid dangerous dependencies**.
+
+**Acceptance Criteria:**
+
+**Given** the user has multiple vendors assessed
+**When** they view the TPRM dashboard
+**Then** concentration by category is visualized
+**And** high-dependency vendors are highlighted
+**And** single points of failure are identified
+**And** diversification recommendations are provided
+
+---
+
+## Epic 16: ANSSI Homologation (Public)
+
+**Goal:** Les collectivités génèrent des dossiers d'homologation conformes aux exigences ANSSI.
+
+**ADR:** ADR-011
+**Priority:** P0 - Strong demand from public sector
+**Vertical:** Public (RGS)
+
+### Story 16.1: Homologation Level Selector
+
+As a **RSSI Collectivité**,
+I want **to determine the appropriate homologation level**,
+So that **I follow ANSSI guidelines**.
+
+**Acceptance Criteria:**
+
+**Given** the user starts a new homologation dossier
+**When** they answer the level determination questions
+**Then** the system recommends: Étoile, Simple, Standard, or Renforcé
+**And** justification explains the recommendation
+**And** the user can override with justification
+**And** selected level determines required documents
+
+---
+
+### Story 16.2: Homologation Document Generation
+
+As a **RSSI Collectivité**,
+I want **to generate required homologation documents**,
+So that **I have ANSSI-compliant dossiers**.
+
+**Acceptance Criteria:**
+
+**Given** a homologation dossier is created
+**When** the user clicks "Generate Documents"
+**Then** the 5 required documents are generated:
+- Stratégie d'homologation
+- Analyse de risques (linked to EBIOS)
+- Plan d'action
+- Décision d'homologation
+- Attestation
+**And** documents are pre-filled from Sentinel data
+**And** PDFs can be downloaded or shared
+
+---
+
+### Story 16.3: Homologation Validity Tracking
+
+As a **RSSI Collectivité**,
+I want **to track homologation validity periods**,
+So that **I renew before expiration**.
+
+**Acceptance Criteria:**
+
+**Given** a system is homologated
+**When** the validity period is set
+**Then** start, end, and renewal dates are tracked
+**And** alerts trigger at 90/60/30 days before expiration
+**And** renewal workflow can be initiated from alert
+**And** historical homologations are archived
+
+---
+
+### Story 16.4: EBIOS-Homologation Link
+
+As a **RSSI Collectivité**,
+I want **to link EBIOS risk analysis to homologation dossiers**,
+So that **documents are consistent**.
+
+**Acceptance Criteria:**
+
+**Given** the user has an EBIOS analysis for a system
+**When** they create a homologation dossier
+**Then** the EBIOS analysis can be linked
+**And** risk analysis document pulls from EBIOS data
+**And** changes to EBIOS flag the homologation for review
+**And** version history maintains audit trail
+
+---
+
+## Epic 17: Financial Risk Quantification
+
+**Goal:** Les RSSI quantifient les risques en euros pour justifier les investissements au COMEX.
+
+**ADR:** ADR-012
+**Priority:** P1 - COMEX justification
+**Vertical:** Tous
+
+### Story 17.1: FAIR Model Configuration
+
+As a **RSSI**,
+I want **to configure FAIR risk quantification models**,
+So that **I can calculate financial impact**.
+
+**Acceptance Criteria:**
+
+**Given** the user views a risk
+**When** they enable financial quantification
+**Then** they can input FAIR parameters:
+- Loss Event Frequency (distribution)
+- Loss Magnitude (distribution)
+- Threat Capability
+- Control Strength
+**And** simplified presets are available for non-experts
+**And** the model saves with the risk
+
+---
+
+### Story 17.2: Monte Carlo Simulation
+
+As a **RSSI**,
+I want **to run Monte Carlo simulations**,
+So that **I get probabilistic financial estimates**.
+
+**Acceptance Criteria:**
+
+**Given** a risk has FAIR parameters configured
+**When** the user clicks "Run Simulation"
+**Then** 1000+ iterations are executed
+**And** results show: ALE (Annualized Loss Expectancy) in €
+**And** VaR is displayed: P90, P95, P99
+**And** distribution chart visualizes the results
+**And** confidence interval is indicated
+
+---
+
+### Story 17.3: Security ROI Calculator
+
+As a **RSSI**,
+I want **to calculate ROI for security investments**,
+So that **I can justify budget requests**.
+
+**Acceptance Criteria:**
+
+**Given** the user proposes a security investment
+**When** they enter investment details
+**Then** they can specify: Cost, Risks addressed
+**And** risk reduction (before/after) is calculated
+**And** savings are computed (risk reduction × ALE)
+**And** payback period and NPV are displayed
+**And** a comparison chart shows investment impact
+
+---
+
+### Story 17.4: COMEX Financial Dashboard
+
+As a **Dirigeant**,
+I want **to see financial risk exposure on my dashboard**,
+So that **I understand cyber risk in business terms**.
+
+**Acceptance Criteria:**
+
+**Given** the user has direction role
+**When** they view their dashboard
+**Then** a widget shows: Total Risk Exposure (€), Top 5 Risks by €, ROI of Controls
+**And** numbers are in business language (no jargon)
+**And** trend shows exposure evolution
+**And** clicking drills down to risk details
+
+---
+
+# Q1-Q2 2026 Story Summary
+
+| Epic | Title | Stories | ADR | Priority | Vertical |
+|------|-------|---------|-----|----------|----------|
+| 13 | DORA ICT Register | 4 | ADR-008 | P0 | Finance |
+| 14 | SCADA/ICS Integration | 4 | ADR-009 | P1 | Industrie |
+| 15 | Third-Party Risk Management | 4 | ADR-010 | P1 | Tous |
+| 16 | ANSSI Homologation | 4 | ADR-011 | P0 | Public |
+| 17 | Financial Risk Quantification | 4 | ADR-012 | P1 | Tous |
+
+**Q1-Q2 2026 Total: 20 New Stories across 5 Epics**
+
+---
+
+# Complete Document Summary
+
+| Category | Count |
+|----------|-------|
+| Core Epics (1-12) | 12 |
+| Q1-Q2 2026 Epics (13-17) | 5 |
+| **Total Epics** | **17** |
+| Core Stories | 55 |
+| Q1-Q2 2026 Stories | 20 |
+| **Total Stories** | **75** |
+| FRs Covered | 53/53 (100%) |
+| ADRs Covered | ADR-001 to ADR-012 |
+
+**Document Version:** 2.0
+**Updated:** 2026-01-20
 

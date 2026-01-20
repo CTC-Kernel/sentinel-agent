@@ -19,7 +19,7 @@ export const useVulnerabilities = () => {
         return [where('organizationId', '==', user.organizationId)];
     }, [user?.organizationId]);
 
-    const { data: vulnerabilities, loading } = useFirestoreCollection<Vulnerability>(
+    const { data: vulnerabilities, loading, error } = useFirestoreCollection<Vulnerability>(
         'vulnerabilities',
         constraints,
         {
@@ -27,6 +27,12 @@ export const useVulnerabilities = () => {
             enabled: !!user?.organizationId
         }
     );
+
+    useEffect(() => {
+        if (error) {
+            addToast('Erreur lors du chargement des vulnérabilités', 'error');
+        }
+    }, [error, addToast]);
 
     const seedCisaKev = useCallback(async () => {
         if (!user?.organizationId || demoMode) return;

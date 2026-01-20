@@ -303,7 +303,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     return {
         data: queryData || [],
         loading: queryLoading,
-        error: queryError as Error | null,
+        error: (queryError as Error | null) || (realtimeFailed ? realtimeError : null),
         refresh,
         add, update, remove
     };
