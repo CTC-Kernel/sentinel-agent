@@ -145,7 +145,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     const extensions = React.useMemo(() => [
         StarterKit.configure({
-            // @ts-ignore: link is likely in StarterKit in this version
+
             link: {
                 openOnClick: false,
                 HTMLAttributes: {

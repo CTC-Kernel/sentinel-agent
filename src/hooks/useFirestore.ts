@@ -108,6 +108,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     // as long as the stable key hasn't changed.
     const stableConstraints = useMemo(() => {
         return constraints;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [constraintsKey]);
 
     const { realtime, logError, enabled } = options;
@@ -155,14 +156,16 @@ export const useFirestoreCollection = <T = DocumentData>(
     useEffect(() => {
         let isMounted = true;
         let timeoutId: number | null = null;
-        let loadingTimeoutId: number | null = null;
 
         if (!isEnabled || !shouldUseRealtime || demoMode) {
             return;
         }
 
         // Set loading state immediately safely
-        setRealtimeLoading(true);
+        // Set loading state immediately safely
+        setTimeout(() => {
+            if (isMounted) setRealtimeLoading(true);
+        }, 0);
 
         timeoutId = window.setTimeout(() => {
             if (isMounted) {
@@ -216,14 +219,13 @@ export const useFirestoreCollection = <T = DocumentData>(
         return () => {
             isMounted = false;
             if (timeoutId !== null) window.clearTimeout(timeoutId);
-            if (loadingTimeoutId !== null) window.clearTimeout(loadingTimeoutId);
             try {
                 unsubscribe();
             } catch (e) {
                 console.warn("Error unsubscribing from snapshot:", e);
             }
         };
-    }, [collectionName, constraintsKey, shouldUseRealtime, isEnabled, logError, demoMode]);
+    }, [collectionName, constraintsKey, stableConstraints, shouldUseRealtime, isEnabled, logError, demoMode]);
 
     const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
         if (demoMode) return "mock-id-" + Date.now();
@@ -423,7 +425,9 @@ export const useFirestoreDocument = <T extends { id: string }>(
                 );
             } catch (err) {
                 console.error("Error setting up document listener:", err);
-                setRealtimeLoading(false);
+                setTimeout(() => {
+                    if (isMounted) setRealtimeLoading(false);
+                }, 0);
             }
 
             return () => {

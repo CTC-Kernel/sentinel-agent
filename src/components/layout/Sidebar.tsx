@@ -52,7 +52,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       }
     };
     checkSuperAdmin();
-  }, [user?.uid, verifySuperAdmin]);
+  }, [user, verifySuperAdmin]);
 
   const navGroups: NavGroup[] = [
     {
