@@ -139,7 +139,7 @@ export const IntegrationSettings: React.FC = () => {
                                 type="text"
                                 name="username"
                                 autoComplete="username"
-                                className="hidden"
+                                className="sr-only"
                                 aria-hidden="true"
                                 readOnly
                                 value={user?.email || ''}
@@ -254,26 +254,29 @@ export const IntegrationSettings: React.FC = () => {
                             {t('settings.integrationsPage.ssoDesc')}
                         </p>
 
-                        <div className="space-y-4 pt-2">
+                        <form className="space-y-4 pt-2" onSubmit={(e) => e.preventDefault()}>
                             <FloatingLabelInput
                                 label="Provider URL / Issuer"
                                 type="url"
                                 name="ssoIssuer"
                                 icon={ShieldCheck}
+                                autoComplete="url"
                             />
                             <FloatingLabelInput
                                 label="Client ID"
                                 type="text"
                                 name="ssoClientId"
                                 icon={Key}
+                                autoComplete="username"
                             />
                             <FloatingLabelInput
                                 label="Client Secret"
                                 type="password"
                                 name="ssoClientSecret"
                                 icon={Key}
+                                autoComplete="current-password"
                             />
-                        </div>
+                        </form>
                     </div>
 
                     <div className="space-y-4 md:border-l md:border-white/20 md:pl-8 dark:border-white/5">

@@ -69,7 +69,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                             label=""
                             value=""
                             onChange={(val) => handleLinkAsset(control, val as string)}
-                            options={safeAssets.filter(a => !control.relatedAssetIds?.includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
+                            options={safeAssets.filter(a => !(Array.isArray(control.relatedAssetIds) ? control.relatedAssetIds : []).includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
                             placeholder="Lier un actif..."
                             disabled={updating}
                         />
@@ -96,7 +96,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                             label=""
                             value=""
                             onChange={(val) => handleLinkSupplier(control, val as string)}
-                            options={safeSuppliers.filter(s => !control.relatedSupplierIds?.includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
+                            options={safeSuppliers.filter(s => !(Array.isArray(control.relatedSupplierIds) ? control.relatedSupplierIds : []).includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
                             placeholder="Lier un fournisseur..."
                             disabled={updating}
                         />
@@ -132,7 +132,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                         label=""
                         value=""
                         onChange={(val) => handleLinkProject(control, val as string)}
-                        options={safeProjects.filter(p => !control.relatedProjectIds?.includes(p.id)).map(p => ({ value: p.id, label: p.name }))}
+                        options={safeProjects.filter(p => !(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).includes(p.id)).map(p => ({ value: p.id, label: p.name }))}
                         placeholder="Lier un projet..."
                         disabled={updating}
                     />

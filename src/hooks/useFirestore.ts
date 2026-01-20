@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     collection,
     query,
@@ -104,13 +104,11 @@ export const useFirestoreCollection = <T = DocumentData>(
         return constraints.map(stableConstraintKey).join('|');
     }, [constraints]);
 
-    // Keep a stable constraints array reference as long as constraintsKey doesn't change.
-    const constraintsRef = useRef<{ key: string; value: QueryConstraint[] }>({ key: '', value: [] });
-    useEffect(() => {
-        if (constraintsRef.current.key !== constraintsKey) {
-            constraintsRef.current = { key: constraintsKey, value: constraints };
-        }
-    }, [constraintsKey, constraints]);
+    // Use useMemo to ensure the constraints array reference remains stable 
+    // as long as the stable key hasn't changed.
+    const stableConstraints = useMemo(() => {
+        return constraints;
+    }, [constraintsKey]);
 
     const { realtime, logError, enabled } = options;
     const isEnabled = enabled !== false;
@@ -155,55 +153,75 @@ export const useFirestoreCollection = <T = DocumentData>(
 
     // Realtime implementation
     useEffect(() => {
+        let isMounted = true;
+        let timeoutId: number | null = null;
+        let loadingTimeoutId: number | null = null;
+
         if (!isEnabled || !shouldUseRealtime || demoMode) {
-            if (!shouldUseRealtime && !demoMode) {
-                // If checking queryMode, we might need to reset loading if not strict
-            }
             return;
         }
 
-        // Avoid synchronous state update warning
-        setTimeout(() => setRealtimeLoading(true), 0);
+        // Set loading state immediately safely
+        setRealtimeLoading(true);
 
-        // ... (existing realtime logic) ...
-        let timeoutId: number | null = null;
         timeoutId = window.setTimeout(() => {
-            setRealtimeFailed(true);
-            setRealtimeLoading(false);
-        }, 12000);
-
-        const q = query(collection(db, collectionName), ...constraintsRef.current.value);
-        const unsubscribe = onSnapshot(q,
-            (snapshot) => {
-                const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
-                setRealtimeData(docs);
-                setRealtimeLoading(false);
-                if (timeoutId !== null) window.clearTimeout(timeoutId);
-            },
-            (err: unknown) => {
-                const errorObj = err instanceof Error ? err : new Error(String(err));
-                const code = (errorObj as { code?: string }).code;
-                const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
-
-                if (isPermissionError) {
-                    if (!auth.currentUser) {
-                        setRealtimeLoading(false);
-                        return;
-                    }
-                }
-
-                setRealtimeError(errorObj);
-                if (logError) {
-                    ErrorLogger.error(errorObj, `useFirestoreCollection.onSnapshot.${collectionName}`);
-                }
+            if (isMounted) {
                 setRealtimeFailed(true);
                 setRealtimeLoading(false);
-                if (timeoutId !== null) window.clearTimeout(timeoutId);
             }
-        );
+        }, 12000);
+
+        let unsubscribe = () => { };
+
+        try {
+            const q = query(collection(db, collectionName), ...stableConstraints);
+            unsubscribe = onSnapshot(q,
+                (snapshot) => {
+                    if (!isMounted) return;
+                    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
+                    setRealtimeData(docs);
+                    setRealtimeLoading(false);
+                    if (timeoutId !== null) window.clearTimeout(timeoutId);
+                },
+                (err: unknown) => {
+                    if (!isMounted) return;
+                    const errorObj = err instanceof Error ? err : new Error(String(err));
+                    const code = (errorObj as { code?: string }).code;
+                    const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
+
+                    if (isPermissionError) {
+                        if (!auth.currentUser) {
+                            setRealtimeLoading(false);
+                            return;
+                        }
+                    }
+
+                    setRealtimeError(errorObj);
+                    if (logError) {
+                        ErrorLogger.error(errorObj, `useFirestoreCollection.onSnapshot.${collectionName}`);
+                    }
+                    setRealtimeFailed(true);
+                    setRealtimeLoading(false);
+                    if (timeoutId !== null) window.clearTimeout(timeoutId);
+                }
+            );
+        } catch (err) {
+            console.error("Error setting up snapshot listener:", err);
+            if (isMounted) {
+                setRealtimeFailed(true);
+                setRealtimeLoading(false);
+            }
+        }
+
         return () => {
+            isMounted = false;
             if (timeoutId !== null) window.clearTimeout(timeoutId);
-            unsubscribe();
+            if (loadingTimeoutId !== null) window.clearTimeout(loadingTimeoutId);
+            try {
+                unsubscribe();
+            } catch (e) {
+                console.warn("Error unsubscribing from snapshot:", e);
+            }
         };
     }, [collectionName, constraintsKey, shouldUseRealtime, isEnabled, logError, demoMode]);
 
@@ -344,49 +362,79 @@ export const useFirestoreDocument = <T extends { id: string }>(
 
     // Realtime implementation
     useEffect(() => {
+        let isMounted = true;
+        const timeouts: number[] = [];
+        let unsubscribe = () => { };
+
         if (!docId) {
-            setTimeout(() => {
-                setRealtimeData(null);
-                setRealtimeLoading(false);
+            const tm = window.setTimeout(() => {
+                if (isMounted) {
+                    setRealtimeData(null);
+                    setRealtimeLoading(false);
+                }
             }, 0);
-            return;
+            timeouts.push(tm);
+            return () => {
+                isMounted = false;
+                timeouts.forEach(window.clearTimeout);
+            };
         }
 
         if (realtime && !demoMode) {
             // Avoid synchronous state update warning
-            setTimeout(() => setRealtimeLoading(true), 0);
-            const docRef = doc(db, collectionName, docId);
-            const unsubscribe = onSnapshot(docRef,
-                (snapshot) => {
-                    if (snapshot.exists()) {
-                        setRealtimeData({ id: snapshot.id, ...snapshot.data() } as T);
-                    } else {
-                        setRealtimeData(null);
-                    }
-                    setRealtimeLoading(false);
-                },
-                (err: unknown) => {
-                    const errorObj = err instanceof Error ? err : new Error(String(err));
+            const tm = window.setTimeout(() => {
+                if (isMounted) setRealtimeLoading(true);
+            }, 0);
+            timeouts.push(tm);
 
-                    // Suppress 'permission-denied' errors if user is logged out (race condition on signout)
-                    const code = (errorObj as { code?: string }).code;
-                    const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
-
-                    if (isPermissionError) {
-                        if (!auth.currentUser) {
-                            setRealtimeLoading(false);
-                            return;
+            try {
+                const docRef = doc(db, collectionName, docId);
+                unsubscribe = onSnapshot(docRef,
+                    (snapshot) => {
+                        if (!isMounted) return;
+                        if (snapshot.exists()) {
+                            setRealtimeData({ id: snapshot.id, ...snapshot.data() } as T);
+                        } else {
+                            setRealtimeData(null);
                         }
-                    }
+                        setRealtimeLoading(false);
+                    },
+                    (err: unknown) => {
+                        if (!isMounted) return;
+                        const errorObj = err instanceof Error ? err : new Error(String(err));
 
-                    setRealtimeError(errorObj);
-                    if (logError) {
-                        ErrorLogger.error(errorObj, `useFirestoreDocument.onSnapshot.${collectionName}.${docId}`);
+                        // Suppress 'permission-denied' errors if user is logged out (race condition on signout)
+                        const code = (errorObj as { code?: string }).code;
+                        const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
+
+                        if (isPermissionError) {
+                            if (!auth.currentUser) {
+                                setRealtimeLoading(false);
+                                return;
+                            }
+                        }
+
+                        setRealtimeError(errorObj);
+                        if (logError) {
+                            ErrorLogger.error(errorObj, `useFirestoreDocument.onSnapshot.${collectionName}.${docId}`);
+                        }
+                        setRealtimeLoading(false);
                     }
-                    setRealtimeLoading(false);
+                );
+            } catch (err) {
+                console.error("Error setting up document listener:", err);
+                setRealtimeLoading(false);
+            }
+
+            return () => {
+                isMounted = false;
+                timeouts.forEach(window.clearTimeout);
+                try {
+                    unsubscribe();
+                } catch (e) {
+                    console.warn("Error unsubscribing from document snapshot:", e);
                 }
-            );
-            return () => unsubscribe();
+            };
         }
     }, [collectionName, docId, realtime, logError, demoMode]); // db and ErrorLogger are imports, no need in dep array
 

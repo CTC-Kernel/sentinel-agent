@@ -5,6 +5,7 @@
     "next": "Suivant",
     "previous": "Précédent",
     "cancel": "Annuler",
+    "exit": "Quitter",
     "delete": "Supprimer",
     "edit": "Modifier",
     "create": "Créer",
@@ -154,22 +155,62 @@
       "summary": "Résumé de l'import",
       "noData": "Aucune donnée à importer"
     },
+    "pricingTitle": "Planification & Tarifs",
+    "pricingSubtitle": "Des solutions flexibles pour sécuriser votre entreprise, de la startup au grand groupe.",
+    "operations": "Opérations",
+    "adminSec": "Admin & Sécurité",
+    "feat_dashboard": "Tableaux de bord",
+    "feat_projects": "Projets",
+    "feat_reports": "Rapports",
+    "feat_calendar": "Calendrier",
+    "feat_incidents": "Incidents",
+    "feat_vulns": "Vulnérabilités",
+    "feat_threats": "Menaces",
+    "feat_voxel": "Maquette 3D",
+    "feat_risks": "Risques",
+    "feat_compliance": "Conformité",
+    "feat_audits": "Audits",
+    "feat_portal": "Portail Auditeur",
+    "feat_continuity": "Continuité",
+    "feat_privacy": "Vie Privée",
+    "feat_assets": "Actifs",
+    "feat_suppliers": "Fournisseurs",
+    "feat_documents": "Documents",
+    "feat_team": "Utilisateurs",
+    "feat_health": "Santé Système",
+    "feat_backup": "Backup",
+    "feat_ai": "IA Assistant",
+    "feat_api": "API",
+    "feat_support": "Support",
+    "val_simple": "Simple",
+    "val_advanced": "Avancé",
+    "val_custom": "Sur-mesure",
+    "val_unlimited": "Illimité",
+    "val_included": "Inclus",
+    "val_ai_assisted": "Assisté par IA",
+    "val_manual": "Manuel",
+    "val_automated": "Automatisé",
+    "val_portal": "Portail",
+    "val_comm": "Communauté",
+    "val_prio": "Prioritaire",
+    "val_dedicated": "Dédié",
     "columns": {
+      "category": "Catégorie",
       "email": "Email",
-      "name": "Name",
-      "role": "Role",
-      "department": "Department",
+      "name": "Nom",
+      "role": "Rôle",
+      "department": "Département",
       "type": "Type",
-      "status": "Status",
-      "criticality": "Criticality",
-      "owner": "Owner",
-      "location": "Location",
-      "value": "Value",
-      "warrantyEnd": "Warranty End",
-      "purchaseDate": "Purchase Date",
-      "purchasePrice": "Purchase Price",
-      "availability": "Availability",
-      "integrity": "Integrity",
+      "status": "Statut",
+      "criticality": "Criticité",
+      "owner": "Propriétaire",
+      "location": "Emplacement",
+      "value": "Valeur",
+      "warrantyEnd": "Fin de garantie",
+      "purchaseDate": "Date d'achat",
+      "purchasePrice": "Prix d'achat",
+      "availability": "Disponibilité",
+      "integrity": "Intégrité",
       "confidentiality": "Confidentiality",
       "lifecycleStatus": "Lifecycle Status",
       "notes": "Notes"
@@ -187,7 +228,13 @@
     "offline": "Hors ligne",
     "offlineMode": "Mode Hors Ligne",
     "synced": "Synchronisé",
-    "operations": "Opérations"
+    "emptyChart": {
+      "noData": "Aucune donnée disponible",
+      "addData": "Ajoutez des données pour voir les statistiques."
+    },
+    "emptyState": {
+      "noComments": "Aucun commentaire pour le moment."
+    }
   },
   "admin": {
     "dashboard": "Tableau de Bord Super Admin",
@@ -221,6 +268,11 @@
       "evidence": "Quelles preuves (documents, logs, captures) sont typiquement attendues par un auditeur pour la mesure \"{{code}} - {{name}}\" ? Listez-les sous forme de points.",
       "policy": "Rédigez un paragraphe de politique de sécurité concis pour répondre à la mesure \"{{code}} - {{name}}\". Le ton doit être formel."
     }
+  },
+  "calendar": {
+    "title": "Calendrier",
+    "subtitle": "Planification des audits, revues et échéances réglementaires.",
+    "keywords": "Calendrier, Planning, Audit, Échéances, ISO 27001"
   },
   "certifier": {
     "portalTitle": "Portail Auditeur",
@@ -614,6 +666,17 @@
   "reports": {
     "title": "Rapports & Documents",
     "subtitle": "Générez et gérez vos rapports de conformité, documents exécutifs et preuves d'audit.",
+    "seoDescription": "Générez et gérez vos rapports de conformité, documents exécutifs et preuves d'audit.",
+    "keywords": "Rapports GRC, Audit ISO 27001, Preuves de conformité, Reporting RSSI, DdA",
+    "scheduleThis": "Planifier ce rapport",
+    "badges": {
+      "recommended": "Recommandé",
+      "complete": "Complet"
+    },
+    "deleteScheduled": {
+      "title": "Supprimer la planification ?",
+      "message": "Voulez-vous vraiment arrêter la génération automatique de ce rapport ?"
+    },
     "newReport": "Nouveau Rapport",
     "riskExecTitle": "Rapport Risques Exécutifs",
     "riskExecDesc": "Synthèse globale des risques majeurs, cartographie et plans de traitement pour la Direction.",
@@ -707,7 +770,20 @@
     "risksSubtitle": "Cartographie et plans d'action.",
     "scheduled": "Planifiés",
     "successSaved": "Configuration enregistrée",
-    "templates": "Modèles"
+    "templates": "Modèles",
+    "generated": {
+      "empty": "Aucun document généré",
+      "createNew": "Générer un nouveau rapport"
+    },
+    "scheduledSection": {
+      "title": "Rapports Planifiés",
+      "subtitle": "Gestion des envois automatisés.",
+      "scheduleReport": "Planifier un rapport",
+      "emptyTitle": "Aucune planification",
+      "emptyDescription": "Planifiez l'envoi récurrent de vos rapports exécutifs ou de conformité.",
+      "recipients": "Destinataire(s)",
+      "nextRun": "Prochain envoi"
+    }
   },
   "suppliers": {
     "title": "Fournisseurs",
@@ -928,7 +1004,10 @@
     "declare": "Déclarer Vulnérabilité",
     "searchPlaceholder": "Rechercher des vulnérabilités...",
     "deleteTitle": "Supprimer Vulnérabilité ?",
-    "deleteMessage": "Cette action est irréversible."
+    "deleteMessage": "Cette action est irréversible.",
+    "list": "Liste des vulnérabilités",
+    "newSubtitle": "Déclarez une nouvelle vulnérabilité.",
+    "details": "Détails de la vulnérabilité"
   },
   "pricing": {
     "title": "Plans & Tarification",
@@ -953,13 +1032,19 @@
     "billedYearly": "Facturé annuellement (-20%)",
     "discount": "-20%",
     "compare": "Comparer les plans",
-    "compareDesc": "Détail complet des fonctionnalités par plan.",
-    "faq": "Questions Fréquentes",
-    "faqDesc": "Nos réponses à vos interrogations.",
+    "faq": "FAQ",
+    "faqDesc": "Questions fréquentes",
+    "faq1_q": "Puis-je changer de plan plus tard ?",
+    "faq1_a": "Absolument. Vous pouvez upgrader ou downgrader votre plan à tout moment depuis votre espace d'administration. Le changement sera effectif immédiatement.",
+    "faq2_q": "Quels sont les modes de paiement ?",
+    "faq2_a": "Nous acceptons toutes les cartes bancaires majeures (Visa, Mastercard, Amex) ainsi que les prélèvements SEPA pour les plans annuels.",
+    "faq3_q": "Les données sont-elles sécurisées ?",
+    "faq3_a": "Oui, la sécurité est notre priorité. Toutes vos données sont chiffrées en transit et au repos. Nous sommes hébergés sur des infrastructures certifiées ISO 27001 et SecNumCloud.",
     "contact": {
-      "text": "Besoin d'un plan sur mesure ?",
+      "text": "Besoin de plus d'informations ?",
       "link": "Contactez-nous"
     },
+    "compareDesc": "Détail complet des fonctionnalités par plan.",
     "features": "Fonctionnalités",
     "included": "Inclus",
     "featuresList": {
@@ -1143,6 +1228,19 @@
   },
   "settings": {
     "mentionsLegales": "Mentions Légales",
+    "frameworks": "Référentiels",
+    "partners": "Partenaires",
+    "address": "Adresse",
+    "aiPrivacyTitle": "Sentinel AI & Confidentialité",
+    "enableAI": "Activer Sentinel AI",
+    "enableAIDesc": "Permet l'utilisation des fonctionnalités d'intelligence artificielle pour l'analyse de risques et la génération de contenu.",
+    "dataSanitization": "Anonymisation des Données",
+    "dataSanitizationDesc": "Supprime automatiquement les noms, emails et numéros de téléphone avant l'envoi aux modèles IA.",
+    "aiConsent": "Consentement d'analyse",
+    "aiConsentDesc": "J'autorise Sentinel à traiter les données (anonymisées si activé) pour fournir des analyses.",
+    "frameworksTitle": "Référentiels de Conformité",
+    "frameworksDescription": "Sélectionnez les référentiels que votre organisation doit respecter.",
+    "securityDesc": "Gérez vos méthodes d'authentification et sessions sécurisées.",
     "title": "Paramètres",
     "subtitle": "Configuration globale de l'organisation et préférences utilisateur.",
     "accountConnected": "Compte connecté",
@@ -1647,6 +1745,7 @@
       "details": "Détails",
       "checklist": "Checklist",
       "findings": "Constats",
+      "linked": "Lié",
       "history": "Historique"
     },
     "inspector": {
@@ -1793,8 +1892,10 @@
       "strategies": "Stratégies & PCA",
       "pra": "Plans de Reprise (PRA)",
       "drills": "Exercices",
-      "crisis": "Gestion de Crise"
+      "crisis": "Gestion de Crise",
+      "tlpt": "TLPT"
     },
+    "keywords": "Continuité d'activité, PCA, PRA, BIA, Gestion de crise, Résilience",
     "placeholders": {
       "name": "Ex: Paiement en ligne",
       "description": "Description du processus..."
@@ -1826,6 +1927,11 @@
       "enterName": "Entrez le nom du processus...",
       "autocomplete": "Générer PCA",
       "suggestionApplied": "Contenu généré appliqué."
+    },
+    "pra": {
+      "emptyTitle": "Aucun Plan de Reprise",
+      "emptyDescription": "Créez votre premier plan de reprise d'activité (PRA).",
+      "createPra": "Créer un PRA"
     }
   },
   "activity": {
@@ -1851,6 +1957,32 @@
       "admins": "Actions Admin",
       "critical": "Actions Critiques"
     }
+  },
+  "privacy": {
+    "test": "loaded",
+    "title": "Vie Privée (RGPD)",
+    "subtitle": "Gérez votre registre de traitements et conformité RGPD.",
+    "keywords": "RGPD, Privacy, Données personnelles, DPO",
+    "deleteTitle": "Supprimer l'activité ?",
+    "deleteMessage": "Cette action est irréversible.",
+    "breadcrumb": "Vie Privée",
+    "newActivity": "Nouvelle Activité",
+    "newActivitySubtitle": "Déclarer un nouveau traitement de données",
+    "registryLabel": "Registre des traitements",
+    "activitiesIdentified": "Activités identifiées",
+    "stats": {
+      "sensitiveData": "Données Sensibles",
+      "priority": "Priorité Haute",
+      "dpiaRequired": "AIPD Requise",
+      "toComplete": "À Compléter",
+      "inProgress": "En Cours",
+      "activities": "Activités",
+      "activeCompliance": "Conformité Active"
+    },
+    "searchPlaceholder": "Rechercher une activité...",
+    "exportRegistry": "Exporter le registre",
+    "emptyTitle": "Aucune activité",
+    "emptyDescription": "Votre registre de traitements est vide."
   },
   "assets": {
     "title": "Inventaire des Actifs",
@@ -2183,6 +2315,44 @@
     "programDetails": "Détails du Programme",
     "targetDate": "Date Cible",
     "title": "Programme SMSI",
-    "description": "Gérez vos programmes de sécurité et conformité."
+    "description": "Gérez vos programmes de sécurité et conformité.",
+    "editProgram": "Modifier le programme",
+    "pdcaCycle": "Cycle PDCA",
+    "report": "Rapport",
+    "objective": "Objectif",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "planning": "Planification"
+    }
+  },
+  "riskContext": {
+    "title": "Contexte de Risque",
+    "subtitle": "Définition du périmètre et des critères d'impact.",
+    "keywords": "Contexte, Périmètre, Critères, Impact, Vraisemblance"
+  },
+  "systemHealth": {
+    "title": "Santé du Système",
+    "subtitle": "État des services et métriques de performance.",
+    "operational": "Opérationnel",
+    "servicesStatus": "État des Services",
+    "recentAlerts": "Alertes Récentes",
+    "metrics": {
+      "activeUsers": "Utilisateurs Actifs",
+      "totalAccounts": "Total Comptes",
+      "systemLoad": "Charge Système",
+      "cpuUsage": "CPU",
+      "memory": "Mémoire",
+      "ramAllocated": "RAM Allouée",
+      "latency": "Latence",
+      "globalPing": "Ping Global"
+    },
+    "alerts": {
+      "networkLatency": "Latence Réseau Élevée",
+      "networkLatencyDesc": "Pic de latence > 300ms détecté sur le cluster principal.",
+      "twoHoursAgo": "Il y a 2 heures",
+      "backupComplete": "Sauvegarde Terminée",
+      "backupCompleteDesc": "La sauvegarde journalière a été effectuée avec succès.",
+      "fourHoursAgo": "Il y a 4 heures"
+    }
   }
 }

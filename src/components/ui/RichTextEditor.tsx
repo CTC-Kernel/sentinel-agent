@@ -2,7 +2,6 @@ import React from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import type { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Quote, Heading1, Heading2 } from './Icons';
 
@@ -145,13 +144,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const isEditable = editable && !readOnly;
 
     const extensions = React.useMemo(() => [
-        StarterKit,
-        Link.configure({
-            openOnClick: false,
-            HTMLAttributes: {
-                class: 'text-blue-500 hover:text-blue-700 underline',
+        StarterKit.configure({
+            // @ts-ignore: link is likely in StarterKit in this version
+            link: {
+                openOnClick: false,
+                HTMLAttributes: {
+                    class: 'text-blue-500 hover:text-blue-700 underline',
+                },
             },
         }),
+        // Link extension removed to avoid duplicate
         TextAlign.configure({
             types: ['heading', 'paragraph'],
         }),

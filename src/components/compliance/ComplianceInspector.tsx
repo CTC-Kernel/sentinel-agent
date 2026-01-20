@@ -74,12 +74,12 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         <Button
                             aria-label={`Lier le contrôle au projet ${linkingToProjectName}`}
                             onClick={() => handleLinkProject(control, linkingToProjectId)}
-                            disabled={updating || (control.relatedProjectIds || []).includes(linkingToProjectId)}
+                            disabled={updating || (Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).includes(linkingToProjectId)}
                             size="sm"
                             className="text-xs font-bold shadow-sm"
                         >
                             {updating ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Link className="h-3 w-3 mr-1.5" />}
-                            {(control.relatedProjectIds || []).includes(linkingToProjectId) ? 'Déjà lié' : 'Lier maintenant'}
+                            {(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).includes(linkingToProjectId) ? 'Déjà lié' : 'Lier maintenant'}
                         </Button>
                     </div>
                 )}

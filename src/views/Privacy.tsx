@@ -191,7 +191,7 @@ export const Privacy: React.FC = () => {
                                 onClick={() => fileInputRef.current?.click()}
                                 className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
-                                <Upload className="h-4 w-4 mr-2" /> {t('common.import')}
+                                <Upload className="h-4 w-4 mr-2" /> {t('common.importCsv')}
                             </button>
                             <button
                                 aria-label="Nouveau Traitement"

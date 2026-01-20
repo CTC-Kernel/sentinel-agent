@@ -19,7 +19,7 @@ interface PlanIndicatorProps {
 const PLAN_CONFIG: Record<PlanType | 'unknown', {
     name: string;
     shortName: string;
-    icon: React.ElementType;
+    icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
     gradient: string;
     bgGradient: string;
     borderColor: string;
@@ -74,42 +74,49 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; pulse?: boolean }> = {
-    active: { label: 'Actif', color: 'text-emerald-600 dark:text-emerald-400' },
+    active: { label: 'Actif', color: 'text-emerald-600 dark:text-emerald-400', pulse: false },
     trialing: { label: 'Essai', color: 'text-amber-600 dark:text-amber-400', pulse: true },
     past_due: { label: 'Impayé', color: 'text-red-600 dark:text-red-400', pulse: true },
-    canceled: { label: 'Annulé', color: 'text-gray-500 dark:text-gray-500' },
-    incomplete: { label: 'Incomplet', color: 'text-orange-600 dark:text-orange-400' },
+    canceled: { label: 'Annulé', color: 'text-gray-500 dark:text-gray-500', pulse: false },
+    incomplete: { label: 'Incomplet', color: 'text-orange-600 dark:text-orange-400', pulse: false },
 };
 
 export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', compact = false }) => {
     const { organization } = useStore();
     const [isHovered, setIsHovered] = useState(false);
-    
+
     // Calculate days until renewal - move hooks before early return
     const [currentTime, setCurrentTime] = React.useState(() => Date.now());
-    
+
     React.useEffect(() => {
         const timer = setInterval(() => {
             setCurrentTime(Date.now());
         }, 60000); // Update every minute
-        
+
         return () => clearInterval(timer);
     }, []);
 
-    if (!organization?.subscription) {
+    if (!organization) {
         return null;
     }
 
-    const plan = organization.subscription.planId;
-    const status = organization.subscription.status;
+    // Fallback if subscription is missing (legacy orgs)
+    const subscription = organization.subscription || {
+        planId: 'discovery',
+        status: 'active',
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false
+    };
+
+    const plan = subscription.planId || 'discovery';
+    const status = subscription.status || 'active';
     const config = PLAN_CONFIG[plan] || PLAN_CONFIG.unknown;
     const statusConfig = STATUS_CONFIG[status] || { label: status, color: 'text-gray-500' };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Icon = config.icon as any;
+    const Icon = config.icon || Star;
 
     // Calculate days until renewal
-    const periodEnd = organization.subscription.currentPeriodEnd;
-    
+    const periodEnd = subscription.currentPeriodEnd;
+
     const daysUntilRenewal = periodEnd
         ? Math.ceil((new Date(periodEnd).getTime() - currentTime) / (1000 * 60 * 60 * 24))
         : null;
@@ -158,7 +165,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                         <motion.div
                             className="absolute -top-0.5 -right-0.5"
                             animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
-                            transition={{ duration: 2, repeat: Infinity }}
+                            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
                         >
                             <Sparkles className="w-2.5 h-2.5 text-amber-400" />
                         </motion.div>
@@ -166,7 +173,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                 </div>
 
                 {/* Plan name and status */}
-                <div className="flex flex-col items-start leading-none">
+                <div className={`flex flex-col items-start leading-none ${compact ? 'hidden' : 'hidden sm:flex'}`}>
                     <span className={`text-xs font-bold tracking-tight ${config.textColor}`}>
                         {compact ? config.shortName : config.name}
                     </span>
@@ -213,14 +220,14 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                             {/* Header */}
                             <div className="flex items-center gap-2 mb-3">
                                 <div className={`flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br ${config.gradient}`}>
-                                    <Icon className="w-4 h-4 text-white" />
+                                    <Icon className="w-4 h-4 text-white" strokeWidth={2} />
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">
                                         Plan {config.name}
                                     </p>
                                     <p className={`text-xs font-medium ${statusConfig.color}`}>
-                                        {statusConfig.label}
+                                        {String(statusConfig.label)}
                                     </p>
                                 </div>
                             </div>

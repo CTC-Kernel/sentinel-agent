@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Vulnerability } from '../types';
 import { useStore } from '../store';
@@ -7,41 +7,26 @@ import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ThreatFeedService } from '../services/ThreatFeedService';
 import { logAction } from '../services/logger';
+import { useFirestoreCollection } from './useFirestore';
 
 export const useVulnerabilities = () => {
     const { user, addToast, demoMode } = useStore();
-    const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
-    const [loading, setLoading] = useState(true);
     const initialLoadRef = useRef(false);
 
-    useEffect(() => {
-        if (!user?.organizationId) return;
+    // Use useFirestoreCollection for stable subscription
+    const constraints = useMemo(() => {
+        if (!user?.organizationId) return [];
+        return [where('organizationId', '==', user.organizationId)];
+    }, [user?.organizationId]);
 
-        // Demo Mode Logic
-        if (demoMode) {
-            setLoading(true);
-            import('../services/mockDataService').then(({ MockDataService }) => {
-                setVulnerabilities(MockDataService.getCollection('vulnerabilities') as Vulnerability[]);
-                setLoading(false);
-            });
-            return;
+    const { data: vulnerabilities, loading } = useFirestoreCollection<Vulnerability>(
+        'vulnerabilities',
+        constraints,
+        {
+            realtime: true,
+            enabled: !!user?.organizationId
         }
-
-        // Firestore Logic
-        const q = query(collection(db, 'vulnerabilities'), where('organizationId', '==', user.organizationId));
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vulnerability));
-            setVulnerabilities(items);
-            setLoading(false);
-        }, (err) => {
-            ErrorLogger.error(err as Error, 'useVulnerabilities.subscribe');
-            addToast('Erreur lors du chargement des vulnérabilités', 'error');
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [user?.organizationId, addToast, demoMode]);
+    );
 
     const seedCisaKev = useCallback(async () => {
         if (!user?.organizationId || demoMode) return;

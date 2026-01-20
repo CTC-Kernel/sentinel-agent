@@ -82,6 +82,7 @@
       "noData": "No data to import"
     },
     "columns": {
+      "category": "Category",
       "email": "Email",
       "name": "Name",
       "role": "Role",
@@ -126,7 +127,53 @@
     "managedBy": "Managed by",
     "associatedRisks": "Associated Risks",
     "overview": "Overview",
-    "suppliers": "Suppliers"
+    "suppliers": "Suppliers",
+    "emptyChart": {
+      "noData": "No data available",
+      "addData": "Add data to see statistics."
+    },
+    "pricingTitle": "Plans & Pricing",
+    "pricingSubtitle": "Flexible solutions to secure your business, from startups to large enterprises.",
+    "operations": "Operations",
+    "adminSec": "Admin & Security",
+    "feat_dashboard": "Dashboards",
+    "feat_projects": "Projects",
+    "feat_reports": "Reports",
+    "feat_calendar": "Calendar",
+    "feat_incidents": "Incidents",
+    "feat_vulns": "Vulnerabilities",
+    "feat_threats": "Threats",
+    "feat_voxel": "3D Model",
+    "feat_risks": "Risks",
+    "feat_compliance": "Compliance",
+    "feat_audits": "Audits",
+    "feat_portal": "Auditor Portal",
+    "feat_continuity": "Continuity",
+    "feat_privacy": "Privacy",
+    "feat_assets": "Assets",
+    "feat_suppliers": "Suppliers",
+    "feat_documents": "Documents",
+    "feat_team": "Users",
+    "feat_health": "System Health",
+    "feat_backup": "Backup",
+    "feat_ai": "AI Assistant",
+    "feat_api": "API",
+    "feat_support": "Support",
+    "val_simple": "Simple",
+    "val_advanced": "Advanced",
+    "val_custom": "Custom",
+    "val_unlimited": "Unlimited",
+    "val_included": "Included",
+    "val_ai_assisted": "AI Assisted",
+    "val_manual": "Manual",
+    "val_automated": "Automated",
+    "val_portal": "Portal",
+    "val_comm": "Community",
+    "val_prio": "Priority",
+    "val_dedicated": "Dedicated",
+    "emptyState": {
+      "noComments": "No comments yet."
+    }
   },
   "validation": {
     "required": "This field is required",
@@ -623,6 +670,11 @@
     "typeReview": "Document Review",
     "typeSignature": "Signature Needed"
   },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Planning of audits, reviews, and regulatory deadlines.",
+    "keywords": "Calendar, Planning, Audit, Deadlines, ISO 27001"
+  },
   "certifier": {
     "portalTitle": "Auditor Portal",
     "portalSubtitle": "Log in to manage your audits and certifications",
@@ -703,6 +755,31 @@
         "defaultCategory": "Documentation"
       }
     }
+  },
+  "privacy": {
+    "title": "Privacy (GDPR)",
+    "subtitle": "Manage your processing registry and GDPR compliance.",
+    "keywords": "GDPR, Privacy, Personal Data, DPO",
+    "deleteTitle": "Delete activity?",
+    "deleteMessage": "This action is irreversible.",
+    "breadcrumb": "Privacy",
+    "newActivity": "New Activity",
+    "newActivitySubtitle": "Declare a new data processing activity",
+    "registryLabel": "Processing Registry",
+    "activitiesIdentified": "Identified Activities",
+    "stats": {
+      "sensitiveData": "Sensitive Data",
+      "priority": "High Priority",
+      "dpiaRequired": "DPIA Required",
+      "toComplete": "To Complete",
+      "inProgress": "In Progress",
+      "activities": "Activities",
+      "activeCompliance": "Active Compliance"
+    },
+    "searchPlaceholder": "Search for an activity...",
+    "exportRegistry": "Export Registry",
+    "emptyTitle": "No activity",
+    "emptyDescription": "Your processing registry is empty."
   },
   "assets": {
     "title": "Asset Inventory",
@@ -1015,9 +1092,12 @@
       "overview": "Overview",
       "bia": "Impact Analysis (BIA)",
       "strategies": "Strategies & Plans",
+      "pra": "Recovery Plans (DRP)",
       "drills": "Exercises & Tests",
-      "crisis": "Crisis Management"
+      "crisis": "Crisis Management",
+      "tlpt": "TLPT"
     },
+    "keywords": "Business Continuity, BCP, DRP, BIA, Crisis Management, Resilience",
     "searchPlaceholder": "Search...",
     "searchBia": "Search for a process...",
     "searchDrills": "Search for an exercise...",
@@ -1063,6 +1143,11 @@
     "placeholders": {
       "name": "Ex: Supplier Payment",
       "description": "Complete description of activities..."
+    },
+    "pra": {
+      "emptyTitle": "No Recovery Plan",
+      "emptyDescription": "Create your first Disaster Recovery Plan (DRP).",
+      "createPra": "Create DRP"
     }
   },
   "vulnerabilities": {
@@ -1071,7 +1156,10 @@
     "declare": "Declare Vulnerability",
     "searchPlaceholder": "Search vulnerabilities...",
     "deleteTitle": "Delete Vulnerability?",
-    "deleteMessage": "This action is irreversible."
+    "deleteMessage": "This action is irreversible.",
+    "list": "Vulnerability List",
+    "newSubtitle": "Declare a new vulnerability.",
+    "details": "Vulnerability Details"
   },
   "audits": {
     "title": "Audit Program",
@@ -1379,6 +1467,17 @@
   "reports": {
     "title": "Report Center",
     "subtitle": "Generate, view, and customize your governance and compliance reports.",
+    "seoDescription": "Generate and manage your compliance reports, executive documents and audit evidence.",
+    "keywords": "GRC Reports, ISO 27001 Audit, Compliance Evidence, CISO Reporting, SoA",
+    "scheduleThis": "Schedule this report",
+    "badges": {
+      "recommended": "Recommended",
+      "complete": "Complete"
+    },
+    "deleteScheduled": {
+      "title": "Delete schedule?",
+      "message": "Are you sure you want to stop the automatic generation of this report?"
+    },
     "config": "Configuration",
     "generate": "Generate",
     "scheduled": "Scheduled",
@@ -1471,6 +1570,19 @@
         "button": "Configure Custom Report",
         "action": "Configure"
       }
+    },
+    "generated": {
+      "empty": "No generated documents",
+      "createNew": "Generate new report"
+    },
+    "scheduledSection": {
+      "title": "Scheduled Reports",
+      "subtitle": "Automated report delivery management.",
+      "scheduleReport": "Schedule Report",
+      "emptyTitle": "No scheduled reports",
+      "emptyDescription": "Schedule recurring delivery of your executive or compliance reports.",
+      "recipients": "Recipient(s)",
+      "nextRun": "Next run"
     }
   },
   "threats": {
@@ -1602,11 +1714,17 @@
     "compare": "Detailed Comparison",
     "compareDesc": "Analyze features in detail.",
     "features": "Features",
-    "faq": "Frequently Asked Questions",
-    "faqDesc": "Answers to common questions.",
+    "faq": "FAQ",
+    "faqDesc": "Frequently Asked Questions",
+    "faq1_q": "Can I change plans later?",
+    "faq1_a": "Absolutely. You can upgrade or downgrade your plan at any time from your admin interface. Changes are effective immediately.",
+    "faq2_q": "What payment methods are accepted?",
+    "faq2_a": "We accept all major credit cards (Visa, Mastercard, Amex) and SEPA transfers for annual plans.",
+    "faq3_q": "Is my data secure?",
+    "faq3_a": "Yes, security is our priority. All data is encrypted in transit and at rest. We are hosted on ISO 27001 and SecNumCloud certified infrastructure.",
     "contact": {
-      "text": "Need a custom quote?",
-      "link": "Contact our sales team"
+      "text": "Need more information?",
+      "link": "Contact us"
     },
     "plans": {
       "discovery": "Discovery",
@@ -1973,6 +2091,18 @@
     },
     "validation": {
       "residualRiskTooHigh": "Residual risk cannot be higher than initial risk"
+    }
+  },
+  "smsi": {
+    "title": "ISMS Program",
+    "description": "Manage your security and compliance programs.",
+    "editProgram": "Edit program",
+    "pdcaCycle": "PDCA Cycle",
+    "report": "Report",
+    "objective": "Objective",
+    "tabs": {
+      "overview": "Overview",
+      "planning": "Planning"
     }
   }
 }

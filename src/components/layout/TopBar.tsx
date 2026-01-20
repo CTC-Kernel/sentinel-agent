@@ -122,7 +122,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                 {/* Right: Actions & Profile */}
                 <div className="flex items-center gap-2 sm:gap-4">
                     {/* Plan Indicator */}
-                    <div className="hidden sm:block">
+                    <div>
                         <PlanIndicator />
                     </div>
 
