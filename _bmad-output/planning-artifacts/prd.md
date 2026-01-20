@@ -1,39 +1,93 @@
 ---
 stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-inputDocuments: ['_bmad-output/planning-artifacts/research/comprehensive-grc-research-2026-01-10.md', '_bmad-output/analysis/brainstorming-session-2026-01-10.md', 'docs/index.md', 'docs/architecture-overview.md', 'docs/data-models.md', 'docs/api-reference.md', 'docs/features-guide.md', 'docs/development-guide.md', 'docs/security-guide.md']
+inputDocuments: ['_bmad-output/planning-artifacts/product-brief-sentinel-grc-2026-01-20.md', '_bmad-output/planning-artifacts/research/market-grc-competitive-analysis-2026-01-20.md', '_bmad-output/planning-artifacts/research/brainstorming-verticaux-2026-01-20.md', 'docs/index.md', 'docs/architecture-overview.md', 'docs/data-models.md', 'docs/api-reference.md', 'docs/features-guide.md', 'docs/development-guide.md', 'docs/security-guide.md']
 workflowType: 'prd'
 lastStep: 11
 workflow_completed: true
-briefCount: 0
-researchCount: 1
+briefCount: 1
+researchCount: 2
 brainstormingCount: 1
 projectDocsCount: 7
 project_type: 'saas_b2b'
 domain: 'grc_compliance'
 complexity: 'high'
+last_updated: '2026-01-20'
+version: '2.0'
 ---
 
 # Product Requirements Document - sentinel-grc-v2-prod
 
 **Author:** Thibaultllopis
-**Date:** 2026-01-10
+**Date:** 2026-01-10 | **Updated:** 2026-01-20
+**Version:** 2.0
 
 ## Executive Summary
 
-Sentinel-GRC est une plateforme SaaS de Governance, Risk & Compliance (GRC) conçue pour les PME et ETI européennes. L'application offre une solution complète pour gérer la conformité multi-framework (ISO 27001:2022, NIS2, DORA, RGPD) avec une expérience utilisateur intuitive de niveau Apple.
+> **"Sentinel-GRC transforme la gouvernance cyber de réactive à prédictive, en augmentant la capacité cognitive des experts grâce à l'IA et à la visualisation 3D."**
 
-Ce PRD définit les évolutions prioritaires pour améliorer l'expérience utilisateur, renforcer la personnalisation par rôle, et ajouter des fonctionnalités de collaboration innovantes.
+Face à la complexité exponentielle des menaces et des infrastructures, le cerveau humain ne suffit plus pour corréler des milliers de vecteurs de risques. L'Intelligence Artificielle ne vient pas remplacer l'expert — elle vient **augmenter sa capacité de vision**.
+
+Sentinel-GRC ne "stocke" pas les risques. **Il les comprend.**
+
+### Le Statu Quo : La "Terre Plate" de la Cybersécurité
+
+| Symptôme | Impact Business |
+|----------|-----------------|
+| Risques gérés dans des fichiers Excel | Données statiques, déconnectées de la réalité |
+| Outils GRC jugés inefficaces par 66% des RSSI | €4.45M coût moyen d'une brèche |
+| 85% des RSSI sans visibilité sur les menaces tierces | Seulement 21% ont des plans de crise testés |
+| Questionnaires traditionnels insuffisants (71%) | Fatigue d'évaluation, faux sentiment de sécurité |
+
+*Sources: Panorays 2026, ISACA Journal 2024, Gartner 2024*
+
+### Les 3 Piliers de Sentinel-GRC
+
+#### Pilier 1 : Voir l'Invisible — Technologie Voxel
+
+| Capacité | Bénéfice |
+|----------|----------|
+| Modélisation 3D du SI | Navigation visuelle vs lecture de rapports |
+| Identification nœuds critiques | Priorisation instantanée |
+| Propagation incident temps réel | Anticipation vs réaction |
+| Impact cascade fournisseur | Visibilité supply chain |
+
+#### Pilier 2 : Intelligence au Service de la Méthode — EBIOS + Gemini AI
+
+| Avant Sentinel | Avec Sentinel |
+|----------------|---------------|
+| 3 semaines pour définir scénarios | Suggestions automatiques contextuelles |
+| Analyse manuelle des actifs | Pré-analyse IA des vecteurs d'attaque |
+| Plans de traitement génériques | Recommandations personnalisées |
+| Expert seul face à la complexité | IA comme analyste d'élite 24/7 |
+
+#### Pilier 3 : Souveraineté — Votre Donnée, Vos Règles
+
+| Engagement | Détail |
+|------------|--------|
+| Hébergement | 100% Europe (conformité NIS2/DORA) |
+| Traçabilité | Audit Trail inaltérable |
+| Gouvernance | RBAC granulaire |
+| Résilience | Playbooks PCA/PRA en un clic |
+
+### Proposition de Valeur Unique
+
+> **Pour** les RSSI et équipes GRC des entreprises européennes soumises à NIS2/DORA
+> **Qui** doivent gérer une complexité cyber exponentielle avec des ressources limitées
+> **Sentinel-GRC est** une plateforme de gouvernance cyber augmentée par l'IA
+> **Qui** cartographie dynamiquement les risques, quantifie l'impact financier et prédit les crises
+> **Contrairement à** Egerie (interface classique), Citalid (focus quantification seule), OneTrust (complexité + US)
+> **Notre produit** offre une visualisation 3D unique (Voxel), l'IA Gemini intégrée et une souveraineté européenne garantie
+
+**Tagline:** *"Governance. Risk. Command."*
 
 ### What Makes This Special
 
-**Positionnement unique sur le marché GRC:**
-
-1. **Focus Européen** - Conçu pour les réglementations EU (NIS2, DORA) vs concurrents US-centric (Vanta, Drata, Secureframe)
-2. **Wizard SMSI Guidé** - Implémentation ISO 27001 pas-à-pas, unique sur le marché
-3. **Prix Accessible** - Positionnement compétitif pour PME ($5K-25K vs $10K-100K concurrents)
-4. **UX Apple-like** - Interface intuitive pour non-techniciens (dirigeants, RSSI, auditeurs)
-5. **Collaboration Multi-org** - Threat Intelligence partagé entre organisations partenaires
-6. **Support Français** - Langue native et expertise conformité locale
+1. **Visualisation Voxel 3D** - Unique sur le marché, cartographie dynamique du SI
+2. **IA Gemini Intégrée** - Suggestions EBIOS contextuelles, analyse prédictive
+3. **Focus Européen** - NIS2, DORA, HDS, RGS natifs vs concurrents US-centric
+4. **Souveraineté Garantie** - Hébergement 100% EU, audit trail inaltérable
+5. **Time-to-Value** - < 8 semaines vs 3-6 mois concurrents
+6. **UX Apple-like** - Interface intuitive pour non-techniciens
 
 ## Project Classification
 
@@ -52,68 +106,68 @@ Ce PRD définit les évolutions prioritaires pour améliorer l'expérience utili
 
 ## Success Criteria
 
-### User Success
+### User Success Metrics
 
-**Expérience sans friction:**
-- Zero erreur de validation liée aux formats FR/EN (dates, nombres)
-- Formulaires avec mode brouillon - sauvegarde automatique toutes les 30s
-- Messages d'erreur humanisés et actionnables (vs messages techniques cryptiques)
-
-**Personnalisation par rôle:**
-- Chaque persona voit un dashboard adapté à ses besoins dès la connexion
-- Temps de prise en main divisé par 2 pour nouveaux utilisateurs
-- Dirigeants: Score global + 3 KPIs + alertes critiques uniquement
-- RSSI: Vue risques, incidents, actions prioritaires
-- Auditeurs: Checklist audit, preuves, progression
+| Métrique | Baseline | Target | Mesure |
+|----------|----------|--------|--------|
+| Time-to-compliance | 3-6 mois | < 8 semaines | Date certification |
+| Temps analyse risque | 3 semaines | 3 jours | Logs plateforme |
+| Couverture assets | 40-60% | 100% | Inventaire automatique |
+| Visibilité third-party | 15% | 100% | Fournisseurs audités |
+| Temps préparation audit | 2 mois | 2 semaines | Effort ETP |
 
 **Moments de satisfaction ("Aha!"):**
-- Premier login: "Je vois exactement ce dont j'ai besoin"
-- Création risque: "C'était rapide et intuitif"
+- Premier login: "Je vois mon SI en 3D, je comprends enfin mes risques"
+- Analyse EBIOS: "L'IA m'a suggéré des scénarios en 10 minutes"
 - Préparation audit: "Toutes mes preuves sont organisées automatiquement"
+- Dashboard COMEX: "Je peux enfin justifier mon budget en euros"
 
-### Business Success
+### Business Success Metrics
 
-**Positionnement marché (3 mois):**
-- Différenciation claire vs Vanta/Drata sur le segment EU
-- Prix compétitif PME: $5K-15K entrée, $15K-25K scale-up
-- Support français comme avantage concurrentiel
+| Métrique | Y1 Target | Y2 Target | Y3 Target |
+|----------|-----------|-----------|-----------|
+| ARR | €500K | €1.5M | €4M |
+| Clients payants | 20 | 60 | 150 |
+| NRR (Net Revenue Retention) | 100% | 115% | 125% |
+| CAC Payback | 18 mois | 12 mois | 9 mois |
+| Logo churn | < 10% | < 8% | < 5% |
 
-**Acquisition clients (12 mois):**
-- Premiers clients payants utilisant le wizard SMSI
-- Taux de rétention >90% (vs ~85% industrie SaaS B2B)
-- NPS >50 (users satisfaits qui recommandent)
+**Positionnement par vertical:**
 
-**Métriques clés:**
-- Time-to-value: <30 min de l'inscription au premier risque créé
-- Adoption des features: >70% utilisent les dashboards personnalisés
-- Completion rate: >80% des audits terminés vs abandonnés
+| Vertical | Y1 Clients | Message Principal |
+|----------|------------|-------------------|
+| Finance (DORA) | 8 | Registre ICT automatisé |
+| Industrie (NIS2) | 5 | Vision IT/OT unifiée |
+| Santé (HDS) | 4 | Souveraineté + simplicité |
+| Public (RGS) | 3 | Homologation simplifiée |
+
+### Product Success Metrics
+
+| Métrique | Target | Mesure |
+|----------|--------|--------|
+| Activation (first value) | < 7 jours | Premier dashboard Voxel créé |
+| Adoption features core | > 60% | Usage Voxel + EBIOS + Reporting |
+| NPS | > 40 | Survey trimestriel |
+| Time-in-app | > 2h/semaine/user | Analytics |
+| Support tickets | < 5/client/mois | Zendesk |
 
 ### Technical Success
 
-**Qualité et stabilité:**
-- Zero bug de validation FR/EN en production
-- Cohérence RBAC: 100% des pages respectent la matrice de permissions
-- Performance: <2s chargement pages, <500ms actions utilisateur
+**Performance:**
+- Page load: <2s (Core Web Vitals LCP)
+- API response: <500ms (p95)
+- Voxel render: <1s pour SI <1000 nœuds
 
 **Architecture:**
-- Config locale centralisée utilisée par Zod, date-fns, i18n
-- Mode brouillon fonctionnel sur toutes les entités principales
-- Auto-save avec debounce et gestion des conflits
+- Config locale centralisée (Zod, date-fns, i18n)
+- Mode brouillon sur toutes les entités principales
+- Auto-save avec debounce et gestion conflits
 
-**Conformité:**
-- Compatibilité ISO 27001:2022 (93 contrôles, 4 catégories)
-- Support NIS2 et DORA pour clients secteur financier/critique
-- Audit trail complet pour toutes les modifications
-
-### Measurable Outcomes
-
-| Métrique | Baseline Actuel | Cible | Timeline |
-|----------|-----------------|-------|----------|
-| Erreurs validation FR/EN | Multiple | 0 | Quick Win |
-| Temps prise en main | Variable | -50% | 3 mois |
-| NPS utilisateurs | Non mesuré | >50 | 6 mois |
-| Time-to-value | >1h estimé | <30min | 3 mois |
-| Taux completion audit | ~70% estimé | >85% | 6 mois |
+**Conformité plateforme:**
+- Hébergement EU (Firebase europe-west1) ✓
+- Chiffrement transit (TLS 1.3) + repos (AES-256) ✓
+- Audit trail complet + non-modifiable ✓
+- RGPD compliant (droit effacement, portabilité) ✓
 
 ## Product Scope
 
@@ -149,6 +203,100 @@ Ce PRD définit les évolutions prioritaires pour améliorer l'expérience utili
 15. IA suggestions de contrôles basées sur le contexte
 16. Portail client transparent (au-delà du portail auditeur)
 17. Intégrations tierces (SSO enterprise, SIEM, ticketing)
+
+## Personas par Vertical
+
+### Persona Primaire : Le RSSI Débordé
+
+```
+NOM: Jean-Marc Duval
+TITRE: RSSI / Directeur Cybersécurité
+SECTEUR: Multi-vertical (Finance, Santé, Industrie, Public)
+TAILLE ORGANISATION: ETI à Grand Compte (500-10,000 employés)
+
+PROFIL TYPE:
+- 40-55 ans
+- 10-20 ans d'expérience IT/Sécurité
+- Équipe réduite (2-5 ETP sécurité)
+- Rapport direct au DSI ou DG
+
+OBJECTIFS PROFESSIONNELS:
+1. Conformité réglementaire (DORA, NIS2, HDS, RGS)
+2. Réduction du risque cyber quantifiable
+3. Justification budget auprès du COMEX
+4. Protection de la réputation personnelle
+
+FRUSTRATIONS QUOTIDIENNES:
+- "Je passe plus de temps à remplir des registres qu'à sécuriser"
+- "Mon Excel ne scale pas pour 88 fournisseurs"
+- "Le COMEX veut des chiffres, j'ai des vulnérabilités"
+- "Je suis seul face à une complexité exponentielle"
+
+CRITÈRES DE DÉCISION:
+1. Time-to-value rapide (< 3 mois)
+2. ROI démontrable au COMEX
+3. Conformité pré-packagée (templates)
+4. Souveraineté données (EU obligatoire)
+```
+
+### Personas Secondaires par Vertical
+
+#### Finance : RSSI Banque/Assurance (DORA)
+
+| Attribut | Spécificité |
+|----------|-------------|
+| **Driver principal** | DORA (obligatoire Jan 2025) |
+| **Pain spécifique** | Registre ICT, 88+ fournisseurs |
+| **Deadline** | 30 avril 2025 (reporting ESA) |
+| **Budget** | Élevé mais contrôlé |
+| **Citation** | "Le régulateur va auditer dans 6 mois" |
+| **Message clé** | "DORA entre en vigueur. Votre registre ICT est-il prêt ?" |
+| **Tagline** | "Sentinel-GRC. DORA-Ready depuis le premier jour." |
+
+#### Santé : RSSI Hôpital/Groupe (HDS)
+
+| Attribut | Spécificité |
+|----------|-------------|
+| **Driver principal** | HDS v2 (transition mai 2026) |
+| **Pain spécifique** | Sous-effectif, budget minimal |
+| **Contexte** | Post-cyberattaques (Corbeil, Versailles) |
+| **Budget** | Contraint (secteur public) |
+| **Citation** | "Après l'attaque, le DG m'écoute. Mais zéro budget." |
+| **Message clé** | "Vos données patients méritent mieux qu'un Excel et un hébergeur US." |
+| **Tagline** | "Sentinel-GRC. La santé de vos données, en toute souveraineté." |
+
+#### Industrie : RSSI OT/IT (NIS2)
+
+| Attribut | Spécificité |
+|----------|-------------|
+| **Driver principal** | NIS2 (secteurs critiques) |
+| **Pain spécifique** | Convergence IT/OT, legacy SCADA |
+| **Contexte** | Culture "production first" |
+| **Budget** | Variable, justification ROI cruciale |
+| **Citation** | "Ton firewall a arrêté ma chaîne 4h = €200K perdus" |
+| **Message clé** | "Votre chaîne de production est connectée. Votre vision cyber aussi ?" |
+| **Tagline** | "Sentinel-GRC. La résilience industrielle, du SCADA au COMEX." |
+
+#### Public : RSSI Collectivité/État (RGS)
+
+| Attribut | Spécificité |
+|----------|-------------|
+| **Driver principal** | RGS, Homologation ANSSI |
+| **Pain spécifique** | Multi-SI (15+ téléservices) |
+| **Contexte** | Transition RGS → NIS2 |
+| **Budget** | Très contraint, appels d'offres |
+| **Citation** | "L'ANSSI exige l'homologation. Avec quel budget ?" |
+| **Message clé** | "L'ANSSI exige l'homologation. Vos téléservices sont-ils prêts ?" |
+| **Tagline** | "Sentinel-GRC. L'homologation simplifiée pour le service public." |
+
+### Matrice Urgence par Vertical
+
+| Vertical | Driver | Urgence | Message Principal |
+|----------|--------|---------|-------------------|
+| Finance | DORA Jan 2025 | 🔴 Critique | Registre ICT automatisé |
+| Santé | HDS v2 Mai 2026 | 🟠 Haute | Souveraineté + simplicité |
+| Industrie | NIS2 2025 | 🔴 Critique | IT/OT unifié |
+| Public | RGS/Homologation | 🟠 Haute | Homologation simplifiée |
 
 ## User Journeys
 
@@ -424,18 +572,29 @@ Exigences documentaires strictes:
 
 ### Detected Innovation Areas
 
-#### 1. Wizard SMSI Guidé (Innovation Principale)
-**Ce qui est nouveau:** Aucune solution GRC ne propose un wizard pas-à-pas pour implémenter ISO 27001 de A à Z. Les concurrents (Vanta, Drata) fournissent des templates mais laissent l'utilisateur naviguer seul.
+#### 1. Technologie Voxel 3D (Innovation Principale)
+**Ce qui est nouveau:** Aucune solution GRC ne propose une visualisation 3D dynamique du système d'information avec propagation en temps réel des risques.
 
 **L'approche Sentinel-GRC:**
-- Parcours guidé de la création du SMSI à la certification
-- Étapes progressives avec validation avant passage à la suivante
-- Estimation de temps restant et progression visuelle
-- Suggestions contextuelles basées sur le secteur d'activité
+- Modélisation 3D du SI avec nœuds et connexions
+- Visualisation propagation d'incident en temps réel
+- Identification automatique des nœuds critiques (SPOF)
+- Impact cascade fournisseurs visible instantanément
 
-**Assumption challengée:** "La conformité ISO 27001 requiert un consultant externe."
+**Assumption challengée:** "Les tableaux et rapports suffisent pour comprendre les risques."
 
-#### 2. Score de Maturité "Apple Health Style"
+#### 2. IA EBIOS + Gemini
+**Ce qui est nouveau:** Intégration native d'une IA générative pour automatiser et enrichir la méthodologie EBIOS RM.
+
+**L'approche Sentinel-GRC:**
+- Suggestions automatiques de scénarios de menaces
+- Pré-analyse des vecteurs d'attaque par asset
+- Recommandations personnalisées par secteur d'activité
+- Réduction du temps d'analyse de 3 semaines à 3 jours
+
+**Assumption challengée:** "L'analyse EBIOS nécessite un expert dédié pendant des semaines."
+
+#### 3. Score de Maturité "Apple Health Style"
 **Ce qui est nouveau:** Présentation de la conformité comme un score de santé évolutif plutôt qu'une checklist binaire.
 
 **L'approche Sentinel-GRC:**
@@ -446,30 +605,62 @@ Exigences documentaires strictes:
 
 **Assumption challengée:** "La conformité est un état statique (conforme/non-conforme)."
 
-#### 3. Collaboration Multi-Org (Threat Intel Social)
-**Ce qui est nouveau:** Partage anonymisé de threat intelligence entre organisations utilisatrices (opt-in).
-
-**L'approche Sentinel-GRC:**
-- Organisations partenaires partagent les menaces détectées
-- Benchmark anonymisé de maturité par secteur
-- Alertes précoces sur les vecteurs d'attaque émergents
-- Effet réseau: plus il y a d'utilisateurs, plus la valeur augmente
-
-**Assumption challengée:** "La sécurité est compétitive, pas collaborative."
-
 ### Market Context & Competitive Landscape
 
-**Différenciation vs Leaders du marché:**
+**Taille du Marché (2024-2033):**
 
-| Aspect | Vanta/Drata | Sentinel-GRC |
-|--------|-------------|--------------|
-| Approche | Template + automation | Wizard guidé |
-| Focus géo | US (SOC 2 first) | EU (ISO/NIS2/DORA first) |
-| UX cible | Technique (DevOps) | Non-technique (Dirigeants) |
-| Collaboration | Tenant isolé | Multi-org opt-in |
-| Visualisation | Dashboards classiques | Score santé Apple |
+| Segment | Valeur 2024 | Projection | CAGR |
+|---------|-------------|------------|------|
+| Europe GRC | $14.8 Mrd | $27.8 Mrd (2033) | 6.88% |
+| Global GRC | $62.5 Mrd | $151.5 Mrd (2034) | 13.2% |
+| GRC Cybersécurité | $7.2 Mrd | $18.2 Mrd (2030) | 17% |
 
-**Gap marché identifié:** Pas de solution GRC pensée pour le marché européen PME avec une UX accessible aux non-experts.
+*Sources: IMARC Group, Yahoo Finance, Mordor Intelligence*
+
+**Carte du Marché:**
+
+```
+                    PROFONDEUR FONCTIONNELLE
+                    ─────────────────────────►
+                    Basique              Complète
+
+    │               │                    │
+    │   Vanta       │                    │ Archer
+    │   Drata       │                    │ ServiceNow
+ P  │               │                    │ OneTrust
+ R  ├───────────────┼────────────────────┤
+ I  │               │                    │
+ X  │               │   ★ SENTINEL       │
+    │   Eramba      │                    │ Egerie
+    │   (Open)      │      Citalid       │
+    │               │                    │
+    ▼               │                    │
+```
+
+**Matrice Différenciation Détaillée:**
+
+| Critère | Sentinel | Egerie | Citalid | OneTrust | ServiceNow | Vanta |
+|---------|----------|--------|---------|----------|------------|-------|
+| **Visualisation 3D** | ✅ Voxel | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **IA intégrée** | ✅ Gemini | ⚠️ Limité | ✅ CRQ | ⚠️ Add-on | ✅ Native | ⚠️ Basic |
+| **EBIOS RM natif** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Souveraineté EU** | ✅ 100% | ✅ | ✅ | ❌ US | ❌ US | ❌ US |
+| **Time-to-value** | < 8 sem | 3+ mois | 2+ mois | 6+ mois | 6+ mois | 4 sem |
+| **Prix entrée** | €€ | €€€ | €€ | €€€€ | €€€€€ | €€ |
+| **NIS2/DORA natif** | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ | 🆕 2025 |
+
+**Analyse Concurrentielle Clé:**
+
+| Concurrent | Positionnement | Notre Angle d'Attaque |
+|------------|----------------|----------------------|
+| **Egerie** | Champion souverain FR, EBIOS natif | UX moderne + Voxel 3D (vs interface 2010) |
+| **Citalid** | Leader quantification CRQ, 35% CAC40 | GRC complet (vs focus quantification seule) |
+| **OneTrust** | #2 mondial, Privacy-first | Simplicité + souveraineté (vs complexité + US) |
+| **ServiceNow** | Écosystème ITSM intégré | Indépendance + spécialisation (vs lock-in) |
+| **Vanta/Drata** | Automatisation SOC2, startups | Profondeur EBIOS/NIS2 (vs focus SOC2 US) |
+| **Archer** | Vétéran enterprise | Modernité + time-to-value (vs legacy lourd) |
+
+**Gap marché identifié:** 66% des RSSI jugent leurs outils GRC inefficaces. Aucune solution ne combine visualisation 3D, IA intégrée et souveraineté européenne.
 
 ### Validation Approach
 
@@ -618,59 +809,54 @@ Sentinel-GRC est une application SaaS B2B multi-tenant destinée aux entreprises
 
 ### MVP Strategy & Philosophy
 
-**MVP Approach:** Experience MVP hybride
-- Corriger les frictions UX existantes (Quick Wins)
-- Ajouter les différenciateurs clés (Wizard SMSI, Score)
-- Préparer la monétisation (tiers de pricing)
+**MVP Approach:** Plateforme GRC augmentée par l'IA
+- Différenciateurs uniques: Voxel 3D, Gemini AI, Souveraineté EU
+- Compliance multi-framework native: EBIOS RM, ISO 27001, NIS2, DORA, HDS, RGS
+- Time-to-value agressif: < 8 semaines vs 3-6 mois concurrents
 
-**Rationale:** Sentinel-GRC est déjà fonctionnel. L'enjeu n'est pas de créer un MVP from scratch mais d'atteindre un niveau de polish et de différenciation suffisant pour commercialiser.
+**Rationale:** Sentinel-GRC est fonctionnel avec ses features core. L'objectif 2026 est d'accélérer sur les verticaux prioritaires (Finance/DORA, Industrie/NIS2) et d'affiner les différenciateurs clés.
 
-### MVP Feature Set (Phase 1)
+### MVP Core (Actuel - Live)
 
-**Core User Journeys Supported:**
-- ✓ Philippe (Dirigeant) - Dashboard score global, rapports direction
-- ✓ Sarah (RSSI) - Gestion risques, multi-framework
-- ✓ Marc (Auditeur) - Portail externe, preuves
-- ✓ Julie (PM) - Suivi projet, actions
+| Feature | Statut | Valeur |
+|---------|--------|--------|
+| Cartographie Voxel 3D | ✅ Live | Différenciateur unique |
+| EBIOS RM natif | ✅ Live | Conformité ANSSI |
+| Intégration Gemini AI | ✅ Live | Suggestions automatiques |
+| Dashboard COMEX | ✅ Live | Reporting décisionnel |
+| Audit Trail | ✅ Live | Traçabilité absolue |
+| RBAC granulaire | ✅ Live | Gouvernance |
 
-**Must-Have Capabilities (Quick Wins + Core):**
+### Frameworks Supportés
 
-| # | Feature | Impact | Effort | Priorité |
-|---|---------|--------|--------|----------|
-| 1 | Config locale centralisée | Fix bugs FR/EN | Faible | P0 |
-| 2 | Messages erreur humanisés | UX | Faible | P0 |
-| 3 | Actions contextuelles | UX | Faible | P0 |
-| 4 | Mode brouillon formulaires | UX | Moyen | P1 |
-| 5 | Validation live | UX | Moyen | P1 |
-| 6 | Score global Apple Health | Différenciation | Moyen | P1 |
+| Framework | Niveau Support |
+|-----------|----------------|
+| EBIOS RM 2024 (v1.5) | ✅ Complet |
+| ISO 27001:2023 | ✅ Complet |
+| NIS2 | ✅ Complet |
+| DORA | ✅ Complet |
+| HDS v2 | ✅ Complet |
+| RGS | ✅ Complet |
 
-**MVP Success Criteria:**
-- Zero erreur validation FR/EN
-- Time-to-value <30 min
-- NPS >40
+### Roadmap Q1-Q2 2026 (Priorités Verticales)
 
-### Post-MVP Features
+| Feature | Priorité | Vertical Cible | Justification |
+|---------|----------|----------------|---------------|
+| Registre ICT automatisé (DORA Art. 28) | P0 | Finance | Deadline réglementaire 30 avril |
+| Templates homologation ANSSI | P0 | Public | Demande forte collectivités |
+| Connecteur SCADA/ICS | P1 | Industrie | Convergence IT/OT |
+| Module Third-Party Risk | P1 | Tous | 85% RSSI sans visibilité tiers |
+| Quantification financière avancée | P1 | Tous | ROI COMEX démontrable |
 
-**Phase 2 - Growth:**
+### Vision Long Terme (2026-2027)
 
-| # | Feature | Value |
-|---|---------|-------|
-| 7 | Dashboards par rôle | Personnalisation |
-| 8 | Widgets configurables | Personnalisation |
-| 9 | Formulaires wizard | UX avancée |
-| 10 | Wizard SMSI | Différenciation majeure |
-| 11 | Rapports auto direction | Value executive |
-| 12 | Export multi-format | Praticité |
-
-**Phase 3 - Expansion:**
-
-| # | Feature | Value |
-|---|---------|-------|
-| 13 | Collaboration multi-org | Unique |
-| 14 | Threat Intel partagé | Network effect |
-| 15 | IA suggestions | Innovation |
-| 16 | SSO Enterprise | Enterprise |
-| 17 | Intégrations tierces | Ecosystem |
+| Capability | Description |
+|------------|-------------|
+| **Sentinel Intelligence** | CTI intégrée, monitoring menaces temps réel |
+| **Sentinel Predict** | ML prédictif incidents basé sur patterns |
+| **Sentinel Automate** | Playbooks réponse automatisés |
+| **Sentinel Collaborate** | Multi-tenant pour cabinets conseil/MSSP |
+| **Sentinel API** | Marketplace intégrations |
 
 ### Risk Mitigation Strategy
 
@@ -678,17 +864,18 @@ Sentinel-GRC est une application SaaS B2B multi-tenant destinée aux entreprises
 
 | Risque | Mitigation |
 |--------|------------|
-| Complexité wizard SMSI | Prototype avec 5 PME pilotes |
-| Performance dashboards | Lazy loading, caching |
-| Multi-org data isolation | Revue sécurité avant déploiement |
+| Dépendance Gemini AI | Architecture multi-LLM |
+| Performance Voxel 3D | Lazy loading, WebGL optimization |
+| Scalabilité multi-tenant | Firebase auto-scaling |
 
 **Market Risks:**
 
-| Risque | Mitigation |
-|--------|------------|
-| Marché EU plus petit | Premium pricing, valeur locale |
-| Concurrence US (Vanta) | Focus différenciation EU |
-| Adoption lente | Onboarding guidé, support FR |
+| Risque | Probabilité | Impact | Mitigation |
+|--------|-------------|--------|------------|
+| Egerie renforce son UX | Moyenne | Élevé | Accélérer différenciation Voxel |
+| OneTrust lance offre EU | Faible | Élevé | Renforcer narrative souveraineté |
+| Consolidation marché | Moyenne | Moyen | Croissance rapide, base clients |
+| Complexité NIS2/DORA | Élevée | Positif | Opportunité de marché |
 
 ## Functional Requirements
 

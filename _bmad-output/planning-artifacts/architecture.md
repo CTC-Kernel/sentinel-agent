@@ -3,7 +3,9 @@ stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
 workflow_completed: true
 lastStep: 8
 completedAt: '2026-01-10'
-inputDocuments: ['_bmad-output/planning-artifacts/prd.md', '_bmad-output/planning-artifacts/ux-design-specification.md', '_bmad-output/planning-artifacts/research/comprehensive-grc-research-2026-01-10.md', '_bmad-output/analysis/brainstorming-session-2026-01-10.md']
+updatedAt: '2026-01-20'
+version: '2.0'
+inputDocuments: ['_bmad-output/planning-artifacts/prd.md', '_bmad-output/planning-artifacts/product-brief-sentinel-grc-2026-01-20.md', '_bmad-output/planning-artifacts/research/market-grc-competitive-analysis-2026-01-20.md', '_bmad-output/planning-artifacts/research/brainstorming-verticaux-2026-01-20.md', '_bmad-output/planning-artifacts/ux-design-specification.md']
 workflowType: 'architecture'
 project_name: 'sentinel-grc-v2-prod'
 user_name: 'Thibaultllopis'
@@ -12,7 +14,19 @@ date: '2026-01-10'
 
 # Architecture Decision Document
 
-_This document builds collaboratively through step-by-step discovery. Sections are appended as we work through each architectural decision together._
+**Version:** 2.0 | **Updated:** 2026-01-20
+
+_This document builds collaboratively through step-by-step discovery. Updated with Q1-Q2 2026 strategic priorities._
+
+## Vision Alignment: Les 3 Piliers
+
+> **"Sentinel-GRC transforme la gouvernance cyber de réactive à prédictive, en augmentant la capacité cognitive des experts grâce à l'IA et à la visualisation 3D."**
+
+| Pilier | Capability | Architecture Impact |
+|--------|------------|---------------------|
+| **Voxel 3D** | Modélisation 3D du SI, propagation temps réel | WebGL rendering, Graph data model |
+| **EBIOS + Gemini AI** | Suggestions automatiques, analyse prédictive | Cloud Functions + Vertex AI integration |
+| **Souveraineté EU** | Hébergement 100% Europe, audit trail inaltérable | Firebase europe-west1, immutable logs |
 
 ## Project Context Analysis
 
@@ -435,7 +449,274 @@ interface Notification {
 
 ---
 
-### Decision Impact Analysis
+## Q1-Q2 2026 ADRs (Nouvelles Priorités)
+
+### ADR-008: Registre ICT Automatisé (DORA Art. 28)
+
+**Contexte:** DORA exige un registre ICT complet avec reporting ESA avant le 30 avril 2025.
+
+**Décision:** Module dédié de gestion des fournisseurs ICT avec génération automatique du registre DORA.
+
+**Architecture:**
+```typescript
+// Data model pour ICT Register
+interface ICTProvider {
+  id: string;
+  tenantId: string;
+  name: string;
+  category: 'critical' | 'important' | 'standard';
+  services: ICTService[];
+  contractInfo: {
+    startDate: Timestamp;
+    endDate: Timestamp;
+    exitStrategy: string;
+    auditRights: boolean;
+  };
+  riskAssessment: {
+    concentration: number;     // 0-100
+    substitutability: 'low' | 'medium' | 'high';
+    lastAssessment: Timestamp;
+  };
+  compliance: {
+    doraCompliant: boolean;
+    certifications: string[];
+    locationEU: boolean;
+  };
+}
+
+// Export format pour ESA
+interface DORARegisterExport {
+  reportingEntity: EntityInfo;
+  ictProviders: ICTProviderReport[];
+  riskConcentration: ConcentrationAnalysis;
+  generatedAt: Timestamp;
+}
+```
+
+**Fonctionnalités:**
+- Import CSV/Excel des fournisseurs existants
+- Questionnaire d'évaluation DORA-compliant
+- Calcul automatique concentration/substitutabilité
+- Export format ESA-compliant (XML/JSON)
+- Alertes contrats expirant
+
+**Rationale:** Deadline réglementaire critique pour vertical Finance.
+
+**Affects:** `src/components/suppliers/`, `functions/dora/`
+
+---
+
+### ADR-009: Connecteur SCADA/ICS (Industrie OT)
+
+**Contexte:** Les RSSI industriels (NIS2) ont besoin de visibilité sur les assets OT non inventoriés.
+
+**Décision:** API d'intégration pour import d'inventaire SCADA/ICS avec mapping vers la cartographie Voxel.
+
+**Architecture:**
+```typescript
+// OT Asset integration
+interface OTAssetConnector {
+  id: string;
+  tenantId: string;
+  type: 'modbus' | 'opcua' | 'csv_import' | 'api';
+  config: ConnectorConfig;
+  lastSync: Timestamp;
+  status: 'active' | 'error' | 'paused';
+}
+
+interface OTAsset extends Asset {
+  otMetadata: {
+    protocol: 'modbus' | 'profinet' | 'ethernetip' | 'opcua';
+    manufacturer: string;
+    model: string;
+    firmwareVersion: string;
+    networkSegment: 'it' | 'ot' | 'dmz';
+    criticality: 'safety' | 'production' | 'monitoring';
+  };
+  voxelNode?: {
+    position: Vector3;
+    connections: string[];
+  };
+}
+```
+
+**Fonctionnalités:**
+- Import CSV inventaire industriel
+- API REST pour intégration CMDB OT
+- Mapping automatique IT/OT dans Voxel
+- Détection des assets non documentés
+- Segmentation visuelle IT vs OT
+
+**Rationale:** Différenciateur pour vertical Industrie/NIS2.
+
+**Affects:** `src/components/assets/ot/`, `functions/integrations/scada/`
+
+---
+
+### ADR-010: Module Third-Party Risk Management
+
+**Contexte:** 85% des RSSI n'ont pas de visibilité sur les menaces tierces (Panorays 2026).
+
+**Décision:** Module TPRM complet avec questionnaires automatisés et scoring fournisseurs.
+
+**Architecture:**
+```typescript
+// Third-party risk assessment
+interface VendorAssessment {
+  id: string;
+  tenantId: string;
+  vendorId: string;
+  questionnaire: {
+    templateId: string;
+    responses: QuestionnaireResponse[];
+    completedAt?: Timestamp;
+    score: number;
+  };
+  riskProfile: {
+    inherentRisk: 'low' | 'medium' | 'high' | 'critical';
+    residualRisk: 'low' | 'medium' | 'high' | 'critical';
+    controls: ControlEvidence[];
+  };
+  status: 'pending' | 'in_progress' | 'completed' | 'expired';
+  nextReview: Timestamp;
+}
+
+// Questionnaire templates par secteur
+interface TPRMTemplate {
+  id: string;
+  name: string;
+  sector: 'finance' | 'healthcare' | 'industry' | 'public' | 'general';
+  framework: 'iso27001' | 'nis2' | 'dora' | 'hds';
+  questions: Question[];
+  scoring: ScoringRules;
+}
+```
+
+**Fonctionnalités:**
+- Questionnaires par secteur/framework
+- Portail fournisseur self-service
+- Scoring automatique avec pondération
+- Rappels automatiques pour revues
+- Dashboard concentration fournisseurs
+
+**Rationale:** Gap marché identifié - 85% RSSI sans visibilité tiers.
+
+**Affects:** `src/components/suppliers/tprm/`, `functions/tprm/`
+
+---
+
+### ADR-011: Templates Homologation ANSSI (Secteur Public)
+
+**Contexte:** Les collectivités doivent homologuer 15+ téléservices avec des ressources limitées.
+
+**Décision:** Générateur de dossiers d'homologation RGS avec templates ANSSI pré-remplis.
+
+**Architecture:**
+```typescript
+// Homologation workflow
+interface HomologationDossier {
+  id: string;
+  tenantId: string;
+  systemName: string;
+  niveau: 'etoile' | 'simple' | 'standard' | 'renforce';
+  status: 'draft' | 'analysis' | 'decision' | 'signed' | 'expired';
+  documents: {
+    strategie?: DocumentRef;        // Stratégie d'homologation
+    analysisRisques?: DocumentRef;  // Analyse de risques
+    planAction?: DocumentRef;       // Plan d'action
+    decisionHomologation?: DocumentRef; // Décision
+    attestation?: DocumentRef;      // Attestation
+  };
+  validityPeriod: {
+    start: Timestamp;
+    end: Timestamp;
+    renewal: Timestamp;
+  };
+  authority: {
+    name: string;
+    role: string;
+    signature?: string;
+  };
+}
+```
+
+**Fonctionnalités:**
+- Wizard de sélection niveau d'homologation
+- Templates ANSSI auto-remplis depuis données Sentinel
+- Génération PDF des 5 documents obligatoires
+- Suivi des échéances de renouvellement
+- Liaison avec analyse de risques EBIOS
+
+**Rationale:** Demande forte vertical Public, différenciateur souveraineté.
+
+**Affects:** `src/components/compliance/homologation/`, `functions/documents/anssi/`
+
+---
+
+### ADR-012: Quantification Financière Avancée
+
+**Contexte:** Le COMEX veut des chiffres en euros pour justifier les budgets cyber.
+
+**Décision:** Module de quantification financière des risques avec simulation Monte Carlo.
+
+**Architecture:**
+```typescript
+// Financial risk quantification
+interface FinancialRiskModel {
+  riskId: string;
+  tenantId: string;
+  methodology: 'fair' | 'simple' | 'custom';
+  inputs: {
+    lossEventFrequency: Distribution;
+    lossMagnitude: Distribution;
+    threatCapability: number;
+    controlStrength: number;
+  };
+  outputs: {
+    annualizedLossExpectancy: number;  // ALE en €
+    valueAtRisk: {
+      p90: number;
+      p95: number;
+      p99: number;
+    };
+    confidenceInterval: number;
+  };
+  simulation?: {
+    iterations: number;
+    distribution: number[];
+    lastRun: Timestamp;
+  };
+}
+
+// ROI calculation
+interface SecurityInvestmentROI {
+  investmentId: string;
+  cost: number;
+  risksAddressed: string[];
+  riskReduction: {
+    before: number;
+    after: number;
+    savings: number;
+  };
+  paybackPeriod: number;  // months
+  npv: number;            // Net Present Value
+}
+```
+
+**Fonctionnalités:**
+- Modèle FAIR simplifié pour PME
+- Simulation Monte Carlo (1000+ itérations)
+- Dashboard ROI investissements sécurité
+- Rapports COMEX avec visualisations
+- Comparaison avant/après contrôles
+
+**Rationale:** Justification budget - "Le COMEX veut des chiffres".
+
+**Affects:** `src/components/risks/quantification/`, `functions/analytics/`
+
+---
+
+### Decision Impact Analysis (Updated 2026)
 
 **Implementation Sequence:**
 1. ADR-001 (Locale) - Prérequis pour tout formulaire
@@ -1172,18 +1453,65 @@ User Action → Component → Hook → Service → Firestore
 ### Implementation Handoff
 
 **AI Agent Guidelines:**
-1. Suivre tous les ADRs exactement comme documentés
+1. Suivre tous les ADRs exactement comme documentés (ADR-001 à ADR-012)
 2. Utiliser localeConfig pour TOUTES les dates/nombres
 3. Inclure tenantId dans TOUTES les requêtes Firestore
 4. Implémenter status draft sur tous les formulaires
 5. Respecter la structure feature-based
+6. Priorité Q1-Q2 2026: ADR-008 (DORA), ADR-010 (TPRM), ADR-011 (Homologation)
 
-**First Implementation Priority:**
+**Implementation Priority Q1-Q2 2026:**
+
+| Priorité | ADR | Feature | Vertical | Deadline |
+|----------|-----|---------|----------|----------|
+| P0 | ADR-008 | Registre ICT DORA | Finance | 30 avril 2025 |
+| P0 | ADR-011 | Templates Homologation | Public | Q1 2026 |
+| P1 | ADR-009 | Connecteur SCADA/ICS | Industrie | Q2 2026 |
+| P1 | ADR-010 | Third-Party Risk | Tous | Q2 2026 |
+| P1 | ADR-012 | Quantification € | Tous | Q2 2026 |
+
+**New Files/Folders Q1-Q2 2026:**
 ```
-1. src/config/localeConfig.ts (ADR-001) - Fondation
-2. src/hooks/useAutoSave.ts (ADR-002) - Quick win
-3. src/components/ui/ScoreGauge.tsx (ADR-003) - Différenciateur
-4. src/components/dashboard/widgets/ (ADR-004) - Visible
+src/
+├── components/
+│   ├── suppliers/
+│   │   ├── ict/                    # ADR-008: DORA ICT Register
+│   │   │   ├── ICTProviderForm.tsx
+│   │   │   ├── ICTRegisterExport.tsx
+│   │   │   └── ConcentrationChart.tsx
+│   │   └── tprm/                   # ADR-010: Third-Party Risk
+│   │       ├── VendorAssessment.tsx
+│   │       ├── QuestionnaireWizard.tsx
+│   │       └── VendorPortal.tsx
+│   ├── assets/
+│   │   └── ot/                     # ADR-009: SCADA/ICS
+│   │       ├── OTAssetForm.tsx
+│   │       ├── OTImportWizard.tsx
+│   │       └── OTVoxelMapping.tsx
+│   ├── compliance/
+│   │   └── homologation/           # ADR-011: ANSSI Templates
+│   │       ├── HomologationWizard.tsx
+│   │       ├── DossierGenerator.tsx
+│   │       └── NiveauSelector.tsx
+│   └── risks/
+│       └── quantification/         # ADR-012: Financial CRQ
+│           ├── FAIRModel.tsx
+│           ├── MonteCarloSim.tsx
+│           └── ROIDashboard.tsx
+│
+functions/
+├── dora/                           # DORA-specific functions
+│   ├── generateICTRegister.js
+│   └── validateDORACompliance.js
+├── integrations/
+│   └── scada/                      # OT integrations
+│       └── importOTAssets.js
+├── tprm/                           # Third-party risk
+│   ├── sendQuestionnaire.js
+│   └── calculateVendorScore.js
+└── documents/
+    └── anssi/                      # Homologation templates
+        └── generateDossier.js
 ```
 
 ## Architecture Completion Summary
@@ -1192,23 +1520,34 @@ User Action → Component → Hook → Service → Firestore
 
 **Architecture Decision Workflow:** COMPLETED ✅
 **Total Steps Completed:** 8
-**Date Completed:** 2026-01-10
+**Date Completed:** 2026-01-10 | **Updated:** 2026-01-20
+**Version:** 2.0
 **Document Location:** `_bmad-output/planning-artifacts/architecture.md`
 
 ### Final Architecture Deliverables
 
-**Complete Architecture Document**
-- 7 Architectural Decision Records (ADRs) documentés
+**Complete Architecture Document (v2.0)**
+- 12 Architectural Decision Records (ADRs) documentés
+  - ADR-001 à ADR-007: Core features (Jan 2026)
+  - ADR-008 à ADR-012: Q1-Q2 2026 priorities (nouvelles)
 - Patterns d'implémentation garantissant la cohérence
 - Structure projet complète avec tous les fichiers
 - Mapping exigences → architecture
 - Validation confirmant cohérence et complétude
 
+**Q1-Q2 2026 Update**
+- 5 nouvelles ADRs pour les priorités verticales
+- ADR-008: Registre ICT DORA (Finance)
+- ADR-009: Connecteur SCADA/ICS (Industrie)
+- ADR-010: Module TPRM (Tous)
+- ADR-011: Templates Homologation ANSSI (Public)
+- ADR-012: Quantification Financière (Tous)
+
 **Implementation Ready Foundation**
-- 7 décisions architecturales critiques
-- 12+ patterns d'implémentation définis
-- 45+ fichiers/dossiers spécifiés
-- 53 exigences fonctionnelles couvertes
+- 12 décisions architecturales critiques
+- 15+ patterns d'implémentation définis
+- 60+ fichiers/dossiers spécifiés
+- 53+ exigences fonctionnelles couvertes
 
 **AI Agent Implementation Guide**
 - Stack technologique avec versions vérifiées
