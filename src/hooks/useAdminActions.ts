@@ -14,7 +14,13 @@ export const useAdminActions = () => {
             const functions = getFunctions();
             const checkAdmin = httpsCallable(functions, 'verifySuperAdmin');
             const result = await checkAdmin();
-            const data = result.data as { isSuperAdmin: boolean };
+            const data = result.data as { isSuperAdmin: boolean; claimGranted?: boolean };
+
+            // If claim was just granted, refresh the token to pick up new claims
+            if (data.claimGranted && auth.currentUser) {
+                await auth.currentUser.getIdToken(true);
+            }
+
             return data.isSuperAdmin;
         } catch (error) {
             ErrorLogger.error(error as Error, 'useAdminActions.verifySuperAdmin');

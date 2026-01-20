@@ -14,6 +14,7 @@ import { hasPermission } from '../../utils/permissions';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import { ResourceType, ActionType } from '../../types';
+import { useAdminActions } from '../../hooks/useAdminActions';
 
 interface NavItem {
   key: string;
@@ -40,16 +41,18 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const { verifySuperAdmin } = useAdminActions();
 
   React.useEffect(() => {
     const checkSuperAdmin = async () => {
-      if (auth.currentUser) {
-        const token = await auth.currentUser.getIdTokenResult();
-        setIsSuperAdmin(!!token.claims.superAdmin);
+      if (user) {
+        // Use verifySuperAdmin which checks both claim AND bootstrap list
+        const isAdmin = await verifySuperAdmin();
+        setIsSuperAdmin(isAdmin);
       }
     };
     checkSuperAdmin();
-  }, [user?.uid]);
+  }, [user?.uid, verifySuperAdmin]);
 
   const navGroups: NavGroup[] = [
     {
