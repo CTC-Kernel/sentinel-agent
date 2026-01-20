@@ -6,7 +6,7 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
-const functions = require("firebase-functions");
+const { user } = require("firebase-functions/v1/auth");
 const admin = require("firebase-admin");
 
 /**
@@ -271,6 +271,7 @@ exports.healMe = onCall({
 
 /**
  * Verifies if the current user is a Super Admin
+ * Also auto-grants the superAdmin claim to bootstrap admins if not already set
  */
 exports.verifySuperAdmin = onCall({
     memory: '256MiB',
@@ -281,11 +282,30 @@ exports.verifySuperAdmin = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
+    const uid = request.auth.uid;
     const email = request.auth.token.email;
     const isClaimSuperAdmin = request.auth.token.superAdmin === true;
 
-    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', '***REMOVED***'];
+    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', '***REMOVED***', 'admin@cyber-threat-consulting.com'];
     const isBootstrapSuperAdmin = email && SUPER_ADMIN_EMAILS.includes(email);
+
+    // Auto-grant superAdmin claim to bootstrap admins if not already set
+    if (isBootstrapSuperAdmin && !isClaimSuperAdmin) {
+        try {
+            const userRecord = await admin.auth().getUser(uid);
+            const currentClaims = userRecord.customClaims || {};
+            await admin.auth().setCustomUserClaims(uid, {
+                ...currentClaims,
+                superAdmin: true
+            });
+            logger.info(`Auto-granted superAdmin claim to bootstrap admin ${email}`);
+            return { isSuperAdmin: true, claimGranted: true };
+        } catch (error) {
+            logger.error(`Failed to auto-grant superAdmin claim to ${email}:`, error);
+            // Still return true since they're in bootstrap list
+            return { isSuperAdmin: true, claimGranted: false };
+        }
+    }
 
     if (isClaimSuperAdmin || isBootstrapSuperAdmin) {
         return { isSuperAdmin: true };
@@ -313,7 +333,7 @@ exports.grantSuperAdmin = onCall({
 
     const callerEmail = request.auth.token.email;
     const callerIsClaimAdmin = request.auth.token.superAdmin === true;
-    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', '***REMOVED***'];
+    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', '***REMOVED***', 'admin@cyber-threat-consulting.com'];
     const callerIsBootstrapAdmin = callerEmail && SUPER_ADMIN_EMAILS.includes(callerEmail);
 
     if (!callerIsClaimAdmin && !callerIsBootstrapAdmin) {
@@ -584,8 +604,8 @@ exports.rejectJoinRequest = onCall({
 /**
  * Trigger: Clean up user data when an Auth user is deleted
  */
-exports.onUserDeleted = functions.auth.user().onDelete(async (user) => {
-    const uid = user.uid;
+exports.onUserDeleted = user().onDelete(async (userRecord) => {
+    const uid = userRecord.uid;
     logger.info(`User deleted from Auth: ${uid}`);
 
     try {
