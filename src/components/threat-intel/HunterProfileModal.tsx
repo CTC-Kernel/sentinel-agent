@@ -206,6 +206,20 @@ const mockHunterProfiles: Record<string, HunterProfile> = {
     }
 };
 
+interface RecentActivity {
+  type: 'threat' | 'verification' | 'collaboration';
+  title: string;
+  date: string;
+  impact: string;
+}
+
+interface Achievement {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  date: string;
+}
+
 export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, onClose, hunterName }) => {
     const [hunterProfile, setHunterProfile] = useState<HunterProfileData | null>(null);
 
@@ -380,7 +394,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                         Activité Récente
                                                     </h3>
                                                     <div className="space-y-3">
-                                                        {recentActivity.map((activity: any, index: number) => (
+                                                        {recentActivity.map((activity: RecentActivity, index: number) => (
                                                             <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
                                                                 <div className={`p-2 rounded-lg ${
                                                                     activity.type === 'threat' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
@@ -447,7 +461,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                             Réalisations
                                                         </h3>
                                                         <div className="space-y-3">
-                                                            {achievements.map((achievement: any, index: number) => (
+                                                            {achievements.map((achievement: Achievement, index: number) => (
                                                                 <div key={index} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
                                                                     <div className="p-2 rounded-lg bg-white dark:bg-slate-900">
                                                                         {achievement.icon}

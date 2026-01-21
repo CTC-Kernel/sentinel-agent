@@ -1,20 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Bot, Lock, Globe } from '../ui/Icons';
 import { useStore } from '../../store';
 import Sentinel3DCore from './Sentinel3DCore';
 import SentinelChat from './SentinelChat';
 
 export const SentinelAssistant: React.FC = () => {
-    const { } = useStore();
-    const [greeting, setGreeting] = useState('');
-    const [showChat, setShowChat] = useState(false);
-
-    useEffect(() => {
+    useStore();
+    const [greeting] = useState(() => {
         const hour = new Date().getHours();
-        if (hour < 12) setGreeting('Bonjour');
-        else if (hour < 18) setGreeting('Bon après-midi');
-        else setGreeting('Bonsoir');
-    }, []);
+        if (hour < 12) return 'Bonjour';
+        else if (hour < 18) return 'Bon après-midi';
+        else return 'Bonsoir';
+    });
+    const [showChat, setShowChat] = useState(false);
 
     return (
         <div className="hidden lg:flex flex-col justify-center w-full max-w-lg p-8 relative">

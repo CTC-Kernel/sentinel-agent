@@ -17,16 +17,14 @@ import {
   Clock,
   CheckCircle2,
   Circle,
-  AlertTriangle,
   Zap,
-} from 'lucide-react';
+} from '../ui/Icons';
 import type {
   RecommendationsSummary,
   DiversificationRecommendation,
   RecommendedAction,
   EffortLevel,
 } from '../../types/vendorConcentration';
-import { getPriorityColor } from '../../types/vendorConcentration';
 
 // ============================================================================
 // Types

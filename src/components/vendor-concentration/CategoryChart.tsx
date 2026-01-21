@@ -14,15 +14,13 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
-  Legend,
 } from 'recharts';
 import {
   AlertTriangle,
   Building2,
   ChevronRight,
-  ExternalLink,
-} from 'lucide-react';
-import type { CategoryConcentration, VendorSummary } from '../../types/vendorConcentration';
+} from '../ui/Icons';
+import type { CategoryConcentration } from '../../types/vendorConcentration';
 import { formatPercentage, getHHILevel } from '../../types/vendorConcentration';
 
 // ============================================================================
@@ -351,7 +349,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
               paddingAngle={2}
               dataKey="value"
               labelLine={false}
-              label={CustomLabel}
+              label={CustomLabel as any}
             >
               {chartData.map((entry, index) => (
                 <Cell

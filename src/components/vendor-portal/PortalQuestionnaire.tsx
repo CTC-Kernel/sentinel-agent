@@ -15,7 +15,7 @@ import {
   canEditPortalAccess,
 } from '../../types/vendorPortal';
 import { EnhancedAssessmentResponse } from '../../types/vendorAssessment';
-import { QuestionnaireTemplate, QuestionnaireSection, SupplierQuestionnaireQuestion } from '../../types/business';
+import { QuestionnaireTemplate, SupplierQuestionnaireQuestion } from '../../types/business';
 import { usePortalAutoSave } from '../../hooks/usePortalAutoSave';
 import { PortalSubmit } from './PortalSubmit';
 import { Button } from '../ui/button';
@@ -24,10 +24,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle,
-  Circle,
-  Clock,
   AlertCircle,
-  Save,
   Loader2,
   FileText,
   HelpCircle,
@@ -39,6 +36,34 @@ interface PortalQuestionnaireProps {
   template: QuestionnaireTemplate;
   onSubmitSuccess: () => void;
 }
+
+const SaveStatusIndicator: React.FC<{ saveStatus: SaveStatus; t: (key: string, fallback: string) => string }> = ({ saveStatus, t }) => {
+  switch (saveStatus) {
+    case 'saving':
+      return (
+        <span className="flex items-center gap-1.5 text-sm text-slate-500">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          {t('vendorPortal.saving', 'Saving...')}
+        </span>
+      );
+    case 'saved':
+      return (
+        <span className="flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400">
+          <CheckCircle className="w-3.5 h-3.5" />
+          {t('vendorPortal.saved', 'Saved')}
+        </span>
+      );
+    case 'error':
+      return (
+        <span className="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+          <AlertCircle className="w-3.5 h-3.5" />
+          {t('vendorPortal.saveError', 'Save error')}
+        </span>
+      );
+    default:
+      return null;
+  }
+};
 
 export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
   access,
@@ -82,7 +107,6 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
   }, [template.sections, answers, assessment.id, lastSavedAt]);
 
   const currentSection = template.sections[currentSectionIndex];
-  const currentSectionProgress = progress.sectionProgress[currentSectionIndex];
 
   // Handle answer change
   const handleAnswerChange = useCallback(
@@ -120,35 +144,6 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
   const goToSection = (index: number) => {
     setCurrentSectionIndex(index);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Save status indicator
-  const SaveStatusIndicator = () => {
-    switch (saveStatus) {
-      case 'saving':
-        return (
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            {t('vendorPortal.saving', 'Saving...')}
-          </span>
-        );
-      case 'saved':
-        return (
-          <span className="flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400">
-            <CheckCircle className="w-3.5 h-3.5" />
-            {t('vendorPortal.saved', 'Saved')}
-          </span>
-        );
-      case 'error':
-        return (
-          <span className="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
-            <AlertCircle className="w-3.5 h-3.5" />
-            {t('vendorPortal.saveError', 'Save error')}
-          </span>
-        );
-      default:
-        return null;
-    }
   };
 
   return (
@@ -251,7 +246,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
                 </h1>
               </div>
             </div>
-            <SaveStatusIndicator />
+            <SaveStatusIndicator saveStatus={saveStatus} t={t} />
           </div>
           {currentSection.description && (
             <p className="text-slate-600 dark:text-slate-400">{currentSection.description}</p>

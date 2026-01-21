@@ -7,6 +7,7 @@
  */
 
 import type { HomologationDocumentType } from '../types/homologation';
+import { REQUIRED_DOCUMENTS } from '../types/homologation';
 
 // ============================================================================
 // Template Types
@@ -1041,7 +1042,6 @@ export function getDocumentTemplate(type: HomologationDocumentType): DocumentTem
 export function getTemplatesForLevel(
   level: 'etoile' | 'simple' | 'standard' | 'renforce'
 ): DocumentTemplate[] {
-  const { REQUIRED_DOCUMENTS } = require('../types/homologation');
   const requiredTypes = REQUIRED_DOCUMENTS[level] as HomologationDocumentType[];
   return requiredTypes.map((type) => DOCUMENT_TEMPLATES[type]);
 }

@@ -10,15 +10,13 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AlertTriangle,
-  AlertCircle,
   Clock,
   ChevronRight,
   Building2,
-  Layers,
   Zap,
   Shield,
   ExternalLink,
-} from 'lucide-react';
+} from '../ui/Icons';
 import type { SPOFSummary, SPOFAlert, ImpactLevel, UrgencyLevel } from '../../types/vendorConcentration';
 
 // ============================================================================

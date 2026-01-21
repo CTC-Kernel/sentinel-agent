@@ -5,12 +5,27 @@ import * as THREE from 'three';
 
 const PARTICLE_COUNT = 6000;
 
+// Seeded random number generator for consistent particle generation
+class SeededRandom {
+    private seed: number;
+
+    constructor(seed: number = 12345) {
+        this.seed = seed;
+    }
+
+    next(): number {
+        this.seed = (this.seed * 9301 + 49297) % 233280;
+        return this.seed / 233280;
+    }
+}
+
 const CyberneticBrain: React.FC = () => {
     const meshRef = useRef<THREE.InstancedMesh>(null!);
     const glowRef = useRef<THREE.PointLight>(null!);
 
     const particles = useMemo(() => {
         const temp: { x: number; y: number; z: number; scale: number; type: 'surface' | 'sulci' | 'internal' }[] = [];
+        const random = new SeededRandom();
 
         // Realistic brain shape using superellipsoid with anatomical modifications
         const brainShape = (u: number, v: number, side: 1 | -1): [number, number, number] => {
@@ -137,8 +152,8 @@ const CyberneticBrain: React.FC = () => {
             const ui = Math.floor(i / 2 / gridSize) / gridSize;
             const vi = (i / 2 % gridSize) / gridSize;
 
-            const u = ui + (Math.random() - 0.5) * (1 / gridSize);
-            const v = vi + (Math.random() - 0.5) * (1 / gridSize);
+            const u = ui + (random.next() - 0.5) * (1 / gridSize);
+            const v = vi + (random.next() - 0.5) * (1 / gridSize);
 
             const [x, y, z] = brainShape(
                 Math.max(0.02, Math.min(0.98, u)),
@@ -149,39 +164,39 @@ const CyberneticBrain: React.FC = () => {
             // Small random offset for organic look
             const noise = 0.012;
             temp.push({
-                x: x + (Math.random() - 0.5) * noise,
-                y: y + (Math.random() - 0.5) * noise,
-                z: z + (Math.random() - 0.5) * noise,
-                scale: 0.032 + Math.random() * 0.018,
+                x: x + (random.next() - 0.5) * noise,
+                y: y + (random.next() - 0.5) * noise,
+                z: z + (random.next() - 0.5) * noise,
+                scale: 0.032 + random.next() * 0.018,
                 type: 'surface'
             });
         }
 
         // Add particles in sulci (grooves) for depth
         for (let i = 0; i < PARTICLE_COUNT * 0.1; i++) {
-            const side = (Math.random() > 0.5 ? 1 : -1) as 1 | -1;
-            const u = Math.random();
-            const v = Math.random();
+            const side = (random.next() > 0.5 ? 1 : -1) as 1 | -1;
+            const u = random.next();
+            const v = random.next();
 
             const [x, y, z] = brainShape(u, v, side);
 
             // Push slightly inward to create depth in grooves
-            const inwardFactor = 0.92 + Math.random() * 0.04;
+            const inwardFactor = 0.92 + random.next() * 0.04;
             temp.push({
                 x: x * inwardFactor,
                 y: y * inwardFactor,
                 z: z * inwardFactor,
-                scale: 0.022 + Math.random() * 0.012,
+                scale: 0.022 + random.next() * 0.012,
                 type: 'sulci'
             });
         }
 
         // Internal glow particles
         for (let i = 0; i < PARTICLE_COUNT * 0.05; i++) {
-            const side = (Math.random() > 0.5 ? 1 : -1) as 1 | -1;
-            const r = Math.pow(Math.random(), 0.6) * 0.6;
-            const theta = Math.random() * Math.PI;
-            const phi = Math.random() * Math.PI;
+            const side = (random.next() > 0.5 ? 1 : -1) as 1 | -1;
+            const r = Math.pow(random.next(), 0.6) * 0.6;
+            const theta = random.next() * Math.PI;
+            const phi = random.next() * Math.PI;
 
             const x = (r * Math.sin(theta) * Math.cos(phi) * 0.8 + 0.15) * side;
             const y = r * Math.cos(theta) * 0.7;
@@ -191,7 +206,7 @@ const CyberneticBrain: React.FC = () => {
                 x,
                 y,
                 z,
-                scale: 0.025 + Math.random() * 0.02,
+                scale: 0.025 + random.next() * 0.02,
                 type: 'internal'
             });
         }
@@ -206,6 +221,7 @@ const CyberneticBrain: React.FC = () => {
         if (!meshRef.current) return;
 
         const color = new THREE.Color();
+        const random = new SeededRandom();
 
         // Initialize all to invisible
         for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -224,18 +240,18 @@ const CyberneticBrain: React.FC = () => {
             // Anatomically-inspired coloring
             if (particle.type === 'internal') {
                 // Neural activity - blues and cyans
-                const r = Math.random();
+                const r = random.next();
                 if (r > 0.6) color.set('#38bdf8'); // Sky blue
                 else if (r > 0.3) color.set('#818cf8'); // Indigo
                 else color.set('#c084fc'); // Purple
             } else if (particle.type === 'sulci') {
                 // Deeper tissue - darker pinks/mauves
-                const r = Math.random();
+                const r = random.next();
                 if (r > 0.5) color.set('#a78bfa'); // Violet
                 else color.set('#c4b5fd'); // Light violet
             } else {
                 // Brain surface - realistic pinkish-gray tones
-                const r = Math.random();
+                const r = random.next();
                 if (r > 0.75) color.set('#fda4af'); // Rose
                 else if (r > 0.5) color.set('#f9a8d4'); // Pink
                 else if (r > 0.25) color.set('#f0abfc'); // Fuchsia light

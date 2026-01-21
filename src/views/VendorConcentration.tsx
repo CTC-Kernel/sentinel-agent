@@ -21,7 +21,7 @@ import {
   RefreshCw,
   Download,
   Filter,
-} from 'lucide-react';
+} from '../components/ui/Icons';
 import { useStore } from '../store';
 import { VendorConcentrationService } from '../services/VendorConcentrationService';
 import { CategoryChart } from '../components/vendor-concentration/CategoryChart';

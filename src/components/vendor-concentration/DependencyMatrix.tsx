@@ -16,7 +16,7 @@ import {
   Layers,
   ChevronDown,
   ChevronRight,
-} from 'lucide-react';
+} from '../ui/Icons';
 import type {
   DependencyMatrix as DependencyMatrixType,
   DependencyMatrixCell,
