@@ -58,6 +58,7 @@ Sentinel GRC répond aux défis critiques des RSSI et DSI :
 ### Taille et Croissance du Marché GRC
 
 #### Marché Mondial
+
 | Indicateur | 2024 | 2025 | 2030 (Projection) |
 |------------|------|------|-------------------|
 | **Marché GRC Global** | $58.7 Mds | $64.2 Mds | $134.9 Mds |
@@ -68,6 +69,7 @@ Sentinel GRC répond aux défis critiques des RSSI et DSI :
 *Sources : Gartner, MarketsandMarkets, Mordor Intelligence 2025*
 
 #### Marché Européen et Français
+
 ```typescript
 interface MarchéEuropéen {
   tailleMarché2025: '€18.5 Mds';
@@ -88,6 +90,7 @@ interface MarchéEuropéen {
 - **RGPD Évolutions** : Sanctions en hausse (+168% en 2024)
 
 #### 2. Transformation de la Demande
+
 ```
 Évolution des Attentes Client
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -507,6 +510,7 @@ interface AuditCapabilities {
 ### 5. Gestion Documentaire
 
 #### Workflow de Validation
+
 ```
 Brouillon → Revue → Approuvé → Publié → Obsolète
     ↓         ↓        ↓        ↓        ↓
@@ -578,6 +582,7 @@ interface AuditTrail {
 ### RBAC Avancé
 
 #### Matrice de Permissions
+
 | Rôle | Admin | RSSI | Auditeur | Chef Projet | Direction | Utilisateur |
 |------|-------|------|----------|-------------|------------|-------------|
 | **Actifs** | CRUD | CRUD | Lecture | Lecture | Lecture | Limité |
@@ -638,6 +643,7 @@ interface AccessControl {
 - **Export VR/AR** : Casques de réalité mixte
 
 #### Architecture Technique
+
 ```typescript
 interface VoxelEngine {
   rendering: Three.js + WebGPU;
@@ -656,6 +662,7 @@ interface VoxelEngine {
 - **Chatbot assistant** : Aide à la décision
 
 #### Machine Learning Pipeline
+
 ```typescript
 interface MLPipeline {
   dataIngestion: RealTimeStreams;
@@ -687,6 +694,7 @@ interface MLPipeline {
 - **SOC2** : Assurance tiers
 
 #### Résultats Sentinel
+
 - **Time-to-compliance** : 6 mois vs 18 mois traditionnel
 - **Audit readiness** : 95% vs 60% moyenne
 - **Cost reduction** : -40% vs solutions spécialisées
@@ -701,6 +709,7 @@ interface MLPipeline {
 - **Certification** : ISO 27001 obligatoire
 
 #### Implémentation Sentinel
+
 - **Rapid deployment** : Go-live en 8 semaines
 - **Mobile-first** : Applications terrain
 - **Interconnexion** : SIH, DMP, PACS
@@ -715,6 +724,7 @@ interface MLPipeline {
 - **Compliance** : IEC 62443
 
 #### Valeur Ajoutée
+
 - **Risk reduction** : -60% incidents cyber
 - **Operational efficiency** : +35% productivité
 - **Compliance automation** : 90% tâches automatisées
@@ -732,7 +742,8 @@ interface MLPipeline {
 
 | Fonctionnalité | Sentinel GRC | ServiceNow | OneTrust | Archer | Vanta | Drata |
 |----------------|:------------:|:----------:|:--------:|:------:|:-----:|:-----:|
-| **MODULES CŒUR** |||||
+| **MODULES CŒUR** | | | | | | |
+|:-------------:|:------------:|:----------:|:--------:|:------:|:-----:|
 | Gestion des risques ISO 27005 | ✅ Complet | ✅ | ⚠️ Partiel | ✅ | ❌ | ❌ |
 | Conformité ISO 27001 (93 contrôles) | ✅ Complet | ✅ | ⚠️ | ✅ | ✅ | ✅ |
 | Gestion des actifs | ✅ Complet | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
@@ -741,27 +752,31 @@ interface MLPipeline {
 | Gestion des incidents | ✅ Complet | ✅ | ❌ | ✅ | ❌ | ❌ |
 | Gestion des fournisseurs (TPRM) | ✅ Complet | ✅ | ✅ | ✅ | ⚠️ | ⚠️ |
 | Gestion des projets SSI | ✅ Gantt+Kanban | ✅ | ❌ | ⚠️ | ❌ | ❌ |
-| **FRAMEWORKS SPÉCIALISÉS** |||||
+| **FRAMEWORKS SPÉCIALISÉS** | | | | | | |
+|:-------------------:|:------------:|:----------:|:--------:|:------:|:-----:|
 | EBIOS RM (5 ateliers complets) | ✅ **Unique** | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Homologation ANSSI (4 niveaux) | ✅ **Unique** | ❌ | ❌ | ❌ | ❌ | ❌ |
 | FAIR Quantitatif (Monte Carlo) | ✅ Avancé | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
 | DORA (Registre ICT Art.28) | ✅ Complet | ⚠️ | ⚠️ | ⚠️ | ❌ | ❌ |
 | NIS2 | ✅ Complet | ⚠️ | ⚠️ | ⚠️ | ❌ | ❌ |
 | RGPD (ROPA, DPIA, Droits) | ✅ Complet | ⚠️ | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| **INNOVATIONS TECHNOLOGIQUES** |||||
+| **INNOVATIONS TECHNOLOGIQUES** | | | | | | |
+|:-------------------------:|:------------:|:----------:|:--------:|:------:|:-----:|
 | IA Générative Native (Gemini) | ✅ **11 assistants** | ❌ | ❌ | ❌ | ⚠️ Add-on | ⚠️ Add-on |
 | Visualisation 3D Immersive | ✅ **Unique** | ❌ | ❌ | ❌ | ❌ | ❌ |
 | VR/AR Support | ✅ **Unique** | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Blast Radius Simulation | ✅ **Unique** | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Détection d'anomalies temps réel | ✅ **5 types** | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
 | Time Machine (historique) | ✅ **Unique** | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **INTÉGRATIONS** |||||
+| **INTÉGRATIONS** | | | | | | |
+|:-------------:|:------------:|:----------:|:--------:|:------:|:-----:|
 | SIEM (Splunk, Sentinel, etc.) | ✅ 4 plateformes | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
 | Scanners (Nessus, Qualys, OpenVAS) | ✅ 3 scanners | ✅ | ❌ | ✅ | ✅ | ✅ |
 | Threat Intel (CISA, NVD, CERT-FR) | ✅ 4 feeds | ⚠️ | ❌ | ⚠️ | ❌ | ❌ |
 | Connecteurs OT/ICS | ✅ **Unique** | ❌ | ❌ | ⚠️ | ❌ | ❌ |
 | Cloud (AWS, Azure, GCP) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **SOUVERAINETÉ** |||||
+| **SOUVERAINETÉ** | | | | | | |
+|:-------------:|:------------:|:----------:|:--------:|:------:|:-----:|
 | Hébergement SecNumCloud | ✅ **OVH** | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Option On-Premise | ✅ | ⚠️ | ❌ | ✅ | ❌ | ❌ |
 | Support français natif | ✅ | ⚠️ | ❌ | ❌ | ❌ | ❌ |
@@ -858,8 +873,6 @@ interface VoxelCapabilities {
 }
 ```
 
-**Exclusivité mondiale** : Aucune autre solution GRC n'offre de visualisation 3D immersive avec support VR/AR.
-
 #### 3. 📊 EBIOS RM - Implémentation la Plus Complète du Marché
 
 | Atelier | Fonctionnalités Sentinel GRC | Concurrence |
@@ -869,8 +882,6 @@ interface VoxelCapabilities {
 | **Atelier 3** - Scénarios stratégiques | Parties prenantes (12 types), chemins d'attaque, niveaux de confiance/exposition | ❌ Non disponible |
 | **Atelier 4** - Scénarios opérationnels | Séquences d'attaque, mapping MITRE ATT&CK, vraisemblance, niveau de risque | ❌ Non disponible |
 | **Atelier 5** - Traitement | Stratégies (4 types), contrôles ISO 27002, responsables, efficacité, risque résiduel | ❌ Non disponible |
-
-**Machine à états** : Progression séquentielle validée, snapshots, liaison automatique avec homologation ANSSI.
 
 #### 4. 💰 FAIR - Quantification Financière Avancée
 
@@ -1457,7 +1468,7 @@ interface CustomerLockIn {
 **Sentinel GRC v2.0** représente une rupture paradigmatique dans la gestion de la sécurité des systèmes d'information. En combinant innovation technologique de pointe, expertise métier approfondie et vision stratégique, elle positionne les organisations pour réussir leur transformation numérique sécurisée.
 
 ### Valeur Fondamentale
-> **"De la conformité subie à la sécurité maîtrisée"**
+ **"De la conformité subie à la sécurité maîtrisée"**
 
 Sentinel transforme la contrainte réglementaire en avantage compétitif, permettant aux organisations de :
 - **Innover en confiance** : Sécurité enablement vs blocage
