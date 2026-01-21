@@ -1,8 +1,8 @@
 
 import { useState } from 'react';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { db, functions } from '../../firebase';
 import { useStore } from '../../store';
 import { Asset, Vulnerability, Risk } from '../../types';
 import { logAction } from '../../services/logger';
@@ -29,7 +29,6 @@ export function useAssetSecurity(asset: Asset | null) {
         }
         setScanning(true);
         try {
-            const functions = getFunctions();
             const scanFn = httpsCallable(functions, 'scanShodan');
             const result = await scanFn({ target: asset.ipAddress || asset.hostname || '' });
             setShodanResult((result.data as ShodanResult));
@@ -49,7 +48,6 @@ export function useAssetSecurity(asset: Asset | null) {
         }
         setScanning(true);
         try {
-            const functions = getFunctions();
             const cveFn = httpsCallable(functions, 'checkCVEs');
             const result = await cveFn({ cpe: asset.cpe });
             const data = result.data as Vulnerability[];

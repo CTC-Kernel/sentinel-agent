@@ -1,6 +1,6 @@
-import { db } from '../firebase';
+import { db, functions } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
 import { Organization, PlanType, PlanLimits } from '../types';
 import { getPlanLimits } from '../config/plans';
 import { ErrorLogger } from './errorLogger';
@@ -65,7 +65,6 @@ export const SubscriptionService = {
    */
   startSubscription: async (organizationId: string, planId: PlanType, interval: 'month' | 'year' = 'month') => {
     try {
-      const functions = getFunctions();
       const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
 
       const { data } = await createCheckoutSession({
@@ -90,7 +89,6 @@ export const SubscriptionService = {
    */
   manageSubscription: async (organizationId: string) => {
     try {
-      const functions = getFunctions();
       const createPortalSession = httpsCallable(functions, 'createPortalSession');
 
       const { data } = await createPortalSession({

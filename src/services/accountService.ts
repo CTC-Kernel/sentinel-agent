@@ -1,8 +1,8 @@
 import { collection, query, where, getDocs, deleteDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { deleteUser, User } from 'firebase/auth';
-import { db, storage } from '../firebase';
+import { db, storage, functions } from '../firebase';
 import { ref, deleteObject } from 'firebase/storage';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
 import { UserProfile } from '../types';
 import { ErrorLogger } from './errorLogger';
 
@@ -72,7 +72,6 @@ export class AccountService {
     if (!organizationId) throw new Error("Organization ID is required");
 
     try {
-      const functions = getFunctions();
       const deleteOrgFn = httpsCallable(functions, 'deleteOrganization');
       await deleteOrgFn({ organizationId });
     } catch (error) {

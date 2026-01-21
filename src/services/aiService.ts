@@ -1,7 +1,7 @@
 
 import { doc, setDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore';
-import { db } from '../firebase';
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { db, functions } from '../firebase';
+import { httpsCallable } from "firebase/functions";
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
 import { aiPrivacyService } from "./aiPrivacyService";
@@ -591,7 +591,6 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
     // Cleanup cache periodically
     cleanupAiCache();
     try {
-        const functions = getFunctions();
         const callGeminiGenerateContent = httpsCallable<
             { prompt: string; modelName: string },
             { text?: string }
@@ -629,7 +628,6 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
 
 async function runChatSafe(systemPrompt: string, message: string, modelName: string = FAST_MODEL): Promise<string> {
     try {
-        const functions = getFunctions();
         const callGeminiChat = httpsCallable<
             { systemPrompt: string; message: string; modelName: string },
             { text?: string }

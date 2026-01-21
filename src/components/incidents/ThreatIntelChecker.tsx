@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../firebase';
 import { ShieldAlert } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
@@ -17,7 +18,6 @@ export const ThreatIntelChecker: React.FC = () => {
         setCheckingUrl(true);
         setUrlReputationResult(null);
         try {
-            const functions = getFunctions();
             const checkUrlReputationWithSafeBrowsing = httpsCallable(functions, 'checkUrlReputationWithSafeBrowsing');
             const { data } = await checkUrlReputationWithSafeBrowsing({ url: urlToCheck });
             const result = (data as { result?: { safe?: boolean; threatType?: string } } | undefined)?.result;
