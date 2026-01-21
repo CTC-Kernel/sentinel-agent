@@ -20,17 +20,13 @@ import {
   Target,
   Lightbulb,
   ClipboardList,
-  Shield,
-  Search,
   FileCheck,
-  AlertTriangle,
   BookOpen,
   Play,
-  Pause,
   RotateCcw,
 } from '../ui/Icons';
 import { Button } from '../ui/button';
-import type { AuditMethodTemplate, AuditWorkshopPhase, AuditWorkshopTask } from '../../types/audits';
+import type { AuditMethodTemplate, AuditWorkshopPhase } from '../../types/audits';
 
 interface AuditMethodsWorkshopsProps {
   onStartWorkshop?: (templateId: string, auditId?: string) => void;

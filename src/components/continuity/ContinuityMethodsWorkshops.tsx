@@ -726,7 +726,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div className={cn("p-3 rounded-xl text-white", config.color)}>
-                                        <Icon className="w-6 h-6" />
+                                        {React.createElement(Icon, { className: "w-6 h-6" })}
                                     </div>
                                     {isActive && (
                                         <Badge status="success" size="sm">En cours</Badge>

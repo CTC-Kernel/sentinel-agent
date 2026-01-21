@@ -16,15 +16,14 @@ import {
   Clock,
   AlertCircle,
   Eye,
-  Pencil,
-  ChevronRight
+  Pencil
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
-import { Progress } from '../ui/Progress';
-import { useToast } from '../../hooks/useToast';
+import { Progress } from '../ui/progress';
+import { toast } from '../../lib/toast';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -34,8 +33,7 @@ import {
 } from '../../services/HomologationDocumentService';
 import type {
   HomologationDossier,
-  HomologationDocumentType,
-  HomologationDocumentRef
+  HomologationDocumentType
 } from '../../types/homologation';
 import { DOCUMENT_TYPE_INFO, REQUIRED_DOCUMENTS } from '../../types/homologation';
 
@@ -62,7 +60,6 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
   onEditDocument
 }) => {
   const { t, i18n } = useTranslation();
-  const { toast } = useToast();
   const { organization } = useStore();
   const { user } = useAuth();
   const isEnglish = i18n.language === 'en';
@@ -108,7 +105,7 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
       organization: {
         name: organization?.name || 'Organisation',
         address: organization?.address,
-        sector: organization?.industry
+        sector: '' // TODO: Add industry to organization settings
       },
       dossier,
       ebiosData: ebiosData || undefined,
@@ -133,19 +130,18 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
           generatedDoc
         );
 
-        toast({
-          title: t('homologation.documents.generated', 'Document généré'),
-          description: t('homologation.documents.generatedDesc', 'Le document a été généré avec succès.')
-        });
+        toast.success(
+          t('homologation.documents.generated', 'Document généré'),
+          t('homologation.documents.generatedDesc', 'Le document a été généré avec succès.')
+        );
 
         onDocumentGenerated();
       } catch (error) {
         console.error('Error generating document:', error);
-        toast({
-          title: t('common.error', 'Erreur'),
-          description: t('homologation.documents.generateError', 'Erreur lors de la génération.'),
-          variant: 'destructive'
-        });
+        toast.error(
+          t('common.error', 'Erreur'),
+          t('homologation.documents.generateError', 'Erreur lors de la génération.')
+        );
       } finally {
         setGeneratingType(null);
       }
@@ -174,22 +170,21 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
         }
       }
 
-      toast({
-        title: t('homologation.documents.allGenerated', 'Documents générés'),
-        description: t(
+      toast.success(
+        t('homologation.documents.allGenerated', 'Documents générés'),
+        t(
           'homologation.documents.allGeneratedDesc',
           'Tous les documents ont été générés.'
         )
-      });
+      );
 
       onDocumentGenerated();
     } catch (error) {
       console.error('Error generating all documents:', error);
-      toast({
-        title: t('common.error', 'Erreur'),
-        description: t('homologation.documents.generateError', 'Erreur lors de la génération.'),
-        variant: 'destructive'
-      });
+      toast.error(
+        t('common.error', 'Erreur'),
+        t('homologation.documents.generateError', 'Erreur lors de la génération.')
+      );
     } finally {
       setGeneratingType(null);
     }
@@ -211,17 +206,16 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
       try {
         const context = await buildContext();
         HomologationDocumentService.downloadDocumentPDF(doc, context);
-        toast({
-          title: t('homologation.documents.downloaded', 'PDF téléchargé'),
-          description: t('homologation.documents.downloadedDesc', 'Le document a été téléchargé.')
-        });
+        toast.success(
+          t('homologation.documents.downloaded', 'PDF téléchargé'),
+          t('homologation.documents.downloadedDesc', 'Le document a été téléchargé.')
+        );
       } catch (error) {
         console.error('Error downloading PDF:', error);
-        toast({
-          title: t('common.error', 'Erreur'),
-          description: t('homologation.documents.downloadError', 'Erreur lors du téléchargement.'),
-          variant: 'destructive'
-        });
+        toast.error(
+          t('common.error', 'Erreur'),
+          t('homologation.documents.downloadError', 'Erreur lors du téléchargement.')
+        );
       } finally {
         setDownloadingType(null);
       }

@@ -106,9 +106,8 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
         </div>
         <div className="flex justify-between">
           <span className="text-slate-500">HHI</span>
-          <span className={`font-medium ${
-            data.hhi > 2500 ? 'text-red-600' : data.hhi > 1500 ? 'text-yellow-600' : 'text-green-600'
-          }`}>
+          <span className={`font-medium ${data.hhi > 2500 ? 'text-red-600' : data.hhi > 1500 ? 'text-yellow-600' : 'text-green-600'
+            }`}>
             {Math.round(data.hhi)}
           </span>
         </div>
@@ -196,9 +195,8 @@ const LegendItem: React.FC<LegendItemProps> = ({ category, color, onClick }) => 
             {category.vendorCount} {t('vendorConcentration.chart.vendor', { count: category.vendorCount })}
           </span>
           <span className="text-xs text-slate-400">•</span>
-          <span className={`text-xs ${
-            hhiLevel === 'high' ? 'text-red-500' : hhiLevel === 'moderate' ? 'text-yellow-500' : 'text-green-500'
-          }`}>
+          <span className={`text-xs ${hhiLevel === 'high' ? 'text-red-500' : hhiLevel === 'moderate' ? 'text-yellow-500' : 'text-green-500'
+            }`}>
             {formatPercentage(category.percentage)}
           </span>
         </div>
@@ -273,15 +271,14 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
               </div>
             </div>
             <div className="text-right">
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                vendor.riskLevel === 'Critical'
-                  ? 'bg-red-100 dark:bg-red-900/30 text-red-600'
-                  : vendor.riskLevel === 'High'
-                    ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'
-                    : vendor.riskLevel === 'Medium'
-                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600'
-                      : 'bg-green-100 dark:bg-green-900/30 text-green-600'
-              }`}>
+              <span className={`px-2 py-1 rounded text-xs font-medium ${vendor.riskLevel === 'Critical'
+                ? 'bg-red-100 dark:bg-red-900/30 text-red-600'
+                : vendor.riskLevel === 'High'
+                  ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'
+                  : vendor.riskLevel === 'Medium'
+                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600'
+                    : 'bg-green-100 dark:bg-green-900/30 text-green-600'
+                }`}>
                 {vendor.riskLevel}
               </span>
             </div>
@@ -349,6 +346,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
               paddingAngle={2}
               dataKey="value"
               labelLine={false}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               label={CustomLabel as any}
             >
               {chartData.map((entry, index) => (

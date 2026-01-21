@@ -10,7 +10,6 @@ import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/Badge';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FileCode, FileSpreadsheet, FileText, Download, Loader2, CheckCircle, AlertTriangle } from '../ui/Icons';
 import { DORAExportService, ExportFormat, DORAExportOptions } from '../../services/DORAExportService';
@@ -98,8 +97,8 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
 
             const orgInfo = {
                 name: organization.name || 'Organization',
-                lei: organization.lei,
-                country: organization.country || 'FR'
+                lei: '', // TODO: Add to organization settings when needed
+                country: 'FR' // TODO: Add to organization settings when needed
             };
 
             let blob: Blob;
@@ -133,7 +132,7 @@ export const ExportDORARegisterModal: React.FC<ExportDORARegisterModalProps> = (
             await DORAExportService.saveExportRecord(organization.id!, {
                 format: selectedFormat,
                 exportedAt: new Date().toISOString(),
-                exportedBy: user?.id || 'unknown',
+                exportedBy: user?.uid || 'unknown',
                 exportedByName: user?.displayName || user?.email || 'Unknown',
                 providerCount: filteredProviders.length,
                 parameters: {

@@ -33,7 +33,7 @@ import type {
   EbiosLinkSnapshot,
   EbiosLinkHistoryEntry
 } from '../types/homologation';
-import type { EbiosAnalysis } from '../types/ebios';
+import type { EbiosAnalysis, SelectedRiskSource, OperationalScenario } from '../types/ebios';
 import { EbiosService } from './ebiosService';
 import {
   LEVEL_THRESHOLDS,
@@ -42,7 +42,6 @@ import {
   LEVEL_INFO
 } from '../types/homologation';
 import {
-  LEVEL_DETERMINATION_QUESTIONS,
   getQuestionById,
   getHigherLevel,
   isLevelHigherOrEqual
@@ -168,7 +167,7 @@ export function calculateLevelRecommendation(
 ): LevelRecommendation {
   // Calculate base score
   const score = calculateTotalScore(answers);
-  let scoredLevel = getLevelFromScore(score);
+  const scoredLevel = getLevelFromScore(score);
 
   // Check for escalation rules
   const escalationLevel = findEscalationLevel(answers);
@@ -898,7 +897,7 @@ export function countEbiosItems(analysis: EbiosAnalysis): {
 
   return {
     fearedEventsCount: workshop1?.fearedEvents?.length ?? 0,
-    riskSourcesCount: workshop2?.riskSources?.length ?? 0,
+    riskSourcesCount: workshop2?.selectedRiskSources?.length ?? 0,
     strategicScenariosCount: workshop3?.strategicScenarios?.length ?? 0,
     operationalScenariosCount: workshop4?.operationalScenarios?.length ?? 0,
     treatmentItemsCount: workshop5?.treatmentPlan?.length ?? 0
@@ -1223,11 +1222,9 @@ export async function getEbiosDataForDocument(
       impactType: fe.impactType,
       gravity: fe.gravity
     })),
-    riskSources: (workshop2?.riskSources ?? []).map((rs: { name: string; description?: string; motivation?: string; resources?: string }) => ({
-      name: rs.name,
-      description: rs.description,
-      motivation: rs.motivation,
-      resources: rs.resources
+    riskSources: (workshop2?.selectedRiskSources ?? []).map((rs: SelectedRiskSource) => ({
+      name: rs.riskSourceId,
+      description: rs.relevanceJustification
     })),
     strategicScenarios: (workshop3?.strategicScenarios ?? []).map((ss: { name: string; description?: string; attackPath?: string; gravity?: number }) => ({
       name: ss.name,
@@ -1235,11 +1232,11 @@ export async function getEbiosDataForDocument(
       attackPath: ss.attackPath ?? '',
       gravity: ss.gravity ?? 0
     })),
-    operationalScenarios: (workshop4?.operationalScenarios ?? []).map((os: { name: string; description?: string; likelihood?: number; riskLevel?: string }) => ({
+    operationalScenarios: (workshop4?.operationalScenarios ?? []).map((os: OperationalScenario) => ({
       name: os.name,
       description: os.description,
       likelihood: os.likelihood ?? 0,
-      riskLevel: os.riskLevel ?? 'unknown'
+      riskLevel: String(os.riskLevel ?? 0)
     })),
     treatmentPlan: (workshop5?.treatmentPlan ?? []).map((tp: { measure?: string; status?: string; controlId?: string; deadline?: string }) => ({
       measure: tp.measure ?? '',

@@ -21,7 +21,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
     const highRiskProviders = getHighRiskProviders();
 
     // Calculate average concentration
-    const avgConcentration = concentrationAnalysis.averageConcentration || 0;
+    const avgConcentration = concentrationAnalysis.averageConcentrationRisk || 0;
 
     // Risk distribution for mini chart
     const totalProviders = stats.total || 1;

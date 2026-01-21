@@ -814,7 +814,7 @@ export class VendorConcentrationService {
     filters?: ConcentrationFilters
   ): Promise<SupplierData[]> {
     const suppliersRef = collection(db, this.COLLECTION);
-    let q = query(suppliersRef, where('organizationId', '==', organizationId));
+    const q = query(suppliersRef, where('organizationId', '==', organizationId));
 
     const snapshot = await getDocs(q);
     let suppliers: SupplierData[] = [];

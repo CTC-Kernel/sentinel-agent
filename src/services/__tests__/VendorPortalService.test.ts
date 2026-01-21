@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * VendorPortalService Tests
  * Story 37-2: Vendor Self-Service Portal

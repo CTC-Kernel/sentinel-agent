@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * VendorScoringService Tests
  * Story 37-3: Automated Vendor Scoring

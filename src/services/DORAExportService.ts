@@ -10,7 +10,7 @@ import ExcelJS from 'exceljs';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import { fr, enUS } from 'date-fns/locale';
+import { fr, enUS, Locale } from 'date-fns/locale';
 import {
     ICTProvider,
     DORARegisterExport,
@@ -115,7 +115,7 @@ export class DORAExportService {
      */
     static async generateExcel(
         providers: ICTProvider[],
-        organizationInfo: { name: string; lei?: string; country: string },
+        _organizationInfo: { name: string; lei?: string; country: string },
         options: DORAExportOptions
     ): Promise<{ workbook: ExcelJS.Workbook; blob: Blob; filename: string }> {
         const filteredProviders = this.filterProviders(providers, options);
@@ -360,7 +360,7 @@ export class DORAExportService {
             p.compliance?.doraCompliant ? t.yes : t.no
         ]);
 
-        (doc as jsPDF & { autoTable: Function }).autoTable({
+        (doc as jsPDF & { autoTable: (options: Record<string, unknown>) => void }).autoTable({
             startY: yPos,
             head: [[t.columns.name, t.columns.category, t.columns.concentration, t.columns.contractEnd, t.columns.doraCompliant]],
             body: tableData,
@@ -418,8 +418,8 @@ export class DORAExportService {
                 createdAt: Timestamp.now()
             });
             return docRef.id;
-        } catch (error) {
-            ErrorLogger.error('DORAExportService.saveExportRecord', error);
+        } catch (error: unknown) {
+            ErrorLogger.error(error, 'DORAExportService.saveExportRecord');
             throw error;
         }
     }
@@ -440,8 +440,8 @@ export class DORAExportService {
                 id: doc.id,
                 ...doc.data()
             } as DORAExportRecord));
-        } catch (error) {
-            ErrorLogger.error('DORAExportService.getExportHistory', error);
+        } catch (error: unknown) {
+            ErrorLogger.error(error, 'DORAExportService.getExportHistory');
             return [];
         }
     }
@@ -452,8 +452,8 @@ export class DORAExportService {
     static async deleteExportRecord(exportId: string): Promise<void> {
         try {
             await deleteDoc(doc(db, 'dora_exports', exportId));
-        } catch (error) {
-            ErrorLogger.error('DORAExportService.deleteExportRecord', error);
+        } catch (error: unknown) {
+            ErrorLogger.error(error, 'DORAExportService.deleteExportRecord');
             throw error;
         }
     }

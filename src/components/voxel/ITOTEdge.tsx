@@ -11,8 +11,12 @@
 
 import React, { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { Line, Text, Billboard, Html } from '@react-three/drei';
-import { Vector3, AdditiveBlending, CanvasTexture, Group } from 'three';
+import { Line, Billboard, Html } from '@react-three/drei';
+import {
+  Vector3,
+  AdditiveBlending,
+  Group
+} from 'three';
 import type { VoxelNode, VoxelEdge, NetworkSegment } from '../../types/voxel';
 import { SEGMENT_COLORS } from './OTNodeMesh';
 
@@ -108,6 +112,7 @@ interface GradientLineProps {
 
 const GradientLine: React.FC<GradientLineProps> = React.memo(
   ({ points, startColor, endColor, lineWidth, opacity, dashed, animated }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lineRef = useRef<any>(null);
 
     // Create gradient by using multiple line segments
@@ -153,6 +158,7 @@ const GradientLine: React.FC<GradientLineProps> = React.memo(
     // Animate dash offset
     useFrame(({ clock }) => {
       if (lineRef.current?.material && animated && dashed) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const material = lineRef.current.material as any;
         if (material.dashOffset !== undefined) {
           material.dashOffset = -clock.getElapsedTime() * 2;
@@ -240,6 +246,7 @@ interface DMZWaypointProps {
 }
 
 const DMZWaypoint: React.FC<DMZWaypointProps> = React.memo(({ position, isHighlighted }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const meshRef = useRef<any>(null);
 
   useFrame((_, delta) => {

@@ -18,7 +18,6 @@ import {
   Download,
   ChevronRight,
   ChevronLeft,
-  X,
   Loader2,
   Table,
   Check
@@ -26,9 +25,9 @@ import {
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import { Badge } from '../ui/Badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { useToast } from '../../hooks/useToast';
+import { toast } from '../../lib/toast';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -40,10 +39,7 @@ import {
 } from '../../services/OTAssetImportService';
 import {
   generateOTCSVTemplate,
-  OT_CSV_COLUMN_MAPPINGS,
-  NETWORK_SEGMENT_LABELS,
-  OT_CRITICALITY_LABELS,
-  OT_DEVICE_TYPE_LABELS
+  OT_CSV_COLUMN_MAPPINGS
 } from '../../data/otAssetConstants';
 
 // ============================================================================
@@ -78,11 +74,9 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
   onClose,
   onImportComplete
 }) => {
-  const { t, i18n } = useTranslation();
-  const { toast } = useToast();
+  const { t } = useTranslation();
   const { organization } = useStore();
   const { user } = useAuth();
-  const isEnglish = i18n.language === 'en';
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState<WizardStep>('upload');
@@ -111,11 +105,10 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
       const parsed = OTAssetImportService.parseCSV(content);
 
       if (parsed.rowCount === 0) {
-        toast({
-          variant: 'destructive',
-          title: t('otImport.errors.emptyFile', 'Fichier vide'),
-          description: t('otImport.errors.emptyFileDesc', 'Le fichier CSV ne contient aucune donnée')
-        });
+        toast.error(
+          t('otImport.errors.emptyFile', 'Fichier vide'),
+          t('otImport.errors.emptyFileDesc', 'Le fichier CSV ne contient aucune donnée')
+        );
         return;
       }
 
@@ -128,11 +121,10 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
       setCurrentStep('mapping');
     };
     reader.onerror = () => {
-      toast({
-        variant: 'destructive',
-        title: t('otImport.errors.readError', 'Erreur de lecture'),
-        description: t('otImport.errors.readErrorDesc', 'Impossible de lire le fichier')
-      });
+      toast.error(
+        t('otImport.errors.readError', 'Erreur de lecture'),
+        t('otImport.errors.readErrorDesc', 'Impossible de lire le fichier')
+      );
     };
     reader.readAsText(file);
   }, [t, toast]);
@@ -158,11 +150,10 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
       if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
         handleFileUpload(file);
       } else {
-        toast({
-          variant: 'destructive',
-          title: t('otImport.errors.invalidFormat', 'Format invalide'),
-          description: t('otImport.errors.invalidFormatDesc', 'Seuls les fichiers CSV sont acceptés')
-        });
+        toast.error(
+          t('otImport.errors.invalidFormat', 'Format invalide'),
+          t('otImport.errors.invalidFormatDesc', 'Seuls les fichiers CSV sont acceptés')
+        );
       }
     }
   }, [handleFileUpload, t, toast]);
@@ -220,19 +211,18 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
       onImportComplete(result);
 
       if (result.success && result.successCount > 0) {
-        toast({
-          title: t('otImport.success.title', 'Import réussi'),
-          description: t('otImport.success.description', '{{count}} assets OT importés', {
+        toast.success(
+          t('otImport.success.title', 'Import réussi'),
+          t('otImport.success.description', '{{count}} assets OT importés', {
             count: result.successCount
           })
-        });
+        );
       }
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('otImport.errors.importFailed', 'Erreur d\'import'),
-        description: t('otImport.errors.importFailedDesc', 'L\'import a échoué')
-      });
+      toast.error(
+        t('otImport.errors.importFailed', 'Erreur d\'import'),
+        t('otImport.errors.importFailedDesc', 'L\'import a échoué')
+      );
     } finally {
       setIsImporting(false);
     }
@@ -286,10 +276,12 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
               {isPast ? (
                 <Check className="h-4 w-4" />
               ) : (
-                <Icon className="h-4 w-4" />
+                <span className="h-4 w-4 inline-flex items-center justify-center">
+                  {React.createElement(Icon, { className: "h-4 w-4" })}
+                </span>
               )}
               <span className="hidden sm:inline">
-                {t(step.labelKey, step.key)}
+                {t(step.labelKey)}
               </span>
             </div>
           </React.Fragment>
@@ -485,7 +477,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
                     </td>
                     <td className="px-4 py-2">
                       {!row.isValid ? (
-                        <Badge variant="destructive" className="gap-1">
+                        <Badge variant="soft" status="error" className="gap-1">
                           <AlertCircle className="h-3 w-3" />
                           {row.errors.length} {t('otImport.preview.error', 'erreur(s)')}
                         </Badge>

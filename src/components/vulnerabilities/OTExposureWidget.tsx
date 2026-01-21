@@ -25,19 +25,17 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
-  Factory,
+  Server,
   Shield,
   AlertTriangle,
   TrendingUp,
-  ExternalLink,
-  Server,
-  Ban,
+  ExternalLink
 } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { OTVulnerabilityService } from '@/services/OTVulnerabilityService';
-import { useOrganization } from '@/hooks/useOrganization';
+import { useStore } from '@/store';
 import type { OTExposureMetrics } from '@/types/otVulnerability';
 import { SEGMENT_COLORS } from '@/components/voxel/OTNodeMesh';
 
@@ -63,13 +61,6 @@ const SEVERITY_COLORS = {
   High: '#f97316',
   Medium: '#eab308',
   Low: '#22c55e',
-};
-
-const CRITICALITY_COLORS = {
-  safety: '#ef4444',
-  production: '#f97316',
-  operations: '#3b82f6',
-  monitoring: '#6b7280',
 };
 
 // ============================================================================
@@ -189,12 +180,14 @@ const MiniTrendChart: React.FC<MiniTrendChartProps> = ({ data, loading }) => {
             if (!active || !payload) return null;
             return (
               <ChartTooltip
+                active={active}
+                payload={payload.map(p => ({
+                  name: String(p.dataKey || 'unknown'),
+                  value: Number(p.value) || 0,
+                  color: p.color || '#000',
+                  payload: p.payload
+                })) as any}
                 label={label}
-                items={payload.map((p: any) => ({
-                  label: p.dataKey === 'critical' ? 'Critique' : 'Élevée',
-                  value: p.value,
-                  color: p.color,
-                }))}
               />
             );
           }}
@@ -333,7 +326,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
         >
           <div className="flex items-center gap-3">
             <span className="text-gray-500 text-xs w-4">{index + 1}.</span>
-            <Factory className="h-4 w-4 text-orange-400" />
+            <Server className="h-4 w-4 text-orange-400" />
             <span className="text-sm text-white truncate max-w-[150px]">
               {asset.assetName}
             </span>
@@ -367,7 +360,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { organization } = useOrganization();
+  const { organization } = useStore();
   const [metrics, setMetrics] = useState<OTExposureMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -433,7 +426,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
       <div className={cn('p-4 rounded-xl bg-gray-900/50 border border-gray-800', className)}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Factory className="h-5 w-5 text-orange-400" />
+            <Server className="h-5 w-5 text-orange-400" />
             <h3 className="text-sm font-medium text-white">
               {t('otVulnerability.widget.title', 'OT Exposure')}
             </h3>
@@ -475,7 +468,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-orange-500/10">
-            <Factory className="h-6 w-6 text-orange-400" />
+            <Server className="h-6 w-6 text-orange-400" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">
@@ -497,7 +490,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
         <StatCard
           label={t('otVulnerability.widget.totalAffected', 'OT Assets Affected')}
           value={metrics?.totalAffectedAssets || 0}
-          icon={<Factory className="h-4 w-4" />}
+          icon={<Server className="h-4 w-4" />}
           color={SEGMENT_COLORS.OT}
           onClick={() => handleDrillDown('ot-affected')}
           loading={loading}
@@ -521,7 +514,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
         <StatCard
           label={t('otVulnerability.widget.noPatch', 'No Patch Available')}
           value={metrics?.assetsWithoutPatch || 0}
-          icon={<Ban className="h-4 w-4" />}
+          icon={<AlertTriangle className="h-4 w-4" />}
           color="#ef4444"
           onClick={() => handleDrillDown('no-patch')}
           loading={loading}
@@ -574,8 +567,8 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
               metrics.averageAdjustedScore >= 7
                 ? 'text-red-400'
                 : metrics.averageAdjustedScore >= 4
-                ? 'text-amber-400'
-                : 'text-green-400'
+                  ? 'text-amber-400'
+                  : 'text-green-400'
             )}
           >
             {metrics.averageAdjustedScore.toFixed(1)} / 10

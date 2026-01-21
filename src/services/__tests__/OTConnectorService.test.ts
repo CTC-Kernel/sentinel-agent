@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * OTConnectorService Unit Tests
  * Story 36-2: OT Connector Configuration
