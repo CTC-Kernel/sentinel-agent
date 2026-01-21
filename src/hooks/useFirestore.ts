@@ -172,7 +172,7 @@ export const useFirestoreCollection = <T = DocumentData>(
                 setRealtimeFailed(true);
                 setRealtimeLoading(false);
             }
-        }, 12000);
+        }, 5000); // Réduit de 12s à 5s pour une meilleure UX
 
         let unsubscribe = () => { };
 

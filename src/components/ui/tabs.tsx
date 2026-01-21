@@ -96,13 +96,17 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
         const context = React.useContext(TabsContext)
         if (!context) throw new Error("TabsContent must be used within Tabs")
 
-        if (context.value !== value) return null
+        // Optimisation: Garder le composant monté mais caché au lieu de démonter
+        const isActive = context.value === value
 
         return (
             <div
                 ref={ref}
                 role="tabpanel"
-                data-state="active"
+                data-state={isActive ? "active" : "inactive"}
+                style={{
+                    display: isActive ? 'block' : 'none'
+                }}
                 className={cn(
                     "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     className

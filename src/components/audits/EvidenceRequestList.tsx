@@ -15,7 +15,8 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { EvidenceRequestItem } from './EvidenceRequestItem';
-import { exportEvidenceRequestsZip } from '../../utils/EvidenceExportUtils';
+import { exportEvidenceRequestsZip, checkEvidenceExportLimits } from '../../utils/EvidenceExportUtils';
+import { usePlanLimits } from '../../hooks/usePlanLimits';
 
 interface EvidenceRequestListProps {
     auditId: string;
@@ -27,6 +28,7 @@ interface EvidenceRequestListProps {
 
 export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditId, organizationId, users, controls, canEdit }) => {
     const { user, addToast } = useStore();
+    const { hasFeature, planId } = usePlanLimits();
     const [isCreating, setIsCreating] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
@@ -176,19 +178,35 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
     const values = { assignedTo, relatedControlId };
 
     const handleExport = useCallback(() => {
+        // Vérifier les limites du plan
+        const limitCheck = checkEvidenceExportLimits(hasFeature, planId);
+        
+        // Afficher un message si le plan nécessite un upgrade
+        if (limitCheck.willHaveWatermark) {
+            addToast(limitCheck.message, 'info');
+        }
+
+        // Procéder à l'export avec les informations de plan
         exportEvidenceRequestsZip({
             auditId,
             requests,
             users,
             controls,
             documents,
-            onSuccess: (msg) => addToast(msg, 'success'),
+            addWatermark: limitCheck.willHaveWatermark,
+            planId,
+            onSuccess: () => {
+                const successMessage = limitCheck.willHaveWatermark 
+                    ? "Export ZIP téléchargé (avec filigrane Discovery)"
+                    : "Export ZIP téléchargé";
+                addToast(successMessage, 'success');
+            },
             onError: (err) => {
                 ErrorLogger.handleErrorWithToast(err, 'EvidenceRequestList.handleExport', 'UNKNOWN_ERROR');
                 addToast("Erreur lors de l'export", 'error');
             }
         });
-    }, [auditId, requests, users, controls, documents, addToast]);
+    }, [auditId, requests, users, controls, documents, addToast, hasFeature, planId]);
 
     return (
         <div>

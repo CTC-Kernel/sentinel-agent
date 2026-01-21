@@ -11,6 +11,7 @@ import { createUser } from '../../tests/factories/userFactory';
 vi.mock('../../firebase', () => ({
     db: {},
     storage: {},
+    functions: {},
 }));
 
 vi.mock('firebase/firestore', () => ({

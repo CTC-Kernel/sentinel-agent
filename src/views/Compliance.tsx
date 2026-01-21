@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
-import { Framework } from '../types';
+import { Control, Framework } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
@@ -102,15 +102,23 @@ export const Compliance: React.FC = () => {
     const [projectInitialData, setProjectInitialData] = useState<Partial<ProjectFormData> | undefined>(undefined);
     const [projectContext, setProjectContext] = useState<{ type: 'risk' | 'control' | 'asset' | 'audit', id: string } | null>(null);
 
-    // Data Hooks
-    const needsDependencies = activeTab === 'controls' || activeTab === 'mapping';
-    const { filteredControls: frameworkControls, risks, findings, documents, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework, {
-        fetchRisks: needsDependencies,
-        fetchAssets: needsDependencies,
-        fetchDocuments: needsDependencies,
-        fetchUsers: needsDependencies,
-        fetchSuppliers: needsDependencies,
-        fetchProjects: needsDependencies
+    // Utiliser le hook de données avec les propriétés disponibles
+    const {
+        controls,
+        risks,
+        assets,
+        documents,
+        usersList,
+        suppliers,
+        projects,
+        loading
+    } = useComplianceData(currentFramework, {
+        fetchRisks: activeTab === 'overview',
+        fetchAssets: activeTab === 'overview',
+        fetchDocuments: activeTab === 'overview',
+        fetchUsers: activeTab === 'overview',
+        fetchSuppliers: activeTab === 'overview',
+        fetchProjects: activeTab === 'overview'
     });
     const { folders } = useDocumentsData(user?.organizationId);
     const complianceActions = useComplianceActions(user);
@@ -123,18 +131,40 @@ export const Compliance: React.FC = () => {
     const deepLinkControlId = searchParams.get('id');
 
     // Handlers
-    const handleSelectControl = useCallback((control: import('../types').Control) => {
-
+    const handleSelectControl = useCallback((control: Control) => {
         setSelectedControlId(control.id);
-        setCreationMode(null);
-        setIsDrawerOpen(true);
+        setProjectContext({ type: 'control', id: control.id });
     }, []);
+
+    // Filtering Logic
+    const filteredControlsList = useMemo(() => {
+        if (!controls) return [];
+        return currentFramework
+            ? controls.filter(c => c.framework === currentFramework)
+            : controls;
+    }, [controls, currentFramework]);
+
+    const filteredControls = useMemo(() => {
+        return filteredControlsList.filter((control: import('../types').Control) => {
+            // Search
+            const matchesSearch = filter === '' ||
+                control.code.toLowerCase().includes(filter.toLowerCase()) ||
+                control.name.toLowerCase().includes(filter.toLowerCase());
+
+            // Status
+            const matchesStatus = statusFilter === null || control.status === statusFilter;
+
+            // Evidence
+            const matchesEvidence = !showMissingEvidence || (control.status === 'Implémenté' && (!control.evidenceIds || control.evidenceIds.length === 0));
+
+            return matchesSearch && matchesStatus && matchesEvidence;
+        });
+    }, [filteredControlsList, filter, statusFilter, showMissingEvidence]);
 
     // Deep Link Effect
     useEffect(() => {
-
-        if (!loading && deepLinkControlId && frameworkControls.length > 0) {
-            const control = frameworkControls.find((c: import('../types').Control) => c.id === deepLinkControlId);
+        if (!loading && deepLinkControlId && filteredControls.length > 0) {
+            const control = filteredControls.find((c: Control) => c.id === deepLinkControlId);
 
             if (control) {
                 flushSync(() => {
@@ -142,7 +172,7 @@ export const Compliance: React.FC = () => {
                 });
             }
         }
-    }, [loading, deepLinkControlId, frameworkControls, handleSelectControl]);
+    }, [loading, deepLinkControlId, filteredControls, handleSelectControl]);
 
     // Cleanup Effect
     useEffect(() => {
@@ -164,23 +194,6 @@ export const Compliance: React.FC = () => {
         }
     }, [initialState.createForProject, initialState.projectName, addToast, t]);
 
-    // Filtering Logic
-    const filteredControls = useMemo(() => {
-        return frameworkControls.filter((control: import('../types').Control) => {
-            // Search
-            const matchesSearch = filter === '' ||
-                control.code.toLowerCase().includes(filter.toLowerCase()) ||
-                control.name.toLowerCase().includes(filter.toLowerCase());
-
-            // Status
-            const matchesStatus = statusFilter === null || control.status === statusFilter;
-
-            // Evidence
-            const matchesEvidence = !showMissingEvidence || (control.status === 'Implémenté' && (!control.evidenceIds || control.evidenceIds.length === 0));
-
-            return matchesSearch && matchesStatus && matchesEvidence;
-        });
-    }, [frameworkControls, filter, statusFilter, showMissingEvidence]); // Depend on frameworkControls
 
     const handleCreateClick = (type: 'risk' | 'project' | 'audit') => {
         if (!canEdit) {
@@ -188,23 +201,41 @@ export const Compliance: React.FC = () => {
             return;
         }
 
-        const controlContext = selectedControlId;
+        const controlContext = selectedControlId ? filteredControls.find((c: Control) => c.id === selectedControlId) : null;
 
-        if (type === 'project') {
-            setProjectInitialData({
-                managerId: user?.uid || '',
-                manager: user?.displayName || user?.email || '',
-                relatedControlIds: controlContext ? [controlContext] : []
-            });
-            setProjectContext(controlContext ? { type: 'control', id: controlContext } : null);
-        } else {
-            setProjectInitialData(undefined);
-            setProjectContext(null);
+        if (type === 'project' && controlContext) {
+            // Vérifier si le contrôle est déjà lié à un projet
+            const isLinkedToProject = (controlContext as any).linkedProjectId && 
+                (controlContext as any).linkedProjectId === controlContext.id;
+            
+            if (isLinkedToProject) {
+                addToast(t('compliance.controlAlreadyLinked') || 'Ce contrôle est déjà lié à un projet', 'info');
+                return;
+            }
         }
 
+        if (type === 'audit' && controlContext) {
+            // Vérifier si le contrôle est déjà lié à un audit
+            const isLinkedToAudit = (controlContext as any).linkedAuditId && 
+                (controlContext as any).linkedAuditId === controlContext.id;
+            
+            if (isLinkedToAudit) {
+                addToast(t('compliance.controlAlreadyLinked') || 'Ce contrôle est déjà lié à un audit', 'info');
+                return;
+            }
+        }
+
+        // Ouvrir le tiroir de création avec le contexte approprié
         setCreationMode(type);
-        setSelectedControlId(null);
-        setIsDrawerOpen(true);
+        setProjectInitialData(type === 'project' ? {
+            name: `Projet pour ${controlContext?.name || ''}`,
+            relatedControlIds: controlContext?.id ? [controlContext.id] : []
+        } : type === 'audit' ? {
+            name: `Audit pour ${controlContext?.name || ''}`,
+            relatedControlIds: controlContext?.id ? [controlContext.id] : []
+        } : undefined);
+        setProjectContext({ type: type === 'project' ? 'control' : 'audit', id: controlContext?.id || '' });
+        setUploadWizardOpen(true);
     };
 
     const closeProjectDrawer = () => {
@@ -234,11 +265,11 @@ export const Compliance: React.FC = () => {
         }
     };
 
-    const selectedControl = frameworkControls.find((c: import('../types').Control) => c.id === selectedControlId);
+    const selectedControl = filteredControls.find((c: import('../types').Control) => c.id === selectedControlId);
 
     // Generate Evidence Dossier
     const handleGenerateEvidenceDossier = async () => {
-        if (frameworkControls.length === 0) {
+        if (filteredControls.length === 0) {
             toast.warning(t('compliance.noControlsForDossier') || 'Aucun contrôle disponible pour générer le dossier');
             return;
         }
@@ -246,7 +277,7 @@ export const Compliance: React.FC = () => {
         setGeneratingDossier(true);
         try {
             EvidenceDossierService.generateEvidenceDossier(
-                frameworkControls,
+                filteredControls,
                 documents,
                 {
                     framework: currentFramework,
@@ -338,7 +369,7 @@ export const Compliance: React.FC = () => {
                                             <Button
                                                 variant="secondary"
                                                 onClick={handleGenerateEvidenceDossier}
-                                                disabled={generatingDossier || frameworkControls.length === 0}
+                                                disabled={generatingDossier || filteredControls.length === 0}
                                             >
                                                 <Archive className="h-4 w-4 mr-2" />
                                                 {generatingDossier ? 'Génération...' : (t('compliance.generateDossier') || 'Dossier Preuves')}
@@ -395,7 +426,7 @@ export const Compliance: React.FC = () => {
                             <ComplianceList
                                 controls={filteredControls}
                                 risks={risks}
-                                findings={findings}
+                                findings={[]}
                                 loading={loading}
                                 currentFramework={currentFramework}
                                 selectedControlId={selectedControlId || undefined}
@@ -408,7 +439,7 @@ export const Compliance: React.FC = () => {
                     {activeTab === 'mapping' && (
                         <div className="animate-fade-in space-y-6">
                             <FrameworkMappingMatrix
-                                controls={frameworkControls}
+                                controls={filteredControls}
                                 enabledFrameworks={organization?.enabledFrameworks}
                                 onControlClick={handleSelectControl}
                             />
@@ -418,7 +449,7 @@ export const Compliance: React.FC = () => {
                     {activeTab === 'shared' && (
                         <div className="animate-fade-in space-y-6">
                             <SharedRequirementsView
-                                controls={frameworkControls}
+                                controls={filteredControls}
                                 enabledFrameworks={organization?.enabledFrameworks}
                                 onControlClick={handleSelectControl}
                             />
@@ -448,12 +479,12 @@ export const Compliance: React.FC = () => {
                 projectFormId={projectFormId}
                 usersList={usersList}
                 risks={risks}
-                frameworkControls={frameworkControls}
+                frameworkControls={filteredControls}
                 assets={assets}
                 suppliers={suppliers}
                 projects={projects}
                 documents={documents}
-                findings={findings}
+                findings={[]}
                 linkingToProjectId={linkingToProjectId}
                 linkingToProjectName={linkingToProjectName}
                 canEdit={canEdit}
@@ -477,7 +508,7 @@ export const Compliance: React.FC = () => {
 
                         // 2. Link to Control if successful and context exists
                         if (docId && selectedControlId) {
-                            const control = frameworkControls.find(c => c.id === selectedControlId);
+                            const control = filteredControls.find(c => c.id === selectedControlId);
                             if (control) {
                                 await complianceActions.handleLinkDocument(control, docId);
                             }
@@ -491,7 +522,7 @@ export const Compliance: React.FC = () => {
                     }
                 }}
                 users={usersList}
-                controls={frameworkControls}
+                controls={filteredControls}
                 assets={assets}
                 risks={risks}
                 folders={folders} // Real folders from useDocumentsData

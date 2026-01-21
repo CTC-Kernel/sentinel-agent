@@ -59,7 +59,8 @@ const Homologation: React.FC = () => {
 
       const completeInput = {
         ...input,
-        responsibleId: user.uid
+        organizationId: user.organizationId || '',
+        userId: user.uid
       };
 
       const dossierId = await createDossier(completeInput);
@@ -73,7 +74,7 @@ const Homologation: React.FC = () => {
       // Navigate to the new dossier
       navigate(`/homologation/${dossierId}`);
     },
-    [user?.uid, createDossier, t, navigate]
+    [user?.uid, user?.organizationId, createDossier, t, navigate]
   );
 
   // Handle view dossier

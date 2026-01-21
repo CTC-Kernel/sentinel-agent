@@ -151,17 +151,33 @@ export const useHomologation = (
   // Create dossier
   const createDossier = useCallback(
     async (input: CreateHomologationDossierInput): Promise<string> => {
-      if (!organizationId || !userId) {
-        throw new Error('Organization and user required');
+      // Validation des entrées
+      if (!input) {
+        throw new Error('Invalid input provided to createDossier');
       }
-
-      const dossier = await HomologationService.createDossier(
-        organizationId,
-        userId,
-        input
-      );
-
-      return dossier.id;
+      
+      const { organizationId, userId } = input;
+      
+      // Vérifications avec messages d'erreur améliorés
+      if (!organizationId) {
+        throw new Error('Organization ID is required for dossier creation');
+      }
+      
+      if (!userId) {
+        throw new Error('User ID is required for dossier creation');
+      }
+      
+      try {
+        const dossier = await HomologationService.createDossier(
+          organizationId,
+          userId,
+          input
+        );
+        return dossier;
+      } catch (error) {
+        console.error('Error creating dossier:', error);
+        throw error;
+      }
     },
     [organizationId, userId]
   );

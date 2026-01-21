@@ -56,10 +56,14 @@ describe('DataExportService', () => {
     });
 
     describe('exportOrganizationData', () => {
-        it('should export organization data to ZIP', async () => {
+        it('should export organization data to ZIP with full access', async () => {
             const { saveAs } = await import('file-saver');
 
-            await DataExportService.exportOrganizationData('org-1');
+            await DataExportService.exportOrganizationData({
+                organizationId: 'org-1',
+                planId: 'enterprise',
+                hasApiAccess: true
+            });
 
             expect(saveAs).toHaveBeenCalledWith(
                 expect.any(Blob),
@@ -67,11 +71,30 @@ describe('DataExportService', () => {
             );
         });
 
+        it('should export limited data for Discovery plan', async () => {
+            const { saveAs } = await import('file-saver');
+
+            await DataExportService.exportOrganizationData({
+                organizationId: 'org-1',
+                planId: 'discovery',
+                hasApiAccess: false
+            });
+
+            expect(saveAs).toHaveBeenCalledWith(
+                expect.any(Blob),
+                expect.stringContaining('sentinel_export_limited_org-1')
+            );
+        });
+
         it('should include date in filename', async () => {
             const { saveAs } = await import('file-saver');
             const today = new Date().toISOString().split('T')[0];
 
-            await DataExportService.exportOrganizationData('org-1');
+            await DataExportService.exportOrganizationData({
+                organizationId: 'org-1',
+                planId: 'enterprise',
+                hasApiAccess: true
+            });
 
             expect(saveAs).toHaveBeenCalledWith(
                 expect.any(Blob),
@@ -79,10 +102,14 @@ describe('DataExportService', () => {
             );
         });
 
-        it('should query all required collections', async () => {
+        it('should query all required collections for full export', async () => {
             const { collection, query, where } = await import('firebase/firestore');
 
-            await DataExportService.exportOrganizationData('org-1');
+            await DataExportService.exportOrganizationData({
+                organizationId: 'org-1',
+                planId: 'enterprise',
+                hasApiAccess: true
+            });
 
             // Should query 6 collections: assets, risks, controls, documents, audits, incidents
             expect(collection).toHaveBeenCalledTimes(6);
@@ -90,38 +117,81 @@ describe('DataExportService', () => {
             expect(where).toHaveBeenCalledTimes(6);
         });
 
+        it('should query limited collections for Discovery plan', async () => {
+            const { collection, query, where } = await import('firebase/firestore');
+
+            await DataExportService.exportOrganizationData({
+                organizationId: 'org-1',
+                planId: 'discovery',
+                hasApiAccess: false
+            });
+
+            // Should query only 2 collections: assets, risks
+            expect(collection).toHaveBeenCalledTimes(2);
+            expect(query).toHaveBeenCalledTimes(2);
+            expect(where).toHaveBeenCalledTimes(2);
+        });
+
         it('should create ZIP with collection files', async () => {
             const JSZip = (await import('jszip')).default;
 
-            await DataExportService.exportOrganizationData('org-1');
+            await DataExportService.exportOrganizationData({
+                organizationId: 'org-1',
+                planId: 'enterprise',
+                hasApiAccess: true
+            });
 
             const mockZipInstance = vi.mocked(JSZip).mock.results[0]?.value;
             expect(mockZipInstance.file).toHaveBeenCalled();
             expect(mockZipInstance.generateAsync).toHaveBeenCalledWith({ type: 'blob' });
         });
 
+        it('should call onUpgradeRequired when no API access', async () => {
+            const onUpgradeRequired = vi.fn();
+
+            await DataExportService.exportOrganizationData({
+                organizationId: 'org-1',
+                planId: 'discovery',
+                hasApiAccess: false,
+                onUpgradeRequired
+            });
+
+            expect(onUpgradeRequired).toHaveBeenCalledWith(
+                expect.stringContaining('L\'export de données complètes nécessite le plan Enterprise')
+            );
+        });
+
         it('should throw on Firestore error', async () => {
             const { getDocs } = await import('firebase/firestore');
             vi.mocked(getDocs).mockRejectedValueOnce(new Error('Firestore error'));
 
-            await expect(DataExportService.exportOrganizationData('org-1')).rejects.toThrow();
+            await expect(
+                DataExportService.exportOrganizationData({
+                    organizationId: 'org-1',
+                    planId: 'enterprise',
+                    hasApiAccess: true
+                })
+            ).rejects.toThrow();
         });
 
         it('should log errors', async () => {
             const { getDocs } = await import('firebase/firestore');
             vi.mocked(getDocs).mockRejectedValueOnce(new Error('Firestore error'));
             const { ErrorLogger } = await import('../errorLogger');
+            const onError = vi.fn();
 
             try {
-                await DataExportService.exportOrganizationData('org-1');
+                await DataExportService.exportOrganizationData({
+                    organizationId: 'org-1',
+                    planId: 'enterprise',
+                    hasApiAccess: true,
+                    onError
+                });
             } catch {
                 // Expected
             }
 
-            expect(ErrorLogger.error).toHaveBeenCalledWith(
-                expect.any(Error),
-                'DataExportService.exportOrganizationData'
-            );
+            expect(onError).toHaveBeenCalledWith(expect.any(Error));
         });
 
         it('should throw on ZIP generation error', async () => {
@@ -131,7 +201,13 @@ describe('DataExportService', () => {
                 generateAsync: vi.fn().mockRejectedValueOnce(new Error('ZIP error'))
             } as unknown as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-            await expect(DataExportService.exportOrganizationData('org-1')).rejects.toThrow();
+            await expect(
+                DataExportService.exportOrganizationData({
+                    organizationId: 'org-1',
+                    planId: 'enterprise',
+                    hasApiAccess: true
+                })
+            ).rejects.toThrow();
         });
     });
 });

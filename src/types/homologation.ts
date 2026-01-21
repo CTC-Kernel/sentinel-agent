@@ -252,6 +252,9 @@ export interface CreateHomologationDossierInput {
   validityYears?: number;
   linkedEbiosAnalysisId?: string;
   linkedSystemId?: string;
+  // Organization and user context
+  organizationId: string;
+  userId: string;
 }
 
 /**

@@ -43,6 +43,17 @@ export const translations = {
             none: 'Aucun',
             noData: 'Aucune donnée',
             noHistory: 'Aucun historique',
+            exportLimits: {
+                discoveryWatermark: 'Les rapports générés avec le plan Discovery incluent un filigrane "Version Essai". Passez au plan Professional pour des rapports sans filigrane.',
+                professionalUpgrade: 'Cette fonctionnalité nécessite le plan Professional (199€/mois).',
+                enterpriseUpgrade: 'Cette fonctionnalité nécessite le plan Enterprise (499€/mois).',
+                dataExportLimited: 'L\'export de données complètes nécessite le plan Enterprise. Le plan Discovery permet uniquement les exports partiels.',
+                upgradeRequired: 'Mise à niveau requise',
+                upgradeNow: 'Mettre à niveau maintenant',
+                watermarkPresent: 'Ce document contient un filigrane car il a été généré avec un plan limité.',
+                limitedExport: 'Export limité',
+                fullExport: 'Export complet'
+            },
             emptyChart: {
                 noData: 'Aucune donnée disponible',
                 addData: 'Commencez par ajouter des données pour visualiser ce graphique.'
@@ -971,6 +982,17 @@ export const translations = {
             na: 'N/A',
             unknown: 'Unknown',
             online: 'Online',
+            exportLimits: {
+                discoveryWatermark: 'Reports generated with Discovery plan include "Trial Version" watermark. Upgrade to Professional plan for watermark-free reports.',
+                professionalUpgrade: 'This feature requires Professional plan (199€/month).',
+                enterpriseUpgrade: 'This feature requires Enterprise plan (499€/month).',
+                dataExportLimited: 'Full data export requires Enterprise plan. Discovery plan only allows partial exports.',
+                upgradeRequired: 'Upgrade required',
+                upgradeNow: 'Upgrade now',
+                watermarkPresent: 'This document contains a watermark as it was generated with a limited plan.',
+                limitedExport: 'Limited export',
+                fullExport: 'Full export'
+            },
             offline: 'Offline',
             demoMode: 'Demo Mode',
             demoModeActive: 'Active',

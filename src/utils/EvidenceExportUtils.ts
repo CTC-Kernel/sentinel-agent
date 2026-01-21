@@ -2,6 +2,29 @@ import { format } from 'date-fns';
 import { EvidenceRequest, UserProfile, Document, Control } from '../types';
 import { ErrorLogger } from '../services/errorLogger';
 
+// Fonction de vérification des limites pour les composants
+export const checkEvidenceExportLimits = (hasFeature: (feature: 'whiteLabelReports') => boolean, planId: string) => {
+    const canExportWithoutWatermark = hasFeature('whiteLabelReports');
+    
+    if (!canExportWithoutWatermark) {
+        return {
+            canExport: true, // Permettre l'export mais avec watermark
+            requiresUpgrade: false,
+            willHaveWatermark: true,
+            message: planId === 'discovery' 
+                ? 'Les rapports générés avec le plan Discovery incluent un filigrane "Version Essai". Passez au plan Professional pour des rapports sans filigrane.'
+                : 'Mettez à niveau votre plan pour des rapports sans filigrane.'
+        };
+    }
+    
+    return {
+        canExport: true,
+        requiresUpgrade: false,
+        willHaveWatermark: false,
+        message: ''
+    };
+};
+
 interface ExportEvidenceOptions {
     auditId: string;
     requests: EvidenceRequest[];
@@ -10,6 +33,8 @@ interface ExportEvidenceOptions {
     documents: Document[];
     onSuccess: (message: string) => void;
     onError: (error: unknown) => void;
+    addWatermark?: boolean;
+    planId?: string;
 }
 
 export const exportEvidenceRequestsZip = async ({
@@ -19,7 +44,9 @@ export const exportEvidenceRequestsZip = async ({
     controls,
     documents,
     onSuccess,
-    onError
+    onError,
+    addWatermark = false,
+    planId = 'discovery'
 }: ExportEvidenceOptions) => {
     try {
         const JSZip = (await import('jszip')).default;
@@ -59,6 +86,10 @@ export const exportEvidenceRequestsZip = async ({
             folder?.file('liens_documents.txt', linksContent);
         }
 
+        // Add README with plan information
+        const readmeContent = generateReadmeContent(planId, addWatermark);
+        folder?.file('README.txt', readmeContent);
+
         const content = await zip.generateAsync({ type: 'blob' });
         const url = window.URL.createObjectURL(content);
         const link = document.createElement('a');
@@ -82,4 +113,33 @@ interface ZipFolder {
 
 function renderCSV(folder: ZipFolder | null, content: string) {
     folder?.file('rapport_demandes.csv', content);
+}
+
+function generateReadmeContent(planId: string, addWatermark: boolean): string {
+    const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
+    
+    let content = `Rapport d'Audit Sentinel GRC\n`;
+    content += `Généré le: ${currentDate}\n`;
+    content += `Plan: ${planId.toUpperCase()}\n\n`;
+    
+    if (addWatermark && planId === 'discovery') {
+        content += `=== IMPORTANT ===\n`;
+        content += `Ce rapport a été généré avec le plan Discovery.\n`;
+        content += `Les rapports Discovery incluent un filigrane "Version Essai".\n`;
+        content += `Pour des rapports professionnels sans filigrane, passez au plan Professional.\n`;
+        content += `URL: https://sentinel-grc.fr/pricing\n\n`;
+    }
+    
+    content += `=== Structure du ZIP ===\n`;
+    content += `- rapport_demandes.csv: Export CSV des demandes de preuves\n`;
+    content += `- liens_documents.txt: Liens vers les documents associés\n`;
+    content += `- README.txt: Ce fichier d'information\n\n`;
+    
+    content += `=== À propos de Sentinel GRC ===\n`;
+    content += `Sentinel GRC est une plateforme de Gouvernance, Risques et Conformité\n`;
+    content += `conçue pour les organisations cherchant à obtenir et maintenir\n`;
+    content += `leur certification ISO 27001.\n`;
+    content += `https://sentinel-grc.fr\n`;
+    
+    return content;
 }

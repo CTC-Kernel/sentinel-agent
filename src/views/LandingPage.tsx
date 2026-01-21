@@ -13,7 +13,9 @@ const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: LucideIc
         <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
         <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 group-hover:bg-brand-50 dark:group-hover:bg-brand-500/20 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 mb-6 ring-1 ring-slate-200 dark:ring-white/10 group-hover:ring-brand-500/20 dark:group-hover:ring-brand-500/20">
-            <Icon className="h-8 w-8" aria-hidden="true" />
+            <span className="inline-flex" inert>
+                <Icon className="h-8 w-8" />
+            </span>
         </div>
         <h3 className="text-xl font-bold text-slate-900 dark:text-slate-200 mb-3 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors font-mono tracking-tight">{title}</h3>
         <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{description}</p>

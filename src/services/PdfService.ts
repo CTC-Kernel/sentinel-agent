@@ -44,6 +44,26 @@ export class PdfService {
     private static readonly SECTION_SPACING = 15;
 
     /**
+     * Determine if watermark should be applied based on plan
+     */
+    static shouldApplyWatermark(planId: string, hasWhiteLabelReports: boolean): boolean {
+        // Apply watermark for Discovery plan or when whiteLabelReports feature is not available
+        return planId === 'discovery' || !hasWhiteLabelReports;
+    }
+
+    /**
+     * Get watermark options based on plan
+     */
+    static getWatermarkOptions(planId: string, hasWhiteLabelReports: boolean): { watermark: boolean; watermarkText?: string } {
+        const shouldWatermark = this.shouldApplyWatermark(planId, hasWhiteLabelReports);
+        
+        return {
+            watermark: shouldWatermark,
+            watermarkText: shouldWatermark && planId === 'discovery' ? 'Version Essai - Sentinel GRC' : undefined
+        };
+    }
+
+    /**
      * Initialize a new PDF document with standard settings
      */
     private static createDoc(orientation: 'portrait' | 'landscape' = 'portrait'): jsPDF {
@@ -57,11 +77,12 @@ export class PdfService {
     }
 
     /**
-     * Add a "Confidential" watermark to the current page
+     * Add a watermark to the current page
      */
-    private static addWatermark(doc: jsPDF) {
+    private static addWatermark(doc: jsPDF, watermarkText?: string) {
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
+        const text = watermarkText || 'CONFIDENTIEL';
 
         doc.saveGraphicsState();
         doc.setTextColor(240, 240, 240); // Very light gray
@@ -69,7 +90,7 @@ export class PdfService {
         doc.setFont('helvetica', 'bold');
 
         // Rotate text
-        doc.text('CONFIDENTIEL', pageWidth / 2, pageHeight / 2, {
+        doc.text(text, pageWidth / 2, pageHeight / 2, {
             align: 'center',
             angle: 45,
             renderingMode: 'fill'

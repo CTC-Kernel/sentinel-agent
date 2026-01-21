@@ -15,6 +15,7 @@ vi.mock('firebase/firestore', () => ({
 
 vi.mock('../../firebase', () => ({
     db: {},
+    functions: {},
 }));
 
 // Mock Firebase Functions
