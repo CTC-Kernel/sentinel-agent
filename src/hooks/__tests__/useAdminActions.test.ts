@@ -77,7 +77,7 @@ describe('useAdminActions', () => {
             const mockCallable = vi.fn().mockResolvedValue({
                 data: { isSuperAdmin: true }
             });
-            mockHttpsCallable.mockReturnValue(mockCallable);
+            mockHttpsCallable.mockClear().mockReturnValue(mockCallable);
 
             const { result } = renderHook(() => useAdminActions());
 
@@ -88,6 +88,7 @@ describe('useAdminActions', () => {
 
             expect(isSuperAdmin!).toBe(true);
             expect(mockHttpsCallable).toHaveBeenCalledWith(expect.anything(), 'verifySuperAdmin');
+            expect(mockCallable).toHaveBeenCalled();
         });
 
         it('returns false when user is not super admin', async () => {
@@ -153,12 +154,13 @@ describe('useAdminActions', () => {
 
         it('calls switch organization function', async () => {
             const mockCallable = vi.fn().mockResolvedValue({});
-            mockHttpsCallable.mockReturnValue(mockCallable);
-            mockGetIdToken.mockResolvedValue('new-token');
+            mockHttpsCallable.mockClear().mockReturnValue(mockCallable);
+            mockGetIdToken.mockClear().mockResolvedValue('new-token');
 
             const originalLocation = window.location;
+            const mockHref = { href: '' };
             Object.defineProperty(window, 'location', {
-                value: { href: '' },
+                value: mockHref,
                 writable: true,
                 configurable: true
             });
@@ -177,12 +179,13 @@ describe('useAdminActions', () => {
 
         it('refreshes ID token after switch', async () => {
             const mockCallable = vi.fn().mockResolvedValue({});
-            mockHttpsCallable.mockReturnValue(mockCallable);
-            mockGetIdToken.mockResolvedValue('new-token');
+            mockHttpsCallable.mockClear().mockReturnValue(mockCallable);
+            mockGetIdToken.mockClear().mockResolvedValue('new-token');
 
             const originalLocation = window.location;
+            const mockHref = { href: '' };
             Object.defineProperty(window, 'location', {
-                value: { href: '' },
+                value: mockHref,
                 writable: true,
                 configurable: true
             });
@@ -200,12 +203,13 @@ describe('useAdminActions', () => {
 
         it('shows success toast on successful switch', async () => {
             const mockCallable = vi.fn().mockResolvedValue({});
-            mockHttpsCallable.mockReturnValue(mockCallable);
-            mockGetIdToken.mockResolvedValue('new-token');
+            mockHttpsCallable.mockClear().mockReturnValue(mockCallable);
+            mockGetIdToken.mockClear().mockResolvedValue('new-token');
 
             const originalLocation = window.location;
+            const mockHref = { href: '' };
             Object.defineProperty(window, 'location', {
-                value: { href: '' },
+                value: mockHref,
                 writable: true,
                 configurable: true
             });
@@ -252,12 +256,13 @@ describe('useAdminActions', () => {
 
         it('redirects to root on success', async () => {
             const mockCallable = vi.fn().mockResolvedValue({});
-            mockHttpsCallable.mockReturnValue(mockCallable);
-            mockGetIdToken.mockResolvedValue('token');
+            mockHttpsCallable.mockClear().mockReturnValue(mockCallable);
+            mockGetIdToken.mockClear().mockResolvedValue('token');
 
             const originalLocation = window.location;
+            const mockHref = { href: '' };
             Object.defineProperty(window, 'location', {
-                value: { href: '' },
+                value: mockHref,
                 writable: true,
                 configurable: true
             });
