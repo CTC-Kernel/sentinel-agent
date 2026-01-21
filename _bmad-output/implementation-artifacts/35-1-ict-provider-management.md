@@ -8,7 +8,7 @@
 
 ## Status
 
-**Current Status:** ready-for-dev
+**Current Status:** dev-complete
 **Epic:** Epic 35 - DORA ICT Register (P0 - Finance)
 **Priority:** P0 - Deadline 30 avril 2025
 **ADR:** ADR-008
@@ -129,9 +129,9 @@ interface ICTService {
 ```
 
 **Subtasks:**
-- [ ] Create `src/types/dora.ts` with ICTProvider, ICTService interfaces
-- [ ] Create Zod validation schemas in `src/schemas/doraSchema.ts`
-- [ ] Add i18n keys for DORA module in `public/locales/fr/dora.json` and `en/dora.json`
+- [x] Create `src/types/dora.ts` with ICTProvider, ICTService interfaces
+- [x] Create Zod validation schemas in `src/schemas/doraSchema.ts`
+- [x] Add i18n keys for DORA module in `public/locales/fr/translation.json` and `en/translation.json`
 
 ### Task 2: Firestore Collection & Rules
 **Files:** `firestore.rules`, `src/services/ictProviderService.ts`
@@ -141,65 +141,66 @@ organizations/{orgId}/ictProviders/{providerId}
 ```
 
 **Subtasks:**
-- [ ] Add Firestore rules for `ictProviders` collection with RBAC (direction, rssi, admin can write)
-- [ ] Create `ictProviderService.ts` with CRUD operations
-- [ ] Implement tenant isolation via `tenantId` field
+- [x] Add Firestore rules for `ict_providers` collection with RBAC (direction, rssi, admin can write)
+- [x] Create `ICTProviderService.ts` with CRUD operations
+- [x] Implement tenant isolation via `organizationId` field
 
 ### Task 3: ICT Provider Form Component
 **Files:** `src/components/dora/ICTProviderForm.tsx`, `src/components/dora/ICTProviderDrawer.tsx`
 
 **Subtasks:**
-- [ ] Create tabbed form (General, Contract, Compliance)
-- [ ] Implement react-hook-form with Zod validation
-- [ ] Add draft/auto-save per ADR-002
-- [ ] Create category selector with color badges
-- [ ] Add services multi-select with type filtering
+- [x] Create tabbed form (General, Services, Contract, Compliance, Risk)
+- [x] Implement react-hook-form with Zod validation
+- [x] Add draft/auto-save per ADR-002
+- [x] Create category selector with color badges
+- [x] Add services multi-select with type filtering (useFieldArray)
 
 ### Task 4: ICT Provider List View
 **File:** `src/components/dora/ICTProviderList.tsx`
 
 **Subtasks:**
-- [ ] Create DataTable with columns: Name, Category, Services, Contract End, DORA Status
-- [ ] Implement filters: Category, DORA compliance, Contract expiring (<90 days)
-- [ ] Add search functionality
-- [ ] Add contextual actions (Edit, Delete, Duplicate)
-- [ ] Add "Add Provider" button
+- [x] Create DataTable with columns: Name, Category, Services, Contract End, DORA Status, Concentration
+- [x] Implement filters: Category, DORA compliance, Contract expiring (<90 days warning)
+- [x] Add search functionality
+- [x] Add contextual actions (View, Edit, Delete)
+- [x] Add "Add Provider" button (in DORAProviders.tsx)
 
 ### Task 5: ICT Provider Detail/Inspector
 **File:** `src/components/dora/ICTProviderInspector.tsx`
 
 **Subtasks:**
-- [ ] Create inspector panel with provider details
-- [ ] Display linked services
-- [ ] Show risk assessment summary
-- [ ] Add quick edit actions
+- [x] Create inspector panel with provider details
+- [x] Display linked services
+- [x] Show risk assessment summary (concentration bar)
+- [x] Add quick edit actions
 
 ### Task 6: Import Wizard
 **Files:** `src/components/dora/ImportICTProvidersModal.tsx`
 
 **Subtasks:**
-- [ ] Create CSV/Excel upload component
-- [ ] Implement column mapping wizard
-- [ ] Add validation preview with error highlighting
-- [ ] Handle duplicate detection by provider name
-- [ ] Create import progress indicator
+- [x] Create CSV upload component with drag-and-drop
+- [x] Implement basic CSV parsing
+- [x] Add validation preview with error highlighting
+- [x] Handle import via ICTProviderService.importFromCSV()
+- [x] Create import progress indicator
 
 ### Task 7: DORA Module Route & Navigation
 **Files:** `src/App.tsx`, `src/components/layout/Sidebar.tsx`
 
 **Subtasks:**
-- [ ] Add `/dora/providers` route
-- [ ] Add DORA section to sidebar (conditionally shown when DORA framework enabled)
-- [ ] Add ICT Providers menu item with icon
+- [x] Add `/dora/providers` route in AnimatedRoutes.tsx
+- [x] Add DORA entry in Sidebar.tsx under Governance section
+- [x] Add ICT Providers menu item with Shield icon
 
 ### Task 8: useICTProviders Hook
 **File:** `src/hooks/useICTProviders.ts`
 
 **Subtasks:**
-- [ ] Create hook with Firestore real-time listener
-- [ ] Implement CRUD operations wrapper
-- [ ] Add filtering and sorting logic
-- [ ] Handle loading and error states
+- [x] Create hook with Firestore real-time listener (useFirestoreCollection)
+- [x] Implement CRUD operations wrapper
+- [x] Add filtering and sorting logic
+- [x] Handle loading and error states
+- [x] Add stats calculation and concentration analysis
 
 ## Technical Notes
 

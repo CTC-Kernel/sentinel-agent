@@ -10,6 +10,8 @@ const admin = require("firebase-admin");
 
 // Import existing scheduled functions from subdirectories
 const { dailyScoreSnapshot } = require('./dailyScoreSnapshot');
+const { weeklyDORARiskAlerts, checkDORARisks } = require('./doraRiskAlerts');
+const { dailyContractExpirationCheck, weeklyContractExpirationDigest, checkContractExpirations } = require('./doraContractAlerts');
 
 // Audit Triggers
 const { generateAuditTrigger } = require('../services/auditTriggers');
@@ -154,6 +156,15 @@ exports.exportAuditLogs = onCall({
 
 // Re-export daily score snapshot
 exports.dailyScoreSnapshot = dailyScoreSnapshot;
+
+// DORA Risk Alerts (Story 35-2)
+exports.weeklyDORARiskAlerts = weeklyDORARiskAlerts;
+exports.checkDORARisks = checkDORARisks;
+
+// DORA Contract Expiration Alerts (Story 35-4)
+exports.dailyContractExpirationCheck = dailyContractExpirationCheck;
+exports.weeklyContractExpirationDigest = weeklyContractExpirationDigest;
+exports.checkContractExpirations = checkContractExpirations;
 
 // --- AUDIT TRAIL TRIGGERS ---
 exports.auditRisks = generateAuditTrigger('risks/{docId}', 'threat');
