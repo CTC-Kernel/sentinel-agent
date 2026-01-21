@@ -636,7 +636,7 @@ describe('HomologationService', () => {
         2: {
           status: 'in_progress',
           data: {
-            riskSources: [
+            selectedRiskSources: [
               { id: '1', name: 'Cybercriminals', type: 'malicious' },
               { id: '2', name: 'Insider threat', type: 'malicious' }
             ]

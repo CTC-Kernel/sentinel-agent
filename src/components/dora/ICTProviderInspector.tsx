@@ -36,7 +36,8 @@ interface ICTProviderInspectorProps {
 export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
     provider,
     onEdit,
-    onClose: _onClose
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onClose
 }) => {
     const { t } = useTranslation();
 
