@@ -31,14 +31,14 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: '/icons/icon-192.webp',
+            src: '/icons/icon-192.png',
             sizes: '192x192',
-            type: 'image/webp'
+            type: 'image/png'
           },
           {
-            src: '/icons/icon-512.webp',
+            src: '/icons/icon-512.png',
             sizes: '512x512',
-            type: 'image/webp'
+            type: 'image/png'
           }
         ]
       },
