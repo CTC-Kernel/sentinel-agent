@@ -525,4 +525,7 @@ export const ITOTEdgeCollection: React.FC<ITOTEdgeCollectionProps> = React.memo(
 
 ITOTEdgeCollection.displayName = 'ITOTEdgeCollection';
 
+// Re-export utilities for tests
+export { getConnectionType, isCrossSegmentConnection } from './voxelConstants';
+
 export default ITOTEdge;

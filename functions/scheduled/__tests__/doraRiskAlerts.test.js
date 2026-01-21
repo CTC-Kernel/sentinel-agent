@@ -1,6 +1,9 @@
 /**
  * DORA Risk Alerts Cloud Function Tests
  * Story 35-2: ICT Risk Assessment
+ *
+ * Note: These tests are excluded from vitest and should be run separately
+ * using firebase-functions-test in the functions directory.
  */
 
 const {

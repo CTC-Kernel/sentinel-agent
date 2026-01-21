@@ -241,7 +241,7 @@ describe('QUESTIONNAIRE_TEMPLATES', () => {
   });
 
   it('has ISO 27001 template', () => {
-    const iso = QUESTIONNAIRE_TEMPLATES.find(t => t.metadata.framework === 'ISO 27001');
+    const iso = QUESTIONNAIRE_TEMPLATES.find(t => t.metadata.framework === 'ISO 27001:2022');
     expect(iso).toBeDefined();
     expect(iso?.metadata.title).toContain('ISO');
   });
@@ -258,8 +258,8 @@ describe('QUESTIONNAIRE_TEMPLATES', () => {
     expect(hds?.metadata.title).toContain('HDS');
   });
 
-  it('has General template', () => {
-    const general = QUESTIONNAIRE_TEMPLATES.find(t => t.metadata.framework === 'General');
+  it('has Best Practices template', () => {
+    const general = QUESTIONNAIRE_TEMPLATES.find(t => t.metadata.framework === 'Best Practices');
     expect(general).toBeDefined();
   });
 
@@ -300,7 +300,7 @@ describe('QUESTIONNAIRE_TEMPLATES', () => {
 
 describe('getTemplateById', () => {
   it('returns template for valid id', () => {
-    const result = getTemplateById('dora-ict-assessment');
+    const result = getTemplateById('tpl_dora_v1');
     expect(result).toBeDefined();
     expect(result?.metadata.framework).toBe('DORA');
   });
@@ -316,7 +316,7 @@ describe('getTemplatesForServiceType', () => {
     const result = getTemplatesForServiceType('SaaS');
     expect(result.length).toBeGreaterThan(0);
     result.forEach(template => {
-      expect(template.metadata.applicableServiceTypes).toContain('SaaS');
+      expect(template.metadata.applicableTo).toContain('SaaS');
     });
   });
 
@@ -324,36 +324,41 @@ describe('getTemplatesForServiceType', () => {
     const result = getTemplatesForServiceType('Cloud');
     expect(result.length).toBeGreaterThan(0);
     result.forEach(template => {
-      expect(template.metadata.applicableServiceTypes).toContain('Cloud');
+      expect(template.metadata.applicableTo).toContain('Cloud');
     });
   });
 
-  it('returns empty array for unknown service type', () => {
+  it('returns templates for unknown service type', () => {
     const result = getTemplatesForServiceType('UnknownType');
-    // General template should always be included
-    expect(result.some(t => t.metadata.framework === 'General')).toBe(true);
+    // Best Practices template should always be included
+    expect(result.some(t => t.metadata.framework === 'Best Practices')).toBe(true);
   });
 });
 
 describe('getFrameworkColor', () => {
   it('returns blue for DORA', () => {
-    expect(getFrameworkColor('DORA')).toContain('blue');
+    const result = getFrameworkColor('DORA');
+    expect(result.text).toContain('blue');
   });
 
   it('returns green for ISO 27001', () => {
-    expect(getFrameworkColor('ISO 27001')).toContain('green');
+    const result = getFrameworkColor('ISO 27001:2022');
+    expect(result.text).toContain('green');
   });
 
   it('returns purple for NIS2', () => {
-    expect(getFrameworkColor('NIS2')).toContain('purple');
+    const result = getFrameworkColor('NIS2');
+    expect(result.text).toContain('purple');
   });
 
-  it('returns rose for HDS', () => {
-    expect(getFrameworkColor('HDS')).toContain('rose');
+  it('returns red for HDS', () => {
+    const result = getFrameworkColor('HDS');
+    expect(result.text).toContain('red');
   });
 
   it('returns slate for unknown frameworks', () => {
-    expect(getFrameworkColor('Unknown')).toContain('slate');
+    const result = getFrameworkColor('Unknown');
+    expect(result.text).toContain('slate');
   });
 });
 

@@ -3,6 +3,7 @@ import { DocumentData } from 'firebase/firestore';
 export const MockDataService = {
     getCollection: (collectionName: string): (DocumentData & { id: string })[] => {
         const now = new Date();
+        const oneHour = 3600000;
         const oneDay = 86400000;
         const oneWeek = 604800000;
 
