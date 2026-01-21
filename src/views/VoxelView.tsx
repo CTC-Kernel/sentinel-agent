@@ -617,7 +617,7 @@ export const VoxelView: React.FC = () => {
       variants={staggerContainerVariants}
       initial="initial"
       animate="visible"
-      className="flex flex-col flex-1 space-y-8 h-full"
+      className="flex flex-col space-y-6 min-h-screen pb-8"
     >
       <MasterpieceBackground />
       <SEO
@@ -693,7 +693,7 @@ export const VoxelView: React.FC = () => {
         ref={containerRef}
         className={`${isFullscreen
           ? 'fixed !inset-0 !z-[99999] bg-slate-900'
-          : 'relative flex-1 h-screen w-full rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto'
+          : 'relative w-full min-h-[70vh] h-[70vh] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto'
           }`}
       >
         {isFullscreen && (

@@ -48,11 +48,23 @@ export const useSupplierLogic = () => {
             const docRef = await addDoc(collection(db, 'suppliers'), {
                 ...sanitizedData,
                 organizationId: user.organizationId,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
+                createdAt: serverTimestamp() as unknown as string,
+                updatedAt: serverTimestamp() as unknown as string,
+                createdBy: user.uid,
+                updatedBy: user.uid
             });
-            await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
-            addToast(t('suppliers.toastCreated'), "success");
+
+            // Auto-sync to ICT Provider if marked as ICT
+            if (sanitizedData.isICTProvider) {
+                try {
+                    await SupplierService.syncToICTProvider(docRef.id);
+                } catch (syncError) {
+                    ErrorLogger.warn(`Failed to sync new supplier ${docRef.id} to ICT Provider: ${syncError}`, 'useSupplierLogic.addSupplier');
+                }
+            }
+
+            await logAction(user, 'CREATE', 'Supplier', `Ajout fournisseur: ${sanitizedData.name}`);
+            addToast(t('suppliers.toastAdded', { name: sanitizedData.name || 'Nouveau fournisseur' }), "success");
             return docRef.id;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useSupplierLogic.addSupplier');
@@ -65,10 +77,22 @@ export const useSupplierLogic = () => {
             const sanitizedData = sanitizeData(data);
             await updateDoc(doc(db, 'suppliers', id), {
                 ...sanitizedData,
-                updatedAt: serverTimestamp()
+                updatedAt: serverTimestamp() as unknown as string,
+                updatedBy: user?.uid
             });
-            await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
-            addToast(t('suppliers.toastUpdated'), "success");
+
+            // Auto-sync to ICT Provider if ICT status changed or if already ICT
+            const shouldSync = sanitizedData.isICTProvider !== undefined || sanitizedData.isICTProvider === true;
+            if (shouldSync) {
+                try {
+                    await SupplierService.syncToICTProvider(id);
+                } catch (syncError) {
+                    ErrorLogger.warn(`Failed to sync supplier ${id} to ICT Provider: ${syncError}`, 'useSupplierLogic.updateSupplier');
+                }
+            }
+
+            await logAction(user, 'UPDATE', 'Supplier', `Mise à jour fournisseur ID: ${id}`);
+            addToast(t('suppliers.toastUpdated', { name: sanitizedData.name || 'Fournisseur' }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useSupplierLogic.updateSupplier');
             throw error;
@@ -113,6 +137,27 @@ export const useSupplierLogic = () => {
             throw error;
         }
     }, [user, addToast, t]);
+
+    // Auto-sync effect for ICT providers
+    useEffect(() => {
+        if (!user?.organizationId || loading || demoMode) return;
+
+        const syncICTSuppliers = async () => {
+            try {
+                // Sync all ICT suppliers in background
+                const ictSuppliers = suppliers.filter(s => s.isICTProvider);
+                if (ictSuppliers.length > 0 && user.organizationId) {
+                    await SupplierService.syncAllICTSuppliers(user.organizationId);
+                }
+            } catch (error) {
+                ErrorLogger.warn(`Background ICT sync failed: ${error}`, 'useSupplierLogic.autoSync');
+            }
+        };
+
+        // Delay sync to avoid blocking initial load
+        const timer = setTimeout(syncICTSuppliers, 2000);
+        return () => clearTimeout(timer);
+    }, [suppliers, user?.organizationId, loading, demoMode]);
 
     const checkDependencies = useCallback(async (id: string) => {
         if (!user?.organizationId) return { controls: 0, risks: 0, details: '' };

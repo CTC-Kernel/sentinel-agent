@@ -169,3 +169,74 @@ export interface QuestionnaireResponse {
     startedAt: string;
     updatedAt: string;
 }
+
+/**
+ * Audit Workshop Phase Status
+ */
+export type WorkshopPhaseStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
+
+/**
+ * Audit Workshop Phase
+ */
+export interface AuditWorkshopPhase {
+    id: string;
+    name: string;
+    description: string;
+    status: WorkshopPhaseStatus;
+    order: number;
+    tasks: AuditWorkshopTask[];
+    dueDate?: string;
+    completedAt?: string;
+    responsible?: string;
+    deliverables?: string[];
+}
+
+/**
+ * Audit Workshop Task
+ */
+export interface AuditWorkshopTask {
+    id: string;
+    title: string;
+    description: string;
+    isCompleted: boolean;
+    isRequired: boolean;
+    helpText?: string;
+    linkedDocumentIds?: string[];
+    linkedControlIds?: string[];
+}
+
+/**
+ * Audit Method Template
+ */
+export interface AuditMethodTemplate {
+    id: string;
+    name: string;
+    type: 'Interne' | 'Externe' | 'Certification';
+    framework?: string; // ISO 27001, SOC 2, etc.
+    description: string;
+    phases: Omit<AuditWorkshopPhase, 'status' | 'completedAt'>[];
+    estimatedDuration: string; // e.g., "2-4 semaines"
+    bestPractices: string[];
+    deliverables: string[];
+    isDefault?: boolean;
+}
+
+/**
+ * Audit Workshop (instance of a method template for a specific audit)
+ */
+export interface AuditWorkshop {
+    id: string;
+    auditId: string;
+    organizationId: string;
+    templateId: string;
+    name: string;
+    type: 'Interne' | 'Externe' | 'Certification';
+    status: 'not_started' | 'in_progress' | 'completed' | 'cancelled';
+    phases: AuditWorkshopPhase[];
+    progress: number; // 0-100
+    startedAt?: string;
+    completedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+    notes?: string;
+}

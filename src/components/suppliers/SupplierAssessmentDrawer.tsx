@@ -1,167 +1,387 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { Drawer } from '../ui/Drawer';
 import { CustomSelect } from '../ui/CustomSelect';
+import { DatePicker } from '../ui/DatePicker';
 import { useSupplierDependencies } from '../../hooks/suppliers/useSupplierDependencies';
 import { Supplier } from '../../types';
-import { AlertCircle, FileText, Play } from '../ui/Icons';
+import { AlertCircle, FileText, Play, Clock, Calendar, CheckCircle, ListTodo } from '../ui/Icons';
 import { toast } from '@/lib/toast';
-import { SupplierService } from '../../services/SupplierService';
+import { VendorAssessmentService } from '../../services/VendorAssessmentService';
 import { ErrorLogger } from '../../services/errorLogger';
+import {
+  ReviewCycle,
+  TemplatePreview,
+  getReviewCycleLabel,
+} from '../../types/vendorAssessment';
+import {
+  QUESTIONNAIRE_TEMPLATES,
+  getTemplateById,
+  getFrameworkColor,
+} from '../../data/questionnaireTemplates';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
-    isOpen: boolean;
-    onClose: () => void;
-    supplier: Supplier;
-    onAssessmentCreated: (assessmentId: string) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  supplier: Supplier;
+  onAssessmentCreated: (assessmentId: string) => void;
 }
 
-export const SupplierAssessmentDrawer: React.FC<Props> = ({ isOpen, onClose, supplier, onAssessmentCreated }) => {
-    const { user } = useStore();
-    const { templates, addTemplate, loading } = useSupplierDependencies({ fetchTemplates: true });
+// Review cycle options
+const REVIEW_CYCLE_OPTIONS: { value: ReviewCycle | ''; label: string }[] = [
+  { value: '', label: 'No scheduled review' },
+  { value: 'quarterly', label: 'Quarterly (3 months)' },
+  { value: 'bi-annual', label: 'Bi-annual (6 months)' },
+  { value: 'annual', label: 'Annual (12 months)' },
+  { value: 'custom', label: 'Custom period' },
+];
 
-    const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+export const SupplierAssessmentDrawer: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  supplier,
+  onAssessmentCreated,
+}) => {
+  const { t } = useTranslation();
+  const { user } = useStore();
+  const { templates, addTemplate, loading } = useSupplierDependencies({ fetchTemplates: true });
 
-    // Seed "Standard DORA" template if no templates exist
-    useEffect(() => {
-        const seedTemplates = async () => {
-            if (!loading && templates.length === 0 && user?.organizationId) {
-                // Auto-seed a default DORA template for convenience
-                await addTemplate({
-                    organizationId: user.organizationId,
-                    title: "Questionnaire de Conformité DORA (Standard)",
-                    description: "Évaluation standard simplifiée des exigences DORA pour les prestataires TIC.",
-                    sections: [
-                        {
-                            id: "sec_gov",
-                            title: "Gouvernance & Risques",
-                            description: "Organisation de la sécurité et gestion des risques.",
-                            weight: 30,
-                            questions: [
-                                { id: "q1", text: "Avez-vous une politique de sécurité de l'information (PSSI) documentée et approuvée ?", type: "yes_no", required: true, weight: 1 },
-                                { id: "q2", text: "Réalisez-vous une analyse de risques au moins annuellement ?", type: "yes_no", required: true, weight: 1 },
-                                { id: "q3", text: "Avez-vous désigné un responsable de la sécurité (CISO/RSSI) ?", type: "yes_no", required: true, weight: 1 }
-                            ]
-                        },
-                        {
-                            id: "sec_inc",
-                            title: "Gestion des Incidents",
-                            description: "Capacité de détection et réponse aux incidents.",
-                            weight: 30,
-                            questions: [
-                                { id: "q4", text: "Disposez-vous d'un processus formel de gestion des incidents majeurs ?", type: "yes_no", required: true, weight: 1 },
-                                { id: "q5", text: "Notifiez-vous vos clients en cas d'incident impactant leurs données sous 24h ?", type: "yes_no", required: true, weight: 1 }
-                            ]
-                        },
-                        {
-                            id: "sec_res",
-                            title: "Résilience & Continuité",
-                            description: "Exigences de continuité d'activité (PCA/PRA).",
-                            weight: 40,
-                            questions: [
-                                { id: "q6", text: "Avez-vous un Plan de Continuité d'Activité (PCA) testé régulièrement ?", type: "yes_no", required: true, weight: 1 },
-                                { id: "q7", text: "Vos sauvegardes sont-elles chiffrées et testées ?", type: "yes_no", required: true, weight: 1 }
-                            ]
-                        }
-                    ],
-                    isDefault: true,
-                    createdBy: user.uid
-                });
-            }
-        };
-        if (isOpen) {
-            seedTemplates();
-        }
-    }, [isOpen, loading, templates.length, user, addTemplate]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [dueDate, setDueDate] = useState<string | undefined>();
+  const [reviewCycle, setReviewCycle] = useState<ReviewCycle | ''>('');
+  const [customReviewDays, setCustomReviewDays] = useState<number>(180);
+  const [respondentEmail, setRespondentEmail] = useState<string>(supplier.contactEmail || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleCreate = async () => {
-        if (!selectedTemplateId || !user?.organizationId) return;
+  // Get template preview
+  const selectedTemplatePreview = useMemo<TemplatePreview | null>(() => {
+    if (!selectedTemplateId) return null;
+    const template = getTemplateById(selectedTemplateId);
+    if (template) {
+      return {
+        metadata: template.metadata,
+        sections: template.sections.map((s) => ({
+          id: s.id,
+          title: s.title,
+          description: s.description,
+          questionCount: s.questions.length,
+          weight: s.weight,
+        })),
+      };
+    }
+    // Fallback to Firestore templates
+    const fsTemplate = templates.find((t) => t.id === selectedTemplateId);
+    if (fsTemplate) {
+      return {
+        metadata: {
+          id: fsTemplate.id,
+          title: fsTemplate.title,
+          description: fsTemplate.description,
+          framework: 'Custom',
+          version: '1.0',
+          sectionCount: fsTemplate.sections.length,
+          questionCount: fsTemplate.sections.reduce((sum, s) => sum + s.questions.length, 0),
+          estimatedDuration: `${Math.ceil(
+            fsTemplate.sections.reduce((sum, s) => sum + s.questions.length, 0) * 2
+          )} min`,
+          applicableServiceTypes: [],
+        },
+        sections: fsTemplate.sections.map((s) => ({
+          id: s.id,
+          title: s.title,
+          description: s.description,
+          questionCount: s.questions.length,
+          weight: s.weight,
+        })),
+      };
+    }
+    return null;
+  }, [selectedTemplateId, templates]);
 
-        setIsSubmitting(true);
+  // Combined template options (predefined + Firestore)
+  const templateOptions = useMemo(() => {
+    const predefinedOptions = QUESTIONNAIRE_TEMPLATES.map((t) => ({
+      value: t.metadata.id,
+      label: `${t.metadata.title} (${t.metadata.framework})`,
+    }));
+
+    const firestoreOptions = templates
+      .filter((t) => !QUESTIONNAIRE_TEMPLATES.some((p) => p.metadata.id === t.id))
+      .map((t) => ({
+        value: t.id,
+        label: t.title,
+      }));
+
+    return [
+      { value: '', label: t('vendorAssessment.selectTemplate', 'Select a template...') },
+      ...predefinedOptions,
+      ...firestoreOptions,
+    ];
+  }, [templates, t]);
+
+  // Seed default templates on first load
+  useEffect(() => {
+    const seedTemplates = async () => {
+      if (!loading && user?.organizationId) {
         try {
-            const template = templates.find(t => t.id === selectedTemplateId);
-            if (!template) throw new Error("Modèle introuvable");
-
-            const assessmentId = await SupplierService.createAssessment(
-                user.organizationId,
-                supplier.id,
-                supplier.name,
-                template
-            );
-
-            toast.success("Évaluation créée avec succès");
-            onAssessmentCreated(assessmentId);
-            onClose();
+          await VendorAssessmentService.seedDefaultTemplates(user.organizationId, user.uid);
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'SupplierAssessmentDrawer.handleCreate');
-        } finally {
-            setIsSubmitting(false);
+          // Non-blocking - templates can be used without seeding
+          ErrorLogger.warn('Failed to seed templates', 'SupplierAssessmentDrawer');
         }
+      }
     };
+    if (isOpen) {
+      seedTemplates();
+    }
+  }, [isOpen, loading, user]);
 
-    return (
-        <Drawer
-            isOpen={isOpen}
-            onClose={onClose}
-            title={
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 shadow-sm border border-slate-200 dark:border-white/5">
-                        <FileText className="w-5 h-5" />
-                    </div>
-                    <span>Nouvelle Évaluation Fournisseur</span>
-                </div>
-            }
-            subtitle={`Évaluer ${supplier.name}`}
-            width="max-w-xl"
-        >
-            <div className="flex flex-col h-full pt-6 px-1">
-                <div className="space-y-6 flex-1">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3">
-                        <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                        <div className="text-sm text-blue-800 dark:text-blue-300">
-                            <p className="font-semibold mb-1">Conformité DORA</p>
-                            Cette évaluation permet de calculer le score de sécurité du fournisseur et de s'assurer de sa conformité aux exigences réglementaires.
-                        </div>
-                    </div>
+  // Reset form when drawer opens
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedTemplateId('');
+      setDueDate(undefined);
+      setReviewCycle('');
+      setRespondentEmail(supplier.contactEmail || '');
+    }
+  }, [isOpen, supplier.contactEmail]);
 
-                    <div className="space-y-3">
-                        {loading ? (
-                            <div className="h-14 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
-                        ) : (
-                            <CustomSelect
-                                label="Modèle de questionnaire"
-                                options={[
-                                    { value: "", label: "Sélectionner un modèle..." },
-                                    ...templates.map(t => ({ value: t.id, label: t.title }))
-                                ]}
-                                value={selectedTemplateId}
-                                onChange={(val) => setSelectedTemplateId(val as string)}
-                                placeholder="Sélectionner un modèle..."
-                            />
-                        )}
-                        {templates.length === 0 && !loading && (
-                            <p className="text-xs text-slate-500">Aucun modèle disponible. Un modèle par défaut va être généré...</p>
-                        )}
-                    </div>
-                </div>
+  const handleCreate = async () => {
+    if (!selectedTemplateId || !user?.organizationId) return;
 
-                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
-                    <Button variant="ghost" onClick={onClose}>Annuler</Button>
-                    <Button
-                        onClick={handleCreate}
-                        disabled={!selectedTemplateId || isSubmitting}
-                        isLoading={isSubmitting}
-                        className="gap-2 bg-brand-600 hover:bg-brand-700 text-white"
-                    >
-                        {!isSubmitting && <Play className="w-4 h-4" />}
-                        Lancer l'évaluation
-                    </Button>
-                </div>
+    setIsSubmitting(true);
+    try {
+      // Calculate expiration date (same as due date or 30 days after due date)
+      const expirationDate = dueDate
+        ? new Date(new Date(dueDate).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        : undefined;
+
+      const assessmentId = await VendorAssessmentService.createAssessment(user.organizationId, {
+        supplierId: supplier.id,
+        supplierName: supplier.name,
+        templateId: selectedTemplateId,
+        framework: selectedTemplatePreview?.metadata.framework,
+        dueDate,
+        expirationDate,
+        reviewCycle: reviewCycle || undefined,
+        customReviewPeriodDays: reviewCycle === 'custom' ? customReviewDays : undefined,
+        respondentEmail: respondentEmail || undefined,
+      });
+
+      toast.success(t('vendorAssessment.assessmentCreated', 'Assessment created successfully'));
+      onAssessmentCreated(assessmentId);
+      onClose();
+    } catch (error) {
+      ErrorLogger.handleErrorWithToast(error, 'SupplierAssessmentDrawer.handleCreate');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Drawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 shadow-sm border border-slate-200 dark:border-white/5">
+            <FileText className="w-5 h-5" />
+          </div>
+          <span>{t('vendorAssessment.newAssessment', 'New Vendor Assessment')}</span>
+        </div>
+      }
+      subtitle={t('vendorAssessment.evaluating', 'Evaluating {{name}}', { name: supplier.name })}
+      width="max-w-2xl"
+    >
+      <div className="flex flex-col h-full pt-6 px-1">
+        <div className="space-y-6 flex-1 overflow-y-auto">
+          {/* Info Banner */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-3">
+            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-800 dark:text-blue-300">
+              <p className="font-semibold mb-1">
+                {t('vendorAssessment.thirdPartyRisk', 'Third-Party Risk Assessment')}
+              </p>
+              {t(
+                'vendorAssessment.assessmentDescription',
+                'This assessment calculates the vendor security score and ensures compliance with regulatory requirements (DORA, ISO 27001, NIS2, HDS).'
+              )}
             </div>
-        </Drawer>
-    );
+          </div>
+
+          {/* Template Selection */}
+          <div className="space-y-3">
+            {loading ? (
+              <div className="h-14 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+            ) : (
+              <CustomSelect
+                label={t('vendorAssessment.questionnaireTemplate', 'Questionnaire Template')}
+                options={templateOptions}
+                value={selectedTemplateId}
+                onChange={(val) => setSelectedTemplateId(val as string)}
+                placeholder={t('vendorAssessment.selectTemplate', 'Select a template...')}
+              />
+            )}
+          </div>
+
+          {/* Template Preview */}
+          {selectedTemplatePreview && (
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
+              {/* Preview Header */}
+              <div className="p-4 border-b border-slate-200 dark:border-white/10">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-semibold text-slate-900 dark:text-white">
+                      {selectedTemplatePreview.metadata.title}
+                    </h4>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                      {selectedTemplatePreview.metadata.description}
+                    </p>
+                  </div>
+                  <span
+                    className={`px-2.5 py-1 text-xs font-medium rounded-lg ${getFrameworkColor(
+                      selectedTemplatePreview.metadata.framework
+                    )}`}
+                  >
+                    {selectedTemplatePreview.metadata.framework}
+                  </span>
+                </div>
+
+                {/* Stats */}
+                <div className="flex items-center gap-4 mt-3 text-sm text-slate-600 dark:text-slate-400">
+                  <div className="flex items-center gap-1.5">
+                    <ListTodo className="w-4 h-4" />
+                    <span>
+                      {selectedTemplatePreview.metadata.sectionCount}{' '}
+                      {t('vendorAssessment.sections', 'sections')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>
+                      {selectedTemplatePreview.metadata.questionCount}{' '}
+                      {t('vendorAssessment.questions', 'questions')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4" />
+                    <span>{selectedTemplatePreview.metadata.estimatedDuration}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section List */}
+              <div className="p-4 space-y-2">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+                  {t('vendorAssessment.sectionsPreview', 'Sections')}
+                </p>
+                {selectedTemplatePreview.sections.map((section, idx) => (
+                  <div
+                    key={section.id}
+                    className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-white/5"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 flex items-center justify-center text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full">
+                        {idx + 1}
+                      </span>
+                      <span className="text-sm text-slate-700 dark:text-slate-300">
+                        {section.title}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <span>
+                        {section.questionCount} {t('vendorAssessment.q', 'Q')}
+                      </span>
+                      <span className="text-slate-300 dark:text-slate-600">|</span>
+                      <span>
+                        {section.weight}% {t('vendorAssessment.weight', 'weight')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Due Date */}
+          <DatePicker
+            label={t('vendorAssessment.dueDate', 'Due Date')}
+            value={dueDate}
+            onChange={setDueDate}
+            placeholder={t('vendorAssessment.selectDueDate', 'Select due date...')}
+          />
+
+          {/* Review Cycle */}
+          <CustomSelect
+            label={t('vendorAssessment.reviewCycle', 'Review Cycle')}
+            options={REVIEW_CYCLE_OPTIONS.map((opt) => ({
+              value: opt.value,
+              label: opt.value
+                ? getReviewCycleLabel(opt.value as ReviewCycle)
+                : t('vendorAssessment.noScheduledReview', 'No scheduled review'),
+            }))}
+            value={reviewCycle}
+            onChange={(val) => setReviewCycle(val as ReviewCycle | '')}
+          />
+
+          {/* Custom Review Days */}
+          {reviewCycle === 'custom' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                {t('vendorAssessment.customPeriod', 'Custom Period (days)')}
+              </label>
+              <input
+                type="number"
+                min="30"
+                max="730"
+                value={customReviewDays}
+                onChange={(e) => setCustomReviewDays(parseInt(e.target.value) || 180)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+              />
+            </div>
+          )}
+
+          {/* Respondent Email */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              {t('vendorAssessment.respondentEmail', 'Respondent Email (optional)')}
+            </label>
+            <input
+              type="email"
+              value={respondentEmail}
+              onChange={(e) => setRespondentEmail(e.target.value)}
+              placeholder={t('vendorAssessment.enterEmail', 'vendor@example.com')}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+            />
+            <p className="text-xs text-slate-500">
+              {t(
+                'vendorAssessment.emailHint',
+                'The vendor contact will receive the questionnaire to complete.'
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+          <Button variant="ghost" onClick={onClose}>
+            {t('common.cancel', 'Cancel')}
+          </Button>
+          <Button
+            onClick={handleCreate}
+            disabled={!selectedTemplateId || isSubmitting}
+            isLoading={isSubmitting}
+            className="gap-2 bg-brand-600 hover:bg-brand-700 text-white"
+          >
+            {!isSubmitting && <Play className="w-4 h-4" />}
+            {t('vendorAssessment.startAssessment', 'Start Assessment')}
+          </Button>
+        </div>
+      </div>
+    </Drawer>
+  );
 };
 
 export default SupplierAssessmentDrawer;

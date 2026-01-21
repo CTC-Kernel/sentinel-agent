@@ -11,7 +11,7 @@ import { Button } from '../components/ui/button';
 import { SearchInput } from '../components/ui/SearchInput';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Drawer } from '../components/ui/Drawer';
-import { Plus, Upload, Download, Globe, AlertTriangle, Shield, FileText } from '../components/ui/Icons';
+import { Plus, Upload, Download, Globe, AlertTriangle, Shield, FileText, ArrowLeft } from '../components/ui/Icons';
 
 import { ICTProviderList } from '../components/dora/ICTProviderList';
 import { ICTProviderDrawer } from '../components/dora/ICTProviderDrawer';
@@ -22,13 +22,10 @@ import { ExportHistoryPanel } from '../components/dora/ExportHistoryPanel';
 
 import { useICTProviders } from '../hooks/useICTProviders';
 import { ICTProvider, ICTCriticality, ICTProviderFilters } from '../types/dora';
-import { ICTProviderService } from '../services/ICTProviderService';
-import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 
 export const DORAProviders: React.FC = () => {
     const { t } = useTranslation();
-    const { organization } = useStore();
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -96,13 +93,23 @@ export const DORAProviders: React.FC = () => {
             <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                {t('dora.title')}
-                            </h1>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1">
-                                {t('dora.subtitle')}
-                            </p>
+                        <div className="flex items-center gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => window.open('/#/suppliers', '_blank')}
+                                className="flex items-center"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                Retour Fournisseurs
+                            </Button>
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                                    {t('dora.title')}
+                                </h1>
+                                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                                    {t('dora.subtitle')}
+                                </p>
+                            </div>
                         </div>
                         <div className="flex items-center gap-3">
                             <Button

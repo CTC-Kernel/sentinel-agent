@@ -6,6 +6,7 @@ import { ContinuityStrategies } from './ContinuityStrategies';
 import { ContinuityPRA } from './pra/ContinuityPRA';
 import { ContinuityDrills } from './ContinuityDrills';
 import { ContinuityCrisis } from './ContinuityCrisis';
+import { ContinuityMethodsWorkshops } from './ContinuityMethodsWorkshops';
 import { EmptyState } from '../ui/EmptyState';
 import { AlertOctagon, Download, Plus, Upload } from '../ui/Icons';
 import { BusinessProcess, BcpDrill, Asset, UserProfile } from '../../types';
@@ -15,7 +16,7 @@ import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { useTranslation } from 'react-i18next';
 
 interface ContinuityContentProps {
-    activeTab: 'overview' | 'strategies' | 'pra' | 'bia' | 'drills' | 'crisis' | 'tlpt';
+    activeTab: 'overview' | 'strategies' | 'pra' | 'bia' | 'drills' | 'crisis' | 'tlpt' | 'methods';
     loading: boolean;
     viewMode: 'grid' | 'list' | 'matrix' | 'kanban';
     filteredProcesses: BusinessProcess[];
@@ -189,6 +190,14 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                         onUpdate={_onUpdateTlpt}
                         onDelete={_onDeleteTlpt}
                         canEdit={canCreate}
+                    />
+                )}
+
+                {activeTab === 'methods' && (
+                    <ContinuityMethodsWorkshops
+                        onStartWorkshop={(templateId) => {
+                            console.log('Starting continuity workshop:', templateId);
+                        }}
                     />
                 )}
             </motion.div>

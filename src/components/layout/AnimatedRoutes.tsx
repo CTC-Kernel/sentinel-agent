@@ -56,6 +56,9 @@ const RiskContext = React.lazy(() => import('../../views/RiskContext').then(modu
 // Control Effectiveness Module (ISO 27002)
 const ControlEffectiveness = React.lazy(() => import('../../views/ControlEffectiveness').then(module => ({ default: module.ControlEffectivenessView })));
 
+// Vendor Concentration Module (Story 37-4)
+const VendorConcentration = React.lazy(() => import('../../views/VendorConcentration').then(module => ({ default: module.VendorConcentration })));
+
 // New Professional 404 Page
 import { NotFound } from '../../views/NotFound';
 
@@ -106,6 +109,7 @@ export const AnimatedRoutes: React.FC = () => {
                     </RoleGuardComponent>
                 } />
                 <Route path="/suppliers" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Suppliers /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/vendor-concentration" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><VendorConcentration /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/dora/providers" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><DORAProviders /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Privacy /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Continuity /></AnimatedPage></RoleGuardComponent>} />

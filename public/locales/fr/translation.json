@@ -1437,6 +1437,7 @@
     "continuity": "Continuité",
     "assets": "Actifs",
     "suppliers": "Fournisseurs",
+    "concentration": "Concentration",
     "documents": "Documents",
     "team": "Équipe",
     "superAdmin": "Super Admin",
@@ -1756,6 +1757,7 @@
     },
     "dashboard": "Tableau de Bord",
     "findings": "Constats",
+    "methods": "Méthodes & Ateliers",
     "exports": "Exports",
     "exportCSV": "Export CSV",
     "exportCalendar": "Export Calendrier",
@@ -1893,7 +1895,19 @@
       "pra": "Plans de Reprise (PRA)",
       "drills": "Exercices",
       "crisis": "Gestion de Crise",
-      "tlpt": "TLPT"
+      "tlpt": "TLPT",
+      "methods": "Méthodes & Ateliers"
+    },
+    "methods": {
+      "title": "Méthodes & Ateliers de Continuité",
+      "description": "Sélectionnez un module pour accéder aux méthodes et ateliers guidés.",
+      "selectModule": "Sélectionnez un module",
+      "selectModuleDescription": "Choisissez un module ci-dessus pour accéder aux méthodes et démarrer un atelier guidé.",
+      "startWorkshop": "Démarrer l'atelier",
+      "progress": "Progression",
+      "deliverables": "Livrables",
+      "finalDeliverables": "Livrables Finaux",
+      "bestPractices": "Bonnes Pratiques"
     },
     "keywords": "Continuité d'activité, PCA, PRA, BIA, Gestion de crise, Résilience",
     "placeholders": {
@@ -2322,7 +2336,55 @@
     "objective": "Objectif",
     "tabs": {
       "overview": "Vue d'ensemble",
-      "planning": "Planification"
+      "planning": "Planification",
+      "maturity": "Maturité",
+      "certification": "Certification"
+    },
+    "maturity": {
+      "title": "Maturité SMSI",
+      "subtitle": "Évaluation de la maturité ISO 27001",
+      "phases": "Scores par Phase PDCA",
+      "downloadReport": "Rapport",
+      "legend": "Échelle de maturité",
+      "levels": {
+        "initial": "Initial",
+        "managed": "Géré",
+        "defined": "Défini",
+        "quantitatively": "Maîtrisé",
+        "optimizing": "Optimisé"
+      }
+    },
+    "certification": {
+      "title": "État de préparation à la certification",
+      "ready": "Prêt",
+      "notReady": "Actions requises",
+      "checklist": "Checklist de certification",
+      "blockers": "Points bloquants",
+      "warnings": "Points d'attention",
+      "strengths": "Points forts"
+    },
+    "recommendations": {
+      "title": "Recommandations d'amélioration",
+      "priority": {
+        "critical": "Critique",
+        "high": "Élevée",
+        "medium": "Moyenne",
+        "low": "Faible"
+      },
+      "category": {
+        "governance": "Gouvernance",
+        "risk": "Risques",
+        "operations": "Opérations",
+        "improvement": "Amélioration",
+        "documentation": "Documentation"
+      }
+    },
+    "dimensions": {
+      "title": "Dimensions de la sécurité",
+      "governance": "Gouvernance",
+      "riskManagement": "Gestion des risques",
+      "assetProtection": "Protection des actifs",
+      "continuousImprovement": "Amélioration continue"
     }
   },
   "riskContext": {
@@ -2967,5 +3029,455 @@
     "production": "Production",
     "operations": "Opérations",
     "monitoring": "Surveillance"
+  },
+  "voxelOT": {
+    "segments": {
+      "IT": "Zone IT",
+      "OT": "Zone OT",
+      "DMZ": "Zone DMZ",
+      "ITDesc": "Réseau Corporate",
+      "OTDesc": "Contrôle Industriel",
+      "DMZDesc": "Zone Démilitarisée"
+    },
+    "filter": {
+      "title": "Filtrer par segment",
+      "showAll": "Afficher tout",
+      "hideAll": "Masquer tout",
+      "crossSegment": "Connexions inter-segments",
+      "presets": {
+        "all": "Tous les segments",
+        "allDesc": "Afficher IT, OT et DMZ",
+        "otOnly": "OT uniquement",
+        "otOnlyDesc": "Focus sur les actifs industriels",
+        "itOnly": "IT uniquement",
+        "itOnlyDesc": "Focus sur le réseau corporate",
+        "boundary": "Frontière IT-OT",
+        "boundaryDesc": "Connexions inter-segments",
+        "dmz": "Focus DMZ",
+        "dmzDesc": "Zone démilitarisée"
+      }
+    },
+    "connections": {
+      "itToOt": "IT → OT",
+      "otToIt": "OT → IT",
+      "itToDmz": "IT → DMZ",
+      "dmzToOt": "DMZ → OT",
+      "sameSegment": "Interne",
+      "dependency": "Dépendance",
+      "mitigation": "Atténuation",
+      "assignment": "Affectation",
+      "impact": "Impact"
+    },
+    "criticality": {
+      "safety": "Sécurité",
+      "production": "Production",
+      "operations": "Opérations",
+      "monitoring": "Surveillance",
+      "label": "Criticité"
+    },
+    "nodes": {
+      "otAsset": "Actif OT",
+      "itAsset": "Actif IT",
+      "dmzAsset": "Actif DMZ",
+      "assets": "actifs",
+      "asset": "actif"
+    },
+    "zones": {
+      "showBoundaries": "Afficher les limites",
+      "showLabels": "Afficher les étiquettes",
+      "showGrid": "Afficher la grille"
+    }
+  },
+  "otVulnerability": {
+    "panelTitle": "Vulnérabilité OT",
+    "affectedAssets": "Actifs OT",
+    "adjustedScore": "Score Ajusté",
+    "remediations": "Options",
+    "safetySystems": "Systèmes de Sécurité Impactés",
+    "noPatch": "Aucun Patch Disponible",
+    "tabAssets": "Actifs",
+    "tabScore": "Score",
+    "tabRemediation": "Remédiation",
+    "noAssets": "Aucun actif OT affecté",
+    "adjustmentFactors": "Facteurs d'Ajustement",
+    "noAdjustments": "Aucun ajustement appliqué",
+    "criticalityDistribution": "Répartition par Criticité",
+    "noRemediations": "Aucune suggestion de remédiation disponible",
+    "viewAdvisory": "Voir l'Avis Constructeur",
+    "lastUpdated": "Dernière mise à jour",
+    "category": {
+      "immediate": "Immédiat",
+      "scheduled": "Planifié",
+      "long-term": "Long terme"
+    },
+    "exposure": {
+      "title": "Exposition OT",
+      "totalAffected": "Actifs Affectés",
+      "criticalOnSafety": "Critique sur Sécurité",
+      "noPatchAvailable": "Sans Patch",
+      "viewAll": "Voir Tout",
+      "topAffected": "Actifs les Plus Touchés",
+      "bySegment": "Par Segment",
+      "trend7d": "Tendance 7 jours",
+      "noData": "Aucune donnée d'exposition OT",
+      "noDataDesc": "Les vulnérabilités corrélées aux actifs OT apparaîtront ici"
+    },
+    "riskFactors": {
+      "criticality": "Criticité OT",
+      "network": "Connectivité Réseau",
+      "patching": "Disponibilité Patch",
+      "safety": "Système de Sécurité",
+      "age": "Ancienneté de l'Actif",
+      "exposure": "Exposition"
+    },
+    "remediation": {
+      "patch": "Appliquer le Patch",
+      "compensating": "Contrôles Compensatoires",
+      "upgrade": "Mise à Niveau Firmware",
+      "isolate": "Isolation Réseau",
+      "monitor": "Surveillance Renforcée",
+      "accept": "Acceptation du Risque",
+      "maintenanceRequired": "Fenêtre de Maintenance Requise",
+      "manualIntervention": "Intervention Manuelle Requise",
+      "estimatedDowntime": "Temps d'Arrêt Estimé",
+      "prerequisites": "Prérequis",
+      "risks": "Risques"
+    },
+    "otImpact": "Impact OT",
+    "assetsLinked": "actifs liés",
+    "autoMatch": "Correspondance Auto",
+    "addAsset": "Ajouter un Actif",
+    "searchAssets": "Rechercher des actifs OT...",
+    "noAssetsFound": "Aucun actif OT trouvé",
+    "noOTAssets": "Aucun actif OT disponible",
+    "noOTImpact": "Aucun actif OT lié",
+    "useAutoMatch": "Utilisez la correspondance auto ou ajoutez des actifs manuellement",
+    "addManually": "Ajoutez des actifs OT manuellement pour calculer le score ajusté",
+    "overlay": {
+      "vulnerabilities": "vulnérabilités",
+      "vulnerability": "vulnérabilité",
+      "highestSeverity": "Sévérité Maximale",
+      "adjustedScore": "Score OT-Ajusté",
+      "noPatch": "Aucun Patch Disponible",
+      "clickDetails": "Cliquez pour voir les détails"
+    }
+  },
+  "vendorPortal": {
+    "loading": "Chargement du portail...",
+    "accessError": "Erreur d'Accès",
+    "securePortal": "Portail Fournisseur Sécurisé",
+    "verifyIdentity": "Vérifiez votre identité pour continuer",
+    "requestedBy": "Demandé par",
+    "welcomeTitle": "Bienvenue, {{name}}",
+    "welcomeMessage": "Pour accéder au questionnaire de sécurité, nous devons vérifier votre adresse email.",
+    "verificationSentTo": "Le code de vérification sera envoyé à :",
+    "sendCode": "Envoyer le Code de Vérification",
+    "sending": "Envoi en cours...",
+    "sendCodeError": "Échec de l'envoi du code de vérification. Veuillez réessayer.",
+    "enterCode": "Entrez le Code de Vérification",
+    "codeSentTo": "Un code à 6 chiffres a été envoyé à {{email}}",
+    "enterFullCode": "Veuillez entrer le code complet à 6 chiffres.",
+    "verify": "Vérifier & Continuer",
+    "verifying": "Vérification...",
+    "invalidCode": "Code invalide ou expiré. Veuillez réessayer.",
+    "verifyError": "La vérification a échoué. Veuillez réessayer.",
+    "resendCode": "Vous n'avez pas reçu le code ? Renvoyer",
+    "securityNote": "L'accès à ce portail est restreint et surveillé pour des raisons de sécurité.",
+    "questionnaire": "Questionnaire de Sécurité",
+    "forVendor": "pour {{vendor}}",
+    "section": "Section {{current}} sur {{total}}",
+    "progress": "Progression",
+    "complete": "terminé",
+    "questionsAnswered": "questions répondues",
+    "readOnlyMode": "Ce questionnaire a été soumis et est en lecture seule.",
+    "allChangesAutoSaved": "Toutes les modifications sont enregistrées automatiquement",
+    "saving": "Enregistrement...",
+    "saved": "Enregistré",
+    "saveError": "Erreur d'enregistrement",
+    "pendingSaves": "{{count}} en attente",
+    "previousSection": "Précédent",
+    "nextSection": "Suivant",
+    "submitQuestionnaire": "Soumettre le Questionnaire",
+    "optional": "Optionnel",
+    "required": "Obligatoire",
+    "typeAnswer": "Saisissez votre réponse...",
+    "enterNumber": "Entrez un nombre...",
+    "selectOption": "Sélectionnez une option...",
+    "uploadFile": "Télécharger un fichier...",
+    "submitTitle": "Soumettre le Questionnaire",
+    "completionSummary": "Résumé de Complétion",
+    "incompleteSections": "Certaines questions obligatoires sont incomplètes",
+    "incompleteWarning": "Vous pouvez quand même soumettre, mais les réponses manquantes peuvent affecter l'évaluation.",
+    "submitConfirmation": "Une fois soumis, vous ne pourrez plus modifier vos réponses. L'organisation demandeuse sera notifiée de votre soumission.",
+    "whatHappensNext": "Que se passe-t-il ensuite :",
+    "nextStep1": "Vos réponses seront verrouillées et soumises",
+    "nextStep2": "Vous recevrez un email de confirmation",
+    "nextStep3": "L'organisation examinera votre évaluation",
+    "submitting": "Soumission...",
+    "confirmSubmit": "Soumettre le Questionnaire",
+    "submitError": "Échec de la soumission du questionnaire. Veuillez réessayer.",
+    "submittedTitle": "Questionnaire Soumis",
+    "submittedMessage": "Merci d'avoir complété le questionnaire de sécurité. L'organisation demandeuse a été notifiée.",
+    "submittedDate": "Soumis le {{date}}",
+    "canViewResponses": "Vous pouvez consulter vos réponses soumises ci-dessous.",
+    "expiredTitle": "Lien Expiré",
+    "expiredMessage": "Ce lien d'accès au portail a expiré. Veuillez contacter l'organisation demandeuse pour obtenir un nouveau lien.",
+    "invalidTitle": "Lien Invalide",
+    "invalidMessage": "Ce lien d'accès au portail est invalide ou a été révoqué.",
+    "revokedTitle": "Accès Révoqué",
+    "revokedMessage": "L'accès à ce portail a été révoqué. Veuillez contacter l'organisation demandeuse."
+  },
+  "vendorScoring": {
+    "overallScore": "Score de Sécurité Global",
+    "sectionBreakdown": "Détail par Section",
+    "questionsAnswered": "questions répondues",
+    "criticalIssues": "problèmes critiques",
+    "weight": "Poids",
+    "critical": "Critique",
+    "afterMitigation": "après atténuation",
+    "trend": "Tendance",
+    "vsAverage": "vs Moy",
+    "calculatedAt": "Calculé",
+    "stable": "Stable",
+    "mitigatingFactors": "Facteurs d'Atténuation",
+    "risk": {
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé",
+      "critical": "Critique"
+    },
+    "criticality": {
+      "low": "Criticité Faible",
+      "medium": "Criticité Moyenne",
+      "high": "Criticité Élevée"
+    },
+    "averageScore": "Score Moyen",
+    "vendorsAssessed": "Fournisseurs Évalués",
+    "highRisk": "Risque Élevé/Critique",
+    "lowRisk": "Risque Faible",
+    "allRisks": "Tous les Risques",
+    "sortBy": "Trier par",
+    "sort": {
+      "score": "Score",
+      "name": "Nom",
+      "trend": "Tendance"
+    },
+    "assessments": "évaluations",
+    "noVendors": "Aucun fournisseur ne correspond aux filtres",
+    "riskLevel": "Niveau de Risque",
+    "configTitle": "Configuration du Scoring",
+    "configDescription": "Ajustez les poids des sections et marquez les questions critiques",
+    "normalize": "Normaliser à 100%",
+    "weightWarning": "Les poids des sections doivent totaliser 100%. Actuel : {{total}}%",
+    "sectionWeights": "Poids des Sections",
+    "questions": "questions",
+    "total": "Total",
+    "riskThresholds": "Seuils de Risque",
+    "saveConfig": "Enregistrer la Configuration"
+  },
+  "vendorConcentration": {
+    "title": "Concentration Fournisseurs",
+    "subtitle": "Analysez les risques de concentration et identifiez les points de défaillance uniques",
+    "level": {
+      "low": "Faible",
+      "moderate": "Modéré",
+      "high": "Élevé"
+    },
+    "metrics": {
+      "totalVendors": "Fournisseurs Total",
+      "active": "actifs",
+      "spofCount": "Points de Défaillance",
+      "critical": "critiques",
+      "highDependency": "Dépendances Élevées",
+      "vendorsWithHighDep": "fournisseurs à haute dépendance",
+      "concentrationLevel": "Niveau de Concentration"
+    },
+    "tabs": {
+      "overview": "Vue d'Ensemble",
+      "matrix": "Matrice",
+      "recommendations": "Recommandations"
+    },
+    "categoryDistribution": {
+      "title": "Répartition par Catégorie"
+    },
+    "chart": {
+      "vendors": "Fournisseurs",
+      "vendor": "fournisseur(s)",
+      "share": "Part",
+      "totalVendors": "fournisseurs",
+      "categories": "Catégories",
+      "services": "services",
+      "critical": "critiques",
+      "spofWarning": "Cette catégorie présente un point de défaillance unique"
+    },
+    "spofAlerts": {
+      "title": "Alertes SPOF",
+      "alertCount": "alertes"
+    },
+    "spof": {
+      "total": "Total SPOF",
+      "criticalCount": "Critiques",
+      "highImpact": "Impact Élevé",
+      "singleVendor": "Fournisseur unique : {{vendor}}",
+      "services": "services",
+      "critical": "critiques",
+      "affectedServices": "Services Impactés",
+      "downtimeRisk": "Risque d'Indisponibilité",
+      "recommendation": "Recommandation",
+      "viewRecommendations": "Voir les Recommandations",
+      "viewAll": "Voir Toutes les Alertes",
+      "noSPOFs": "Aucun Point de Défaillance",
+      "noSPOFsDescription": "Votre portefeuille fournisseurs est bien diversifié",
+      "impact": {
+        "critical": "Impact Critique",
+        "high": "Impact Élevé",
+        "medium": "Impact Moyen",
+        "low": "Impact Faible"
+      },
+      "urgency": {
+        "immediate": "Action Immédiate",
+        "shortTerm": "Court Terme",
+        "longTerm": "Long Terme"
+      }
+    },
+    "trends": {
+      "title": "Tendances",
+      "improving": "En amélioration",
+      "stable": "Stable",
+      "worsening": "En dégradation",
+      "changeBy": "{{value}}% de variation",
+      "noChange": "Aucun changement significatif",
+      "change": "variation"
+    },
+    "dependencyMatrix": {
+      "title": "Matrice de Dépendances",
+      "description": "Visualisez les dépendances entre fournisseurs et services"
+    },
+    "matrix": {
+      "searchPlaceholder": "Rechercher un fournisseur...",
+      "criticalOnly": "Critiques seulement",
+      "allLevels": "Tous les niveaux",
+      "levelCritical": "Critique",
+      "levelHigh": "Élevé",
+      "levelMedium": "Moyen",
+      "levelLow": "Faible",
+      "vendors": "fournisseurs",
+      "services": "services",
+      "dependencies": "dépendances",
+      "critical": "critiques",
+      "legend": "Légende",
+      "criticalService": "Service critique",
+      "noData": "Aucune donnée disponible",
+      "vendor": "Fournisseur"
+    },
+    "recommendations": {
+      "title": "Recommandations de Diversification",
+      "subtitle": "{{count}} recommandations pour réduire le risque de {{reduction}}%",
+      "highPriority": "priorité haute",
+      "available": "recommandations disponibles",
+      "potentialReduction": "Réduction potentielle du risque de {{value}}%",
+      "totalReduction": "réduction totale",
+      "byPriority": "Par priorité",
+      "priority": {
+        "high": "Haute",
+        "medium": "Moyenne",
+        "low": "Basse"
+      },
+      "effort": {
+        "low": "Effort Faible",
+        "medium": "Effort Moyen",
+        "high": "Effort Élevé"
+      },
+      "riskReduction": "réduction risque",
+      "currentState": "État Actuel",
+      "targetState": "État Cible",
+      "rationale": "Justification",
+      "actions": "Actions",
+      "noRecommendations": "Aucune Recommandation",
+      "noRecommendationsDescription": "Votre portefeuille fournisseurs est bien équilibré"
+    }
+  },
+  "vendorAssessment": {
+    "assessments": "Évaluations",
+    "assessmentsDescription": "Historique des évaluations de conformité (DORA, ISO 27001, NIS2, HDS).",
+    "newAssessment": "Nouvelle Évaluation",
+    "evaluating": "Évaluation de {{name}}",
+    "thirdPartyRisk": "Évaluation des Risques Tiers",
+    "assessmentDescription": "Cette évaluation calcule le score de sécurité du fournisseur et vérifie sa conformité aux exigences réglementaires (DORA, ISO 27001, NIS2, HDS).",
+    "questionnaireTemplate": "Modèle de Questionnaire",
+    "selectTemplate": "Sélectionner un modèle...",
+    "sections": "sections",
+    "sectionsPreview": "Sections",
+    "questions": "questions",
+    "q": "Q",
+    "weight": "poids",
+    "dueDate": "Date d'Échéance",
+    "selectDueDate": "Sélectionner une date...",
+    "reviewCycle": "Cycle de Revue",
+    "noScheduledReview": "Pas de revue planifiée",
+    "customPeriod": "Période Personnalisée (jours)",
+    "respondentEmail": "Email du Répondant (optionnel)",
+    "enterEmail": "fournisseur@exemple.com",
+    "emailHint": "Le contact fournisseur recevra le questionnaire à compléter.",
+    "startAssessment": "Lancer l'Évaluation",
+    "assessmentCreated": "Évaluation créée avec succès",
+    "status": {
+      "draft": "Brouillon",
+      "sent": "Envoyé",
+      "inProgress": "En Cours",
+      "submitted": "Soumis",
+      "reviewed": "Revu",
+      "archived": "Archivé",
+      "expired": "Expiré"
+    },
+    "allStatuses": "Tous",
+    "noAssessments": "Aucune évaluation",
+    "noAssessmentsWithFilter": "Aucune évaluation {{status}}",
+    "startFirstAssessment": "Lancez une première évaluation fournisseur.",
+    "tryDifferentFilter": "Essayez un filtre différent.",
+    "frameworkAssessment": "Évaluation {{framework}}",
+    "vendorAssessment": "Évaluation Fournisseur",
+    "completion": "Complétion",
+    "score": "Score",
+    "viewDetails": "Voir les Détails",
+    "overdue": "En Retard",
+    "daysLeft": "{{count}} jours restants",
+    "reviewIn": "Revue dans {{count}} jours",
+    "nextReview": "Prochaine revue: {{date}}",
+    "templates": {
+      "dora": {
+        "title": "Évaluation DORA",
+        "description": "Évaluation de conformité DORA pour les prestataires TIC selon le Règlement (UE) 2022/2554"
+      },
+      "iso27001": {
+        "title": "Évaluation ISO 27001",
+        "description": "Évaluation du système de management de la sécurité de l'information selon ISO/IEC 27001:2022"
+      },
+      "nis2": {
+        "title": "Évaluation NIS2",
+        "description": "Évaluation de conformité à la Directive NIS2 pour les entités essentielles et importantes"
+      },
+      "hds": {
+        "title": "Évaluation HDS",
+        "description": "Évaluation de certification Hébergeur de Données de Santé (HDS) pour les prestataires hébergeant des données de santé"
+      },
+      "general": {
+        "title": "Évaluation Sécurité Générale",
+        "description": "Évaluation générale des pratiques de sécurité et de conformité du fournisseur"
+      }
+    },
+    "reviewCycles": {
+      "quarterly": "Trimestriel (3 mois)",
+      "biAnnual": "Semestriel (6 mois)",
+      "annual": "Annuel (12 mois)",
+      "custom": "Personnalisé"
+    },
+    "alerts": {
+      "expirationWarning": "L'évaluation de {{supplierName}} expire dans {{days}} jours",
+      "reviewDue": "La revue de {{supplierName}} est due dans {{days}} jours",
+      "expired": "L'évaluation de {{supplierName}} a expiré",
+      "submitted": "{{supplierName}} a soumis son évaluation",
+      "reviewed": "L'évaluation de {{supplierName}} a été revue"
+    }
   }
 }

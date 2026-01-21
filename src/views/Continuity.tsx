@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { motion } from 'framer-motion';
 import {
-    Activity, ShieldCheck, Zap, FileText, AlertOctagon
+    Activity, ShieldCheck, Zap, FileText, AlertOctagon, BookOpen
 } from '../components/ui/Icons';
 import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
@@ -29,7 +29,7 @@ import { ContinuityContent } from '../components/continuity/ContinuityContent';
 import { OnboardingService } from '../services/onboardingService';
 // Form validation: useForm with required fields
 
-type ContinuityTab = 'overview' | 'strategies' | 'pra' | 'bia' | 'drills' | 'crisis' | 'tlpt';
+type ContinuityTab = 'overview' | 'strategies' | 'pra' | 'bia' | 'drills' | 'crisis' | 'tlpt' | 'methods';
 
 export const Continuity: React.FC = () => {
     const { user, t } = useStore();
@@ -234,6 +234,7 @@ export const Continuity: React.FC = () => {
         { id: 'drills', label: t('continuity.tabs.drills'), icon: Zap },
         { id: 'tlpt', label: t('continuity.tabs.tlpt'), icon: ShieldCheck },
         { id: 'crisis', label: t('continuity.tabs.crisis'), icon: FileText },
+        { id: 'methods', label: t('continuity.tabs.methods') || 'Méthodes', icon: BookOpen },
     ], [t]);
 
     const loading = loadingData;

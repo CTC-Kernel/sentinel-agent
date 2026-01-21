@@ -29,6 +29,7 @@ import {
 } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { EbiosReportService } from '../services/EbiosReportService';
+import { SMSIService } from '../services/SMSIService';
 import { SMSIStatsWidget } from '../components/smsi/SMSIStatsWidget';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,6 +39,7 @@ import { SMSIDashboard } from '../components/smsi/SMSIDashboard';
 import { SMSIMilestoneList } from '../components/smsi/SMSIMilestoneList';
 import { SMSIInspector } from '../components/smsi/SMSIInspector';
 import { MilestoneFormDrawer } from '../components/smsi/MilestoneFormDrawer';
+import { SMSIMaturityDashboard } from '../components/smsi/SMSIMaturityDashboard';
 import { Milestone, PDCAPhase, SMSIProgram } from '../types/ebios';
 import { GlassCard } from '../components/ui/GlassCard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -75,7 +77,7 @@ export const SMSIProgramView: React.FC = () => {
   const [isMilestoneDrawerOpen, setIsMilestoneDrawerOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const [milestoneLoading, setMilestoneLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'planning' | 'timeline'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'planning' | 'timeline' | 'maturity'>('overview');
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
   const [showDeleteProgramConfirm, setShowDeleteProgramConfirm] = useState(false);
   const [isDeletingProgram, setIsDeletingProgram] = useState(false);
@@ -187,6 +189,7 @@ export const SMSIProgramView: React.FC = () => {
     { id: 'overview', label: t('smsi.tabs.overview') || 'Vue d\'ensemble', icon: LayoutDashboard },
     { id: 'planning', label: t('smsi.tabs.planning') || 'Jalons', icon: List },
     { id: 'timeline', label: 'Timeline', icon: BarChart3 },
+    { id: 'maturity', label: t('smsi.tabs.maturity') || 'Maturité', icon: Shield },
   ], [t]);
 
   // Get upcoming milestones for alerts
@@ -326,7 +329,7 @@ export const SMSIProgramView: React.FC = () => {
       <ScrollableTabs
         tabs={tabs}
         activeTab={activeTab}
-        onTabChange={(id) => setActiveTab(id as 'overview' | 'planning' | 'timeline')}
+        onTabChange={(id) => setActiveTab(id as 'overview' | 'planning' | 'timeline' | 'maturity')}
       />
 
       {/* Upcoming Milestones Alert */}
@@ -392,6 +395,26 @@ export const SMSIProgramView: React.FC = () => {
               program={program}
               onSelect={(milestone) => setSelectedMilestoneId(milestone.id)}
               getPhaseProgress={getPhaseProgress}
+            />
+          </motion.div>
+        )}
+
+        {activeTab === 'maturity' && (
+          <motion.div
+            key="maturity"
+            variants={slideUpVariants}
+            initial="initial"
+            animate="visible"
+            exit="exit"
+          >
+            <SMSIMaturityDashboard
+              program={program}
+              milestones={milestones}
+              onDownloadCertificationReport={() => {
+                SMSIService.downloadCertificationReport(program, milestones, {
+                  includeRecommendations: true,
+                });
+              }}
             />
           </motion.div>
         )}

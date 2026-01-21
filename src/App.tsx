@@ -57,6 +57,7 @@ const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => 
 const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
 const ExternalAuditPortal = React.lazy(() => import('./views/portal/ExternalAuditPortal').then(module => ({ default: module.ExternalAuditPortal })));
 const ExternalAuditLayout = React.lazy(() => import('./views/layouts/ExternalAuditLayout').then(module => ({ default: module.ExternalAuditLayout })));
+const VendorPortal = React.lazy(() => import('./views/portal/VendorPortal').then(module => ({ default: module.VendorPortal })));
 const CertifierLogin = React.lazy(() => import('@/views/portal/certifier/CertifierLogin').then(module => ({ default: module.CertifierLogin })));
 const CertifierRegister = React.lazy(() => import('@/views/portal/certifier/CertifierRegister').then(module => ({ default: module.CertifierRegister })));
 const CertifierDashboard = React.lazy(() => import('@/views/portal/certifier/CertifierDashboard').then(module => ({ default: module.CertifierDashboard })));
@@ -244,6 +245,9 @@ const AppInner: React.FC = () => {
                         {/* Public Portal Routes - No AuthGuard, Token protected */}
                         <Route path="/portal" element={<ExternalAuditLayout />}>
                             <Route path="audit/:token" element={<ExternalAuditPortal />} />
+
+                            {/* Vendor Self-Service Portal Routes */}
+                            <Route path="vendor/:token" element={<VendorPortal />} />
 
                             {/* Certifier Ecosystem Routes */}
                             <Route path="login" element={<CertifierLogin />} />

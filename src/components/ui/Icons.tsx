@@ -113,6 +113,7 @@ import {
   Lock,
   Unlock,
   Key,
+  KeyRound,
   Fingerprint,
 
   // Communication
@@ -385,6 +386,7 @@ export {
   Lock,
   Unlock,
   Key,
+  KeyRound,
   Fingerprint,
 
   // Communication

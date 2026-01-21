@@ -1,0 +1,273 @@
+/**
+ * Scoring Configuration Component
+ * Allows configuring section weights and critical questions
+ * Story 37-3: Automated Vendor Scoring
+ */
+
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  TemplateScoringConfig,
+  SectionScoringConfig,
+  validateSectionWeights,
+  normalizeSectionWeights,
+  RISK_LEVEL_CONFIGS,
+} from '../../types/vendorScoring';
+import { QuestionnaireSection } from '../../types/business';
+import { Button } from '../ui/button';
+import {
+  Settings,
+  AlertTriangle,
+  CheckCircle,
+  Save,
+  RotateCcw,
+  Sliders,
+} from '../ui/Icons';
+
+interface ScoringConfigProps {
+  templateId: string;
+  sections: QuestionnaireSection[];
+  existingConfig?: TemplateScoringConfig;
+  onSave: (config: Omit<TemplateScoringConfig, 'organizationId' | 'createdAt' | 'updatedAt' | 'createdBy'>) => void;
+  onCancel: () => void;
+}
+
+interface SectionWeight {
+  sectionId: string;
+  title: string;
+  weight: number;
+  questionCount: number;
+}
+
+export const ScoringConfig: React.FC<ScoringConfigProps> = ({
+  templateId,
+  sections,
+  existingConfig,
+  onSave,
+  onCancel,
+}) => {
+  const { t } = useTranslation();
+
+  // Initialize weights from existing config or defaults
+  const [sectionWeights, setSectionWeights] = useState<SectionWeight[]>(() =>
+    sections.map((s) => ({
+      sectionId: s.id,
+      title: s.title,
+      weight: existingConfig?.sections.find((cs) => cs.sectionId === s.id)?.weight ?? s.weight,
+      questionCount: s.questions.length,
+    }))
+  );
+
+  const [criticalQuestions, setCriticalQuestions] = useState<Set<string>>(() => {
+    const set = new Set<string>();
+    existingConfig?.sections.forEach((s) => {
+      s.questions.forEach((q) => {
+        if (q.isCritical) set.add(q.questionId);
+      });
+    });
+    return set;
+  });
+
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Calculate total weight
+  const totalWeight = sectionWeights.reduce((sum, s) => sum + s.weight, 0);
+  const isValidWeight = Math.abs(totalWeight - 100) < 0.1;
+
+  // Handle weight change
+  const handleWeightChange = (sectionId: string, newWeight: number) => {
+    setSectionWeights((prev) =>
+      prev.map((s) =>
+        s.sectionId === sectionId ? { ...s, weight: Math.max(0, Math.min(100, newWeight)) } : s
+      )
+    );
+    setIsDirty(true);
+  };
+
+  // Normalize weights to 100
+  const handleNormalize = () => {
+    const normalized = normalizeSectionWeights(sectionWeights);
+    setSectionWeights((prev) =>
+      prev.map((s, idx) => ({ ...s, weight: Math.round(normalized[idx]) }))
+    );
+    setIsDirty(true);
+  };
+
+  // Reset to defaults
+  const handleReset = () => {
+    setSectionWeights(
+      sections.map((s) => ({
+        sectionId: s.id,
+        title: s.title,
+        weight: s.weight,
+        questionCount: s.questions.length,
+      }))
+    );
+    setCriticalQuestions(new Set());
+    setIsDirty(true);
+  };
+
+  // Toggle critical question
+  const toggleCritical = (questionId: string) => {
+    setCriticalQuestions((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
+    setIsDirty(true);
+  };
+
+  // Save configuration
+  const handleSave = () => {
+    const config: Omit<TemplateScoringConfig, 'organizationId' | 'createdAt' | 'updatedAt' | 'createdBy'> = {
+      templateId,
+      sections: sectionWeights.map((sw) => ({
+        sectionId: sw.sectionId,
+        weight: sw.weight,
+        questions: sections
+          .find((s) => s.id === sw.sectionId)!
+          .questions.map((q) => ({
+            questionId: q.id,
+            isCritical: criticalQuestions.has(q.id),
+          })),
+      })),
+    };
+    onSave(config);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+            <Sliders className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-900 dark:text-white">
+              {t('vendorScoring.configTitle', 'Scoring Configuration')}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {t('vendorScoring.configDescription', 'Adjust section weights and mark critical questions')}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={handleReset}>
+            <RotateCcw className="w-4 h-4 mr-1" />
+            {t('common.reset', 'Reset')}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleNormalize}>
+            {t('vendorScoring.normalize', 'Normalize to 100%')}
+          </Button>
+        </div>
+      </div>
+
+      {/* Weight validation */}
+      {!isValidWeight && (
+        <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          {t('vendorScoring.weightWarning', 'Section weights should total 100%. Current: {{total}}%', {
+            total: Math.round(totalWeight),
+          })}
+        </div>
+      )}
+
+      {/* Section weights */}
+      <div className="space-y-4">
+        <h4 className="font-medium text-slate-900 dark:text-white">
+          {t('vendorScoring.sectionWeights', 'Section Weights')}
+        </h4>
+
+        {sectionWeights.map((section) => (
+          <div
+            key={section.sectionId}
+            className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
+          >
+            <div className="flex-1">
+              <p className="font-medium text-slate-900 dark:text-white">
+                {section.title}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {section.questionCount} {t('vendorScoring.questions', 'questions')}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={section.weight}
+                onChange={(e) => handleWeightChange(section.sectionId, parseInt(e.target.value))}
+                className="w-32 accent-brand-500"
+              />
+              <div className="w-16 flex items-center">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={section.weight}
+                  onChange={(e) => handleWeightChange(section.sectionId, parseInt(e.target.value) || 0)}
+                  className="w-12 px-2 py-1 text-center text-sm border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800"
+                />
+                <span className="text-sm text-slate-500 ml-1">%</span>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Total */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
+          <span className="text-sm text-slate-500 dark:text-slate-400">
+            {t('vendorScoring.total', 'Total')}:
+          </span>
+          <span
+            className={`font-bold ${isValidWeight ? 'text-green-600' : 'text-red-600'}`}
+          >
+            {Math.round(totalWeight)}%
+          </span>
+          {isValidWeight && <CheckCircle className="w-4 h-4 text-green-500" />}
+        </div>
+      </div>
+
+      {/* Risk thresholds info */}
+      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+        <h4 className="font-medium text-slate-900 dark:text-white mb-3">
+          {t('vendorScoring.riskThresholds', 'Risk Thresholds')}
+        </h4>
+        <div className="grid grid-cols-4 gap-2">
+          {RISK_LEVEL_CONFIGS.map((config) => (
+            <div
+              key={config.level}
+              className={`p-2 rounded-lg text-center ${config.bgColor}`}
+            >
+              <p className={`font-medium text-sm ${config.color}`}>{config.level}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {config.minScore}-{config.maxScore}%
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
+        <Button variant="ghost" onClick={onCancel}>
+          {t('common.cancel', 'Cancel')}
+        </Button>
+        <Button onClick={handleSave} disabled={!isValidWeight}>
+          <Save className="w-4 h-4 mr-2" />
+          {t('vendorScoring.saveConfig', 'Save Configuration')}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default ScoringConfig;

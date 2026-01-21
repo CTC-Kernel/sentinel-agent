@@ -19,6 +19,23 @@ export type VoxelNodeStatus =
   | 'critical'
   | 'inactive';
 
+// ============================================================================
+// Network Segment Types (Story 36-3: IT/OT Voxel Mapping)
+// ============================================================================
+
+export type NetworkSegment = 'IT' | 'OT' | 'DMZ';
+
+export type OTCriticality = 'safety' | 'production' | 'operations' | 'monitoring';
+
+export interface OTNodeDetails {
+  deviceType?: string;
+  protocol?: string;
+  manufacturer?: string;
+  model?: string;
+  firmwareVersion?: string;
+  criticality?: OTCriticality;
+}
+
 export interface VoxelNode {
   id: string;
   type: VoxelNodeType;
@@ -29,6 +46,10 @@ export interface VoxelNode {
   data: Record<string, unknown>;
   connections: string[];
   anomalyIds?: string[];
+  /** Network segment: IT, OT, or DMZ (Story 36-3) */
+  networkSegment?: NetworkSegment;
+  /** OT-specific details (Story 36-3) */
+  otDetails?: OTNodeDetails;
   createdAt: Date;
   updatedAt: Date;
 }

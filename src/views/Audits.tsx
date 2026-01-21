@@ -16,11 +16,12 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
-import { Calendar as CalendarIcon, List, LayoutDashboard, ClipboardCheck } from '../components/ui/Icons';
+import { Calendar as CalendarIcon, List, LayoutDashboard, ClipboardCheck, BookOpen } from '../components/ui/Icons';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
 import { AuditCalendar } from '../components/audits/AuditCalendar';
 import { FindingsList } from '../components/audits/FindingsList';
+import { AuditMethodsWorkshops } from '../components/audits/AuditMethodsWorkshops';
 
 import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
@@ -40,7 +41,7 @@ export const Audits: React.FC = () => {
     }, []);
 
     // Local UI State (Hoisted to top for useAudits)
-    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'calendar' | 'findings'>('audits-active-tab', 'overview');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'calendar' | 'findings' | 'methods'>('audits-active-tab', 'overview');
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
@@ -90,6 +91,7 @@ export const Audits: React.FC = () => {
         { id: 'list', label: t('audits.list'), icon: List },
         { id: 'calendar', label: t('audits.calendar'), icon: CalendarIcon },
         { id: 'findings', label: t('audits.findings'), icon: ClipboardCheck },
+        { id: 'methods', label: t('audits.methods') || 'Méthodes', icon: BookOpen },
     ];
 
     // Filter Logic
@@ -208,7 +210,7 @@ export const Audits: React.FC = () => {
                 <ScrollableTabs
                     tabs={tabs}
                     activeTab={activeTab}
-                    onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings')}
+                    onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings' | 'methods')}
                 />
             </div>
 
@@ -300,6 +302,18 @@ export const Audits: React.FC = () => {
                         <motion.div variants={slideUpVariants} initial="initial" animate="visible">
                             <FindingsList audits={filteredAudits} loading={loading} onOpenAudit={handleOpen} />
                         </motion.div>
+                    </motion.div>
+                )
+            }
+
+            {
+                activeTab === 'methods' && (
+                    <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                        <AuditMethodsWorkshops
+                            onStartWorkshop={(templateId) => {
+                                console.log('Starting workshop:', templateId);
+                            }}
+                        />
                     </motion.div>
                 )
             }

@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon, RefreshCcw, Target, BarChart3
+  Scale, Shield, Printer, LucideIcon, RefreshCcw, Target, BarChart3, PieChart
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -92,6 +92,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       items: [
         { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server, resource: 'Asset' },
         { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building, resource: 'Supplier' },
+        { key: 'concentration', name: t('sidebar.concentration'), to: '/vendor-concentration', icon: PieChart, resource: 'Supplier' },
         { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase, resource: 'Document' },
       ]
     },

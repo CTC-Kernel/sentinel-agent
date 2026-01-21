@@ -1,7 +1,8 @@
 import { db } from '../firebase';
 import { FunctionsService } from './FunctionsService';
+import { SupplierDoraSyncService } from './SupplierDoraSyncService';
 import { Supplier, SupplierQuestionnaireResponse, QuestionnaireTemplate, Criticality } from '../types';
-import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, writeBatch, serverTimestamp, getDoc } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 
@@ -63,6 +64,39 @@ export class SupplierService {
 
         const overallScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
         return { overallScore, sectionScores };
+    }
+
+    /**
+     * Get a single supplier by ID
+     */
+    static async getById(supplierId: string): Promise<Supplier | null> {
+        try {
+            const supplierDoc = await getDoc(doc(db, 'suppliers', supplierId));
+            if (supplierDoc.exists()) {
+                return supplierDoc.data() as Supplier;
+            }
+            return null;
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.getById');
+            throw error;
+        }
+    }
+
+    /**
+     * Get all suppliers for an organization
+     */
+    static async getAll(organizationId: string): Promise<Supplier[]> {
+        try {
+            const q = query(
+                collection(db, 'suppliers'),
+                where('organizationId', '==', organizationId)
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => doc.data() as Supplier);
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.getAll');
+            throw error;
+        }
     }
 
     /**
@@ -260,6 +294,47 @@ export class SupplierService {
             return count;
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.importSuppliersFromCSV');
+            throw error;
+        }
+    }
+
+    /**
+     * Sync supplier to ICT Provider if marked as ICT Provider
+     * @param supplierId - The supplier ID to sync
+     * @returns Promise<boolean> - True if sync was performed
+     */
+    static async syncToICTProvider(supplierId: string): Promise<boolean> {
+        try {
+            return await SupplierDoraSyncService.syncSupplierToICTProvider(supplierId);
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.syncToICTProvider');
+            throw error;
+        }
+    }
+
+    /**
+     * Remove ICT Provider status from supplier
+     * @param supplierId - The supplier ID
+     */
+    static async removeICTProviderStatus(supplierId: string): Promise<void> {
+        try {
+            await SupplierDoraSyncService.removeICTProviderStatus(supplierId);
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.removeICTProviderStatus');
+            throw error;
+        }
+    }
+
+    /**
+     * Sync all ICT suppliers for an organization
+     * @param organizationId - The organization ID
+     * @returns Promise<number> - Number of suppliers synced
+     */
+    static async syncAllICTSuppliers(organizationId: string): Promise<number> {
+        try {
+            return await SupplierDoraSyncService.syncAllICTSuppliers(organizationId);
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.syncAllICTSuppliers');
             throw error;
         }
     }

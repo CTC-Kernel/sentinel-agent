@@ -18,6 +18,7 @@ import { ThreatPlanet } from '../components/map/ThreatPlanet';
 import { ThreatDiscussion } from '../components/threat-intel/ThreatDiscussion';
 import { SubmitThreatDrawer } from '../components/threat-intel/SubmitThreatDrawer';
 import { CommunitySettingsModal } from '../components/threat-intel/CommunitySettingsModal';
+import { HunterProfileModal } from '../components/threat-intel/HunterProfileModal';
 import { ThreatToRiskDrawer } from '../components/threat-intel/ThreatToRiskDrawer';
 import { logAction } from '../services/logger';
 import { useStore } from '../store';
@@ -53,6 +54,8 @@ export const ThreatIntelligence: React.FC = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
     const [threatForRisk, setThreatForRisk] = useState<Threat | null>(null);
+    const [selectedHunter, setSelectedHunter] = useState<{ name: string; count: number; rank: number } | null>(null);
+    const [isHunterModalOpen, setIsHunterModalOpen] = useState(false);
 
     // Business Logic from Hook
     const {
@@ -211,6 +214,15 @@ export const ThreatIntelligence: React.FC = () => {
     }, [addToast, user]);
     const handleRiskModalClose = React.useCallback(() => setIsRiskModalOpen(false), [setIsRiskModalOpen]);
     const handleToggleViewMode = React.useCallback(() => setViewMode(prev => prev === '2d' ? '3d' : '2d'), [setViewMode]);
+    const handleHunterClick = React.useCallback((hunter: { name: string; count: number; rank: number }) => {
+        setSelectedHunter(hunter);
+        setIsHunterModalOpen(true);
+        logAction(user, 'VIEW_HUNTER_PROFILE', 'ThreatIntelligence', `Viewed hunter profile: ${hunter.name}`);
+    }, [user]);
+    const handleHunterModalClose = React.useCallback(() => {
+        setIsHunterModalOpen(false);
+        setSelectedHunter(null);
+    }, []);
 
     const handleThreatSelect = React.useCallback((t: Threat) => {
         setSelectedThreatId(t.id);
@@ -323,6 +335,7 @@ export const ThreatIntelligence: React.FC = () => {
             />
 
             <CommunitySettingsModal isOpen={isSettingsOpen} onClose={handleCommunitySettingsClose} partners={myPartners} onTrustAction={handleTrustAction} />
+            <HunterProfileModal isOpen={isHunterModalOpen} onClose={handleHunterModalClose} hunterName={selectedHunter?.name || ''} />
             <ThreatDiscussion threatId={selectedThreatId || ''} threatTitle={selectedThreatTitle} isOpen={!!selectedThreatId} onClose={handleDiscussionClose} />
             <SubmitThreatDrawer isOpen={isSubmitModalOpen} onClose={handleSubmitModalClose} onSuccess={handleSubmitSuccess} />
             <ThreatToRiskDrawer isOpen={isRiskModalOpen} threat={threatForRisk} onClose={handleRiskModalClose} />
@@ -445,7 +458,11 @@ export const ThreatIntelligence: React.FC = () => {
 
                             <div className="space-y-6">
                                 {topContributors.map((c, i) => (
-                                    <div key={c.name} className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer">
+                                    <div 
+                                        key={c.name} 
+                                        className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer"
+                                        onClick={() => handleHunterClick({ ...c, rank: i + 1 })}
+                                    >
                                         <div className="flex items-center gap-4">
                                             <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg text-lg transform transition-transform group-hover:scale-110 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-800' : 'bg-brand-500'}`}>
                                                 {i < 3 ? i + 1 : c.name.charAt(0)}

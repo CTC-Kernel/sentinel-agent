@@ -260,6 +260,7 @@
     "continuity": "Continuity",
     "assets": "Assets",
     "suppliers": "Suppliers",
+    "concentration": "Concentration",
     "documents": "Documents",
     "team": "Team",
     "superAdmin": "Super Admin",
@@ -1095,7 +1096,19 @@
       "pra": "Recovery Plans (DRP)",
       "drills": "Exercises & Tests",
       "crisis": "Crisis Management",
-      "tlpt": "TLPT"
+      "tlpt": "TLPT",
+      "methods": "Methods & Workshops"
+    },
+    "methods": {
+      "title": "Continuity Methods & Workshops",
+      "description": "Select a module to access guided methods and workshops.",
+      "selectModule": "Select a module",
+      "selectModuleDescription": "Choose a module above to access methods and start a guided workshop.",
+      "startWorkshop": "Start Workshop",
+      "progress": "Progress",
+      "deliverables": "Deliverables",
+      "finalDeliverables": "Final Deliverables",
+      "bestPractices": "Best Practices"
     },
     "keywords": "Business Continuity, BCP, DRP, BIA, Crisis Management, Resilience",
     "searchPlaceholder": "Search...",
@@ -1172,6 +1185,7 @@
     "list": "Audit List",
     "calendar": "Calendar",
     "findings": "Findings",
+    "methods": "Methods & Workshops",
     "searchPlaceholder": "Search for an audit...",
     "allStatuses": "All Statuses",
     "aiAssistant": "AI Assistant",
@@ -2102,7 +2116,55 @@
     "objective": "Objective",
     "tabs": {
       "overview": "Overview",
-      "planning": "Planning"
+      "planning": "Planning",
+      "maturity": "Maturity",
+      "certification": "Certification"
+    },
+    "maturity": {
+      "title": "ISMS Maturity",
+      "subtitle": "ISO 27001 maturity assessment",
+      "phases": "PDCA Phase Scores",
+      "downloadReport": "Report",
+      "legend": "Maturity scale",
+      "levels": {
+        "initial": "Initial",
+        "managed": "Managed",
+        "defined": "Defined",
+        "quantitatively": "Quantitatively Managed",
+        "optimizing": "Optimizing"
+      }
+    },
+    "certification": {
+      "title": "Certification readiness",
+      "ready": "Ready",
+      "notReady": "Actions required",
+      "checklist": "Certification checklist",
+      "blockers": "Blockers",
+      "warnings": "Warnings",
+      "strengths": "Strengths"
+    },
+    "recommendations": {
+      "title": "Improvement recommendations",
+      "priority": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "category": {
+        "governance": "Governance",
+        "risk": "Risks",
+        "operations": "Operations",
+        "improvement": "Improvement",
+        "documentation": "Documentation"
+      }
+    },
+    "dimensions": {
+      "title": "Security dimensions",
+      "governance": "Governance",
+      "riskManagement": "Risk Management",
+      "assetProtection": "Asset Protection",
+      "continuousImprovement": "Continuous Improvement"
     }
   },
   "dora": {
@@ -2717,5 +2779,455 @@
     "production": "Production",
     "operations": "Operations",
     "monitoring": "Monitoring"
+  },
+  "voxelOT": {
+    "segments": {
+      "IT": "IT Zone",
+      "OT": "OT Zone",
+      "DMZ": "DMZ Zone",
+      "ITDesc": "Corporate Network",
+      "OTDesc": "Industrial Control",
+      "DMZDesc": "Demilitarized Zone"
+    },
+    "filter": {
+      "title": "Filter by segment",
+      "showAll": "Show all",
+      "hideAll": "Hide all",
+      "crossSegment": "Cross-segment connections",
+      "presets": {
+        "all": "All segments",
+        "allDesc": "Show IT, OT and DMZ",
+        "otOnly": "OT only",
+        "otOnlyDesc": "Focus on industrial assets",
+        "itOnly": "IT only",
+        "itOnlyDesc": "Focus on corporate network",
+        "boundary": "IT-OT Boundary",
+        "boundaryDesc": "Cross-segment connections",
+        "dmz": "DMZ Focus",
+        "dmzDesc": "Demilitarized zone"
+      }
+    },
+    "connections": {
+      "itToOt": "IT → OT",
+      "otToIt": "OT → IT",
+      "itToDmz": "IT → DMZ",
+      "dmzToOt": "DMZ → OT",
+      "sameSegment": "Internal",
+      "dependency": "Dependency",
+      "mitigation": "Mitigation",
+      "assignment": "Assignment",
+      "impact": "Impact"
+    },
+    "criticality": {
+      "safety": "Safety",
+      "production": "Production",
+      "operations": "Operations",
+      "monitoring": "Monitoring",
+      "label": "Criticality"
+    },
+    "nodes": {
+      "otAsset": "OT Asset",
+      "itAsset": "IT Asset",
+      "dmzAsset": "DMZ Asset",
+      "assets": "assets",
+      "asset": "asset"
+    },
+    "zones": {
+      "showBoundaries": "Show boundaries",
+      "showLabels": "Show labels",
+      "showGrid": "Show grid"
+    }
+  },
+  "otVulnerability": {
+    "panelTitle": "OT Vulnerability",
+    "affectedAssets": "OT Assets",
+    "adjustedScore": "Adjusted",
+    "remediations": "Options",
+    "safetySystems": "Safety Systems Affected",
+    "noPatch": "No Patch Available",
+    "tabAssets": "Assets",
+    "tabScore": "Score",
+    "tabRemediation": "Remediation",
+    "noAssets": "No OT assets affected",
+    "adjustmentFactors": "Adjustment Factors",
+    "noAdjustments": "No adjustments applied",
+    "criticalityDistribution": "Affected by Criticality",
+    "noRemediations": "No remediation suggestions available",
+    "viewAdvisory": "View Vendor Advisory",
+    "lastUpdated": "Last updated",
+    "category": {
+      "immediate": "Immediate",
+      "scheduled": "Scheduled",
+      "long-term": "Long-term"
+    },
+    "exposure": {
+      "title": "OT Exposure",
+      "totalAffected": "Affected Assets",
+      "criticalOnSafety": "Critical on Safety",
+      "noPatchAvailable": "No Patch",
+      "viewAll": "View All",
+      "topAffected": "Top Affected Assets",
+      "bySegment": "By Segment",
+      "trend7d": "7-day Trend",
+      "noData": "No OT exposure data",
+      "noDataDesc": "Vulnerabilities correlated with OT assets will appear here"
+    },
+    "riskFactors": {
+      "criticality": "OT Criticality",
+      "network": "Network Connectivity",
+      "patching": "Patch Availability",
+      "safety": "Safety System",
+      "age": "Asset Age",
+      "exposure": "Exposure"
+    },
+    "remediation": {
+      "patch": "Apply Patch",
+      "compensating": "Compensating Controls",
+      "upgrade": "Firmware Upgrade",
+      "isolate": "Network Isolation",
+      "monitor": "Enhanced Monitoring",
+      "accept": "Risk Acceptance",
+      "maintenanceRequired": "Maintenance Window Required",
+      "manualIntervention": "Manual Intervention Required",
+      "estimatedDowntime": "Estimated Downtime",
+      "prerequisites": "Prerequisites",
+      "risks": "Risks"
+    },
+    "otImpact": "OT Impact",
+    "assetsLinked": "assets linked",
+    "autoMatch": "Auto-Match",
+    "addAsset": "Add Asset",
+    "searchAssets": "Search OT assets...",
+    "noAssetsFound": "No OT assets found",
+    "noOTAssets": "No OT assets available",
+    "noOTImpact": "No OT assets linked",
+    "useAutoMatch": "Use Auto-Match or add assets manually",
+    "addManually": "Add OT assets manually to calculate adjusted score",
+    "overlay": {
+      "vulnerabilities": "vulnerabilities",
+      "vulnerability": "vulnerability",
+      "highestSeverity": "Highest Severity",
+      "adjustedScore": "OT-Adjusted Score",
+      "noPatch": "No Patch Available",
+      "clickDetails": "Click to view details"
+    }
+  },
+  "vendorPortal": {
+    "loading": "Loading portal...",
+    "accessError": "Access Error",
+    "securePortal": "Secure Vendor Portal",
+    "verifyIdentity": "Verify your identity to continue",
+    "requestedBy": "Requested by",
+    "welcomeTitle": "Welcome, {{name}}",
+    "welcomeMessage": "To access the security questionnaire, we need to verify your email address.",
+    "verificationSentTo": "Verification code will be sent to:",
+    "sendCode": "Send Verification Code",
+    "sending": "Sending...",
+    "sendCodeError": "Failed to send verification code. Please try again.",
+    "enterCode": "Enter Verification Code",
+    "codeSentTo": "A 6-digit code has been sent to {{email}}",
+    "enterFullCode": "Please enter the complete 6-digit code.",
+    "verify": "Verify & Continue",
+    "verifying": "Verifying...",
+    "invalidCode": "Invalid or expired code. Please try again.",
+    "verifyError": "Verification failed. Please try again.",
+    "resendCode": "Didn't receive the code? Resend",
+    "securityNote": "This portal access is restricted and monitored for security purposes.",
+    "questionnaire": "Security Questionnaire",
+    "forVendor": "for {{vendor}}",
+    "section": "Section {{current}} of {{total}}",
+    "progress": "Progress",
+    "complete": "complete",
+    "questionsAnswered": "questions answered",
+    "readOnlyMode": "This questionnaire has been submitted and is read-only.",
+    "allChangesAutoSaved": "All changes are automatically saved",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "saveError": "Save error",
+    "pendingSaves": "{{count}} pending",
+    "previousSection": "Previous",
+    "nextSection": "Next",
+    "submitQuestionnaire": "Submit Questionnaire",
+    "optional": "Optional",
+    "required": "Required",
+    "typeAnswer": "Type your answer...",
+    "enterNumber": "Enter a number...",
+    "selectOption": "Select an option...",
+    "uploadFile": "Upload file...",
+    "submitTitle": "Submit Questionnaire",
+    "completionSummary": "Completion Summary",
+    "incompleteSections": "Some required questions are incomplete",
+    "incompleteWarning": "You can still submit, but missing required answers may affect the assessment.",
+    "submitConfirmation": "Once submitted, you will not be able to modify your responses. The requesting organization will be notified of your submission.",
+    "whatHappensNext": "What happens next:",
+    "nextStep1": "Your responses will be locked and submitted",
+    "nextStep2": "You will receive a confirmation email",
+    "nextStep3": "The organization will review your assessment",
+    "submitting": "Submitting...",
+    "confirmSubmit": "Submit Questionnaire",
+    "submitError": "Failed to submit questionnaire. Please try again.",
+    "submittedTitle": "Questionnaire Submitted",
+    "submittedMessage": "Thank you for completing the security questionnaire. The requesting organization has been notified.",
+    "submittedDate": "Submitted on {{date}}",
+    "canViewResponses": "You can view your submitted responses below.",
+    "expiredTitle": "Link Expired",
+    "expiredMessage": "This portal access link has expired. Please contact the requesting organization for a new link.",
+    "invalidTitle": "Invalid Link",
+    "invalidMessage": "This portal access link is invalid or has been revoked.",
+    "revokedTitle": "Access Revoked",
+    "revokedMessage": "Access to this portal has been revoked. Please contact the requesting organization."
+  },
+  "vendorScoring": {
+    "overallScore": "Overall Security Score",
+    "sectionBreakdown": "Section Breakdown",
+    "questionsAnswered": "questions answered",
+    "criticalIssues": "critical issues",
+    "weight": "Weight",
+    "critical": "Critical",
+    "afterMitigation": "after mitigation",
+    "trend": "Trend",
+    "vsAverage": "vs Avg",
+    "calculatedAt": "Calculated",
+    "stable": "Stable",
+    "mitigatingFactors": "Mitigating Factors",
+    "risk": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "criticality": {
+      "low": "Low Criticality",
+      "medium": "Medium Criticality",
+      "high": "High Criticality"
+    },
+    "averageScore": "Average Score",
+    "vendorsAssessed": "Vendors Assessed",
+    "highRisk": "High/Critical Risk",
+    "lowRisk": "Low Risk",
+    "allRisks": "All Risks",
+    "sortBy": "Sort by",
+    "sort": {
+      "score": "Score",
+      "name": "Name",
+      "trend": "Trend"
+    },
+    "assessments": "assessments",
+    "noVendors": "No vendors match the current filters",
+    "riskLevel": "Risk Level",
+    "configTitle": "Scoring Configuration",
+    "configDescription": "Adjust section weights and mark critical questions",
+    "normalize": "Normalize to 100%",
+    "weightWarning": "Section weights should total 100%. Current: {{total}}%",
+    "sectionWeights": "Section Weights",
+    "questions": "questions",
+    "total": "Total",
+    "riskThresholds": "Risk Thresholds",
+    "saveConfig": "Save Configuration"
+  },
+  "vendorConcentration": {
+    "title": "Vendor Concentration",
+    "subtitle": "Analyze concentration risks and identify single points of failure",
+    "level": {
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "High"
+    },
+    "metrics": {
+      "totalVendors": "Total Vendors",
+      "active": "active",
+      "spofCount": "Single Points of Failure",
+      "critical": "critical",
+      "highDependency": "High Dependencies",
+      "vendorsWithHighDep": "vendors with high dependency",
+      "concentrationLevel": "Concentration Level"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "matrix": "Matrix",
+      "recommendations": "Recommendations"
+    },
+    "categoryDistribution": {
+      "title": "Category Distribution"
+    },
+    "chart": {
+      "vendors": "Vendors",
+      "vendor": "vendor(s)",
+      "share": "Share",
+      "totalVendors": "vendors",
+      "categories": "Categories",
+      "services": "services",
+      "critical": "critical",
+      "spofWarning": "This category has a single point of failure"
+    },
+    "spofAlerts": {
+      "title": "SPOF Alerts",
+      "alertCount": "alerts"
+    },
+    "spof": {
+      "total": "Total SPOF",
+      "criticalCount": "Critical",
+      "highImpact": "High Impact",
+      "singleVendor": "Single vendor: {{vendor}}",
+      "services": "services",
+      "critical": "critical",
+      "affectedServices": "Affected Services",
+      "downtimeRisk": "Downtime Risk",
+      "recommendation": "Recommendation",
+      "viewRecommendations": "View Recommendations",
+      "viewAll": "View All Alerts",
+      "noSPOFs": "No Single Points of Failure",
+      "noSPOFsDescription": "Your vendor portfolio is well diversified",
+      "impact": {
+        "critical": "Critical Impact",
+        "high": "High Impact",
+        "medium": "Medium Impact",
+        "low": "Low Impact"
+      },
+      "urgency": {
+        "immediate": "Immediate Action",
+        "shortTerm": "Short Term",
+        "longTerm": "Long Term"
+      }
+    },
+    "trends": {
+      "title": "Trends",
+      "improving": "Improving",
+      "stable": "Stable",
+      "worsening": "Worsening",
+      "changeBy": "{{value}}% change",
+      "noChange": "No significant change",
+      "change": "change"
+    },
+    "dependencyMatrix": {
+      "title": "Dependency Matrix",
+      "description": "Visualize dependencies between vendors and services"
+    },
+    "matrix": {
+      "searchPlaceholder": "Search vendor...",
+      "criticalOnly": "Critical only",
+      "allLevels": "All levels",
+      "levelCritical": "Critical",
+      "levelHigh": "High",
+      "levelMedium": "Medium",
+      "levelLow": "Low",
+      "vendors": "vendors",
+      "services": "services",
+      "dependencies": "dependencies",
+      "critical": "critical",
+      "legend": "Legend",
+      "criticalService": "Critical service",
+      "noData": "No data available",
+      "vendor": "Vendor"
+    },
+    "recommendations": {
+      "title": "Diversification Recommendations",
+      "subtitle": "{{count}} recommendations to reduce risk by {{reduction}}%",
+      "highPriority": "high priority",
+      "available": "recommendations available",
+      "potentialReduction": "Potential risk reduction of {{value}}%",
+      "totalReduction": "total reduction",
+      "byPriority": "By priority",
+      "priority": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "effort": {
+        "low": "Low Effort",
+        "medium": "Medium Effort",
+        "high": "High Effort"
+      },
+      "riskReduction": "risk reduction",
+      "currentState": "Current State",
+      "targetState": "Target State",
+      "rationale": "Rationale",
+      "actions": "Actions",
+      "noRecommendations": "No Recommendations",
+      "noRecommendationsDescription": "Your vendor portfolio is well balanced"
+    }
+  },
+  "vendorAssessment": {
+    "assessments": "Assessments",
+    "assessmentsDescription": "Compliance assessment history (DORA, ISO 27001, NIS2, HDS).",
+    "newAssessment": "New Assessment",
+    "evaluating": "Evaluating {{name}}",
+    "thirdPartyRisk": "Third-Party Risk Assessment",
+    "assessmentDescription": "This assessment calculates the vendor security score and ensures compliance with regulatory requirements (DORA, ISO 27001, NIS2, HDS).",
+    "questionnaireTemplate": "Questionnaire Template",
+    "selectTemplate": "Select a template...",
+    "sections": "sections",
+    "sectionsPreview": "Sections",
+    "questions": "questions",
+    "q": "Q",
+    "weight": "weight",
+    "dueDate": "Due Date",
+    "selectDueDate": "Select due date...",
+    "reviewCycle": "Review Cycle",
+    "noScheduledReview": "No scheduled review",
+    "customPeriod": "Custom Period (days)",
+    "respondentEmail": "Respondent Email (optional)",
+    "enterEmail": "vendor@example.com",
+    "emailHint": "The vendor contact will receive the questionnaire to complete.",
+    "startAssessment": "Start Assessment",
+    "assessmentCreated": "Assessment created successfully",
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "inProgress": "In Progress",
+      "submitted": "Submitted",
+      "reviewed": "Reviewed",
+      "archived": "Archived",
+      "expired": "Expired"
+    },
+    "allStatuses": "All",
+    "noAssessments": "No assessments",
+    "noAssessmentsWithFilter": "No {{status}} assessments",
+    "startFirstAssessment": "Start a first vendor assessment.",
+    "tryDifferentFilter": "Try a different filter.",
+    "frameworkAssessment": "{{framework}} Assessment",
+    "vendorAssessment": "Vendor Assessment",
+    "completion": "Completion",
+    "score": "Score",
+    "viewDetails": "View Details",
+    "overdue": "Overdue",
+    "daysLeft": "{{count}} days left",
+    "reviewIn": "Review in {{count}} days",
+    "nextReview": "Next review: {{date}}",
+    "templates": {
+      "dora": {
+        "title": "DORA Assessment",
+        "description": "DORA compliance assessment for ICT providers per Regulation (EU) 2022/2554"
+      },
+      "iso27001": {
+        "title": "ISO 27001 Assessment",
+        "description": "Information security management system assessment per ISO/IEC 27001:2022"
+      },
+      "nis2": {
+        "title": "NIS2 Assessment",
+        "description": "NIS2 Directive compliance assessment for essential and important entities"
+      },
+      "hds": {
+        "title": "HDS Assessment",
+        "description": "Health Data Hosting (HDS) certification assessment for providers hosting health data"
+      },
+      "general": {
+        "title": "General Security Assessment",
+        "description": "General assessment of vendor security and compliance practices"
+      }
+    },
+    "reviewCycles": {
+      "quarterly": "Quarterly (3 months)",
+      "biAnnual": "Bi-annual (6 months)",
+      "annual": "Annual (12 months)",
+      "custom": "Custom"
+    },
+    "alerts": {
+      "expirationWarning": "Assessment for {{supplierName}} expires in {{days}} days",
+      "reviewDue": "Review for {{supplierName}} is due in {{days}} days",
+      "expired": "Assessment for {{supplierName}} has expired",
+      "submitted": "{{supplierName}} has submitted their assessment",
+      "reviewed": "Assessment for {{supplierName}} has been reviewed"
+    }
   }
 }

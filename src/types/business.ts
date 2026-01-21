@@ -284,3 +284,73 @@ export interface RecoveryPlan {
     createdAt: string;
     updatedAt: string;
 }
+
+/**
+ * Continuity Workshop Phase Status
+ */
+export type ContinuityWorkshopPhaseStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
+
+/**
+ * Continuity Workshop Phase
+ */
+export interface ContinuityWorkshopPhase {
+    id: string;
+    name: string;
+    description: string;
+    status: ContinuityWorkshopPhaseStatus;
+    order: number;
+    tasks: ContinuityWorkshopTask[];
+    dueDate?: string;
+    completedAt?: string;
+    responsible?: string;
+    deliverables?: string[];
+}
+
+/**
+ * Continuity Workshop Task
+ */
+export interface ContinuityWorkshopTask {
+    id: string;
+    title: string;
+    description: string;
+    isCompleted: boolean;
+    isRequired: boolean;
+    helpText?: string;
+    linkedDocumentIds?: string[];
+    linkedAssetIds?: string[];
+}
+
+/**
+ * Continuity Method Template
+ */
+export interface ContinuityMethodTemplate {
+    id: string;
+    name: string;
+    module: 'bia' | 'strategies' | 'pra' | 'drills' | 'tlpt' | 'crisis';
+    framework?: string; // ISO 22301, DORA, etc.
+    description: string;
+    phases: Omit<ContinuityWorkshopPhase, 'status' | 'completedAt'>[];
+    estimatedDuration: string;
+    bestPractices: string[];
+    deliverables: string[];
+    isDefault?: boolean;
+}
+
+/**
+ * Continuity Workshop (instance of a method template)
+ */
+export interface ContinuityWorkshop {
+    id: string;
+    organizationId: string;
+    templateId: string;
+    name: string;
+    module: 'bia' | 'strategies' | 'pra' | 'drills' | 'tlpt' | 'crisis';
+    status: 'not_started' | 'in_progress' | 'completed' | 'cancelled';
+    phases: ContinuityWorkshopPhase[];
+    progress: number;
+    startedAt?: string;
+    completedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+    notes?: string;
+}

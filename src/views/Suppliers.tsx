@@ -568,6 +568,18 @@ export const Suppliers: React.FC = () => {
                                         </Button>
                                     </CustomTooltip>
 
+                                    <CustomTooltip content="Vue DORA des fournisseurs ICT">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => window.open('/#/dora/providers', '_blank')}
+                                            className="h-10 w-10 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10"
+                                            aria-label="Vue DORA des fournisseurs ICT"
+                                        >
+                                            <ShieldAlert className="h-5 w-5" />
+                                        </Button>
+                                    </CustomTooltip>
+
                                     <CustomTooltip content="Ajouter un nouveau fournisseur">
                                         <Button
                                             variant="default"
