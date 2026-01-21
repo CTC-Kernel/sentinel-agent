@@ -427,18 +427,18 @@ development_status:
 
   # Epic 35: DORA ICT Register (P0 - Finance - Deadline 30 avril 2025)
   # ADR-008 - Registre ICT automatisé pour conformité DORA Art. 28
-  epic-35: backlog
-  35-1-ict-provider-management: backlog
-  35-2-ict-risk-assessment: backlog
-  35-3-dora-register-export: backlog
-  35-4-contract-expiration-alerts: backlog
+  epic-35: done
+  35-1-ict-provider-management: dev-complete
+  35-2-ict-risk-assessment: dev-complete
+  35-3-dora-register-export: dev-complete
+  35-4-contract-expiration-alerts: dev-complete
   epic-35-retrospective: optional
 
   # Epic 36: SCADA/ICS Integration (P1 - Industrie NIS2)
   # ADR-009 - Connecteur SCADA/ICS pour assets OT
-  epic-36: backlog
-  36-1-ot-asset-import-wizard: backlog
-  36-2-ot-connector-configuration: backlog
+  epic-36: in-progress
+  36-1-ot-asset-import-wizard: dev-complete
+  36-2-ot-connector-configuration: dev-complete
   36-3-it-ot-voxel-mapping: backlog
   36-4-ot-vulnerability-correlation: backlog
   epic-36-retrospective: optional
@@ -454,11 +454,11 @@ development_status:
 
   # Epic 38: ANSSI Homologation (P0 - Public Sector)
   # ADR-011 - Templates homologation RGS pour secteur public
-  epic-38: backlog
-  38-1-homologation-level-selector: backlog
-  38-2-homologation-document-generation: backlog
-  38-3-homologation-validity-tracking: backlog
-  38-4-ebios-homologation-link: backlog
+  epic-38: dev-complete
+  38-1-homologation-level-selector: dev-complete
+  38-2-homologation-document-generation: dev-complete
+  38-3-homologation-validity-tracking: dev-complete
+  38-4-ebios-homologation-link: dev-complete
   epic-38-retrospective: optional
 
   # Epic 39: Financial Risk Quantification (P1 - All Verticals)
