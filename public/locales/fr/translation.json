@@ -990,8 +990,10 @@
   "validation": {
     "required": "Ce champ est requis",
     "email": "Adresse email invalide",
+    "email_invalid": "Adresse email invalide",
     "minLength": "Minimum {min} caractères requis",
     "url": "URL invalide",
+    "url_invalid": "URL invalide",
     "positive": "Doit être un nombre positif",
     "min": "La valeur doit être au moins {min}",
     "max": "La valeur doit être au plus {max}",

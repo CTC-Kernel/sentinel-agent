@@ -178,8 +178,10 @@
   "validation": {
     "required": "This field is required",
     "email": "Invalid email address",
+    "email_invalid": "Invalid email address",
     "minLength": "Minimum {{min}} characters required",
     "url": "Invalid URL",
+    "url_invalid": "Invalid URL",
     "positive": "Must be a positive number",
     "min": "Value must be at least {{min}}",
     "max": "Value must be at most {{max}}",

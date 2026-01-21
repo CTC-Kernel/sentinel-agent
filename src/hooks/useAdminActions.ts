@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { auth } from '../firebase';
+import { app, auth } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { toast } from '@/lib/toast';
@@ -11,7 +11,7 @@ export const useAdminActions = () => {
 
     const verifySuperAdmin = useCallback(async (): Promise<boolean> => {
         try {
-            const functions = getFunctions();
+            const functions = getFunctions(app, 'europe-west1');
             const checkAdmin = httpsCallable(functions, 'verifySuperAdmin');
             const result = await checkAdmin();
             const data = result.data as { isSuperAdmin: boolean; claimGranted?: boolean };
@@ -31,7 +31,7 @@ export const useAdminActions = () => {
     const handleManage = async (orgId: string, orgName: string) => {
         setSwitchingOrg(orgId);
         try {
-            const functions = getFunctions();
+            const functions = getFunctions(app, 'europe-west1');
             const switchOrgFn = httpsCallable(functions, 'switchOrganization');
             await switchOrgFn({ targetOrgId: orgId });
 

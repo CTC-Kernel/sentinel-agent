@@ -35,7 +35,8 @@ export const distributionSchema = z.object({
 // Simple Form Schema
 // ============================================================================
 
-export const fairSimpleFormSchema = z.object({
+// Base schema without refinements (used for extension)
+export const fairSimpleFormBaseSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   scenarioType: z.enum([
     'data_breach',
@@ -60,7 +61,10 @@ export const fairSimpleFormSchema = z.object({
     .max(10000000000, 'Value too large'),
   currency: z.enum(['EUR', 'USD', 'GBP']),
   controlEffectiveness: z.enum(['weak', 'moderate', 'strong', 'very_strong'])
-}).refine(
+});
+
+// Refined schema for direct use
+export const fairSimpleFormSchema = fairSimpleFormBaseSchema.refine(
   (data) => data.estimatedLossMax >= data.estimatedLossMostLikely,
   { message: 'Maximum must be greater than most likely', path: ['estimatedLossMax'] }
 ).refine(
@@ -74,7 +78,8 @@ export type FAIRSimpleFormData = z.infer<typeof fairSimpleFormSchema>;
 // Standard Form Schema
 // ============================================================================
 
-export const fairStandardFormSchema = fairSimpleFormSchema.extend({
+// Extend from the BASE schema (without refinements), then add refinements
+export const fairStandardFormSchema = fairSimpleFormBaseSchema.extend({
   threatActorType: z.enum([
     'nation_state',
     'organized_crime',
@@ -86,6 +91,12 @@ export const fairStandardFormSchema = fairSimpleFormSchema.extend({
   includeSecondaryLoss: z.boolean(),
   secondaryLossMultiplier: z.number().min(0).max(10).optional()
 }).refine(
+  (data) => data.estimatedLossMax >= data.estimatedLossMostLikely,
+  { message: 'Maximum must be greater than most likely', path: ['estimatedLossMax'] }
+).refine(
+  (data) => data.estimatedLossMostLikely >= data.estimatedLossMin,
+  { message: 'Most likely must be greater than minimum', path: ['estimatedLossMostLikely'] }
+).refine(
   (data) => {
     if (data.includeSecondaryLoss && !data.secondaryLossMultiplier) {
       return false;

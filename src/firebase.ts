@@ -145,7 +145,7 @@ export const db = initializeFirestore(app, {
 });
 
 export const storage = getStorage(app);
-export const functions = getFunctions(app);
+export const functions = getFunctions(app, 'europe-west1');
 export let analytics: Analytics | null = null;
 
 if (import.meta.env.VITE_USE_EMULATORS === 'true') {

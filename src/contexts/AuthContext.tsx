@@ -16,13 +16,13 @@ import {
     disableNetwork,
     updateDoc
 } from 'firebase/firestore';
-import { auth, db, isAppCheckFailed } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { auth, db, functions, isAppCheckFailed } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { AccountService } from '../services/accountService';
 import { E2EAuthService } from '../services/e2eAuthService';
 import { UserProfile, Organization, timestampToISOString } from '../types';
-import { httpsCallable, getFunctions } from 'firebase/functions';
 
 import { AuthContext } from './AuthContextDefinition';
 
@@ -55,7 +55,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Si l'organisationId manque dans les claims mais existe dans le profil, on tente de réparer
             if (!tokenResult.claims.organizationId) {
-                const functions = getFunctions();
                 const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
                 try {
                     await refreshUserTokenFn();
@@ -278,7 +277,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                                 lastVerifiedOrgIdRef.current = userData.organizationId;
                                             } else {
                                                 // 2. Si échec, forcer via Cloud Function
-                                                const functions = getFunctions();
                                                 const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
                                                 await refreshUserTokenFn();
                                                 await auth.currentUser.getIdToken(true);
