@@ -436,18 +436,18 @@ development_status:
 
   # Epic 36: SCADA/ICS Integration (P1 - Industrie NIS2)
   # ADR-009 - Connecteur SCADA/ICS pour assets OT
-  epic-36: in-progress
+  epic-36: dev-complete
   36-1-ot-asset-import-wizard: dev-complete
   36-2-ot-connector-configuration: dev-complete
-  36-3-it-ot-voxel-mapping: backlog
-  36-4-ot-vulnerability-correlation: backlog
+  36-3-it-ot-voxel-mapping: dev-complete
+  36-4-ot-vulnerability-correlation: dev-complete
   epic-36-retrospective: optional
 
   # Epic 37: Third-Party Risk Management (P1 - All Verticals)
   # ADR-010 - Module TPRM avec questionnaires automatisés
-  epic-37: backlog
-  37-1-vendor-assessment-creation: backlog
-  37-2-vendor-self-service-portal: backlog
+  epic-37: in-progress
+  37-1-vendor-assessment-creation: dev-complete
+  37-2-vendor-self-service-portal: in-progress
   37-3-automated-vendor-scoring: backlog
   37-4-vendor-concentration-dashboard: backlog
   epic-37-retrospective: optional
