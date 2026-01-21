@@ -8,6 +8,21 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
 const { user } = require("firebase-functions/v1/auth");
 const admin = require("firebase-admin");
+const cors = require("cors");
+
+// CORS Configuration for callable functions
+const corsOptions = {
+    origin: [
+        'https://app.cyber-threat-consulting.com',
+        'https://cyber-threat-consulting.com',
+        'https://sentinel-grc-a8701.web.app',
+        'https://sentinel-grc-a8701.firebaseapp.com'
+    ],
+    credentials: true,
+    methods: ['POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    maxAge: 600
+};
 
 /**
  * Set custom claims when user document is created/updated
@@ -130,7 +145,8 @@ exports.setUserClaims = onDocumentWritten({
 exports.refreshUserToken = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    cors: corsOptions
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
@@ -207,7 +223,8 @@ exports.refreshUserToken = onCall({
 exports.healMe = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    cors: corsOptions
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) return { success: false, error: 'Unauthenticated' };
@@ -271,12 +288,13 @@ exports.healMe = onCall({
 
 /**
  * Verifies if the current user is a Super Admin
- * Also auto-grants the superAdmin claim to bootstrap admins if not already set
+ * Also auto-grants superAdmin claim to bootstrap admins if not already set
  */
 exports.verifySuperAdmin = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    cors: corsOptions
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -320,7 +338,8 @@ exports.verifySuperAdmin = onCall({
 exports.grantSuperAdmin = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    cors: corsOptions
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -364,7 +383,8 @@ exports.grantSuperAdmin = onCall({
 exports.switchOrganization = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    cors: corsOptions
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -425,7 +445,8 @@ exports.switchOrganization = onCall({
 exports.transferOwnership = onCall({
     memory: '256MiB',
     timeoutSeconds: 120,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    cors: corsOptions
 }, async (request) => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -482,7 +503,8 @@ exports.transferOwnership = onCall({
 exports.approveJoinRequest = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    cors: corsOptions
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -555,7 +577,8 @@ exports.approveJoinRequest = onCall({
 exports.rejectJoinRequest = onCall({
     memory: '256MiB',
     timeoutSeconds: 60,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    cors: corsOptions
 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
