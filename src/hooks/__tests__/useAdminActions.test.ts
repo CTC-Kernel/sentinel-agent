@@ -20,7 +20,8 @@ vi.mock('../../firebase', () => ({
         currentUser: {
             getIdToken: (...args: unknown[]) => mockGetIdToken(...args)
         }
-    }
+    },
+    app: {}
 }));
 
 // Mock store
