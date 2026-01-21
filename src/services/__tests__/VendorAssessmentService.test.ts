@@ -4,7 +4,7 @@
  * Tests for assessment types, utility functions, and service logic.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   calculateNextReviewDate,
   isAssessmentExpired,
@@ -316,7 +316,9 @@ describe('getTemplatesForServiceType', () => {
     const result = getTemplatesForServiceType('SaaS');
     expect(result.length).toBeGreaterThan(0);
     result.forEach(template => {
-      expect(template.metadata.applicableTo).toContain('SaaS');
+      // Template should have either 'All' or 'SaaS' in applicableTo
+      const applicableTo = template.metadata.applicableTo;
+      expect(applicableTo.includes('All') || applicableTo.includes('SaaS')).toBe(true);
     });
   });
 
@@ -324,13 +326,15 @@ describe('getTemplatesForServiceType', () => {
     const result = getTemplatesForServiceType('Cloud');
     expect(result.length).toBeGreaterThan(0);
     result.forEach(template => {
-      expect(template.metadata.applicableTo).toContain('Cloud');
+      // Template should have either 'All' or 'Cloud' in applicableTo
+      const applicableTo = template.metadata.applicableTo;
+      expect(applicableTo.includes('All') || applicableTo.includes('Cloud')).toBe(true);
     });
   });
 
   it('returns templates for unknown service type', () => {
     const result = getTemplatesForServiceType('UnknownType');
-    // Best Practices template should always be included
+    // Best Practices template should always be included (has 'All' in applicableTo)
     expect(result.some(t => t.metadata.framework === 'Best Practices')).toBe(true);
   });
 });
@@ -367,17 +371,6 @@ describe('getFrameworkColor', () => {
 // ============================================================================
 
 describe('Assessment Status Flow', () => {
-  const _validStatusTransitions: Array<[string, string]> = [
-    ['Draft', 'Sent'],
-    ['Sent', 'In Progress'],
-    ['In Progress', 'Submitted'],
-    ['In Progress', 'Expired'],
-    ['Submitted', 'Reviewed'],
-    ['Reviewed', 'Archived'],
-    ['Draft', 'Expired'],
-    ['Sent', 'Expired'],
-  ];
-
   it('defines valid status flow', () => {
     // Just ensure the types compile correctly
     const statuses: EnhancedAssessmentResponse['status'][] = [

@@ -13,7 +13,11 @@ vi.mock('../../../ui/Icons', () => ({
     ClipboardList: () => <span data-testid="clipboard-list-icon" />,
     ChevronRight: () => <span data-testid="chevron-right-icon" />,
     Clock: () => <span data-testid="clock-icon" />,
-    CheckCircle2: () => <span data-testid="check-circle-icon" />
+    CheckCircle2: () => <span data-testid="check-circle-icon" />,
+    AlertTriangle: () => <span data-testid="alert-triangle-icon" />,
+    Calendar: () => <span data-testid="calendar-icon" />,
+    Filter: () => <span data-testid="filter-icon" />,
+    RefreshCw: () => <span data-testid="refresh-cw-icon" />
 }));
 
 // Mock EmptyState
@@ -51,6 +55,40 @@ vi.mock('../../../ui/button', () => ({
             {children}
         </button>
     )
+}));
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, fallbackOrOptions?: string | Record<string, unknown>) => {
+            // Map of i18n keys to French translations for tests
+            const translations: Record<string, string> = {
+                'vendorAssessment.assessments': 'Évaluations',
+                'vendorAssessment.assessmentsDescription': 'Historique des évaluations de conformité DORA et ISO.',
+                'vendorAssessment.newAssessment': 'Nouvelle Évaluation',
+                'vendorAssessment.noAssessments': 'Aucune évaluation',
+                'vendorAssessment.startFirstAssessment': 'Lancez une première évaluation DORA pour ce fournisseur.',
+                'vendorAssessment.startAssessment': 'Lancer une évaluation',
+                'vendorAssessment.vendorAssessment': 'Questionnaire d\'évaluation',
+                'vendorAssessment.viewDetails': 'Voir les détails',
+                'vendorAssessment.status.draft': 'Brouillon',
+                'vendorAssessment.status.sent': 'Envoyé',
+                'vendorAssessment.status.inProgress': 'En cours',
+                'vendorAssessment.status.submitted': 'Soumis',
+                'vendorAssessment.status.reviewed': 'Revu',
+                'vendorAssessment.status.archived': 'Archivé',
+                'vendorAssessment.status.expired': 'Expiré',
+                'vendorAssessment.score': 'Score',
+                'vendorAssessment.allStatuses': 'Tous',
+                'common.unknownDate': 'Date inconnue',
+            };
+            const result = translations[key];
+            if (result) return result;
+            // Return the fallback if provided as string
+            if (typeof fallbackOrOptions === 'string') return fallbackOrOptions;
+            return key;
+        }
+    })
 }));
 
 describe('SupplierAssessments', () => {
@@ -202,19 +240,22 @@ describe('SupplierAssessments', () => {
         it('shows Soumis status label', () => {
             render(<SupplierAssessments {...defaultProps} />);
 
-            expect(screen.getByText('Soumis')).toBeInTheDocument();
+            // Status appears in both filter button and assessment badge
+            expect(screen.getAllByText('Soumis').length).toBeGreaterThan(0);
         });
 
         it('shows En cours status label', () => {
             render(<SupplierAssessments {...defaultProps} />);
 
-            expect(screen.getByText('En cours')).toBeInTheDocument();
+            // Status appears in both filter button and assessment badge
+            expect(screen.getAllByText('En cours').length).toBeGreaterThan(0);
         });
 
         it('shows Brouillon status label', () => {
             render(<SupplierAssessments {...defaultProps} />);
 
-            expect(screen.getByText('Brouillon')).toBeInTheDocument();
+            // Status appears in both filter button and assessment badge
+            expect(screen.getAllByText('Brouillon').length).toBeGreaterThan(0);
         });
     });
 

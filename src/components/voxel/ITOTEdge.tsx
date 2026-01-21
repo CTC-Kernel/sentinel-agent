@@ -335,8 +335,14 @@ export const ITOTEdge: React.FC<ITOTEdgeProps> = React.memo(
       }
       return [sourcePos, targetPos];
     }, [sourceNode.position.x, sourceNode.position.y, sourceNode.position.z,
-        targetNode.position.x, targetNode.position.y, targetNode.position.z,
-        dmzNode, isCrossSegment]);
+    targetNode.position.x, targetNode.position.y, targetNode.position.z,
+      dmzNode, isCrossSegment]);
+
+    // Calculate DMZ position for waypoint
+    const dmzPos = useMemo(() => {
+      if (!dmzNode) return null;
+      return new Vector3(dmzNode.position.x, dmzNode.position.y, dmzNode.position.z);
+    }, [dmzNode]);
 
     // Calculate midpoint for label
     const midpoint = useMemo(() => {
@@ -406,7 +412,10 @@ export const ITOTEdge: React.FC<ITOTEdgeProps> = React.memo(
 
         {/* DMZ waypoint */}
         {dmzPos && isCrossSegment && (
-          <DMZWaypoint position={dmzPos} isHighlighted={isHighlighted || hovered} />
+          <DMZWaypoint
+            position={dmzPos}
+            isHighlighted={isHighlighted || hovered}
+          />
         )}
 
         {/* Connection label */}

@@ -165,7 +165,7 @@ describe('Login View', () => {
         });
 
         expect(screen.getByLabelText('auth.password')).toBeInTheDocument();
-        expect(screen.getByText('auth.login')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'auth.login' })).toBeInTheDocument();
         expect(screen.getByText('auth.google')).toBeInTheDocument();
         expect(screen.getByText('auth.apple')).toBeInTheDocument();
     });
@@ -182,7 +182,7 @@ describe('Login View', () => {
         fireEvent.click(screen.getByText('auth.switchSignup'));
 
         await waitFor(() => {
-            expect(screen.getByText('auth.signup')).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'auth.signup' })).toBeInTheDocument();
         });
 
         expect(screen.getByText('auth.switchLogin')).toBeInTheDocument();
@@ -200,7 +200,7 @@ describe('Login View', () => {
         fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'test@example.com' } });
         fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'password123' } });
 
-        fireEvent.click(screen.getByText('auth.login'));
+        fireEvent.click(screen.getByRole('button', { name: /auth\.login/i }));
 
         await waitFor(() => {
             expect(signInWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), 'test@example.com', 'password123');
@@ -219,14 +219,14 @@ describe('Login View', () => {
         fireEvent.click(screen.getByText('auth.switchSignup'));
 
         await waitFor(() => {
-            expect(screen.getByText('auth.signup')).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'auth.signup' })).toBeInTheDocument();
         });
 
         // Password must satisfy validation: 8+ chars, 1 uppercase, 1 digit, 1 special char
         fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'new@example.com' } });
         fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'NewPass123!' } });
 
-        fireEvent.click(screen.getByText('auth.signup'));
+        fireEvent.click(screen.getByRole('button', { name: /auth\.signup/i }));
 
         await waitFor(() => {
             expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(expect.anything(), 'new@example.com', 'NewPass123!');

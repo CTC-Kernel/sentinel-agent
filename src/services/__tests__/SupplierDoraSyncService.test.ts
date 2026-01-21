@@ -216,12 +216,15 @@ describe('SupplierDoraSyncService', () => {
             const suppliers = [
                 mockSupplier,
                 { ...mockSupplier, id: 'supplier-2', isICTProvider: false },
-                { ...mockSupplier, id: 'supplier-3', isICTProvider: true }
+                { ...mockSupplier, id: 'supplier-3', isICTProvider: true, name: 'Another ICT Provider' }
             ];
             vi.mocked(SupplierService.getAll).mockResolvedValue(suppliers);
-            vi.mocked(SupplierDoraSyncService.syncSupplierToICTProvider)
-                .mockResolvedValueOnce(true)
-                .mockResolvedValueOnce(true);
+            // Mock getById to return supplier data for each sync call
+            vi.mocked(SupplierService.getById)
+                .mockResolvedValueOnce(mockSupplier)
+                .mockResolvedValueOnce({ ...mockSupplier, id: 'supplier-3', name: 'Another ICT Provider' });
+            vi.mocked(ICTProviderService.getAll).mockResolvedValue([]);
+            vi.mocked(ICTProviderService.create).mockResolvedValue('new-ict-id');
 
             // Act
             const result = await SupplierDoraSyncService.syncAllICTSuppliers(mockOrganizationId);
@@ -229,7 +232,6 @@ describe('SupplierDoraSyncService', () => {
             // Assert
             expect(result).toBe(2); // Only 2 ICT suppliers
             expect(SupplierService.getAll).toHaveBeenCalledWith(mockOrganizationId);
-            expect(SupplierDoraSyncService.syncSupplierToICTProvider).toHaveBeenCalledTimes(2);
         });
 
         it('should handle empty supplier list', async () => {

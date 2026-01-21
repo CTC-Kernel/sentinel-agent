@@ -155,12 +155,23 @@ describe('MockDataService', () => {
             });
         });
 
-        describe('threat_library collection (alias)', () => {
-            it('returns same data as threats', () => {
+        describe('threat_library collection', () => {
+            it('returns array of threat library items', () => {
                 const threatLib = MockDataService.getCollection('threat_library');
-                const threats = MockDataService.getCollection('threats');
 
-                expect(threatLib).toEqual(threats);
+                expect(Array.isArray(threatLib)).toBe(true);
+                expect(threatLib.length).toBeGreaterThan(0);
+            });
+
+            it('each threat library item has required properties', () => {
+                const threatLib = MockDataService.getCollection('threat_library');
+
+                threatLib.forEach(item => {
+                    expect(item.id).toBeDefined();
+                    expect(item.name).toBeDefined();
+                    expect(item.type).toBeDefined();
+                    expect(item.severity).toBeDefined();
+                });
             });
         });
 
