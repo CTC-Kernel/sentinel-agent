@@ -463,9 +463,9 @@ development_status:
 
   # Epic 39: Financial Risk Quantification (P1 - All Verticals)
   # ADR-012 - Quantification financière avancée (FAIR, Monte Carlo)
-  epic-39: backlog
-  39-1-fair-model-configuration: backlog
-  39-2-monte-carlo-simulation: backlog
-  39-3-security-roi-calculator: backlog
-  39-4-comex-financial-dashboard: backlog
+  epic-39: dev-complete
+  39-1-fair-model-configuration: dev-complete
+  39-2-monte-carlo-simulation: dev-complete
+  39-3-security-roi-calculator: dev-complete
+  39-4-comex-financial-dashboard: dev-complete
   epic-39-retrospective: optional
