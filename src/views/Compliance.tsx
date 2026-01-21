@@ -3,6 +3,12 @@ import { flushSync } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
 import { Control, Framework } from '../types';
+
+// Interface étendue pour les contrôles avec propriétés optionnelles
+interface ControlExtended extends Control {
+    linkedProjectId?: string;
+    linkedAuditId?: string;
+}
 import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
@@ -201,12 +207,12 @@ export const Compliance: React.FC = () => {
             return;
         }
 
-        const controlContext = selectedControlId ? filteredControls.find((c: Control) => c.id === selectedControlId) : null;
+        const controlContext = selectedControlId ? filteredControls.find((c: Control) => c.id === selectedControlId) as ControlExtended | null : null;
 
         if (type === 'project' && controlContext) {
             // Vérifier si le contrôle est déjà lié à un projet
-            const isLinkedToProject = (controlContext as any).linkedProjectId && 
-                (controlContext as any).linkedProjectId === controlContext.id;
+            const isLinkedToProject = controlContext.linkedProjectId && 
+                controlContext.linkedProjectId === controlContext.id;
             
             if (isLinkedToProject) {
                 addToast(t('compliance.controlAlreadyLinked') || 'Ce contrôle est déjà lié à un projet', 'info');
@@ -216,8 +222,8 @@ export const Compliance: React.FC = () => {
 
         if (type === 'audit' && controlContext) {
             // Vérifier si le contrôle est déjà lié à un audit
-            const isLinkedToAudit = (controlContext as any).linkedAuditId && 
-                (controlContext as any).linkedAuditId === controlContext.id;
+            const isLinkedToAudit = controlContext.linkedAuditId && 
+                controlContext.linkedAuditId === controlContext.id;
             
             if (isLinkedToAudit) {
                 addToast(t('compliance.controlAlreadyLinked') || 'Ce contrôle est déjà lié à un audit', 'info');
