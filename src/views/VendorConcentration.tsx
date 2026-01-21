@@ -111,9 +111,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
         )}
       </div>
       <div className="mt-4">
-        <p className="text-2xl font-semibold text-slate-900 dark:text-white">
+        <div className="text-2xl font-semibold text-slate-900 dark:text-white">
           {value}
-        </p>
+        </div>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
           {title}
         </p>
