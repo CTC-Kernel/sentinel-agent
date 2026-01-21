@@ -18,20 +18,19 @@ import {
   FileText,
   Shield,
   ShieldAlert
-} from 'lucide-react';
+} from '../ui/Icons';
 import { cn } from '../../lib/utils';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Progress } from '../ui/Progress';
-import { RadioGroup, RadioGroupItem } from '../ui/RadioGroup';
-import { Checkbox } from '../ui/Checkbox';
-import { Label } from '../ui/Label';
-import { Textarea } from '../ui/Textarea';
-import { Input } from '../ui/Input';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Progress } from '../ui/progress';
+import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Input } from '../ui/input';
 import { Badge } from '../ui/Badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/Tooltip';
+import { Tooltip } from '../ui/Tooltip';
+import { RadioGroup, RadioGroupItem } from '../ui/RadioGroup';
 import {
-  LEVEL_DETERMINATION_QUESTIONS,
   CATEGORY_ORDER,
   CATEGORY_INFO,
   getQuestionsByCategory
@@ -242,14 +241,9 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
         <div className="flex items-start gap-2 mb-3">
           <span className="font-medium text-foreground">{questionText}</span>
           {helpText && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help flex-shrink-0" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">{helpText}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip content={helpText}>
+              <Info className="h-4 w-4 text-muted-foreground cursor-help flex-shrink-0" />
+            </Tooltip>
           )}
           {question.required && (
             <Badge variant="outline" className="text-xs ml-auto">
@@ -282,7 +276,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
                     >
                       {optionLabel}
                       {option.escalatesTo && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="soft" className="text-xs">
                           Min: {LEVEL_INFO[option.escalatesTo].label}
                         </Badge>
                       )}
@@ -333,7 +327,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
                   >
                     {optionLabel}
                     {option.escalatesTo && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="soft" className="text-xs">
                         Min: {LEVEL_INFO[option.escalatesTo].label}
                       </Badge>
                     )}

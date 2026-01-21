@@ -36,7 +36,7 @@ interface ICTProviderInspectorProps {
 export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
     provider,
     onEdit,
-    onClose
+    onClose: _onClose
 }) => {
     const { t } = useTranslation();
 

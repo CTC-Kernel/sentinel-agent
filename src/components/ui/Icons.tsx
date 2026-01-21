@@ -62,6 +62,7 @@ import {
   ExternalLink,
   Link,
   Link2,
+  Unlink,
   Paperclip,
   Play,
   PlayCircle,
@@ -156,6 +157,7 @@ import {
   Handshake,
   Truck,
   Package,
+  Calculator,
 
   // Analytics & Charts
   BarChart3,
@@ -335,6 +337,7 @@ export {
   ExternalLink,
   Link,
   Link2,
+  Unlink,
   Paperclip,
   Play,
   PlayCircle,
@@ -429,6 +432,7 @@ export {
   Handshake,
   Truck,
   Package,
+  Calculator,
 
   // Analytics & Charts
   BarChart3,

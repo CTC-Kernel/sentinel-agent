@@ -12,7 +12,6 @@ import { Badge } from '../ui/Badge';
 import { RowActionsMenu, RowActionItem } from '../ui/RowActionsMenu';
 import { Edit2, Trash2, Eye, Copy, AlertCircle, CheckCircle, Globe, Clock, AlertTriangle } from '../ui/Icons';
 import { ICTProvider, ICTCriticality } from '../../types/dora';
-import { ICTProviderService } from '../../services/ICTProviderService';
 import { format, differenceInDays } from 'date-fns';
 import { parseDate } from '../../utils/dateUtils';
 import { fr } from 'date-fns/locale';
@@ -38,7 +37,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
     onDuplicate
 }) => {
     const { t } = useTranslation();
-    const { dateFormat } = useLocale();
+    const { locale } = useLocale();
     const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
     const safeProviders = useMemo(() => {
@@ -60,7 +59,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
         }
     }, [deletingIds, onDelete]);
 
-    const getCategoryBadge = (category: ICTCriticality) => {
+    const getCategoryBadge = useCallback((category: ICTCriticality) => {
         switch (category) {
             case 'critical':
                 return <Badge status="error" variant="soft" size="sm">{t('dora.category.critical')}</Badge>;
@@ -69,9 +68,9 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
             default:
                 return <Badge status="neutral" variant="soft" size="sm">{t('dora.category.standard')}</Badge>;
         }
-    };
+    }, [t]);
 
-    const getContractStatus = (endDate: string | unknown) => {
+    const getContractStatus = useCallback((endDate: string | unknown) => {
         if (!endDate) return null;
 
         const end = typeof endDate === 'string' ? new Date(endDate) : null;
@@ -87,18 +86,18 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
             return <Badge status="warning" variant="outline" size="sm">{t('dora.contract.expiringIn', { days: daysLeft })}</Badge>;
         }
         return null;
-    };
+    }, [t]);
 
-    const formatDate = (dateValue: string | unknown) => {
+    const formatDate = useCallback((dateValue: string | unknown) => {
         if (!dateValue) return '-';
         try {
             const date = typeof dateValue === 'string' ? new Date(dateValue) : null;
             if (!date || isNaN(date.getTime())) return '-';
-            return format(date, dateFormat === 'dd/MM/yyyy' ? 'dd MMM yyyy' : 'MMM dd, yyyy', { locale: fr });
+            return format(date, locale === 'fr' ? 'dd MMM yyyy' : 'MMM dd, yyyy', { locale: fr });
         } catch {
             return '-';
         }
-    };
+    }, [locale]);
 
     const isReassessmentDue = (provider: ICTProvider, thresholdDays: number = 365): boolean => {
         const lastAssessment = parseDate(provider.riskAssessment?.lastAssessment);
@@ -146,7 +145,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
                         <AlertCircle className="w-4 h-4 text-amber-500" />
                     )}
                     {row.original.compliance?.locationEU && (
-                        <Globe className="w-4 h-4 text-blue-500" title="EU" />
+                        <Globe className="w-4 h-4 text-blue-500" aria-label="EU" />
                     )}
                 </div>
             ),
@@ -270,7 +269,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
             },
             size: 80
         }
-    ], [t, deletingIds, onSelect, onEdit, handleDelete, onDuplicate, dateFormat]);
+    ], [t, deletingIds, onSelect, onEdit, handleDelete, onDuplicate, formatDate, getCategoryBadge, getContractStatus]);
 
     if (loading) {
         return (
@@ -302,8 +301,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
         <DataTable
             data={safeProviders}
             columns={columns}
-            onRowClick={(row) => onSelect(row)}
-            getRowId={(row) => row.id}
+            onRowClick={(row: ProviderWithId) => onSelect(row)}
         />
     );
 };

@@ -14,35 +14,16 @@ import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Billboard } from '@react-three/drei';
 import { Group, AdditiveBlending, CanvasTexture } from 'three';
 import { animated, useSpring, config } from '@react-spring/three';
-import type { VoxelNode, NetworkSegment, OTCriticality, OTNodeDetails } from '../../types/voxel';
+import type { VoxelNode, OTNodeDetails } from '../../types/voxel';
 import { GlassMaterial, EdgesWithColor } from './VoxelMaterials';
+import {
+  SEGMENT_COLORS,
+  CRITICALITY_SIZES,
+  CRITICALITY_GLOW
+} from './voxelConstants';
 
-// ============================================================================
-// Constants
-// ============================================================================
-
-/** Network segment colors */
-export const SEGMENT_COLORS: Record<NetworkSegment, string> = {
-  IT: '#3B82F6',   // Blue
-  OT: '#F97316',   // Orange
-  DMZ: '#EAB308', // Yellow
-};
-
-/** OT criticality size multipliers */
-export const CRITICALITY_SIZES: Record<OTCriticality, number> = {
-  safety: 1.5,
-  production: 1.2,
-  operations: 1.0,
-  monitoring: 0.8,
-};
-
-/** OT criticality glow intensities */
-export const CRITICALITY_GLOW: Record<OTCriticality, number> = {
-  safety: 1.5,
-  production: 1.0,
-  operations: 0.6,
-  monitoring: 0.4,
-};
+// Re-export for backward compatibility
+export { SEGMENT_COLORS, CRITICALITY_SIZES, CRITICALITY_GLOW } from './voxelConstants';
 
 // ============================================================================
 // Helper Components

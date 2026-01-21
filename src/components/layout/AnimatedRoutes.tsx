@@ -59,6 +59,12 @@ const ControlEffectiveness = React.lazy(() => import('../../views/ControlEffecti
 // Vendor Concentration Module (Story 37-4)
 const VendorConcentration = React.lazy(() => import('../../views/VendorConcentration').then(module => ({ default: module.VendorConcentration })));
 
+// Financial Risk Quantification Module (Epic 39)
+const FinancialRisk = React.lazy(() => import('../../views/FinancialRisk').then(module => ({ default: module.FinancialRisk })));
+
+// ANSSI Homologation Module (Epic 38)
+const Homologation = React.lazy(() => import('../../views/Homologation').then(module => ({ default: module.Homologation })));
+
 // New Professional 404 Page
 import { NotFound } from '../../views/NotFound';
 
@@ -111,6 +117,9 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/suppliers" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Suppliers /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/vendor-concentration" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><VendorConcentration /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/dora/providers" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><DORAProviders /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/financial-risk" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><FinancialRisk /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/homologation" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><Homologation /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/homologation/:id" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><Homologation /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Privacy /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Continuity /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><VoxelView /></AnimatedPage></RoleGuardComponent>} />

@@ -194,7 +194,6 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
     dossier.id,
     buildContext,
     documentsByType,
-    toast,
     t,
     onDocumentGenerated
   ]);

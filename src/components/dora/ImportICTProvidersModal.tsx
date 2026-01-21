@@ -43,7 +43,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
             setFile(selectedFile);
             setResult(null);
         }
-    }, []);
+    }, [t]);
 
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -56,7 +56,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
             setFile(droppedFile);
             setResult(null);
         }
-    }, []);
+    }, [t]);
 
     const parseCSV = (content: string): Record<string, string>[] => {
         const lines = content.split('\n').filter(line => line.trim());

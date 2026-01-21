@@ -19,7 +19,6 @@ import {
   TrendingDown,
   Eye,
   RefreshCw,
-  Check,
   Network,
   Clock,
   Wrench,
@@ -27,7 +26,6 @@ import {
   ChevronUp,
   Search,
 } from '../ui/Icons';
-import { FloatingLabelSelect } from '../ui/FloatingLabelSelect';
 import { OTVulnerabilityService } from '@/services/OTVulnerabilityService';
 import type { Asset } from '@/types';
 import type {

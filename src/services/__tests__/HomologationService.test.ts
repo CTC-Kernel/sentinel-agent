@@ -6,7 +6,7 @@
  * Story 38-1: Homologation Level Selector
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   calculateTotalScore,
   getLevelFromScore,
@@ -29,8 +29,7 @@ import {
 } from '../HomologationService';
 import type {
   LevelDeterminationAnswer,
-  HomologationDossier,
-  HomologationLevel
+  HomologationDossier
 } from '../../types/homologation';
 import { LEVEL_THRESHOLDS, REQUIRED_DOCUMENTS } from '../../types/homologation';
 

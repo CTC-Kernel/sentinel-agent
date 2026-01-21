@@ -9,7 +9,6 @@
 import {
   collection,
   doc,
-  setDoc,
   serverTimestamp,
   writeBatch
 } from 'firebase/firestore';
@@ -25,8 +24,6 @@ import type {
 } from '../types/assets';
 import {
   OT_CSV_COLUMN_MAPPINGS,
-  isValidNetworkSegment,
-  isValidOTCriticality,
   isValidOTProtocol,
   isValidOTDeviceType,
   normalizeNetworkSegment,

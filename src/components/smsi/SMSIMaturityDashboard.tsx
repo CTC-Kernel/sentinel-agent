@@ -30,8 +30,6 @@ import { Button } from '../ui/button';
 import type { SMSIProgram, Milestone, PDCAPhase } from '../../types/ebios';
 import {
   SMSIService,
-  type MaturityAssessment,
-  type CertificationReadiness,
   type SMSIRecommendation,
   MATURITY_LEVELS,
 } from '../../services/SMSIService';

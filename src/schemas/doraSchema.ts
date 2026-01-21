@@ -8,8 +8,7 @@ import i18n from '../i18n';
 import {
     ICT_CRITICALITY_LEVELS,
     ICT_SERVICE_TYPES,
-    SUBSTITUTABILITY_LEVELS,
-    ICT_CERTIFICATIONS
+    SUBSTITUTABILITY_LEVELS
 } from '../types/dora';
 
 /**
@@ -197,7 +196,11 @@ export const ictProviderImportSchema = z.object({
     contactEmail: z.string().optional(),
 });
 
-// Re-export ICTProviderFormData from types for consistency
-export type { ICTProviderFormData } from '../types/dora';
+/**
+ * Form-specific type with string dates (not Firestore timestamps)
+ * This ensures compatibility with react-hook-form and Zod validation
+ */
+export type ICTProviderFormData = z.infer<typeof ictProviderSchema>;
+
 export type ICTProviderDraftData = z.infer<typeof ictProviderDraftSchema>;
 export type ICTProviderImportData = z.infer<typeof ictProviderImportSchema>;

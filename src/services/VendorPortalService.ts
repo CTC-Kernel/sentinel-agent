@@ -15,7 +15,6 @@ import {
   query,
   where,
   serverTimestamp,
-  Timestamp,
   limit,
 } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -24,7 +23,6 @@ import {
   VendorPortalAccess,
   CreatePortalAccessInput,
   PortalAccessValidation,
-  PortalAccessError,
   PortalActivityLog,
   PortalActivityType,
   QuestionAnswer,
@@ -494,7 +492,7 @@ export class VendorPortalService {
       try {
         const { VendorScoringService } = await import('./VendorScoringService');
         await VendorScoringService.calculateAndSaveScore(access.assessmentId);
-      } catch (scoringError) {
+      } catch {
         // Log but don't fail the submission
         ErrorLogger.warn('Scoring calculation failed', 'VendorPortalService.submitPortalQuestionnaire');
       }
@@ -536,7 +534,7 @@ export class VendorPortalService {
       };
 
       await addDoc(collection(db, PORTAL_ACTIVITY_COLLECTION), sanitizeData(log));
-    } catch (error) {
+    } catch {
       // Don't throw for logging failures
       ErrorLogger.warn('Failed to log portal activity', 'VendorPortalService.logActivity');
     }

@@ -25,9 +25,7 @@ import {
     getDocs,
     getDoc,
     orderBy,
-    limit,
     serverTimestamp,
-    Timestamp,
     writeBatch
 } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';

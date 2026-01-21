@@ -44,7 +44,7 @@ import { getTemplateById } from '../data/questionnaireTemplates';
 
 // Collection names
 const ASSESSMENTS_COLLECTION = 'questionnaire_responses';
-const SCORES_COLLECTION = 'vendor_scores';
+const _SCORES_COLLECTION = 'vendor_scores';
 const SCORING_CONFIG_COLLECTION = 'scoring_configurations';
 
 export class VendorScoringService {

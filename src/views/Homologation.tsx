@@ -112,7 +112,7 @@ const Homologation: React.FC = () => {
         title: t('homologation.dossierDeleted', 'Dossier supprimé'),
         description: t('homologation.dossierDeletedDesc', 'Le dossier a été supprimé.')
       });
-    } catch (err) {
+    } catch {
       toast({
         title: t('common.error', 'Erreur'),
         description: t('homologation.deleteError', 'Impossible de supprimer le dossier.'),

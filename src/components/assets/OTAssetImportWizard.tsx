@@ -218,7 +218,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
           })
         );
       }
-    } catch (_error) {
+    } catch {
       toast.error(
         t('otImport.errors.importFailed', 'Erreur d\'import'),
         t('otImport.errors.importFailedDesc', 'L\'import a échoué')

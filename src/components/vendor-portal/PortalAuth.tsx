@@ -23,14 +23,14 @@ interface PortalAuthProps {
 export const PortalAuth: React.FC<PortalAuthProps> = ({
   access,
   onSuccess,
-  onError,
+  onError: _onError,
 }) => {
   const { t } = useTranslation();
   const [step, setStep] = useState<'welcome' | 'verify'>('welcome');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [codeSent, setCodeSent] = useState(false);
+  const [_codeSent, setCodeSent] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -50,7 +50,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
       await VendorPortalService.sendVerificationCode(access.id);
       setCodeSent(true);
       setStep('verify');
-    } catch (err) {
+    } catch {
       setError(t('vendorPortal.sendCodeError', 'Failed to send verification code. Please try again.'));
     } finally {
       setIsLoading(false);
@@ -110,7 +110,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
         setCode(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
       }
-    } catch (err) {
+    } catch {
       setError(t('vendorPortal.verifyError', 'Verification failed. Please try again.'));
     } finally {
       setIsLoading(false);

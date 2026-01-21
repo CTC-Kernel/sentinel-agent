@@ -115,12 +115,15 @@ export function usePortalAutoSave(
 
   // Cleanup on unmount
   useEffect(() => {
+    const currentPendingSaves = pendingSaves.current;
+    const currentDebounceTimer = debounceTimer.current;
+
     return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
+      if (currentDebounceTimer) {
+        clearTimeout(currentDebounceTimer);
       }
       // Save any pending on unmount
-      if (pendingSaves.current.size > 0 && !isReadOnly) {
+      if (currentPendingSaves.size > 0 && !isReadOnly) {
         flushSaves();
       }
     };

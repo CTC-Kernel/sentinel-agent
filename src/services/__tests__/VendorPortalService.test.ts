@@ -6,7 +6,7 @@
  * Tests the portal access, validation, and questionnaire progress utilities
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   isPortalAccessExpired,
   canEditPortalAccess,
@@ -19,7 +19,6 @@ import {
   generateVerificationCode,
 } from '../../types/vendorPortal';
 import type {
-  VendorPortalAccess,
   PortalAccessStatus,
   PortalAccessError,
   QuestionAnswer,

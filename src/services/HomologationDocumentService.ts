@@ -21,16 +21,11 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type {
   HomologationDossier,
-  HomologationDocumentType,
-  HomologationDocumentRef,
-  HomologationLevel
+  HomologationDocumentType
 } from '../types/homologation';
-import { LEVEL_INFO, DOCUMENT_TYPE_INFO, REQUIRED_DOCUMENTS } from '../types/homologation';
+import { LEVEL_INFO, REQUIRED_DOCUMENTS } from '../types/homologation';
 import {
-  getDocumentTemplate,
-  PLACEHOLDERS,
-  type DocumentTemplate,
-  type DocumentSection
+  getDocumentTemplate
 } from '../data/homologationTemplates';
 
 // ============================================================================

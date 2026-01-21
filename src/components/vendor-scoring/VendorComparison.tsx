@@ -22,8 +22,6 @@ import {
   Filter,
   ArrowUpDown,
   ChevronRight,
-  AlertTriangle,
-  CheckCircle,
   Building2,
   BarChart3,
   Grid3X3,
@@ -49,7 +47,7 @@ const RiskMatrixCell: React.FC<{
   riskLevel: RiskLevel;
   criticalityLevel: 'Low' | 'Medium' | 'High';
   onClick?: (supplierId: string) => void;
-}> = ({ vendors, riskLevel, criticalityLevel, onClick }) => {
+}> = ({ vendors, riskLevel, criticalityLevel: _criticalityLevel, onClick }) => {
   const config = getRiskLevelConfig(riskLevel);
 
   if (vendors.length === 0) {

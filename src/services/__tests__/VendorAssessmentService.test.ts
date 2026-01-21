@@ -12,7 +12,6 @@ import {
   getReviewCycleLabel,
   getAssessmentStatusColor,
   calculateCompletionPercentage,
-  ReviewCycle,
   EnhancedAssessmentResponse,
 } from '../../types/vendorAssessment';
 import {
@@ -363,7 +362,7 @@ describe('getFrameworkColor', () => {
 // ============================================================================
 
 describe('Assessment Status Flow', () => {
-  const validStatusTransitions: Array<[string, string]> = [
+  const _validStatusTransitions: Array<[string, string]> = [
     ['Draft', 'Sent'],
     ['Sent', 'In Progress'],
     ['In Progress', 'Submitted'],

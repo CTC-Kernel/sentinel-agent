@@ -382,7 +382,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
         const data = await OTVulnerabilityService.getOTExposureMetrics(organization.id);
         setMetrics(data);
         setError(null);
-      } catch (_err) {
+      } catch {
         setError(t('otVulnerability.errors.loadFailed', 'Failed to load OT exposure metrics'));
       } finally {
         setLoading(false);

@@ -21,7 +21,6 @@ import {
   validateSectionWeights,
   normalizeSectionWeights,
   getScoreColor,
-  getScoreBgColor,
   formatScore,
 } from '../../types/vendorScoring';
 import type { MitigatingFactor, ScoringOption } from '../../types/vendorScoring';

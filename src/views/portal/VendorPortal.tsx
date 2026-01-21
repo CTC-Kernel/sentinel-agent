@@ -11,22 +11,21 @@ import { VendorPortalService } from '../../services/VendorPortalService';
 import {
   VendorPortalAccess,
   PortalAccessError,
-  PortalSession,
   getPortalErrorMessage,
 } from '../../types/vendorPortal';
 import { EnhancedAssessmentResponse } from '../../types/vendorAssessment';
 import { QuestionnaireTemplate } from '../../types/business';
-import { getTemplateById, QUESTIONNAIRE_TEMPLATES } from '../../data/questionnaireTemplates';
+import { getTemplateById } from '../../data/questionnaireTemplates';
 import { PortalAuth } from '../../components/vendor-portal/PortalAuth';
 import { PortalQuestionnaire } from '../../components/vendor-portal/PortalQuestionnaire';
-import { Loader2, ShieldCheck, AlertTriangle, Building2, CheckCircle } from '../../components/ui/Icons';
+import { Loader2, AlertTriangle, Building2, CheckCircle } from '../../components/ui/Icons';
 
 type PortalState = 'loading' | 'auth' | 'questionnaire' | 'submitted' | 'error';
 
 export const VendorPortal: React.FC = () => {
   const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
 
   const [state, setState] = useState<PortalState>('loading');
   const [error, setError] = useState<PortalAccessError | null>(null);

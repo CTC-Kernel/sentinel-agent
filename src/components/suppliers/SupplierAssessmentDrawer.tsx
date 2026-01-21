@@ -6,7 +6,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
 import { useSupplierDependencies } from '../../hooks/suppliers/useSupplierDependencies';
 import { Supplier } from '../../types';
-import { AlertCircle, FileText, Play, Clock, Calendar, CheckCircle, ListTodo } from '../ui/Icons';
+import { AlertCircle, FileText, Play, Clock, CheckCircle, ListTodo } from '../ui/Icons';
 import { toast } from '@/lib/toast';
 import { VendorAssessmentService } from '../../services/VendorAssessmentService';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -46,7 +46,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const { user } = useStore();
-  const { templates, addTemplate, loading } = useSupplierDependencies({ fetchTemplates: true });
+  const { templates, loading } = useSupplierDependencies({ fetchTemplates: true });
 
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [dueDate, setDueDate] = useState<string | undefined>();
@@ -127,7 +127,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
       if (!loading && user?.organizationId) {
         try {
           await VendorAssessmentService.seedDefaultTemplates(user.organizationId, user.uid);
-        } catch (error) {
+        } catch {
           // Non-blocking - templates can be used without seeding
           ErrorLogger.warn('Failed to seed templates', 'SupplierAssessmentDrawer');
         }

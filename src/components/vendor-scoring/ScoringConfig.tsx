@@ -4,19 +4,16 @@
  * Story 37-3: Automated Vendor Scoring
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   TemplateScoringConfig,
-  SectionScoringConfig,
-  validateSectionWeights,
   normalizeSectionWeights,
   RISK_LEVEL_CONFIGS,
 } from '../../types/vendorScoring';
 import { QuestionnaireSection } from '../../types/business';
 import { Button } from '../ui/button';
 import {
-  Settings,
   AlertTriangle,
   CheckCircle,
   Save,
@@ -68,7 +65,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
     return set;
   });
 
-  const [isDirty, setIsDirty] = useState(false);
+  const [_isDirty, setIsDirty] = useState(false);
 
   // Calculate total weight
   const totalWeight = sectionWeights.reduce((sum, s) => sum + s.weight, 0);
@@ -108,7 +105,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
   };
 
   // Toggle critical question
-  const toggleCritical = (questionId: string) => {
+  const _toggleCritical = (questionId: string) => {
     setCriticalQuestions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(questionId)) {

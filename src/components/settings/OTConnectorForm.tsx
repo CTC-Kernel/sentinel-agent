@@ -23,10 +23,8 @@ import {
   Play,
   AlertCircle,
   CheckCircle,
-  Clock,
   Calendar,
-  Settings,
-  X
+  Settings
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';

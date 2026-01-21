@@ -9,8 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
 import { Drawer } from '../ui/Drawer';
 import { ICTProviderForm } from './ICTProviderForm';
-import { ICTProviderFormData } from '../../schemas/doraSchema';
-import { ICTProvider } from '../../types/dora';
+import { ICTProvider, ICTProviderFormData } from '../../types/dora';
 import { useICTProviders } from '../../hooks/useICTProviders';
 
 interface ICTProviderDrawerProps {
@@ -52,18 +51,32 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
         }
     };
 
+    // Convert provider data to form-compatible format
+    const getStringDate = (dateValue: unknown): string => {
+        if (!dateValue) return '';
+        if (typeof dateValue === 'string') return dateValue;
+        if (typeof dateValue === 'object' && dateValue !== null && 'toDate' in dateValue) {
+            return (dateValue as { toDate: () => Date }).toDate().toISOString();
+        }
+        return '';
+    };
+
     const initialData: Partial<ICTProviderFormData> | undefined = provider ? {
         name: provider.name,
         category: provider.category,
         description: provider.description,
-        services: provider.services,
+        services: provider.services.map(s => ({
+            id: s.id,
+            name: s.name,
+            type: s.type,
+            criticality: s.criticality,
+            description: s.description,
+            businessFunctions: s.businessFunctions,
+            dataProcessed: s.dataProcessed
+        })),
         contractInfo: {
-            startDate: typeof provider.contractInfo?.startDate === 'string'
-                ? provider.contractInfo.startDate
-                : '',
-            endDate: typeof provider.contractInfo?.endDate === 'string'
-                ? provider.contractInfo.endDate
-                : '',
+            startDate: getStringDate(provider.contractInfo?.startDate),
+            endDate: getStringDate(provider.contractInfo?.endDate),
             exitStrategy: provider.contractInfo?.exitStrategy || '',
             auditRights: provider.contractInfo?.auditRights || false,
             contractValue: provider.contractInfo?.contractValue,
@@ -78,14 +91,15 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
         riskAssessment: {
             concentration: provider.riskAssessment?.concentration || 0,
             substitutability: provider.riskAssessment?.substitutability || 'medium',
-            notes: provider.riskAssessment?.notes
+            notes: provider.riskAssessment?.notes,
+            lastAssessment: getStringDate(provider.riskAssessment?.lastAssessment) || new Date().toISOString()
         },
         contactName: provider.contactName,
         contactEmail: provider.contactEmail,
         contactPhone: provider.contactPhone,
         website: provider.website,
         status: provider.status
-    } : undefined;
+    } as Partial<ICTProviderFormData> : undefined;
 
     return (
         <Drawer

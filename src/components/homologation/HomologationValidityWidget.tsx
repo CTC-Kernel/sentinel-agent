@@ -21,14 +21,12 @@ import {
   Shield,
   ShieldAlert,
   Loader2
-} from 'lucide-react';
-import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from '../ui/Icons';
 import { cn } from '../../lib/utils';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
-import { Progress } from '../ui/Progress';
+import { Progress } from '../ui/progress';
 import { useStore } from '../../store';
 import {
   HomologationService,
@@ -125,10 +123,9 @@ export const HomologationValidityWidget: React.FC<HomologationValidityWidgetProp
   showStats = true,
   onRenewalClick
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { organization } = useStore();
-  const isEnglish = i18n.language === 'en';
 
   // State
   const [loading, setLoading] = useState(true);

@@ -17,8 +17,13 @@ import {
   AdditiveBlending,
   Group
 } from 'three';
-import type { VoxelNode, VoxelEdge, NetworkSegment } from '../../types/voxel';
-import { SEGMENT_COLORS } from './OTNodeMesh';
+import type { VoxelNode, VoxelEdge } from '../../types/voxel';
+import {
+  SEGMENT_COLORS,
+  getConnectionType,
+  isCrossSegmentConnection,
+  type ConnectionType
+} from './voxelConstants';
 
 // ============================================================================
 // Types
@@ -45,8 +50,6 @@ export interface ITOTEdgeProps {
   animated?: boolean;
 }
 
-export type ConnectionType = 'it-to-ot' | 'ot-to-it' | 'it-to-dmz' | 'dmz-to-ot' | 'same-segment';
-
 // ============================================================================
 // Constants
 // ============================================================================
@@ -65,36 +68,6 @@ const EDGE_TYPE_LABELS: Record<VoxelEdge['type'], string> = {
   assignment: 'Assignment',
   impact: 'Impact',
 };
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Determine connection type based on source and target segments
- */
-export function getConnectionType(
-  sourceSegment: NetworkSegment,
-  targetSegment: NetworkSegment
-): ConnectionType {
-  if (sourceSegment === targetSegment) return 'same-segment';
-  if (sourceSegment === 'IT' && targetSegment === 'OT') return 'it-to-ot';
-  if (sourceSegment === 'OT' && targetSegment === 'IT') return 'ot-to-it';
-  if (sourceSegment === 'IT' && targetSegment === 'DMZ') return 'it-to-dmz';
-  if (sourceSegment === 'DMZ' && targetSegment === 'OT') return 'dmz-to-ot';
-  return 'same-segment';
-}
-
-/**
- * Check if connection crosses segment boundaries
- */
-export function isCrossSegmentConnection(
-  sourceSegment?: NetworkSegment,
-  targetSegment?: NetworkSegment
-): boolean {
-  if (!sourceSegment || !targetSegment) return false;
-  return sourceSegment !== targetSegment;
-}
 
 // ============================================================================
 // Gradient Line Component
@@ -341,28 +314,29 @@ export const ITOTEdge: React.FC<ITOTEdgeProps> = React.memo(
     const connectionType = getConnectionType(sourceSegment, targetSegment);
     const isCrossSegment = isCrossSegmentConnection(sourceSegment, targetSegment);
 
-    // Calculate positions
-    const sourcePos = new Vector3(
-      sourceNode.position.x,
-      sourceNode.position.y,
-      sourceNode.position.z
-    );
-    const targetPos = new Vector3(
-      targetNode.position.x,
-      targetNode.position.y,
-      targetNode.position.z
-    );
-    const dmzPos = dmzNode
-      ? new Vector3(dmzNode.position.x, dmzNode.position.y, dmzNode.position.z)
-      : null;
-
     // Build path points
     const points = useMemo(() => {
+      const sourcePos = new Vector3(
+        sourceNode.position.x,
+        sourceNode.position.y,
+        sourceNode.position.z
+      );
+      const targetPos = new Vector3(
+        targetNode.position.x,
+        targetNode.position.y,
+        targetNode.position.z
+      );
+      const dmzPos = dmzNode
+        ? new Vector3(dmzNode.position.x, dmzNode.position.y, dmzNode.position.z)
+        : null;
+
       if (dmzPos && isCrossSegment) {
         return [sourcePos, dmzPos, targetPos];
       }
       return [sourcePos, targetPos];
-    }, [sourcePos, targetPos, dmzPos, isCrossSegment]);
+    }, [sourceNode.position.x, sourceNode.position.y, sourceNode.position.z,
+        targetNode.position.x, targetNode.position.y, targetNode.position.z,
+        dmzNode, isCrossSegment]);
 
     // Calculate midpoint for label
     const midpoint = useMemo(() => {

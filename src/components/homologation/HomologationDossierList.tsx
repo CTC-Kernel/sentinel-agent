@@ -23,22 +23,22 @@ import {
   XCircle,
   FileCheck,
   Calendar
-} from 'lucide-react';
+} from '../ui/Icons';
 import { cn } from '../../lib/utils';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
-import { Input } from '../ui/Input';
+import { Input } from '../ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator
-} from '../ui/DropdownMenu';
-import { Progress } from '../ui/Progress';
+} from '../ui/dropdown-menu';
+import { Progress } from '../ui/progress';
 import type { HomologationDossier, HomologationLevel, HomologationStatus } from '../../types/homologation';
-import { LEVEL_INFO, DOCUMENT_TYPE_INFO } from '../../types/homologation';
+import { LEVEL_INFO } from '../../types/homologation';
 
 interface HomologationDossierListProps {
   dossiers: HomologationDossier[];
@@ -76,7 +76,6 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
 }) => {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'en' ? enUS : fr;
-  const isEnglish = i18n.language === 'en';
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<HomologationStatus | 'all'>('all');
@@ -161,7 +160,7 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
                   {t(`homologation.status.${dossier.status}`, dossier.status)}
                 </Badge>
                 {dossier.levelOverridden && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="soft" className="text-xs">
                     {t('homologation.overridden', 'Modifié')}
                   </Badge>
                 )}

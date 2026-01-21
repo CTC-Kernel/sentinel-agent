@@ -16,13 +16,12 @@ import {
   where,
   serverTimestamp,
   writeBatch,
-  Timestamp,
   orderBy,
   limit,
 } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
-import { QuestionnaireTemplate, SupplierQuestionnaireResponse } from '../types/business';
+import { QuestionnaireTemplate } from '../types/business';
 import {
   EnhancedAssessmentResponse,
   AssessmentStatus,
@@ -39,7 +38,6 @@ import {
   isAssessmentExpired,
   getDaysUntil,
   REVIEW_ALERT_THRESHOLDS,
-  calculateCompletionPercentage,
 } from '../types/vendorAssessment';
 import { QUESTIONNAIRE_TEMPLATES, getTemplateById } from '../data/questionnaireTemplates';
 

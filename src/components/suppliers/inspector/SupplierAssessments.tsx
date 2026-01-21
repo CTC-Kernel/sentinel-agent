@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ClipboardList, ChevronRight, Clock, CheckCircle2, AlertTriangle, Calendar, Filter, RefreshCw } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 import { SupplierQuestionnaireResponse } from '../../../types';
-import { EnhancedAssessmentResponse, AssessmentStatus, getDaysUntil, getAssessmentStatusColor } from '../../../types/vendorAssessment';
+import { EnhancedAssessmentResponse, AssessmentStatus, getDaysUntil } from '../../../types/vendorAssessment';
 import { Button } from '../../ui/button';
 import { useTranslation } from 'react-i18next';
 

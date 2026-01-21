@@ -445,11 +445,11 @@ development_status:
 
   # Epic 37: Third-Party Risk Management (P1 - All Verticals)
   # ADR-010 - Module TPRM avec questionnaires automatisés
-  epic-37: in-progress
+  epic-37: done
   37-1-vendor-assessment-creation: dev-complete
-  37-2-vendor-self-service-portal: in-progress
-  37-3-automated-vendor-scoring: backlog
-  37-4-vendor-concentration-dashboard: backlog
+  37-2-vendor-self-service-portal: dev-complete
+  37-3-automated-vendor-scoring: dev-complete
+  37-4-vendor-concentration-dashboard: dev-complete
   epic-37-retrospective: optional
 
   # Epic 38: ANSSI Homologation (P0 - Public Sector)

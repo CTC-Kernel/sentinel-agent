@@ -11,17 +11,15 @@ import { useNavigate } from 'react-router-dom';
 import {
   RefreshCw,
   Calendar,
-  Shield,
   AlertTriangle,
   CheckCircle,
   Loader2,
-  FileText,
-  ChevronRight
-} from 'lucide-react';
+  FileText
+} from '../ui/Icons';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import {
   Dialog,
@@ -30,8 +28,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter
-} from '../ui/Dialog';
-import { useToast } from '../../hooks/useToast';
+} from '../ui/dialog';
+import { toast } from '../../lib/toast';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import { HomologationService } from '../../services/HomologationService';
@@ -55,7 +53,6 @@ export const RenewalDialog: React.FC<RenewalDialogProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { organization } = useStore();
   const { user } = useAuth();
   const isEnglish = i18n.language === 'en';
@@ -82,27 +79,26 @@ export const RenewalDialog: React.FC<RenewalDialogProps> = ({
         dossier.id
       );
 
-      toast({
-        title: t('homologation.renewal.created', 'Dossier de renouvellement créé'),
-        description: t(
+      toast.success(
+        t('homologation.renewal.created', 'Dossier de renouvellement créé'),
+        t(
           'homologation.renewal.createdDesc',
           'Le nouveau dossier a été créé avec les données pré-remplies.'
         )
-      });
+      );
 
       onOpenChange(false);
       navigate(`/homologation/${newDossier.id}`);
     } catch (error) {
       console.error('Error initiating renewal:', error);
-      toast({
-        title: t('common.error', 'Erreur'),
-        description: t('homologation.renewal.error', 'Erreur lors de la création du renouvellement.'),
-        variant: 'destructive'
-      });
+      toast.error(
+        t('common.error', 'Erreur'),
+        t('homologation.renewal.error', 'Erreur lors de la création du renouvellement.')
+      );
     } finally {
       setLoading(false);
     }
-  }, [organization?.id, user?.uid, dossier, toast, t, navigate, onOpenChange]);
+  }, [organization?.id, user?.uid, dossier, t, navigate, onOpenChange]);
 
   if (!dossier) return null;
 

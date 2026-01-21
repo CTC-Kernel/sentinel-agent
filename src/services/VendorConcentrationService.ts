@@ -919,7 +919,7 @@ export class VendorConcentrationService {
         ...metrics,
         calculatedAt: Timestamp.now(),
       });
-    } catch (error) {
+    } catch {
       ErrorLogger.warn('Failed to save concentration metrics', 'VendorConcentrationService.saveMetrics');
     }
   }

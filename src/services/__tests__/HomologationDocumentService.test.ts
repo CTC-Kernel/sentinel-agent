@@ -49,8 +49,7 @@ vi.mock('jspdf', () => ({
 
 import {
   HomologationDocumentService,
-  type DocumentGenerationContext,
-  type GeneratedDocument
+  type DocumentGenerationContext
 } from '../HomologationDocumentService';
 import type { HomologationDossier } from '../../types/homologation';
 

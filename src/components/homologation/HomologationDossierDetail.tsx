@@ -25,23 +25,22 @@ import {
   Loader2,
   Save,
   ChevronLeft
-} from 'lucide-react';
+} from '../ui/Icons';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
 import { RichTextEditor } from '../ui/RichTextEditor';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
-import { useToast } from '../../hooks/useToast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { toast } from '../../lib/toast';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import { HomologationService } from '../../services/HomologationService';
 import {
   HomologationDocumentService,
-  type GeneratedDocument,
-  type DocumentGenerationContext
+  type GeneratedDocument
 } from '../../services/HomologationDocumentService';
 import { DocumentGenerationPanel } from './DocumentGenerationPanel';
 import type { HomologationDossier, HomologationLevel, HomologationStatus } from '../../types/homologation';
@@ -83,7 +82,6 @@ export const HomologationDossierDetail: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { dossierId } = useParams<{ dossierId: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { organization } = useStore();
   const { user } = useAuth();
   const isEnglish = i18n.language === 'en';
@@ -182,25 +180,24 @@ export const HomologationDossierDetail: React.FC = () => {
         selectedDocument.sections.map((s) => ({ ...s, isModified: true }))
       );
 
-      toast({
-        title: t('homologation.documents.saved', 'Document enregistré'),
-        description: t('homologation.documents.savedDesc', 'Les modifications ont été enregistrées.')
-      });
+      toast.success(
+        t('homologation.documents.saved', 'Document enregistré'),
+        t('homologation.documents.savedDesc', 'Les modifications ont été enregistrées.')
+      );
 
       // Refresh documents
       await fetchData();
       setIsEditing(false);
     } catch (err) {
       console.error('Error saving document:', err);
-      toast({
-        title: t('common.error', 'Erreur'),
-        description: t('homologation.documents.saveError', 'Erreur lors de l\'enregistrement.'),
-        variant: 'destructive'
-      });
+      toast.error(
+        t('common.error', 'Erreur'),
+        t('homologation.documents.saveError', 'Erreur lors de l\'enregistrement.')
+      );
     } finally {
       setSaving(false);
     }
-  }, [organization?.id, dossierId, selectedDocument, user?.uid, editedContent, toast, t, fetchData]);
+  }, [organization?.id, dossierId, selectedDocument, user?.uid, editedContent, t, fetchData]);
 
   // Handle status change
   const handleStatusChange = useCallback(
@@ -223,22 +220,21 @@ export const HomologationDossierDetail: React.FC = () => {
 
         await HomologationService.updateDossier(organization.id, dossierId, user.uid, updates);
 
-        toast({
-          title: t('homologation.statusUpdated', 'Statut mis à jour'),
-          description: t('homologation.statusUpdatedDesc', 'Le statut du dossier a été modifié.')
-        });
+        toast.success(
+          t('homologation.statusUpdated', 'Statut mis à jour'),
+          t('homologation.statusUpdatedDesc', 'Le statut du dossier a été modifié.')
+        );
 
         await fetchData();
       } catch (err) {
         console.error('Error updating status:', err);
-        toast({
-          title: t('common.error', 'Erreur'),
-          description: t('homologation.statusUpdateError', 'Erreur lors de la mise à jour.'),
-          variant: 'destructive'
-        });
+        toast.error(
+          t('common.error', 'Erreur'),
+          t('homologation.statusUpdateError', 'Erreur lors de la mise à jour.')
+        );
       }
     },
-    [organization?.id, dossierId, user?.uid, dossier?.validityYears, toast, t, fetchData]
+    [organization?.id, dossierId, user?.uid, dossier?.validityYears, t, fetchData]
   );
 
   // Render loading state

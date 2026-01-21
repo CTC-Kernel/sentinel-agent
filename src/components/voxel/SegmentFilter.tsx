@@ -23,17 +23,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Check, Filter, Server, Factory, Shield, Eye, EyeOff, ChevronDown } from '../ui/Icons';
 import type { NetworkSegment } from '../../types/voxel';
-import { SEGMENT_COLORS } from './OTNodeMesh';
+import { SEGMENT_COLORS } from './voxelConstants';
+import {
+  type SegmentVisibility,
+  type SegmentFilterPreset,
+  PRESET_CONFIGS
+} from './useSegmentFilter';
 
 // ============================================================================
 // Types
 // ============================================================================
-
-export interface SegmentVisibility {
-  IT: boolean;
-  OT: boolean;
-  DMZ: boolean;
-}
 
 export interface SegmentFilterProps {
   /** Current visibility state */
@@ -52,7 +51,8 @@ export interface SegmentFilterProps {
   compact?: boolean;
 }
 
-export type SegmentFilterPreset = 'all' | 'it-only' | 'ot-only' | 'it-ot-boundary' | 'dmz-focus';
+// Re-export types for convenience
+export type { SegmentVisibility, SegmentFilterPreset };
 
 // ============================================================================
 // Constants
@@ -68,14 +68,6 @@ const SEGMENT_LABELS: Record<NetworkSegment, string> = {
   IT: 'IT',
   OT: 'OT',
   DMZ: 'DMZ',
-};
-
-const PRESET_CONFIGS: Record<SegmentFilterPreset, SegmentVisibility> = {
-  all: { IT: true, OT: true, DMZ: true },
-  'it-only': { IT: true, OT: false, DMZ: false },
-  'ot-only': { IT: false, OT: true, DMZ: false },
-  'it-ot-boundary': { IT: true, OT: true, DMZ: true },
-  'dmz-focus': { IT: false, OT: false, DMZ: true },
 };
 
 // ============================================================================
@@ -354,94 +346,13 @@ export const SegmentFilter: React.FC<SegmentFilterProps> = React.memo(
 
 SegmentFilter.displayName = 'SegmentFilter';
 
-// ============================================================================
-// Hook for Segment Filter State
-// ============================================================================
-
-export interface UseSegmentFilterOptions {
-  /** Initial visibility state */
-  initialVisibility?: SegmentVisibility;
-  /** Callback when visibility changes */
-  onChange?: (visibility: SegmentVisibility) => void;
-}
-
-export interface UseSegmentFilterResult {
-  visibility: SegmentVisibility;
-  setVisibility: React.Dispatch<React.SetStateAction<SegmentVisibility>>;
-  toggleSegment: (segment: NetworkSegment) => void;
-  showAll: () => void;
-  hideAll: () => void;
-  applyPreset: (preset: SegmentFilterPreset) => void;
-  showCrossSegmentOnly: boolean;
-  setShowCrossSegmentOnly: React.Dispatch<React.SetStateAction<boolean>>;
-  isSegmentVisible: (segment?: NetworkSegment) => boolean;
-}
-
-export function useSegmentFilter(
-  options: UseSegmentFilterOptions = {}
-): UseSegmentFilterResult {
-  const { initialVisibility = { IT: true, OT: true, DMZ: true }, onChange } = options;
-
-  const [visibility, setVisibilityState] = React.useState<SegmentVisibility>(initialVisibility);
-  const [showCrossSegmentOnly, setShowCrossSegmentOnly] = React.useState(false);
-
-  // Wrapper for setVisibility that also calls onChange
-  const setVisibility: React.Dispatch<React.SetStateAction<SegmentVisibility>> = useCallback(
-    (action) => {
-      setVisibilityState((prev) => {
-        const next = typeof action === 'function' ? action(prev) : action;
-        onChange?.(next);
-        return next;
-      });
-    },
-    [onChange]
-  );
-
-  const toggleSegment = useCallback(
-    (segment: NetworkSegment) => {
-      setVisibility((prev) => ({
-        ...prev,
-        [segment]: !prev[segment],
-      }));
-    },
-    [setVisibility]
-  );
-
-  const showAll = useCallback(() => {
-    setVisibility({ IT: true, OT: true, DMZ: true });
-  }, [setVisibility]);
-
-  const hideAll = useCallback(() => {
-    setVisibility({ IT: false, OT: false, DMZ: false });
-  }, [setVisibility]);
-
-  const applyPreset = useCallback(
-    (preset: SegmentFilterPreset) => {
-      setVisibility(PRESET_CONFIGS[preset]);
-      setShowCrossSegmentOnly(preset === 'it-ot-boundary');
-    },
-    [setVisibility]
-  );
-
-  const isSegmentVisible = useCallback(
-    (segment?: NetworkSegment) => {
-      if (!segment) return true;
-      return visibility[segment];
-    },
-    [visibility]
-  );
-
-  return {
-    visibility,
-    setVisibility,
-    toggleSegment,
-    showAll,
-    hideAll,
-    applyPreset,
-    showCrossSegmentOnly,
-    setShowCrossSegmentOnly,
-    isSegmentVisible,
-  };
-}
+// Re-export hook and types from utility file for backward compatibility
+/* eslint-disable react-refresh/only-export-components */
+export {
+  useSegmentFilter,
+  type UseSegmentFilterOptions,
+  type UseSegmentFilterResult
+} from './useSegmentFilter';
+/* eslint-enable react-refresh/only-export-components */
 
 export default SegmentFilter;

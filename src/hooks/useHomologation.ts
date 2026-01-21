@@ -20,7 +20,6 @@ import type {
   CreateHomologationDossierInput,
   UpdateHomologationDossierInput
 } from '../types/homologation';
-import { LEVEL_INFO, REQUIRED_DOCUMENTS } from '../types/homologation';
 import { LEVEL_DETERMINATION_QUESTIONS } from '../data/homologationQuestions';
 
 interface UseHomologationOptions {
@@ -70,6 +69,10 @@ export const useHomologation = (
   const { organization } = useStore();
   const { user } = useAuth();
 
+  // Extract IDs for stable memoization
+  const organizationId = organization?.id;
+  const userId = user?.uid;
+
   // Build query constraints
   const constraints = useMemo(() => {
     const result: QueryConstraint[] = [orderBy('createdAt', 'desc')];
@@ -78,9 +81,9 @@ export const useHomologation = (
 
   // Collection path
   const collectionPath = useMemo(() => {
-    if (!organization?.id) return null;
-    return `organizations/${organization.id}/homologations`;
-  }, [organization?.id]);
+    if (!organizationId) return null;
+    return `organizations/${organizationId}/homologations`;
+  }, [organizationId]);
 
   // Use Firestore collection hook
   const {
@@ -89,7 +92,7 @@ export const useHomologation = (
     error,
     refresh
   } = useFirestoreCollection<HomologationDossier>(collectionPath, constraints, {
-    enabled: !!organization?.id,
+    enabled: !!organizationId,
     realtime
   });
 
@@ -148,43 +151,43 @@ export const useHomologation = (
   // Create dossier
   const createDossier = useCallback(
     async (input: CreateHomologationDossierInput): Promise<string> => {
-      if (!organization?.id || !user?.uid) {
+      if (!organizationId || !userId) {
         throw new Error('Organization and user required');
       }
 
       const dossier = await HomologationService.createDossier(
-        organization.id,
-        user.uid,
+        organizationId,
+        userId,
         input
       );
 
       return dossier.id;
     },
-    [organization?.id, user?.uid]
+    [organizationId, userId]
   );
 
   // Update dossier
   const updateDossier = useCallback(
     async (id: string, input: UpdateHomologationDossierInput): Promise<void> => {
-      if (!organization?.id || !user?.uid) {
+      if (!organizationId || !userId) {
         throw new Error('Organization and user required');
       }
 
-      await HomologationService.updateDossier(organization.id, id, user.uid, input);
+      await HomologationService.updateDossier(organizationId, id, userId, input);
     },
-    [organization?.id, user?.uid]
+    [organizationId, userId]
   );
 
   // Update status
   const updateStatus = useCallback(
     async (id: string, status: HomologationStatus): Promise<void> => {
-      if (!organization?.id || !user?.uid) {
+      if (!organizationId || !userId) {
         throw new Error('Organization and user required');
       }
 
-      await HomologationService.updateDossierStatus(organization.id, id, user.uid, status);
+      await HomologationService.updateDossierStatus(organizationId, id, userId, status);
     },
-    [organization?.id, user?.uid]
+    [organizationId, userId]
   );
 
   // Update document status
@@ -195,32 +198,32 @@ export const useHomologation = (
       status: 'not_started' | 'in_progress' | 'completed' | 'validated',
       documentId?: string
     ): Promise<void> => {
-      if (!organization?.id || !user?.uid) {
+      if (!organizationId || !userId) {
         throw new Error('Organization and user required');
       }
 
       await HomologationService.updateDocumentStatus(
-        organization.id,
+        organizationId,
         dossierId,
-        user.uid,
+        userId,
         documentType,
         status,
         documentId
       );
     },
-    [organization?.id, user?.uid]
+    [organizationId, userId]
   );
 
   // Delete dossier
   const deleteDossier = useCallback(
     async (id: string): Promise<void> => {
-      if (!organization?.id) {
+      if (!organizationId) {
         throw new Error('Organization required');
       }
 
-      await HomologationService.deleteDossier(organization.id, id);
+      await HomologationService.deleteDossier(organizationId, id);
     },
-    [organization?.id]
+    [organizationId]
   );
 
   // Get dossier by ID

@@ -288,17 +288,21 @@ export const useICTProvider = (providerId: string | undefined) => {
     const { organization } = useStore();
     const { user } = useAuth();
 
+    // Extract IDs for stable memoization
+    const organizationId = organization?.id;
+    const userId = user?.uid;
+
     const constraints = useMemo(() => {
-        if (!organization?.id || !providerId) return [];
+        if (!organizationId || !providerId) return [];
         return [
-            where('organizationId', '==', organization.id)
+            where('organizationId', '==', organizationId)
         ];
-    }, [organization?.id, providerId]);
+    }, [organizationId, providerId]);
 
     const { data, loading, error, refresh } = useFirestoreCollection<ICTProvider>(
         'ict_providers',
         constraints,
-        { realtime: true, enabled: !!providerId && !!organization?.id }
+        { realtime: true, enabled: !!providerId && !!organizationId }
     );
 
     const provider = useMemo(() => {
@@ -306,11 +310,11 @@ export const useICTProvider = (providerId: string | undefined) => {
     }, [data, providerId]);
 
     const updateProvider = useCallback(async (updates: Partial<ICTProviderFormData>) => {
-        if (!providerId || !user?.uid) {
+        if (!providerId || !userId) {
             throw new Error('Provider ID or user not found');
         }
-        return ICTProviderService.update(providerId, updates, user.uid);
-    }, [providerId, user?.uid]);
+        return ICTProviderService.update(providerId, updates, userId);
+    }, [providerId, userId]);
 
     return {
         provider,

@@ -8,15 +8,15 @@
  * - Node styling constants
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import type { VoxelNode, VoxelEdge, NetworkSegment } from '../../../types/voxel';
+import type { VoxelNode, VoxelEdge } from '../../../types/voxel';
 
 // Import utilities and hooks
 import { SEGMENT_COLORS, CRITICALITY_SIZES, CRITICALITY_GLOW } from '../OTNodeMesh';
 import { calculateSegmentZones, applySegmentLayout } from '../SegmentZones';
 import { getConnectionType, isCrossSegmentConnection } from '../ITOTEdge';
-import { useSegmentFilter, type SegmentVisibility } from '../SegmentFilter';
+import { useSegmentFilter } from '../SegmentFilter';
 
 // ============================================================================
 // Mock Data Factories
@@ -477,13 +477,13 @@ describe('IT/OT Voxel Integration', () => {
     const otNode = createMockNode({ id: 'ot-plc', networkSegment: 'OT' });
 
     // IT -> DMZ -> OT path
-    const edge1 = createMockEdge({
+    const _edge1 = createMockEdge({
       id: 'edge-it-dmz',
       source: itNode.id,
       target: dmzNode.id,
       type: 'dependency'
     });
-    const edge2 = createMockEdge({
+    const _edge2 = createMockEdge({
       id: 'edge-dmz-ot',
       source: dmzNode.id,
       target: otNode.id,

@@ -242,7 +242,7 @@ export class SupplierDoraSyncService {
                 return data[this.SYNC_FIELD] ? new Date(data[this.SYNC_FIELD]) : null;
             }
             return null;
-        } catch (error) {
+        } catch {
             ErrorLogger.warn(`Failed to get sync time for supplier ${supplierId}`, 'SupplierDoraSyncService.getLastSyncTime');
             return null;
         }
@@ -258,7 +258,7 @@ export class SupplierDoraSyncService {
                 [this.SYNC_FIELD]: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             });
-        } catch (error) {
+        } catch {
             ErrorLogger.warn(`Failed to update sync timestamp for supplier ${supplierId}`, 'SupplierDoraSyncService.updateSyncTimestamp');
         }
     }

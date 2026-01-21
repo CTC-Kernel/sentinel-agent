@@ -18,11 +18,8 @@ import {
   ChevronUp,
   Loader2,
   RefreshCw,
-  X,
   User,
-  Calendar,
   Timer,
-  FileText,
   Plus,
   Edit3,
   MinusCircle
@@ -35,14 +32,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { useToast } from '../../hooks/useToast';
 import { useStore } from '../../store';
 import {
-  OTConnectorService,
-  getRelativeTime
+  OTConnectorService
 } from '../../services/OTConnectorService';
 import type {
   OTConnector,
-  SyncResult,
-  SyncStats,
-  SyncError
+  SyncResult
 } from '../../types/otConnector';
 
 // ============================================================================
@@ -64,7 +58,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
   onClose,
   connector
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { organization } = useStore();
 

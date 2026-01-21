@@ -14,15 +14,14 @@ import {
   X,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   Loader2,
-  Check
-} from 'lucide-react';
+  ExternalLink
+} from '../ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { useToast } from '../../hooks/useToast';
+import { Badge } from '../ui/Badge';
+import { toast } from '../../lib/toast';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import { checkEbiosChanges, syncEbiosData } from '../../services/HomologationService';
@@ -56,12 +55,10 @@ export const EbiosChangeReview: React.FC<EbiosChangeReviewProps> = ({
   onSynced,
   className
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { organization } = useStore();
   const { user } = useAuth();
-  const isEnglish = i18n.language === 'en';
 
   // State
   const [changes, setChanges] = useState<ChangeDetails | null>(null);
@@ -109,19 +106,18 @@ export const EbiosChangeReview: React.FC<EbiosChangeReviewProps> = ({
     try {
       await syncEbiosData(organization.id, dossier.id, user.uid, 'Synchronisation après revue des modifications');
 
-      toast({
-        title: t('homologation.ebios.syncSuccess', 'Données synchronisées'),
-        description: t('homologation.ebios.syncSuccessDesc', 'Les données EBIOS ont été mises à jour')
-      });
+      toast.success(
+        t('homologation.ebios.syncSuccess', 'Données synchronisées'),
+        t('homologation.ebios.syncSuccessDesc', 'Les données EBIOS ont été mises à jour')
+      );
 
       setChanges(null);
       onSynced();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('homologation.ebios.syncError', 'Erreur de synchronisation'),
-        description: t('homologation.ebios.syncErrorDesc', 'Impossible de synchroniser les données EBIOS')
-      });
+    } catch {
+      toast.error(
+        t('homologation.ebios.syncError', 'Erreur de synchronisation'),
+        t('homologation.ebios.syncErrorDesc', 'Impossible de synchroniser les données EBIOS')
+      );
     } finally {
       setSyncing(false);
     }

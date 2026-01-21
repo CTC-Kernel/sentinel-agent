@@ -15,16 +15,14 @@ import {
   Search,
   Loader2,
   FileText,
-  ChevronDown,
-  ExternalLink,
   RefreshCw
-} from 'lucide-react';
+} from '../ui/Icons';
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import { Badge } from '../ui/Badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
-import { useToast } from '../../hooks/useToast';
+import { toast } from '../../lib/toast';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -35,7 +33,7 @@ import {
   syncEbiosData
 } from '../../services/HomologationService';
 import type { EbiosAnalysis } from '../../types/ebios';
-import type { HomologationDossier, EbiosLinkSnapshot } from '../../types/homologation';
+import type { HomologationDossier } from '../../types/homologation';
 
 // ============================================================================
 // Types
@@ -65,10 +63,9 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
   disabled = false
 }) => {
   const { t, i18n } = useTranslation();
-  const { toast } = useToast();
+  const isEnglish = i18n.language === 'en';
   const { organization } = useStore();
   const { user } = useAuth();
-  const isEnglish = i18n.language === 'en';
 
   // State
   const [analyses, setAnalyses] = useState<EligibleAnalysis[]>([]);
@@ -96,16 +93,15 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
     try {
       const result = await getEligibleEbiosAnalyses(organization.id);
       setAnalyses(result);
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('homologation.ebios.fetchError', 'Erreur de chargement'),
-        description: t('homologation.ebios.fetchErrorDesc', 'Impossible de charger les analyses EBIOS')
-      });
+    } catch {
+      toast.error(
+        t('homologation.ebios.fetchError', 'Erreur de chargement'),
+        t('homologation.ebios.fetchErrorDesc', 'Impossible de charger les analyses EBIOS')
+      );
     } finally {
       setLoading(false);
     }
-  }, [organization?.id, t, toast]);
+  }, [organization?.id, t]);
 
   // Check for EBIOS changes
   const checkChanges = useCallback(async () => {
@@ -152,21 +148,20 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
     try {
       await linkEbiosAnalysis(organization.id, dossier.id, user.uid, selectedAnalysisId, linkNote || undefined);
 
-      toast({
-        title: t('homologation.ebios.linkSuccess', 'EBIOS lié'),
-        description: t('homologation.ebios.linkSuccessDesc', "L'analyse EBIOS a été liée au dossier")
-      });
+      toast.success(
+        t('homologation.ebios.linkSuccess', 'EBIOS lié'),
+        t('homologation.ebios.linkSuccessDesc', "L'analyse EBIOS a été liée au dossier")
+      );
 
       setShowSelector(false);
       setSelectedAnalysisId(null);
       setLinkNote('');
       onLinkChanged();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('homologation.ebios.linkError', 'Erreur de liaison'),
-        description: t('homologation.ebios.linkErrorDesc', 'Impossible de lier l\'analyse EBIOS')
-      });
+    } catch {
+      toast.error(
+        t('homologation.ebios.linkError', 'Erreur de liaison'),
+        t('homologation.ebios.linkErrorDesc', 'Impossible de lier l\'analyse EBIOS')
+      );
     } finally {
       setIsLinking(false);
     }
@@ -180,19 +175,18 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
     try {
       await unlinkEbiosAnalysis(organization.id, dossier.id, user.uid);
 
-      toast({
-        title: t('homologation.ebios.unlinkSuccess', 'EBIOS délié'),
-        description: t('homologation.ebios.unlinkSuccessDesc', "L'analyse EBIOS a été déliée du dossier")
-      });
+      toast.success(
+        t('homologation.ebios.unlinkSuccess', 'EBIOS délié'),
+        t('homologation.ebios.unlinkSuccessDesc', "L'analyse EBIOS a été déliée du dossier")
+      );
 
       setShowUnlinkConfirm(false);
       onLinkChanged();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('homologation.ebios.unlinkError', 'Erreur de déliaison'),
-        description: t('homologation.ebios.unlinkErrorDesc', 'Impossible de délier l\'analyse EBIOS')
-      });
+    } catch {
+      toast.error(
+        t('homologation.ebios.unlinkError', 'Erreur de déliaison'),
+        t('homologation.ebios.unlinkErrorDesc', 'Impossible de délier l\'analyse EBIOS')
+      );
     } finally {
       setIsUnlinking(false);
     }
@@ -205,19 +199,18 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
     try {
       await syncEbiosData(organization.id, dossier.id, user.uid, 'Synchronisation manuelle');
 
-      toast({
-        title: t('homologation.ebios.syncSuccess', 'Données synchronisées'),
-        description: t('homologation.ebios.syncSuccessDesc', 'Les données EBIOS ont été mises à jour')
-      });
+      toast.success(
+        t('homologation.ebios.syncSuccess', 'Données synchronisées'),
+        t('homologation.ebios.syncSuccessDesc', 'Les données EBIOS ont été mises à jour')
+      );
 
       setChangeStatus({ hasChanges: false, checking: false });
       onLinkChanged();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('homologation.ebios.syncError', 'Erreur de synchronisation'),
-        description: t('homologation.ebios.syncErrorDesc', 'Impossible de synchroniser les données EBIOS')
-      });
+    } catch {
+      toast.error(
+        t('homologation.ebios.syncError', 'Erreur de synchronisation'),
+        t('homologation.ebios.syncErrorDesc', 'Impossible de synchroniser les données EBIOS')
+      );
     }
   };
 

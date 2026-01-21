@@ -3,7 +3,7 @@
  * Story 35-3: DORA Register Export
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DORAExportService, DORAExportOptions, DORAExportRecord } from '../DORAExportService';
 import { ICTProvider } from '../../types/dora';
 
@@ -737,7 +737,7 @@ describe('DORAExportService', () => {
         it('should translate category to French', async () => {
             const providers = [createMockProvider({ category: 'critical' })];
 
-            const result = await DORAExportService.generateExcel(
+            const _result = await DORAExportService.generateExcel(
                 providers,
                 mockOrganizationInfo,
                 { ...mockOptions, language: 'fr' }
@@ -750,7 +750,7 @@ describe('DORAExportService', () => {
         it('should translate category to English', async () => {
             const providers = [createMockProvider({ category: 'critical' })];
 
-            const result = await DORAExportService.generateExcel(
+            const _result = await DORAExportService.generateExcel(
                 providers,
                 mockOrganizationInfo,
                 { ...mockOptions, language: 'en' }

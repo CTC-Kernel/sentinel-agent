@@ -8,7 +8,8 @@ import React, { useState } from 'react';
 import { Controller, useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { ictProviderSchema, ICTProviderFormData } from '../../schemas/doraSchema';
+import { ictProviderSchema } from '../../schemas/doraSchema';
+import { ICTProviderFormData } from '../../types/dora';
 import {
     ICT_CRITICALITY_LEVELS,
     ICT_SERVICE_TYPES,
@@ -94,7 +95,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
         watch,
         formState: { errors }
     } = useForm<ICTProviderFormData>({
-        resolver: zodResolver(ictProviderSchema),
+        resolver: zodResolver(ictProviderSchema) as never,
         defaultValues,
         mode: 'onChange'
     });
@@ -801,7 +802,9 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                         <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-slate-200 dark:border-slate-700">
                                             <span>{t('dora.risk.lastAssessment')}:</span>
                                             <span className="font-medium">
-                                                {new Date(initialData.riskAssessment.lastAssessment).toLocaleDateString()}
+                                                {typeof initialData.riskAssessment.lastAssessment === 'string'
+                                                    ? new Date(initialData.riskAssessment.lastAssessment).toLocaleDateString()
+                                                    : (initialData.riskAssessment.lastAssessment as { toDate: () => Date }).toDate().toLocaleDateString()}
                                             </span>
                                             {initialData.riskAssessment.assessedBy && (
                                                 <>
