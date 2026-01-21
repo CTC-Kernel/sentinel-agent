@@ -186,7 +186,14 @@ const MiniTrendChart: React.FC<MiniTrendChartProps> = ({ data, loading }) => {
                   value: Number(p.value) || 0,
                   color: p.color || '#000',
                   payload: p.payload
-                })) as any}
+                })) as Array<{
+                  name: string;
+                  value: number | string;
+                  color: string;
+                  payload?: Record<string, unknown>;
+                  dataKey?: string;
+                  [key: string]: unknown;
+                }>}
                 label={label}
               />
             );
@@ -375,7 +382,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
         const data = await OTVulnerabilityService.getOTExposureMetrics(organization.id);
         setMetrics(data);
         setError(null);
-      } catch (err) {
+      } catch (_err) {
         setError(t('otVulnerability.errors.loadFailed', 'Failed to load OT exposure metrics'));
       } finally {
         setLoading(false);

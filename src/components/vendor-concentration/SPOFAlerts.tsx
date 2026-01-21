@@ -16,6 +16,7 @@ import {
   Zap,
   Shield,
   ExternalLink,
+  type LucideIcon,
 } from '../ui/Icons';
 import type { SPOFSummary, SPOFAlert, ImpactLevel, UrgencyLevel } from '../../types/vendorConcentration';
 
@@ -65,7 +66,7 @@ interface UrgencyIndicatorProps {
 const UrgencyIndicator: React.FC<UrgencyIndicatorProps> = ({ urgency }) => {
   const { t } = useTranslation();
 
-  const config: Record<UrgencyLevel, { icon: React.ElementType; color: string; label: string }> = {
+  const config: Record<UrgencyLevel, { icon: LucideIcon; color: string; label: string }> = {
     immediate: { icon: Zap, color: 'text-red-500', label: t('vendorConcentration.spof.urgency.immediate') },
     'short-term': { icon: Clock, color: 'text-orange-500', label: t('vendorConcentration.spof.urgency.shortTerm') },
     'long-term': { icon: Clock, color: 'text-blue-500', label: t('vendorConcentration.spof.urgency.longTerm') },

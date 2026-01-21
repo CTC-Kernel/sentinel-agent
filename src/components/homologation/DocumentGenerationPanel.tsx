@@ -146,7 +146,7 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
         setGeneratingType(null);
       }
     },
-    [organization?.id, user?.uid, dossier.id, buildContext, toast, t, onDocumentGenerated]
+    [organization?.id, user?.uid, dossier.id, buildContext, t, onDocumentGenerated]
   );
 
   // Generate all documents
@@ -220,7 +220,7 @@ export const DocumentGenerationPanel: React.FC<DocumentGenerationPanelProps> = (
         setDownloadingType(null);
       }
     },
-    [buildContext, toast, t]
+    [buildContext, t]
   );
 
   // Get document status

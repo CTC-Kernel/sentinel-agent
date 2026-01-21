@@ -127,7 +127,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
       );
     };
     reader.readAsText(file);
-  }, [t, toast]);
+  }, [t]);
 
   // Handle drag and drop
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -156,7 +156,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
         );
       }
     }
-  }, [handleFileUpload, t, toast]);
+  }, [handleFileUpload, t]);
 
   // Handle file input change
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,7 +218,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
           })
         );
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error(
         t('otImport.errors.importFailed', 'Erreur d\'import'),
         t('otImport.errors.importFailedDesc', 'L\'import a échoué')
@@ -226,7 +226,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
     } finally {
       setIsImporting(false);
     }
-  }, [organization?.id, user?.uid, validatedRows, onImportComplete, t, toast]);
+  }, [organization?.id, user?.uid, validatedRows, onImportComplete, t]);
 
   // Download CSV template
   const downloadTemplate = useCallback(() => {

@@ -21,6 +21,7 @@ import {
   RefreshCw,
   Download,
   Filter,
+  type LucideIcon,
 } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { VendorConcentrationService } from '../services/VendorConcentrationService';
@@ -48,7 +49,7 @@ interface MetricCardProps {
   title: string;
   value: React.ReactNode;
   subtitle?: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   trend?: {
     direction: 'up' | 'down' | 'stable';
     value: number;
@@ -133,7 +134,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
 interface TabButtonProps {
   active: boolean;
   onClick: () => void;
-  icon: React.ElementType;
+  icon: LucideIcon;
   label: string;
 }
 
