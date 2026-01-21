@@ -13,7 +13,7 @@ export const AuroraBackground = ({
 }: AuroraBackgroundProps) => {
   return (
     <div
-      className={`relative flex flex-col items-center justify-center bg-slate-100 dark:bg-zinc-900 overflow-x-hidden transition-bg ${className}`}
+      className={`relative flex flex-col bg-slate-100 dark:bg-zinc-900 overflow-x-hidden transition-bg ${className}`}
       {...props}
     >
       <div className="absolute inset-0 overflow-hidden">

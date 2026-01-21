@@ -535,7 +535,7 @@ service cloud.firestore {
     // Suppliers
     match /suppliers/{supplierId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if isAuthenticated() && 
+      allow create: if isAuthenticated() &&
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId) &&
         // Hardening
@@ -546,7 +546,30 @@ service cloud.firestore {
         // Hardening
         (!('category' in request.resource.data) || isValidSupplierCategory(request.resource.data.category)) &&
         (!('criticality' in request.resource.data) || isValidCriticality(request.resource.data.criticality));
-        
+
+      allow delete: if false;
+    }
+
+    // ICT Providers (DORA Art. 28 - Story 35.1)
+    // DORA ICT Register for financial institutions
+    match /ict_providers/{providerId} {
+      allow read: if canRead(resource.data.organizationId);
+
+      // CREATE: Admin/RSSI/Direction can create ICT providers
+      allow create: if isAuthenticated() &&
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (canWrite(request.resource.data.organizationId) || (hasRole('direction') && belongsToOrganization(request.resource.data.organizationId))) &&
+        // Validation: name and category required
+        isValidString(request.resource.data.name, 1, 200) &&
+        request.resource.data.category in ['critical', 'important', 'standard'];
+
+      // UPDATE: Admin/RSSI/Direction can update
+      allow update: if (canWrite(resource.data.organizationId) || (hasRole('direction') && belongsToOrganization(resource.data.organizationId))) &&
+        // Validation
+        (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
+        (!('category' in request.resource.data) || request.resource.data.category in ['critical', 'important', 'standard']);
+
+      // DELETE: Blocked client-side (use Cloud Functions for safe deletion)
       allow delete: if false;
     }
 

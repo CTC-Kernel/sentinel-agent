@@ -378,6 +378,19 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
+/* Remove input focus ring when inside glass-input (container handles it) */
+.glass-input input:focus,
+.glass-input select:focus,
+.glass-input textarea:focus {
+  box-shadow: none;
+}
+
+.dark .glass-input input:focus,
+.dark .glass-input select:focus,
+.dark .glass-input textarea:focus {
+  box-shadow: none;
+}
+
 /* Custom scrollbar for overflow containers */
 /* Custom scrollbar definitions removed to enforce global hidden scrollbar */
 

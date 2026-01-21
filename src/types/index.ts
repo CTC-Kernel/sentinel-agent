@@ -16,3 +16,5 @@ export * from './voxel';
 export * from './tlpt';
 export * from './score.types';
 export * from './privacy';
+export * from './dora';
+export * from './homologation';

@@ -47,6 +47,9 @@ const EbiosAnalysisDetail = React.lazy(() => import('../../views/EbiosAnalysisDe
 // SMSI Program Module (ISO 27003)
 const SMSIProgram = React.lazy(() => import('../../views/SMSIProgram').then(module => ({ default: module.SMSIProgramView })));
 
+// DORA ICT Register Module (DORA Art. 28)
+const DORAProviders = React.lazy(() => import('../../views/DORAProviders').then(module => ({ default: module.DORAProviders })));
+
 // Risk Context Module (ISO 27005)
 const RiskContext = React.lazy(() => import('../../views/RiskContext').then(module => ({ default: module.RiskContextView })));
 
@@ -103,6 +106,7 @@ export const AnimatedRoutes: React.FC = () => {
                     </RoleGuardComponent>
                 } />
                 <Route path="/suppliers" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Suppliers /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/dora/providers" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><DORAProviders /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Privacy /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Continuity /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><VoxelView /></AnimatedPage></RoleGuardComponent>} />

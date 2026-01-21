@@ -721,6 +721,56 @@
                     "order": "ASCENDING"
                 }
             ]
+        },
+        {
+            "collectionGroup": "ict_providers",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "name",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "ict_providers",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "category",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "name",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "ict_providers",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "name",
+                    "order": "ASCENDING"
+                }
+            ]
         }
     ],
     "fieldOverrides": []

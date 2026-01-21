@@ -1,5 +1,78 @@
 import { Criticality, AIAnalysisResult } from './common';
 
+// ============================================================================
+// OT/ICS Types (Story 36-1)
+// ============================================================================
+
+/**
+ * Network segment for IT/OT classification
+ */
+export type NetworkSegment = 'IT' | 'OT' | 'DMZ';
+
+/**
+ * OT-specific criticality levels
+ */
+export type OTCriticality = 'safety' | 'production' | 'operations' | 'monitoring';
+
+/**
+ * Industrial communication protocols
+ */
+export type OTProtocol =
+  | 'Modbus'
+  | 'OPC-UA'
+  | 'BACnet'
+  | 'DNP3'
+  | 'EtherNet/IP'
+  | 'Profinet'
+  | 'Profibus'
+  | 'HART'
+  | 'Foundation Fieldbus'
+  | 'CAN'
+  | 'Other';
+
+/**
+ * OT device types
+ */
+export type OTDeviceType =
+  | 'PLC'
+  | 'RTU'
+  | 'DCS'
+  | 'HMI'
+  | 'SCADA'
+  | 'Historian'
+  | 'Industrial Switch'
+  | 'Industrial Firewall'
+  | 'Safety System'
+  | 'Sensor'
+  | 'Actuator'
+  | 'Drive/VFD'
+  | 'Other';
+
+/**
+ * OT-specific asset details
+ */
+export interface OTDetails {
+  deviceType?: OTDeviceType;
+  protocol?: OTProtocol;
+  manufacturer?: string;
+  model?: string;
+  firmwareVersion?: string;
+  networkSegment: NetworkSegment;
+  otCriticality: OTCriticality;
+  vlan?: string;
+  subnet?: string;
+  connectedToIT?: boolean;
+  lastPatchDate?: string;
+  patchingConstraints?: string;
+  safetyRating?: string; // e.g., SIL level
+  redundancy?: boolean;
+  backupAvailable?: boolean;
+}
+
+// ============================================================================
+// Asset History and Core Types
+// ============================================================================
+
 export interface AssetHistory {
     date: string;
     userId: string;
@@ -64,6 +137,9 @@ export interface Asset {
         supportContact?: string;
         hostingLocation?: string;
     };
+    // OT/ICS fields (Story 36-1)
+    networkSegment?: NetworkSegment;
+    otDetails?: OTDetails;
 }
 
 export interface MaintenanceRecord {

@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
+import { SentinelAssistant } from '../components/auth/SentinelAssistant';
 import { Button } from '../components/ui/button';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { useStore } from '../store';
@@ -93,7 +94,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
 
     return (
-        <AuroraBackground className="min-h-screen py-4 sm:py-0 px-4 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 bg-opacity-100 dark:bg-opacity-100 relative font-sans selection:bg-brand-500 selection:text-white overflow-hidden">
+        <AuroraBackground className="h-screen py-4 sm:py-0 px-4 flex flex-col bg-slate-50 dark:bg-slate-950 bg-opacity-100 dark:bg-opacity-100 relative font-sans selection:bg-brand-500 selection:text-white overflow-hidden">
             <div className="absolute top-4 right-4 z-50">
                 <ThemeToggle />
             </div>
@@ -119,121 +120,140 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                 <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
             </div>
 
-            <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto px-4 sm:px-6 min-w-0">
-                <div className="glass-premium rounded-[2rem] p-8 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl overflow-hidden relative">
+            <div className="w-full max-h-full max-w-7xl relative z-10 animate-scale-in flex-1 flex flex-col lg:flex-row items-center justify-center mx-auto px-4 sm:px-6 min-w-0 transition-transform duration-500 ease-out origin-center [@media(max-height:900px)]:scale-90 [@media(max-height:750px)]:scale-75">
 
-                    {/* Logo */}
-                    <div className="mb-6 flex flex-col items-center">
-                        <div className="w-16 h-16 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-5 ring-1 ring-black/5 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                            <Lock className="h-8 w-8" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white">Sentinel GRC</h1>
-                        <p className="text-base font-medium text-slate-700 dark:text-slate-400 mt-2">{t('auth.subtitle')}</p>
-                    </div>
+                {/* Left Column: Sentinel Assistant */}
+                <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
+                    <SentinelAssistant />
+                </div>
 
-                    {errorMsg && (
-                        <div className="w-full mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex flex-col gap-2 text-xs font-bold text-destructive shadow-sm animate-slide-up">
-                            <p className="flex items-center justify-center"><AlertTriangle className="h-4 w-4 mr-2" /> {errorMsg}</p>
-                            {errorMsg.includes('restreint') && (
-                                <p className="text-[10px] font-normal text-destructive/80 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
-                            )}
-                        </div>
-                    )}
+                {/* Right Column: Login Form */}
+                <div className="w-full lg:w-1/2 max-w-[440px] p-4 lg:p-8">
+                    <div className="glass-premium rounded-[2rem] p-8 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl overflow-hidden relative">
 
-                    <div className="w-full space-y-4">
-                        <Button
-                            onClick={handleGoogleLogin}
-                            isLoading={loading}
-                            variant="outline"
-                            className="w-full py-6 rounded-2xl border-slate-200 dark:border-white/10 card-hover shadow-sm"
-                        >
-                            {!loading && <GoogleIcon />}
-                            <span className="ml-3 text-[15px] font-bold text-slate-700 dark:text-white">{t('auth.google')}</span>
-                        </Button>
-
-                        <Button
-                            onClick={handleAppleLogin}
-                            isLoading={loading}
-                            className="w-full py-6 bg-black text-white rounded-2xl card-hover shadow-sm"
-                        >
-                            {!loading && (
-                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-.98-.4-2.05-.4-3.08.4-1.05.45-2.05.45-3.08-.4-1.05-.85-2.05-2.4-2.05-4.6 0-3.15 2.05-4.8 4.1-4.8 1.05 0 2.05.45 3.08.45 1.05 0 2.05-.45 3.08-.45 1.05 0 2.05.45 3.08.45.98 0 1.95-.45 2.55-1.15-2.05-1.15-2.05-3.6-2.05-3.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15zM12.03 7.25c-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15z" />
-                                    <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65-2.55 1.9-2.55 3.15z" fill="none" />
-                                    <path d="M13.03 2.1c-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75z" />
-                                    <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
-                                </svg>
-                            )}
-                            <span className="ml-3 text-[15px] font-bold">{t('auth.apple')}</span>
-                        </Button>
-
-                        <div className="relative py-2">
-                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
-                            <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-600 dark:text-slate-400">{t('auth.orEmail')}</span></div>
-                        </div>
-
-                        <form onSubmit={handleSubmit(onEmailAuthSubmit)} className="space-y-5">
-                            <div className="space-y-1.5">
-                                <FloatingLabelInput
-                                    id="email"
-                                    label={t('auth.email')}
-                                    type="email"
-                                    autoComplete="email"
-                                    icon={Mail}
-                                    {...register('email')}
-                                    error={errors.email?.message}
-                                    placeholder="nom@entreprise.com"
-                                />
+                        {/* Logo - Mobile Only or Simplified */}
+                        <div className="mb-6 flex flex-col items-center lg:hidden">
+                            <div className="w-16 h-16 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-5 ring-1 ring-black/5 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                                <Lock className="h-8 w-8" strokeWidth={2.5} />
                             </div>
+                            <h1 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white">Sentinel GRC</h1>
+                            <p className="text-base font-medium text-slate-700 dark:text-slate-400 mt-2">{t('auth.subtitle')}</p>
+                        </div>
 
-                            <div className="space-y-1.5">
-                                <div className="flex justify-between items-center ml-1 mb-1">
-                                    {isLogin && (
-                                        <Button
-                                            variant="link"
-                                            size="sm"
-                                            onClick={() => setShowResetModal(true)}
-                                            className="text-[13px] font-bold text-brand-600 hover:text-brand-700 p-0 h-auto"
-                                        >
-                                            {t('auth.forgotPassword')}
-                                        </Button>
-                                    )}
-                                </div>
-                                <FloatingLabelInput
-                                    id="password"
-                                    label={t('auth.password')}
-                                    type="password"
-                                    autoComplete={isLogin ? 'current-password' : 'new-password'}
-                                    icon={Lock}
-                                    {...register('password')}
-                                    error={errors.password?.message}
-                                    placeholder="••••••••"
-                                />
+                        {/* Logo - Desktop w/o Assistant Context (if simplified) -> Keep centered for form consistency */}
+                        <div className="hidden lg:flex flex-col items-center mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg mb-3">
+                                <Lock className="h-6 w-6" strokeWidth={2.5} />
                             </div>
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{isLogin ? t('auth.login') : t('auth.signup')}</h2>
+                        </div>
+
+
+                        {errorMsg && (
+                            <div className="w-full mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex flex-col gap-2 text-xs font-bold text-destructive shadow-sm animate-slide-up">
+                                <p className="flex items-center justify-center"><AlertTriangle className="h-4 w-4 mr-2" /> {errorMsg}</p>
+                                {errorMsg.includes('restreint') && (
+                                    <p className="text-[10px] font-normal text-destructive/80 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="w-full space-y-4">
+                            <Button
+                                onClick={handleGoogleLogin}
+                                isLoading={loading}
+                                variant="outline"
+                                className="w-full py-6 rounded-2xl border-slate-200 dark:border-white/10 card-hover shadow-sm"
+                            >
+                                {!loading && <GoogleIcon />}
+                                <span className="ml-3 text-[15px] font-bold text-slate-700 dark:text-white">{t('auth.google')}</span>
+                            </Button>
 
                             <Button
-                                type="submit"
+                                onClick={handleAppleLogin}
                                 isLoading={loading}
-                                disabled={loading}
-                                className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover shadow-lg shadow-brand-500/20"
+                                className="w-full py-6 bg-black text-white rounded-2xl card-hover shadow-sm"
                             >
-                                {isLogin ? t('auth.login') : t('auth.signup')}
-                                {!loading && <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />}
+                                {!loading && (
+                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-.98-.4-2.05-.4-3.08.4-1.05.45-2.05.45-3.08-.4-1.05-.85-2.05-2.4-2.05-4.6 0-3.15 2.05-4.8 4.1-4.8 1.05 0 2.05.45 3.08.45 1.05 0 2.05-.45 3.08-.45 1.05 0 2.05.45 3.08.45.98 0 1.95-.45 2.55-1.15-2.05-1.15-2.05-3.6-2.05-3.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15zM12.03 7.25c-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15z" />
+                                        <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65-2.55 1.9-2.55 3.15z" fill="none" />
+                                        <path d="M13.03 2.1c-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75z" />
+                                        <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
+                                    </svg>
+                                )}
+                                <span className="ml-3 text-[15px] font-bold">{t('auth.apple')}</span>
                             </Button>
-                        </form>
-                    </div>
 
-                    <div className="mt-8 text-center">
-                        <Button
-                            variant="ghost"
-                            onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
-                            className="text-[13px] font-bold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-                        >
-                            {isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
-                        </Button>
+                            <div className="relative py-2">
+                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
+                                <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-600 dark:text-slate-400">{t('auth.orEmail')}</span></div>
+                            </div>
+
+                            <form onSubmit={handleSubmit(onEmailAuthSubmit)} className="space-y-5">
+                                <div className="space-y-1.5">
+                                    <FloatingLabelInput
+                                        id="email"
+                                        label={t('auth.email')}
+                                        type="email"
+                                        autoComplete="email"
+                                        icon={Mail}
+                                        {...register('email')}
+                                        error={errors.email?.message}
+                                        placeholder="nom@entreprise.com"
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <div className="flex justify-between items-center ml-1 mb-1">
+                                        {isLogin && (
+                                            <Button
+                                                variant="link"
+                                                size="sm"
+                                                onClick={() => setShowResetModal(true)}
+                                                className="text-[13px] font-bold text-brand-600 hover:text-brand-700 p-0 h-auto"
+                                            >
+                                                {t('auth.forgotPassword')}
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <FloatingLabelInput
+                                        id="password"
+                                        label={t('auth.password')}
+                                        type="password"
+                                        autoComplete={isLogin ? 'current-password' : 'new-password'}
+                                        icon={Lock}
+                                        {...register('password')}
+                                        error={errors.password?.message}
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    isLoading={loading}
+                                    disabled={loading}
+                                    className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover shadow-lg shadow-brand-500/20"
+                                >
+                                    {isLogin ? t('auth.login') : t('auth.signup')}
+                                    {!loading && <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />}
+                                </Button>
+                            </form>
+                        </div>
+
+                        <div className="mt-8 text-center">
+                            <Button
+                                variant="ghost"
+                                onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
+                                className="text-[13px] font-bold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                            >
+                                {isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
+
 
             <div className="py-6 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">{t('auth.footer.developedBy')}</p>
@@ -366,6 +386,6 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                 onClose={() => setShowLegalModal(false)}
                 initialTab={legalTab}
             />
-        </AuroraBackground>
+        </AuroraBackground >
     );
 };
