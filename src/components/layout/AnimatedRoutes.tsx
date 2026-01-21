@@ -63,7 +63,7 @@ const VendorConcentration = React.lazy(() => import('../../views/VendorConcentra
 const FinancialRisk = React.lazy(() => import('../../views/FinancialRisk').then(module => ({ default: module.FinancialRisk })));
 
 // ANSSI Homologation Module (Epic 38)
-const Homologation = React.lazy(() => import('../../views/Homologation').then(module => ({ default: module.Homologation })));
+const Homologation = React.lazy(() => import('../../views/Homologation'));
 
 // New Professional 404 Page
 import { NotFound } from '../../views/NotFound';

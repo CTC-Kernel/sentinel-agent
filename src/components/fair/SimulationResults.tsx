@@ -226,9 +226,7 @@ export const SimulationResults: React.FC<SimulationResultsProps> = ({
               {t('fair.results.title', 'Résultats de simulation')}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {t('fair.results.iterations', '{{count}} itérations', {
-                count: formatNumber(results.iterations, 0)
-              })}
+              {formatNumber(results.iterations, 0)} {t('fair.results.iterations', 'itérations')}
               {' • '}
               {t('fair.results.executionTime', '{{time}}ms', {
                 time: Math.round(results.executionTimeMs)

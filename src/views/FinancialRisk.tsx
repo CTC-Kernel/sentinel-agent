@@ -29,16 +29,7 @@ import {
   DialogTitle,
   DialogDescription
 } from '../components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '../components/ui/alert-dialog';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { toast } from '../lib/toast';
 import { useFAIR } from '../hooks/useFAIR';
 import { FAIRConfigList } from '../components/fair/FAIRConfigList';
@@ -95,7 +86,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ onCreateNew, configCount }) => 
 
 interface DetailViewProps {
   config: FAIRModelConfig;
-  simulationResults: SimulationResults['results'] | null;
+  simulationResults: SimulationResultsType | null;
   onBack: () => void;
   onRunSimulation: () => Promise<void>;
   onEdit: () => void;
@@ -412,30 +403,19 @@ export const FinancialRisk: React.FC = () => {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('fair.delete.title', 'Supprimer cette analyse ?')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t(
-                'fair.delete.description',
-                'Cette action est irréversible. Tous les résultats de simulation seront également supprimés.'
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel', 'Annuler')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {t('common.delete', 'Supprimer')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmModal
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title={t('fair.delete.title', 'Supprimer cette analyse ?')}
+        message={t(
+          'fair.delete.description',
+          'Cette action est irréversible. Tous les résultats de simulation seront également supprimés.'
+        )}
+        type="danger"
+        confirmText={t('common.delete', 'Supprimer')}
+        cancelText={t('common.cancel', 'Annuler')}
+      />
     </div>
   );
 };

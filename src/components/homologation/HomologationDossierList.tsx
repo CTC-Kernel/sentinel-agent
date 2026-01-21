@@ -24,6 +24,7 @@ import {
   FileCheck,
   Calendar
 } from '../ui/Icons';
+import type { LucideIcon } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
@@ -48,7 +49,7 @@ interface HomologationDossierListProps {
   loading?: boolean;
 }
 
-const LEVEL_ICONS: Record<HomologationLevel, React.ElementType> = {
+const LEVEL_ICONS: Record<HomologationLevel, LucideIcon> = {
   etoile: Star,
   simple: FileText,
   standard: Shield,
@@ -57,7 +58,7 @@ const LEVEL_ICONS: Record<HomologationLevel, React.ElementType> = {
 
 const STATUS_CONFIG: Record<
   HomologationStatus,
-  { icon: React.ElementType; color: string; bgColor: string }
+  { icon: LucideIcon; color: string; bgColor: string }
 > = {
   draft: { icon: FileText, color: 'text-gray-600', bgColor: 'bg-gray-100' },
   in_progress: { icon: Clock, color: 'text-blue-600', bgColor: 'bg-blue-100' },
@@ -152,9 +153,12 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
               <h3 className="font-medium text-foreground">{dossier.name}</h3>
               <p className="text-sm text-muted-foreground">{dossier.systemScope}</p>
               <div className="flex items-center gap-2 mt-2">
-                <Badge variant="outline" style={{ borderColor: levelInfo.color, color: levelInfo.color }}>
+                <span
+                  className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md border"
+                  style={{ borderColor: levelInfo.color, color: levelInfo.color }}
+                >
                   {levelInfo.label}
-                </Badge>
+                </span>
                 <Badge className={cn(statusConfig.bgColor, statusConfig.color, 'border-0')}>
                   <StatusIcon className="h-3 w-3 mr-1" />
                   {t(`homologation.status.${dossier.status}`, dossier.status)}
@@ -170,37 +174,29 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
 
           {/* Right: Actions */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <DropdownMenuTrigger>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onView(dossier);
-                }}
-              >
+              <DropdownMenuItem onClick={() => onView(dossier)}>
                 <Eye className="h-4 w-4 mr-2" />
                 {t('common.view', 'Voir')}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(dossier);
-                }}
-              >
+              <DropdownMenuItem onClick={() => onEdit(dossier)}>
                 <Pencil className="h-4 w-4 mr-2" />
                 {t('common.edit', 'Modifier')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(dossier);
-                }}
+                onClick={() => onDelete(dossier)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 {t('common.delete', 'Supprimer')}

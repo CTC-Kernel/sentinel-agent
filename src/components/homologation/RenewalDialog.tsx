@@ -20,7 +20,6 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/Badge';
 import {
   Dialog,
   DialogContent,
@@ -127,12 +126,12 @@ export const RenewalDialog: React.FC<RenewalDialogProps> = ({
           <div className="p-4 rounded-lg bg-muted/50 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-medium">{dossier.name}</h4>
-              <Badge
-                variant="outline"
+              <span
+                className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md border"
                 style={{ borderColor: levelInfo.color, color: levelInfo.color }}
               >
                 {isEnglish ? levelInfo.labelEn : levelInfo.label}
-              </Badge>
+              </span>
             </div>
 
             <p className="text-sm text-muted-foreground">{dossier.systemScope}</p>

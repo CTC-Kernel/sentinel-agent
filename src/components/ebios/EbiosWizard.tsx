@@ -18,6 +18,7 @@ import { GlassCard } from '../ui/GlassCard';
 import { ProgressRing } from '../ui/ProgressRing';
 import { MasterpieceBackground } from '../ui/MasterpieceBackground';
 import { EbiosWorkshopStepper } from './EbiosWorkshopStepper';
+import { EbiosAIAssistant } from './EbiosAIAssistant';
 import { GenerateReportButtonCompact } from './workshops/GenerateReportButton';
 import { WORKSHOP_INFO } from '../../data/ebiosLibrary';
 import type { EbiosAnalysis, EbiosWorkshopNumber } from '../../types/ebios';
@@ -27,6 +28,7 @@ interface EbiosWizardProps {
   analysis: EbiosAnalysis;
   children: React.ReactNode;
   onWorkshopChange: (workshop: EbiosWorkshopNumber) => void;
+  onUpdate?: (updates: Partial<EbiosAnalysis>) => void;
   onComplete?: () => void;
   onSave?: () => Promise<void>;
   isSaving?: boolean;
@@ -38,6 +40,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
   analysis,
   children,
   onWorkshopChange,
+  onUpdate,
   onComplete,
   onSave,
   isSaving = false,
@@ -229,6 +232,15 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
               )}
             </div>
           </GlassCard>
+        </div>
+
+        {/* AI Assistant */}
+        <div className="mb-6 animate-fade-in-up delay-75">
+          <EbiosAIAssistant
+            analysis={analysis}
+            currentWorkshop={currentWorkshop}
+            onUpdate={onUpdate}
+          />
         </div>
 
         {/* Workshop Content */}

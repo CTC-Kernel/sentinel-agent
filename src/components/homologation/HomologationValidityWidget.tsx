@@ -22,6 +22,7 @@ import {
   ShieldAlert,
   Loader2
 } from '../ui/Icons';
+import type { LucideIcon } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
@@ -49,7 +50,7 @@ interface ValidityItem {
 // Constants
 // ============================================================================
 
-const LEVEL_ICONS: Record<HomologationLevel, React.ElementType> = {
+const LEVEL_ICONS: Record<HomologationLevel, LucideIcon> = {
   etoile: Star,
   simple: FileText,
   standard: Shield,
@@ -60,7 +61,7 @@ const STATE_CONFIG: Record<ValidityState, {
   color: string;
   bgColor: string;
   borderColor: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   label: string;
   labelEn: string;
 }> = {
@@ -318,7 +319,7 @@ export const HomologationValidityWidget: React.FC<HomologationValidityWidgetProp
                       <p className="font-medium truncate text-sm">{item.dossier.name}</p>
                       <LevelIcon
                         className="h-3.5 w-3.5 flex-shrink-0"
-                        style={{ color: levelInfo.color }}
+                        color={levelInfo.color}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">

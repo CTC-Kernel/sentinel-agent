@@ -26,6 +26,7 @@ import {
   Save,
   ChevronLeft
 } from '../ui/Icons';
+import type { LucideIcon } from '../ui/Icons';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
@@ -43,6 +44,7 @@ import {
   type GeneratedDocument
 } from '../../services/HomologationDocumentService';
 import { DocumentGenerationPanel } from './DocumentGenerationPanel';
+import { HomologationAIAssistant } from './HomologationAIAssistant';
 import type { HomologationDossier, HomologationLevel, HomologationStatus } from '../../types/homologation';
 import { LEVEL_INFO, DOCUMENT_TYPE_INFO } from '../../types/homologation';
 
@@ -50,7 +52,7 @@ import { LEVEL_INFO, DOCUMENT_TYPE_INFO } from '../../types/homologation';
 // Constants
 // ============================================================================
 
-const LEVEL_ICONS: Record<HomologationLevel, React.ElementType> = {
+const LEVEL_ICONS: Record<HomologationLevel, LucideIcon> = {
   etoile: Star,
   simple: FileText,
   standard: Shield,
@@ -59,7 +61,7 @@ const LEVEL_ICONS: Record<HomologationLevel, React.ElementType> = {
 
 const STATUS_CONFIG: Record<
   HomologationStatus,
-  { color: string; bgColor: string; borderColor: string; icon: React.ElementType }
+  { color: string; bgColor: string; borderColor: string; icon: LucideIcon }
 > = {
   draft: { color: 'text-gray-600', bgColor: 'bg-gray-100', borderColor: 'border-gray-300', icon: FileText },
   in_progress: { color: 'text-blue-600', bgColor: 'bg-blue-100', borderColor: 'border-blue-300', icon: Clock },
@@ -198,6 +200,29 @@ export const HomologationDossierDetail: React.FC = () => {
       setSaving(false);
     }
   }, [organization?.id, dossierId, selectedDocument, user?.uid, editedContent, t, fetchData]);
+
+  // Handle dossier update (for AI assistant)
+  const handleDossierUpdate = useCallback(
+    async (updates: Partial<HomologationDossier>) => {
+      if (!organization?.id || !dossierId || !user?.uid) return;
+
+      try {
+        await HomologationService.updateDossier(organization.id, dossierId, user.uid, updates);
+        await fetchData();
+        toast.success(
+          t('homologation.updated', 'Dossier mis à jour'),
+          t('homologation.updatedDesc', 'Les modifications ont été appliquées.')
+        );
+      } catch (err) {
+        console.error('Error updating dossier:', err);
+        toast.error(
+          t('common.error', 'Erreur'),
+          t('homologation.updateError', 'Erreur lors de la mise à jour.')
+        );
+      }
+    },
+    [organization?.id, dossierId, user?.uid, t, fetchData]
+  );
 
   // Handle status change
   const handleStatusChange = useCallback(
@@ -503,6 +528,12 @@ export const HomologationDossierDetail: React.FC = () => {
 
         {/* Right content - Documents */}
         <div className="lg:col-span-2 space-y-6">
+          {/* AI Assistant */}
+          <HomologationAIAssistant
+            dossier={dossier}
+            onUpdate={handleDossierUpdate}
+          />
+
           {/* Document Generation Panel */}
           <DocumentGenerationPanel
             dossier={dossier}

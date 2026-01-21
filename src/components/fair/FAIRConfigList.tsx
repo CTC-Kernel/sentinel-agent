@@ -9,6 +9,7 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import type { Locale } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import {
   Calculator,
@@ -161,33 +162,38 @@ const ConfigCard: React.FC<ConfigCardProps> = ({
 
         {/* Right: Actions */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <DropdownMenuTrigger>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => e.stopPropagation()}
+            >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(); }}>
+            <DropdownMenuItem onClick={onView}>
               <Eye className="h-4 w-4 mr-2" />
               {t('common.view', 'Voir')}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRunSimulation(); }}>
+            <DropdownMenuItem onClick={onRunSimulation}>
               <Play className="h-4 w-4 mr-2" />
               {t('fair.actions.runSimulation', 'Lancer simulation')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+            <DropdownMenuItem onClick={onEdit}>
               <Pencil className="h-4 w-4 mr-2" />
               {t('common.edit', 'Modifier')}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDuplicate(); }}>
+            <DropdownMenuItem onClick={onDuplicate}>
               <Copy className="h-4 w-4 mr-2" />
               {t('common.duplicate', 'Dupliquer')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600"
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              onClick={onDelete}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {t('common.delete', 'Supprimer')}

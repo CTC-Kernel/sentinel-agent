@@ -8,22 +8,13 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Star, FileText, Shield, ShieldAlert, AlertTriangle, CheckCircle } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/Dialog';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/Tabs';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '../components/ui/AlertDialog';
-import { useToast } from '../hooks/useToast';
+import { Plus, Star, FileText, Shield, ShieldAlert, AlertTriangle, CheckCircle, type LucideIcon } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { toast } from '../lib/toast';
 import { useHomologation } from '../hooks/useHomologation';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -35,7 +26,7 @@ import {
 import type { HomologationDossier, CreateHomologationDossierInput, HomologationLevel } from '../types/homologation';
 import { LEVEL_INFO } from '../types/homologation';
 
-const LEVEL_ICONS: Record<HomologationLevel, React.ElementType> = {
+const LEVEL_ICONS: Record<HomologationLevel, LucideIcon> = {
   etoile: Star,
   simple: FileText,
   standard: Shield,
@@ -45,7 +36,6 @@ const LEVEL_ICONS: Record<HomologationLevel, React.ElementType> = {
 const Homologation: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const {
@@ -75,15 +65,15 @@ const Homologation: React.FC = () => {
       const dossierId = await createDossier(completeInput);
       setShowWizard(false);
 
-      toast({
-        title: t('homologation.dossierCreated', 'Dossier créé'),
-        description: t('homologation.dossierCreatedDesc', 'Le dossier d\'homologation a été créé avec succès.')
-      });
+      toast.success(
+        t('homologation.dossierCreated', 'Dossier créé'),
+        t('homologation.dossierCreatedDesc', 'Le dossier d\'homologation a été créé avec succès.')
+      );
 
       // Navigate to the new dossier
       navigate(`/homologation/${dossierId}`);
     },
-    [user?.uid, createDossier, toast, t, navigate]
+    [user?.uid, createDossier, t, navigate]
   );
 
   // Handle view dossier
@@ -108,26 +98,25 @@ const Homologation: React.FC = () => {
 
     try {
       await deleteDossier(dossierToDelete.id);
-      toast({
-        title: t('homologation.dossierDeleted', 'Dossier supprimé'),
-        description: t('homologation.dossierDeletedDesc', 'Le dossier a été supprimé.')
-      });
+      toast.success(
+        t('homologation.dossierDeleted', 'Dossier supprimé'),
+        t('homologation.dossierDeletedDesc', 'Le dossier a été supprimé.')
+      );
     } catch {
-      toast({
-        title: t('common.error', 'Erreur'),
-        description: t('homologation.deleteError', 'Impossible de supprimer le dossier.'),
-        variant: 'destructive'
-      });
+      toast.error(
+        t('common.error', 'Erreur'),
+        t('homologation.deleteError', 'Impossible de supprimer le dossier.')
+      );
     } finally {
       setDossierToDelete(null);
     }
-  }, [dossierToDelete, deleteDossier, toast, t]);
+  }, [dossierToDelete, deleteDossier, t]);
 
   // Render stats card
   const renderStatsCard = (
     label: string,
     value: number,
-    Icon: React.ElementType,
+    Icon: LucideIcon,
     color: string,
     bgColor: string
   ) => (
@@ -324,28 +313,20 @@ const Homologation: React.FC = () => {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!dossierToDelete} onOpenChange={() => setDossierToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('homologation.confirmDelete', 'Confirmer la suppression')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t(
-                'homologation.confirmDeleteDesc',
-                'Êtes-vous sûr de vouloir supprimer le dossier "{{name}}" ? Cette action est irréversible.',
-                { name: dossierToDelete?.name }
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel', 'Annuler')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteDossier} className="bg-red-600 hover:bg-red-700">
-              {t('common.delete', 'Supprimer')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmModal
+        isOpen={!!dossierToDelete}
+        onClose={() => setDossierToDelete(null)}
+        onConfirm={handleDeleteDossier}
+        title={t('homologation.confirmDelete', 'Confirmer la suppression')}
+        message={t(
+          'homologation.confirmDeleteDesc',
+          'Êtes-vous sûr de vouloir supprimer le dossier "{{name}}" ? Cette action est irréversible.',
+          { name: dossierToDelete?.name }
+        )}
+        type="danger"
+        confirmText={t('common.delete', 'Supprimer')}
+        cancelText={t('common.cancel', 'Annuler')}
+      />
 
       {/* Renewal Dialog */}
       <RenewalDialog

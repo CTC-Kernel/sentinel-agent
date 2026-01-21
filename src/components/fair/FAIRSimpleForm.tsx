@@ -98,7 +98,6 @@ export const FAIRSimpleForm: React.FC<FAIRSimpleFormProps> = ({
     defaultValues: { ...defaultSimpleFormValues, ...initialValues }
   });
 
-  const _scenarioType = watch('scenarioType');
   const currency = watch('currency');
   const currencySymbol = CURRENCIES.find((c) => c.value === currency)?.symbol || '€';
 

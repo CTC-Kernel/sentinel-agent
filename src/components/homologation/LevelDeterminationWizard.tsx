@@ -19,6 +19,7 @@ import {
   Shield,
   ShieldAlert
 } from '../ui/Icons';
+import type { LucideIcon } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -55,7 +56,7 @@ interface LevelDeterminationWizardProps {
 
 type WizardStep = 'questions' | 'recommendation' | 'override' | 'details';
 
-const LEVEL_ICONS: Record<HomologationLevel, React.ElementType> = {
+const LEVEL_ICONS: Record<HomologationLevel, LucideIcon> = {
   etoile: Star,
   simple: FileText,
   standard: Shield,
