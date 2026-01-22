@@ -315,7 +315,6 @@ const router = createHashRouter([
 } as any);
 
 const AppContent: React.FC = () => {
-    console.log("Router Future Config:", router.future);
     return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
 };
 
