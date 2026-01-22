@@ -23,25 +23,54 @@ export interface Conversation {
 const FAST_MODEL = "gemini-1.5-flash";
 const SMART_MODEL = "gemini-3-pro-preview";
 
-// Rate limiting with user-specific tracking to prevent race conditions
+// AUDIT FIX: Rate limiting avec protection contre race conditions
+// Utilisation d'un pattern de locking simple pour éviter les appels concurrents
 const rateLimitMap = new Map<string, number>();
+const pendingRequests = new Set<string>(); // AUDIT FIX: Track pending requests
 const RATE_LIMIT_MS = 2000;
+const MAX_CACHE_SIZE = 500; // Reduced to prevent memory issues
 
+/**
+ * AUDIT FIX: Vérifie le rate limiting avec protection contre race conditions
+ * @param key - Clé unique (généralement `${userId}_${action}`)
+ * @returns true si la requête doit être bloquée
+ */
 const isRateLimited = (key: string): boolean => {
-    const lastCall = rateLimitMap.get(key) || 0;
     const now = Date.now();
+
+    // AUDIT FIX: Vérifier si une requête est déjà en cours pour cette clé
+    if (pendingRequests.has(key)) {
+        return true;
+    }
+
+    const lastCall = rateLimitMap.get(key) || 0;
     if (now - lastCall < RATE_LIMIT_MS) {
         return true;
     }
+
+    // AUDIT FIX: Marquer comme en cours AVANT de mettre à jour le timestamp
+    pendingRequests.add(key);
     rateLimitMap.set(key, now);
+
     // Cleanup old entries to prevent memory leaks
-    if (rateLimitMap.size > 1000) {
+    if (rateLimitMap.size > MAX_CACHE_SIZE) {
         const cutoff = now - RATE_LIMIT_MS * 2;
         for (const [k, v] of rateLimitMap.entries()) {
-            if (v < cutoff) rateLimitMap.delete(k);
+            if (v < cutoff) {
+                rateLimitMap.delete(k);
+                pendingRequests.delete(k);
+            }
         }
     }
+
     return false;
+};
+
+/**
+ * AUDIT FIX: Libère le verrou après completion d'une requête
+ */
+const releaseRateLimit = (key: string): void => {
+    pendingRequests.delete(key);
 };
 
 interface GraphData {
@@ -267,6 +296,8 @@ export const aiService = {
             }
 
             return "Désolé, une erreur est survenue lors de la communication avec l'IA. Veuillez réessayer.";
+        } finally {
+            releaseRateLimit('chat');
         }
     },
 
@@ -549,7 +580,7 @@ export const aiService = {
 // Cache pour les appels AI fréquents with automatic cleanup
 const aiCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-const MAX_CACHE_SIZE = 100;
+const AI_CACHE_SIZE = 100; // Separate cache size for AI responses
 
 // Cleanup expired cache entries to prevent memory leaks
 const cleanupAiCache = () => {
@@ -560,10 +591,10 @@ const cleanupAiCache = () => {
         }
     }
     // If still too large, remove oldest entries
-    if (aiCache.size > MAX_CACHE_SIZE) {
+    if (aiCache.size > AI_CACHE_SIZE) {
         const entries = Array.from(aiCache.entries())
             .sort((a, b) => a[1].timestamp - b[1].timestamp);
-        const toRemove = entries.slice(0, entries.length - MAX_CACHE_SIZE);
+        const toRemove = entries.slice(0, entries.length - AI_CACHE_SIZE);
         toRemove.forEach(([key]) => aiCache.delete(key));
     }
 };
@@ -621,6 +652,8 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         } else {
             throw _error;
         }
+    } finally {
+        releaseRateLimit('generate');
     }
 
     throw new Error("Impossible de générer le contenu via le service IA.");

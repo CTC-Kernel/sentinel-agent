@@ -22,6 +22,7 @@ import type {
   OTDeviceType,
   OTDetails
 } from '../types/assets';
+import { Criticality } from '../types/common';
 import {
   OT_CSV_COLUMN_MAPPINGS,
   isValidOTProtocol,
@@ -374,9 +375,9 @@ export function createAssetFromRow(
     name: data.name,
     type: 'Matériel', // OT assets are typically hardware
     owner: context.userId,
-    confidentiality: 3, // Default medium
-    integrity: 3,
-    availability: otDetails.otCriticality === 'safety' ? 4 : 3,
+    confidentiality: Criticality.MEDIUM,
+    integrity: Criticality.MEDIUM,
+    availability: otDetails.otCriticality === 'safety' ? Criticality.HIGH : Criticality.MEDIUM,
     location: data.location || context.defaultLocation || '',
     ipAddress: data.ipAddress || undefined,
     notes: data.notes || undefined,

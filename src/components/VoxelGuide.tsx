@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { X, Map, Share2, Zap, ArrowRight, Activity } from './ui/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,16 +8,39 @@ interface VoxelGuideProps {
 }
 
 export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
+    // Keyboard navigation: close on Escape
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            onClose();
+        }
+    }, [onClose]);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener('keydown', handleKeyDown);
+            return () => document.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [isOpen, handleKeyDown]);
+
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="voxel-guide-title"
+                >
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        onKeyDown={(e) => e.key === 'Enter' && onClose()}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Fermer le guide"
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm cursor-pointer"
                     />
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -42,13 +65,14 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                         </div>
                                         <span className="text-xs font-bold tracking-[0.2em] text-brand-400 uppercase">CTC Engine</span>
                                     </div>
-                                    <h2 className="text-2xl font-bold text-white mb-2">Votre Centre de Commandement</h2>
+                                    <h2 id="voxel-guide-title" className="text-2xl font-bold text-white mb-2">Votre Centre de Commandement</h2>
                                     <p className="text-slate-500 text-sm max-w-md">
                                         Une interface neuro-spatiale conçue pour transformer la complexité GRC en décisions stratégiques immédiates.
                                     </p>
                                 </div>
                                 <button
                                     onClick={onClose}
+                                    aria-label="Fermer le guide Voxel"
                                     className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 >
                                     <X className="w-5 h-5" />
@@ -99,6 +123,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                             </span>
                             <button
                                 onClick={onClose}
+                                aria-label="Explorer la matrice et fermer le guide"
                                 className="flex items-center gap-2 px-6 py-2 rounded-full bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 Explorer la matrice <ArrowRight className="w-4 h-4" />

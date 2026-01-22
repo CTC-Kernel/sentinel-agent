@@ -7,6 +7,18 @@ interface SuperAdminGuardProps {
     children: React.ReactNode;
 }
 
+/**
+ * AUDIT FIX: Renommé conceptuellement "AdminLevelGuard"
+ *
+ * Ce guard autorise l'accès aux utilisateurs avec des privilèges administrateur:
+ * - super_admin: Administrateur système global (multi-tenant)
+ * - admin: Administrateur d'organisation (tenant-level)
+ *
+ * Pour un guard strictement super_admin uniquement, créer un nouveau composant
+ * qui vérifie UNIQUEMENT user.role === 'super_admin' ET les custom claims Firebase.
+ *
+ * @see /firestore.rules - isSuperAdmin() pour la logique serveur correspondante
+ */
 export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({ children }) => {
     const { user, loading, firebaseUser } = useAuth();
     const location = useLocation();
@@ -21,15 +33,47 @@ export const SuperAdminGuard: React.FC<SuperAdminGuardProps> = ({ children }) =>
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // User authenticated but profile not loaded yet (should ideally be handled by loading)
+    // User authenticated but profile not loaded yet
     if (!user) {
         return <LoadingScreen />;
     }
 
-    // Check Role - Allow both super_admin and admin
-    if (user.role !== 'super_admin' && user.role !== 'admin') {
-        // Redirect standard users to their dashboard or a 403 page
-        // For now, redirecting to root (which handles redirection based on role usually) or 404
+    // AUDIT FIX: Documentation clarifiée - autorise admin ET super_admin
+    // C'est intentionnel pour permettre aux admins d'organisation d'accéder
+    // aux fonctions administratives de leur tenant
+    const hasAdminPrivileges = user.role === 'super_admin' || user.role === 'admin';
+
+    if (!hasAdminPrivileges) {
+        // Utilisateurs non-admin redirigés vers le dashboard principal
+        return <Navigate to="/" replace />;
+    }
+
+    return <>{children}</>;
+};
+
+/**
+ * Guard strict pour super_admin uniquement (multi-tenant system admin)
+ * Utiliser ce guard pour les routes qui ne doivent être accessibles
+ * qu'aux administrateurs système globaux.
+ */
+export const StrictSuperAdminGuard: React.FC<SuperAdminGuardProps> = ({ children }) => {
+    const { user, loading, firebaseUser } = useAuth();
+    const location = useLocation();
+
+    if (loading) {
+        return <LoadingScreen />;
+    }
+
+    if (!firebaseUser) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (!user) {
+        return <LoadingScreen />;
+    }
+
+    // STRICT: Uniquement super_admin
+    if (user.role !== 'super_admin') {
         return <Navigate to="/" replace />;
     }
 

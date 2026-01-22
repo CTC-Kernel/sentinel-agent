@@ -11,7 +11,7 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
-import { DoubleSide, AdditiveBlending, Mesh, CanvasTexture } from 'three';
+import { DoubleSide, AdditiveBlending, Mesh, CanvasTexture, MeshBasicMaterial } from 'three';
 import type { NetworkSegment } from '../../types/voxel';
 import { SEGMENT_COLORS } from './voxelConstants';
 import type { SegmentZone } from './segmentZoneUtils';
@@ -103,7 +103,7 @@ const ZoneBoundaryPlane: React.FC<{
   // Animate active boundaries
   useFrame((_state, _delta) => {
     if (meshRef.current && isActive) {
-      const material = meshRef.current.material as THREE.MeshBasicMaterial;
+      const material = meshRef.current.material as MeshBasicMaterial;
       if (material.opacity !== undefined) {
         material.opacity = opacity + Math.sin(Date.now() * 0.003) * 0.05;
       }

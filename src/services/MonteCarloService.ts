@@ -343,7 +343,6 @@ export class MonteCarloService {
 
     // Sort for percentile calculations
     const sortedTotalLosses = [...totalLosses].sort((a, b) => a - b);
-    const _sortedPrimaryLosses = [...primaryLosses].sort((a, b) => a - b);
 
     // Calculate ALE breakdown
     const aleBreakdown: ALEBreakdown = {

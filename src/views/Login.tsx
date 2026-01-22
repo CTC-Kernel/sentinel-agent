@@ -4,7 +4,7 @@ import { LandingMap } from '../components/landing/LandingMap';
 import { useLocation } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
-import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
+import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2, Shield } from '../components/ui/Icons';
 import { SentinelAssistant } from '../components/auth/SentinelAssistant';
 import { Button } from '../components/ui/button';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
@@ -66,6 +66,9 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('mentions');
 
+    // Privacy consent for signup (RGPD compliance)
+    const [privacyAccepted, setPrivacyAccepted] = useState(false);
+
     // MFA State from Hook
     const [mfaCode, setMfaCode] = useState('');
 
@@ -74,10 +77,11 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
         await handleMfaVerification(mfaCode);
     };
 
-    // Clear errors when switching modes
+    // Clear errors and reset privacy consent when switching modes
     useEffect(() => {
         clearErrors();
         setErrorMsg(null);
+        setPrivacyAccepted(false);
     }, [isLogin, clearErrors, setErrorMsg]);
 
     const onEmailAuthSubmit: SubmitHandler<LoginFormData | RegisterFormData> = async (data) => {
@@ -229,11 +233,61 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                     />
                                 </div>
 
+                                {/* Privacy consent notice for signup (RGPD compliance) */}
+                                {!isLogin && (
+                                    <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/50 dark:border-emerald-800/30">
+                                        <label className="flex items-start gap-3 cursor-pointer group">
+                                            <div className="relative mt-0.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={privacyAccepted}
+                                                    onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                                                    className="peer sr-only"
+                                                    aria-label={t('auth.privacyConsent') || 'Accepter la politique de confidentialité'}
+                                                />
+                                                <div className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                                                    {privacyAccepted && (
+                                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                                    <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                                                        {t('auth.privacyTitle') || 'Protection de vos données'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                                    {t('auth.privacyNotice') || 'En créant un compte, j\'accepte la '}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }}
+                                                        className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                                                    >
+                                                        {t('auth.footer.privacy') || 'Politique de confidentialité'}
+                                                    </button>
+                                                    {' '}et les{' '}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}
+                                                        className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                                                    >
+                                                        {t('auth.footer.terms') || 'CGU'}
+                                                    </button>.
+                                                </p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                )}
+
                                 <Button
                                     type="submit"
                                     isLoading={loading}
-                                    disabled={loading}
-                                    className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover shadow-lg shadow-brand-500/20"
+                                    disabled={loading || (!isLogin && !privacyAccepted)}
+                                    className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover shadow-lg shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isLogin ? t('auth.login') : t('auth.signup')}
                                     {!loading && <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />}

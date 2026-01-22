@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../../utils/cn';
 import { GlassCard } from '../../../ui/GlassCard';
+import { Button } from '../../../ui/button';
 import { essentialAssetSchema } from '../../../../schemas/ebiosSchema';
 import type { EssentialAsset, Mission } from '../../../../types/ebios';
 import { GRAVITY_SCALE } from '../../../../data/ebiosLibrary';
@@ -84,12 +85,14 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {isEditing ? t('ebios.workshop1.editEssentialAsset') : t('ebios.workshop1.addEssentialAsset')}
           </h3>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label={t('common.close')}
           >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
+            <X className="w-5 h-5" />
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit(onSave)} className="space-y-5">
@@ -242,50 +245,55 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
               showDeleteConfirm ? (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-red-500">{t('common.confirmDelete')}</span>
-                  <button
+                  <Button
                     type="button"
+                    variant="destructive"
+                    size="sm"
                     onClick={handleDelete}
-                    className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-sm font-medium"
                   >
                     {t('common.delete')}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setShowDeleteConfirm(false)}
-                    className="px-3 py-1.5 rounded-lg text-gray-500 text-sm font-medium"
                   >
                     {t('common.cancel')}
-                  </button>
+                  </Button>
                 </div>
               ) : (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 mr-1.5" />
                   {t('common.delete')}
-                </button>
+                </Button>
               )
             ) : (
               <div />
             )}
 
             <div className="flex items-center gap-3">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 {t('common.cancel')}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2 rounded-xl font-medium bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
+                isLoading={isSubmitting}
+                loadingText={t('common.saving')}
               >
                 {isEditing ? t('common.save') : t('common.create')}
-              </button>
+              </Button>
             </div>
           </div>
         </form>

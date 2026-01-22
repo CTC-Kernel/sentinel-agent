@@ -165,7 +165,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
               <Lock className="h-5 w-5" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col justify-center">
-              <h1 className="text-[17px] font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">Sentinel</h1>
+              <h1 className="text-[17px] font-extrabold font-display tracking-tight text-slate-900 dark:text-white leading-none">Sentinel</h1>
               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-500 tracking-[0.4em] mt-1 uppercase">GRC</span>
             </div>
           </div>

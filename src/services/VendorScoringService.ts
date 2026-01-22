@@ -44,7 +44,6 @@ import { getTemplateById } from '../data/questionnaireTemplates';
 
 // Collection names
 const ASSESSMENTS_COLLECTION = 'questionnaire_responses';
-const _SCORES_COLLECTION = 'vendor_scores';
 const SCORING_CONFIG_COLLECTION = 'scoring_configurations';
 
 export class VendorScoringService {
@@ -351,8 +350,8 @@ export class VendorScoringService {
       for (const [supplierId, assessments] of supplierMap) {
         // Sort by date descending
         assessments.sort((a, b) =>
-          new Date(b.submittedDate || b.createdAt).getTime() -
-          new Date(a.submittedDate || a.createdAt).getTime()
+          new Date(b.submittedDate || b.sentDate).getTime() -
+          new Date(a.submittedDate || a.sentDate).getTime()
         );
 
         const latest = assessments[0];
@@ -378,7 +377,7 @@ export class VendorScoringService {
           scoreTrend: trend.direction,
           trendPercentage: trend.percentage,
           assessmentCount: assessments.length,
-          lastAssessedAt: latest.submittedDate || latest.createdAt,
+          lastAssessedAt: latest.submittedDate || latest.sentDate,
         });
       }
 
@@ -399,20 +398,24 @@ export class VendorScoringService {
     assessment: EnhancedAssessmentResponse
   ): Promise<VendorScore> {
     // If score already calculated and stored
-    if (assessment.overallScore !== undefined && assessment.scoredAt) {
+    if (assessment.overallScore !== undefined && assessment.submittedDate) {
+      // FIX: Use nullish coalescing (??) instead of || to preserve riskScore of 0
+      const storedRiskScore = (assessment as { riskScore?: number }).riskScore;
+      const computedRiskScore = storedRiskScore ?? (100 - assessment.overallScore);
+
       return {
         assessmentId: assessment.id,
         supplierId: assessment.supplierId,
         supplierName: assessment.supplierName || 'Unknown',
-        overallScore: (assessment as { riskScore?: number }).riskScore || (100 - assessment.overallScore),
+        overallScore: computedRiskScore,
         displayScore: assessment.overallScore,
-        inherentRisk: (assessment as { inherentRisk?: RiskLevel }).inherentRisk || getRiskLevelFromScore(100 - assessment.overallScore),
-        residualRisk: (assessment as { residualRisk?: RiskLevel }).residualRisk || getRiskLevelFromScore(100 - assessment.overallScore),
+        inherentRisk: (assessment as { inherentRisk?: RiskLevel }).inherentRisk ?? getRiskLevelFromScore(computedRiskScore),
+        residualRisk: (assessment as { residualRisk?: RiskLevel }).residualRisk ?? getRiskLevelFromScore(computedRiskScore),
         sectionScores: [],
         totalQuestions: 0,
         answeredQuestions: Object.keys(assessment.answers || {}).length,
         criticalIssuesCount: 0,
-        calculatedAt: (assessment as { scoredAt?: string }).scoredAt || new Date().toISOString(),
+        calculatedAt: assessment.submittedDate || assessment.reviewedDate || new Date().toISOString(),
         calculatedBy: 'system',
       };
     }

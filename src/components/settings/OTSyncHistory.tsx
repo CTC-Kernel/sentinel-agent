@@ -27,7 +27,7 @@ import {
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import { Badge } from '../ui/Badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { useToast } from '../../hooks/useToast';
 import { useStore } from '../../store';

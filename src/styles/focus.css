@@ -1,12 +1,13 @@
 /**
  * Focus Indicators Améliorés
+ * AUDIT FIX: Amélioration contraste WCAG AA/AAA
  * Assure une meilleure accessibilité avec des indicateurs de focus visibles et esthétiques
  */
 
-/* Focus visible global avec ring Apple-like */
+/* Focus visible global avec ring Apple-like - AUDIT FIX: Contraste amélioré */
 *:focus-visible {
   outline: none;
-  @apply ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+  @apply ring-2 ring-brand-600 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
   transition: box-shadow 0.2s ease-in-out;
 }
 
@@ -49,13 +50,13 @@ a:focus-visible {
   outline: none;
 }
 
-/* Animation de pulse pour les éléments focus */
+/* Animation de pulse pour les éléments focus - AUDIT FIX: Contraste amélioré */
 @keyframes focus-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.15);
   }
 }
 

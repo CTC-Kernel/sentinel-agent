@@ -57,12 +57,12 @@ export type ICTCertification = typeof ICT_CERTIFICATIONS[number];
  * ICT Service - Individual service provided by an ICT provider
  */
 export interface ICTService {
-    id: string;
+    id?: string; // Auto-generated if not provided
     name: string;
     type: ICTServiceType;
     criticality: ICTCriticality;
     description?: string;
-    businessFunctions: string[]; // Which business functions depend on this service
+    businessFunctions?: string[]; // Which business functions depend on this service (default: [])
     dataProcessed?: boolean; // Does this service process sensitive data?
 }
 
@@ -70,10 +70,10 @@ export interface ICTService {
  * Contract information for ICT provider
  */
 export interface ICTContractInfo {
-    startDate: string | FirestoreTimestampLike;
-    endDate: string | FirestoreTimestampLike;
-    exitStrategy: string;
-    auditRights: boolean;
+    startDate?: string | FirestoreTimestampLike;
+    endDate?: string | FirestoreTimestampLike;
+    exitStrategy?: string;
+    auditRights?: boolean;
     contractValue?: number;
     currency?: string;
     renewalType?: 'auto' | 'manual' | 'fixed';
@@ -85,8 +85,8 @@ export interface ICTContractInfo {
  */
 export interface ICTRiskAssessment {
     concentration: number; // 0-100 - How concentrated is the risk?
-    substitutability: SubstitutabilityLevel;
-    lastAssessment: string | FirestoreTimestampLike;
+    substitutability?: SubstitutabilityLevel;
+    lastAssessment?: string | FirestoreTimestampLike;
     assessedBy?: string;
     notes?: string;
 }
@@ -127,16 +127,16 @@ export interface ICTProvider {
     description?: string;
 
     // Services
-    services: ICTService[];
+    services?: ICTService[];
 
     // Contract
-    contractInfo: ICTContractInfo;
+    contractInfo?: ICTContractInfo;
 
     // Risk Assessment
-    riskAssessment: ICTRiskAssessment;
+    riskAssessment?: ICTRiskAssessment;
 
     // Compliance
-    compliance: ICTComplianceInfo;
+    compliance?: ICTComplianceInfo;
 
     // Contact Information
     contactName?: string;
@@ -151,9 +151,9 @@ export interface ICTProvider {
 
     // Metadata
     status: 'active' | 'inactive' | 'pending' | 'terminated';
-    createdAt: string | FirestoreTimestampLike;
-    updatedAt: string | FirestoreTimestampLike;
-    createdBy: string;
+    createdAt?: string | FirestoreTimestampLike;
+    updatedAt?: string | FirestoreTimestampLike;
+    createdBy?: string;
     updatedBy?: string;
 
     // DORA specific

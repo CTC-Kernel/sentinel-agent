@@ -10,20 +10,38 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
     VariantProps<typeof buttonVariants> & {
         asChild?: boolean
         isLoading?: boolean
+        loadingText?: string
+        'aria-label'?: string
     }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ className, variant, size, asChild = false, isLoading = false, children, disabled, ...props }, ref) => {
+    ({
+        className,
+        variant,
+        size,
+        asChild = false,
+        isLoading = false,
+        loadingText,
+        children,
+        disabled,
+        'aria-label': ariaLabel,
+        ...props
+    }, ref) => {
         const Comp = asChild ? Slot : "button"
+        const isDisabled = disabled || isLoading
+
         return (
             <Comp
                 className={cn(buttonVariants({ variant, size, className }))}
                 ref={ref}
-                disabled={disabled || isLoading}
+                disabled={isDisabled}
+                aria-disabled={isDisabled}
+                aria-busy={isLoading}
+                aria-label={ariaLabel}
                 {...props}
             >
                 {isLoading && <Spinner className="mr-2 h-4 w-4" size="sm" />}
-                {children}
+                {isLoading && loadingText ? loadingText : children}
             </Comp>
         )
     }

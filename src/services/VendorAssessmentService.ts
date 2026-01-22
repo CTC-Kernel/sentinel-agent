@@ -130,7 +130,10 @@ export class VendorAssessmentService {
       const predefinedTemplate = getTemplateById(templateId);
       if (predefinedTemplate) {
         return {
-          metadata: predefinedTemplate.metadata,
+          metadata: {
+            ...predefinedTemplate.metadata,
+            applicableServiceTypes: predefinedTemplate.metadata.applicableTo || [],
+          },
           sections: predefinedTemplate.sections.map(s => ({
             id: s.id,
             title: s.title,

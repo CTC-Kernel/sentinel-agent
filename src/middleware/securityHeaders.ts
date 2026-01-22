@@ -31,10 +31,16 @@ export function getSecurityHeaders(config: Partial<SecurityHeadersConfig> = {}):
 
   // Content Security Policy (CSP)
   if (enableCSP) {
+    // SECURITY: Production CSP is more restrictive - no unsafe-eval
+    const isProduction = process.env.NODE_ENV === 'production';
+
     const cspDirectives = [
       "default-src 'self'",
-      // Scripts: Autoriser les scripts inline pour Vite HMR en dev, Firebase, Sentry
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com https://browser.sentry-cdn.com",
+      // Scripts: PRODUCTION removes unsafe-eval for security
+      // DEV allows unsafe-eval for Vite HMR hot reloading
+      isProduction
+        ? "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.google.com https://apis.google.com https://browser.sentry-cdn.com"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com https://browser.sentry-cdn.com",
       // Styles: Autoriser inline styles pour Tailwind et autres
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: Autoriser toutes les sources (Firebase Storage, avatars externes, etc.)

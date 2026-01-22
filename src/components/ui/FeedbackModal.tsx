@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, MessageSquare, Bug, Lightbulb, Star, Send } from './Icons';
 import { Button } from './button';
+import { FormError } from './FormError';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useForm, useWatch } from 'react-hook-form';
@@ -126,7 +127,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             </button>
                         ))}
                     </div>
-                    {errors.type && <p className="text-xs text-red-500">{errors.type.message}</p>}
+                    <FormError message={errors.type?.message} />
 
                     {/* Priority (only for bugs/features) */}
                     {(formValues.type === 'bug' || formValues.type === 'feature') && (
@@ -149,7 +150,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                                     </label>
                                 ))}
                             </div>
-                            {errors.priority && <p className="text-xs text-red-500 mt-1">{errors.priority.message}</p>}
+                            <FormError message={errors.priority?.message} />
                         </div>
                     )}
 
@@ -165,7 +166,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                                 className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-slate-400"
                             />
                         </div>
-                        {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
+                        <FormError message={errors.title?.message} />
                     </div>
 
                     {/* Description */}
@@ -180,7 +181,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                                 className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-none shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-slate-400"
                             />
                         </div>
-                        {errors.description && <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>}
+                        <FormError message={errors.description?.message} />
                     </div>
                 </form>
 

@@ -165,7 +165,8 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                     />
 
                     <div className="fixed inset-0 flex items-center justify-center p-4">
-                        <motion.div
+                        <Dialog.Panel
+                            as={motion.div}
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -181,7 +182,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         <Lock className="w-5 h-5 animate-pulse" />
                                         <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase">Top Secret // Eyes Only</span>
                                     </div>
-                                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">War Room</h2>
+                                    <Dialog.Title as="h2" className="text-2xl font-black text-white uppercase tracking-tight">War Room</Dialog.Title>
                                     <p className="text-red-400 text-sm font-mono mt-1 break-all">REF: {incidentId}</p>
                                     <p className="text-slate-400 text-xs mt-2 line-clamp-2">{incidentTitle}</p>
                                 </div>
@@ -291,8 +292,8 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                         <span className="text-xs font-mono text-emerald-500 uppercase">Canal Sécurisé actif</span>
                                     </div>
-                                    <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-white/10 text-slate-400 hover:text-white">
-                                        <X className="w-5 h-5" />
+                                    <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-white/10 text-slate-400 hover:text-white" aria-label="Fermer le War Room">
+                                        <X className="w-5 h-5" aria-hidden="true" />
                                     </Button>
                                 </div>
 
@@ -427,7 +428,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </Dialog.Panel>
                     </div>
                 </Dialog>
             )}

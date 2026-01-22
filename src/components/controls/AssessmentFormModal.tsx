@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard } from '../ui/GlassCard';
 import { Button } from '../ui/button';
@@ -50,6 +50,18 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
     });
     const [isSaving, setIsSaving] = useState(false);
 
+    // Accessibility: Handle keyboard escape to close modal
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            onClose();
+        }
+    }, [onClose]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.controlCode) return;
@@ -76,6 +88,9 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
             onClick={onClose}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="assessment-modal-title"
         >
             <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
@@ -88,10 +103,10 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                                <h3 id="assessment-modal-title" className="text-lg font-semibold text-slate-900 dark:text-white">
                                     Évaluation d'efficacité
                                 </h3>
                                 <p className="text-sm text-slate-500">ISO 27002</p>
@@ -99,9 +114,10 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                         </div>
                         <button
                             onClick={onClose}
+                            aria-label="Fermer le formulaire d'évaluation"
                             className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
-                            <X className="w-5 h-5 text-slate-500" />
+                            <X className="w-5 h-5 text-slate-500" aria-hidden="true" />
                         </button>
                     </div>
 

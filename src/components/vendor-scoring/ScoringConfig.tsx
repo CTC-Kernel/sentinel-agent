@@ -104,20 +104,6 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
     setIsDirty(true);
   };
 
-  // Toggle critical question
-  const _toggleCritical = (questionId: string) => {
-    setCriticalQuestions((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(questionId)) {
-        newSet.delete(questionId);
-      } else {
-        newSet.add(questionId);
-      }
-      return newSet;
-    });
-    setIsDirty(true);
-  };
-
   // Save configuration
   const handleSave = () => {
     const config: Omit<TemplateScoringConfig, 'organizationId' | 'createdAt' | 'updatedAt' | 'createdBy'> = {

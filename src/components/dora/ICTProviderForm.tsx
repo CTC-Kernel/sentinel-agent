@@ -348,7 +348,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                                 value: type,
                                                                 label: t(`dora.service.types.${type}`)
                                                             }))}
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onChange={field.onChange}
                                                         />
                                                     )}
@@ -364,7 +364,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                                 value: c,
                                                                 label: t(`dora.category.${c}`)
                                                             }))}
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onChange={field.onChange}
                                                         />
                                                     )}

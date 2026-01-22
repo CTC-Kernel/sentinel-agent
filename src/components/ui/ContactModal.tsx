@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { sendEmail } from '../../services/emailService';
 import { getContactMessageTemplate } from '../../services/emailTemplates';
 import { Button } from './button';
+import { FormError } from './FormError';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 
@@ -131,7 +132,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                                 placeholder="Votre nom"
                                             />
                                         </div>
-                                        {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
+                                        <FormError message={errors.name?.message} />
                                     </div>
 
                                     <div>
@@ -148,7 +149,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                                 placeholder="votre@email.com"
                                             />
                                         </div>
-                                        {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+                                        <FormError message={errors.email?.message} />
                                     </div>
 
                                     <div>
@@ -165,7 +166,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                                 placeholder="Sujet de votre message"
                                             />
                                         </div>
-                                        {errors.subject && <p className="mt-1 text-xs text-red-500">{errors.subject.message}</p>}
+                                        <FormError message={errors.subject?.message} />
                                     </div>
 
                                     <div>
@@ -179,7 +180,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                             className={`w-full p-4 bg-slate-50 dark:bg-slate-800 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm resize-none ${errors.message ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
                                             placeholder="Comment pouvons-nous vous aider ?"
                                         />
-                                        {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message.message}</p>}
+                                        <FormError message={errors.message?.message} />
                                     </div>
 
                                     <div className="pt-2">

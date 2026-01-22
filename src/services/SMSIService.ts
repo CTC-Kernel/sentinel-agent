@@ -418,7 +418,7 @@ export class SMSIService {
    */
   static assessCertificationReadiness(
     program: SMSIProgram,
-    milestones: Milestone[],
+    _milestones: Milestone[], // Reserved for future milestone-based checks
     maturity: MaturityAssessment
   ): CertificationReadiness {
     const blockers: string[] = [];
@@ -509,7 +509,7 @@ export class SMSIService {
    */
   static generateCertificationReport(
     program: SMSIProgram,
-    milestones: Milestone[],
+    _milestones: Milestone[], // Reserved for future milestone reporting
     maturity: MaturityAssessment,
     readiness: CertificationReadiness,
     options: {
@@ -660,7 +660,7 @@ export class SMSIService {
         2: { cellWidth: 80 },
       },
       margin: { left: 20, right: 20 },
-      didParseCell: (data) => {
+      didParseCell: (data: { section: string; column: { index: number }; cell: { text: string[]; styles: { textColor: number[]; fontStyle: string } } }) => {
         if (data.section === 'body' && data.column.index === 1) {
           const value = data.cell.text[0];
           if (value.includes('✓')) {
@@ -748,7 +748,7 @@ export class SMSIService {
           3: { cellWidth: 25, halign: 'center' },
         },
         margin: { left: 20, right: 20 },
-        didParseCell: (data) => {
+        didParseCell: (data: { section: string; column: { index: number }; cell: { text: string[]; styles: { textColor: number[]; fontStyle: string } } }) => {
           if (data.section === 'body' && data.column.index === 0) {
             const priority = data.cell.text[0].toLowerCase() as keyof typeof priorityColors;
             const color = priorityColors[priority];

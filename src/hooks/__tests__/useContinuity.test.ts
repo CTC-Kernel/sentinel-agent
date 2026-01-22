@@ -51,7 +51,8 @@ vi.mock('../../store', () => ({
 // Mock error logger
 vi.mock('../../services/errorLogger', () => ({
     ErrorLogger: {
-        handleErrorWithToast: vi.fn()
+        handleErrorWithToast: vi.fn(),
+        warn: vi.fn()
     }
 }));
 
@@ -76,6 +77,11 @@ vi.mock('../../services/ImportService', () => ({
 // Mock data sanitizer
 vi.mock('../../utils/dataSanitizer', () => ({
     sanitizeData: (data: unknown) => data
+}));
+
+// Mock permissions - allow all operations in tests
+vi.mock('../../utils/permissions', () => ({
+    hasPermission: vi.fn().mockReturnValue(true)
 }));
 
 import { useContinuity } from '../useContinuity';

@@ -257,7 +257,6 @@ export const DORAProviders: React.FC = () => {
                     <ICTProviderInspector
                         provider={inspectedProvider}
                         onEdit={() => handleEdit(inspectedProvider)}
-                        onClose={() => setIsInspectorOpen(false)}
                     />
                 )}
             </Drawer>

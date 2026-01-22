@@ -229,6 +229,17 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Accessibility: Handle keyboard escape to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   // Initialize from config
   useEffect(() => {
     if (config) {
@@ -308,6 +319,9 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
 
           {/* Modal */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="alert-config-title"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -318,10 +332,10 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                    <Bell className="h-5 w-5 text-white" />
+                    <Bell className="h-5 w-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">
+                    <h2 id="alert-config-title" className="text-lg font-bold text-white">
                       Configuration des Alertes
                     </h2>
                     <p className="text-xs text-white/50">
@@ -331,9 +345,10 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                 </div>
                 <button
                   onClick={onClose}
+                  aria-label="Fermer la configuration des alertes"
                   className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
             </div>

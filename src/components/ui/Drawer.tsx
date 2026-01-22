@@ -68,7 +68,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                         {/* Header */}
                                         <div className="px-6 py-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">
                                             <div className="flex-1 min-w-0 mr-4">
-                                                {title && <Dialog.Title className="text-xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight truncate filter drop-shadow-sm">{title}</Dialog.Title>}
+                                                {title && <Dialog.Title className="text-xl font-bold font-display text-slate-900 dark:text-white leading-tight tracking-tight truncate filter drop-shadow-sm">{title}</Dialog.Title>}
                                                 {subtitle && <div className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">{subtitle}</div>}
                                             </div>
                                             <div className="flex items-center gap-3 shrink-0">

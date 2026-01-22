@@ -13,6 +13,7 @@ import { logAction } from '../services/logger';
 import { SubscriptionService } from '../services/subscriptionService';
 import { ImportService } from '../services/ImportService';
 import { useTranslation } from 'react-i18next';
+import { hasPermission } from '../utils/permissions';
 
 export const useTeamManagement = () => {
     const { t } = useTranslation(); // Added initialization
@@ -171,7 +172,27 @@ export const useTeamManagement = () => {
     }, [user, demoMode, addToast, t, fetchUsers]);
 
     const updateUser = async (uid: string, data: Partial<UserFormData>, isPending: boolean) => {
-        if (isPending) return;
+        if (isPending) return false;
+
+        // SECURITY: Check authorization - only admin/rssi can modify users
+        if (!hasPermission(user, 'User', 'update')) {
+            ErrorLogger.warn('Unauthorized user update attempt', 'useTeamManagement.updateUser', {
+                metadata: { attemptedBy: user?.uid, targetUser: uid }
+            });
+            addToast("Vous n'avez pas les droits pour modifier cet utilisateur", "error");
+            return false;
+        }
+
+        // SECURITY: Verify target user belongs to same organization (IDOR protection)
+        const targetUser = users.find(u => u.uid === uid);
+        if (!targetUser || targetUser.organizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: user modification across organizations', 'useTeamManagement.updateUser', {
+                metadata: { attemptedBy: user?.uid, targetUser: uid, targetOrg: targetUser?.organizationId, callerOrg: user?.organizationId }
+            });
+            addToast("Utilisateur non trouvé", "error");
+            return false;
+        }
+
         try {
             await updateDoc(doc(db, 'users', uid), sanitizeData({
                 role: data.role,
@@ -204,6 +225,30 @@ export const useTeamManagement = () => {
     };
 
     const deleteUser = async (u: UserProfile) => {
+        // SECURITY: Check authorization - only admin/rssi can delete users
+        if (!hasPermission(user, 'User', 'delete')) {
+            ErrorLogger.warn('Unauthorized user deletion attempt', 'useTeamManagement.deleteUser', {
+                metadata: { attemptedBy: user?.uid, targetUser: u.uid }
+            });
+            addToast("Vous n'avez pas les droits pour supprimer cet utilisateur", "error");
+            return false;
+        }
+
+        // SECURITY: Verify target user belongs to same organization (IDOR protection)
+        if (u.organizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: user deletion across organizations', 'useTeamManagement.deleteUser', {
+                metadata: { attemptedBy: user?.uid, targetUser: u.uid, targetOrg: u.organizationId, callerOrg: user?.organizationId }
+            });
+            addToast("Utilisateur non trouvé", "error");
+            return false;
+        }
+
+        // SECURITY: Prevent self-deletion through this endpoint
+        if (u.uid === user?.uid) {
+            addToast("Vous ne pouvez pas supprimer votre propre compte depuis cette interface", "error");
+            return false;
+        }
+
         try {
             if (u.isPending) {
                 await deleteDoc(doc(db, 'invitations', u.uid));
@@ -213,7 +258,7 @@ export const useTeamManagement = () => {
                 await logAction(user, 'DELETE', 'User', `Suppression utilisateur: ${u.email}`);
                 addToast("Utilisateur supprimé", "info");
             }
-            setUsers(prev => prev.filter(user => user.uid !== u.uid));
+            setUsers(prev => prev.filter(usr => usr.uid !== u.uid));
             return true;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.deleteUser', 'DELETE_FAILED');

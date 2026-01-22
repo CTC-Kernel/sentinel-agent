@@ -29,7 +29,9 @@ import type {
   FAIRComplexityLevel,
   FAIRPreset,
   DistributionParams,
-  SimulationResults,
+  SimulationResults
+} from '../types/fair';
+import {
   DEFAULT_SIMULATION_SETTINGS,
   THREAT_CAPABILITY_SCORES,
   CONTROL_EFFECTIVENESS_SCORES,

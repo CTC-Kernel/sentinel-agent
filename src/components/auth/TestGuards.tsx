@@ -4,19 +4,22 @@ import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 
 // Test guard that bypasses authentication in test mode
+// SECURITY: Only enabled in non-production environments
 export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const setUser = useStore(state => state.setUser);
 
     const [hydrated, setHydrated] = React.useState(false);
 
-    // In test mode, hydrate user and allow access
-    // In test mode, hydrate user and allow access
-    const isTestMode = import.meta.env.MODE === 'test' ||
+    // SECURITY: Completely disabled in production - no localStorage bypass allowed
+    const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD === true;
+
+    // In test mode only (NOT production), hydrate user and allow access
+    const isTestMode = !isProduction && (
+        import.meta.env.MODE === 'test' ||
         import.meta.env.VITE_USE_EMULATORS === 'true' ||
-        (typeof window !== 'undefined' && (
-            (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__ ||
-            (() => { try { return localStorage.getItem('demoMode') === 'true' } catch { return false } })()
-        ));
+        (typeof window !== 'undefined' &&
+            (window as unknown as { __TEST_MODE__: boolean }).__TEST_MODE__)
+    );
 
     useEffect(() => {
         if (isTestMode) {
@@ -59,9 +62,15 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
         return <>{children}</>;
     }
 
+    // SECURITY: In production, never allow mock auth - always redirect to login
+    const isProductionEnv = import.meta.env.MODE === 'production' || import.meta.env.PROD === true;
+    if (isProductionEnv) {
+        return <Navigate to="/login" replace />;
+    }
+
     let isAuthorized = false;
 
-    // Check for mock auth state
+    // Check for mock auth state (development/test only)
     if (typeof window !== 'undefined') {
         const mockUser = localStorage.getItem('auth_user');
         if (mockUser) {
@@ -85,18 +94,25 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
 };
 
 // Test role guard that bypasses RBAC in test mode
+// SECURITY: Only enabled in non-production environments
 export const TestRoleGuard: React.FC<{
     children: React.ReactNode;
     allowedRoles?: string[]
 }> = ({ children, allowedRoles = [] }) => {
-    // In test mode, always allow access
+    // SECURITY: Completely disabled in production
+    const isProduction = import.meta.env.MODE === 'production' || import.meta.env.PROD === true;
+    if (isProduction) {
+        return <Navigate to="/" replace />;
+    }
+
+    // In test mode only (NOT production), always allow access
     if (import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_EMULATORS === 'true') {
         return <>{children}</>;
     }
 
     let isAuthorized = false;
 
-    // Check for mock user with role
+    // Check for mock user with role (development only)
     if (typeof window !== 'undefined') {
         const mockUser = localStorage.getItem('auth_user');
         if (mockUser) {

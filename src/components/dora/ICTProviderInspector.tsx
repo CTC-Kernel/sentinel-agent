@@ -30,14 +30,11 @@ import { fr } from 'date-fns/locale';
 interface ICTProviderInspectorProps {
     provider: ICTProvider;
     onEdit: () => void;
-    onClose: () => void;
 }
 
 export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
     provider,
-    onEdit,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onClose
+    onEdit
 }) => {
     const { t } = useTranslation();
 

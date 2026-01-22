@@ -46,8 +46,14 @@ import type {
 } from '../../types/homologation';
 import { LEVEL_INFO, REQUIRED_DOCUMENTS, DOCUMENT_TYPE_INFO } from '../../types/homologation';
 
+/**
+ * Type for wizard output - excludes organizationId and userId
+ * which are added by the parent component
+ */
+type WizardDossierInput = Omit<CreateHomologationDossierInput, 'organizationId' | 'userId'>;
+
 interface LevelDeterminationWizardProps {
-  onComplete: (input: CreateHomologationDossierInput) => Promise<void>;
+  onComplete: (input: WizardDossierInput) => Promise<void>;
   onCancel: () => void;
   linkedEbiosAnalysisId?: string;
   linkedSystemId?: string;
@@ -197,7 +203,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
     try {
       const isOverridden = selectedLevel !== recommendation.recommendedLevel;
 
-      const input: CreateHomologationDossierInput = {
+      const input: WizardDossierInput = {
         name: dossierName.trim(),
         description: dossierDescription.trim() || undefined,
         systemScope: systemScope.trim(),
@@ -209,7 +215,7 @@ export const LevelDeterminationWizard: React.FC<LevelDeterminationWizardProps> =
         originalRecommendation: isOverridden ? recommendation.recommendedLevel : undefined,
         determinationAnswers: Array.from(answers.values()),
         recommendationScore: recommendation.score,
-        responsibleId: '', // Will be set by the hook
+        responsibleId: '', // Will be set by the parent
         linkedEbiosAnalysisId,
         linkedSystemId
       };

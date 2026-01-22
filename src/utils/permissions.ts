@@ -30,7 +30,10 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         AuditTrail: ['read'],
         Backup: ['manage'],
         Integration: ['manage'],
-        Partner: ['manage']
+        Partner: ['manage'],
+        BcpDrill: ['manage'],
+        TlptCampaign: ['manage'],
+        RecoveryPlan: ['manage']
     },
     auditor: {
         Audit: ['read', 'create', 'update'],
@@ -46,7 +49,10 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         SupplierAssessment: ['read'],
         SupplierIncident: ['read'],
         Threat: ['read'],
-        AuditTrail: ['read']
+        AuditTrail: ['read'],
+        BcpDrill: ['read'],
+        TlptCampaign: ['read'],
+        RecoveryPlan: ['read']
     },
     project_manager: {
         Project: ['manage'], // 'manage' includes 'delete'
@@ -60,7 +66,10 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         ProcessingActivity: ['read'],
         SupplierAssessment: ['read'],
         SupplierIncident: ['read'],
-        Audit: ['read']
+        Audit: ['read'],
+        BcpDrill: ['read'],
+        TlptCampaign: ['read'],
+        RecoveryPlan: ['read']
     },
     direction: {
         Project: ['read'],
@@ -77,7 +86,10 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         SupplierIncident: ['read'],
         CTCEngine: ['read'],
         Backup: ['read'],
-        Integration: ['read']
+        Integration: ['read'],
+        BcpDrill: ['read'],
+        TlptCampaign: ['read'],
+        RecoveryPlan: ['read']
     },
     user: {
         Document: ['read', 'update_own'], // Can often read policy docs
@@ -91,7 +103,10 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         BusinessProcess: ['read'],
         ProcessingActivity: ['read'],
         SupplierAssessment: ['read'],
-        SupplierIncident: ['read']
+        SupplierIncident: ['read'],
+        BcpDrill: ['read'],
+        TlptCampaign: ['read'],
+        RecoveryPlan: ['read']
     }
 };
 
@@ -181,7 +196,13 @@ export const hasPermission = (
     if (userRole === 'admin') {
         // Critical resources require organization owner check
         if (action === 'delete' && ['User', 'Organization'].includes(resource)) {
-            return typeof orgOwnerId === 'string' && orgOwnerId.length > 0 && user.uid === orgOwnerId;
+            // If orgOwnerId is explicitly provided, only org owner can delete
+            if (typeof orgOwnerId === 'string' && orgOwnerId.length > 0) {
+                return user.uid === orgOwnerId;
+            }
+            // If orgOwnerId not provided, allow admin for User delete (team management)
+            // Block Organization delete without explicit owner verification
+            return resource === 'User';
         }
 
         // SECURITY: Verify admin belongs to the resource's organization

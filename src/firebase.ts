@@ -161,14 +161,42 @@ if (import.meta.env.VITE_USE_EMULATORS === 'true') {
   connectStorageEmulator(storage, 'localhost', 9199);
 }
 
-(async () => {
+/**
+ * Check if user has given cookie/analytics consent
+ * RGPD Compliance: Analytics must only be initialized after explicit consent
+ */
+const hasAnalyticsConsent = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('sentinel_cookie_consent') === 'true';
+};
+
+/**
+ * Initialize analytics only if consent is given
+ * Called at startup if consent exists, or later when user accepts cookies
+ */
+export const initializeAnalytics = async (): Promise<Analytics | null> => {
+  if (analytics) return analytics; // Already initialized
+
   try {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return null;
+    if (!hasAnalyticsConsent()) {
+      // RGPD: Do not initialize analytics without consent
+      return null;
+    }
     if (await isSupported()) {
       analytics = getAnalytics(app);
+      ErrorLogger.info('Analytics initialized after consent', 'firebase.analytics');
     }
   } catch (error) {
     ErrorLogger.warn('Analytics initialization skipped', 'firebase.analytics', { metadata: { error } });
+  }
+  return analytics;
+};
+
+// Initialize analytics only if consent already exists
+(async () => {
+  if (hasAnalyticsConsent()) {
+    await initializeAnalytics();
   }
 })();
 

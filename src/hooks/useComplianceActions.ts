@@ -9,13 +9,32 @@ import { controlSchema } from '../schemas/controlSchema';
 import { z } from 'zod';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from '../services/errorLogger';
+import { hasPermission } from '../utils/permissions';
 
 export const useComplianceActions = (user: UserProfile | null) => {
     const [updating, setUpdating] = useState(false);
 
-    const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation = false) => {
+    const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation = false, controlOrganizationId?: string) => {
         setUpdating(true);
         try {
+            // SECURITY: Check authorization - only admin/rssi can modify controls
+            if (!hasPermission(user, 'Control', 'update')) {
+                ErrorLogger.warn('Unauthorized control update attempt', 'useComplianceActions.updateControl', {
+                    metadata: { attemptedBy: user?.uid, targetControl: controlId }
+                });
+                toast.error("Vous n'avez pas les droits pour modifier ce contrôle");
+                return false;
+            }
+
+            // SECURITY: IDOR protection - verify control belongs to user's organization
+            if (controlOrganizationId && controlOrganizationId !== user?.organizationId) {
+                ErrorLogger.warn('IDOR attempt: control update across organizations', 'useComplianceActions.updateControl', {
+                    metadata: { attemptedBy: user?.uid, targetControl: controlId, targetOrg: controlOrganizationId, callerOrg: user?.organizationId }
+                });
+                toast.error("Contrôle non trouvé");
+                return false;
+            }
+
             // Validate updates against schema (partial) - more permissive
             // Only validate if we have actual updates to validate AND we are not skipping validation
             if (!skipValidation && Object.keys(updates).length > 0) {
@@ -66,7 +85,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleStatusChange = async (control: Control, newStatus: Control['status']) => {
-        const success = await updateControl(control.id, { status: newStatus }, "Statut mis à jour");
+        const success = await updateControl(control.id, { status: newStatus }, "Statut mis à jour", false, control.organizationId);
         if (success && user) {
             await AuditLogService.logStatusChange(
                 user.organizationId || '',
@@ -81,7 +100,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleAssign = async (control: Control, userId: string) => {
-        const success = await updateControl(control.id, { assigneeId: userId }, "Responsable assigné");
+        const success = await updateControl(control.id, { assigneeId: userId }, "Responsable assigné", false, control.organizationId);
         if (success && user) {
             await AuditLogService.logUpdate(
                 user.organizationId || '',
@@ -97,7 +116,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
 
     // Safe cast via unknown if needed, or rely on Firebase handling
     const handleLinkAsset = async (control: Control, assetId: string) => {
-        const success = await updateControl(control.id, { relatedAssetIds: arrayUnion(assetId) as unknown as string[] }, "Actif lié", true);
+        const success = await updateControl(control.id, { relatedAssetIds: arrayUnion(assetId) as unknown as string[] }, "Actif lié", true, control.organizationId);
         if (success && user) {
             await AuditLogService.logUpdate(
                 user.organizationId || '',
@@ -112,7 +131,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleUnlinkAsset = async (control: Control, assetId: string) => {
-        const success = await updateControl(control.id, { relatedAssetIds: arrayRemove(assetId) as unknown as string[] }, "Lien supprimé", true);
+        const success = await updateControl(control.id, { relatedAssetIds: arrayRemove(assetId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
         if (success && user) {
             await AuditLogService.logUpdate(
                 user.organizationId || '',
@@ -127,7 +146,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleLinkSupplier = async (control: Control, supplierId: string) => {
-        const success = await updateControl(control.id, { relatedSupplierIds: arrayUnion(supplierId) as unknown as string[] }, "Fournisseur lié", true);
+        const success = await updateControl(control.id, { relatedSupplierIds: arrayUnion(supplierId) as unknown as string[] }, "Fournisseur lié", true, control.organizationId);
         if (success && user) {
             await AuditLogService.logUpdate(
                 user.organizationId || '',
@@ -142,11 +161,11 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleUnlinkSupplier = async (control: Control, supplierId: string) => {
-        await updateControl(control.id, { relatedSupplierIds: arrayRemove(supplierId) as unknown as string[] }, "Lien supprimé", true);
+        await updateControl(control.id, { relatedSupplierIds: arrayRemove(supplierId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
     };
 
     const handleLinkProject = async (control: Control, projectId: string) => {
-        const success = await updateControl(control.id, { relatedProjectIds: arrayUnion(projectId) as unknown as string[] }, "Projet lié", true);
+        const success = await updateControl(control.id, { relatedProjectIds: arrayUnion(projectId) as unknown as string[] }, "Projet lié", true, control.organizationId);
         if (success && user) {
             await AuditLogService.logUpdate(
                 user.organizationId || '',
@@ -161,11 +180,11 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleUnlinkProject = async (control: Control, projectId: string) => {
-        await updateControl(control.id, { relatedProjectIds: arrayRemove(projectId) as unknown as string[] }, "Lien supprimé", true);
+        await updateControl(control.id, { relatedProjectIds: arrayRemove(projectId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
     };
 
     const handleLinkDocument = async (control: Control, documentId: string) => {
-        const success = await updateControl(control.id, { evidenceIds: arrayUnion(documentId) as unknown as string[] }, "Document lié", true);
+        const success = await updateControl(control.id, { evidenceIds: arrayUnion(documentId) as unknown as string[] }, "Document lié", true, control.organizationId);
         if (success && user) {
             await AuditLogService.logUpdate(
                 user.organizationId || '',
@@ -180,11 +199,11 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleUnlinkDocument = async (control: Control, documentId: string) => {
-        await updateControl(control.id, { evidenceIds: arrayRemove(documentId) as unknown as string[] }, "Lien supprimé", true);
+        await updateControl(control.id, { evidenceIds: arrayRemove(documentId) as unknown as string[] }, "Lien supprimé", true, control.organizationId);
     };
 
     const updateJustification = async (control: Control, text: string) => {
-        const success = await updateControl(control.id, { justification: text }, "Justification enregistrée");
+        const success = await updateControl(control.id, { justification: text }, "Justification enregistrée", false, control.organizationId);
         if (success && user) {
             await AuditLogService.logUpdate(
                 user.organizationId || '',
@@ -205,7 +224,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
         const success = await updateControl(control.id, {
             status: newStatus,
             applicability: newApplicability
-        }, `Contrôle marqué comme ${newApplicability}`);
+        }, `Contrôle marqué comme ${newApplicability}`, false, control.organizationId);
 
         if (success && user) {
             await AuditLogService.logUpdate(
@@ -234,7 +253,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
 
         const success = await updateControl(control.id, {
             mappedFrameworks: arrayUnion(frameworkId) as unknown as Framework[]
-        }, "Référentiel mappé", true);
+        }, "Référentiel mappé", true, control.organizationId);
 
         if (success && user) {
             await AuditLogService.logUpdate(
@@ -252,7 +271,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
     const handleUnmapFramework = async (control: Control, frameworkId: Framework) => {
         const success = await updateControl(control.id, {
             mappedFrameworks: arrayRemove(frameworkId) as unknown as Framework[]
-        }, "Mapping supprimé", true);
+        }, "Mapping supprimé", true, control.organizationId);
 
         if (success && user) {
             await AuditLogService.logUpdate(
@@ -270,10 +289,20 @@ export const useComplianceActions = (user: UserProfile | null) => {
     const createRisk = async (riskData: Record<string, unknown>) => {
         setUpdating(true);
         try {
+            // SECURITY: Check authorization
+            if (!hasPermission(user, 'Risk', 'create')) {
+                ErrorLogger.warn('Unauthorized risk creation attempt', 'useComplianceActions.createRisk', {
+                    metadata: { attemptedBy: user?.uid }
+                });
+                toast.error("Vous n'avez pas les droits pour créer un risque");
+                return null;
+            }
+
             // Placeholder: Ideally import addDoc and collection at top
             const { addDoc, collection } = await import('firebase/firestore');
             const ref = await addDoc(collection(db, 'risks'), sanitizeData({
                 ...riskData,
+                organizationId: user?.organizationId, // Ensure org isolation
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 createdBy: user?.uid
@@ -292,9 +321,19 @@ export const useComplianceActions = (user: UserProfile | null) => {
     const createAudit = async (auditData: Record<string, unknown>) => {
         setUpdating(true);
         try {
+            // SECURITY: Check authorization
+            if (!hasPermission(user, 'Audit', 'create')) {
+                ErrorLogger.warn('Unauthorized audit creation attempt', 'useComplianceActions.createAudit', {
+                    metadata: { attemptedBy: user?.uid }
+                });
+                toast.error("Vous n'avez pas les droits pour créer un audit");
+                return null;
+            }
+
             const { addDoc, collection } = await import('firebase/firestore');
             const ref = await addDoc(collection(db, 'audits'), sanitizeData({
                 ...auditData,
+                organizationId: user?.organizationId, // Ensure org isolation
                 status: 'Planned',
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),

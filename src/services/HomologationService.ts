@@ -720,7 +720,9 @@ export async function initializeRenewal(
     responsibleId: existingDossier.responsibleId,
     validityYears: existingDossier.validityYears,
     linkedEbiosAnalysisId: existingDossier.linkedEbiosAnalysisId,
-    linkedSystemId: existingDossier.linkedSystemId
+    linkedSystemId: existingDossier.linkedSystemId,
+    organizationId,
+    userId
   };
 
   const newDossier = await createDossier(organizationId, userId, renewalInput);

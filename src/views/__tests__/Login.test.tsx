@@ -226,6 +226,10 @@ describe('Login View', () => {
         fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'new@example.com' } });
         fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'NewPass123!' } });
 
+        // Accept privacy policy (RGPD compliance requirement)
+        const privacyCheckbox = screen.getByRole('checkbox', { name: /auth\.privacyConsent|Accepter la politique de confidentialité/i });
+        fireEvent.click(privacyCheckbox);
+
         fireEvent.click(screen.getByRole('button', { name: /auth\.signup/i }));
 
         await waitFor(() => {

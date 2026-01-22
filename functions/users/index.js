@@ -9,6 +9,7 @@ const { logger } = require("firebase-functions");
 const { user } = require("firebase-functions/v1/auth");
 const admin = require("firebase-admin");
 const cors = require("cors");
+const { checkCallableRateLimit } = require("../utils/rateLimiter");
 
 // CORS Configuration for callable functions
 const corsOptions = {
@@ -153,6 +154,9 @@ exports.refreshUserToken = onCall({
         throw new HttpsError('unauthenticated', 'User not authenticated');
     }
 
+    // SECURITY: Rate limit token refresh to prevent abuse
+    checkCallableRateLimit(request, 'auth');
+
     try {
         const db = admin.firestore();
         const userRef = db.collection('users').doc(uid);
@@ -229,6 +233,9 @@ exports.healMe = onCall({
     const uid = request.auth?.uid;
     if (!uid) return { success: false, error: 'Unauthenticated' };
 
+    // SECURITY: Rate limit self-healing endpoint
+    checkCallableRateLimit(request, 'auth');
+
     try {
         const db = admin.firestore();
         const userRef = db.collection('users').doc(uid);
@@ -300,11 +307,15 @@ exports.verifySuperAdmin = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
+    // SECURITY: Rate limit admin verification to prevent brute force
+    checkCallableRateLimit(request, 'admin');
+
     const uid = request.auth.uid;
     const email = request.auth.token.email;
     const isClaimSuperAdmin = request.auth.token.superAdmin === true;
 
-    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', 'contact@cyber-threat-consulting.com', 'admin@cyber-threat-consulting.com'];
+    // SECURITY: Super admin emails loaded from environment variable
+    const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
     const isBootstrapSuperAdmin = email && SUPER_ADMIN_EMAILS.includes(email);
 
     // Auto-grant superAdmin claim to bootstrap admins if not already set
@@ -345,6 +356,9 @@ exports.grantSuperAdmin = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
+    // SECURITY: Strict rate limit on privilege escalation
+    checkCallableRateLimit(request, 'admin');
+
     const { targetEmail } = request.data;
     if (!targetEmail) {
         throw new HttpsError('invalid-argument', 'Target email is required.');
@@ -352,7 +366,8 @@ exports.grantSuperAdmin = onCall({
 
     const callerEmail = request.auth.token.email;
     const callerIsClaimAdmin = request.auth.token.superAdmin === true;
-    const SUPER_ADMIN_EMAILS = ['thibault.llopis@gmail.com', 'contact@cyber-threat-consulting.com', 'admin@cyber-threat-consulting.com'];
+    // SECURITY: Super admin emails loaded from environment variable
+    const SUPER_ADMIN_EMAILS = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
     const callerIsBootstrapAdmin = callerEmail && SUPER_ADMIN_EMAILS.includes(callerEmail);
 
     if (!callerIsClaimAdmin && !callerIsBootstrapAdmin) {
@@ -389,6 +404,9 @@ exports.switchOrganization = onCall({
     if (!request.auth) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
+
+    // SECURITY: Rate limit org switching to prevent abuse
+    checkCallableRateLimit(request, 'admin');
 
     const { targetOrgId } = request.data;
     if (!targetOrgId) {
@@ -623,6 +641,215 @@ exports.rejectJoinRequest = onCall({
         throw new HttpsError('internal', 'Failed to reject request.');
     }
 });
+
+/**
+ * GDPR Right to Be Forgotten - Complete User Data Erasure
+ * This function handles comprehensive deletion of all user personal data
+ * Required for GDPR Article 17 compliance
+ */
+exports.deleteUserAccount = onCall({
+    memory: '512MiB',
+    timeoutSeconds: 300,
+    region: 'europe-west1',
+    cors: corsOptions
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    // SECURITY: Strict rate limit on account deletion (heavy operation)
+    checkCallableRateLimit(request, 'heavy');
+
+    const uid = request.auth.uid;
+    const db = admin.firestore();
+
+    logger.info(`[GDPR] Starting user data erasure for ${uid}`);
+
+    try {
+        const userRef = db.collection('users').doc(uid);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            throw new HttpsError('not-found', 'User not found.');
+        }
+
+        const userData = userDoc.data();
+        const organizationId = userData.organizationId;
+
+        // Check if user is org owner - must transfer ownership first
+        if (organizationId) {
+            const orgRef = db.collection('organizations').doc(organizationId);
+            const orgSnap = await orgRef.get();
+            if (orgSnap.exists && orgSnap.data()?.ownerId === uid) {
+                // Check if there are other users in the org
+                const otherUsersSnap = await db.collection('users')
+                    .where('organizationId', '==', organizationId)
+                    .where(admin.firestore.FieldPath.documentId(), '!=', uid)
+                    .limit(1)
+                    .get();
+
+                if (!otherUsersSnap.empty) {
+                    throw new HttpsError('failed-precondition',
+                        'Vous êtes propriétaire de l\'organisation. Transférez d\'abord la propriété à un autre administrateur avant de supprimer votre compte.');
+                }
+                // If sole member, org will be deleted below
+            }
+        }
+
+        // 1. Delete activity logs (personal data)
+        logger.info(`[GDPR] Deleting activity logs for ${uid}`);
+        await deleteUserCollectionData(db, 'activity_logs', 'userId', uid);
+
+        // 2. Delete consent records
+        logger.info(`[GDPR] Deleting consent records for ${uid}`);
+        await deleteUserCollectionData(db, 'consent_records', 'userId', uid);
+
+        // 3. Delete notifications
+        logger.info(`[GDPR] Deleting notifications for ${uid}`);
+        await deleteUserCollectionData(db, 'notifications', 'userId', uid);
+
+        // 4. Anonymize comments (keep content but remove author identity)
+        logger.info(`[GDPR] Anonymizing comments for ${uid}`);
+        await anonymizeUserComments(db, uid);
+
+        // 5. Anonymize ownership references in organization data
+        if (organizationId) {
+            logger.info(`[GDPR] Anonymizing owned items for ${uid}`);
+            await anonymizeOwnedItems(db, uid, organizationId);
+        }
+
+        // 6. Delete user's personal files from storage
+        logger.info(`[GDPR] Deleting storage files for ${uid}`);
+        try {
+            const bucket = admin.storage().bucket();
+            // Delete avatar
+            const avatarFile = bucket.file(`avatars/${uid}`);
+            const [avatarExists] = await avatarFile.exists();
+            if (avatarExists) await avatarFile.delete();
+            // Delete any personal uploads
+            await bucket.deleteFiles({ prefix: `users/${uid}/` });
+        } catch (storageError) {
+            logger.warn(`[GDPR] Storage cleanup warning for ${uid}:`, storageError.message);
+        }
+
+        // 7. Log the erasure request (required for compliance audit trail)
+        await db.collection('gdpr_erasure_log').add({
+            userId: uid,
+            email: userData.email, // Stored briefly for audit, can be hashed
+            organizationId: organizationId || null,
+            requestedAt: admin.firestore.FieldValue.serverTimestamp(),
+            completedAt: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'completed'
+        });
+
+        // 8. Delete user profile document
+        await userRef.delete();
+        logger.info(`[GDPR] Deleted user profile for ${uid}`);
+
+        // 9. If sole member of org, clean up organization
+        if (organizationId) {
+            const remainingUsersSnap = await db.collection('users')
+                .where('organizationId', '==', organizationId)
+                .limit(1)
+                .get();
+
+            if (remainingUsersSnap.empty) {
+                logger.info(`[GDPR] User was sole member - cleaning up organization ${organizationId}`);
+                // Import AccountService for org deletion
+                const { AccountService: BackendAccountService } = require('../services/accountService');
+                // Note: We pass uid but org ownership check should pass since user doc is deleted
+                // Instead, directly delete org since user is sole member
+                await db.collection('organizations').doc(organizationId).delete();
+            }
+        }
+
+        // 10. Delete Firebase Auth user (this will trigger onUserDeleted as backup)
+        await admin.auth().deleteUser(uid);
+
+        logger.info(`[GDPR] User data erasure completed for ${uid}`);
+
+        return { success: true, message: 'Toutes vos données personnelles ont été supprimées.' };
+
+    } catch (error) {
+        logger.error(`[GDPR] User data erasure failed for ${uid}:`, error);
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError('internal', 'Échec de la suppression du compte: ' + error.message);
+    }
+});
+
+/**
+ * Helper: Delete all documents in a collection where field matches userId
+ */
+async function deleteUserCollectionData(db, collectionName, fieldName, userId) {
+    const batchSize = 500;
+    while (true) {
+        const snap = await db.collection(collectionName)
+            .where(fieldName, '==', userId)
+            .limit(batchSize)
+            .get();
+
+        if (snap.empty) break;
+
+        const batch = db.batch();
+        snap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+    }
+}
+
+/**
+ * Helper: Anonymize comments - replace author info with generic "Utilisateur supprimé"
+ */
+async function anonymizeUserComments(db, userId) {
+    const batchSize = 500;
+    while (true) {
+        const snap = await db.collectionGroup('comments')
+            .where('authorId', '==', userId)
+            .limit(batchSize)
+            .get();
+
+        if (snap.empty) break;
+
+        const batch = db.batch();
+        snap.docs.forEach(doc => {
+            batch.update(doc.ref, {
+                authorId: 'deleted_user',
+                authorName: 'Utilisateur supprimé',
+                authorEmail: null
+            });
+        });
+        await batch.commit();
+    }
+}
+
+/**
+ * Helper: Anonymize ownership references in org data
+ */
+async function anonymizeOwnedItems(db, userId, organizationId) {
+    const collectionsToAnonymize = ['assets', 'risks', 'documents', 'projects', 'incidents', 'audits'];
+
+    for (const collName of collectionsToAnonymize) {
+        const batchSize = 500;
+        while (true) {
+            const snap = await db.collection(collName)
+                .where('organizationId', '==', organizationId)
+                .where('ownerId', '==', userId)
+                .limit(batchSize)
+                .get();
+
+            if (snap.empty) break;
+
+            const batch = db.batch();
+            snap.docs.forEach(doc => {
+                batch.update(doc.ref, {
+                    ownerId: null,
+                    owner: 'Utilisateur supprimé',
+                    ownerEmail: null
+                });
+            });
+            await batch.commit();
+        }
+    }
+}
 
 /**
  * Trigger: Clean up user data when an Auth user is deleted

@@ -91,7 +91,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15, duration: 0.3, ease: appleEasing }}
                   >
-                    <Dialog.Title as="h3" className="text-xl font-bold leading-6 text-slate-900 dark:text-white mb-2">
+                    <Dialog.Title as="h3" className="text-xl font-bold font-display leading-6 text-slate-900 dark:text-white mb-2">
                       {title}
                     </Dialog.Title>
                   </motion.div>

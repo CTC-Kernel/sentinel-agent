@@ -8,6 +8,7 @@ import { BcpDrill } from '../types';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
 import { ImportService } from '../services/ImportService';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { hasPermission } from '../utils/permissions';
 
 export const useContinuity = () => {
     const { user, addToast, t } = useStore();
@@ -15,6 +16,16 @@ export const useContinuity = () => {
 
     const addProcess = useCallback(async (data: BusinessProcessFormData) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'BusinessProcess', 'create')) {
+            ErrorLogger.warn('Unauthorized business process creation attempt', 'useContinuity.addProcess', {
+                metadata: { attemptedBy: user?.uid }
+            });
+            addToast("Vous n'avez pas les droits pour créer un processus", 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             const newProcess = {
@@ -38,8 +49,27 @@ export const useContinuity = () => {
         }
     }, [user, addToast, t]);
 
-    const updateProcess = useCallback(async (id: string, data: Partial<BusinessProcessFormData>) => {
+    const updateProcess = useCallback(async (id: string, data: Partial<BusinessProcessFormData>, processOrganizationId?: string) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'BusinessProcess', 'update')) {
+            ErrorLogger.warn('Unauthorized business process update attempt', 'useContinuity.updateProcess', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour modifier ce processus", 'error');
+            return;
+        }
+
+        // SECURITY: IDOR protection
+        if (processOrganizationId && processOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: business process update across organizations', 'useContinuity.updateProcess', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: processOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Processus non trouvé', 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             await updateDoc(doc(db, 'business_processes', id), {
@@ -56,8 +86,27 @@ export const useContinuity = () => {
         }
     }, [user, addToast, t]);
 
-    const deleteProcess = useCallback(async (id: string) => {
+    const deleteProcess = useCallback(async (id: string, processOrganizationId?: string) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'BusinessProcess', 'delete')) {
+            ErrorLogger.warn('Unauthorized business process deletion attempt', 'useContinuity.deleteProcess', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour supprimer ce processus", 'error');
+            return;
+        }
+
+        // SECURITY: IDOR protection
+        if (processOrganizationId && processOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: business process deletion across organizations', 'useContinuity.deleteProcess', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: processOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Processus non trouvé', 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             await deleteDoc(doc(db, 'business_processes', id));
@@ -73,6 +122,16 @@ export const useContinuity = () => {
 
     const addDrill = useCallback(async (data: Partial<BcpDrill>) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'BcpDrill', 'create')) {
+            ErrorLogger.warn('Unauthorized drill creation attempt', 'useContinuity.addDrill', {
+                metadata: { attemptedBy: user?.uid }
+            });
+            addToast("Vous n'avez pas les droits pour créer un exercice", 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             const batch = writeBatch(db);
@@ -107,8 +166,27 @@ export const useContinuity = () => {
         }
     }, [user, addToast, t]);
 
-    const updateDrill = useCallback(async (id: string, data: Partial<BcpDrill>) => {
+    const updateDrill = useCallback(async (id: string, data: Partial<BcpDrill>, drillOrganizationId?: string) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'BcpDrill', 'update')) {
+            ErrorLogger.warn('Unauthorized drill update attempt', 'useContinuity.updateDrill', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour modifier cet exercice", 'error');
+            return;
+        }
+
+        // SECURITY: IDOR protection
+        if (drillOrganizationId && drillOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: drill update across organizations', 'useContinuity.updateDrill', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: drillOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Exercice non trouvé', 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             await updateDoc(doc(db, 'bcp_drills', id), {
@@ -124,8 +202,27 @@ export const useContinuity = () => {
         }
     }, [user, addToast, t]);
 
-    const deleteDrill = useCallback(async (id: string) => {
+    const deleteDrill = useCallback(async (id: string, drillOrganizationId?: string) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'BcpDrill', 'delete')) {
+            ErrorLogger.warn('Unauthorized drill deletion attempt', 'useContinuity.deleteDrill', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour supprimer cet exercice", 'error');
+            return;
+        }
+
+        // SECURITY: IDOR protection
+        if (drillOrganizationId && drillOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: drill deletion across organizations', 'useContinuity.deleteDrill', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: drillOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Exercice non trouvé', 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             await deleteDoc(doc(db, 'bcp_drills', id));
@@ -188,6 +285,16 @@ export const useContinuity = () => {
 
     const addTlptCampaign = useCallback(async (data: Partial<import('../types/tlpt').TlptCampaign>) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'TlptCampaign', 'create')) {
+            ErrorLogger.warn('Unauthorized TLPT campaign creation attempt', 'useContinuity.addTlptCampaign', {
+                metadata: { attemptedBy: user?.uid }
+            });
+            addToast("Vous n'avez pas les droits pour créer une campagne TLPT", 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             const newCampaign = {
@@ -209,8 +316,27 @@ export const useContinuity = () => {
         }
     }, [user, addToast]);
 
-    const updateTlptCampaign = useCallback(async (id: string, data: Partial<import('../types/tlpt').TlptCampaign>) => {
+    const updateTlptCampaign = useCallback(async (id: string, data: Partial<import('../types/tlpt').TlptCampaign>, campaignOrganizationId?: string) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'TlptCampaign', 'update')) {
+            ErrorLogger.warn('Unauthorized TLPT campaign update attempt', 'useContinuity.updateTlptCampaign', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour modifier cette campagne", 'error');
+            return;
+        }
+
+        // SECURITY: IDOR protection
+        if (campaignOrganizationId && campaignOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: TLPT campaign update across organizations', 'useContinuity.updateTlptCampaign', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: campaignOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Campagne non trouvée', 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             await updateDoc(doc(db, 'tlpt_campaigns', id), {
@@ -226,8 +352,27 @@ export const useContinuity = () => {
         }
     }, [user, addToast]);
 
-    const deleteTlptCampaign = useCallback(async (id: string) => {
+    const deleteTlptCampaign = useCallback(async (id: string, campaignOrganizationId?: string) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'TlptCampaign', 'delete')) {
+            ErrorLogger.warn('Unauthorized TLPT campaign deletion attempt', 'useContinuity.deleteTlptCampaign', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour supprimer cette campagne", 'error');
+            return;
+        }
+
+        // SECURITY: IDOR protection
+        if (campaignOrganizationId && campaignOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: TLPT campaign deletion across organizations', 'useContinuity.deleteTlptCampaign', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: campaignOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Campagne non trouvée', 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             await deleteDoc(doc(db, 'tlpt_campaigns', id));
@@ -243,6 +388,16 @@ export const useContinuity = () => {
 
     const addRecoveryPlan = useCallback(async (data: import('../schemas/continuitySchema').RecoveryPlanFormData) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'RecoveryPlan', 'create')) {
+            ErrorLogger.warn('Unauthorized recovery plan creation attempt', 'useContinuity.addRecoveryPlan', {
+                metadata: { attemptedBy: user?.uid }
+            });
+            addToast("Vous n'avez pas les droits pour créer un plan de reprise", 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             const newPlan = {
@@ -266,8 +421,27 @@ export const useContinuity = () => {
         }
     }, [user, addToast]);
 
-    const updateRecoveryPlan = useCallback(async (id: string, data: Partial<import('../schemas/continuitySchema').RecoveryPlanFormData>) => {
+    const updateRecoveryPlan = useCallback(async (id: string, data: Partial<import('../schemas/continuitySchema').RecoveryPlanFormData>, planOrganizationId?: string) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'RecoveryPlan', 'update')) {
+            ErrorLogger.warn('Unauthorized recovery plan update attempt', 'useContinuity.updateRecoveryPlan', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour modifier ce plan", 'error');
+            return;
+        }
+
+        // SECURITY: IDOR protection
+        if (planOrganizationId && planOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: recovery plan update across organizations', 'useContinuity.updateRecoveryPlan', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: planOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Plan non trouvé', 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             await updateDoc(doc(db, 'recovery_plans', id), {
@@ -284,8 +458,27 @@ export const useContinuity = () => {
         }
     }, [user, addToast]);
 
-    const deleteRecoveryPlan = useCallback(async (id: string) => {
+    const deleteRecoveryPlan = useCallback(async (id: string, planOrganizationId?: string) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: Authorization check
+        if (!hasPermission(user, 'RecoveryPlan', 'delete')) {
+            ErrorLogger.warn('Unauthorized recovery plan deletion attempt', 'useContinuity.deleteRecoveryPlan', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour supprimer ce plan", 'error');
+            return;
+        }
+
+        // SECURITY: IDOR protection
+        if (planOrganizationId && planOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: recovery plan deletion across organizations', 'useContinuity.deleteRecoveryPlan', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: planOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Plan non trouvé', 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             await deleteDoc(doc(db, 'recovery_plans', id));

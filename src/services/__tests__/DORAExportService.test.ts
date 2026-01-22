@@ -737,7 +737,7 @@ describe('DORAExportService', () => {
         it('should translate category to French', async () => {
             const providers = [createMockProvider({ category: 'critical' })];
 
-            const _result = await DORAExportService.generateExcel(
+            await DORAExportService.generateExcel(
                 providers,
                 mockOrganizationInfo,
                 { ...mockOptions, language: 'fr' }
@@ -750,7 +750,7 @@ describe('DORAExportService', () => {
         it('should translate category to English', async () => {
             const providers = [createMockProvider({ category: 'critical' })];
 
-            const _result = await DORAExportService.generateExcel(
+            await DORAExportService.generateExcel(
                 providers,
                 mockOrganizationInfo,
                 { ...mockOptions, language: 'en' }

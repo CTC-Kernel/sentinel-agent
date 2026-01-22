@@ -177,7 +177,8 @@ describe('DataExportService', () => {
         it('should log errors', async () => {
             const { getDocs } = await import('firebase/firestore');
             vi.mocked(getDocs).mockRejectedValueOnce(new Error('Firestore error'));
-            const { ErrorLogger } = await import('../errorLogger');
+            // ErrorLogger is called internally by the service
+            void import('../errorLogger');
             const onError = vi.fn();
 
             try {

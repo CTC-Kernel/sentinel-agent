@@ -1,4 +1,5 @@
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control } from './index';
+import type { NetworkSegment, OTCriticality } from './assets';
 
 // ============================================================================
 // Core Types
@@ -19,13 +20,8 @@ export type VoxelNodeStatus =
   | 'critical'
   | 'inactive';
 
-// ============================================================================
-// Network Segment Types (Story 36-3: IT/OT Voxel Mapping)
-// ============================================================================
-
-export type NetworkSegment = 'IT' | 'OT' | 'DMZ';
-
-export type OTCriticality = 'safety' | 'production' | 'operations' | 'monitoring';
+// Re-export from assets for backwards compatibility
+export type { NetworkSegment, OTCriticality };
 
 export interface OTNodeDetails {
   deviceType?: string;

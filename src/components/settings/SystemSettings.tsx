@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
-import { Activity, Trash2, AlertTriangle, Download } from '../ui/Icons';
+import { Activity, Trash2, AlertTriangle, Download, Shield } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Timestamp } from 'firebase/firestore';
 import { auth } from '../../firebase';
@@ -24,6 +24,7 @@ export const SystemSettings: React.FC = () => {
         hasPermission(user, 'Settings', 'read') ? user?.organizationId : undefined
     );
     const [exporting, setExporting] = useState(false);
+    const [exportingGDPR, setExportingGDPR] = useState(false);
 
     // Convert AuditLog to SystemLog format and take top 50
     const auditLogs = useMemo(() => {
@@ -34,12 +35,32 @@ export const SystemSettings: React.FC = () => {
         if (!user?.organizationId) return;
         setExporting(true);
         try {
-            await DataExportService.exportOrganizationData(user.organizationId);
+            await DataExportService.exportOrganizationData({ organizationId: user.organizationId });
             addToast("Export réussi ! Le téléchargement a démarré.", "success");
         } catch (_error) {
             ErrorLogger.handleErrorWithToast(_error, 'SystemSettings.handleExportData', 'UNKNOWN_ERROR');
         } finally {
             setExporting(false);
+        }
+    };
+
+    /**
+     * GDPR Article 20 - Right to Data Portability
+     * This export is ALWAYS available regardless of subscription plan.
+     */
+    const handleExportGDPRData = async () => {
+        if (!user?.uid || !user?.organizationId) return;
+        setExportingGDPR(true);
+        try {
+            await DataExportService.exportGDPRData({
+                userId: user.uid,
+                organizationId: user.organizationId
+            });
+            addToast("Export RGPD réussi ! Le téléchargement a démarré.", "success");
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'SystemSettings.handleExportGDPRData', 'UNKNOWN_ERROR');
+        } finally {
+            setExportingGDPR(false);
         }
     };
 
@@ -195,6 +216,47 @@ export const SystemSettings: React.FC = () => {
                                     <>
                                         <Download className="h-4 w-4 mr-2" />
                                         {t('settings.systemPage.exportAllZip')}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </GlassCard>
+
+            {/* GDPR Personal Data Export - Always Available */}
+            <GlassCard className="p-8 rounded-[2.5rem] border border-emerald-500/30 dark:border-emerald-500/20 shadow-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
+                <div className="relative z-10">
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 shrink-0 backdrop-blur-md">
+                            <Shield className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                                {t('settings.systemPage.gdprExport') || 'Export RGPD (Données Personnelles)'}
+                                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">
+                                    Art. 20 RGPD
+                                </span>
+                            </h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-2xl">
+                                {t('settings.systemPage.gdprExportDesc') || 'Téléchargez toutes vos données personnelles conformément au droit à la portabilité (Article 20 RGPD). Cet export est toujours disponible, quel que soit votre plan d\'abonnement.'}
+                            </p>
+                            <Button
+                                variant="outline"
+                                onClick={handleExportGDPRData}
+                                disabled={exportingGDPR}
+                                className="w-full sm:w-auto shadow-lg shadow-emerald-500/10 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+                            >
+                                {exportingGDPR ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                                        {t('settings.systemPage.exporting') || 'Export en cours...'}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="h-4 w-4 mr-2" />
+                                        {t('settings.systemPage.exportGDPRZip') || 'Exporter mes données personnelles'}
                                     </>
                                 )}
                             </Button>

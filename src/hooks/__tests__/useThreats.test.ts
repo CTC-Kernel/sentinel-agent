@@ -28,7 +28,12 @@ vi.mock('firebase/firestore', () => ({
         commit: vi.fn().mockResolvedValue(undefined),
     })),
     onSnapshot: vi.fn((_, callback) => {
-        callback({ docs: [] });
+        // Provide default mock threats with organizationId for IDOR checks
+        callback({
+            docs: [
+                { id: 'threat-1', data: () => ({ id: 'threat-1', name: 'Test Threat', organizationId: 'org-123' }) }
+            ]
+        });
         return mockUnsubscribe;
     }),
     serverTimestamp: vi.fn(() => 'mock-timestamp'),
@@ -40,16 +45,24 @@ const mockT = vi.fn((key: string) => key);
 const mockUser = {
     uid: 'user-123',
     organizationId: 'org-123',
+    role: 'admin',
 };
 
-vi.mock('../../store', () => ({
-    useStore: vi.fn(() => ({
-        user: mockUser,
-        isDemoMode: false,
-        addToast: mockAddToast,
-        t: mockT,
-    })),
-}));
+const mockStoreState = {
+    user: mockUser,
+    isDemoMode: false,
+    demoMode: false,
+    addToast: mockAddToast,
+    t: mockT,
+    customRoles: [],
+};
+
+vi.mock('../../store', () => {
+    const useStore = Object.assign(vi.fn(() => mockStoreState), {
+        getState: () => mockStoreState
+    });
+    return { useStore };
+});
 
 vi.mock('../../services/errorLogger', () => ({
     ErrorLogger: {
@@ -69,12 +82,7 @@ import { useStore } from '../../store';
 describe('useThreats', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(useStore).mockReturnValue({
-            user: mockUser,
-            isDemoMode: false,
-            addToast: mockAddToast,
-            t: mockT,
-        } as ReturnType<typeof useStore>);
+        vi.mocked(useStore).mockReturnValue(mockStoreState as ReturnType<typeof useStore>);
     });
 
     afterEach(() => {
@@ -91,8 +99,8 @@ describe('useThreats', () => {
 
         it('should fetch threats on mount', async () => {
             const mockThreats = [
-                { id: 'threat-1', name: 'Phishing', category: 'Social Engineering' },
-                { id: 'threat-2', name: 'Ransomware', category: 'Malware' },
+                { id: 'threat-1', name: 'Phishing', category: 'Social Engineering', organizationId: 'org-123' },
+                { id: 'threat-2', name: 'Ransomware', category: 'Malware', organizationId: 'org-123' },
             ];
 
             vi.mocked(onSnapshot).mockImplementation((_query, callback) => {
@@ -126,10 +134,9 @@ describe('useThreats', () => {
     describe('demo mode', () => {
         it('should use mock data in demo mode', async () => {
             vi.mocked(useStore).mockReturnValue({
-                user: mockUser,
+                ...mockStoreState,
                 isDemoMode: true,
-                addToast: mockAddToast,
-                t: mockT,
+                demoMode: true,
             } as ReturnType<typeof useStore>);
 
             const { result } = renderHook(() => useThreats());

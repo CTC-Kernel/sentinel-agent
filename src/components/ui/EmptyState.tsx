@@ -75,7 +75,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
                 <Icon className="w-10 h-10" />
             </motion.div>
             <motion.h3
-                className="text-xl font-bold text-foreground mb-2 tracking-tight"
+                className="text-xl font-bold font-display text-foreground mb-2 tracking-tight"
                 variants={{
                     hidden: { opacity: 0, y: 20 },
                     visible: { opacity: 1, y: 0, transition: { ease: appleEasing } }

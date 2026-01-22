@@ -82,7 +82,7 @@ export const ictProviderSchema = z.object({
         .min(1, i18n.t('dora.validation.name_required'))
         .max(200, i18n.t('validation.maxLength', { max: 200 })),
     category: z.enum(ICT_CRITICALITY_LEVELS, {
-        errorMap: () => ({ message: i18n.t('dora.validation.category_required') })
+        message: i18n.t('dora.validation.category_required')
     }),
     description: z.string().trim().max(5000).optional(),
 

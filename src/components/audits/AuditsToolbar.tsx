@@ -22,8 +22,8 @@ interface AuditsToolbarProps {
     setTypeFilter: (value: string) => void;
 
     // View Mode
-    activeTab: 'overview' | 'list' | 'calendar' | 'findings';
-    onTabChange: (tab: 'overview' | 'list' | 'calendar' | 'findings') => void;
+    activeTab: 'overview' | 'list' | 'calendar' | 'findings' | 'methods';
+    onTabChange: (tab: 'overview' | 'list' | 'calendar' | 'findings' | 'methods') => void;
 
     // Data Actions
     selectedAudits: string[];

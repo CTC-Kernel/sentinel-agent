@@ -222,8 +222,19 @@ export const useAudits = (options: UseAuditsOptions = {}) => {
         }
     };
 
-    const handleUpdateAudit = async (id: string, data: Partial<Audit>) => {
+    const handleUpdateAudit = async (id: string, data: Partial<Audit>, auditOrganizationId?: string) => {
         if (!canEdit) return;
+        if (!user?.organizationId) return;
+
+        // SECURITY: IDOR protection - verify audit belongs to user's organization
+        if (auditOrganizationId && auditOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: audit update across organizations', 'useAudits.handleUpdateAudit', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: auditOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Audit non trouvé', 'error');
+            return;
+        }
+
         try {
             await updateDoc(doc(db, 'audits', id), sanitizeData(data));
             await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${data.name} `);

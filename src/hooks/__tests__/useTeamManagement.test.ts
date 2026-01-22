@@ -18,13 +18,25 @@ const mockUser = {
     role: 'admin',
 };
 
-vi.mock('../../store', () => ({
-    useStore: vi.fn(() => ({
-        user: mockUser,
-        addToast: mockAddToast,
-        demoMode: false,
-    })),
-}));
+// Mutable store state - update properties instead of creating new objects
+const mockStoreState: {
+    user: typeof mockUser;
+    addToast: typeof mockAddToast;
+    demoMode: boolean;
+    customRoles: unknown[];
+} = {
+    user: mockUser,
+    addToast: mockAddToast,
+    demoMode: false,
+    customRoles: [],
+};
+
+vi.mock('../../store', () => {
+    const useStore = vi.fn(() => mockStoreState);
+    // Important: getState must reference the same mockStoreState for hasPermission
+    (useStore as unknown as { getState: () => typeof mockStoreState }).getState = () => mockStoreState;
+    return { useStore };
+});
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -66,6 +78,7 @@ vi.mock('../../firebase', () => ({
 vi.mock('../../services/errorLogger', () => ({
     ErrorLogger: {
         error: vi.fn(),
+        warn: vi.fn(),
         handleErrorWithToast: vi.fn(),
     },
 }));
@@ -268,11 +281,17 @@ describe('useTeamManagement', () => {
 
     describe('updateUser', () => {
         beforeEach(() => {
-            vi.mocked(useStore).mockReturnValue({
-                user: mockUser,
-                addToast: mockAddToast,
-                demoMode: false,
-            } as unknown as ReturnType<typeof useStore>);
+            // Reset to default admin user state
+            mockStoreState.user = mockUser;
+            mockStoreState.demoMode = false;
+            mockStoreState.customRoles = [];
+            // Mock getDocs to return users with matching organizationId for IDOR check
+            mockGetDocs.mockResolvedValue({
+                docs: [
+                    { id: 'user-1', data: () => ({ uid: 'user-1', email: 'user@example.com', organizationId: 'org-123', isPending: false }) }
+                ],
+                empty: false
+            });
         });
 
         it('should update user successfully', async () => {
@@ -308,7 +327,7 @@ describe('useTeamManagement', () => {
                     { role: 'admin' },
                     true // isPending
                 );
-                expect(success).toBeUndefined();
+                expect(success).toBe(false); // Returns false early for pending users
             });
 
             expect(mockUpdateDoc).not.toHaveBeenCalled();
@@ -334,15 +353,48 @@ describe('useTeamManagement', () => {
 
             expect(mockAddToast).toHaveBeenCalledWith('Erreur mise à jour', 'error');
         });
+
+        it('should prevent updating user from different organization (IDOR protection)', async () => {
+            // Mock empty result so user-other-org is not found
+            mockGetDocs.mockResolvedValue({
+                docs: [],
+                empty: true
+            });
+
+            const { result } = renderHook(() => useTeamManagement());
+
+            await waitFor(() => {
+                expect(result.current.loading).toBe(false);
+            });
+
+            await act(async () => {
+                const success = await result.current.updateUser(
+                    'user-other-org',
+                    { role: 'admin' },
+                    false
+                );
+                expect(success).toBe(false);
+            });
+
+            expect(mockUpdateDoc).not.toHaveBeenCalled();
+            expect(mockAddToast).toHaveBeenCalledWith('Utilisateur non trouvé', 'error');
+        });
     });
 
     describe('deleteUser', () => {
         beforeEach(() => {
-            vi.mocked(useStore).mockReturnValue({
-                user: mockUser,
-                addToast: mockAddToast,
-                demoMode: false,
-            } as unknown as ReturnType<typeof useStore>);
+            // Reset to default admin user state
+            mockStoreState.user = mockUser;
+            mockStoreState.demoMode = false;
+            mockStoreState.customRoles = [];
+            // Mock getDocs to return users with matching organizationId for IDOR check
+            mockGetDocs.mockResolvedValue({
+                docs: [
+                    { id: 'user-1', data: () => ({ uid: 'user-1', email: 'user@example.com', organizationId: 'org-123', isPending: false }) },
+                    { id: 'invite-1', data: () => ({ uid: 'invite-1', email: 'invite@example.com', organizationId: 'org-123', isPending: true }) }
+                ],
+                empty: false
+            });
         });
 
         it('should delete active user', async () => {
@@ -356,6 +408,7 @@ describe('useTeamManagement', () => {
                 const success = await result.current.deleteUser({
                     uid: 'user-1',
                     email: 'user@example.com',
+                    organizationId: 'org-123', // Must match mock user's org for IDOR check
                     isPending: false,
                 } as never);
                 expect(success).toBe(true);
@@ -376,6 +429,7 @@ describe('useTeamManagement', () => {
                 const success = await result.current.deleteUser({
                     uid: 'invite-1',
                     email: 'invite@example.com',
+                    organizationId: 'org-123', // Must match mock user's org for IDOR check
                     isPending: true,
                 } as never);
                 expect(success).toBe(true);
@@ -398,6 +452,7 @@ describe('useTeamManagement', () => {
                 const success = await result.current.deleteUser({
                     uid: 'user-1',
                     email: 'user@example.com',
+                    organizationId: 'org-123', // Must match mock user's org for IDOR check
                     isPending: false,
                 } as never);
                 expect(success).toBe(false);
@@ -405,15 +460,35 @@ describe('useTeamManagement', () => {
 
             expect(mockAddToast).toHaveBeenCalledWith('Erreur suppression', 'error');
         });
+
+        it('should prevent deleting user from different organization (IDOR protection)', async () => {
+            const { result } = renderHook(() => useTeamManagement());
+
+            await waitFor(() => {
+                expect(result.current.loading).toBe(false);
+            });
+
+            await act(async () => {
+                const success = await result.current.deleteUser({
+                    uid: 'user-other-org',
+                    email: 'other@example.com',
+                    organizationId: 'different-org', // Different org = IDOR attempt
+                    isPending: false,
+                } as never);
+                expect(success).toBe(false);
+            });
+
+            expect(mockDeleteDoc).not.toHaveBeenCalled();
+            expect(mockAddToast).toHaveBeenCalledWith('Utilisateur non trouvé', 'error');
+        });
     });
 
     describe('checkDependencies', () => {
         beforeEach(() => {
-            vi.mocked(useStore).mockReturnValue({
-                user: mockUser,
-                addToast: mockAddToast,
-                demoMode: false,
-            } as unknown as ReturnType<typeof useStore>);
+            // Reset to default admin user state
+            mockStoreState.user = mockUser;
+            mockStoreState.demoMode = false;
+            mockStoreState.customRoles = [];
         });
 
         it('should return empty array when no dependencies', async () => {
@@ -459,11 +534,10 @@ describe('useTeamManagement', () => {
 
     describe('approveRequest', () => {
         beforeEach(() => {
-            vi.mocked(useStore).mockReturnValue({
-                user: mockUser,
-                addToast: mockAddToast,
-                demoMode: false,
-            } as unknown as ReturnType<typeof useStore>);
+            // Reset to default admin user state
+            mockStoreState.user = mockUser;
+            mockStoreState.demoMode = false;
+            mockStoreState.customRoles = [];
         });
 
         it('should approve join request successfully', async () => {

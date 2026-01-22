@@ -363,3 +363,55 @@
 .animate-pulse-ring {
   animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* ============================================================================
+   WCAG 2.1 - Accessibility: Reduced Motion Support
+   Users who have requested reduced motion will see minimal or no animations
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all infinite/continuous animations */
+  .animate-shimmer,
+  .animate-pulse-glow,
+  .animate-float,
+  .animate-spin-slow,
+  .animate-spin-slow-reverse,
+  .animate-monitoring-ping,
+  .animate-bounce,
+  .animate-gradient-shift,
+  .animate-particle-float,
+  .animate-glow-text,
+  .animate-border-pulse,
+  .animate-skeleton,
+  .animate-morph,
+  .animate-pulse-ring {
+    animation: none !important;
+  }
+
+  /* Reduce one-time animations to instant transitions */
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-scale-in,
+  .animate-fade-in-up,
+  .animate-typewriter {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  /* Disable hover animations */
+  .animate-hover-lift:hover,
+  .animate-wave:hover {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Global transition reduction for smoother experience */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

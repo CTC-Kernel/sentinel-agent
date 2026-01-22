@@ -35,7 +35,8 @@ const CardTitle = React.forwardRef<
     <h3
         ref={ref}
         className={cn(
-            "text-2xl font-semibold leading-none tracking-tight",
+            // AUDIT FIX: Ajout font-display pour conformité Apple design
+            "text-2xl font-semibold font-display leading-none tracking-tight",
             className
         )}
         {...props}

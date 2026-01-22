@@ -50,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({
                             <Dialog.Panel className={`relative transform overflow-hidden rounded-[2rem] bg-white dark:bg-slate-900 text-left shadow-xl transition-all w-full border border-white/60 dark:border-white/5 glass-premium ${maxWidth}`}>
                                 {title && (
                                     <div className="flex items-center justify-between p-6 border-b border-slate-200/60 dark:border-white/5 shrink-0 transition-colors">
-                                        <Dialog.Title as="h3" className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                        <Dialog.Title as="h3" className="text-xl font-bold font-display text-slate-900 dark:text-white tracking-tight">
                                             {title}
                                         </Dialog.Title>
                                         <Button
@@ -60,7 +60,7 @@ export const Modal: React.FC<ModalProps> = ({
                                             className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                                             aria-label="Fermer"
                                         >
-                                            <X className="w-5 h-5" />
+                                            <X className="w-5 h-5" aria-hidden="true" />
                                         </Button>
                                     </div>
                                 )}

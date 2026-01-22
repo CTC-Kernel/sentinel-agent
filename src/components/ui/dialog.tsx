@@ -53,7 +53,7 @@ export const DialogHeader: React.FC<DialogHeaderProps> = ({ children, className 
 
 export const DialogTitle: React.FC<DialogTitleProps> = ({ children, className = '' }) => {
   return (
-    <HeadlessDialogTitle className={`text-lg font-bold text-slate-900 dark:text-white ${className}`}>
+    <HeadlessDialogTitle className={`text-lg font-bold font-display text-slate-900 dark:text-white ${className}`}>
       {children}
     </HeadlessDialogTitle>
   );

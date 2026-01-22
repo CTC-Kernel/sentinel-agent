@@ -1,6 +1,7 @@
 /**
  * AccountService Tests
  * Story 14-1: Test Coverage 50%
+ * Updated for GDPR-compliant Cloud Function based deletion
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -10,28 +11,17 @@ import { createUser } from '../../tests/factories/userFactory';
 // Mock Firebase
 vi.mock('../../firebase', () => ({
     db: {},
-    storage: {},
     functions: {},
 }));
 
 vi.mock('firebase/firestore', () => ({
-    collection: vi.fn(),
-    query: vi.fn(),
-    where: vi.fn(),
-    getDocs: vi.fn(),
-    deleteDoc: vi.fn(),
     doc: vi.fn(() => ({ id: 'mock-doc-id' })),
     setDoc: vi.fn(),
     serverTimestamp: vi.fn(() => 'mock-timestamp'),
 }));
 
 vi.mock('firebase/auth', () => ({
-    deleteUser: vi.fn(),
-}));
-
-vi.mock('firebase/storage', () => ({
-    ref: vi.fn(),
-    deleteObject: vi.fn(),
+    User: vi.fn(),
 }));
 
 vi.mock('firebase/functions', () => ({
@@ -47,9 +37,7 @@ vi.mock('../errorLogger', () => ({
     },
 }));
 
-import { getDocs, deleteDoc, setDoc } from 'firebase/firestore';
-import { deleteUser } from 'firebase/auth';
-import { deleteObject } from 'firebase/storage';
+import { setDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
 describe('AccountService', () => {
@@ -58,92 +46,44 @@ describe('AccountService', () => {
     });
 
     describe('deleteAccount', () => {
-        it('should delete user profile document', async () => {
+        it('should call the deleteUserAccount cloud function', async () => {
             const user = createUser({ uid: 'user-123', organizationId: 'org-123' });
             const firebaseUser = { uid: 'user-123' } as never;
 
-            vi.mocked(getDocs).mockResolvedValue({
-                empty: true,
-                docs: [],
-            } as never);
+            const mockFn = vi.fn().mockResolvedValue({ data: { success: true } });
+            vi.mocked(httpsCallable).mockReturnValue(mockFn as unknown as ReturnType<typeof httpsCallable>);
 
             await AccountService.deleteAccount(user, firebaseUser);
 
-            expect(deleteDoc).toHaveBeenCalled();
-            expect(deleteUser).toHaveBeenCalledWith(firebaseUser);
+            expect(httpsCallable).toHaveBeenCalledWith(expect.anything(), 'deleteUserAccount');
+            expect(mockFn).toHaveBeenCalledWith({});
         });
 
-        it('should delete user avatar if exists and is from Firebase', async () => {
-            const user = createUser({
-                uid: 'user-123',
-                organizationId: 'org-123',
+        it('should handle failed-precondition error for org owners', async () => {
+            const user = createUser({ uid: 'user-123', organizationId: 'org-123' });
+            const firebaseUser = { uid: 'user-123' } as never;
+
+            const mockFn = vi.fn().mockRejectedValue({
+                code: 'functions/failed-precondition',
+                message: 'Transférez la propriété avant de supprimer votre compte.'
             });
-            // Add photoURL to the user
-            (user as { photoURL: string }).photoURL = 'https://firebase.storage.com/avatars/user-123';
-
-            const firebaseUser = { uid: 'user-123' } as never;
-
-            vi.mocked(getDocs).mockResolvedValue({
-                empty: true,
-                docs: [],
-            } as never);
-
-            await AccountService.deleteAccount(user, firebaseUser);
-
-            expect(deleteObject).toHaveBeenCalled();
-        });
-
-        it('should delete organization if user is the only member', async () => {
-            const user = createUser({ uid: 'user-123', organizationId: 'org-123' });
-            const firebaseUser = { uid: 'user-123' } as never;
-
-            // Mock: No other users in org
-            vi.mocked(getDocs).mockResolvedValue({
-                empty: true,
-                docs: [],
-            } as never);
-
-            await AccountService.deleteAccount(user, firebaseUser);
-
-            expect(httpsCallable).toHaveBeenCalled();
-        });
-
-        it('should not delete organization if other users exist', async () => {
-            const user = createUser({ uid: 'user-123', organizationId: 'org-123' });
-            const firebaseUser = { uid: 'user-123' } as never;
-
-            // Mock: Other users exist in org
-            vi.mocked(getDocs).mockResolvedValue({
-                empty: false,
-                docs: [{ id: 'other-user', data: () => ({}) }],
-            } as never);
-
-            await AccountService.deleteAccount(user, firebaseUser);
-
-            // httpsCallable for deleteOrganization should NOT be called
-            // because there are other users
-            expect(deleteUser).toHaveBeenCalled();
-        });
-
-        it('should throw error when user ID is missing', async () => {
-            const user = createUser();
-            (user as { uid: string | undefined }).uid = undefined;
-            const firebaseUser = {} as never;
+            vi.mocked(httpsCallable).mockReturnValue(mockFn as unknown as ReturnType<typeof httpsCallable>);
 
             await expect(
                 AccountService.deleteAccount(user, firebaseUser)
-            ).rejects.toThrow('User ID not found');
+            ).rejects.toThrow('Transférez la propriété');
         });
 
-        it('should handle Firebase errors gracefully', async () => {
+        it('should handle cloud function errors gracefully', async () => {
             const user = createUser({ uid: 'user-123' });
             const firebaseUser = { uid: 'user-123' } as never;
 
-            vi.mocked(deleteDoc).mockRejectedValue(new Error('Firebase error'));
+            const mockFn = vi.fn().mockRejectedValue(new Error('Cloud function error'));
+            vi.mocked(httpsCallable).mockReturnValue(mockFn as unknown as ReturnType<typeof httpsCallable>);
 
             await expect(
                 AccountService.deleteAccount(user, firebaseUser)
-            ).rejects.toThrow('Firebase error');
+            ).rejects.toThrow('Cloud function error');
         });
     });
 

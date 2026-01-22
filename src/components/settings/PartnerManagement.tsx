@@ -9,6 +9,7 @@ import { toast } from '@/lib/toast';
 import { ErrorLogger } from '../../services/errorLogger';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { AnimatePresence, motion } from 'framer-motion';
+import { hasPermission } from '../../utils/permissions';
 
 interface Partner {
     id: string;
@@ -82,6 +83,26 @@ export const PartnerManagement: React.FC = () => {
 
     const confirmDelete = async () => {
         if (!partnerToDelete) return;
+
+        // SECURITY: Check authorization - only admin/rssi can manage partners
+        if (!hasPermission(user, 'Partner', 'delete')) {
+            ErrorLogger.warn('Unauthorized partner deletion attempt', 'PartnerManagement.delete', {
+                metadata: { attemptedBy: user?.uid, targetPartnerId: partnerToDelete.id }
+            });
+            toast.error("Vous n'avez pas les droits pour retirer ce partenaire");
+            setPartnerToDelete(null);
+            return;
+        }
+
+        // SECURITY: Verify partner belongs to user's organization (IDOR protection)
+        if (partnerToDelete.tenantId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: partner deletion across organizations', 'PartnerManagement.delete', {
+                metadata: { attemptedBy: user?.uid, targetPartnerId: partnerToDelete.id, targetOrg: partnerToDelete.tenantId, callerOrg: user?.organizationId }
+            });
+            toast.error("Partenaire non trouvé");
+            setPartnerToDelete(null);
+            return;
+        }
 
         try {
             // If it's just a doc within the partnerships collection, we can delete it directly if rules allow.

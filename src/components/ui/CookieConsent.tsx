@@ -3,6 +3,7 @@ import { Cookie, X } from './Icons';
 import { LegalModal } from './LegalModal';
 import { useStore } from '../../store';
 import { hybridService } from '../../services/hybridService';
+import { initializeAnalytics } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 
 export const CookieConsent: React.FC = () => {
@@ -26,6 +27,13 @@ export const CookieConsent: React.FC = () => {
     const handleAccept = async () => {
         localStorage.setItem('sentinel_cookie_consent', 'true');
         setIsVisible(false);
+
+        // RGPD: Initialize analytics after consent is given
+        try {
+            await initializeAnalytics();
+        } catch (error) {
+            ErrorLogger.warn('Analytics initialization after consent failed', 'CookieConsent', { metadata: { error } });
+        }
 
         if (user) {
             try {

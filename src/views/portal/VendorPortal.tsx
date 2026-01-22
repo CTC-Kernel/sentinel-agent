@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { VendorPortalService } from '../../services/VendorPortalService';
 import {
@@ -25,7 +25,6 @@ type PortalState = 'loading' | 'auth' | 'questionnaire' | 'submitted' | 'error';
 export const VendorPortal: React.FC = () => {
   const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
-  const _navigate = useNavigate();
 
   const [state, setState] = useState<PortalState>('loading');
   const [error, setError] = useState<PortalAccessError | null>(null);

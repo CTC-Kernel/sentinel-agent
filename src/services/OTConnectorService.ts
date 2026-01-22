@@ -98,7 +98,7 @@ export async function getConnector(
       component: 'OTConnectorService',
       action: 'getConnector',
       organizationId,
-      connectorId
+      metadata: { connectorId }
     });
     throw error;
   }
@@ -210,7 +210,7 @@ export async function updateConnector(
       component: 'OTConnectorService',
       action: 'updateConnector',
       organizationId,
-      connectorId
+      metadata: { connectorId }
     });
     throw error;
   }
@@ -231,7 +231,7 @@ export async function deleteConnector(
       component: 'OTConnectorService',
       action: 'deleteConnector',
       organizationId,
-      connectorId
+      metadata: { connectorId }
     });
     throw error;
   }
@@ -270,7 +270,7 @@ export async function updateConnectorStatus(
       component: 'OTConnectorService',
       action: 'updateConnectorStatus',
       organizationId,
-      connectorId
+      metadata: { connectorId }
     });
     throw error;
   }
@@ -337,7 +337,7 @@ export async function getSyncHistory(
       component: 'OTConnectorService',
       action: 'getSyncHistory',
       organizationId,
-      connectorId
+      metadata: { connectorId }
     });
     throw error;
   }
@@ -381,7 +381,7 @@ export async function recordSyncResult(
       component: 'OTConnectorService',
       action: 'recordSyncResult',
       organizationId,
-      connectorId
+      metadata: { connectorId }
     });
     throw error;
   }
@@ -556,7 +556,7 @@ export function validateConnector(data: OTConnectorFormData): ConnectorValidatio
  * Test connector connection
  */
 export async function testConnection(
-  organizationId: string,
+  _organizationId: string, // Will be used for real connection testing
   data: OTConnectorFormData
 ): Promise<TestConnectionResult> {
   try {

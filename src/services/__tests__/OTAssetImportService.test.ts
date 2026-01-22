@@ -44,6 +44,7 @@ import {
   normalizeNetworkSegment,
   normalizeOTCriticality
 } from '../../data/otAssetConstants';
+import { Criticality } from '../../types/common';
 
 describe('OTAssetImportService', () => {
   beforeEach(() => {
@@ -516,7 +517,7 @@ describe('OTAssetImportService', () => {
 
       const asset = createAssetFromRow(data, context);
 
-      expect(asset.availability).toBe(4);
+      expect(asset.availability).toBe(Criticality.HIGH);
     });
 
     it('should set default availability for non-safety assets', () => {
@@ -524,7 +525,7 @@ describe('OTAssetImportService', () => {
 
       const asset = createAssetFromRow(data, context);
 
-      expect(asset.availability).toBe(3);
+      expect(asset.availability).toBe(Criticality.MEDIUM);
     });
 
     it('should set lifecycle status to En service', () => {
@@ -584,7 +585,7 @@ describe('OTAssetImportService', () => {
         },
         {
           rowNumber: 3,
-          data: { networkSegment: 'OT' },
+          data: { name: '', networkSegment: 'OT', otCriticality: '' } as Record<string, string>,
           errors: [{ field: 'name', message: 'Asset name is required' }],
           warnings: [],
           isValid: false

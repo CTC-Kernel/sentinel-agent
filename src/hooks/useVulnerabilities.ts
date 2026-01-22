@@ -8,6 +8,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { ThreatFeedService } from '../services/ThreatFeedService';
 import { logAction } from '../services/logger';
 import { useFirestoreCollection } from './useFirestore';
+import { hasPermission } from '../utils/permissions';
 
 export const useVulnerabilities = () => {
     const { user, addToast, demoMode } = useStore();
@@ -95,8 +96,27 @@ export const useVulnerabilities = () => {
             addToast("Action non disponible en mode démo", "info");
             return;
         }
-        try {
 
+        // SECURITY: Check authorization
+        if (!hasPermission(user, 'Vulnerability', 'update')) {
+            ErrorLogger.warn('Unauthorized vulnerability update attempt', 'useVulnerabilities.update', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour modifier cette vulnérabilité", "error");
+            return false;
+        }
+
+        // SECURITY: Verify vulnerability belongs to user's organization (IDOR protection)
+        const targetVuln = vulnerabilities.find(v => v.id === id);
+        if (!targetVuln || targetVuln.organizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: vulnerability modification across organizations', 'useVulnerabilities.update', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: targetVuln?.organizationId, callerOrg: user?.organizationId }
+            });
+            addToast("Vulnérabilité non trouvée", "error");
+            return false;
+        }
+
+        try {
             const { id: _unused, ...safeUpdates } = updates;
             const dataToSave = sanitizeData({
                 ...safeUpdates,
@@ -135,6 +155,26 @@ export const useVulnerabilities = () => {
             addToast("Action non disponible en mode démo", "info");
             return;
         }
+
+        // SECURITY: Check authorization
+        if (!hasPermission(user, 'Vulnerability', 'delete')) {
+            ErrorLogger.warn('Unauthorized vulnerability deletion attempt', 'useVulnerabilities.delete', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour supprimer cette vulnérabilité", "error");
+            return false;
+        }
+
+        // SECURITY: Verify vulnerability belongs to user's organization (IDOR protection)
+        const targetVuln = vulnerabilities.find(v => v.id === id);
+        if (!targetVuln || targetVuln.organizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: vulnerability deletion across organizations', 'useVulnerabilities.delete', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: targetVuln?.organizationId, callerOrg: user?.organizationId }
+            });
+            addToast("Vulnérabilité non trouvée", "error");
+            return false;
+        }
+
         try {
             await deleteDoc(doc(db, 'vulnerabilities', id));
             logAction(user!, 'DELETE', 'Vulnerabilities', `Deleted Vulnerability ID: ${id}`);

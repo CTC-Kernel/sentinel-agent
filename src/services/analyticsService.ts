@@ -1,5 +1,5 @@
 import { logEvent as firebaseLogEvent, Analytics } from "firebase/analytics";
-import { analytics } from "../firebase";
+import { analytics, initializeAnalytics } from "../firebase";
 import { ErrorLogger } from "./errorLogger";
 
 // Define supported event names for type safety
@@ -22,22 +22,30 @@ export interface AnalyticsEventParams {
 }
 
 class AnalyticsService {
-    private analytics: Analytics | null = null;
-
-    constructor() {
-        this.analytics = analytics;
+    /**
+     * Gets the current analytics instance.
+     * Returns null if analytics not initialized (no consent or not supported).
+     */
+    private getAnalytics(): Analytics | null {
+        return analytics;
     }
 
     /**
      * Logs a custom event to Firebase Analytics.
+     * RGPD: Events are only logged if user has consented to analytics.
      * @param eventName The name of the event.
      * @param params Optional parameters for the event.
      */
     logEvent(eventName: AnalyticsEventName, params?: AnalyticsEventParams) {
-        if (!this.analytics) return;
+        const analyticsInstance = this.getAnalytics();
+        if (!analyticsInstance) {
+            // Analytics not available (no consent or not supported)
+            // Silently skip - this is expected behavior
+            return;
+        }
 
         try {
-            firebaseLogEvent(this.analytics, eventName as string, params);
+            firebaseLogEvent(analyticsInstance, eventName as string, params);
             // In development, log to console for visibility
             if (import.meta.env.DEV) {
                 ErrorLogger.info(`[Analytics] ${eventName}`, 'AnalyticsService', { metadata: params });
@@ -48,18 +56,27 @@ class AnalyticsService {
     }
 
     /**
+     * Attempts to initialize analytics if consent was given.
+     * Call this after user accepts cookie consent.
+     */
+    async ensureInitialized(): Promise<void> {
+        await initializeAnalytics();
+    }
+
+    /**
      * Sets the user ID for analytics tracking.
      * @param userId The user's unique ID.
      */
     setUserId(userId: string) {
         void userId;
-        if (!this.analytics) return;
-        // Note: setUserId is not directly exported from firebase/analytics in the modular SDK 
-        // in the same way logEvent is. It's usually handled automatically by Firebase Auth integration 
+        const analyticsInstance = this.getAnalytics();
+        if (!analyticsInstance) return;
+        // Note: setUserId is not directly exported from firebase/analytics in the modular SDK
+        // in the same way logEvent is. It's usually handled automatically by Firebase Auth integration
         // if using Google Analytics 4 properties linked to Firebase.
         // However, for manual setting if needed:
         // import { setUserId } from "firebase/analytics";
-        // setUserId(this.analytics, userId);
+        // setUserId(analyticsInstance, userId);
     }
 }
 

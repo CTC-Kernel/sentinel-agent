@@ -213,8 +213,19 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         }
     };
 
-    const handleUpdateFolder = async (id: string, name: string) => {
+    const handleUpdateFolder = async (id: string, name: string, folderOrganizationId?: string) => {
+        if (!user?.organizationId) return;
         if (!canEditResource(user, 'Document')) return; // RBAC Check
+
+        // SECURITY: IDOR protection - verify folder belongs to user's organization
+        if (folderOrganizationId && folderOrganizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: folder update across organizations', 'useDocumentActions.handleUpdateFolder', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: folderOrganizationId, callerOrg: user.organizationId }
+            });
+            addToast('Dossier non trouvé', 'error');
+            return;
+        }
+
         try {
             await updateDoc(doc(db, 'document_folders', id), {
                 name,
@@ -228,7 +239,19 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     };
 
     const handleDeleteFolder = async (id: string, rawFolders: DocumentFolder[], documents: Document[], selectedFolderId: string | null, setSelectedFolderId: (id: string | null) => void) => {
+        if (!user?.organizationId) return;
         if (!canEditResource(user, 'Document')) return; // RBAC Check
+
+        // SECURITY: IDOR protection - verify folder belongs to user's organization
+        const folder = rawFolders.find(f => f.id === id);
+        if (!folder || folder.organizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: folder deletion across organizations', 'useDocumentActions.handleDeleteFolder', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: folder?.organizationId, callerOrg: user.organizationId }
+            });
+            addToast('Dossier non trouvé', 'error');
+            return;
+        }
+
         try {
             // Delete folder
             await deleteDoc(doc(db, 'document_folders', id));

@@ -191,14 +191,12 @@ const PresetDropdown: React.FC<PresetDropdownProps> = React.memo(
 
     return (
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Filter className="h-4 w-4" />
-            <span className="hidden sm:inline">
-              {presets.find((p) => p.key === currentPreset)?.label || 'Filtre'}
-            </span>
-            <ChevronDown className="h-3 w-3 opacity-50" />
-          </Button>
+        <DropdownMenuTrigger as={Button} variant="outline" size="sm" className="gap-2">
+          <Filter className="h-4 w-4" />
+          <span className="hidden sm:inline">
+            {presets.find((p) => p.key === currentPreset)?.label || 'Filtre'}
+          </span>
+          <ChevronDown className="h-3 w-3 opacity-50" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
           <DropdownMenuLabel>

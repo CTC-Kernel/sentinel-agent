@@ -23,12 +23,13 @@ import {
   FileText,
   Server,
   Cpu,
-  Globe
+  Globe,
+  type LucideIcon
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import { Badge } from '../ui/Badge';
 import { useToast } from '../../hooks/useToast';
 import { useStore } from '../../store';
 import {
@@ -61,7 +62,7 @@ interface OTConnectorListProps {
 // Icons
 // ============================================================================
 
-const ConnectorTypeIcon: Record<OTConnectorType, React.ElementType> = {
+const ConnectorTypeIcon: Record<OTConnectorType, LucideIcon> = {
   csv: FileText,
   opcua: Server,
   modbus: Cpu,

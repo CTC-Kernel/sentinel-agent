@@ -321,37 +321,35 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
   const [autoMatchedAssets, setAutoMatchedAssets] = useState<OTAssetMatch[]>([]);
   const [isAutoMatching, setIsAutoMatching] = useState(false);
 
-  // Filter OT assets only
+  // Filter OT assets only (assets with otDetails defined)
   const otAssets = useMemo(() => {
-    return availableOTAssets.filter((a) => a.otDetails?.isOTAsset);
+    return availableOTAssets.filter((a) => !!a.otDetails);
   }, [availableOTAssets]);
 
   // Get manually linked assets (not auto-matched)
   const manuallyLinkedAssets = useMemo((): MatchedAssetDisplay[] => {
     const autoMatchedIds = new Set(autoMatchedAssets.map((a) => a.assetId));
 
-    return linkedAssetIds
-      .filter((id) => !autoMatchedIds.has(id))
-      .map((id) => {
-        const asset = otAssets.find((a) => a.id === id);
-        if (!asset) return null;
+    const results: MatchedAssetDisplay[] = [];
+    for (const id of linkedAssetIds) {
+      if (autoMatchedIds.has(id)) continue;
+      const asset = otAssets.find((a) => a.id === id);
+      if (!asset) continue;
 
-        return {
-          assetId: asset.id,
-          assetName: asset.name,
-          manufacturer: asset.otDetails?.manufacturer || '',
-          model: asset.otDetails?.model || '',
-          firmwareVersion: asset.otDetails?.firmwareVersion || '',
-          matchConfidence: 100,
-          matchType: 'exact' as const,
-          otCriticality: asset.otDetails?.otCriticality || 'operations',
-          networkSegment: asset.networkSegment || 'OT',
-          safetyRating: asset.otDetails?.safetyRating,
-          connectedToIT: asset.otDetails?.connectedToIT,
-          isManual: true,
-        };
-      })
-      .filter((a): a is MatchedAssetDisplay => a !== null);
+      results.push({
+        assetId: asset.id,
+        assetName: asset.name,
+        manufacturer: asset.otDetails?.manufacturer || '',
+        model: asset.otDetails?.model || '',
+        firmwareVersion: asset.otDetails?.firmwareVersion || '',
+        matchConfidence: 100,
+        matchType: 'exact',
+        otCriticality: asset.otDetails?.otCriticality || 'operations',
+        networkSegment: asset.networkSegment || 'OT',
+        isManual: true,
+      });
+    }
+    return results;
   }, [linkedAssetIds, autoMatchedAssets, otAssets]);
 
   // Combine auto-matched and manual assets

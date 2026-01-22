@@ -23,8 +23,10 @@ export default {
         'decorator': '10',
         'sticky': '20',
         'header': '40',
+        'tooltip': '45',    // AUDIT FIX: tooltip doit être < modal pour éviter superposition
         'modal': '50',
-        'tooltip': '60',
+        'dropdown': '55',   // AUDIT FIX: ajout niveau pour dropdowns
+        'popover': '60',    // AUDIT FIX: popovers au-dessus des modals si nécessaire
         'max': '9999',
       },
       fontFamily: {
@@ -157,20 +159,18 @@ export default {
         }
       },
       borderRadius: {
+        // AUDIT FIX: Harmonisation des border-radius (Apple Design System)
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        '4xl': '2rem', // 32px - For large cards
-        '5xl': '2.5rem', // 40px - For very large containers
-        // Standardized design system values
-        'xs': '0.375rem',  // 6px
-        'sm': '0.5rem',    // 8px
-        'base': '0.75rem', // 12px
-        'md': '1rem',      // 16px
-        'lg': '1.25rem',   // 20px
-        'xl': '1.5rem',    // 24px
-        '2xl': '1.5rem',   // 24px (cards)
-        '3xl': '2rem',     // 32px (modals)
+        // Standardized design system values - Apple-style
+        'xs': '0.375rem',  // 6px - Badges, chips
+        'base': '0.75rem', // 12px - Buttons, inputs
+        'xl': '1rem',      // 16px - Cards small
+        '2xl': '1.25rem',  // 20px - Cards medium
+        '3xl': '1.5rem',   // 24px - Cards large, modals
+        '4xl': '2rem',     // 32px - Large containers
+        '5xl': '2.5rem',   // 40px - Hero sections
       },
       boxShadow: {
         'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.04)',

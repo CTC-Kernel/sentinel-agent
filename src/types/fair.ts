@@ -206,9 +206,9 @@ export interface FAIRModelConfig {
   lastSimulation?: SimulationResults;
 
   // Audit
-  createdAt: FirestoreTimestampLike;
+  createdAt: string | FirestoreTimestampLike;
   createdBy: string;
-  updatedAt: FirestoreTimestampLike;
+  updatedAt: string | FirestoreTimestampLike;
   updatedBy: string;
 }
 
@@ -253,7 +253,7 @@ export interface ALEBreakdown {
 export interface SimulationResults {
   id: string;
   configId: string;
-  runAt: FirestoreTimestampLike;
+  runAt: string | FirestoreTimestampLike;
 
   // Core metrics
   annualLossExpectancy: ALEBreakdown;

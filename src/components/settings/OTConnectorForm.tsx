@@ -24,7 +24,8 @@ import {
   AlertCircle,
   CheckCircle,
   Calendar,
-  Settings
+  Settings,
+  type LucideIcon
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
@@ -69,14 +70,14 @@ type FormStep = 'type' | 'config' | 'schedule' | 'review';
 // Constants
 // ============================================================================
 
-const STEPS: Array<{ key: FormStep; labelKey: string; icon: React.ElementType }> = [
+const STEPS: Array<{ key: FormStep; labelKey: string; icon: LucideIcon }> = [
   { key: 'type', labelKey: 'otConnector.steps.type', icon: Settings },
   { key: 'config', labelKey: 'otConnector.steps.config', icon: FileText },
   { key: 'schedule', labelKey: 'otConnector.steps.schedule', icon: Calendar },
   { key: 'review', labelKey: 'otConnector.steps.review', icon: Check }
 ];
 
-const TYPE_ICONS: Record<OTConnectorType, React.ElementType> = {
+const TYPE_ICONS: Record<OTConnectorType, LucideIcon> = {
   csv: FileText,
   opcua: Server,
   modbus: Cpu,
@@ -598,7 +599,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <div className="flex justify-between">
             <dt className="text-gray-500">{t('otConnector.enabled', 'Enabled')}:</dt>
             <dd>
-              <Badge variant={formData.enabled ? 'default' : 'secondary'}>
+              <Badge variant={formData.enabled ? 'default' : 'outline'} status={formData.enabled ? 'success' : 'neutral'}>
                 {formData.enabled ? t('common.yes', 'Yes') : t('common.no', 'No')}
               </Badge>
             </dd>

@@ -128,22 +128,22 @@
   --input: 217.2 32.6% 17.5%;
   --ring: 212.7 26.8% 83.9%;
 
-  /* Semantic Status Colors (Dark Mode) */
-  --success-bg: rgba(16, 185, 129, 0.1);
+  /* Semantic Status Colors (Dark Mode) - AUDIT FIX: Amélioration contraste WCAG */
+  --success-bg: rgba(16, 185, 129, 0.18);
   --success-text: #6ee7b7;
-  --success-border: rgba(16, 185, 129, 0.2);
+  --success-border: rgba(16, 185, 129, 0.35);
 
-  --warning-bg: rgba(245, 158, 11, 0.1);
+  --warning-bg: rgba(245, 158, 11, 0.18);
   --warning-text: #fcd34d;
-  --warning-border: rgba(245, 158, 11, 0.2);
+  --warning-border: rgba(245, 158, 11, 0.35);
 
-  --error-bg: rgba(244, 63, 94, 0.1);
+  --error-bg: rgba(244, 63, 94, 0.18);
   --error-text: #fda4af;
-  --error-border: rgba(244, 63, 94, 0.2);
+  --error-border: rgba(244, 63, 94, 0.35);
 
-  --info-bg: rgba(14, 165, 233, 0.1);
+  --info-bg: rgba(14, 165, 233, 0.18);
   --info-text: #7dd3fc;
-  --info-border: rgba(14, 165, 233, 0.2);
+  --info-border: rgba(14, 165, 233, 0.35);
 
   /* Glassmorphism Dark - Refined for depth */
   --glass-bg: rgba(15, 23, 42, 0.65);
@@ -266,21 +266,46 @@ h6 {
   text-wrap: pretty;
 }
 
-/* Global Scrollbar Hiding - COMPLETE */
+/* AUDIT FIX: Scrollbars élégantes style Apple - réactivées pour accessibilité */
 *::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+  width: 8px;
+  height: 8px;
 }
 
-* {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
+*::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* Firefox */
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 100px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox - scrollbar fine */
 * {
-  scrollbar-width: none !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+}
+
+/* Dark mode scrollbars */
+.dark *::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+.dark * {
+  scrollbar-color: rgba(100, 116, 139, 0.3) transparent;
 }
 
 /* Modern Styled Scrollbar - When explicitly needed */
@@ -999,4 +1024,44 @@ label,
 /* Ensure z-index context for modals */
 .z-max {
   z-index: 9999;
+}
+
+/* ============================================================================
+   WCAG 2.1 - Accessibility: Reduced Motion Support
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all continuous/decorative animations */
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in,
+  .animate-slide-in-right,
+  .animate-shine,
+  .animate-spin-slow,
+  .animate-scanline,
+  .animate-aurora,
+  .animate-monitoring-ping,
+  .shimmer-overlay,
+  .hover\:animate-pulse-glow:hover {
+    animation: none !important;
+  }
+
+  /* Disable transitions on interactive elements */
+  .glass-panel,
+  .glass-input,
+  .card-hover,
+  input,
+  select,
+  textarea {
+    transition: none !important;
+  }
+
+  /* Disable hover transforms */
+  .card-hover:hover {
+    transform: none !important;
+  }
+
+  /* Keep visual feedback but remove motion */
+  .loading-state::after {
+    animation: none !important;
+  }
 }

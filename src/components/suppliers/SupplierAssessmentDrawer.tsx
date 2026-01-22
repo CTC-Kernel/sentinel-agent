@@ -61,7 +61,10 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
     const template = getTemplateById(selectedTemplateId);
     if (template) {
       return {
-        metadata: template.metadata,
+        metadata: {
+          ...template.metadata,
+          applicableServiceTypes: template.metadata.applicableTo || [],
+        },
         sections: template.sections.map((s) => ({
           id: s.id,
           title: s.title,

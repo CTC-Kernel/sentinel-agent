@@ -1,64 +1,37 @@
-import { collection, query, where, getDocs, deleteDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { deleteUser, User } from 'firebase/auth';
-import { db, storage, functions } from '../firebase';
-import { ref, deleteObject } from 'firebase/storage';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { User } from 'firebase/auth';
+import { db, functions } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { UserProfile } from '../types';
 import { ErrorLogger } from './errorLogger';
 
 export class AccountService {
   /**
-   * Permanently deletes the current user's account and their user profile document.
+   * GDPR-compliant account deletion (Article 17 - Right to Erasure)
+   * Calls Cloud Function for comprehensive data deletion:
+   * - Activity logs, consent records, notifications
+   * - Comments are anonymized (content preserved, author info removed)
+   * - Owned items are anonymized (ownerId cleared)
+   * - Storage files are deleted
+   * - Auth account is deleted
    */
-  static async deleteAccount(user: UserProfile, firebaseUser: User): Promise<void> {
-    if (!user.uid) throw new Error("User ID not found");
-
+  static async deleteAccount(_user: UserProfile, _firebaseUser: User): Promise<void> {
     try {
-      // 1. Delete user profile document
-      await deleteDoc(doc(db, 'users', user.uid));
+      // Call the GDPR-compliant Cloud Function for complete data erasure
+      const deleteUserAccountFn = httpsCallable(functions, 'deleteUserAccount');
+      await deleteUserAccountFn({});
 
-      // 2. Delete user avatar from storage if exists
-      if (user.photoURL && user.photoURL.includes('firebase')) {
-        try {
-          const photoRef = ref(storage, `avatars/${user.uid}`);
-          await deleteObject(photoRef);
-        } catch (error) {
-          ErrorLogger.error(error, 'AccountService.deleteAccount');
-        }
-      }
-
-      // 3. If user is the only member of their organization, delete the organization
-      if (user.organizationId) {
-        try {
-          const usersInOrg = await getDocs(
-            query(collection(db, 'users'), where('organizationId', '==', user.organizationId))
-          );
-
-          // If no other users in this org (we already deleted current user doc), delete the org
-          if (usersInOrg.empty) {
-            // We use the same Cloud Function if possible? 
-            // PROBLEM: The user is already deleted from Firestore (step 1). 
-            // If we call Cloud Function, it expects a caller. The caller (firebaseUser) still exists until step 4.
-            // However, the Cloud Function checks strict ownership "orgData.ownerId === callerUid".
-            // If the user matches the ownerId, it should work.
-
-            // Let's rely on the Cloud Function for atomic cleanup even here.
-            await this.deleteOrganization(user.organizationId);
-          }
-        } catch (error) {
-          ErrorLogger.error(error, 'AccountService.deleteAccount.deleteOrg');
-          // Start manual forced cleanup of org doc just in case cloud function fails or isn't called
-          try {
-            await deleteDoc(doc(db, 'organizations', user.organizationId));
-          } catch (e) {
-            ErrorLogger.error(e, 'AccountService.deleteAccount.manualCleanup');
-          }
-        }
-      }
-
-      // 4. Delete Firebase Auth user
-      await deleteUser(firebaseUser);
+      // The Cloud Function handles everything including Auth deletion
+      // No additional client-side cleanup needed
     } catch (error) {
+      const err = error as { code?: string; message?: string };
+
+      // Handle specific errors
+      if (err.code === 'functions/failed-precondition') {
+        // User is org owner with other members - must transfer ownership first
+        throw new Error(err.message || 'Transférez la propriété de l\'organisation avant de supprimer votre compte.');
+      }
+
       ErrorLogger.error(error, 'AccountService.deleteAccount');
       throw error;
     }

@@ -91,8 +91,8 @@ export const useHomologation = (
     loading,
     error,
     refresh
-  } = useFirestoreCollection<HomologationDossier>(collectionPath, constraints, {
-    enabled: !!organizationId,
+  } = useFirestoreCollection<HomologationDossier>(collectionPath ?? '', constraints, {
+    enabled: !!organizationId && !!collectionPath,
     realtime
   });
 
@@ -173,7 +173,7 @@ export const useHomologation = (
           userId,
           input
         );
-        return dossier;
+        return dossier.id;
       } catch (error) {
         console.error('Error creating dossier:', error);
         throw error;

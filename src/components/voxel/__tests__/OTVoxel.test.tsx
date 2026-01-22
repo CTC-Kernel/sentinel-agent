@@ -476,14 +476,14 @@ describe('IT/OT Voxel Integration', () => {
     const dmzNode = createMockNode({ id: 'dmz-firewall', networkSegment: 'DMZ' });
     const otNode = createMockNode({ id: 'ot-plc', networkSegment: 'OT' });
 
-    // IT -> DMZ -> OT path
-    const _edge1 = createMockEdge({
+    // IT -> DMZ -> OT path (edges created for path setup)
+    createMockEdge({
       id: 'edge-it-dmz',
       source: itNode.id,
       target: dmzNode.id,
       type: 'dependency'
     });
-    const _edge2 = createMockEdge({
+    createMockEdge({
       id: 'edge-dmz-ot',
       source: dmzNode.id,
       target: otNode.id,

@@ -12,6 +12,8 @@ const admin = require("firebase-admin");
 const { dailyScoreSnapshot } = require('./dailyScoreSnapshot');
 const { weeklyDORARiskAlerts, checkDORARisks } = require('./doraRiskAlerts');
 const { dailyContractExpirationCheck, weeklyContractExpirationDigest, checkContractExpirations } = require('./doraContractAlerts');
+// AUDIT FIX: NIS2 72h notification compliance
+const { nis2DeadlineChecker, onSignificantIncident, onNewSignificantIncident } = require('./nis2IncidentAlerts');
 
 // Audit Triggers
 const { generateAuditTrigger } = require('../services/auditTriggers');
@@ -178,3 +180,9 @@ exports.auditProjects = generateAuditTrigger('projects/{docId}', 'name');
 exports.auditBusinessProcesses = generateAuditTrigger('business_processes/{docId}', 'name');
 exports.auditProcessingActivities = generateAuditTrigger('processing_activities/{docId}', 'name');
 exports.auditAudits = generateAuditTrigger('audits/{docId}', 'name');
+
+// --- NIS2 COMPLIANCE (AUDIT FIX) ---
+// Conformité NIS 2 Article 23 - Notification incidents significatifs
+exports.nis2DeadlineChecker = nis2DeadlineChecker;           // Vérification horaire des délais
+exports.onSignificantIncident = onSignificantIncident;       // Trigger: incident devient significatif
+exports.onNewSignificantIncident = onNewSignificantIncident; // Trigger: nouvel incident significatif

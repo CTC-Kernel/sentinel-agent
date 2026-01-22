@@ -126,9 +126,25 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                 </section>
 
                                 <section>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">3. Vos Droits</h3>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">3. Services Tiers</h3>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-3">
+                                        Pour assurer le bon fonctionnement et la qualité du service, nous utilisons les services tiers suivants :
+                                    </p>
+                                    <ul className="list-disc pl-5 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                                        <li><strong>Firebase Analytics</strong> (Google) : Mesure d'audience anonymisée, activée uniquement après votre consentement explicite.</li>
+                                        <li><strong>Sentry</strong> (Functional Software, Inc.) : Surveillance des erreurs techniques pour améliorer la stabilité. Collecte des informations techniques (type de navigateur, système d'exploitation) et traces d'erreurs. Aucune donnée personnelle identifiable n'est transmise intentionnellement.</li>
+                                        <li><strong>N8N</strong> (Workflow Automation) : Automatisation des notifications et intégrations. Les données transitant sont limitées au strict nécessaire pour le traitement concerné.</li>
+                                        <li><strong>Stripe</strong> (Stripe, Inc.) : Traitement sécurisé des paiements. Vos données de paiement ne sont jamais stockées sur nos serveurs.</li>
+                                    </ul>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mt-3">
+                                        Ces services sont sélectionnés pour leur conformité au RGPD et leur engagement en matière de protection des données.
+                                    </p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">4. Vos Droits</h3>
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-                                        Vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez notre DPO à <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">contact@cyber-threat-consulting.com</a>.
+                                        Vous disposez d'un droit d'accès, de rectification, de portabilité et de suppression de vos données. Pour exercer ces droits, contactez notre DPO à <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">contact@cyber-threat-consulting.com</a>.
                                     </p>
                                 </section>
                             </div>

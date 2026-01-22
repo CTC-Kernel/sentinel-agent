@@ -65,7 +65,7 @@ export const ICTProviderDrawer: React.FC<ICTProviderDrawerProps> = ({
         name: provider.name,
         category: provider.category,
         description: provider.description,
-        services: provider.services.map(s => ({
+        services: (provider.services || []).map(s => ({
             id: s.id,
             name: s.name,
             type: s.type,

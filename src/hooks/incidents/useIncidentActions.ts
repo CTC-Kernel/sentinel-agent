@@ -66,6 +66,16 @@ export const useIncidentActions = () => {
 
     const updateIncident = useCallback(async (id: string, data: Partial<IncidentFormData>, currentIncident?: Incident) => {
         if (!user?.organizationId) return;
+
+        // SECURITY: IDOR protection - verify incident belongs to user's organization
+        if (currentIncident?.organizationId && currentIncident.organizationId !== user.organizationId) {
+            ErrorLogger.warn('IDOR attempt: incident update across organizations', 'useIncidentActions.updateIncident', {
+                metadata: { attemptedBy: user?.uid, targetIncident: id, targetOrg: currentIncident.organizationId, callerOrg: user.organizationId }
+            });
+            addToast('Incident non trouvé', "error");
+            return;
+        }
+
         setLoading(true);
         try {
             // Validation (Partial)

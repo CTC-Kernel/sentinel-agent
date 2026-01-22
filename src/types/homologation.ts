@@ -46,10 +46,10 @@ export const HOMOLOGATION_DOCUMENT_TYPES = [
 export type HomologationDocumentType = (typeof HOMOLOGATION_DOCUMENT_TYPES)[number];
 
 /**
- * Document status
+ * Homologation document progress status
  */
-export const DOCUMENT_STATUSES = ['not_started', 'in_progress', 'completed', 'validated'] as const;
-export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
+export const HOMOLOGATION_DOC_STATUSES = ['not_started', 'in_progress', 'completed', 'validated'] as const;
+export type HomologationDocStatus = (typeof HOMOLOGATION_DOC_STATUSES)[number];
 
 // ============================================================================
 // Level Determination Types
@@ -166,7 +166,7 @@ export interface EbiosLinkHistoryEntry {
  */
 export interface HomologationDocumentRef {
   type: HomologationDocumentType;
-  status: DocumentStatus;
+  status: HomologationDocStatus;
   documentId?: string; // Reference to documents collection
   generatedAt?: string;
   validatedAt?: string;

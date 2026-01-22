@@ -193,12 +193,15 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleToggleExpand}
+                        aria-label={isExpanded ? 'Réduire le guide de démarrage' : 'Développer le guide de démarrage'}
+                        aria-expanded={isExpanded}
                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
                     >
                         <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                     </button>
                     <button
                         onClick={handleClose}
+                        aria-label="Fermer le guide de démarrage"
                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
                     >
                         <X className="h-4 w-4" />
@@ -210,12 +213,21 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 {steps.map((step) => (
                     <div
                         key={step.id}
+                        role={step.isCompleted ? undefined : 'button'}
+                        tabIndex={step.isCompleted ? undefined : 0}
                         onClick={() => {
                             if (!step.isCompleted) navigate(step.path);
                         }}
+                        onKeyDown={(e) => {
+                            if (!step.isCompleted && (e.key === 'Enter' || e.key === ' ')) {
+                                e.preventDefault();
+                                navigate(step.path);
+                            }
+                        }}
+                        aria-label={step.isCompleted ? `${step.label} - Terminé` : `${step.label} - Cliquez pour compléter`}
                         className={`flex items-center justify-between p-3 rounded-xl text-sm transition-all duration-200 border ${step.isCompleted
                             ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 cursor-default border-emerald-200/30 dark:border-emerald-800/30'
-                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-600 dark:text-slate-300 border-slate-200/30 dark:border-slate-700/30 hover:border-slate-300/50 dark:hover:border-slate-600/50'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-600 dark:text-slate-300 border-slate-200/30 dark:border-slate-700/30 hover:border-slate-300/50 dark:hover:border-slate-600/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500'
                             }`}
                     >
                         <div className="flex items-center gap-3">

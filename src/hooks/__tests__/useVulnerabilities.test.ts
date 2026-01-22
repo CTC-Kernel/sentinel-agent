@@ -35,13 +35,18 @@ vi.mock('../../firebase', () => ({
 
 // Mock store
 const mockAddToast = vi.fn();
-vi.mock('../../store', () => ({
-    useStore: () => ({
-        user: { organizationId: 'org-123', email: 'test@example.com', uid: 'user-1' },
-        addToast: mockAddToast,
-        demoMode: false
-    })
-}));
+const mockStoreState = {
+    user: { organizationId: 'org-123', email: 'test@example.com', uid: 'user-1', role: 'admin' },
+    addToast: mockAddToast,
+    demoMode: false,
+    customRoles: []
+};
+
+vi.mock('../../store', () => {
+    const useStore = () => mockStoreState;
+    useStore.getState = () => mockStoreState;
+    return { useStore };
+});
 
 // Mock error logger
 vi.mock('../../services/errorLogger', () => ({
@@ -95,7 +100,8 @@ describe('useVulnerabilities', () => {
                             cveId: 'CVE-2024-0001',
                             title: 'Test Vulnerability',
                             severity: 'High',
-                            status: 'Open'
+                            status: 'Open',
+                            organizationId: 'org-123' // Match mock user's organizationId for IDOR check
                         })
                     }
                 ]
@@ -266,16 +272,30 @@ describe('useVulnerabilities', () => {
             expect(success).toBe(true);
         });
 
-        it('handles errors', async () => {
+        it('returns false for non-existent vulnerability (IDOR protection)', async () => {
+            const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
+
+            let success: boolean | undefined;
+            await act(async () => {
+                success = await result.current.deleteVulnerability('non-existent-vuln');
+            });
+
+            expect(success).toBe(false);
+            expect(mockAddToast).toHaveBeenCalledWith('Vulnérabilité non trouvée', 'error');
+            expect(mockDeleteDoc).not.toHaveBeenCalled();
+        });
+
+        it('handles database errors', async () => {
             mockDeleteDoc.mockRejectedValue(new Error('Delete failed'));
 
             const { result } = renderHook(() => useVulnerabilities(), { wrapper: createWrapper() });
 
+            // Use existing vuln-1 which has organizationId: 'org-123' matching our mock user
             await expect(
                 act(async () => {
-                    await result.current.deleteVulnerability('vuln-error');
+                    await result.current.deleteVulnerability('vuln-1');
                 })
-            ).rejects.toThrow();
+            ).rejects.toThrow('Delete failed');
 
             expect(mockAddToast).toHaveBeenCalledWith('Erreur lors de la suppression', 'error');
         });

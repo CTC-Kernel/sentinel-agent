@@ -6,6 +6,7 @@ import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { RISK_TEMPLATES } from '../data/riskTemplates';
+import { hasPermission } from '../utils/permissions';
 
 export const useThreats = () => {
     const { user, addToast, demoMode } = useStore();
@@ -69,6 +70,26 @@ export const useThreats = () => {
             addToast("Action non disponible en mode démo", "info");
             return;
         }
+
+        // SECURITY: Check authorization
+        if (!hasPermission(user, 'Threat', 'update')) {
+            ErrorLogger.warn('Unauthorized threat update attempt', 'useThreats.updateThreat', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour modifier cette menace", "error");
+            return false;
+        }
+
+        // SECURITY: Verify threat belongs to user's organization (IDOR protection)
+        const targetThreat = threats.find(t => t.id === id);
+        if (!targetThreat || targetThreat.organizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: threat modification across organizations', 'useThreats.updateThreat', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: targetThreat?.organizationId, callerOrg: user?.organizationId }
+            });
+            addToast("Menace non trouvée", "error");
+            return false;
+        }
+
         try {
             // Ensure ID is not in the update payload
             const { id: _unused, ...safeUpdates } = updates;
@@ -87,6 +108,26 @@ export const useThreats = () => {
             addToast("Action non disponible en mode démo", "info");
             return;
         }
+
+        // SECURITY: Check authorization
+        if (!hasPermission(user, 'Threat', 'delete')) {
+            ErrorLogger.warn('Unauthorized threat deletion attempt', 'useThreats.deleteThreat', {
+                metadata: { attemptedBy: user?.uid, targetId: id }
+            });
+            addToast("Vous n'avez pas les droits pour supprimer cette menace", "error");
+            return false;
+        }
+
+        // SECURITY: Verify threat belongs to user's organization (IDOR protection)
+        const targetThreat = threats.find(t => t.id === id);
+        if (!targetThreat || targetThreat.organizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: threat deletion across organizations', 'useThreats.deleteThreat', {
+                metadata: { attemptedBy: user?.uid, targetId: id, targetOrg: targetThreat?.organizationId, callerOrg: user?.organizationId }
+            });
+            addToast("Menace non trouvée", "error");
+            return false;
+        }
+
         try {
             await deleteDoc(doc(db, 'threat_library', id));
             addToast("Menace supprimée", "success");

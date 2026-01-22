@@ -172,8 +172,18 @@ export const useRiskActions = (onRefresh: () => void) => {
     /**
      * Update an existing draft risk.
      */
-    const updateRiskDraft = async (id: string, data: Partial<Risk>) => {
+    const updateRiskDraft = async (id: string, data: Partial<Risk>, riskOrganizationId?: string) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
+
+        // SECURITY: IDOR protection - verify risk belongs to user's organization
+        if (riskOrganizationId && riskOrganizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: risk draft update across organizations', 'useRiskActions.updateRiskDraft', {
+                metadata: { attemptedBy: user?.uid, targetRisk: id, targetOrg: riskOrganizationId, callerOrg: user?.organizationId }
+            });
+            toast.error('Risque non trouvé');
+            return false;
+        }
+
         setSubmitting(true);
         try {
             // Validation with draft schema
@@ -213,6 +223,16 @@ export const useRiskActions = (onRefresh: () => void) => {
      */
     const publishDraft = async (id: string, data: Partial<Risk>, currentRisk?: Risk) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
+
+        // SECURITY: IDOR protection - verify risk belongs to user's organization
+        if (currentRisk?.organizationId && currentRisk.organizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: risk publish across organizations', 'useRiskActions.publishDraft', {
+                metadata: { attemptedBy: user?.uid, targetRisk: id, targetOrg: currentRisk.organizationId, callerOrg: user?.organizationId }
+            });
+            toast.error('Risque non trouvé');
+            return false;
+        }
+
         setSubmitting(true);
         try {
             // Business Logic Validation
@@ -272,6 +292,16 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const updateRisk = async (id: string, data: Partial<Risk>, currentRisk?: Risk) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
+
+        // SECURITY: IDOR protection - verify risk belongs to user's organization
+        if (currentRisk?.organizationId && currentRisk.organizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: risk update across organizations', 'useRiskActions.updateRisk', {
+                metadata: { attemptedBy: user?.uid, targetRisk: id, targetOrg: currentRisk.organizationId, callerOrg: user?.organizationId }
+            });
+            toast.error('Risque non trouvé');
+            return false;
+        }
+
         setSubmitting(true);
         try {
             // Business Logic Validation
@@ -334,8 +364,18 @@ export const useRiskActions = (onRefresh: () => void) => {
         };
     };
 
-    const deleteRisk = async (id: string, name?: string) => {
+    const deleteRisk = async (id: string, name?: string, riskOrganizationId?: string) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
+
+        // SECURITY: IDOR protection - verify risk belongs to user's organization
+        if (riskOrganizationId && riskOrganizationId !== user?.organizationId) {
+            ErrorLogger.warn('IDOR attempt: risk deletion across organizations', 'useRiskActions.deleteRisk', {
+                metadata: { attemptedBy: user?.uid, targetRisk: id, targetOrg: riskOrganizationId, callerOrg: user?.organizationId }
+            });
+            toast.error('Risque non trouvé');
+            return false;
+        }
+
         setSubmitting(true);
         try {
             // Secure Deletion (Backend enforces integrity)

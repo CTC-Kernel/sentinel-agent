@@ -134,7 +134,7 @@ export class ContractExpirationService {
             urgency: this.classifyUrgency(daysRemaining, thresholds),
             hasExitStrategy: !!provider.contractInfo?.exitStrategy,
             hasAuditRights: provider.contractInfo?.auditRights || false,
-            contactEmail: provider.contactInfo?.email
+            contactEmail: provider.contactEmail
         };
     }
 

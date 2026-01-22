@@ -54,10 +54,10 @@ const Homologation: React.FC = () => {
 
   // Handle wizard completion
   const handleWizardComplete = useCallback(
-    async (input: CreateHomologationDossierInput) => {
+    async (input: Omit<CreateHomologationDossierInput, 'organizationId' | 'userId'>) => {
       if (!user?.uid) return;
 
-      const completeInput = {
+      const completeInput: CreateHomologationDossierInput = {
         ...input,
         organizationId: user.organizationId || '',
         userId: user.uid

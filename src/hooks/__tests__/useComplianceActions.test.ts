@@ -64,6 +64,11 @@ vi.mock('../../schemas/controlSchema', () => ({
     }
 }));
 
+// Mock permissions - allow all operations in tests
+vi.mock('../../utils/permissions', () => ({
+    hasPermission: vi.fn().mockReturnValue(true)
+}));
+
 import { useComplianceActions } from '../useComplianceActions';
 import { Control, Framework, UserProfile as User } from '../../types';
 
@@ -71,7 +76,8 @@ describe('useComplianceActions', () => {
     const mockUser = {
         uid: 'user-123',
         email: 'test@example.com',
-        organizationId: 'org-1'
+        organizationId: 'org-1',
+        role: 'admin'
     };
 
     const mockControl: Control = {
