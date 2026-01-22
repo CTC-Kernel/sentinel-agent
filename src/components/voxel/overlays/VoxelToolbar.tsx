@@ -68,11 +68,10 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`p-2 rounded-lg transition-colors ${
-      active
+    className={`p-2 rounded-lg transition-colors ${active
         ? 'bg-blue-500/20 text-blue-400'
         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
-    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     title={label}
     aria-label={label}
   >
@@ -80,7 +79,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   </button>
 );
 
-interface ToolbarDividerProps {}
+type ToolbarDividerProps = Record<string, never>;
 
 const ToolbarDivider: React.FC<ToolbarDividerProps> = () => (
   <div className="w-px h-6 bg-slate-700/50" />

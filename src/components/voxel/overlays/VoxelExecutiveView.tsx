@@ -186,18 +186,7 @@ interface KPICardProps {
 const KPICard: React.FC<KPICardProps> = ({ kpi }) => {
   const IconComponent = kpi.icon ? ICON_MAP[kpi.icon] : Activity;
 
-  const getTrendIcon = () => {
-    switch (kpi.trend) {
-      case 'up':
-        return TrendingUp;
-      case 'down':
-        return TrendingDown;
-      default:
-        return Minus;
-    }
-  };
-
-  const TrendIcon = getTrendIcon();
+  const TrendIcon = kpi.trend === 'up' ? TrendingUp : kpi.trend === 'down' ? TrendingDown : Minus;
 
   const getTrendColor = () => {
     if (!kpi.trend || kpi.trend === 'stable') return '#6B7280';

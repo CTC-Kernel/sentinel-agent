@@ -158,24 +158,19 @@ function detectWebGLCapability(): Omit<WebGLCapabilityInfo, 'shouldShow3D' | 'is
  * ```
  */
 export function useWebGLCapability(): WebGLCapabilityInfo {
-  const [info, setInfo] = useState<WebGLCapabilityInfo>({
-    capability: 'checking',
-    isAvailable: false,
-    isMobile: false,
-    shouldShow3D: false,
-  });
-
-  useEffect(() => {
-    // Detect capabilities
+  const [info] = useState<WebGLCapabilityInfo>(() => {
     const webglInfo = detectWebGLCapability();
     const isMobile = checkIsMobile();
     const shouldShow3D = !isMobile && webglInfo.isAvailable;
-
-    setInfo({
+    return {
       ...webglInfo,
       isMobile,
       shouldShow3D,
-    });
+    };
+  });
+
+  useEffect(() => {
+    // Already detected during initialization
   }, []);
 
   return info;

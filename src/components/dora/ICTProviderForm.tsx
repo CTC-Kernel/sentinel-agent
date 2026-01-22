@@ -106,6 +106,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
         name: 'services'
     });
 
+    // eslint-disable-next-line react-hooks/incompatible-library
     const category = watch('category');
     const concentration = watch('riskAssessment.concentration') || 0;
 

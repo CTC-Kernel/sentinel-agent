@@ -14,11 +14,12 @@ import { OrbitControls, Grid, Stars } from '@react-three/drei';
 
 /** Check if user prefers reduced motion */
 const usePrefersReducedMotion = (): boolean => {
-  const [prefersReduced, setPrefersReduced] = useState(false);
+  const [prefersReduced, setPrefersReduced] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false
+  );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReduced(mediaQuery.matches);
 
     const handler = (event: MediaQueryListEvent) => {
       setPrefersReduced(event.matches);

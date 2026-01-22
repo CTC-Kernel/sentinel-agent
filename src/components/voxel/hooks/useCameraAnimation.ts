@@ -89,7 +89,9 @@ function easeOutCubic(t: number): number {
 export function useCameraAnimation(): UseCameraAnimationReturn {
   const { camera, controls } = useThree();
   const [isAnimating, setIsAnimating] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false
+  );
 
   // Animation state refs
   const animationRef = useRef<{
@@ -105,7 +107,6 @@ export function useCameraAnimation(): UseCameraAnimationReturn {
   // Check for reduced motion preference
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
 
     const handler = (event: MediaQueryListEvent) => {
       setPrefersReducedMotion(event.matches);

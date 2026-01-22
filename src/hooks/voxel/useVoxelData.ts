@@ -290,7 +290,7 @@ export function useVoxelData(options: UseVoxelDataOptions = {}): UseVoxelDataRet
 
   return {
     isLoading,
-    isLoaded: hasPopulatedRef.current && !!filteredGraphData,
+    isLoaded: !!filteredGraphData,
     error: error || null,
     nodeCount: filteredGraphData?.nodes.length || 0,
     edgeCount: filteredGraphData?.edges.length || 0,

@@ -99,6 +99,7 @@ export const FAIRSimpleForm: React.FC<FAIRSimpleFormProps> = ({
     defaultValues: { ...defaultSimpleFormValues, ...initialValues }
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const currency = watch('currency');
   const currencySymbol = CURRENCIES.find((c) => c.value === currency)?.symbol || '€';
 
