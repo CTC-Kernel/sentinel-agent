@@ -77,11 +77,10 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
         await handleMfaVerification(mfaCode);
     };
 
-    // Clear errors and reset privacy consent when switching modes
+    // Clear errors when switching modes (this is safe - clearErrors is from react-hook-form)
     useEffect(() => {
         clearErrors();
         setErrorMsg(null);
-        setPrivacyAccepted(false);
     }, [isLogin, clearErrors, setErrorMsg]);
 
     const onEmailAuthSubmit: SubmitHandler<LoginFormData | RegisterFormData> = async (data) => {
@@ -298,7 +297,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                         <div className="mt-8 text-center">
                             <Button
                                 variant="ghost"
-                                onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
+                                onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); setPrivacyAccepted(false); }}
                                 className="text-[13px] font-bold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                             >
                                 {isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}

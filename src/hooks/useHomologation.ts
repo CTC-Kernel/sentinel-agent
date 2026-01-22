@@ -155,22 +155,22 @@ export const useHomologation = (
       if (!input) {
         throw new Error('Invalid input provided to createDossier');
       }
-      
-      const { organizationId, userId } = input;
-      
+
+      const { organizationId: inputOrgId, userId: inputUserId } = input;
+
       // Vérifications avec messages d'erreur améliorés
-      if (!organizationId) {
+      if (!inputOrgId) {
         throw new Error('Organization ID is required for dossier creation');
       }
-      
-      if (!userId) {
+
+      if (!inputUserId) {
         throw new Error('User ID is required for dossier creation');
       }
-      
+
       try {
         const dossier = await HomologationService.createDossier(
-          organizationId,
-          userId,
+          inputOrgId,
+          inputUserId,
           input
         );
         return dossier.id;
@@ -179,7 +179,7 @@ export const useHomologation = (
         throw error;
       }
     },
-    [organizationId, userId]
+    []
   );
 
   // Update dossier
