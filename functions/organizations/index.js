@@ -158,7 +158,32 @@ exports.createOrganization = onCall({
         if (error instanceof HttpsError) {
             throw error;
         }
-        throw new HttpsError('internal', 'Failed to create organization: ' + error.message);
+
+        // Provide more specific error messages based on error type
+        const errorMessage = error.message || 'Unknown error';
+        const errorCode = error.code || '';
+
+        // Firestore permission errors
+        if (errorCode.includes('permission-denied') || errorMessage.includes('PERMISSION_DENIED')) {
+            throw new HttpsError('permission-denied', 'Permissions insuffisantes. Contactez l\'administrateur.');
+        }
+
+        // Network/connectivity errors
+        if (errorCode.includes('unavailable') || errorMessage.includes('UNAVAILABLE')) {
+            throw new HttpsError('unavailable', 'Service temporairement indisponible. Réessayez dans quelques instants.');
+        }
+
+        // Auth errors
+        if (errorCode.includes('auth/') || errorMessage.includes('auth')) {
+            throw new HttpsError('unauthenticated', 'Session expirée. Veuillez vous reconnecter.');
+        }
+
+        // Quota errors
+        if (errorCode.includes('resource-exhausted')) {
+            throw new HttpsError('resource-exhausted', 'Quota dépassé. Réessayez plus tard.');
+        }
+
+        throw new HttpsError('internal', 'Erreur de configuration interne: ' + errorMessage);
     }
 });
 
