@@ -1,5 +1,5 @@
-# generated: 2026-01-20 (updated)
-# previous: 2026-01-10
+# generated: 2026-01-22 (updated - Epic VOX-8 completed)
+# previous: 2026-01-22
 # project: sentinel-grc-v2-prod
 # project_key: sentinel-grc
 # tracking_system: file-system
@@ -34,7 +34,7 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: "2026-01-10"
+generated: "2026-01-22"
 project: sentinel-grc-v2-prod
 project_key: sentinel-grc
 tracking_system: file-system
@@ -469,3 +469,118 @@ development_status:
   39-3-security-roi-calculator: dev-complete
   39-4-comex-financial-dashboard: dev-complete
   epic-39-retrospective: optional
+
+  # =============================================================================
+  # VOXEL 3D MODULE (Epics VOX-1 to VOX-9)
+  # Source: epics-voxel-module-2026-01-22.md
+  # Module: voxel-3d-module
+  # Total Epics: 9 | Total Stories: 52 | MVP: 44 | MVP+: 8
+  # =============================================================================
+
+  # Epic VOX-1: Foundation & Canvas Setup (P0 - MVP Core)
+  # FR Reference: FR1-FR4
+  # Architecture: VoxelCanvas.tsx, VoxelScene.tsx, voxelStore.ts
+  vox-epic-1-foundation-canvas-setup: done
+  vox-1-1-r3f-canvas-integration: done
+  vox-1-2-zustand-store-setup: done
+  vox-1-3-performance-frame-rate: done
+  vox-1-4-webgl-capability-detection: done
+  vox-1-5-error-boundary-recovery: done
+  vox-1-6-voxel-types-definition: done
+  vox-epic-1-retrospective: optional
+
+  # Epic VOX-2: Node Visualization (P0 - MVP Core)
+  # FR Reference: FR5-FR10
+  # Architecture: VoxelNode.tsx, NodeGeometries.tsx, NodeMaterials.tsx
+  vox-epic-2-node-visualization: done
+  vox-2-1-node-component-creation: done # VoxelNode base + AssetNode/RiskNode/ControlNode + NodeStyleResolver
+  vox-2-2-entity-type-geometries: done # Integrated in vox-2-1 - sphere/icosahedron/box/octahedron/cylinder
+  vox-2-3-node-materials-shaders: done # Integrated in vox-2-1 - PBR materials with metalness/roughness
+  vox-2-4-node-labels-html: done # VoxelNodeLabel with Html overlay, distance-based visibility
+  vox-2-5-node-status-indicators: done # Integrated in vox-2-1 - status colors, opacity, emissive glow
+  vox-2-6-node-lod-system: done # VoxelNodeLOD + NodeHighDetail/NodeMediumDetail/NodeLowDetail
+  vox-epic-2-retrospective: optional
+
+  # Epic VOX-3: Edge & Connection Visualization (P0 - MVP Core)
+  # FR Reference: FR11-FR14
+  # Architecture: VoxelEdge.tsx, EdgeManager.tsx, EdgeStyleResolver.ts
+  vox-epic-3-edge-visualization: done
+  vox-3-1-edge-line-rendering: done # VoxelEdge + EdgeManager + VoxelEdgeCurved
+  vox-3-2-asset-risk-connections: done # Impact edge type in EdgeStyleResolver (red #EF4444)
+  vox-3-3-control-asset-connections: done # Mitigation edge type in EdgeStyleResolver (purple #8B5CF6)
+  vox-3-4-edge-style-variation: done # Weight-based thickness/opacity in EdgeStyleResolver
+  vox-epic-3-retrospective: optional
+
+  # Epic VOX-4: Navigation & Interaction (P0 - MVP Core)
+  # FR Reference: FR15-FR21
+  # Architecture: useNodeSelection.ts, useCameraAnimation.ts, VoxelDetailPanel.tsx
+  vox-epic-4-navigation-interaction: done
+  vox-4-1-orbit-rotation: done # OrbitControls in VoxelScene.tsx with damping
+  vox-4-2-zoom-control: done # OrbitControls minDistance/maxDistance (50-2000)
+  vox-4-3-pan-navigation: done # OrbitControls enablePan with panSpeed
+  vox-4-4-node-click-selection: done # useNodeSelection + SelectionGlow
+  vox-4-5-hover-tooltip: done # useHoverState + VoxelTooltip
+  vox-4-6-click-detail-panel: done # VoxelDetailPanel (slide-in from right)
+  vox-4-7-reset-view: done # useCameraAnimation with resetView
+  vox-epic-4-retrospective: optional
+
+  # Epic VOX-5: Filtering & Search (P0 - MVP Core)
+  # FR Reference: FR22-FR26
+  # Architecture: VoxelFilterPanel.tsx, useVoxelFilters.ts, useFilterPresets.ts
+  vox-epic-5-filtering-search: done
+  vox-5-1-filter-panel-component: done # VoxelFilterPanel.tsx with collapsible UI, badges, counts
+  vox-5-2-entity-type-filtering: done # Node type checkboxes with toggleNodeType
+  vox-5-3-status-based-filtering: done # Status checkboxes with toggleStatus
+  vox-5-4-search-functionality: done # Search input with setSearchQuery (case-insensitive)
+  vox-5-5-filter-presets: done # useFilterPresets.ts with 10 presets (all, risks-only, critical, etc.)
+  vox-epic-5-retrospective: optional
+
+  # Epic VOX-6: Data Integration (P0 - MVP Core)
+  # FR Reference: FR27-FR30
+  # Architecture: GraphBuilder.ts, useVoxelData.ts, useVoxelRealtime.ts
+  vox-epic-6-data-integration: done
+  vox-6-1-data-transformer-service: done # GraphBuilder.ts with buildGraph, updateNodeFromEntity
+  vox-6-2-firestore-realtime-integration: done # useVoxelRealtime.ts (existed) + useVoxelData.ts with React Query
+  vox-6-3-graph-layout-algorithms: done # calculateInitialPosition with spherical distribution by type
+  vox-6-4-data-caching-strategy: done # React Query caching in useVoxelData (staleTime, gcTime)
+  vox-epic-6-retrospective: optional
+
+  # Epic VOX-7: Detail Panel & Entity View (P0 - MVP Core)
+  # FR Reference: FR31-FR35
+  # Architecture: VoxelDetailPanel.tsx with type-specific sections
+  vox-epic-7-detail-panel: done
+  vox-7-1-detail-panel-component: done # Enhanced VoxelDetailPanel with slide-in panel
+  vox-7-2-entity-specific-details: done # AssetDetails, RiskDetails, ControlDetails, ProjectDetails, AuditDetails, IncidentDetails, SupplierDetails
+  vox-7-3-quick-actions: done # "View Full Details" navigation button
+  vox-7-4-relationship-view: done # LinkedEntityItem list with clickable navigation
+  vox-7-5-history-timeline: done # Timeline section with created/updated dates
+  vox-epic-7-retrospective: optional
+
+  # Epic VOX-8: Security, RBAC & Accessibility (P0 - MVP Core)
+  # FR Reference: FR36-FR44
+  # Architecture: useRbacNodeFilter.ts, VoxelLegend.tsx, usePrefersReducedMotion.ts
+  vox-epic-8-security-rbac-accessibility: done
+  vox-8-1-daltonisme-safe-visuals: done # VoxelLegend.tsx with shapes + colors
+  vox-8-2-contrast-compliance: done # Dark theme with high contrast
+  vox-8-3-text-labels-indicators: done # Aria-labels and text descriptions
+  vox-8-4-reduced-motion-support: done # usePrefersReducedMotion.ts hook
+  vox-8-5-rbac-node-filtering: done # useRbacNodeFilter.ts + filterNodesByPermission
+  vox-8-6-admin-full-access: done # Admin bypass in permission checks
+  vox-8-7-organization-data-isolation: done # useVoxelData.ts organizationId filtering
+  vox-8-8-audit-logging: done # Console logging for RBAC filtering
+  vox-8-9-data-sanitization: done # Type-safe data access in detail panel
+  vox-epic-8-retrospective: optional
+
+  # Epic VOX-9: MVP+ Advanced Features (P1 - MVP+)
+  # FR Reference: FR45-FR52
+  # Architecture: RiskPulse.tsx, useExportCapture.ts, VoxelMinimap.tsx
+  vox-epic-9-mvp-plus-advanced: in-progress
+  vox-9-1-zoom-semantique: backlog # LOD system
+  vox-9-2-alertes-visuelles-pulse: done # RiskPulse.tsx, CriticalRiskPulse, WarningPulse
+  vox-9-3-mode-guide: backlog # Guided tour
+  vox-9-4-clustering-automatique: backlog # Node clustering
+  vox-9-5-minimap-navigation: done # VoxelMinimap.tsx with click-to-navigate
+  vox-9-6-framework-overlay: backlog # Compliance framework overlay
+  vox-9-7-export-view: done # useExportCapture.ts with PNG/JPEG/WebP, watermark
+  vox-9-8-mode-direction: backlog # Executive simplified view
+  vox-epic-9-retrospective: optional
