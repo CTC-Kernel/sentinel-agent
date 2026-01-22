@@ -41,9 +41,31 @@ async function attemptSendEmail(docRef, data) {
         const [response] = await sgMail.send(msg);
         logger.info("Message sent via SendGrid");
 
+        // Convert headers to a plain JavaScript object for Firestore compatibility
+        // SendGrid returns a Headers object that is not serializable
+        let headersObj = {};
+        try {
+            if (response.headers) {
+                // Handle both plain objects and Headers instances
+                if (typeof response.headers.entries === 'function') {
+                    // Headers instance - convert using entries()
+                    for (const [key, value] of response.headers.entries()) {
+                        headersObj[key] = value;
+                    }
+                } else if (typeof response.headers === 'object') {
+                    // Already a plain object or similar
+                    headersObj = JSON.parse(JSON.stringify(response.headers));
+                }
+            }
+        } catch (headerError) {
+            // If header conversion fails, just save an empty object
+            logger.warn("Could not serialize response headers:", headerError.message);
+            headersObj = {};
+        }
+
         const safeResponse = {
             statusCode: response.statusCode,
-            headers: response.headers,
+            headers: headersObj,
         };
 
         return docRef.update({
