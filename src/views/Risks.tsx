@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
-    LayoutDashboard, List, Grid3x3, ShieldAlert, Loader
+    LayoutDashboard, List, Grid3x3, ShieldAlert, Loader, Target
 } from '../components/ui/Icons';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
@@ -37,6 +37,7 @@ import { RiskGrid } from '../components/risks/RiskGrid';
 import { RiskStatsWidget } from '../components/risks/RiskStatsWidget';
 // RiskMatrix removed for lazy load
 import { RiskDashboard } from '../components/risks/RiskDashboard';
+import { RiskContextManager } from '../components/risks/context/RiskContextManager';
 // CustomSelect removed
 // Button removed
 
@@ -77,7 +78,7 @@ export const Risks: React.FC = () => {
     const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'matrix'>('risks-view-mode', 'grid');
-    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'matrix'>('overview');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'matrix' | 'context'>('risks-active-tab', 'overview');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -146,6 +147,21 @@ export const Risks: React.FC = () => {
 
     const navigate = useNavigate();
     const location = useLocation();
+
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkTab = searchParams.get('tab');
+
+    // Handle tab deep link (e.g., from /risk-context redirect)
+    useEffect(() => {
+        if (deepLinkTab && ['overview', 'list', 'matrix', 'context'].includes(deepLinkTab)) {
+            setActiveTab(deepLinkTab as any);
+            // Clean up the tab param after applying it
+            setSearchParams(params => {
+                params.delete('tab');
+                return params;
+            }, { replace: true });
+        }
+    }, [deepLinkTab, setActiveTab, setSearchParams]);
 
     useDeepLinkAction({
         data: risks,
@@ -350,6 +366,7 @@ export const Risks: React.FC = () => {
         { id: 'overview', label: t('risks.overview'), icon: LayoutDashboard },
         { id: 'list', label: t('risks.registry'), icon: List },
         { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },
+        { id: 'context', label: 'Contexte', icon: Target },
     ], [t]);
 
     return (
@@ -375,7 +392,7 @@ export const Risks: React.FC = () => {
             <ScrollableTabs
                 tabs={tabs}
                 activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'matrix')}
+                onTabChange={(id) => setActiveTab(id as any)}
             />
 
             {/* OVERVIEW TAB */}
@@ -397,15 +414,34 @@ export const Risks: React.FC = () => {
                 </motion.div>
             )}
 
+            {/* CONTEXT TAB */}
+            {activeTab === 'context' && (
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="initial"
+                    animate="visible"
+                    exit="exit"
+                    key="context-tab"
+                    role="tabpanel"
+                    id="panel-context"
+                    aria-labelledby="tab-context"
+                    className="focus:outline-none"
+                >
+                    <div className="glass-panel p-6 rounded-[2rem]">
+                        <RiskContextManager />
+                    </div>
+                </motion.div>
+            )}
+
             {/* CONTENT TABS */}
-            {activeTab !== 'overview' && (
+            {activeTab !== 'overview' && activeTab !== 'context' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
                     <RisksToolbar
                         searchQuery={activeFilters.query}
                         onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
                         viewMode={viewMode}
                         onViewModeChange={(m) => setViewMode(m)}
-                        activeTab={activeTab}
+                        activeTab={activeTab as any}
                         frameworkFilter={frameworkFilter}
                         setFrameworkFilter={setFrameworkFilter}
                         showAdvancedSearch={showAdvancedSearch}

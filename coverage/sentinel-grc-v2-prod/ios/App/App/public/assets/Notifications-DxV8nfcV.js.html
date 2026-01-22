@@ -1,0 +1,88 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for sentinel-grc-v2-prod/ios/App/App/public/assets/Notifications-DxV8nfcV.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">sentinel-grc-v2-prod/ios/App/App/public/assets</a> Notifications-DxV8nfcV.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import{u as N,O as l,E as c,j as t,ak as x,A as j,X as h,W as w,C as g,e as k}from"./index-Bn5GIDph.js";import{r as n,R as A}from"./vendor-CN6Y1NGb.js";import{E as v}from"./EmptyState-B0lriuc_.js";import{P as y}from"./PageHeader-BD7f2cm-.js";import{C as E}from"./Skeleton-BMwUYURH.js";import"./utils-BMXSUX3c.js";import"./firebase-CUH82dy_.js";import"./ui-BNe0Xlio.js";import"./SecurityBadge-xt04FSpq.js";const P=()=&gt;{const[r,i]=n.useState([]),[u,d]=n.useState(!0),{user:a}=N(),m=A.useCallback(async()=&gt;{if(a?.uid){d(!0);try{const e=await l.getAll(a.uid,100);i(e)}catch(e){c.handleErrorWithToast(e,"Notifications.fetchNotifications","FETCH_FAILED")}finally{d(!1)}}},[a]);n.useEffect(()=&gt;{m()},[m]);const p=async e=&gt;{try{await l.markAsRead(e),i(s=&gt;s.map(o=&gt;o.id===e?{...o,read:!0}:o))}catch(s){c.handleErrorWithToast(s,"Notifications.markAsRead","UPDATE_FAILED")}},b=async()=&gt;{if(a?.uid)try{await l.markAllAsRead(a.uid),i(e=&gt;e.map(s=&gt;({...s,read:!0})))}catch(e){c.handleErrorWithToast(e,"Notifications.markAll","UPDATE_FAILED")}},f=e=&gt;{switch(e){case"warning":return t.jsx(k,{className:"h-5 w-5 text-amber-500"});case"danger":return t.jsx(h,{className:"h-5 w-5 text-red-500"});case"success":return t.jsx(g,{className:"h-5 w-5 text-emerald-500"});default:return t.jsx(w,{className:"h-5 w-5 text-blue-500"})}};return t.jsxs("div",{className:"space-y-8 animate-fade-in max-w-4xl mx-auto pb-10",children:[t.jsx(y,{title:"Notifications",subtitle:"Restez informé des activités importantes.",breadcrumbs:[{label:"Notifications"}],icon:t.jsx(x,{className:"h-6 w-6 text-white",strokeWidth:2.5}),actions:r.some(e=&gt;!e.read)&amp;&amp;t.jsx("button",{onClick:b,className:"px-4 py-2.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors border border-brand-200 dark:border-brand-800",children:"Tout marquer comme lu"})}),u?t.jsx("div",{className:"space-y-4",children:t.jsx(E,{count:3})}):r.length===0?t.jsx(v,{icon:x,title:"Aucune notification",description:"Vous êtes à jour ! Aucune nouvelle activité à signaler."}):t.jsx("div",{className:"space-y-4",children:r.map(e=&gt;t.jsxs("div",{className:"glass-panel p-5 rounded-2xl border border-white</span></span>/50 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex gap-4 group",children:[t.jsx("div",{className:"p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-white/5 h-fit",children:f(e.type)}),t.jsxs("div",{className:"flex-1",children:[t.jsxs("div",{className:"flex justify-between items-start",children:[t.jsx("h3",{className:"text-base font-bold text-slate-900 dark:text-white",children:e.title}),t.jsx("span",{className:"text-[10px] font-bold text-slate-400 uppercase tracking-wide",children:new Date(e.createdAt).toLocaleDateString()})]}),t.jsx("p",{className:"text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed",children:e.message}),e.link&amp;&amp;t.jsxs("a",{href:e.link,className:"inline-flex items-center mt-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline",children:["Voir les détails ",t.jsx(j,{className:"h-3 w-3 ml-1"})]})]}),!e.read&amp;&amp;t.jsx("button",{onClick:()=&gt;p(e.id),className:"opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all self-center",children:t.jsx(h,{className:"h-4 w-4"})})]},e.id))})]})};export{P as Notifications};</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-01-22T18:39:13.336Z
+            </div>
+        <script src="../../../../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../../../../sorter.js"></script>
+        <script src="../../../../../../block-navigation.js"></script>
+    </body>
+</html>
+    

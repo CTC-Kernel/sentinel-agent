@@ -3378,5 +3378,31 @@
     "ale": "ALE",
     "var95": "VaR 95%",
     "trend": "Trend"
+  },
+  "voxel": {
+    "title": "3D Visualization",
+    "subtitle": "Explore your GRC ecosystem in 3D",
+    "description": "Interactive 3D visualization of your governance, risk and compliance data",
+    "loading": "Loading 3D environment...",
+    "error": "Unable to load 3D visualization",
+    "webglUnsupported": "WebGL Unsupported",
+    "webglUnsupportedDesc": "Your browser doesn't support WebGL, which is required for 3D visualization.",
+    "retryLoading": "Retry",
+    "fallback": {
+      "ariaLabel": "Alternative visualization view",
+      "mobileTitle": "Mobile Device Detected",
+      "mobileDescription": "3D visualization is optimized for desktop computers. Use the alternative view to access your data on mobile.",
+      "mobileHint": "For the full 3D experience, access Sentinel GRC from a desktop computer.",
+      "noWebGLTitle": "WebGL Not Supported",
+      "noWebGLDescription": "Your browser doesn't support WebGL, the technology required to display 3D visualization.",
+      "degradedTitle": "Reduced WebGL Mode",
+      "degradedDescription": "Your browser only supports WebGL 1.0. Some visual features may be limited.",
+      "errorTitle": "Visualization Error",
+      "errorDescription": "An error occurred while loading the 3D visualization. Please use the alternative view.",
+      "requirementsTitle": "System Requirements",
+      "requirementsGPU": "WebGL-compatible graphics card",
+      "requirementsDrivers": "Up-to-date graphics drivers",
+      "useAlternative": "Use Alternative View"
+    }
   }
 }

@@ -5,6 +5,8 @@
  */
 
 export { useVoxelRealtime } from './useVoxelRealtime';
+export { useVoxelData } from './useVoxelData';
+export type { UseVoxelDataOptions, UseVoxelDataReturn } from './useVoxelData';
 export { useNodeAnimation, useNodesAnimation, ANIMATION_PRESETS } from './useNodeAnimation';
 export type { NodeAnimationState, NodeAnimationConfig, AnimationPreset } from './useNodeAnimation';
 export { useOfflineMode } from './useOfflineMode';
@@ -84,6 +86,29 @@ export type {
   UseVRPerformanceOptions,
   UseVRPerformanceReturn,
 } from './useVRPerformance';
+
+// VOX-1.4: WebGL Capability Detection
+export { useWebGLCapability, useWebGLSupport } from './useWebGLCapability';
+export type { WebGLCapability, WebGLCapabilityInfo } from './useWebGLCapability';
+
+// VOX-8.4: Reduced Motion Support
+export {
+  usePrefersReducedMotion,
+  getAnimationDuration,
+  getTransitionStyle,
+} from './usePrefersReducedMotion';
+
+// VOX-8.5 & VOX-8.6: RBAC Node Filtering
+export { useRbacNodeFilter, filterNodesByPermission } from './useRbacNodeFilter';
+export type { UseRbacNodeFilterOptions, UseRbacNodeFilterReturn } from './useRbacNodeFilter';
+
+// VOX-9.7: Export Capture
+export { useExportCapture } from './useExportCapture';
+export type {
+  ExportOptions,
+  WatermarkOptions,
+  UseExportCaptureReturn,
+} from './useExportCapture';
 
 // Re-export store hooks for convenience
 export {

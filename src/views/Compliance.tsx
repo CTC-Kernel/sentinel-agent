@@ -140,6 +140,7 @@ export const Compliance: React.FC = () => {
     const handleSelectControl = useCallback((control: Control) => {
         setSelectedControlId(control.id);
         setProjectContext({ type: 'control', id: control.id });
+        setIsDrawerOpen(true);
     }, []);
 
     // Filtering Logic
@@ -211,9 +212,9 @@ export const Compliance: React.FC = () => {
 
         if (type === 'project' && controlContext) {
             // Vérifier si le contrôle est déjà lié à un projet
-            const isLinkedToProject = controlContext.linkedProjectId && 
+            const isLinkedToProject = controlContext.linkedProjectId &&
                 controlContext.linkedProjectId === controlContext.id;
-            
+
             if (isLinkedToProject) {
                 addToast(t('compliance.controlAlreadyLinked') || 'Ce contrôle est déjà lié à un projet', 'info');
                 return;
@@ -222,9 +223,9 @@ export const Compliance: React.FC = () => {
 
         if (type === 'audit' && controlContext) {
             // Vérifier si le contrôle est déjà lié à un audit
-            const isLinkedToAudit = controlContext.linkedAuditId && 
+            const isLinkedToAudit = controlContext.linkedAuditId &&
                 controlContext.linkedAuditId === controlContext.id;
-            
+
             if (isLinkedToAudit) {
                 addToast(t('compliance.controlAlreadyLinked') || 'Ce contrôle est déjà lié à un audit', 'info');
                 return;

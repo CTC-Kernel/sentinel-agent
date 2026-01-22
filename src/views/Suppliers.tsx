@@ -6,7 +6,7 @@ import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
 import { Supplier, Criticality } from '../types';
-import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert, LayoutDashboard, List } from '../components/ui/Icons';
+import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert, LayoutDashboard, List, PieChart } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Button } from '../components/ui/button';
 import { useStore } from '../store';
@@ -37,6 +37,7 @@ import { SupplierCard } from '../components/suppliers/SupplierCard';
 import { SupplierInspector } from '../components/suppliers/SupplierInspector';
 import { OnboardingService } from '../services/onboardingService';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { SupplierConcentrationTab } from '../components/suppliers/SupplierConcentrationTab';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -120,6 +121,19 @@ export const Suppliers: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkSupplierId = searchParams.get('id');
     const deepLinkAction = searchParams.get('action');
+    const deepLinkTab = searchParams.get('tab');
+
+    // Handle tab deep link (e.g., from /vendor-concentration redirect)
+    useEffect(() => {
+        if (deepLinkTab && ['overview', 'suppliers', 'concentration'].includes(deepLinkTab)) {
+            setActiveTab(deepLinkTab);
+            // Clean up the tab param after applying it
+            setSearchParams(params => {
+                params.delete('tab');
+                return params;
+            }, { replace: true });
+        }
+    }, [deepLinkTab, setActiveTab, setSearchParams]);
 
     useEffect(() => {
         if (loadingSuppliers) return;
@@ -376,7 +390,8 @@ export const Suppliers: React.FC = () => {
 
     const tabs = [
         { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-        { id: 'suppliers', label: 'Fournisseurs', icon: List, count: filteredSuppliers.length }
+        { id: 'suppliers', label: 'Fournisseurs', icon: List, count: filteredSuppliers.length },
+        { id: 'concentration', label: 'Concentration', icon: PieChart }
     ];
 
     const handleConfirmClose = useCallback(() => {
@@ -455,7 +470,7 @@ export const Suppliers: React.FC = () => {
             </motion.div>
 
             <AnimatePresence mode="wait">
-                {activeTab === 'overview' ? (
+                {activeTab === 'overview' && (
                     <motion.div
                         key="overview"
                         initial={{ opacity: 0, y: 10 }}
@@ -469,7 +484,21 @@ export const Suppliers: React.FC = () => {
                             onFilterChange={handleDashboardFilterChange}
                         />
                     </motion.div>
-                ) : (
+                )}
+
+                {activeTab === 'concentration' && (
+                    <motion.div
+                        key="concentration"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <SupplierConcentrationTab />
+                    </motion.div>
+                )}
+
+                {activeTab === 'suppliers' && (
                     <motion.div
                         key="suppliers"
                         initial={{ opacity: 0, y: 10 }}

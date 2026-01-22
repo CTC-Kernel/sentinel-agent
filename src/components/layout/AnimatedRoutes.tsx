@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedPage } from './AnimatedPage';
 import { RoleGuard } from '../auth/RoleGuard';
@@ -22,6 +22,9 @@ const Privacy = React.lazy(() => import('../../views/Privacy').then(module => ({
 const Help = React.lazy(() => import('../../views/Help').then(module => ({ default: module.Help })));
 const Continuity = React.lazy(() => import('../../views/Continuity'));
 const VoxelView = React.lazy(() => import('../../views/VoxelView').then(module => ({ default: module.VoxelView })));
+
+// Voxel 3D Module (Story VOX-1.1)
+const VoxelPage = React.lazy(() => import('../../pages/VoxelPage').then(module => ({ default: module.VoxelPage })));
 const Notifications = React.lazy(() => import('../../views/Notifications').then(module => ({ default: module.Notifications })));
 const Search = React.lazy(() => import('../../views/Search').then(module => ({ default: module.Search })));
 const KioskPage = React.lazy(() => import('../../components/AssetIntake/KioskPage').then(module => ({ default: module.KioskPage })));
@@ -50,14 +53,8 @@ const SMSIProgram = React.lazy(() => import('../../views/SMSIProgram').then(modu
 // DORA ICT Register Module (DORA Art. 28)
 const DORAProviders = React.lazy(() => import('../../views/DORAProviders').then(module => ({ default: module.DORAProviders })));
 
-// Risk Context Module (ISO 27005)
-const RiskContext = React.lazy(() => import('../../views/RiskContext').then(module => ({ default: module.RiskContextView })));
-
 // Control Effectiveness Module (ISO 27002)
 const ControlEffectiveness = React.lazy(() => import('../../views/ControlEffectiveness').then(module => ({ default: module.ControlEffectivenessView })));
-
-// Vendor Concentration Module (Story 37-4)
-const VendorConcentration = React.lazy(() => import('../../views/VendorConcentration').then(module => ({ default: module.VendorConcentration })));
 
 // Financial Risk Quantification Module (Epic 39)
 const FinancialRisk = React.lazy(() => import('../../views/FinancialRisk').then(module => ({ default: module.FinancialRisk })));
@@ -96,7 +93,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/ebios" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalyses /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/ebios/:id" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalysisDetail /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/smsi" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><SMSIProgram /></AnimatedPage></RoleGuardComponent>} />
-                <Route path="/risk-context" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><RiskContext /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/risk-context" element={<Navigate to="/risks?tab=context" replace />} />
                 <Route path="/control-effectiveness" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor']}><AnimatedPage><ControlEffectiveness /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/documents" element={
                     <RoleGuardComponent allowedRoles={['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user']}>
@@ -115,7 +112,7 @@ export const AnimatedRoutes: React.FC = () => {
                     </RoleGuardComponent>
                 } />
                 <Route path="/suppliers" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Suppliers /></AnimatedPage></RoleGuardComponent>} />
-                <Route path="/vendor-concentration" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><VendorConcentration /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/vendor-concentration" element={<Navigate to="/suppliers?tab=concentration" replace />} />
                 <Route path="/dora/providers" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><DORAProviders /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/financial-risk" element={<RoleGuardComponent allowedRoles={['admin', 'rssi', 'direction']}><AnimatedPage><FinancialRisk /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/homologation" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><Homologation /></AnimatedPage></RoleGuardComponent>} />
@@ -123,6 +120,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/privacy" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Privacy /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/continuity" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Continuity /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/ctc-engine" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><VoxelView /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/voxel" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><VoxelPage /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/notifications" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Notifications /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/search" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Search /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/help" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Help /></AnimatedPage></RoleGuardComponent>} />

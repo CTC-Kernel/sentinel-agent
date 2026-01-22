@@ -3628,5 +3628,31 @@
     "ale": "ALE",
     "var95": "VaR 95%",
     "trend": "Tendance"
+  },
+  "voxel": {
+    "title": "Visualisation 3D",
+    "subtitle": "Explorez votre écosystème GRC en 3D",
+    "description": "Visualisation interactive 3D de vos données de gouvernance, risques et conformité",
+    "loading": "Chargement de l'environnement 3D...",
+    "error": "Impossible de charger la visualisation 3D",
+    "webglUnsupported": "WebGL non supporté",
+    "webglUnsupportedDesc": "Votre navigateur ne prend pas en charge WebGL, nécessaire pour la visualisation 3D.",
+    "retryLoading": "Réessayer",
+    "fallback": {
+      "ariaLabel": "Vue alternative de visualisation",
+      "mobileTitle": "Appareil mobile détecté",
+      "mobileDescription": "La visualisation 3D est optimisée pour les ordinateurs. Utilisez la vue alternative pour accéder à vos données sur mobile.",
+      "mobileHint": "Pour une expérience 3D complète, accédez à Sentinel GRC depuis un ordinateur.",
+      "noWebGLTitle": "WebGL non supporté",
+      "noWebGLDescription": "Votre navigateur ne prend pas en charge WebGL, la technologie nécessaire pour afficher la visualisation 3D.",
+      "degradedTitle": "Mode réduit WebGL",
+      "degradedDescription": "Votre navigateur supporte uniquement WebGL 1.0. Certaines fonctionnalités visuelles peuvent être limitées.",
+      "errorTitle": "Erreur de visualisation",
+      "errorDescription": "Une erreur est survenue lors du chargement de la visualisation 3D. Veuillez utiliser la vue alternative.",
+      "requirementsTitle": "Configuration requise",
+      "requirementsGPU": "Carte graphique compatible WebGL",
+      "requirementsDrivers": "Pilotes graphiques à jour",
+      "useAlternative": "Utiliser la vue alternative"
+    }
   }
 }
