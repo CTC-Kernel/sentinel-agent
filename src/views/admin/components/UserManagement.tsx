@@ -7,6 +7,7 @@ import { ErrorLogger } from '../../../services/errorLogger';
 import { Search, User as UserIcon, Mail, Shield, Building2, MoreVertical, LogIn } from '../../../components/ui/Icons';
 import { AdminService } from '../../../services/adminService';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
+import { ConfirmModal } from '../../../components/ui/ConfirmModal';
 
 const auth = getAuth();
 
@@ -16,6 +17,21 @@ export const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+    const [impersonateTarget, setImpersonateTarget] = useState<UserProfile | null>(null);
+
+    const handleImpersonate = async (user: UserProfile) => {
+        try {
+            const { token } = await AdminService.impersonateUser(user.uid);
+            // Use Firebase Auth to sign in with custom token
+            await signInWithCustomToken(auth, token);
+            window.location.href = '/dashboard';
+        } catch (err) {
+            ErrorLogger.error(err, 'UserManagement.impersonate');
+            addToast("Impersonation failed: " + (err as Error).message, 'error');
+        } finally {
+            setImpersonateTarget(null);
+        }
+    };
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -105,19 +121,9 @@ export const UserManagement: React.FC = () => {
                                     <button
                                         className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
                                         title="Impersonate User"
-                                        onClick={async (e) => {
+                                        onClick={(e) => {
                                             e.stopPropagation();
-                                            if (window.confirm(`Login as ${user.email}?`)) {
-                                                try {
-                                                    const { token } = await AdminService.impersonateUser(user.uid);
-                                                    // Use Firebase Auth to sign in with custom token
-                                                    await signInWithCustomToken(auth, token);
-                                                    window.location.href = '/dashboard';
-                                                } catch (err) {
-                                                    ErrorLogger.error(err, 'UserManagement.impersonate');
-                                                    addToast("Impersonation failed: " + (err as Error).message, 'error');
-                                                }
-                                            }
+                                            setImpersonateTarget(user);
                                         }}
                                     >
                                         <LogIn className="w-4 h-4" />
@@ -137,6 +143,17 @@ export const UserManagement: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={impersonateTarget !== null}
+                onClose={() => setImpersonateTarget(null)}
+                onConfirm={() => impersonateTarget && handleImpersonate(impersonateTarget)}
+                title="Impersonate User"
+                message={`Are you sure you want to login as ${impersonateTarget?.email}?`}
+                type="warning"
+                confirmText="Login as User"
+                cancelText="Cancel"
+            />
         </div>
     );
 };

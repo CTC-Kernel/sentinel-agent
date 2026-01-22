@@ -11,6 +11,7 @@ import { DatePicker } from '../ui/DatePicker';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { useProjectMilestones } from '../../hooks/projects/useProjectMilestones';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,6 +38,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
     const { addMilestone, updateMilestone, removeMilestone } = useProjectMilestones(project.id);
     const [isEditing, setIsEditing] = useState(false);
     const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
+    const [deleteMilestoneId, setDeleteMilestoneId] = useState<string | null>(null);
 
     const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<MilestoneFormData>({
         resolver: zodResolver(milestoneSchema),
@@ -106,13 +108,14 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')) return;
         try {
             await removeMilestone(id);
             addToast('Jalon supprimé', 'info');
             onUpdate();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ProjectMilestones.handleDelete', 'DELETE_FAILED');
+        } finally {
+            setDeleteMilestoneId(null);
         }
     };
 
@@ -238,7 +241,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                                     <Edit className="h-4 w-4" />
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(milestone.id)}
+                                    onClick={() => setDeleteMilestoneId(milestone.id)}
                                     className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                     aria-label="Supprimer le jalon"
                                 >
@@ -249,6 +252,17 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                     ))
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={deleteMilestoneId !== null}
+                onClose={() => setDeleteMilestoneId(null)}
+                onConfirm={() => deleteMilestoneId && handleDelete(deleteMilestoneId)}
+                title="Supprimer le jalon"
+                message="Êtes-vous sûr de vouloir supprimer ce jalon ?"
+                type="danger"
+                confirmText="Supprimer"
+                cancelText="Annuler"
+            />
         </div>
     );
 };

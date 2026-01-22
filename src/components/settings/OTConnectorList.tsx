@@ -30,6 +30,7 @@ import { cn } from '../../lib/utils';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { useToast } from '../../hooks/useToast';
 import { useStore } from '../../store';
 import {
@@ -87,6 +88,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
   const [connectors, setConnectors] = useState<OTConnector[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState<Record<string, boolean>>({});
+  const [deleteTarget, setDeleteTarget] = useState<OTConnector | null>(null);
 
   // Load connectors
   const loadConnectors = useCallback(async () => {
@@ -143,10 +145,6 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
   const handleDelete = useCallback(async (connector: OTConnector) => {
     if (!organization?.id) return;
 
-    if (!window.confirm(t('otConnector.confirmDelete', `Delete connector "${connector.name}"?`))) {
-      return;
-    }
-
     try {
       await OTConnectorService.deleteConnector(organization.id, connector.id);
       toast({
@@ -160,6 +158,8 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
         title: t('otConnector.errors.deleteFailed', 'Failed to delete'),
         description: error instanceof Error ? error.message : 'Unknown error'
       });
+    } finally {
+      setDeleteTarget(null);
     }
   }, [organization?.id, loadConnectors, t, toast]);
 
@@ -394,7 +394,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(connector)}
+                      onClick={() => setDeleteTarget(connector)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       title={t('common.delete', 'Delete')}
                     >
@@ -410,6 +410,17 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
           })}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+        title={t('otConnector.deleteTitle', 'Supprimer le connecteur')}
+        message={t('otConnector.confirmDelete', `Êtes-vous sûr de vouloir supprimer le connecteur "${deleteTarget?.name}" ?`)}
+        type="danger"
+        confirmText={t('common.delete', 'Supprimer')}
+        cancelText={t('common.cancel', 'Annuler')}
+      />
     </div>
   );
 };

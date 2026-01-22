@@ -5,6 +5,7 @@ import { functions, storage } from '../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from '@/lib/toast';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 
 interface CertificateUploadProps {
     token: string;
@@ -14,6 +15,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
     const [isUploading, setIsUploading] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'success'>('idle');
+    const [showNoCertificateConfirm, setShowNoCertificateConfirm] = useState(false);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -39,9 +41,16 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
         }
     };
 
-    const handleCertify = async () => {
-        if (!file && !confirm("Voulez-vous valider sans joindre de certificat ?")) return;
+    const handleCertifyClick = () => {
+        if (!file) {
+            setShowNoCertificateConfirm(true);
+            return;
+        }
+        handleCertify();
+    };
 
+    const handleCertify = async () => {
+        setShowNoCertificateConfirm(false);
         setIsUploading(true);
         try {
             let downloadUrl = null;
@@ -119,7 +128,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                 <div className="mt-6 flex justify-end gap-3">
                     <button className="px-4 py-2 text-slate-600 font-medium hover:underline text-sm">Refuser / Demander corrections</button>
                     <button
-                        onClick={handleCertify}
+                        onClick={handleCertifyClick}
                         disabled={isUploading}
                         className="btn-primary flex items-center gap-2"
                     >
@@ -133,6 +142,17 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                 <AlertTriangle className="w-5 h-5 shrink-0" />
                 <p>Attention : Cette action est irréversible. Une fois validé, l'audit passera en statut "Validé" et votre accès en écriture sera révoqué.</p>
             </div>
+
+            <ConfirmModal
+                isOpen={showNoCertificateConfirm}
+                onClose={() => setShowNoCertificateConfirm(false)}
+                onConfirm={handleCertify}
+                title="Validation sans certificat"
+                message="Voulez-vous valider sans joindre de certificat ?"
+                type="warning"
+                confirmText="Valider quand même"
+                cancelText="Annuler"
+            />
         </div>
     );
 };

@@ -46,6 +46,7 @@ import {
 } from '../../types/voxelAnnotation';
 import { AnnotationService } from '../../services/annotationService';
 import { useAuth } from '../../hooks/useAuth';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 // ============================================================================
 // Types
@@ -280,6 +281,8 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
   const [editingReply, setEditingReply] = useState<AnnotationReply | undefined>();
   const [showActions, setShowActions] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
+  const [deleteReplyId, setDeleteReplyId] = useState<string | null>(null);
+  const [showDeleteAnnotationConfirm, setShowDeleteAnnotationConfirm] = useState(false);
 
   // Current user as author
   const author = useMemo<AnnotationAuthor | null>(() => {
@@ -338,10 +341,9 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
   // Handle delete reply
   const handleDeleteReply = useCallback(async (replyId: string) => {
-    if (!window.confirm('Supprimer cette réponse ?')) return;
-
     await AnnotationService.deleteReply(annotation.id, replyId);
     setReplies((prev) => prev.filter((r) => r.id !== replyId));
+    setDeleteReplyId(null);
   }, [annotation.id]);
 
   // Handle toggle pin
@@ -380,13 +382,12 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
   // Handle delete annotation
   const handleDeleteAnnotation = useCallback(async () => {
-    if (!window.confirm('Supprimer cette annotation et toutes ses réponses ?')) return;
-
     const success = await AnnotationService.deleteAnnotation(annotation.id);
     if (success) {
       onAnnotationDelete?.(annotation.id);
       onClose();
     }
+    setShowDeleteAnnotationConfirm(false);
   }, [annotation.id, onAnnotationDelete, onClose]);
 
   if (!isOpen) return null;
@@ -466,7 +467,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                       <button
                         onClick={() => {
                           setShowActions(false);
-                          handleDeleteAnnotation();
+                          setShowDeleteAnnotationConfirm(true);
                         }}
                         className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10"
                       >
@@ -626,7 +627,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                           reply={reply}
                           currentUserId={user?.uid}
                           onEdit={handleEditReply}
-                          onDelete={handleDeleteReply}
+                          onDelete={(id) => setDeleteReplyId(id)}
                         />
                       ))}
                     </div>
@@ -647,6 +648,30 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
             onCancelEdit={() => setEditingReply(undefined)}
           />
         )}
+
+        {/* Delete Reply Confirmation */}
+        <ConfirmModal
+          isOpen={deleteReplyId !== null}
+          onClose={() => setDeleteReplyId(null)}
+          onConfirm={() => deleteReplyId && handleDeleteReply(deleteReplyId)}
+          title="Supprimer la réponse"
+          message="Êtes-vous sûr de vouloir supprimer cette réponse ?"
+          type="danger"
+          confirmText="Supprimer"
+          cancelText="Annuler"
+        />
+
+        {/* Delete Annotation Confirmation */}
+        <ConfirmModal
+          isOpen={showDeleteAnnotationConfirm}
+          onClose={() => setShowDeleteAnnotationConfirm(false)}
+          onConfirm={handleDeleteAnnotation}
+          title="Supprimer l'annotation"
+          message="Êtes-vous sûr de vouloir supprimer cette annotation et toutes ses réponses ?"
+          type="danger"
+          confirmText="Supprimer"
+          cancelText="Annuler"
+        />
       </motion.div>
     </AnimatePresence>
   );

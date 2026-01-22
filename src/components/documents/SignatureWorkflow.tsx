@@ -73,6 +73,7 @@ import { Switch } from '../ui/Switch';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Tooltip } from '../ui/Tooltip';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import {
@@ -243,6 +244,9 @@ export function SignatureWorkflow({
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejecting, setRejecting] = useState(false);
+
+  // Cancel request confirmation
+  const [cancelRequestTarget, setCancelRequestTarget] = useState<SignatureRequest | null>(null);
 
   // DnD sensors
   const sensors = useSensors(
@@ -500,10 +504,6 @@ export function SignatureWorkflow({
   const handleCancelRequest = useCallback(async (request: SignatureRequest) => {
     if (!user) return;
 
-    if (!confirm('Êtes-vous sûr de vouloir annuler cette demande de signature?')) {
-      return;
-    }
-
     try {
       await SignatureService.cancelSignatureRequest(
         request.id,
@@ -515,6 +515,8 @@ export function SignatureWorkflow({
     } catch (error) {
       console.error('Failed to cancel request:', error);
       toast.error(error instanceof Error ? error.message : 'Échec de l\'annulation');
+    } finally {
+      setCancelRequestTarget(null);
     }
   }, [user, loadRequests]);
 
@@ -607,7 +609,7 @@ export function SignatureWorkflow({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleCancelRequest(request)}
+                            onClick={() => setCancelRequestTarget(request)}
                             className="text-red-500 hover:text-red-600"
                           >
                             <XCircle className="h-4 w-4" />
@@ -1032,6 +1034,18 @@ export function SignatureWorkflow({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Cancel Request Confirmation */}
+      <ConfirmModal
+        isOpen={cancelRequestTarget !== null}
+        onClose={() => setCancelRequestTarget(null)}
+        onConfirm={() => cancelRequestTarget && handleCancelRequest(cancelRequestTarget)}
+        title="Annuler la demande de signature"
+        message="Êtes-vous sûr de vouloir annuler cette demande de signature ?"
+        type="warning"
+        confirmText="Annuler la demande"
+        cancelText="Retour"
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Organization, PlanType } from '../../../types';
 import { AdminService } from '../../../services/adminService';
 import { toast } from '../../../lib/toast';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { ConfirmModal } from '../../../components/ui/ConfirmModal';
 
 interface TenantDetailModalProps {
     isOpen: boolean;
@@ -17,6 +18,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const [stats, setStats] = useState<Record<string, unknown> | null>(null);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [showToggleStatusConfirm, setShowToggleStatusConfirm] = useState(false);
 
     // Subscription Form State
     const [plan, setPlan] = useState<PlanType>('discovery');
@@ -53,7 +55,6 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
     const handleToggleStatus = async () => {
         if (!tenant) return;
         const newStatus = !tenant.isActive;
-        if (!window.confirm(`Are you sure you want to ${newStatus ? 'activate' : 'suspend'} this tenant?`)) return;
 
         setProcessing(true);
         try {
@@ -65,6 +66,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
             toast.error("Status update failed");
         } finally {
             setProcessing(false);
+            setShowToggleStatusConfirm(false);
         }
     };
 
@@ -202,7 +204,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                     </p>
                                                 </div>
                                                 <button
-                                                    onClick={handleToggleStatus}
+                                                    onClick={() => setShowToggleStatusConfirm(true)}
                                                     disabled={processing}
                                                     className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-colors"
                                                 >
@@ -274,6 +276,19 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                     </Transition.Child>
                 </div>
             </Dialog>
+
+            <ConfirmModal
+                isOpen={showToggleStatusConfirm}
+                onClose={() => setShowToggleStatusConfirm(false)}
+                onConfirm={handleToggleStatus}
+                title={isTenantActive ? 'Suspend Tenant' : 'Activate Tenant'}
+                message={`Are you sure you want to ${isTenantActive ? 'suspend' : 'activate'} this tenant? ${isTenantActive ? 'All users will lose access immediately.' : 'Users will regain access.'}`}
+                type="danger"
+                confirmText={isTenantActive ? 'Suspend' : 'Activate'}
+                cancelText="Cancel"
+                loading={processing}
+                closeOnConfirm={false}
+            />
         </Transition>
     );
 };

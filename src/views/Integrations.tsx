@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { IntegrationCard } from '../components/integrations/IntegrationCard';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Search, ShieldCheck, Cloud, Code, LayoutGrid, Key } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { toast } from '@/lib/toast';
@@ -33,6 +34,7 @@ export const Integrations: React.FC = () => {
     const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
     const [apiKey, setApiKey] = useState('');
     const [isSubmittingKey, setIsSubmittingKey] = useState(false);
+    const [disconnectTarget, setDisconnectTarget] = useState<IntegrationProvider | null>(null);
 
     const loadProviders = React.useCallback(async () => {
         if (!user?.organizationId) return;
@@ -112,7 +114,6 @@ export const Integrations: React.FC = () => {
     };
 
     const handleDisconnect = async (provider: IntegrationProvider) => {
-        if (!confirm(`Voulez-vous vraiment déconnecter ${provider.name} ?`)) return;
         if (!user?.organizationId) return;
 
         setConnectingId(provider.id);
@@ -128,6 +129,7 @@ export const Integrations: React.FC = () => {
             toast.error(`Erreur lors de la déconnexion`);
         } finally {
             setConnectingId(null);
+            setDisconnectTarget(null);
         }
     };
 
@@ -253,7 +255,7 @@ export const Integrations: React.FC = () => {
                                     key={provider.id}
                                     provider={provider}
                                     onConnect={handleConnect}
-                                    onDisconnect={handleDisconnect}
+                                    onDisconnect={(p) => setDisconnectTarget(p)}
                                     isConnecting={connectingId === provider.id}
                                 />
                             ))}
@@ -315,6 +317,17 @@ export const Integrations: React.FC = () => {
             ) : (
                 <ScannerJobs />
             )}
+
+            <ConfirmModal
+                isOpen={disconnectTarget !== null}
+                onClose={() => setDisconnectTarget(null)}
+                onConfirm={() => disconnectTarget && handleDisconnect(disconnectTarget)}
+                title="Déconnecter l'intégration"
+                message={`Voulez-vous vraiment déconnecter ${disconnectTarget?.name} ?`}
+                type="warning"
+                confirmText="Déconnecter"
+                cancelText="Annuler"
+            />
         </motion.div>
     );
 };

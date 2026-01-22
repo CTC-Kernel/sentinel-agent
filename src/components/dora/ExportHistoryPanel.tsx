@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { FileCode, FileSpreadsheet, FileText, Trash2, Clock, User, FileDown, Loader2 } from '../ui/Icons';
 import { DORAExportService, DORAExportRecord, ExportFormat } from '../../services/DORAExportService';
 import { useStore } from '../../store';
@@ -32,6 +33,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
     const [exports, setExports] = useState<DORAExportRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
     const locale = i18n.language === 'en' ? enUS : fr;
     const isAdmin = user?.role === 'admin' || user?.role === 'rssi';
@@ -56,8 +58,6 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
     }, [loadExports]);
 
     const handleDelete = useCallback(async (exportId: string) => {
-        if (!confirm(t('dora.export.confirmDelete'))) return;
-
         setDeletingId(exportId);
         try {
             await DORAExportService.deleteExportRecord(exportId);
@@ -68,6 +68,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
             toast.error(t('common.error'));
         } finally {
             setDeletingId(null);
+            setConfirmDeleteId(null);
         }
     }, [t]);
 
@@ -192,7 +193,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => exportRecord.id && handleDelete(exportRecord.id)}
+                                            onClick={() => exportRecord.id && setConfirmDeleteId(exportRecord.id)}
                                             disabled={isDeleting}
                                             className="text-slate-400 hover:text-red-500"
                                         >
@@ -209,6 +210,17 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
                     })}
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={confirmDeleteId !== null}
+                onClose={() => setConfirmDeleteId(null)}
+                onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+                title={t('dora.export.deleteTitle', 'Supprimer l\'export')}
+                message={t('dora.export.confirmDelete', 'Êtes-vous sûr de vouloir supprimer cet export ?')}
+                type="danger"
+                confirmText={t('common.delete', 'Supprimer')}
+                cancelText={t('common.cancel', 'Annuler')}
+            />
         </div>
     );
 };

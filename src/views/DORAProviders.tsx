@@ -11,6 +11,7 @@ import { Button } from '../components/ui/button';
 import { SearchInput } from '../components/ui/SearchInput';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Drawer } from '../components/ui/Drawer';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Plus, Upload, Download, Globe, AlertTriangle, Shield, FileText, ArrowLeft } from '../components/ui/Icons';
 
 import { ICTProviderList } from '../components/dora/ICTProviderList';
@@ -59,6 +60,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
     const [isImportOpen, setIsImportOpen] = useState(false);
     const [isExportOpen, setIsExportOpen] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [deleteProviderId, setDeleteProviderId] = useState<string | null>(null);
 
     const handleCreate = useCallback(() => {
         setSelectedProvider(null);
@@ -77,13 +79,14 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
     }, []);
 
     const handleDelete = useCallback(async (id: string) => {
-        if (!window.confirm(t('common.confirmDelete'))) return;
         try {
             await deleteProvider(id);
             toast.success(t('dora.providers.toastDeleted'));
         } catch (error) {
             ErrorLogger.error(error, 'DORAProviders.handleDelete');
             toast.error(t('common.error'));
+        } finally {
+            setDeleteProviderId(null);
         }
     }, [deleteProvider, t]);
 
@@ -240,7 +243,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                         loading={loading}
                         onSelect={handleSelect}
                         onEdit={handleEdit}
-                        onDelete={handleDelete}
+                        onDelete={setDeleteProviderId}
                     />
                 </div>
             </div>
@@ -289,6 +292,17 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
             >
                 <ExportHistoryPanel onClose={() => setIsHistoryOpen(false)} />
             </Drawer>
+
+            <ConfirmModal
+                isOpen={deleteProviderId !== null}
+                onClose={() => setDeleteProviderId(null)}
+                onConfirm={() => deleteProviderId && handleDelete(deleteProviderId)}
+                title={t('dora.providers.deleteTitle', 'Supprimer le fournisseur')}
+                message={t('dora.providers.confirmDelete', 'Êtes-vous sûr de vouloir supprimer ce fournisseur ICT ?')}
+                type="danger"
+                confirmText={t('common.delete', 'Supprimer')}
+                cancelText={t('common.cancel', 'Annuler')}
+            />
         </div>
     );
 };

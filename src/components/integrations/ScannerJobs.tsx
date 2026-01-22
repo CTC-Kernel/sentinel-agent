@@ -6,6 +6,7 @@ import { Play, Clock, Calendar, AlertCircle, CheckCircle, XCircle, Trash2, Plus,
 import { toast } from '@/lib/toast';
 import { useStore } from '../../store';
 import { Modal } from '../ui/Modal';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 
@@ -20,6 +21,7 @@ export const ScannerJobs: React.FC = () => {
         frequency: 'once'
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
 
     const loadJobs = React.useCallback(async () => {
         try {
@@ -58,7 +60,6 @@ export const ScannerJobs: React.FC = () => {
     };
 
     const handleDeleteJob = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) return;
         try {
             await integrationService.deleteScannerJob(id, user?.organizationId, demoMode);
             toast.success('Tâche supprimée');
@@ -66,6 +67,8 @@ export const ScannerJobs: React.FC = () => {
             setJobs(prev => prev.filter(j => j.id !== id));
         } catch {
             toast.error('Erreur lors de la suppression');
+        } finally {
+            setDeleteJobId(null);
         }
     };
 
@@ -152,7 +155,7 @@ export const ScannerJobs: React.FC = () => {
 
                             <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                                 <button
-                                    onClick={() => handleDeleteJob(job.id)}
+                                    onClick={() => setDeleteJobId(job.id)}
                                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                     title="Supprimer"
                                 >
@@ -218,6 +221,17 @@ export const ScannerJobs: React.FC = () => {
                     </div>
                 </div>
             </Modal>
+
+            <ConfirmModal
+                isOpen={deleteJobId !== null}
+                onClose={() => setDeleteJobId(null)}
+                onConfirm={() => deleteJobId && handleDeleteJob(deleteJobId)}
+                title="Supprimer la tâche de scan"
+                message="Êtes-vous sûr de vouloir supprimer cette tâche ?"
+                type="danger"
+                confirmText="Supprimer"
+                cancelText="Annuler"
+            />
         </div>
     );
 };

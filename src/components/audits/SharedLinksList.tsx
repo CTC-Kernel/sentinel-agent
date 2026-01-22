@@ -7,6 +7,7 @@ import { toast } from '@/lib/toast';
 import { ErrorLogger } from '../../services/errorLogger';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 interface SharedLink {
     id: string; // The token itself is the ID
@@ -26,6 +27,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
     const [links, setLinks] = useState<SharedLink[]>([]);
     const [loading, setLoading] = useState(true);
     const [revokingId, setRevokingId] = useState<string | null>(null);
+    const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchLinks = async () => {
@@ -53,9 +55,8 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
     }, [auditId]);
 
     const handleRevoke = async (token: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir révoquer cet accès ? Le lien ne fonctionnera plus immédiatement.')) return;
-
         setRevokingId(token);
+        setConfirmRevokeId(null);
         try {
             const revokeFn = httpsCallable(functions, 'revokeAuditShare');
             await revokeFn({ token });
@@ -102,7 +103,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
 
                         {isActive && (
                             <button
-                                onClick={() => handleRevoke(link.id)}
+                                onClick={() => setConfirmRevokeId(link.id)}
                                 disabled={!!revokingId}
                                 className="p-2 text-slate-400 hover:text-red-600 transition-colors"
                                 title="Révoquer l'accès"
@@ -113,6 +114,17 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
                     </div>
                 );
             })}
+
+            <ConfirmModal
+                isOpen={confirmRevokeId !== null}
+                onClose={() => setConfirmRevokeId(null)}
+                onConfirm={() => confirmRevokeId && handleRevoke(confirmRevokeId)}
+                title="Révoquer l'accès"
+                message="Êtes-vous sûr de vouloir révoquer cet accès ? Le lien ne fonctionnera plus immédiatement."
+                type="warning"
+                confirmText="Révoquer"
+                cancelText="Annuler"
+            />
         </div>
     );
 };
