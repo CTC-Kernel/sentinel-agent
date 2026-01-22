@@ -1,5 +1,7 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+status: complete
+completedAt: 2026-01-22
 inputDocuments:
   - product-brief-voxel-module-2026-01-22.md
   - research/technical-voxel-3d-visualization-grc-research-2026-01-22.md
@@ -658,4 +660,213 @@ const VOXEL_FLAGS = {
 | 60 FPS avec 10K noeuds | Target | Optimiser avant V2 |
 | Adoption > 40% users | Obligatoire | Revoir onboarding |
 | NPS > 30 | Target | Collecter feedback |
+
+## Functional Requirements
+
+### 3D Canvas & Rendering
+
+- **FR1:** Users can view a 3D canvas displaying their organization's GRC data
+- **FR2:** Users can see the canvas render at minimum 30 FPS with up to 1,000 nodes (MVP)
+- **FR3:** Users can see a loading indicator while the 3D scene initializes
+- **FR4:** Users can see a fallback message if WebGL is not supported by their browser
+
+### Node Visualization
+
+- **FR5:** Users can see Assets represented as 3D nodes in the canvas
+- **FR6:** Users can see node size reflect asset criticality (larger = more critical)
+- **FR7:** Users can see Risks represented as distinct 3D nodes
+- **FR8:** Users can see risk node color reflect severity (red = critical, orange = high, yellow = medium, green = low)
+- **FR9:** Users can see Controls represented as distinct 3D nodes
+- **FR10:** Users can distinguish node types visually (different shapes or visual indicators)
+
+### Edge & Connection Visualization
+
+- **FR11:** Users can see connections between related nodes as visual arcs/edges
+- **FR12:** Users can see which assets are linked to which risks
+- **FR13:** Users can see which controls cover which assets
+- **FR14:** Users can see edge thickness or style indicate relationship strength/type
+
+### Navigation & Interaction
+
+- **FR15:** Users can rotate the 3D view by dragging (orbit controls)
+- **FR16:** Users can zoom in and out using scroll or pinch gestures
+- **FR17:** Users can pan the view to explore different areas
+- **FR18:** Users can click on a node to select it
+- **FR19:** Users can see a tooltip with summary info when hovering over a node
+- **FR20:** Users can open a detail panel showing full information when clicking a node
+- **FR21:** Users can reset the view to the initial camera position
+
+### Filtering & Search
+
+- **FR22:** Users can filter visible nodes by entity type (Assets, Risks, Controls)
+- **FR23:** Users can filter visible nodes by framework (ISO 27001, NIS2, DORA)
+- **FR24:** Users can filter visible nodes by risk severity level
+- **FR25:** Users can toggle filter combinations to customize their view
+- **FR26:** Users can see visual feedback when filters are applied (dimmed/hidden nodes)
+
+### Data Integration
+
+- **FR27:** Users can see real-time data from Firestore reflected in the visualization
+- **FR28:** Users can see node data update when underlying GRC data changes
+- **FR29:** Users can see only data belonging to their organization (multi-tenant isolation)
+- **FR30:** System aggregates data from assets, risks, controls, and frameworks collections
+
+### Detail Panel
+
+- **FR31:** Users can view complete asset details in the detail panel (name, description, owner, criticality)
+- **FR32:** Users can view complete risk details in the detail panel (threat, likelihood, impact, status)
+- **FR33:** Users can view complete control details in the detail panel (code, status, coverage)
+- **FR34:** Users can see linked entities from the detail panel (related assets, risks, controls)
+- **FR35:** Users can navigate to the full entity page from the detail panel
+
+### Accessibility
+
+- **FR36:** Users with color blindness can distinguish risk levels via shapes in addition to colors
+- **FR37:** Users can see sufficient contrast (4.5:1 ratio) on all text and indicators
+- **FR38:** Users can see text labels/tooltips for all visual indicators
+- **FR39:** System respects user's reduced motion preference when set
+
+### Security & RBAC
+
+- **FR40:** Users can only see nodes they have permission to view based on their role
+- **FR41:** Admins can see all nodes across all entity types
+- **FR42:** Analysts can see only nodes assigned to them
+- **FR43:** System does not cache sensitive data in browser storage
+- **FR44:** System logs user access to the Voxel module for audit purposes
+
+### MVP+ Features (Post-MVP)
+
+- **FR45:** Users can experience smooth zoom transition between macro and micro views (Zoom Sémantique)
+- **FR46:** Users can see critical risks pulse/glow to draw attention (Alertes Visuelles)
+- **FR47:** Users can activate guided navigation to critical points (Mode Guidé)
+- **FR48:** Users can see nodes automatically clustered by domain/department (Clustering)
+- **FR49:** Users can see a minimap for orientation in large graphs (Minimap)
+- **FR50:** Users can overlay compliance framework coverage (Framework Overlay)
+- **FR51:** Users can export the current view as an image (Export)
+- **FR52:** Direction users can see a simplified executive view (Mode Direction)
+
+## Non-Functional Requirements
+
+### NFR-P: Performance
+
+**Rendu 3D :**
+
+| ID | Requirement | Target | Minimum Acceptable |
+|----|-------------|--------|-------------------|
+| NFR-P1 | Frame rate avec 1K noeuds | 60 FPS | 30 FPS |
+| NFR-P2 | Frame rate avec 10K noeuds (MVP+) | 60 FPS | 30 FPS |
+| NFR-P3 | Frame rate avec 50K+ noeuds (V2) | 30 FPS | 15 FPS |
+| NFR-P4 | Temps de chargement initial canvas | < 2s | < 5s |
+| NFR-P5 | Temps de réponse interaction (clic, hover) | < 100ms | < 200ms |
+| NFR-P6 | Temps de re-layout après filtre | < 500ms | < 1s |
+| NFR-P7 | Mémoire GPU utilisée (1K noeuds) | < 256 MB | < 512 MB |
+
+**Dégradation gracieuse :**
+
+| ID | Condition | Comportement |
+|----|-----------|--------------|
+| NFR-P8 | GPU intégré détecté | Qualité réduite automatiquement |
+| NFR-P9 | >5000 noeuds | LOD activé automatiquement |
+| NFR-P10 | WebGL indisponible | Fallback vers message + lien dashboard 2D |
+| NFR-P11 | Mobile/Tablet | Mode 2D simplifié |
+
+### NFR-SC: Scalability
+
+| ID | Requirement | Specification |
+|----|-------------|---------------|
+| NFR-SC1 | Limite noeuds MVP Core | 1,000 noeuds simultanés |
+| NFR-SC2 | Limite noeuds MVP+ | 10,000 noeuds simultanés |
+| NFR-SC3 | Limite noeuds V2 | 50,000+ noeuds avec LOD |
+| NFR-SC4 | Croissance données | Performance stable avec +50% data/trimestre |
+| NFR-SC5 | Concurrent users par tenant | Pas de limite (rendu côté client) |
+| NFR-SC6 | Subscriptions Firestore | Max 100 listeners actifs par session |
+
+**Quotas par plan :**
+
+| Plan | Max Noeuds | Max Connexions |
+|------|-----------|----------------|
+| Basic | 1,000 | 5,000 |
+| Pro | 10,000 | 50,000 |
+| Enterprise | 50,000+ | Illimité |
+
+### NFR-SE: Security
+
+| ID | Requirement | Specification |
+|----|-------------|---------------|
+| NFR-SE1 | Filtrage RBAC | Noeuds filtrés côté client selon permissions user |
+| NFR-SE2 | Isolation multi-tenant | Toutes queries filtrées par organizationId |
+| NFR-SE3 | Pas de cache client | Données 3D en mémoire uniquement, pas de localStorage/IndexedDB |
+| NFR-SE4 | Session timeout | Canvas vidé après 30 min d'inactivité |
+| NFR-SE5 | Audit trail | Accès module Voxel loggé (userId, timestamp, action) |
+| NFR-SE6 | Export contrôlé | Screenshots watermarkés (user + date) si activé |
+| NFR-SE7 | Pas de données sensibles dans URL | Aucun ID/filtre en query params |
+
+**Matrice RBAC Voxel :**
+
+| Rôle | Voir Assets | Voir Risques | Voir Contrôles | Export |
+|------|-------------|--------------|----------------|--------|
+| Admin | ✅ Tous | ✅ Tous | ✅ Tous | ✅ |
+| RSSI | ✅ Tous | ✅ Tous | ✅ Tous | ✅ |
+| Analyst | ⚠️ Assignés | ⚠️ Assignés | ✅ Lecture | ❌ |
+| Auditor | ✅ Lecture | ✅ Lecture | ✅ Lecture | ⚠️ Limité |
+| Executive | ⚠️ Agrégés | ⚠️ Agrégés | ❌ | ❌ |
+
+### NFR-A: Accessibility
+
+| ID | Requirement | Specification | WCAG Criteria |
+|----|-------------|---------------|---------------|
+| NFR-A1 | Palette daltonisme-safe | Formes distinctives + couleurs | 1.4.1 Use of Color |
+| NFR-A2 | Contraste texte | Ratio minimum 4.5:1 | 1.4.3 Contrast |
+| NFR-A3 | Navigation clavier | Tab, Enter, Escape, Arrows | 2.1.1 Keyboard |
+| NFR-A4 | Respect prefers-reduced-motion | Animations désactivées si préféré | 2.3.3 Animation |
+| NFR-A5 | Labels textuels | Tooltips pour tous indicateurs visuels | 1.1.1 Non-text Content |
+| NFR-A6 | Mode haut contraste | Alternative pour environnements difficiles (P2) | 1.4.6 Contrast Enhanced |
+
+**Palette daltonisme-safe :**
+
+| Niveau | Couleur | Code | Forme Alternative |
+|--------|---------|------|-------------------|
+| Critique | Rouge | #E53E3E | Triangle + hachuré |
+| Élevé | Orange | #DD6B20 | Diamant |
+| Moyen | Jaune | #D69E2E | Cercle |
+| Faible | Bleu-vert | #38B2AC | Carré |
+
+### NFR-R: Reliability
+
+| ID | Requirement | Target | Minimum |
+|----|-------------|--------|---------|
+| NFR-R1 | Disponibilité module Voxel | 99.9% | 99.5% |
+| NFR-R2 | MTTR (Mean Time To Recovery) | < 15 min | < 1h |
+| NFR-R3 | Erreurs silencieuses (crash canvas) | 0% | < 0.1% |
+| NFR-R4 | Récupération gracieuse | Re-init canvas sans reload page | - |
+| NFR-R5 | Données corrompues affichées | 0% | 0% |
+
+**Gestion des erreurs :**
+
+| Condition | Comportement |
+|-----------|--------------|
+| Firestore timeout | Afficher dernier état + indicateur "offline" |
+| Données invalides | Ignorer noeud + log warning |
+| Crash WebGL | Message user + bouton retry |
+| Memory overflow | Désactiver effets + warning |
+
+### NFR-I: Integration
+
+| ID | Requirement | Specification |
+|----|-------------|---------------|
+| NFR-I1 | Latence Firestore → Canvas | < 500ms pour update visible |
+| NFR-I2 | Consistance données | Real-time sync, pas de cache stale |
+| NFR-I3 | Compatibilité navigateurs | Chrome 90+, Firefox 88+, Edge 90+, Safari 14+ |
+| NFR-I4 | Rétrocompatibilité | Module indépendant, pas d'impact sur autres modules |
+| NFR-I5 | Feature flags | Kill switch global + flags granulaires par feature |
+
+### NFR-M: Maintainability
+
+| ID | Requirement | Specification |
+|----|-------------|---------------|
+| NFR-M1 | Test coverage | > 70% sur code Voxel |
+| NFR-M2 | Documentation composants | JSDoc sur tous les composants R3F |
+| NFR-M3 | Performance monitoring | Métriques FPS, load time trackées |
+| NFR-M4 | Error tracking | Erreurs WebGL capturées et reportées |
+| NFR-M5 | Bundle size | < 500 KB (gzipped) pour module Voxel |
 
