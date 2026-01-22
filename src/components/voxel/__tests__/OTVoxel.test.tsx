@@ -15,7 +15,7 @@ import type { VoxelNode, VoxelEdge } from '../../../types/voxel';
 // Import utilities and hooks
 import { SEGMENT_COLORS, CRITICALITY_SIZES, CRITICALITY_GLOW } from '../OTNodeMesh';
 import { calculateSegmentZones, applySegmentLayout } from '../SegmentZones';
-import { getConnectionType, isCrossSegmentConnection } from '../ITOTEdge';
+import { getConnectionType, isCrossSegmentConnection } from '../voxelConstants';
 import { useSegmentFilter } from '../SegmentFilter';
 
 // ============================================================================
