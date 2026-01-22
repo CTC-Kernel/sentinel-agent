@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
 inputDocuments:
   - product-brief-voxel-module-2026-01-22.md
   - research/technical-voxel-3d-visualization-grc-research-2026-01-22.md
@@ -337,4 +337,325 @@ Le module Voxel opère dans l'écosystème GRC de Sentinel et doit respecter des
 | Données EU | Rendu côté client, pas de transfer vers serveurs externes |
 | Pas de CDN tiers pour assets 3D | Bundler les modèles dans l'app |
 | RGPD | Pas de tracking analytics dans le canvas 3D |
+
+## Innovation & Novel Patterns
+
+### Detected Innovation Areas
+
+**Innovation Principale : Premier Digital Twin 3D pour la GRC**
+
+Voxel représente une rupture dans le marché GRC :
+
+| Dimension | État du Marché | Innovation Voxel |
+|-----------|----------------|------------------|
+| **Visualisation** | Dashboards 2D, graphiques standards | Canvas 3D immersif navigable |
+| **Interaction** | Clic sur tableaux, filtres dropdown | Navigation spatiale style jeu vidéo |
+| **Découverte** | Recherche manuelle, requêtes | Révélation visuelle des patterns |
+| **Compréhension** | Lecture de rapports | "Voir" instantanément |
+
+**Innovations Techniques :**
+
+| Innovation | Description | Différenciation |
+|------------|-------------|-----------------|
+| **Force-Directed GRC** | Layout automatique des graphes de risques | Aucun concurrent |
+| **Zoom Sémantique** | Transition fluide macro ↔ micro | Inspiré gaming (Stellaris) |
+| **Alertes 3D** | Pulsation, glow, particules pour risques | UX enterprise + gaming |
+| **RBAC 3D** | Filtrage des noeuds selon permissions | Sécurité native |
+
+### Market Context & Competitive Landscape
+
+**Analyse Concurrentielle (Source: Research Voxel 2026-01-22)**
+
+| Plateforme | Visualisation | Limite |
+|------------|---------------|--------|
+| ServiceNow GRC | Dashboards 2D | Pas de vue spatiale |
+| SAI360 | Heatmaps, charts | Vue macro uniquement |
+| ZenGRC | Dashboards AI | 2D traditionnel |
+| Riskonnect | Charts personnalisables | Pas de navigation 3D |
+| **Voxel** | **Canvas 3D immersif** | **Océan bleu** |
+
+**Conclusion :** Voxel est positionné sur un **océan bleu** — aucun concurrent direct sur la visualisation 3D GRC.
+
+### Validation Approach
+
+| Hypothèse à Valider | Méthode | Critère de Succès |
+|---------------------|---------|-------------------|
+| "La 3D apporte plus de valeur que la 2D" | A/B test temps d'identification | -50% temps avec 3D |
+| "Les utilisateurs adoptent la navigation 3D" | Analytics sessions Voxel | >40% users actifs M3 |
+| "Le Wow effect convertit" | Tracking démos | +30% conversion |
+| "Performance acceptable" | Benchmarks 1K/10K noeuds | 30+ FPS |
+
+### Risk Mitigation
+
+| Risque Innovation | Probabilité | Mitigation |
+|-------------------|-------------|------------|
+| **Adoption faible** (courbe d'apprentissage 3D) | Moyenne | Mode guidé + tutoriel onboarding |
+| **Performance insuffisante** | Moyenne | InstancedMesh, LOD, tests charge |
+| **Rejet "gadget"** | Faible | Focus valeur métier, pas cosmétique |
+| **Complexité technique** | Moyenne | MVP Core minimal, itérations |
+
+**Fallback Strategy :**
+Si la 3D ne convainc pas après MVP Core, les composants (données, filtres, alertes) peuvent être réutilisés dans une vue 2D améliorée. L'investissement n'est pas perdu.
+
+## SaaS B2B Module - Technical Requirements
+
+### Integration Architecture
+
+**Positionnement dans Sentinel GRC :**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SENTINEL GRC PLATFORM                     │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────────────┐ │
+│  │ Assets  │  │ Risks   │  │Controls │  │   Compliance    │ │
+│  │ Module  │  │ Module  │  │ Module  │  │     Module      │ │
+│  └────┬────┘  └────┬────┘  └────┬────┘  └────────┬────────┘ │
+│       │            │            │                 │          │
+│       └────────────┴─────┬──────┴─────────────────┘          │
+│                          │                                   │
+│                    ┌─────▼─────┐                             │
+│                    │  VOXEL    │  ◄── Module de visualisation│
+│                    │  3D View  │      Consomme les données   │
+│                    └───────────┘      Ne modifie pas         │
+├─────────────────────────────────────────────────────────────┤
+│                      FIRESTORE                               │
+│              (Source de vérité unique)                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Multi-Tenancy Model
+
+**Héritage du modèle Sentinel :**
+
+| Aspect | Comportement Voxel |
+|--------|-------------------|
+| **Isolation données** | `organizationId` filter sur toutes les queries |
+| **Permissions** | RBAC Sentinel appliqué + filtrage noeuds visibles |
+| **Configuration** | Paramètres Voxel par tenant (couleurs, layouts) |
+| **Quotas** | Limite noeuds selon plan (Basic: 1K, Pro: 10K, Enterprise: 50K+) |
+
+### RBAC Integration
+
+**Extension du modèle RBAC existant :**
+
+| Permission Sentinel | Mapping Voxel |
+|--------------------|---------------|
+| `assets.read` | Voir noeuds Assets |
+| `risks.read` | Voir noeuds Risques |
+| `controls.read` | Voir noeuds Contrôles |
+| `compliance.read` | Voir overlays Framework |
+| `*.write` | Non applicable (Voxel = lecture seule) |
+
+**Filtrage dynamique :**
+```typescript
+// Les noeuds sont filtrés côté client selon permissions
+const visibleNodes = allNodes.filter(node =>
+  hasPermission(user, `${node.type}.read`)
+);
+```
+
+### Data Flow Architecture
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  Firestore   │────▶│  React Query │────▶│  Zustand     │
+│  Real-time   │     │  Cache       │     │  3D State    │
+└──────────────┘     └──────────────┘     └──────┬───────┘
+                                                  │
+                                                  ▼
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  R3F Canvas  │◀────│  Graph       │◀────│  Layout      │
+│  Rendering   │     │  Builder     │     │  Engine      │
+└──────────────┘     └──────────────┘     └──────────────┘
+```
+
+**Collections Firestore consommées :**
+
+| Collection | Usage Voxel | Subscription |
+|------------|-------------|--------------|
+| `assets` | Noeuds principaux | Real-time |
+| `risks` | Noeuds risques | Real-time |
+| `controls` | Noeuds contrôles | Real-time |
+| `frameworks` | Overlays conformité | On-demand |
+| `asset_links` | Arcs connexions | Real-time |
+
+### React Three Fiber Stack
+
+**Dépendances à ajouter :**
+
+```json
+{
+  "@react-three/fiber": "^8.x",
+  "@react-three/drei": "^9.x",
+  "@react-three/postprocessing": "^2.x",
+  "three": "^0.160.x",
+  "zustand": "^4.x"
+}
+```
+
+**Structure composants :**
+
+```
+src/components/voxel/
+├── VoxelCanvas.tsx        # Canvas R3F principal
+├── VoxelScene.tsx         # Scene 3D + lighting
+├── VoxelControls.tsx      # OrbitControls wrapper
+├── nodes/
+│   ├── AssetNode.tsx      # Géométrie asset
+│   ├── RiskNode.tsx       # Géométrie risque
+│   └── ControlNode.tsx    # Géométrie contrôle
+├── edges/
+│   └── ConnectionEdge.tsx # Ligne entre noeuds
+├── effects/
+│   └── RiskPulse.tsx      # Animation pulsation
+└── hooks/
+    ├── useVoxelData.ts    # Agrégation Firestore
+    └── useGraphLayout.ts  # Force-directed calc
+```
+
+### Performance Considerations
+
+**Optimisations prévues :**
+
+| Phase | Technique | Impact |
+|-------|-----------|--------|
+| MVP | Mesh standard | 1K noeuds @ 60fps |
+| MVP+ | InstancedMesh | 10K noeuds @ 60fps |
+| V2 | LOD + Culling | 50K+ noeuds @ 30fps |
+| V2 | Web Workers | Layout non-bloquant |
+
+### Feature Flags
+
+**Rollout progressif :**
+
+```typescript
+const VOXEL_FLAGS = {
+  enabled: true,           // Kill switch global
+  maxNodes: 1000,          // Limite MVP
+  enableClustering: false, // MVP+
+  enableAlerts: false,     // MVP+
+  enableExport: false,     // V2
+};
+```
+
+## Project Scoping & Phased Development
+
+### MVP Strategy & Philosophy
+
+**MVP Approach :** Experience MVP
+> Démontrer le "Wow effect" de la visualisation 3D avec une valeur métier immédiate. L'objectif n'est pas la complétude fonctionnelle, mais la validation de l'hypothèse : "La 3D révèle ce que la 2D cache."
+
+**Ressources estimées :**
+
+| Rôle | MVP Core | MVP+ |
+|------|----------|------|
+| Dev Frontend (R3F) | 1 senior | 1 senior |
+| Dev Frontend (UI) | 0.5 | 0.5 |
+| UX Designer | 0.25 | 0.5 |
+| QA | 0.25 | 0.5 |
+
+### MVP Core Feature Set (Phase 1)
+
+**Durée estimée :** 4-6 semaines
+
+**User Journeys supportés :**
+- ✅ Sophie (RSSI) — Vue macro, identification visuelle
+- ✅ Lucas (SOC) — Sélection noeud, traçage connexions (basique)
+- ⚠️ Amélie (Risk) — Partiel (pas de clustering)
+- ⚠️ Marc (Auditeur) — Partiel (pas d'overlay framework)
+- ❌ Catherine (Direction) — Mode simplifié en MVP+
+
+**Must-Have Capabilities :**
+
+| Feature | Justification | Effort |
+|---------|--------------|--------|
+| Canvas R3F | Fondation technique | M |
+| Noeuds Assets/Risques/Contrôles | Core value | M |
+| Arcs Connexions | Visualiser interdépendances | M |
+| Navigation Orbit | Interaction de base | S |
+| Filtres par type | Gérer complexité | S |
+| Tooltip + Click detail | Exploration données | M |
+| Palette couleurs risque | Sémantique visuelle | XS |
+
+**Explicitement hors MVP Core :**
+- ❌ Zoom sémantique (macro ↔ micro fluide)
+- ❌ Alertes visuelles (pulsation, glow)
+- ❌ Clustering automatique
+- ❌ Minimap
+- ❌ Overlay frameworks
+- ❌ Export/Screenshots
+
+### Post-MVP Features
+
+**Phase 2 — MVP+ (6-8 semaines après MVP Core) :**
+
+| Feature | Valeur ajoutée | Priorité |
+|---------|----------------|----------|
+| Zoom Sémantique | Différenciateur clé, navigation intuitive | P1 |
+| Alertes Visuelles | Détection anomalies immédiate | P1 |
+| Mode Guidé | Onboarding, accessibilité | P1 |
+| Clustering Auto | Gestion complexité 1K+ noeuds | P1 |
+| InstancedMesh | Performance 10K noeuds | P1 |
+| Overlay Framework | Journey Marc (Auditeur) complet | P1 |
+| Mode Direction | Journey Catherine complet | P1 |
+
+**Phase 3 — V2 (Q3-Q4 2026) :**
+
+| Feature | Valeur ajoutée |
+|---------|----------------|
+| Détection Anomalies IA | Prédictif vs réactif |
+| Simulation What-If | Aide à la décision |
+| Export PNG/PDF | Reporting, audit |
+| Mode Présentation | COMEX, board meetings |
+
+**Phase 4 — V3 (2027) :**
+
+| Feature | Valeur ajoutée |
+|---------|----------------|
+| VR/AR | Immersion totale |
+| Multi-user temps réel | Collaboration |
+| API Voxel publique | Écosystème, intégrations |
+
+### Risk Mitigation Strategy
+
+**Risques Techniques :**
+
+| Risque | Probabilité | Mitigation |
+|--------|-------------|------------|
+| Performance R3F insuffisante | Moyenne | Tests charge dès semaine 2, InstancedMesh prêt en backup |
+| Complexité intégration Firestore | Faible | Architecture data flow validée, React Query existant |
+| Bugs WebGL cross-browser | Moyenne | Tests Safari/Firefox early, fallback 2D prêt |
+
+**Risques Marché :**
+
+| Risque | Probabilité | Mitigation |
+|--------|-------------|------------|
+| Adoption faible ("gadget") | Moyenne | Focus valeur métier dans démos, métriques dès MVP |
+| Courbe d'apprentissage 3D | Moyenne | Mode guidé en MVP+, tutoriel onboarding |
+
+**Risques Ressources :**
+
+| Risque | Probabilité | Mitigation |
+|--------|-------------|------------|
+| Retard planning | Moyenne | Buffer 20% intégré, scope MVP négociable |
+| Perte dev clé | Faible | Documentation code dès le départ |
+
+### Go/No-Go Checkpoints
+
+**Checkpoint 1 — Fin MVP Core :**
+
+| Critère | Seuil | Action si échec |
+|---------|-------|-----------------|
+| 30+ FPS avec 1K noeuds | Obligatoire | Itérer perf avant MVP+ |
+| Feedback "utile" > 70% | Obligatoire | Pivoter UX |
+| 0 bug bloquant | Obligatoire | Fix avant release |
+
+**Checkpoint 2 — Fin MVP+ :**
+
+| Critère | Seuil | Action si échec |
+|---------|-------|-----------------|
+| 60 FPS avec 10K noeuds | Target | Optimiser avant V2 |
+| Adoption > 40% users | Obligatoire | Revoir onboarding |
+| NPS > 30 | Target | Collecter feedback |
 
