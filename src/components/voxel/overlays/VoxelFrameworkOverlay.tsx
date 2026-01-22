@@ -166,7 +166,8 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
       style={{
         background: isSelected ? `${framework.color}15` : 'rgba(30, 41, 59, 0.5)',
         borderColor: isSelected ? framework.color : 'transparent',
-        ringColor: framework.color,
+        // Ring color applied via CSS variable for Tailwind ring-2
+        ['--tw-ring-color' as string]: framework.color,
       }}
       onClick={onSelect}
       onMouseEnter={() => onHover(true)}
@@ -414,7 +415,7 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
                     selectedFrameworkId === framework.id
                       ? `${framework.color}20`
                       : 'transparent',
-                  ringColor: framework.color,
+                  ['--tw-ring-color' as string]: framework.color,
                 }}
                 title={framework.name}
                 aria-label={`Select ${framework.name}`}

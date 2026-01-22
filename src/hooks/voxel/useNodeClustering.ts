@@ -187,9 +187,10 @@ function generateClusterLabel(nodes: VoxelNode[], dominantType: VoxelNode['type'
     risk: 'Risks',
     asset: 'Assets',
     control: 'Controls',
-    threat: 'Threats',
-    vulnerability: 'Vulnerabilities',
-    compliance: 'Compliance Items',
+    incident: 'Incidents',
+    supplier: 'Suppliers',
+    project: 'Projects',
+    audit: 'Audits',
   };
   return `${nodes.length} ${typeLabels[dominantType] || 'Items'}`;
 }
