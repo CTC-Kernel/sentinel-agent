@@ -19,7 +19,10 @@ const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-th
 exports.createOrganization = onCall({
     memory: '512MiB',
     timeoutSeconds: 120,
-    region: 'europe-west1'
+    region: 'europe-west1',
+    // Allow authenticated requests even if App Check token is missing/invalid
+    // This prevents "request was not authenticated" errors
+    enforceAppCheck: false
 }, async (request) => {
     const { getWelcomeEmailHtml } = require('../services/emailTemplates');
 
