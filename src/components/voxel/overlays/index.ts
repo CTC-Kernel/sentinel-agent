@@ -10,3 +10,17 @@ export { VoxelFilterPanel, type VoxelFilterPanelProps } from './VoxelFilterPanel
 export { VoxelToolbar, type VoxelToolbarProps } from './VoxelToolbar';
 export { VoxelLegend, type VoxelLegendProps } from './VoxelLegend';
 export { VoxelMinimap, type VoxelMinimapProps } from './VoxelMinimap';
+export { VoxelGuidedTour, type VoxelGuidedTourProps, type TourStop } from './VoxelGuidedTour';
+export {
+  VoxelFrameworkOverlay,
+  type VoxelFrameworkOverlayProps,
+  type ComplianceFramework,
+  type FrameworkMapping,
+} from './VoxelFrameworkOverlay';
+export {
+  VoxelExecutiveView,
+  type VoxelExecutiveViewProps,
+  type ExecutiveKPI,
+  type CriticalItem,
+  type TrendDirection,
+} from './VoxelExecutiveView';

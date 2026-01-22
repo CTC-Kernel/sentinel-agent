@@ -119,6 +119,15 @@ export type {
   UseZoomSemanticReturn,
 } from './useZoomSemantic';
 
+// VOX-9.4: Node Clustering
+export { useNodeClustering, clusterNodes } from './useNodeClustering';
+export type {
+  ClusterConfig,
+  NodeCluster,
+  ClusteringResult,
+  UseNodeClusteringReturn,
+} from './useNodeClustering';
+
 // Re-export store hooks for convenience
 export {
   useVoxelStore,

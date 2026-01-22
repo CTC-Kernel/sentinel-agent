@@ -13,7 +13,7 @@
  * @see FR45: Users can experience smooth zoom transition between macro and micro views
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { Vector3 } from 'three';
 
