@@ -243,7 +243,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                         loading={loading}
                         onSelect={handleSelect}
                         onEdit={handleEdit}
-                        onDelete={setDeleteProviderId}
+                        onDelete={async (id) => setDeleteProviderId(id)}
                     />
                 </div>
             </div>

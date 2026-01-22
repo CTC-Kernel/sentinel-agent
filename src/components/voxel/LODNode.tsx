@@ -7,7 +7,7 @@
  * - Low detail: billboard/sprite at far distance
  */
 
-import React, { useRef, useMemo, useState, useCallback } from 'react';
+import React, { useRef, useMemo, useState, useCallback, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Billboard, Text, Detailed } from '@react-three/drei';
 import {
@@ -248,7 +248,14 @@ const MediumDetailGeometry: React.FC<{ nodeType: VoxelNodeType; color: string; o
 // ============================================================================
 
 const LowDetailBillboard: React.FC<{ color: string; size: number }> = ({ color, size }) => {
+  const textureRef = useRef<CanvasTexture | null>(null);
+
   const texture = useMemo(() => {
+    // Dispose previous texture if exists (memory leak fix)
+    if (textureRef.current) {
+      textureRef.current.dispose();
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -262,8 +269,20 @@ const LowDetailBillboard: React.FC<{ color: string; size: number }> = ({ color, 
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 64, 64);
     }
-    return new CanvasTexture(canvas);
+    const newTexture = new CanvasTexture(canvas);
+    textureRef.current = newTexture;
+    return newTexture;
   }, [color]);
+
+  // Cleanup texture on unmount
+  useEffect(() => {
+    return () => {
+      if (textureRef.current) {
+        textureRef.current.dispose();
+        textureRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <Billboard>

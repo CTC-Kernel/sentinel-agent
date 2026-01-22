@@ -9,7 +9,7 @@
  * - Pulsing glow effect for critical assets
  */
 
-import React, { useRef, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Billboard } from '@react-three/drei';
 import { Group, AdditiveBlending, CanvasTexture } from 'three';
@@ -34,7 +34,14 @@ export { SEGMENT_COLORS, CRITICALITY_SIZES, CRITICALITY_GLOW } from './voxelCons
  */
 const IndustrialIconSprite: React.FC<{ color: string; size: number }> = React.memo(
   ({ color, size }) => {
+    const textureRef = useRef<CanvasTexture | null>(null);
+
     const texture = useMemo(() => {
+      // Dispose previous texture if exists (memory leak fix)
+      if (textureRef.current) {
+        textureRef.current.dispose();
+      }
+
       const canvas = document.createElement('canvas');
       canvas.width = 64;
       canvas.height = 64;
@@ -91,8 +98,20 @@ const IndustrialIconSprite: React.FC<{ color: string; size: number }> = React.me
         ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
         ctx.stroke();
       }
-      return new CanvasTexture(canvas);
+      const newTexture = new CanvasTexture(canvas);
+      textureRef.current = newTexture;
+      return newTexture;
     }, [color]);
+
+    // Cleanup texture on unmount
+    useEffect(() => {
+      return () => {
+        if (textureRef.current) {
+          textureRef.current.dispose();
+          textureRef.current = null;
+        }
+      };
+    }, []);
 
     return (
       <Billboard position={[0, 0.8, 0]}>
