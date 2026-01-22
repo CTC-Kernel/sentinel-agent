@@ -110,6 +110,15 @@ export type {
   UseExportCaptureReturn,
 } from './useExportCapture';
 
+// VOX-9.1: Zoom Semantic
+export { useZoomSemantic, getZoomSemanticValues } from './useZoomSemantic';
+export type {
+  ZoomLevel,
+  ZoomSemanticConfig,
+  ZoomSemanticState,
+  UseZoomSemanticReturn,
+} from './useZoomSemantic';
+
 // Re-export store hooks for convenience
 export {
   useVoxelStore,

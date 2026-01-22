@@ -25,6 +25,7 @@ import { VulnerabilityKanban } from '../components/vulnerabilities/Vulnerability
 import { usePersistedState } from '../hooks/usePersistedState';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { VulnerabilityImportModal } from '../components/vulnerabilities/VulnerabilityImportModal';
+import { useAuth } from '../hooks/useAuth';
 
 import { SEO } from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,13 +35,14 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 // Form validation: useForm with required fields
 
 export const Vulnerabilities: React.FC = () => {
-    const { user, t } = useStore();
+    const { user, loading: authLoading } = useAuth();
+    const { t } = useStore();
     const location = useLocation();
 
     // Mode
     const [creationMode, setCreationMode] = useState(false);
     const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'kanban'>('vulns_view_mode', 'list');
-    const [activeTab, setActiveTab] = usePersistedState<string>('vulns-active-tab', 'overview');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list'>('vulns-active-tab', 'overview');
 
     const [selectedVulnerability, setSelectedVulnerability] = useState<Vulnerability | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
@@ -70,7 +72,7 @@ export const Vulnerabilities: React.FC = () => {
         return vulnerabilities.filter(v => (v.title || '').toLowerCase().includes(filter.toLowerCase()) || v.cveId?.toLowerCase().includes(filter.toLowerCase()));
     }, [vulnerabilities, filter]);
 
-    const loading = loadingData;
+    const loading = authLoading || loadingData;
 
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
@@ -246,7 +248,7 @@ export const Vulnerabilities: React.FC = () => {
                 <ScrollableTabs
                     tabs={tabs}
                     activeTab={activeTab}
-                    onTabChange={setActiveTab}
+                    onTabChange={(id) => setActiveTab(id as 'overview' | 'list')}
                     className="mb-6"
                 />
             </motion.div>

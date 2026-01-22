@@ -61,6 +61,8 @@ const RiskMatrix = React.lazy(() => import('../components/risks/RiskMatrix').the
 // Inline Loader
 const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-primary" /></div>;
 
+type RiskTab = 'overview' | 'list' | 'matrix' | 'context';
+
 export const Risks: React.FC = () => {
     // Hooks
     const { user } = useAuth();
@@ -78,7 +80,7 @@ export const Risks: React.FC = () => {
     const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'matrix'>('risks-view-mode', 'grid');
-    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'matrix' | 'context'>('risks-active-tab', 'overview');
+    const [activeTab, setActiveTab] = usePersistedState<RiskTab>('risks-active-tab', 'overview');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -154,7 +156,7 @@ export const Risks: React.FC = () => {
     // Handle tab deep link (e.g., from /risk-context redirect)
     useEffect(() => {
         if (deepLinkTab && ['overview', 'list', 'matrix', 'context'].includes(deepLinkTab)) {
-            setActiveTab(deepLinkTab as any);
+            setActiveTab(deepLinkTab as RiskTab);
             // Clean up the tab param after applying it
             setSearchParams(params => {
                 params.delete('tab');
@@ -392,7 +394,7 @@ export const Risks: React.FC = () => {
             <ScrollableTabs
                 tabs={tabs}
                 activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id as any)}
+                onTabChange={(id) => setActiveTab(id as RiskTab)}
             />
 
             {/* OVERVIEW TAB */}
@@ -441,7 +443,7 @@ export const Risks: React.FC = () => {
                         onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
                         viewMode={viewMode}
                         onViewModeChange={(m) => setViewMode(m)}
-                        activeTab={activeTab as any}
+                        activeTab={activeTab}
                         frameworkFilter={frameworkFilter}
                         setFrameworkFilter={setFrameworkFilter}
                         showAdvancedSearch={showAdvancedSearch}
