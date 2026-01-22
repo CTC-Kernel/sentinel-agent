@@ -309,7 +309,17 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
 
             <div className="py-6 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">{t('auth.footer.developedBy')}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">
+                    {t('auth.footer.developedBy')}{' '}
+                    <a
+                        href="https://cyber-threat-consulting.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 underline transition-colors"
+                    >
+                        cyber-threat-consulting.com
+                    </a>
+                </p>
                 <p className="text-sm text-slate-600 dark:text-slate-400 break-words">
                     {t('auth.footer.recaptcha')}
                     <button aria-label={t('auth.footer.privacy')} onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
