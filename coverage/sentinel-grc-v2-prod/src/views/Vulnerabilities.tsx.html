@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/308</span>
+                <span class='fraction'>0/309</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/308</span>
+                <span class='fraction'>0/309</span>
             </div>
         
             
@@ -467,7 +467,9 @@
 <a name='L402'></a><a href='#L402'>402</a>
 <a name='L403'></a><a href='#L403'>403</a>
 <a name='L404'></a><a href='#L404'>404</a>
-<a name='L405'></a><a href='#L405'>405</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -502,6 +504,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -898,6 +902,7 @@ import { VulnerabilityKanban } from '../components/vulnerabilities/Vulnerability
 import { usePersistedState } from '../hooks/usePersistedState';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { VulnerabilityImportModal } from '../components/vulnerabilities/VulnerabilityImportModal';
+import { useAuth } from '../hooks/useAuth';
 &nbsp;
 import { SEO } from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -907,13 +912,14 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 // Form validation: useForm with required fields
 &nbsp;
 <span class="cstat-no" title="statement not covered" >export const Vulnerabilities: React.FC = () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    const { user, t } = useStore();</span>
+<span class="cstat-no" title="statement not covered" >    const { user, loading: authLoading } = useAuth();</span>
+<span class="cstat-no" title="statement not covered" >    const { t } = useStore();</span>
 <span class="cstat-no" title="statement not covered" >    const location = useLocation();</span>
 &nbsp;
     // Mode
 <span class="cstat-no" title="statement not covered" >    const [creationMode, setCreationMode] = useState(false);</span>
 <span class="cstat-no" title="statement not covered" >    const [viewMode, setViewMode] = usePersistedState&lt;'list' | 'grid' | 'kanban'&gt;('vulns_view_mode', 'list');</span>
-<span class="cstat-no" title="statement not covered" >    const [activeTab, setActiveTab] = usePersistedState&lt;string&gt;('vulns-active-tab', 'overview');</span>
+<span class="cstat-no" title="statement not covered" >    const [activeTab, setActiveTab] = usePersistedState&lt;'overview' | 'list'&gt;('vulns-active-tab', 'overview');</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    const [selectedVulnerability, setSelectedVulnerability] = useState&lt;Vulnerability | null&gt;(null);</span>
 <span class="cstat-no" title="statement not covered" >    const [confirmData, setConfirmData] = useState&lt;{ isOpen: boolean, title: string, message: string, onConfirm: () =&gt; void, loading?: boolean, closeOnConfirm?: boolean }&gt;({ isOpen: false, title: '', message: '', onConfirm: () =&gt; { } });</span>
@@ -943,7 +949,7 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 <span class="cstat-no" title="statement not covered" >        return vulnerabilities.filter(v =&gt; (v.title || '').toLowerCase().includes(filter.toLowerCase()) || v.cveId?.toLowerCase().includes(filter.toLowerCase()));</span>
 <span class="cstat-no" title="statement not covered" >    }, [vulnerabilities, filter]);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    const loading = loadingData;</span>
+<span class="cstat-no" title="statement not covered" >    const loading = authLoading || loadingData;</span>
 &nbsp;
     // URL Params for Deep Linking
 <span class="cstat-no" title="statement not covered" >    const [searchParams, setSearchParams] = useSearchParams();</span>
@@ -1119,7 +1125,7 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 <span class="cstat-no" title="statement not covered" >                &lt;ScrollableTabs</span>
 <span class="cstat-no" title="statement not covered" >                    tabs={tabs}</span>
 <span class="cstat-no" title="statement not covered" >                    activeTab={activeTab}</span>
-<span class="cstat-no" title="statement not covered" >                    onTabChange={setActiveTab}</span>
+<span class="cstat-no" title="statement not covered" >                    onTabChange={(id) =&gt; setActiveTab(id as 'overview' | 'list')}</span>
 <span class="cstat-no" title="statement not covered" >                    className="mb-6"</span>
 <span class="cstat-no" title="statement not covered" >                /&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;/motion.div&gt;</span>
@@ -1282,7 +1288,7 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-22T18:39:13.336Z
+                at 2026-01-22T20:46:39.578Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
