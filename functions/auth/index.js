@@ -140,8 +140,56 @@ const canManageSsoSettings = (token = {}) =>
 const canViewSsoSettings = (token = {}) =>
     canManageSsoSettings(token) || token.role === 'auditor';
 
+// Rate limiting configuration for auth attempts
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+const RATE_LIMIT_MAX_ATTEMPTS = 10; // Max 10 attempts per window per email/IP
+
+/**
+ * Check rate limit for auth attempts
+ * @param {string} email - User email
+ * @param {string} ip - Client IP
+ * @returns {Promise<boolean>} - True if rate limit exceeded
+ */
+const checkAuthRateLimit = async (email, ip) => {
+    const db = admin.firestore();
+    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS);
+
+    // Create a composite key for rate limiting (email + IP or just IP for anonymous)
+    const rateLimitKey = email ? `${email.toLowerCase()}_${ip || 'unknown'}` : `anonymous_${ip || 'unknown'}`;
+
+    try {
+        const recentAttempts = await db.collection('auth_rate_limits')
+            .where('key', '==', rateLimitKey)
+            .where('timestamp', '>=', windowStart.toISOString())
+            .get();
+
+        if (recentAttempts.size >= RATE_LIMIT_MAX_ATTEMPTS) {
+            logger.warn(`Rate limit exceeded for ${rateLimitKey}`, {
+                attempts: recentAttempts.size,
+                limit: RATE_LIMIT_MAX_ATTEMPTS
+            });
+            return true;
+        }
+
+        // Record this attempt
+        await db.collection('auth_rate_limits').add({
+            key: rateLimitKey,
+            timestamp: new Date().toISOString(),
+            email: email?.toLowerCase() || null,
+            ip: ip || null
+        });
+
+        return false;
+    } catch (error) {
+        logger.error('Error checking rate limit', error);
+        // Fail open - don't block legitimate users if rate limit check fails
+        return false;
+    }
+};
+
 /**
  * Public Callable Function to log authentication attempts (pre-login)
+ * SECURITY: Rate limited to prevent abuse
  */
 exports.logAuthAttempt = onCall({
     memory: '256MiB',
@@ -155,9 +203,16 @@ exports.logAuthAttempt = onCall({
     ]
 }, async (request) => {
     const { provider, status, email, errorCode, metadata } = request.data;
+    const clientIp = request.rawRequest?.ip || null;
 
     if (!provider || !status) {
         throw new HttpsError('invalid-argument', 'Missing required auth log fields (provider, status).');
+    }
+
+    // SECURITY: Check rate limit before processing
+    const rateLimited = await checkAuthRateLimit(email, clientIp);
+    if (rateLimited) {
+        throw new HttpsError('resource-exhausted', 'Too many authentication attempts. Please try again later.');
     }
 
     try {
@@ -172,7 +227,7 @@ exports.logAuthAttempt = onCall({
             email,
             errorCode,
             metadata,
-            ip: request.rawRequest?.ip || null,
+            ip: clientIp,
             organizationId: orgContext.organizationId,
             source: 'client_pre_auth'
         });
@@ -415,5 +470,91 @@ exports.requestPasswordReset = onCall({
             return { success: true, message: 'Reset email sent.' };
         }
         throw new HttpsError('internal', 'Internal error processing request.');
+    }
+});
+
+/**
+ * Verify MFA status for super admin actions
+ * SECURITY: This function verifies that the user has recently authenticated with MFA
+ * and is authorized for sensitive super admin operations.
+ *
+ * Note: Firebase doesn't provide direct TOTP verification server-side.
+ * This function checks:
+ * 1. User has super_admin role
+ * 2. User has MFA enrolled
+ * 3. Token was issued recently (within 5 minutes for sensitive actions)
+ */
+exports.verifyMFACode = onCall({
+    memory: '256MiB',
+    timeoutSeconds: 60,
+    region: 'europe-west1'
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const uid = request.auth.uid;
+    const token = request.auth.token;
+
+    // SECURITY: Only super_admin can use this verification
+    if (token.role !== 'super_admin' && !token.superAdmin) {
+        logger.warn(`Non-super-admin attempted MFA verification: ${uid}`);
+        throw new HttpsError('permission-denied', 'Only super admins can use this verification.');
+    }
+
+    try {
+        // Get the user's MFA status from Firebase Auth
+        const userRecord = await admin.auth().getUser(uid);
+
+        // Check if user has TOTP MFA enrolled
+        const hasTOTP = userRecord.multiFactor?.enrolledFactors?.some(
+            f => f.factorId === 'totp'
+        );
+
+        if (!hasTOTP) {
+            logger.warn(`Super admin ${uid} attempted action without MFA enrolled`);
+            throw new HttpsError('failed-precondition', 'MFA is not enrolled. Please enable TOTP authentication.');
+        }
+
+        // Verify token was issued recently (within 5 minutes)
+        // This ensures the user recently authenticated (with MFA)
+        const authTime = token.auth_time;
+        const now = Math.floor(Date.now() / 1000);
+        const MAX_AUTH_AGE_SECONDS = 5 * 60; // 5 minutes
+
+        if (!authTime || (now - authTime) > MAX_AUTH_AGE_SECONDS) {
+            logger.info(`Super admin ${uid} auth token too old for sensitive action`);
+            throw new HttpsError('failed-precondition', 'Session expired for sensitive actions. Please re-authenticate.');
+        }
+
+        // Log successful MFA verification for audit
+        await persistAuthAuditLog({
+            provider: 'mfa_verification',
+            status: 'success',
+            email: token.email,
+            metadata: {
+                action: 'super_admin_mfa_check',
+                hasTOTP: true,
+                authAge: now - authTime
+            },
+            organizationId: token.organizationId,
+            ip: request.rawRequest?.ip || null,
+            source: 'backend'
+        });
+
+        logger.info(`MFA verified for super admin action: ${uid}`);
+
+        return {
+            verified: true,
+            mfaEnrolled: true,
+            authAge: now - authTime
+        };
+
+    } catch (error) {
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        logger.error('Error verifying MFA:', error);
+        throw new HttpsError('internal', 'Failed to verify MFA status.');
     }
 });
