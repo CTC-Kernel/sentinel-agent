@@ -227,7 +227,7 @@ describe('useVulnerabilities', () => {
 
             // Should update both vulnerability and related risk
             expect(mockUpdateDoc).toHaveBeenCalledTimes(2);
-            expect(mockAddToast).toHaveBeenCalledWith('Risque associé marqué comme Traité', 'success');
+            expect(mockAddToast).toHaveBeenCalledWith('1 risque associé marqué comme Traité', 'success');
         });
 
         it('handles errors', async () => {
