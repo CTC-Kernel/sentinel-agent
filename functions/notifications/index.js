@@ -46,15 +46,24 @@ async function attemptSendEmail(docRef, data) {
         let headersObj = {};
         try {
             if (response.headers) {
-                // Handle both plain objects and Headers instances
+                // Determine if it's a Headers instance (Web API) or a plain object
                 if (typeof response.headers.entries === 'function') {
                     // Headers instance - convert using entries()
                     for (const [key, value] of response.headers.entries()) {
                         headersObj[key] = value;
                     }
-                } else if (typeof response.headers === 'object') {
-                    // Already a plain object or similar
-                    headersObj = JSON.parse(JSON.stringify(response.headers));
+                } else {
+                    // Node-style headers or plain object
+                    // Iterate and copy to ensure a fresh plain object with no hidden prototypes
+                    Object.keys(response.headers).forEach(key => {
+                        const val = response.headers[key];
+                        // Only copy serializable values
+                        if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+                            headersObj[key] = val;
+                        } else if (Array.isArray(val)) {
+                            headersObj[key] = val.filter(v => typeof v === 'string');
+                        }
+                    });
                 }
             }
         } catch (headerError) {
