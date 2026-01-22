@@ -12,11 +12,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { ShieldAlert } from '../ui/Icons';
 import type { SuperAdminMFAModalProps } from '../../hooks/useSuperAdminMFA';
 
-interface Props extends SuperAdminMFAModalProps {
-  // Additional props can be added here if needed
-}
-
-export const SuperAdminMFAModal: React.FC<Props> = ({
+export const SuperAdminMFAModal: React.FC<SuperAdminMFAModalProps> = ({
   isOpen,
   actionDescription,
   mfaCode,

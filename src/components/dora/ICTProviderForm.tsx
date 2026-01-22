@@ -49,6 +49,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     isLoading = false,
     readOnly = false
 }) => {
+    'use no memo'; // Opt-out of React Compiler - react-hook-form's watch() is incompatible
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabId>('general');
 
@@ -106,6 +107,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
     });
 
     const category = watch('category');
+    const concentration = watch('riskAssessment.concentration') || 0;
 
     const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
         { id: 'general', label: t('dora.tabs.general'), icon: <Building2 className="w-4 h-4" /> },
@@ -128,11 +130,10 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                            activeTab === tab.id
-                                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
-                        }`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === tab.id
+                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+                            : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
+                            }`}
                     >
                         {tab.icon}
                         <span className="hidden sm:inline">{tab.label}</span>
@@ -681,8 +682,8 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                                     {riskLevel === 'high'
                                                                         ? t('dora.risk.highRiskLabel', 'Risque Élevé - Action requise')
                                                                         : riskLevel === 'medium'
-                                                                        ? t('dora.risk.mediumRiskLabel', 'Risque Modéré - À surveiller')
-                                                                        : t('dora.risk.lowRiskLabel', 'Risque Faible')}
+                                                                            ? t('dora.risk.mediumRiskLabel', 'Risque Modéré - À surveiller')
+                                                                            : t('dora.risk.lowRiskLabel', 'Risque Faible')}
                                                                 </span>
                                                             </div>
                                                             <span className="text-xs text-slate-400">0% - 100%</span>
@@ -734,11 +735,10 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                                 type="button"
                                                                 disabled={readOnly}
                                                                 onClick={() => field.onChange(level)}
-                                                                className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                                                    isSelected
-                                                                        ? `border-${config.color}-500 bg-${config.color}-50 dark:bg-${config.color}-900/20`
-                                                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                                                                }`}
+                                                                className={`p-4 rounded-2xl border-2 text-left transition-all ${isSelected
+                                                                    ? `border-${config.color}-500 bg-${config.color}-50 dark:bg-${config.color}-900/20`
+                                                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                                                    }`}
                                                             >
                                                                 <div className="flex items-center gap-2 mb-2">
                                                                     <span>{config.icon}</span>
@@ -763,7 +763,6 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                             name="riskAssessment.notes"
                                             control={control}
                                             render={({ field }) => {
-                                                const concentration = watch('riskAssessment.concentration') || 0;
                                                 const isHighRisk = concentration > 70;
 
                                                 return (
@@ -785,11 +784,10 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                             disabled={readOnly}
                                                             rows={4}
                                                             placeholder={t('dora.risk.notesPlaceholder', 'Décrivez les raisons de cette évaluation et les mesures de mitigation prévues...')}
-                                                            className={`w-full px-4 py-3 rounded-xl border ${
-                                                                isHighRisk && !field.value
-                                                                    ? 'border-red-300 dark:border-red-700'
-                                                                    : 'border-slate-200 dark:border-slate-700'
-                                                            } bg-white/50 dark:bg-black/20 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                                                            className={`w-full px-4 py-3 rounded-xl border ${isHighRisk && !field.value
+                                                                ? 'border-red-300 dark:border-red-700'
+                                                                : 'border-slate-200 dark:border-slate-700'
+                                                                } bg-white/50 dark:bg-black/20 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                                                         />
                                                     </div>
                                                 );

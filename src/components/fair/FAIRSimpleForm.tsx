@@ -83,6 +83,7 @@ export const FAIRSimpleForm: React.FC<FAIRSimpleFormProps> = ({
   initialValues,
   loading = false
 }) => {
+  'use no memo'; // Opt-out of React Compiler - react-hook-form's watch() is incompatible
   const { t, i18n } = useTranslation();
   const isEnglish = i18n.language === 'en';
 
