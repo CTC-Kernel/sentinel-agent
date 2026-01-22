@@ -186,3 +186,41 @@ exports.auditAudits = generateAuditTrigger('audits/{docId}', 'name');
 exports.nis2DeadlineChecker = nis2DeadlineChecker;           // Vérification horaire des délais
 exports.onSignificantIncident = onSignificantIncident;       // Trigger: incident devient significatif
 exports.onNewSignificantIncident = onNewSignificantIncident; // Trigger: nouvel incident significatif
+
+// --- SECURITY: Rate Limit Cleanup ---
+/**
+ * Scheduled cleanup of expired rate limit entries (runs every hour)
+ * SECURITY: Prevents unbounded growth of auth_rate_limits collection
+ */
+exports.cleanupRateLimits = onSchedule({
+    schedule: "every 1 hours",
+    memory: '256MiB',
+    timeoutSeconds: 120,
+    region: 'europe-west1'
+}, async () => {
+    logger.info("Starting rate limit cleanup...");
+    const db = admin.firestore();
+
+    // Delete entries older than 5 minutes (well past the 1-minute rate limit window)
+    const cutoffTime = new Date(Date.now() - 5 * 60 * 1000);
+
+    try {
+        const expiredSnap = await db.collection('auth_rate_limits')
+            .where('timestamp', '<', cutoffTime.toISOString())
+            .limit(500) // Process in batches to avoid timeout
+            .get();
+
+        if (expiredSnap.empty) {
+            logger.info("No expired rate limit entries to clean up.");
+            return;
+        }
+
+        const batch = db.batch();
+        expiredSnap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+
+        logger.info(`Cleaned up ${expiredSnap.size} expired rate limit entries.`);
+    } catch (error) {
+        logger.error("Error cleaning up rate limits", error);
+    }
+});

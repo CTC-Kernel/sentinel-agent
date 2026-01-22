@@ -211,18 +211,68 @@ async function calculateTrend(db, organizationId, currentScore) {
 }
 
 /**
- * Calculate framework-specific scores
- * For now, returns the global score for all frameworks
- * Can be enhanced to calculate per-framework scores based on control mappings
+ * Calculate framework-specific scores based on control mappings
+ * Each framework score is calculated from controls that have that framework in their mappings
  */
-function calculateFrameworkScores(globalScore) {
-  // TODO: Implement framework-specific calculations based on control mappings
-  return {
-    iso27001: globalScore,
-    nis2: globalScore,
-    dora: globalScore,
-    rgpd: globalScore,
+async function calculateFrameworkScores(db, organizationId) {
+  const frameworks = ['iso27001', 'nis2', 'dora', 'rgpd'];
+  const results = {
+    iso27001: 100,
+    nis2: 100,
+    dora: 100,
+    rgpd: 100,
   };
+
+  // Get all controls with their framework mappings
+  const controlsSnap = await db.collection('controls')
+    .where('organizationId', '==', organizationId)
+    .get();
+
+  if (controlsSnap.empty) {
+    return results;
+  }
+
+  // Group controls by framework and calculate scores
+  for (const framework of frameworks) {
+    let implementedCount = 0;
+    let totalCount = 0;
+
+    controlsSnap.forEach((doc) => {
+      const data = doc.data();
+      const mappings = data.mappings || data.framework || [];
+
+      // Check if this control is mapped to this framework
+      // Mappings can be an array like ['ISO 27001', 'NIS 2'] or contain framework-specific refs
+      const frameworkNames = {
+        iso27001: ['iso27001', 'iso 27001', 'iso-27001', '27001'],
+        nis2: ['nis2', 'nis 2', 'nis-2'],
+        dora: ['dora'],
+        rgpd: ['rgpd', 'gdpr'],
+      };
+
+      const isMapped = Array.isArray(mappings)
+        ? mappings.some((m) => {
+            const lower = (m.toLowerCase ? m.toLowerCase() : String(m).toLowerCase());
+            return frameworkNames[framework].some((name) => lower.includes(name));
+          })
+        : false;
+
+      if (isMapped || (data.framework && frameworkNames[framework].includes(data.framework.toLowerCase()))) {
+        totalCount++;
+        if (data.status === 'Implémenté') {
+          implementedCount++;
+        }
+      }
+    });
+
+    // Calculate framework score
+    if (totalCount > 0) {
+      results[framework] = Math.round((implementedCount / totalCount) * 100 * 100) / 100;
+    }
+    // If no controls mapped to this framework, keep default 100
+  }
+
+  return results;
 }
 
 /**
@@ -275,11 +325,11 @@ const calculateComplianceScore = onCall({
         breakdown.audits.score * breakdown.audits.weight) * 100
     ) / 100;
 
-    // Calculate trend
-    const trend = await calculateTrend(db, organizationId, globalScore);
-
-    // Calculate framework scores
-    const byFramework = calculateFrameworkScores(globalScore);
+    // Calculate trend and framework scores in parallel
+    const [trend, byFramework] = await Promise.all([
+      calculateTrend(db, organizationId, globalScore),
+      calculateFrameworkScores(db, organizationId),
+    ]);
 
     // Build the complete score document
     const scoreDoc = {
