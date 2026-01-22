@@ -351,7 +351,7 @@ export const HomologationDossierDetail: React.FC = () => {
 
           {/* Validity card */}
           <Card className="p-4">
-            <h3 className="font-medium mb-3">{t('homologation.validity', 'Validité')}</h3>
+            <h3 className="font-medium mb-3">{t('homologation.validityLabel', 'Validité')}</h3>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -394,11 +394,11 @@ export const HomologationDossierDetail: React.FC = () => {
                 >
                   {validityInfo.status === 'expired'
                     ? t('homologation.expiredSince', 'Expiré depuis {{days}} jours', {
-                        days: Math.abs(validityInfo.daysRemaining)
-                      })
+                      days: Math.abs(validityInfo.daysRemaining)
+                    })
                     : t('homologation.expiresIn', 'Expire dans {{days}} jours', {
-                        days: validityInfo.daysRemaining
-                      })}
+                      days: validityInfo.daysRemaining
+                    })}
                 </div>
               )}
             </div>

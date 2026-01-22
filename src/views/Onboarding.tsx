@@ -315,7 +315,19 @@ export const Onboarding: React.FC = () => {
         const targetUser = user || authUser;
 
         if (!targetUser || !targetUser.uid) {
-            ErrorLogger.handleErrorWithToast(new Error("No valid user found"), 'Onboarding.handleStep1', 'AUTH_FAILED');
+            setError(t('onboarding.toasts.userUnidentified'));
+            addToast(t('onboarding.toasts.userUnidentified'), "error");
+            return;
+        }
+
+        // Check if user already has an organization
+        if (targetUser.organizationId) {
+            setError(t('onboarding.toasts.alreadyHasOrg'));
+            addToast(t('onboarding.toasts.alreadyHasOrg'), "info");
+            // Redirect to dashboard if already onboarded
+            if (targetUser.onboardingCompleted) {
+                navigate('/', { replace: true });
+            }
             return;
         }
 
@@ -350,8 +362,24 @@ export const Onboarding: React.FC = () => {
 
         } catch (_error: unknown) {
             ErrorLogger.handleErrorWithToast(_error, 'Onboarding.handleStep1', 'CREATE_FAILED');
-            const errorMessage = _error instanceof Error ? _error.message : String(_error);
-            setError(errorMessage || t('onboarding.toasts.createError'));
+
+            // Parse Firebase Functions error for better UX
+            let errorMessage = t('onboarding.toasts.createError');
+            if (_error instanceof Error) {
+                const msg = _error.message.toLowerCase();
+                if (msg.includes('already-exists') || msg.includes('already belongs')) {
+                    errorMessage = t('onboarding.toasts.alreadyHasOrg');
+                } else if (msg.includes('permission') || msg.includes('denied')) {
+                    errorMessage = t('onboarding.toasts.permissionDenied');
+                } else if (msg.includes('unauthenticated') || msg.includes('session')) {
+                    errorMessage = t('onboarding.toasts.sessionExpired');
+                } else if (msg.includes('unavailable') || msg.includes('network')) {
+                    errorMessage = t('onboarding.toasts.networkError');
+                } else {
+                    errorMessage = _error.message;
+                }
+            }
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -571,7 +599,44 @@ export const Onboarding: React.FC = () => {
                                             )}
                                         />
                                     </div>
-                                    {error && <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3"><AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" /><div><p className="text-sm font-semibold text-red-900 dark:text-red-200">{t('onboarding.toasts.configError')}</p><p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p></div></div>}
+                                    {error && (
+                                        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl space-y-3">
+                                            <div className="flex items-start gap-3">
+                                                <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-semibold text-red-900 dark:text-red-200">{t('onboarding.toasts.configError')}</p>
+                                                    <p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 pt-2 border-t border-red-200 dark:border-red-800">
+                                                {error.includes('session') || error.includes('Session') || error.includes('authentifi') ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={async () => {
+                                                            setError('');
+                                                            await refreshSession();
+                                                            addToast(t('auth.sessionRefreshed') || 'Session actualisée', 'success');
+                                                        }}
+                                                        className="text-xs text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
+                                                    >
+                                                        {t('auth.refreshSession') || 'Actualiser la session'}
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => setError('')}
+                                                        className="text-xs text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30"
+                                                    >
+                                                        {t('common.close') || 'Fermer'}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                         <div className="flex items-center h-5 mt-0.5">

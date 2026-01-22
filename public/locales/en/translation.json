@@ -1315,6 +1315,8 @@
     "switchSignup": "Create a new account",
     "forgotPassword": "Forgot Password?",
     "logoutSuccess": "Logged out successfully",
+    "sessionRefreshed": "Session refreshed",
+    "refreshSession": "Refresh session",
     "redirectingApple": "Redirecting to Apple...",
     "redirectingGoogle": "Redirecting to Google...",
     "verificationSent": "Verification email sent",
@@ -1408,7 +1410,12 @@
       "createError": "An error occurred while creating the organization.",
       "configError": "Configuration Error",
       "emailDuplicate": "Email already added",
-      "emptySearch": "No results found"
+      "emptySearch": "No results found",
+      "alreadyHasOrg": "You already belong to an organization.",
+      "permissionDenied": "Insufficient permissions. Contact the administrator.",
+      "sessionExpired": "Session expired. Please log in again.",
+      "networkError": "Network error. Check your connection.",
+      "invitesSent": "Invitations sent"
     },
     "form": {
       "orgName": "Organization Name",
@@ -2280,14 +2287,6 @@
       "errorsFound": "{count} validation errors",
       "success": "{count} providers imported successfully"
     },
-    "export": {
-      "title": "Export DORA Register",
-      "format": "Format",
-      "includeRiskAnalysis": "Include Risk Analysis",
-      "includeConcentration": "Include Concentration Analysis",
-      "generating": "Generating...",
-      "success": "DORA Register exported"
-    },
     "validation": {
       "name_required": "Provider name is required",
       "category_required": "Category is required",
@@ -2405,7 +2404,7 @@
     "noMatchingDossiers": "No dossiers match the criteria",
     "createFirstDossier": "Create your first dossier to get started",
     "searchDossiers": "Search dossiers...",
-    "documents": "Documents",
+    "documentsLabel": "Documents",
     "documentsRequired": "documents required",
     "requiredDocuments": "Required documents",
     "overridden": "Overridden",
@@ -2485,7 +2484,7 @@
     },
     "level": "Level",
     "levelOverridden": "Level manually modified",
-    "validity": "Validity",
+    "validityLabel": "Validity",
     "validityPeriod": "Duration",
     "expiredSince": "Expired {{days}} days ago",
     "expiresIn": "Expires in {{days}} days",

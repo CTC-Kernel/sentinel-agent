@@ -1626,10 +1626,15 @@
       "assetsDetected": "Actifs détectés",
       "configError": "Erreur de configuration",
       "orgMissing": "Organisation introuvable",
-      "userUnidentified": "Utilisateur non identifié",
+      "userUnidentified": "Utilisateur non identifié. Veuillez vous reconnecter.",
       "emailStart": "Vérification email...",
       "emailDuplicate": "Email déjà utilisé",
-      "emptySearch": "Recherche vide"
+      "emptySearch": "Recherche vide",
+      "alreadyHasOrg": "Vous appartenez déjà à une organisation.",
+      "permissionDenied": "Permissions insuffisantes. Contactez l'administrateur.",
+      "sessionExpired": "Session expirée. Veuillez vous reconnecter.",
+      "networkError": "Erreur réseau. Vérifiez votre connexion.",
+      "invitesSent": "Invitations envoyées"
     }
   },
   "frameworks": {
@@ -1676,6 +1681,8 @@
     "switchSignup": "Pas encore de compte ? Créer un compte",
     "switchLogin": "Déjà un compte ? Se connecter",
     "logoutSuccess": "Déconnexion réussie",
+    "sessionRefreshed": "Session actualisée",
+    "refreshSession": "Actualiser la session",
     "verificationSent": "Email de vérification envoyé",
     "redirectingGoogle": "Redirection vers Google...",
     "redirectingApple": "Redirection vers Apple...",
@@ -2530,14 +2537,6 @@
       "errorsFound": "{count} erreurs de validation",
       "success": "{count} fournisseurs importés avec succès"
     },
-    "export": {
-      "title": "Exporter le Registre DORA",
-      "format": "Format",
-      "includeRiskAnalysis": "Inclure l'Analyse des Risques",
-      "includeConcentration": "Inclure l'Analyse de Concentration",
-      "generating": "Génération en cours...",
-      "success": "Registre DORA exporté"
-    },
     "validation": {
       "name_required": "Le nom du fournisseur est requis",
       "category_required": "La catégorie est requise",
@@ -2655,7 +2654,7 @@
     "noMatchingDossiers": "Aucun dossier ne correspond aux critères",
     "createFirstDossier": "Créez votre premier dossier pour commencer",
     "searchDossiers": "Rechercher un dossier...",
-    "documents": "Documents",
+    "documentsLabel": "Documents",
     "documentsRequired": "documents requis",
     "requiredDocuments": "Documents requis",
     "overridden": "Modifié",
@@ -2735,7 +2734,7 @@
     },
     "level": "Niveau",
     "levelOverridden": "Niveau modifié manuellement",
-    "validity": "Validité",
+    "validityLabel": "Validité",
     "validityPeriod": "Durée",
     "expiredSince": "Expiré depuis {{days}} jours",
     "expiresIn": "Expire dans {{days}} jours",

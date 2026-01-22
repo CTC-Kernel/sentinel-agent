@@ -209,7 +209,7 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
         <div className="mt-4 pt-4 border-t">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">
-              {t('homologation.documents', 'Documents')}
+              {t('homologation.documentsLabel', 'Documents')}
             </span>
             <span className="text-xs font-medium">
               {docProgress.completed}/{docProgress.total}
@@ -225,11 +225,11 @@ export const HomologationDossierList: React.FC<HomologationDossierListProps> = (
             <span className={cn('text-sm', expirationInfo.color)}>
               {expirationInfo.status === 'expired'
                 ? t('homologation.expiredDaysAgo', 'Expiré depuis {{days}} jours', {
-                    days: expirationInfo.days
-                  })
+                  days: expirationInfo.days
+                })
                 : t('homologation.expiresInDays', 'Expire dans {{days}} jours', {
-                    days: expirationInfo.days
-                  })}
+                  days: expirationInfo.days
+                })}
             </span>
           </div>
         )}
