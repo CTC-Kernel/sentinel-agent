@@ -578,7 +578,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                     value={field.value || []}
                                                     onChange={field.onChange}
                                                     multiple
-                                                    placeholder="Selectionner les certifications..."
+                                                    placeholder="Sélectionner les certifications..."
                                                 />
                                             )}
                                         />

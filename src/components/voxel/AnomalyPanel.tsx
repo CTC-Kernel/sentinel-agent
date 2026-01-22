@@ -222,7 +222,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
                     className="w-full px-4 py-2.5 text-left text-sm text-green-400 hover:bg-white/5 flex items-center gap-2"
                   >
                     <Check className="h-4 w-4" />
-                    Marquer resolu
+                    Marquer résolu
                   </button>
                 )}
 
@@ -553,7 +553,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
             onClick={handleSelectAll}
             className="text-xs text-indigo-400 hover:text-indigo-300"
           >
-            {selectedIds.size === filteredAnomalies.length ? 'Deselectionner tout' : 'Selectionner tout'}
+            {selectedIds.size === filteredAnomalies.length ? 'Désélectionner tout' : 'Sélectionner tout'}
           </button>
           <span className="text-xs text-white/40">|</span>
           <span className="text-xs text-white/60">

@@ -599,15 +599,15 @@ export const EDiscoveryService = {
     const errors: string[] = [];
 
     if (searchQuery.userIds && searchQuery.userIds.length > 10) {
-      errors.push('Maximum 10 utilisateurs peuvent etre selectionnes');
+      errors.push('Maximum 10 utilisateurs peuvent être sélectionnés');
     }
 
     if (searchQuery.actions && searchQuery.actions.length > 10) {
-      errors.push('Maximum 10 types d\'action peuvent etre selectionnes');
+      errors.push('Maximum 10 types d\'action peuvent être sélectionnés');
     }
 
     if (searchQuery.documentIds && searchQuery.documentIds.length > 10) {
-      errors.push('Maximum 10 documents peuvent etre selectionnes');
+      errors.push('Maximum 10 documents peuvent être sélectionnés');
     }
 
     if (searchQuery.dateRange) {
@@ -615,7 +615,7 @@ export const EDiscoveryService = {
         const start = new Date(searchQuery.dateRange.startDate);
         const end = new Date(searchQuery.dateRange.endDate);
         if (start > end) {
-          errors.push('La date de debut doit etre anterieure a la date de fin');
+          errors.push('La date de début doit être antérieure à la date de fin');
         }
       }
     }

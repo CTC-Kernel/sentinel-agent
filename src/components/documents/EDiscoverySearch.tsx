@@ -698,7 +698,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   onChange={(e) => setSearchIsPublic(e.target.checked)}
                   className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                 />
-                Partager avec l'equipe
+                Partager avec l'équipe
               </label>
             </div>
 

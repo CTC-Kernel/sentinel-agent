@@ -300,7 +300,7 @@ const WhatIfBuilder: React.FC<{
             onChange={(e) => setSelectedNodeId(e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
           >
-            <option value="">Selectionner un controle...</option>
+            <option value="">Sélectionner un contrôle...</option>
             {controlNodes.map((node) => (
               <option key={node.id} value={node.id}>
                 {node.label || node.id.substring(0, 20)}
@@ -677,12 +677,12 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                 <Activity className="h-8 w-8 text-white/30" />
               </div>
               <p className="text-white/60 text-sm">
-                {sourceNodeId ? 'Aucun noeud impacte' : 'Selectionnez un noeud source'}
+                {sourceNodeId ? 'Aucun nœud impacté' : 'Sélectionnez un nœud source'}
               </p>
               <p className="text-white/40 text-xs mt-1">
                 {sourceNodeId
-                  ? 'Ajustez la configuration pour etendre la simulation'
-                  : 'Cliquez sur un noeud dans la vue 3D'}
+                  ? 'Ajustez la configuration pour étendre la simulation'
+                  : 'Cliquez sur un nœud dans la vue 3D'}
               </p>
             </motion.div>
           ) : (

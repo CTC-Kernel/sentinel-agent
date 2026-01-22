@@ -67,15 +67,9 @@ const ZoneBoundaryPlane: React.FC<{
   isActive: boolean;
 }> = React.memo(({ position, rotation, size, color, opacity, isActive }) => {
   const meshRef = useRef<Mesh>(null);
-  const textureRef = useRef<CanvasTexture | null>(null);
 
   // Create gradient texture
   const texture = useMemo(() => {
-    // Dispose previous texture if exists (memory leak fix)
-    if (textureRef.current) {
-      textureRef.current.dispose();
-    }
-
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
@@ -103,20 +97,15 @@ const ZoneBoundaryPlane: React.FC<{
         ctx.stroke();
       }
     }
-    const newTexture = new CanvasTexture(canvas);
-    textureRef.current = newTexture;
-    return newTexture;
+    return new CanvasTexture(canvas);
   }, [color]);
 
-  // Cleanup texture on unmount
+  // Cleanup texture on unmount or when color changes
   useEffect(() => {
     return () => {
-      if (textureRef.current) {
-        textureRef.current.dispose();
-        textureRef.current = null;
-      }
+      texture.dispose();
     };
-  }, []);
+  }, [texture]);
 
   // Animate active boundaries
   useFrame((_state, _delta) => {
@@ -152,14 +141,7 @@ const ZoneFloorGrid: React.FC<{
   color: string;
   opacity: number;
 }> = React.memo(({ position, size, color, opacity }) => {
-  const textureRef = useRef<CanvasTexture | null>(null);
-
   const texture = useMemo(() => {
-    // Dispose previous texture if exists (memory leak fix)
-    if (textureRef.current) {
-      textureRef.current.dispose();
-    }
-
     const canvas = document.createElement('canvas');
     canvas.width = 512;
     canvas.height = 512;
@@ -190,20 +172,15 @@ const ZoneFloorGrid: React.FC<{
         ctx.stroke();
       }
     }
-    const newTexture = new CanvasTexture(canvas);
-    textureRef.current = newTexture;
-    return newTexture;
+    return new CanvasTexture(canvas);
   }, [color]);
 
-  // Cleanup texture on unmount
+  // Cleanup texture on unmount or when color changes
   useEffect(() => {
     return () => {
-      if (textureRef.current) {
-        textureRef.current.dispose();
-        textureRef.current = null;
-      }
+      texture.dispose();
     };
-  }, []);
+  }, [texture]);
 
   return (
     <mesh position={position} rotation={[-Math.PI / 2, 0, 0]}>

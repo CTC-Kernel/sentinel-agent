@@ -49,6 +49,8 @@ import { OnboardingService } from '../services/onboardingService';
 import { EvidenceDossierService } from '../services/EvidenceDossierService';
 import { ComplianceStatsWidget } from '../components/compliance/ComplianceStatsWidget';
 
+type ComplianceTab = 'overview' | 'controls' | 'mapping' | 'shared' | 'soa' | 'efficiency' | 'homologation';
+
 export const Compliance: React.FC = () => {
     const { user, addToast, t, organization } = useStore();
     const location = useLocation();
@@ -86,7 +88,7 @@ export const Compliance: React.FC = () => {
 
     // UI State - default to first enabled framework
     const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');
-    const [activeTab, setActiveTab] = useState<'overview' | 'controls' | 'mapping' | 'shared' | 'soa' | 'efficiency' | 'homologation'>('overview');
+    const [activeTab, setActiveTab] = useState<ComplianceTab>('overview');
 
     // Ensure current framework is valid when enabled frameworks change
     useEffect(() => {
@@ -233,12 +235,12 @@ export const Compliance: React.FC = () => {
     useEffect(() => {
         const tab = searchParams.get('tab');
         if (tab && ['overview', 'controls', 'mapping', 'shared', 'soa', 'efficiency', 'homologation'].includes(tab)) {
-            setActiveTab(tab as any);
+            setActiveTab(tab as ComplianceTab);
         }
     }, [searchParams]);
 
     const handleTabChange = (id: string) => {
-        setActiveTab(id as any);
+        setActiveTab(id as ComplianceTab);
         setSearchParams(prev => {
             const next = new URLSearchParams(prev);
             next.set('tab', id);

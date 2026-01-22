@@ -604,9 +604,9 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
             <Separator />
 
             <div className="space-y-2">
-              <Label>{t('legalHold.form.selectDocuments', 'Selectionner les documents')}</Label>
+              <Label>{t('legalHold.form.selectDocuments', 'Sélectionner les documents')}</Label>
               <p className="text-sm text-muted-foreground">
-                {formData.selectedDocuments.length} document(s) selectionne(s)
+                {formData.selectedDocuments.length} document(s) sélectionné(s)
               </p>
               <ScrollArea className="h-[200px] border rounded-lg p-2">
                 <div className="space-y-2">

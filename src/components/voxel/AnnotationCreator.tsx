@@ -399,12 +399,12 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
             {/* Team selector (shown only when visibility is 'team') */}
             {visibility === 'team' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Equipe</label>
+                <label className="text-sm font-medium text-slate-300">Équipe</label>
                 <input
                   type="text"
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value)}
-                  placeholder="ID de l'equipe"
+                  placeholder="ID de l'équipe"
                   className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
               </div>

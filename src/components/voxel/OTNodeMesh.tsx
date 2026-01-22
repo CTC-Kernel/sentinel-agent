@@ -34,14 +34,7 @@ export { SEGMENT_COLORS, CRITICALITY_SIZES, CRITICALITY_GLOW } from './voxelCons
  */
 const IndustrialIconSprite: React.FC<{ color: string; size: number }> = React.memo(
   ({ color, size }) => {
-    const textureRef = useRef<CanvasTexture | null>(null);
-
     const texture = useMemo(() => {
-      // Dispose previous texture if exists (memory leak fix)
-      if (textureRef.current) {
-        textureRef.current.dispose();
-      }
-
       const canvas = document.createElement('canvas');
       canvas.width = 64;
       canvas.height = 64;
@@ -98,20 +91,15 @@ const IndustrialIconSprite: React.FC<{ color: string; size: number }> = React.me
         ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
         ctx.stroke();
       }
-      const newTexture = new CanvasTexture(canvas);
-      textureRef.current = newTexture;
-      return newTexture;
+      return new CanvasTexture(canvas);
     }, [color]);
 
-    // Cleanup texture on unmount
+    // Cleanup texture on unmount or when color changes
     useEffect(() => {
       return () => {
-        if (textureRef.current) {
-          textureRef.current.dispose();
-          textureRef.current = null;
-        }
+        texture.dispose();
       };
-    }, []);
+    }, [texture]);
 
     return (
       <Billboard position={[0, 0.8, 0]}>

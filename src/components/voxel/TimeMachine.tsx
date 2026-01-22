@@ -479,7 +479,7 @@ export function TimeMachine({
                 onClick={() => setIsCompareCalendarOpen(!isCompareCalendarOpen)}
               >
                 <Calendar className="mr-2 h-4 w-4" />
-                {compareDate ? format(compareDate, 'PPP', { locale: fr }) : "Selectionnez une date"}
+                {compareDate ? format(compareDate, 'PPP', { locale: fr }) : "Sélectionnez une date"}
               </Button>
 
               {isCompareCalendarOpen && (
@@ -617,7 +617,7 @@ export function TimeMachine({
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Clock className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">Selectionnez une date pour voir le snapshot</p>
+            <p className="text-muted-foreground">Sélectionnez une date pour voir le snapshot</p>
           </div>
         )}
       </div>
@@ -626,7 +626,7 @@ export function TimeMachine({
       <div className="p-4 border-t bg-muted/50">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Badge variant="outline">Lecture seule</Badge>
-          <span>Donnees historiques - non modifiables</span>
+          <span>Données historiques - non modifiables</span>
         </div>
       </div>
     </div>

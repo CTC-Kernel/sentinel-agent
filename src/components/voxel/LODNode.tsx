@@ -248,14 +248,7 @@ const MediumDetailGeometry: React.FC<{ nodeType: VoxelNodeType; color: string; o
 // ============================================================================
 
 const LowDetailBillboard: React.FC<{ color: string; size: number }> = ({ color, size }) => {
-  const textureRef = useRef<CanvasTexture | null>(null);
-
   const texture = useMemo(() => {
-    // Dispose previous texture if exists (memory leak fix)
-    if (textureRef.current) {
-      textureRef.current.dispose();
-    }
-
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -269,20 +262,15 @@ const LowDetailBillboard: React.FC<{ color: string; size: number }> = ({ color, 
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 64, 64);
     }
-    const newTexture = new CanvasTexture(canvas);
-    textureRef.current = newTexture;
-    return newTexture;
+    return new CanvasTexture(canvas);
   }, [color]);
 
-  // Cleanup texture on unmount
+  // Cleanup texture on unmount or when color changes
   useEffect(() => {
     return () => {
-      if (textureRef.current) {
-        textureRef.current.dispose();
-        textureRef.current = null;
-      }
+      texture.dispose();
     };
-  }, []);
+  }, [texture]);
 
   return (
     <Billboard>
