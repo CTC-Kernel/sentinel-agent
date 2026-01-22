@@ -858,6 +858,7 @@ export async function checkAndUpdateExpiredDossiers(
 
 /**
  * Create a hash from EBIOS analysis data for change detection
+ * Uses cyrb53 algorithm for high-quality non-cryptographic hashing
  */
 export function createEbiosDataHash(analysis: EbiosAnalysis): string {
   const dataString = JSON.stringify({
@@ -871,14 +872,23 @@ export function createEbiosDataHash(analysis: EbiosAnalysis): string {
     }))
   });
 
-  // Simple hash function
-  let hash = 0;
+  // cyrb53 hash function - high-quality 53-bit hash with excellent distribution
+  // Reference: https://stackoverflow.com/a/52171480 (bryc's cyrb53)
+  const seed = 0;
+  let h1 = 0xdeadbeef ^ seed;
+  let h2 = 0x41c6ce57 ^ seed;
   for (let i = 0; i < dataString.length; i++) {
-    const char = dataString.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    const ch = dataString.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
   }
-  return Math.abs(hash).toString(16);
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+  // Combine into 53-bit hash and convert to hex
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
 }
 
 /**

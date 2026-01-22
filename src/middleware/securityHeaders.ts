@@ -43,8 +43,9 @@ export function getSecurityHeaders(config: Partial<SecurityHeadersConfig> = {}):
         : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com https://browser.sentry-cdn.com",
       // Styles: Autoriser inline styles pour Tailwind et autres
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // Images: Autoriser toutes les sources (Firebase Storage, avatars externes, etc.)
-      "img-src 'self' data: blob: https: http:",
+      // Images: Autoriser uniquement HTTPS (Firebase Storage, avatars externes, etc.)
+      // SECURITY: http: removed to prevent MITM attacks on images
+      "img-src 'self' data: blob: https:",
       // Fonts: Google Fonts et locales
       "font-src 'self' data: https://fonts.gstatic.com",
       // Connect: Firebase, APIs externes
@@ -156,7 +157,7 @@ export const firebaseHostingHeaders = [
     "headers": [
       {
         "key": "Content-Security-Policy",
-        "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https: http:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.google.com https://*.sentry.io wss://*.firebaseio.com https://api.stripe.com https://api.sendgrid.com; media-src 'self' blob: https://*.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; frame-ancestors 'none'; frame-src 'self' https://www.google.com https://www.gstatic.com https://recaptcha.net https://www.recaptcha.net https://checkout.stripe.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+        "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.google.com https://*.sentry.io wss://*.firebaseio.com https://api.stripe.com https://api.sendgrid.com; media-src 'self' blob: https://*.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; frame-ancestors 'none'; frame-src 'self' https://www.google.com https://www.gstatic.com https://recaptcha.net https://www.recaptcha.net https://checkout.stripe.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
       },
       {
         "key": "Strict-Transport-Security",
@@ -213,7 +214,7 @@ export const firebaseHostingHeaders = [
  */
 export const nginxSecurityConfig = `
 # Security Headers
-add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https: http:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.google.com https://*.sentry.io wss://*.firebaseio.com https://api.stripe.com https://api.sendgrid.com; media-src 'self' blob: https://*.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; frame-ancestors 'none'; frame-src 'self' https://www.google.com https://www.gstatic.com https://recaptcha.net https://www.recaptcha.net https://checkout.stripe.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.google.com https://apis.google.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.google.com https://*.sentry.io wss://*.firebaseio.com https://api.stripe.com https://api.sendgrid.com; media-src 'self' blob: https://*.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; frame-ancestors 'none'; frame-src 'self' https://www.google.com https://www.gstatic.com https://recaptcha.net https://www.recaptcha.net https://checkout.stripe.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests" always;
 add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
 add_header X-Frame-Options "DENY" always;
 add_header X-Content-Type-Options "nosniff" always;

@@ -43,6 +43,9 @@ export interface Organization {
     updatedAt: string;
     isActive?: boolean;
     storageUsed?: number; // in bytes
+    // DORA Compliance fields (Article 3 - Entity identification)
+    lei?: string; // Legal Entity Identifier - 20-character alphanumeric code (ISO 17442)
+    country?: string; // ISO 3166-1 alpha-2 country code (e.g., 'FR', 'DE', 'BE')
     settings?: {
         theme?: 'light' | 'dark' | 'system';
         language?: 'fr' | 'en';

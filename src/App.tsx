@@ -29,7 +29,7 @@ import { AuthGuard } from './components/auth/AuthGuard';
 import { TestAuthGuard } from './components/auth/TestGuards';
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
 import { CertifierAuthGuard } from './components/auth/CertifierAuthGuard';
-import { SuperAdminGuard } from './components/auth/SuperAdminGuard';
+import { StrictSuperAdminGuard } from './components/auth/SuperAdminGuard';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WifiOff } from './components/ui/Icons';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
@@ -259,13 +259,13 @@ const AppInner: React.FC = () => {
                             } />
                         </Route>
 
-                        {/* Super Admin Route */}
+                        {/* Super Admin Route - SECURITY: Uses StrictSuperAdminGuard for system-level access */}
                         <Route path="/admin_management" element={
-                            <SuperAdminGuard>
+                            <StrictSuperAdminGuard>
                                 <NotificationProvider>
                                     <AppLayout />
                                 </NotificationProvider>
-                            </SuperAdminGuard>
+                            </StrictSuperAdminGuard>
                         } >
                             <Route index element={<AdminDashboard />} />
                         </Route>

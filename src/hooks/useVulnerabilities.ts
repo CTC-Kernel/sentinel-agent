@@ -125,18 +125,22 @@ export const useVulnerabilities = () => {
 
             await updateDoc(doc(db, 'vulnerabilities', id), dataToSave);
 
-            // Business Logic: If status changed to Resolved/Patch Applied, update related Risk
+            // Business Logic: If status changed to Resolved/Patch Applied, update ALL related Risks
             if (updates.status && (updates.status === 'Resolved' || updates.status === 'Patch Applied')) {
                 const riskQuery = query(collection(db, 'risks'), where('relatedVulnerabilityId', '==', id));
                 const riskSnap = await import('firebase/firestore').then(mod => mod.getDocs(riskQuery));
 
                 if (!riskSnap.empty) {
-                    const riskDoc = riskSnap.docs[0];
-                    await updateDoc(doc(db, 'risks', riskDoc.id), {
-                        status: 'Traité',
-                        updatedAt: serverTimestamp()
-                    });
-                    addToast("Risque associé marqué comme Traité", "success");
+                    // SECURITY FIX: Update ALL related risks, not just the first one
+                    const updatePromises = riskSnap.docs.map(riskDoc =>
+                        updateDoc(doc(db, 'risks', riskDoc.id), {
+                            status: 'Traité',
+                            updatedAt: serverTimestamp()
+                        })
+                    );
+                    await Promise.all(updatePromises);
+                    const count = riskSnap.docs.length;
+                    addToast(`${count} risque${count > 1 ? 's' : ''} associé${count > 1 ? 's' : ''} marqué${count > 1 ? 's' : ''} comme Traité`, "success");
                 }
             }
 

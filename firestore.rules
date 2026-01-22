@@ -689,9 +689,12 @@ service cloud.firestore {
       allow delete: if false;
 
       // War Room Messages Subcollection
+      // SECURITY FIX: Added organization check for message creation
       match /war_room_messages/{msgId} {
         allow read: if canRead(get(/databases/$(database)/documents/incidents/$(incidentId)).data.organizationId);
-        allow create: if isAuthenticated(); // Allow participants to send messages
+        // SECURITY: Only allow message creation if user belongs to the incident's organization
+        allow create: if isAuthenticated() &&
+          belongsToOrganization(get(/databases/$(database)/documents/incidents/$(incidentId)).data.organizationId);
         allow update: if false; // Immutable chat
         allow delete: if false;
       }
@@ -1179,6 +1182,23 @@ service cloud.firestore {
 
     // EBIOS Rules moved to organization subcollection
 
+    // ===========================================================================
+    // AUTHENTICATION SECURITY COLLECTIONS - Managed by Cloud Functions only
+    // ===========================================================================
+
+    // Auth Audit Logs - Authentication attempt history (managed by Cloud Functions)
+    // SECURITY: Only super admins can read for security investigations
+    match /auth_audit_logs/{logId} {
+      allow read: if isSuperAdmin();
+      allow write: if false; // Only Cloud Functions (Admin SDK) can write
+    }
+
+    // Auth Rate Limits - Rate limiting tokens (managed by Cloud Functions)
+    // SECURITY: Never readable by clients, only writable by Cloud Functions
+    match /auth_rate_limits/{limitId} {
+      allow read: if false;
+      allow write: if false; // Only Cloud Functions (Admin SDK) can write
+    }
 
     // Default deny all
     match /{document=**} {

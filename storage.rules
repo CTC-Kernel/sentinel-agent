@@ -52,7 +52,8 @@ service firebase.storage {
     }
 
     // Avatar uploads - user-specific
-    match /avatars/{userId}/{allPaths=**} {
+    // SECURITY: Fixed path traversal vulnerability by using {fileName} instead of {allPaths=**}
+    match /avatars/{userId}/{fileName} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && request.auth.uid == userId && isValidFileSize(5);
     }

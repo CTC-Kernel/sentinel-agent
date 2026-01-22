@@ -50,6 +50,8 @@ export const OrganizationSettings: React.FC = () => {
             address: '',
             vatNumber: '',
             contactEmail: '',
+            lei: '',
+            country: undefined,
             aiSettings: {
                 enabled: true,
                 consentGiven: false,
@@ -66,6 +68,8 @@ export const OrganizationSettings: React.FC = () => {
                 address: organization.address || '',
                 vatNumber: organization.vatNumber || '',
                 contactEmail: organization.contactEmail || '',
+                lei: organization.lei || '',
+                country: organization.country as typeof orgForm.getValues extends () => infer T ? T extends { country?: infer C } ? C : undefined : undefined,
                 aiSettings: organization.settings?.aiSettings || {
                     enabled: true,
                     consentGiven: false,
@@ -85,6 +89,9 @@ export const OrganizationSettings: React.FC = () => {
                 address: data.address,
                 vatNumber: data.vatNumber,
                 contactEmail: data.contactEmail,
+                // DORA Compliance fields
+                lei: data.lei || undefined,
+                country: data.country || undefined,
                 settings: {
                     ...currentOrg?.settings,
                     aiSettings: data.aiSettings
@@ -328,6 +335,66 @@ export const OrganizationSettings: React.FC = () => {
                                     label={t('settings.vatNumber')}
                                     {...orgForm.register('vatNumber')}
                                 />
+                            </div>
+
+                            {/* DORA Compliance Section */}
+                            <div className="pt-6 border-t border-white/10">
+                                <h4 className="text-md font-semibold text-slate-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                                    <span className="text-blue-500">🏛️</span> {t('settings.doraCompliance', { defaultValue: 'Conformité DORA' })}
+                                </h4>
+                                <p className="text-xs text-slate-500 dark:text-gray-400 mb-4">
+                                    {t('settings.doraComplianceDesc', { defaultValue: 'Informations requises pour la conformité au règlement DORA (Digital Operational Resilience Act) - Article 3.' })}
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <FloatingLabelInput
+                                        label={t('settings.lei', { defaultValue: 'LEI (Legal Entity Identifier)' })}
+                                        {...orgForm.register('lei')}
+                                        error={orgForm.formState.errors.lei?.message}
+                                        placeholder="Ex: 549300EXAMPLE00LEI90"
+                                    />
+                                    <div className="space-y-1">
+                                        <label htmlFor="country-select" className="block text-sm font-medium text-slate-700 dark:text-gray-300">
+                                            {t('settings.country', { defaultValue: 'Pays (UE)' })}
+                                        </label>
+                                        <select
+                                            id="country-select"
+                                            {...orgForm.register('country')}
+                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                        >
+                                            <option value="">{t('settings.selectCountry', { defaultValue: 'Sélectionner un pays' })}</option>
+                                            <option value="AT">Autriche</option>
+                                            <option value="BE">Belgique</option>
+                                            <option value="BG">Bulgarie</option>
+                                            <option value="HR">Croatie</option>
+                                            <option value="CY">Chypre</option>
+                                            <option value="CZ">République tchèque</option>
+                                            <option value="DK">Danemark</option>
+                                            <option value="EE">Estonie</option>
+                                            <option value="FI">Finlande</option>
+                                            <option value="FR">France</option>
+                                            <option value="DE">Allemagne</option>
+                                            <option value="GR">Grèce</option>
+                                            <option value="HU">Hongrie</option>
+                                            <option value="IE">Irlande</option>
+                                            <option value="IT">Italie</option>
+                                            <option value="LV">Lettonie</option>
+                                            <option value="LT">Lituanie</option>
+                                            <option value="LU">Luxembourg</option>
+                                            <option value="MT">Malte</option>
+                                            <option value="NL">Pays-Bas</option>
+                                            <option value="PL">Pologne</option>
+                                            <option value="PT">Portugal</option>
+                                            <option value="RO">Roumanie</option>
+                                            <option value="SK">Slovaquie</option>
+                                            <option value="SI">Slovénie</option>
+                                            <option value="ES">Espagne</option>
+                                            <option value="SE">Suède</option>
+                                        </select>
+                                        {orgForm.formState.errors.country?.message && (
+                                            <p className="text-xs text-red-500 mt-1">{orgForm.formState.errors.country.message}</p>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* AI & Privacy Section */}

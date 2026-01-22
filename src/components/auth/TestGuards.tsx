@@ -34,13 +34,14 @@ export const TestAuthGuard: React.FC<{ children: React.ReactNode }> = ({ childre
                         ErrorLogger.error(e, 'TestGuards.parseE2EUser');
                     }
                 } else {
-                    // Fallback hardcoded user for robustness
+                    // SECURITY FIX: Fallback user uses 'user' role instead of 'admin'
+                    // to prevent privilege escalation in test mode
                     setUser({
                         uid: "e2e-fallback",
                         email: "test@sentinel.com",
-                        displayName: "Test Admin",
+                        displayName: "Test User",
                         organizationId: "org_default",
-                        role: "admin",
+                        role: "user",
                         onboardingCompleted: true,
                         emailVerified: true
                     });
