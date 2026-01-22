@@ -1,4 +1,4 @@
-# generated: 2026-01-22 (updated - Epic VOX-8 completed)
+# generated: 2026-01-22 (updated - All Voxel Epics VOX-1 through VOX-9 completed)
 # previous: 2026-01-22
 # project: sentinel-grc-v2-prod
 # project_key: sentinel-grc
@@ -573,14 +573,14 @@ development_status:
 
   # Epic VOX-9: MVP+ Advanced Features (P1 - MVP+)
   # FR Reference: FR45-FR52
-  # Architecture: RiskPulse.tsx, useExportCapture.ts, VoxelMinimap.tsx
-  vox-epic-9-mvp-plus-advanced: in-progress
-  vox-9-1-zoom-semantique: backlog # LOD system
+  # Architecture: RiskPulse.tsx, useExportCapture.ts, VoxelMinimap.tsx, useZoomSemantic.ts, VoxelGuidedTour.tsx
+  vox-epic-9-mvp-plus-advanced: done
+  vox-9-1-zoom-semantique: done # useZoomSemantic.ts with macro/medium/micro levels
   vox-9-2-alertes-visuelles-pulse: done # RiskPulse.tsx, CriticalRiskPulse, WarningPulse
-  vox-9-3-mode-guide: backlog # Guided tour
-  vox-9-4-clustering-automatique: backlog # Node clustering
+  vox-9-3-mode-guide: done # VoxelGuidedTour.tsx with auto-play, navigation
+  vox-9-4-clustering-automatique: done # useNodeClustering.ts with spatial grouping
   vox-9-5-minimap-navigation: done # VoxelMinimap.tsx with click-to-navigate
-  vox-9-6-framework-overlay: backlog # Compliance framework overlay
+  vox-9-6-framework-overlay: done # VoxelFrameworkOverlay.tsx with compliance frameworks
   vox-9-7-export-view: done # useExportCapture.ts with PNG/JPEG/WebP, watermark
-  vox-9-8-mode-direction: backlog # Executive simplified view
+  vox-9-8-mode-direction: done # VoxelExecutiveView.tsx with KPIs, gauges
   vox-epic-9-retrospective: optional
