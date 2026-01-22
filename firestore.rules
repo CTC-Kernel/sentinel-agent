@@ -124,17 +124,12 @@ service cloud.firestore {
     // Checks user ID, role, and group memberships against ACL permissions
     function hasExplicitAclPermission(docData, requiredAccess) {
       let acl = docData.get('acl', null);
-      // If no ACL, fall back to classification-based access
-      if (acl == null) {
-        return false;
-      }
-      let permissions = acl.get('permissions', []);
+      let permissions = acl != null ? acl.get('permissions', []) : [];
       let userId = request.auth.uid;
       let userRole = getUserData().role;
 
-      // Check each permission entry
-      // Note: Firestore rules have limited iteration, so we check common cases
-      return permissions.size() > 0 && (
+      // If no ACL, return false; otherwise check permissions
+      return acl != null && permissions.size() > 0 && (
         // User-based permission
         permissions.hasAny([{
           'principalType': 'user',
@@ -185,46 +180,26 @@ service cloud.firestore {
     // 4. Explicit ACL permission
     function canAccessDocument(docData) {
       let userRole = getUserData().role;
-
-      // Admin and RSSI always have access
-      if (userRole in ['admin', 'super_admin', 'rssi']) {
-        return true;
-      }
-
-      // Document owner always has access
-      if (isDocumentOwner(docData)) {
-        return true;
-      }
-
-      // Check ACL default access mode
       let acl = docData.get('acl', null);
       let defaultAccess = acl != null ? acl.get('defaultAccess', 'classification') : 'classification';
 
-      // Classification-based access
-      if (defaultAccess == 'classification') {
-        return canAccessDocumentClassification(docData);
-      }
-
-      // Explicit ACL only mode - check for read permission
-      return hasExplicitAclPermission(docData, 'read');
+      // Admin and RSSI always have access, OR document owner always has access
+      // OR check based on defaultAccess mode
+      return userRole in ['admin', 'super_admin', 'rssi'] ||
+             isDocumentOwner(docData) ||
+             (defaultAccess == 'classification' && canAccessDocumentClassification(docData)) ||
+             (defaultAccess != 'classification' && hasExplicitAclPermission(docData, 'read'));
     }
 
     // Check if user can edit document (requires edit or admin permission)
     function canEditDocument(docData) {
       let userRole = getUserData().role;
 
-      // Admin and RSSI can always edit
-      if (userRole in ['admin', 'super_admin', 'rssi']) {
-        return true;
-      }
-
-      // Document owner can always edit
-      if (isDocumentOwner(docData)) {
-        return true;
-      }
-
-      // Check explicit ACL for edit permission
-      return hasExplicitAclPermission(docData, 'edit');
+      // Admin and RSSI can always edit, OR document owner can always edit,
+      // OR check explicit ACL for edit permission
+      return userRole in ['admin', 'super_admin', 'rssi'] ||
+             isDocumentOwner(docData) ||
+             hasExplicitAclPermission(docData, 'edit');
     }
 
     // --- PERMISSION LOGIC ---
