@@ -6,8 +6,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon, RefreshCcw, BarChart3,
-  Calculator, Award
+  Scale, Shield, Printer, LucideIcon, RefreshCcw,
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -81,11 +80,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         { key: 'ebios', name: 'EBIOS RM', to: '/ebios', icon: Scale, resource: 'Risk' }, // EBIOS Risk Manager
         { key: 'smsi', name: 'Programme SMSI', to: '/smsi', icon: RefreshCcw, resource: 'Risk' }, // ISO 27003 PDCA
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText, resource: 'Audit' }, // Compliance often mapped to Audit roles
-        { key: 'dora', name: 'Registre DORA', to: '/dora/providers', icon: Shield, resource: 'Supplier' }, // DORA Art. 28 ICT Register
-        { key: 'financial-risk', name: 'Risques Financiers', to: '/financial-risk', icon: Calculator, resource: 'Risk' }, // FAIR Model
-        { key: 'homologation', name: 'Homologation', to: '/homologation', icon: Award, resource: 'Risk' }, // ANSSI Homologation
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
-        { key: 'control-effectiveness', name: 'Efficacité Contrôles', to: '/control-effectiveness', icon: BarChart3, resource: 'Audit' }, // ISO 27002
         { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP
         { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint, resource: 'Document' }, // Privacy
       ]

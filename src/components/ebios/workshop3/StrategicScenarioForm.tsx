@@ -6,7 +6,7 @@
  * Modal form for creating and editing strategic scenarios with gravity evaluation
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import { Button } from '../../ui/button';
+import { ConfirmModal } from '../../ui/ConfirmModal';
 import type {
   StrategicScenario,
   SROVPair,
@@ -65,6 +66,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith('fr') ? 'fr' : 'en';
   const isEditing = !!scenario?.name;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const {
     register,
@@ -130,9 +132,8 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
 
   const handleDelete = () => {
     if (scenario && onDelete) {
-      if (window.confirm(t('ebios.workshop3.confirmDeleteScenario', 'Êtes-vous sûr de vouloir supprimer ce scénario ?'))) {
-        onDelete(scenario.id);
-      }
+      onDelete(scenario.id);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -401,7 +402,7 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteConfirm(true)}
                   className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -420,6 +421,17 @@ export const StrategicScenarioForm: React.FC<StrategicScenarioFormProps> = ({
             </div>
           </div>
         </form>
+
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title={t('ebios.workshop3.deleteScenarioTitle', 'Supprimer le scénario')}
+          message={t('ebios.workshop3.confirmDeleteScenario', 'Êtes-vous sûr de vouloir supprimer ce scénario ?')}
+          type="danger"
+          confirmText={t('common.delete', 'Supprimer')}
+          cancelText={t('common.cancel', 'Annuler')}
+        />
       </GlassCard>
     </div>
   );

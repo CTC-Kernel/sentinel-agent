@@ -84,7 +84,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
 
                 {/* Sticky Tabs Header */}
                 {tabs.length > 0 && onTabChange && (
-                    <div className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 px-6 pt-2">
+                    <div className="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-white/5 px-6 pt-2">
                         <ScrollableTabs
                             tabs={tabs}
                             activeTab={activeTab || tabs[0].id}
@@ -101,7 +101,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
                         </div>
                     ) : (
-                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-4 h-full">
+                        <div key={activeTab} className="animate-in fade-in duration-300 slide-in-from-bottom-2 h-full">
                             {children}
                         </div>
                     )}

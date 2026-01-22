@@ -35,6 +35,13 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { ProjectFormData } from '../schemas/projectSchema';
 import { ErrorLogger } from '../services/errorLogger';
 import { DocumentUploadWizard } from '../components/documents/DocumentUploadWizard';
+import { ControlEffectivenessDashboard } from '../components/controls/dashboard/ControlEffectivenessDashboard';
+import { ControlEffectivenessManager } from '../components/controls/ControlEffectivenessManager';
+import { AssessmentFormModal } from '../components/controls/AssessmentFormModal';
+import { useControlEffectiveness } from '../hooks/controls/useControlEffectiveness';
+import { ISO_SEED_CONTROLS } from '../data/complianceData';
+import { BarChart3, Award } from '../components/ui/Icons';
+import Homologation from './Homologation';
 // Form validation: useForm with required fields
 // Form validation: useForm with required fields
 
@@ -79,7 +86,7 @@ export const Compliance: React.FC = () => {
 
     // UI State - default to first enabled framework
     const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');
-    const [activeTab, setActiveTab] = useState<'overview' | 'controls' | 'mapping' | 'shared' | 'soa'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'controls' | 'mapping' | 'shared' | 'soa' | 'efficiency' | 'homologation'>('overview');
 
     // Ensure current framework is valid when enabled frameworks change
     useEffect(() => {
@@ -97,6 +104,27 @@ export const Compliance: React.FC = () => {
     const [showMissingEvidence, setShowMissingEvidence] = useState(false);
     const [uploadWizardOpen, setUploadWizardOpen] = useState(false);
     const [generatingDossier, setGeneratingDossier] = useState(false);
+    const [showAssessmentForm, setShowAssessmentForm] = useState(false);
+    const [selectedEffControl, setSelectedEffControl] = useState<{ code: string; name: string } | null>(null);
+
+    const {
+        assessments,
+        domainScores,
+        loading: effLoading,
+        error: effError,
+        createAssessment
+    } = useControlEffectiveness();
+
+    const handleOpenAssessment = (control?: { code: string; name: string }) => {
+        setSelectedEffControl(control || null);
+        setShowAssessmentForm(true);
+    };
+
+    const handleAssessmentSubmit = async (data: { controlId: string; controlCode: string; effectivenessScore: number; assessmentMethod: string; }) => {
+        await createAssessment(data);
+        setShowAssessmentForm(false);
+        setSelectedEffControl(null);
+    };
 
     // Initial Link State (from navigation)
     const initialState = (location.state || {}) as { createForProject?: string; projectName?: string };
@@ -200,6 +228,23 @@ export const Compliance: React.FC = () => {
             addToast(t('compliance.linkMode', { project: initialState.projectName || '' }), 'info');
         }
     }, [initialState.createForProject, initialState.projectName, addToast, t]);
+
+    // Sync tab with URL
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab && ['overview', 'controls', 'mapping', 'shared', 'soa', 'efficiency', 'homologation'].includes(tab)) {
+            setActiveTab(tab as any);
+        }
+    }, [searchParams]);
+
+    const handleTabChange = (id: string) => {
+        setActiveTab(id as any);
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set('tab', id);
+            return next;
+        });
+    };
 
 
     const handleCreateClick = (type: 'risk' | 'project' | 'audit') => {
@@ -343,12 +388,14 @@ export const Compliance: React.FC = () => {
                             tabs={[
                                 { id: 'overview', label: t('compliance.overview'), icon: LayoutDashboard },
                                 { id: 'controls', label: t('compliance.controls'), icon: ListChecks },
+                                { id: 'efficiency', label: t('compliance.efficiency') || 'Efficacité', icon: BarChart3 },
+                                { id: 'homologation', label: t('compliance.homologation') || 'Homologation', icon: Award },
                                 { id: 'mapping', label: t('compliance.mapping') || 'Mapping', icon: Layers },
                                 { id: 'shared', label: t('compliance.shared') || 'Partagées', icon: Link },
                                 { id: 'soa', label: t('compliance.soa'), icon: FileText }
                             ]}
                             activeTab={activeTab}
-                            onTabChange={(id) => setActiveTab(id as 'overview' | 'controls' | 'mapping' | 'shared' | 'soa')}
+                            onTabChange={handleTabChange}
                         />
                     </div>
 
@@ -474,6 +521,27 @@ export const Compliance: React.FC = () => {
                             />
                         </div>
                     )}
+
+                    {activeTab === 'efficiency' && (
+                        <div className="animate-fade-in space-y-8">
+                            <ControlEffectivenessDashboard
+                                onAssessClick={() => handleOpenAssessment(undefined)}
+                            />
+                            <ControlEffectivenessManager
+                                assessments={assessments}
+                                domainScores={domainScores}
+                                loading={effLoading}
+                                error={effError}
+                                onAssessControl={handleOpenAssessment}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'homologation' && (
+                        <div className="animate-fade-in">
+                            <Homologation hideHeader />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -534,6 +602,19 @@ export const Compliance: React.FC = () => {
                 risks={risks}
                 folders={folders} // Real folders from useDocumentsData
             />
+
+            {/* Efficiency Assessment Modal */}
+            {showAssessmentForm && (
+                <AssessmentFormModal
+                    control={selectedEffControl}
+                    controls={ISO_SEED_CONTROLS}
+                    onClose={() => {
+                        setShowAssessmentForm(false);
+                        setSelectedEffControl(null);
+                    }}
+                    onSubmit={handleAssessmentSubmit}
+                />
+            )}
         </>
     );
 };

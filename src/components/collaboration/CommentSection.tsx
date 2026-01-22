@@ -76,8 +76,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
             await add({
                 userId: user.uid,
                 userName: user.displayName || user.email || 'Utilisateur',
-                organizationId: user.organizationId,
                 content: data.content.trim(),
+                ...(user.organizationId ? { organizationId: user.organizationId } : {}),
                 ...(replyTo ? { parentId: replyTo } : {}),
                 mentions
             });

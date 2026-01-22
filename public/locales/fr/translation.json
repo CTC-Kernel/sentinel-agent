@@ -826,7 +826,8 @@
       "intelligence": "Intelligence",
       "contract": "Contrats",
       "comments": "Discussion",
-      "history": "Historique"
+      "history": "Historique",
+      "dora": "Registre DORA"
     },
     "cards": {
       "contact": "Contact",
@@ -1174,6 +1175,7 @@
     "overview": "Vue d'ensemble",
     "registry": "Registre",
     "matrix": "Matrice",
+    "financial": "Risques Financiers",
     "searchPlaceholder": "Rechercher une menace, vulnérabilité...",
     "framework": "Référentiel",
     "allFrameworks": "Tous les référentiels",
@@ -1868,6 +1870,8 @@
     "title": "Conformité",
     "subtitle": "Pilotez votre conformité normative (ISO 27001, RGPD, DORA...).",
     "overview": "Vue d'ensemble",
+    "efficiency": "Efficacité",
+    "homologation": "Homologation",
     "controls": "Contrôles (Annexe A)",
     "soa": "Déclaration d'Applicabilité (DdA)",
     "newAudit": "Lancer un Audit",

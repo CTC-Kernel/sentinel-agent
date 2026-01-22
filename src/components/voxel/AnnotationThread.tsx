@@ -126,7 +126,7 @@ const ReplyItem: React.FC<{
               {createdDate.toLocaleDateString('fr-FR')} a {createdDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
             </span>
             {reply.isEdited && (
-              <span className="text-xs text-slate-500 italic">(modifie)</span>
+              <span className="text-xs text-slate-500 italic">(modifié)</span>
             )}
           </div>
 
@@ -235,7 +235,7 @@ const ReplyForm: React.FC<{
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ecrivez une reponse... (Cmd+Enter pour envoyer)"
+            placeholder="Écrivez une réponse... (Cmd+Enter pour envoyer)"
             rows={2}
             className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
           />
@@ -338,7 +338,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
   // Handle delete reply
   const handleDeleteReply = useCallback(async (replyId: string) => {
-    if (!window.confirm('Supprimer cette reponse ?')) return;
+    if (!window.confirm('Supprimer cette réponse ?')) return;
 
     await AnnotationService.deleteReply(annotation.id, replyId);
     setReplies((prev) => prev.filter((r) => r.id !== replyId));
@@ -380,7 +380,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
   // Handle delete annotation
   const handleDeleteAnnotation = useCallback(async () => {
-    if (!window.confirm('Supprimer cette annotation et toutes ses reponses ?')) return;
+    if (!window.confirm('Supprimer cette annotation et toutes ses réponses ?')) return;
 
     const success = await AnnotationService.deleteAnnotation(annotation.id);
     if (success) {
@@ -447,7 +447,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50"
                   >
                     {annotation.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                    {annotation.isPinned ? 'Desepingler' : 'Epingler'}
+                    {annotation.isPinned ? 'Désépingler' : 'Épingler'}
                   </button>
 
                   {isOwner && (
@@ -549,7 +549,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                     ) : (
                       <CheckCircle className="w-4 h-4" />
                     )}
-                    Resoudre
+                    Résoudre
                   </button>
                 )}
 
@@ -571,7 +571,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                 <div className="flex items-center gap-2 text-green-400 text-sm">
                   <Check className="w-4 h-4" />
                   <span>
-                    Resolu par {annotation.resolvedBy.displayName} le{' '}
+                    Résolu par {annotation.resolvedBy.displayName} le{' '}
                     {new Date(annotation.resolvedAt).toLocaleDateString('fr-FR')}
                   </span>
                 </div>
@@ -593,7 +593,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
             >
               <div className="flex items-center gap-2 text-sm text-slate-400">
                 <MessageSquare className="w-4 h-4" />
-                <span>{annotation.replyCount} reponse(s)</span>
+                <span>{annotation.replyCount} réponse(s)</span>
               </div>
               {isExpanded ? (
                 <ChevronUp className="w-4 h-4 text-slate-400" />
@@ -616,7 +616,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                     </div>
                   ) : replies.length === 0 ? (
                     <div className="py-8 text-center text-sm text-slate-500">
-                      Aucune reponse pour le moment
+                      Aucune réponse pour le moment
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-700/30">

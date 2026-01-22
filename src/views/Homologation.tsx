@@ -33,7 +33,11 @@ const LEVEL_ICONS: Record<HomologationLevel, LucideIcon> = {
   renforce: ShieldAlert
 };
 
-const Homologation: React.FC = () => {
+interface HomologationProps {
+  hideHeader?: boolean;
+}
+
+const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -149,18 +153,20 @@ const Homologation: React.FC = () => {
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('homologation.title', 'Homologation ANSSI')}</h1>
-          <p className="text-muted-foreground">
-            {t('homologation.subtitle', 'Gérez vos dossiers d\'homologation RGS')}
-          </p>
+      {!hideHeader && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">{t('homologation.title', 'Homologation ANSSI')}</h1>
+            <p className="text-muted-foreground">
+              {t('homologation.subtitle', 'Gérez vos dossiers d\'homologation RGS')}
+            </p>
+          </div>
+          <Button onClick={() => setShowWizard(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('homologation.newDossier', 'Nouveau dossier')}
+          </Button>
         </div>
-        <Button onClick={() => setShowWizard(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t('homologation.newDossier', 'Nouveau dossier')}
-        </Button>
-      </div>
+      )}
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">

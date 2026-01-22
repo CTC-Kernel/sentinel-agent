@@ -5,7 +5,7 @@
  * Modal form for creating and editing attack paths
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import { Button } from '../../ui/button';
+import { ConfirmModal } from '../../ui/ConfirmModal';
 import type { AttackPath, EcosystemParty, EssentialAsset } from '../../../types/ebios';
 import { LIKELIHOOD_SCALE } from '../../../data/ebiosLibrary';
 
@@ -58,6 +59,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith('fr') ? 'fr' : 'en';
   const isEditing = !!path?.name;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const {
     register,
@@ -121,9 +123,8 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
 
   const handleDelete = () => {
     if (path && onDelete) {
-      if (window.confirm(t('ebios.workshop3.confirmDeletePath', 'Êtes-vous sûr de vouloir supprimer ce chemin d\'attaque ?'))) {
-        onDelete(path.id);
-      }
+      onDelete(path.id);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -381,7 +382,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteConfirm(true)}
                   className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -400,6 +401,17 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
             </div>
           </div>
         </form>
+
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title={t('ebios.workshop3.deletePathTitle', 'Supprimer le chemin d\'attaque')}
+          message={t('ebios.workshop3.confirmDeletePath', 'Êtes-vous sûr de vouloir supprimer ce chemin d\'attaque ?')}
+          type="danger"
+          confirmText={t('common.delete', 'Supprimer')}
+          cancelText={t('common.cancel', 'Annuler')}
+        />
       </GlassCard>
     </div>
   );

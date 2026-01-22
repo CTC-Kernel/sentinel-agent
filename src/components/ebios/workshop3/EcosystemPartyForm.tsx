@@ -5,7 +5,7 @@
  * Modal form for creating and editing ecosystem parties
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import { Button } from '../../ui/button';
+import { ConfirmModal } from '../../ui/ConfirmModal';
 import type { EcosystemParty, EcosystemPartyType } from '../../../types/ebios';
 
 const PARTY_TYPES: EcosystemPartyType[] = [
@@ -86,6 +87,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith('fr') ? 'fr' : 'en';
   const isEditing = !!party?.name;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const {
     register,
@@ -148,9 +150,8 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
 
   const handleDelete = () => {
     if (party && onDelete) {
-      if (window.confirm(t('ebios.workshop3.confirmDeleteParty', 'Êtes-vous sûr de vouloir supprimer cette partie prenante ?'))) {
-        onDelete(party.id);
-      }
+      onDelete(party.id);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -354,7 +355,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteConfirm(true)}
                   className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -373,6 +374,17 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
             </div>
           </div>
         </form>
+
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title={t('ebios.workshop3.deletePartyTitle', 'Supprimer la partie prenante')}
+          message={t('ebios.workshop3.confirmDeleteParty', 'Êtes-vous sûr de vouloir supprimer cette partie prenante ?')}
+          type="danger"
+          confirmText={t('common.delete', 'Supprimer')}
+          cancelText={t('common.cancel', 'Annuler')}
+        />
       </GlassCard>
     </div>
   );

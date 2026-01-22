@@ -236,12 +236,12 @@ export class AuditLogService {
                 resource: getCollectionName(input.entityType),
                 entityType: input.entityType,
                 entityId: input.entityId,
-                entityName: input.entityName,
-                before: sanitizeForStorage(input.before),
-                after: sanitizeForStorage(input.after),
-                changes: changes.length > 0 ? changes : undefined,
-                details: input.details,
-                metadata: input.metadata,
+                ...(input.entityName ? { entityName: input.entityName } : {}),
+                ...(input.before ? { before: sanitizeForStorage(input.before) } : {}),
+                ...(input.after ? { after: sanitizeForStorage(input.after) } : {}),
+                ...(changes.length > 0 ? { changes } : {}),
+                ...(input.details ? { details: input.details } : {}),
+                ...(input.metadata ? { metadata: input.metadata } : {}),
                 timestamp: serverTimestamp()
             };
 
@@ -529,12 +529,12 @@ export class AuditLogService {
                         resource: getCollectionName(input.entityType),
                         entityType: input.entityType,
                         entityId: input.entityId,
-                        entityName: input.entityName,
-                        before: sanitizeForStorage(input.before),
-                        after: sanitizeForStorage(input.after),
-                        changes: changes.length > 0 ? changes : undefined,
-                        details: input.details,
-                        metadata: input.metadata,
+                        ...(input.entityName ? { entityName: input.entityName } : {}),
+                        ...(input.before ? { before: sanitizeForStorage(input.before) } : {}),
+                        ...(input.after ? { after: sanitizeForStorage(input.after) } : {}),
+                        ...(changes.length > 0 ? { changes } : {}),
+                        ...(input.details ? { details: input.details } : {}),
+                        ...(input.metadata ? { metadata: input.metadata } : {}),
                         timestamp: serverTimestamp()
                     };
 

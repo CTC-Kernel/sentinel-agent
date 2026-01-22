@@ -40,6 +40,8 @@ import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { RiskContextManager } from '../components/risks/context/RiskContextManager';
 // CustomSelect removed
 // Button removed
+import { FinancialRisk } from './FinancialRisk';
+import { Calculator } from '../components/ui/Icons';
 
 
 // ... existing imports ...
@@ -61,7 +63,7 @@ const RiskMatrix = React.lazy(() => import('../components/risks/RiskMatrix').the
 // Inline Loader
 const Spinner = () => <div className="flex items-center justify-center p-8"><Loader className="w-8 h-8 animate-spin text-primary" /></div>;
 
-type RiskTab = 'overview' | 'list' | 'matrix' | 'context';
+type RiskTab = 'overview' | 'list' | 'matrix' | 'context' | 'financial';
 
 export const Risks: React.FC = () => {
     // Hooks
@@ -155,12 +157,13 @@ export const Risks: React.FC = () => {
 
     // Handle tab deep link (e.g., from /risk-context redirect)
     useEffect(() => {
-        if (deepLinkTab && ['overview', 'list', 'matrix', 'context'].includes(deepLinkTab)) {
+        if (deepLinkTab && ['overview', 'list', 'matrix', 'context', 'financial'].includes(deepLinkTab)) {
             setActiveTab(deepLinkTab as RiskTab);
             // Clean up the tab param after applying it
             setSearchParams(params => {
-                params.delete('tab');
-                return params;
+                const next = new URLSearchParams(params);
+                next.delete('tab');
+                return next;
             }, { replace: true });
         }
     }, [deepLinkTab, setActiveTab, setSearchParams]);
@@ -368,6 +371,7 @@ export const Risks: React.FC = () => {
         { id: 'overview', label: t('risks.overview'), icon: LayoutDashboard },
         { id: 'list', label: t('risks.registry'), icon: List },
         { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },
+        { id: 'financial', label: t('risks.financial') || 'Risques Financiers', icon: Calculator },
         { id: 'context', label: 'Contexte', icon: Target },
     ], [t]);
 
@@ -435,8 +439,25 @@ export const Risks: React.FC = () => {
                 </motion.div>
             )}
 
+            {/* FINANCIAL TAB */}
+            {activeTab === 'financial' && (
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="initial"
+                    animate="visible"
+                    exit="exit"
+                    key="financial-tab"
+                    role="tabpanel"
+                    id="panel-financial"
+                    aria-labelledby="tab-financial"
+                    className="focus:outline-none"
+                >
+                    <FinancialRisk hideHeader />
+                </motion.div>
+            )}
+
             {/* CONTENT TABS */}
-            {activeTab !== 'overview' && activeTab !== 'context' && (
+            {activeTab !== 'overview' && activeTab !== 'context' && activeTab !== 'financial' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
                     <RisksToolbar
                         searchQuery={activeFilters.query}

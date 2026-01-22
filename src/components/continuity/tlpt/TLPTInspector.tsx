@@ -3,6 +3,7 @@ import { TlptCampaign } from '../../../types/tlpt';
 import { InspectorLayout } from '../../ui/InspectorLayout';
 import { TLPTForm } from './TLPTForm';
 import { TlptFindings } from './TlptFindings';
+import { ConfirmModal } from '../../ui/ConfirmModal';
 import {
     Target,
     ShieldAlert,
@@ -28,6 +29,8 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
     onDelete
 }) => {
     const [activeTab, setActiveTab] = useState<'details' | 'findings' | 'report'>('details');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const isNew = !campaign?.id;
 
@@ -53,12 +56,7 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={async () => {
-                                if (confirm('Supprimer cette campagne ?')) {
-                                    await onDelete(campaign.id!);
-                                    onClose();
-                                }
-                            }}
+                            onClick={() => setShowDeleteConfirm(true)}
                             className="text-red-500 hover:text-red-600 hover:bg-red-50"
                         >
                             <Trash className="h-4 w-4" />
@@ -89,6 +87,30 @@ export const TLPTInspector: React.FC<TLPTInspectorProps> = ({
                     )}
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={async () => {
+                    if (onDelete && campaign?.id) {
+                        setIsDeleting(true);
+                        try {
+                            await onDelete(campaign.id);
+                            onClose();
+                        } finally {
+                            setIsDeleting(false);
+                            setShowDeleteConfirm(false);
+                        }
+                    }
+                }}
+                title="Supprimer la campagne"
+                message="Êtes-vous sûr de vouloir supprimer cette campagne TLPT ? Cette action est irréversible."
+                type="danger"
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                loading={isDeleting}
+                closeOnConfirm={false}
+            />
         </InspectorLayout>
     );
 };

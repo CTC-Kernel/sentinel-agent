@@ -851,6 +851,7 @@
     "overview": "Overview",
     "registry": "Registry",
     "matrix": "Matrix",
+    "financial": "Financial Risk",
     "searchPlaceholder": "Search for a threat, vulnerability...",
     "framework": "Framework",
     "allFrameworks": "All Frameworks",
@@ -972,6 +973,8 @@
     "title": "Compliance",
     "subtitle": "Pilot your normative and regulatory compliance",
     "overview": "Overview",
+    "efficiency": "Efficiency",
+    "homologation": "Homologation",
     "controls": "Controls & Evidence",
     "soa": "Statement of Applicability (SoA)",
     "newRisk": "New Risk",
@@ -1075,7 +1078,8 @@
       "intelligence": "Intelligence",
       "assessment": "Security Assessment",
       "history": "History",
-      "comments": "Discussion"
+      "comments": "Discussion",
+      "dora": "DORA Register"
     },
     "cards": {
       "security": "Security",

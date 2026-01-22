@@ -9,6 +9,7 @@ import { Button } from '../../ui/button';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { DatePicker } from '../../ui/DatePicker';
+import { ConfirmModal } from '../../ui/ConfirmModal';
 import { Loader2, ArrowRight, Trash, FileText, AlertTriangle } from '../../ui/Icons';
 
 interface Props {
@@ -34,6 +35,8 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
     });
 
     const [activeTab, setActiveTab] = useState<'details' | 'findings'>('details');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -237,11 +240,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                         {onDelete && initialData && (
                             <Button
                                 type="button"
-                                onClick={() => {
-                                    if (confirm('Supprimer cette campagne ?')) {
-                                        onDelete(initialData.id).then(() => onClose());
-                                    }
-                                }}
+                                onClick={() => setShowDeleteConfirm(true)}
                                 variant="ghost"
                                 className="mr-auto text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                             >
@@ -262,6 +261,30 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={async () => {
+                    if (onDelete && initialData) {
+                        setIsDeleting(true);
+                        try {
+                            await onDelete(initialData.id);
+                            onClose();
+                        } finally {
+                            setIsDeleting(false);
+                            setShowDeleteConfirm(false);
+                        }
+                    }
+                }}
+                title="Supprimer la campagne"
+                message="Êtes-vous sûr de vouloir supprimer cette campagne TLPT ? Cette action est irréversible."
+                type="danger"
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                loading={isDeleting}
+                closeOnConfirm={false}
+            />
         </Drawer>
     );
 };

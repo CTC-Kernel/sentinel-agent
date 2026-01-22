@@ -1,0 +1,88 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for sentinel-grc-v2-prod/ios/App/App/public/assets/web-C5JtVwrv.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../../../../index.html">All files</a> / <a href="index.html">sentinel-grc-v2-prod/ios/App/App/public/assets</a> web-C5JtVwrv.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import{WebPlugin as N}from"./index-QwYULZe3.js";import{k as s,aj as S,R as C,ak as f,ab as O,al as y,am as v,O as a,an as U,ao as g,ap as d,aq as h,P as R,ar as w,as as _,at as I,a0 as k,au as P,a1 as T,av as A,aw as W,s as E,ax as G,m as L,ay as D,n as V,az as M,aA as H,Q as F,aB as B,aC as x,aD as $,aE as j,af as Y,aF as K,aG as p,aH as q,aI as J,N as z,aJ as Q,aK as b,aL as X,aM as Z,aN as ee}from"./firebase-CUH82dy_.js";import{ProviderId as c,Persistence as m}from"./index-32J8a_N7.js";import"./utils-BMXSUX3c.js";import"./vendor-CN6Y1NGb.js";class i extends N{constructor(){super(),this.lastConfirmationResult=new Map;const e=s();e.onAuthStateChanged(t=&gt;this.handleAuthStateChange(t)),e.onIdTokenChanged(t=&gt;void this.handleIdTokenChange(t))}async applyActionCode(e){const t=s();return S(t,e.oobCode)}async createUserWithEmailAndPassword(e){const t=s(),r=await C(t,e.email,e.password);return this.createSignInResult(r,null)}async confirmPasswordReset(e){const t=s();return f(t,e.oobCode,e.newPassword)}async confirmVerificationCode(e){const{verificationCode:t,verificationId:r}=e,n=this.lastConfirmationResult.get(r);if(!n)throw new Error(i.ERROR_CONFIRMATION_RESULT_MISSING);const o=await n.confirm(t);return this.createSignInResult(o,null)}async deleteUser(){const t=s().currentUser;if(!t)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return O(t)}async fetchSignInMethodsForEmail(e){const t=s();return{signInMethods:await y(t,e.email)}}async getPendingAuthResult(){this.throwNotAvailableError()}async getCurrentUser(){const e=s();return{user:this.createUserResult(e.currentUser)}}async getIdToken(e){const t=s();if(!t.currentUser)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return{token:await t.currentUser.getIdToken(e?.forceRefresh)||""}}async getIdTokenResult(e){const t=s();if(!t.currentUser)throw new Error(i.ERROR_NO_USER_SIGNED_IN);const r=await t.currentUser.getIdTokenResult(e?.forceRefresh);return Object.assign(Object.assign({},r),{authTime:Date.parse(r.authTime),expirationTime:Date.parse(r.expirationTime),issuedAtTime:Date.parse(r.issuedAtTime)})}async getRedirectResult(){const e=s(),t=await v(e),r=t?a.credentialFromResult(t):null;return this.createSignInResult(t,r)}async getTenantId(){return{tenantId:s().tenantId}}async isSignInWithEmailLink(e){const t=s();return{isSignInWithEmailLink:U(t,e.emailLink)}}async linkWithApple(e){const t=new a(c.APPLE);this.applySignInOptions(e||{},t);const r=await this.linkCurrentUserWithPopupOrRedirect(t,e?.mode),n=a.credentialFromResult(r);return this.createSignInResult(r,n)}async linkWithEmailAndPassword(e){const t=g.credential(e.email,e.password),r=await this.linkCurrentUserWithCredential(t);return this.createSignInResult(r,t)}async linkWithEmailLink(e){const t=g.credentialWithLink(e.email,e.emailLink),r=await this.linkCurrentUserWithCredential(t);return this.createSignInResult(r,t)}async linkWithFacebook(e){const t=new d;this.applySignInOptions(e||{},t);const r=await this.linkCurrentUserWithPopupOrRedirect(t,e?.mode),n=d.credentialFromResult(r);return this.createSignInResult(r,n)}async linkWithGameCenter(){this.throwNotAvailableError()}async linkWithGithub(e){const t=new h;this.applySignInOptions(e||{},t);const r=await this.linkCurrentUserWithPopupOrRedirect(t,e?.mode),n=h.credentialFromResult(r);return this.createSignInResult(r,n)}async linkWithGoogle(e){const t=new R;this.applySignInOptions(e||{},t);const r=await this.linkCurrentUserWithPopupOrRedirect(t,e?.mode),n=R.credentialFromResult(r);return this.createSignInResult(r,n)}async linkWithMicrosoft(e){const t=new a(c.MICROSOFT);this.applySignInOptions(e||{},t);const r=await this.linkCurrentUserWithPopupOrRedirect(t,e?.mode),n=a.credentialFromResult(r);return this.createSignInResult(r,n)}async linkWithOpenIdConnect(e){const t=new a(e.providerId);this.applySignInOptions(e,t);const r=await this.linkCurrentUserWithPopupOrRedirect(t,e.mode),n=a.credentialFromResult(r);return this.createSignInResult(r,n)}async linkWithPhoneNumber(e){const r=s().currentUser;if(!r)throw new Error(i.ERROR_NO_USER_SIGNED_IN);if(!e.phoneNumber)throw new Error(i.ERROR_PHONE_NUMBER_MISSING);if(!e.recaptchaVerifier||!(e.recaptchaVerifier instanceof w))throw new Error(i.ERROR_RECAPTCHA_VERIFIER_MISSING);try{const n=await _(r,e.phoneNumber,e.recaptchaVerifier),{verificationId:o}=n;this.lastConfirmationResult.set(o,n);const u={verificationId:o};this.notifyListeners(i.PHONE_CODE_SENT_EVENT,u)}catch(n){const o={message:this.getErrorMessage(n)};this.notifyListeners(i.PHONE_VERIFICATION_FAILED_EVENT,o)}}async linkWithPlayGames(){this.throwNotAvailableError()}async linkWithTwitter(e){const t=new I;this.applySignInOptions(e||{},t);const r=await this.linkCurrentUserWithPopupOrRedirect(t,e?.mode),n=I.credentialFromResult(r);return this.createSignInResult(r,n)}async linkWithYahoo(e){const t=new a(c.YAHOO);this.applySignInOptions(e||{},t);const r=await this.linkCurrentUserWithPopupOrRedirect(t,e?.mode),n=a.credentialFromResult(r);return this.createSignInResult(r,n)}async reload(){const t=s().currentUser;if(!t)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return k(t)}async revokeAccessToken(e){const t=s();return P(t,e.token)}async sendEmailVerification(e){const r=s().currentUser;if(!r)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return T(r,e?.actionCodeSettings)}async sendPasswordResetEmail(e){const t=s();return A(t,e.email,e.actionCodeSettings)}async sendSignInLinkToEmail(e){const t=s();return W(t,e.email,e.actionCodeSettings)}async setLanguageCode(e){const t=s();t.languageCode=e.languageCode}async setPersistence(e){const t=s();switch(e.persistence){case m.BrowserLocal:await E(t,V);break;case m.BrowserSession:await E(t,D);break;case m.IndexedDbLocal:await E(t,L);break;case m.InMemory:await E(t,G);break}}async setTenantId(e){const t=s();t.tenantId=e.tenantId}async signInAnonymously(){const e=s(),t=await M(e);return this.createSignInResult(t,null)}async signInWithApple(e){const t=new a(c.APPLE);this.applySignInOptions(e||{},t);const r=await this.signInWithPopupOrRedirect(t,e?.mode),n=a.credentialFromResult(r);return this.createSignInResult(r,n)}async signInWithCustomToken(e){const t=s(),r=await H(t,e.token);return this.createSignInResult(r,null)}async signInWithEmailAndPassword(e){const t=s(),r=await F(t,e.email,e.password);return this.createSignInResult(r,null)}async signInWithEmailLink(e){const t=s(),r=await B(t,e.email,e.emailLink);return this.createSignInResult(r,null)}async signInWithFacebook(e){const t=new d;this.applySignInOptions(e||{},t);const r=await this.signInWithPopupOrRedirect(t,e?.mode),n=d.credentialFromResult(r);return this.createSignInResult(r,n)}async signInWithGithub(e){const t=new h;this.applySignInOptions(e||{},t);const r=await this.signInWithPopupOrRedirect(t,e?.mode),n=h.credentialFromResult(r);return this.createSignInResult(r,n)}async signInWithGoogle(e){const t=new R;this.applySignInOptions(e||{},t);const r=await this.signInWithPopupOrRedirect(t,e?.mode),n=R.credentialFromResult(r);return this.createSignInResult(r,n)}async signInWithMicrosoft(e){const t=new a(c.MICROSOFT);this.applySignInOptions(e||{},t);const r=await this.signInWithPopupOrRedirect(t,e?.mode),n=a.credentialFromResult(r);return this.createSignInResult(r,n)}async signInWithOpenIdConnect(e){const t=new a(e.providerId);this.applySignInOptions(e,t);const r=await this.signInWithPopupOrRedirect(t,e.mode),n=a.credentialFromResult(r);return this.createSignInResult(r,n)}async signInWithPhoneNumber(e){if(!e.phoneNumber)throw new Error(i.ERROR_PHONE_NUMBER_MISSING);if(!e.recaptchaVerifier||!(e.recaptchaVerifier instanceof w))throw new Error(i.ERROR_RECAPTCHA_VERIFIER_MISSING);const t=s();try{const r=await x(t,e.phoneNumber,e.recaptchaVerifier),{verificationId:n}=r;this.lastConfirmationResult.set(n,r);const o={verificationId:n};this.notifyListeners(i.PHONE_CODE_SENT_EVENT,o)}catch(r){const n={message:this.getErrorMessage(r)};this.notifyListeners(i.PHONE_VERIFICATION_FAILED_EVENT,n)}}async signInWithPlayGames(){this.throwNotAvailableError()}async signInWithGameCenter(){this.throwNotAvailableError()}async signInWithTwitter(e){const t=new I;this.applySignInOptions(e||{},t);const r=await this.signInWithPopupOrRedirect(t,e?.mode),n=I.credentialFromResult(r);return this.createSignInResult(r,n)}async signInWithYahoo(e){const t=new a(c.YAHOO);this.applySignInOptions(e||{},t);const r=await this.signInWithPopupOrRedirect(t,e?.mode),n=a.credentialFromResult(r);return this.createSignInResult(r,n)}async signOut(){await s().signOut()}async unlink(e){const t=s();if(!t.currentUser)throw new Error(i.ERROR_NO_USER_SIGNED_IN);const r=await $(t.currentUser,e.providerId);return{user:this.createUserResult(r)}}async updateEmail(e){const r=s().currentUser;if(!r)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return j(r,e.newEmail)}async updatePassword(e){const r=s().currentUser;if(!r)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return Y(r,e.newPassword)}async updateProfile(e){const r=s().currentUser;if(!r)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return K(r,{displayName:e.displayName,photoURL:e.photoUrl})}async useAppLanguage(){s().useDeviceLanguage()}async useEmulator(e){const t=s(),r=e.port||9099,n=e.scheme||"http";e.host.includes("://")?p(t,`${e.host}:${r}`):p(t,`${n}://${e.host}:${r}`)}async verifyBeforeUpdateEmail(e){const r=s().currentUser;if(!r)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return q(r,e?.newEmail,e?.actionCodeSettings)}handleAuthStateChange(e){const r={user:this.createUserResult(e)};this.notifyListeners(i.AUTH_STATE_CHANGE_EVENT,r,!0)}async handleIdTokenChange(e){</span></span>if(!e)return;const r={token:await e.getIdToken(!1)};this.notifyListeners(i.ID_TOKEN_CHANGE_EVENT,r,!0)}applySignInOptions(e,t){if(e.customParameters){const r={};e.customParameters.map(n=&gt;{r[n.key]=n.value}),t.setCustomParameters(r)}if(e.scopes)for(const r of e.scopes)t.addScope(r)}signInWithPopupOrRedirect(e,t){const r=s();return t==="redirect"?J(r,e):z(r,e)}linkCurrentUserWithPopupOrRedirect(e,t){const r=s();if(!r.currentUser)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return t==="redirect"?Q(r.currentUser,e):b(r.currentUser,e)}linkCurrentUserWithCredential(e){const t=s();if(!t.currentUser)throw new Error(i.ERROR_NO_USER_SIGNED_IN);return X(t.currentUser,e)}requestAppTrackingTransparencyPermission(){this.throwNotAvailableError()}checkAppTrackingTransparencyPermission(){this.throwNotAvailableError()}createSignInResult(e,t){const r=this.createUserResult(e?.user||null),n=this.createCredentialResult(t),o=this.createAdditionalUserInfoResult(e);return{user:r,credential:n,additionalUserInfo:o}}createCredentialResult(e){if(!e)return null;const t={providerId:e.providerId};return e instanceof Z&amp;&amp;(t.accessToken=e.accessToken,t.idToken=e.idToken,t.secret=e.secret),t}createUserResult(e){return e?{displayName:e.displayName,email:e.email,emailVerified:e.emailVerified,isAnonymous:e.isAnonymous,metadata:this.createUserMetadataResult(e.metadata),phoneNumber:e.phoneNumber,photoUrl:e.photoURL,providerData:this.createUserProviderDataResult(e.providerData),providerId:e.providerId,tenantId:e.tenantId,uid:e.uid}:null}createUserMetadataResult(e){const t={};return e.creationTime&amp;&amp;(t.creationTime=Date.parse(e.creationTime)),e.lastSignInTime&amp;&amp;(t.lastSignInTime=Date.parse(e.lastSignInTime)),t}createUserProviderDataResult(e){return e.map(t=&gt;({displayName:t.displayName,email:t.email,phoneNumber:t.phoneNumber,photoUrl:t.photoURL,providerId:t.providerId,uid:t.uid}))}createAdditionalUserInfoResult(e){if(!e)return null;const t=ee(e);if(!t)return null;const{isNewUser:r,profile:n,providerId:o,username:u}=t,l={isNewUser:r};return o!==null&amp;&amp;(l.providerId=o),n!==null&amp;&amp;(l.profile=n),u!=null&amp;&amp;(l.username=u),l}getErrorMessage(e){return e instanceof Object&amp;&amp;"message"in e&amp;&amp;typeof e.message=="string"?e.message:JSON.stringify(e)}throwNotAvailableError(){throw new Error("Not available on web.")}}i.AUTH_STATE_CHANGE_EVENT="authStateChange";i.ID_TOKEN_CHANGE_EVENT="idTokenChange";i.PHONE_CODE_SENT_EVENT="phoneCodeSent";i.PHONE_VERIFICATION_FAILED_EVENT="phoneVerificationFailed";i.ERROR_NO_USER_SIGNED_IN="No user is signed in.";i.ERROR_PHONE_NUMBER_MISSING="phoneNumber must be provided.";i.ERROR_RECAPTCHA_VERIFIER_MISSING="recaptchaVerifier must be provided and must be an instance of RecaptchaVerifier.";i.ERROR_CONFIRMATION_RESULT_MISSING="No confirmation result with this verification id was found.";export{i as FirebaseAuthenticationWeb};</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-01-22T22:07:31.881Z
+            </div>
+        <script src="../../../../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../../../../sorter.js"></script>
+        <script src="../../../../../../block-navigation.js"></script>
+    </body>
+</html>
+    

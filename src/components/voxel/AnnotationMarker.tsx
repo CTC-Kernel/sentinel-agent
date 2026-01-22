@@ -244,7 +244,7 @@ const AnnotationTooltip: React.FC<{
         <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
           <span>{annotation.author.displayName}</span>
           {annotation.replyCount > 0 && (
-            <span>{annotation.replyCount} reponse(s)</span>
+            <span>{annotation.replyCount} réponse(s)</span>
           )}
         </div>
       </div>

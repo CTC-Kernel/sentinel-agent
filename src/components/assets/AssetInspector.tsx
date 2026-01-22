@@ -68,6 +68,26 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
 
     const navigate = useNavigate();
 
+    // Memoize tabs configuration
+    const tabs = React.useMemo(() => {
+        const baseTabs = [{ id: 'details', label: 'Détails', icon: LayoutDashboard }];
+        if (!selectedAsset) return baseTabs;
+
+        return [
+            ...baseTabs,
+            { id: 'lifecycle', label: 'Cycle de Vie', icon: RefreshCw },
+            { id: 'security', label: 'Sécurité', icon: ShieldAlert },
+            { id: 'compliance', label: 'Conformité', icon: Shield },
+            { id: 'projects', label: 'Projets', icon: FolderKanban },
+            { id: 'audits', label: 'Audits', icon: CheckSquare },
+            { id: 'documents', label: 'Documents', icon: FileText },
+            { id: 'history', label: 'Historique', icon: History },
+            { id: 'graph', label: 'Graphe', icon: Network },
+            { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+            { id: 'comments', label: 'Discussion', icon: MessageSquare }
+        ];
+    }, [selectedAsset]);
+
     // Use standardized Inspector hook
     const {
         activeTab,
@@ -76,21 +96,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         handleCreate: handleHookCreate
     } = useInspector({
         entity: selectedAsset || null,
-        tabs: [
-            { id: 'details', label: 'Détails', icon: LayoutDashboard },
-            ...(selectedAsset ? [
-                { id: 'lifecycle', label: 'Cycle de Vie', icon: RefreshCw },
-                { id: 'security', label: 'Sécurité', icon: ShieldAlert },
-                { id: 'compliance', label: 'Conformité', icon: Shield },
-                { id: 'projects', label: 'Projets', icon: FolderKanban },
-                { id: 'audits', label: 'Audits', icon: CheckSquare },
-                { id: 'documents', label: 'Documents', icon: FileText },
-                { id: 'history', label: 'Historique', icon: History },
-                { id: 'graph', label: 'Graphe', icon: Network },
-                { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-                { id: 'comments', label: 'Discussion', icon: MessageSquare }
-            ] : [])
-        ],
+        tabs,
         moduleName: 'Asset',
         actions: {
             onUpdate: async (id, data) => {
@@ -107,24 +113,6 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         getEntityName: (asset) => asset.name
     });
 
-    // Determine tabs for Layout (needs to match hook configuration logic or pass from hook if exposed, 
-    // but hook doesn't return computed tabs yet, only takes them. 
-    // We can reuse the same array definition or just trust current activeTab state for rendering content)
-    const tabs = [
-        { id: 'details', label: 'Détails', icon: LayoutDashboard },
-        ...(selectedAsset ? [
-            { id: 'lifecycle', label: 'Cycle de Vie', icon: RefreshCw },
-            { id: 'security', label: 'Sécurité', icon: ShieldAlert },
-            { id: 'compliance', label: 'Conformité', icon: Shield },
-            { id: 'projects', label: 'Projets', icon: FolderKanban },
-            { id: 'audits', label: 'Audits', icon: CheckSquare },
-            { id: 'documents', label: 'Documents', icon: FileText },
-            { id: 'history', label: 'Historique', icon: History },
-            { id: 'graph', label: 'Graphe', icon: Network },
-            { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-            { id: 'comments', label: 'Discussion', icon: MessageSquare }
-        ] : [])
-    ];
     const {
         maintenanceRecords,
         linkedRisks,
@@ -145,6 +133,16 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         createRiskFromVuln
     } = useAssetSecurity(selectedAsset || null);
 
+    // Optimized subtitle data
+    const ownerInfo = React.useMemo(() => {
+        if (!selectedAsset) return null;
+        const ownerUser = users?.find(u => u.displayName === selectedAsset.owner || u.email === selectedAsset.owner);
+        return {
+            avatar: getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role),
+            name: selectedAsset.owner
+        };
+    }, [selectedAsset, users]);
+
     // Tabs defined above for both hook and render
 
 
@@ -154,21 +152,21 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             onClose={onClose}
             title={selectedAsset ? selectedAsset.name : "Nouvel Actif"}
             subtitle={
-                selectedAsset ? (
+                selectedAsset && ownerInfo ? (
                     <div className="flex items-center gap-2 mt-1">
                         <span>{selectedAsset.type}</span>
                         <span className="text-slate-300 dark:text-slate-600">•</span>
                         <div className="flex items-center gap-1.5">
                             <img
-                                src={getUserAvatarUrl(users?.find(u => u.displayName === selectedAsset.owner || u.email === selectedAsset.owner)?.photoURL, users?.find(u => u.displayName === selectedAsset.owner || u.email === selectedAsset.owner)?.role)}
-                                alt={selectedAsset.owner}
+                                src={ownerInfo.avatar}
+                                alt={ownerInfo.name}
                                 className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === selectedAsset.owner || u.email === selectedAsset.owner)?.role);
+                                    target.src = getUserAvatarUrl(null, 'user');
                                 }}
                             />
-                            <span>{selectedAsset.owner}</span>
+                            <span>{ownerInfo.name}</span>
                         </div>
                     </div>
                 ) : "Ajouter un nouvel actif à l'inventaire"

@@ -24,7 +24,11 @@ import { useICTProviders } from '../hooks/useICTProviders';
 import { ICTProvider, ICTCriticality, ICTProviderFilters } from '../types/dora';
 import { ErrorLogger } from '../services/errorLogger';
 
-export const DORAProviders: React.FC = () => {
+interface DORAProvidersProps {
+    hideHeader?: boolean;
+}
+
+export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false }) => {
     const { t } = useTranslation();
 
     // Filters
@@ -88,54 +92,56 @@ export const DORAProviders: React.FC = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-            {/* Header */}
-            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <Button
-                                variant="outline"
-                                onClick={() => window.open('/#/suppliers', '_blank')}
-                                className="flex items-center"
-                            >
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Retour Fournisseurs
-                            </Button>
-                            <div>
-                                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {t('dora.title')}
-                                </h1>
-                                <p className="text-slate-500 dark:text-slate-400 mt-1">
-                                    {t('dora.subtitle')}
-                                </p>
+        <div className={hideHeader ? "" : "min-h-screen bg-slate-50 dark:bg-slate-950"}>
+            {!hideHeader && (
+                /* Header */
+                <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => window.open('/#/suppliers', '_blank')}
+                                    className="flex items-center"
+                                >
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Retour Fournisseurs
+                                </Button>
+                                <div>
+                                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                                        {t('dora.title')}
+                                    </h1>
+                                    <p className="text-slate-500 dark:text-slate-400 mt-1">
+                                        {t('dora.subtitle')}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsImportOpen(true)}
-                            >
-                                <Upload className="w-4 h-4 mr-2" />
-                                {t('dora.providers.importCsv')}
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={handleExport}
-                            >
-                                <Download className="w-4 h-4 mr-2" />
-                                {t('dora.providers.exportRegister')}
-                            </Button>
-                            <Button onClick={handleCreate}>
-                                <Plus className="w-4 h-4 mr-2" />
-                                {t('dora.providers.new')}
-                            </Button>
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsImportOpen(true)}
+                                >
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    {t('dora.providers.importCsv')}
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleExport}
+                                >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    {t('dora.providers.exportRegister')}
+                                </Button>
+                                <Button onClick={handleCreate}>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    {t('dora.providers.new')}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className={hideHeader ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"}>
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="glass-panel p-4 rounded-2xl border border-white/50 dark:border-white/5">

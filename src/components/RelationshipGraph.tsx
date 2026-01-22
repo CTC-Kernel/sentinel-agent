@@ -9,7 +9,7 @@ interface RelationshipGraphProps {
     height?: number;
 }
 
-export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, rootType, width = 800, height = 600 }) => {
+export const RelationshipGraph = React.memo<RelationshipGraphProps>(({ rootId, rootType, width = 800, height = 600 }) => {
     const { nodes, links, loading } = useRelationshipsData(rootId, rootType, width, height);
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full"></div></div>;
@@ -80,4 +80,4 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
             </div>
         </div>
     );
-};
+});

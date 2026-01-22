@@ -5,7 +5,7 @@
  * Modal form for creating and editing custom targeted objectives
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../../../utils/cn';
 import { GlassCard } from '../../ui/GlassCard';
 import { Button } from '../../ui/button';
+import { ConfirmModal } from '../../ui/ConfirmModal';
 import type { TargetedObjective } from '../../../types/ebios';
 import { IMPACT_TYPE_LABELS } from '../../../data/ebiosLibrary';
 
@@ -52,6 +53,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith('fr') ? 'fr' : 'en';
   const isEditing = !!objective;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const {
     register,
@@ -104,9 +106,8 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
 
   const handleDelete = () => {
     if (objective && onDelete) {
-      if (window.confirm(t('ebios.workshop2.confirmDeleteObjective', 'Êtes-vous sûr de vouloir supprimer cet objectif visé ?'))) {
-        onDelete(objective.id);
-      }
+      onDelete(objective.id);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -258,7 +259,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteConfirm(true)}
                   className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -277,6 +278,17 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
             </div>
           </div>
         </form>
+
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title={t('ebios.workshop2.deleteObjectiveTitle', 'Supprimer l\'objectif visé')}
+          message={t('ebios.workshop2.confirmDeleteObjective', 'Êtes-vous sûr de vouloir supprimer cet objectif visé ?')}
+          type="danger"
+          confirmText={t('common.delete', 'Supprimer')}
+          cancelText={t('common.cancel', 'Annuler')}
+        />
       </GlassCard>
     </div>
   );

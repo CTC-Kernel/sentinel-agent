@@ -476,8 +476,8 @@ export class AnnotationService {
         await NotificationService.create(
           { uid: annotationAuthor.id, organizationId: annotationData.organizationId as string },
           'info',
-          'Nouvelle reponse',
-          `${author.displayName} a repondu a votre annotation`,
+          'Nouvelle réponse',
+          `${author.displayName} a répondu à votre annotation`,
           `/voxel?annotation=${dto.annotationId}`,
           7,
           'system'
@@ -663,7 +663,7 @@ export class AnnotationService {
     context: 'annotation' | 'reply'
   ): Promise<void> {
     try {
-      const contextLabel = context === 'annotation' ? 'une annotation' : 'une reponse';
+      const contextLabel = context === 'annotation' ? 'une annotation' : 'une réponse';
       const preview = content.length > 100 ? content.substring(0, 97) + '...' : content;
 
       for (const userId of mentions) {
@@ -673,8 +673,8 @@ export class AnnotationService {
         await NotificationService.create(
           { uid: userId, organizationId },
           'mention',
-          `Vous avez ete mentionne`,
-          `${mentionedBy.displayName} vous a mentionne dans ${contextLabel}: "${preview}"`,
+          `Vous avez été mentionné`,
+          `${mentionedBy.displayName} vous a mentionné dans ${contextLabel}: "${preview}"`,
           `/voxel?annotation=${annotationId}`,
           14, // Expires in 14 days
           'system'
@@ -909,7 +909,7 @@ export class AnnotationService {
           </div>
           <div class="stat">
             <div class="stat-value">${typeStats.issue || 0}</div>
-            <div class="stat-label">Problemes</div>
+            <div class="stat-label">Problèmes</div>
           </div>
           <div class="stat">
             <div class="stat-value">${statusStats.open || 0}</div>
@@ -917,7 +917,7 @@ export class AnnotationService {
           </div>
           <div class="stat">
             <div class="stat-value">${statusStats.resolved || 0}</div>
-            <div class="stat-label">Resolus</div>
+            <div class="stat-label">Résolus</div>
           </div>
         </div>
 

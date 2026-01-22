@@ -199,7 +199,11 @@ const DetailView: React.FC<DetailViewProps> = ({
 // Main Component
 // ============================================================================
 
-export const FinancialRisk: React.FC = () => {
+interface FinancialRiskProps {
+  hideHeader?: boolean;
+}
+
+export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false }) => {
   const { t } = useTranslation();
   const {
     configurations,
@@ -338,13 +342,13 @@ export const FinancialRisk: React.FC = () => {
   // Render detail view if config selected
   if (selectedConfig) {
     return (
-      <div className="container mx-auto py-6 px-4">
+      <div className={hideHeader ? "" : "container mx-auto py-6 px-4"}>
         <DetailView
           config={selectedConfig}
           simulationResults={simulationResults}
           onBack={clearSelection}
           onRunSimulation={handleRunSimulationFromDetail}
-          onEdit={() => {}}
+          onEdit={() => { }}
           simulating={simulating}
         />
       </div>
@@ -352,11 +356,13 @@ export const FinancialRisk: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      <PageHeader
-        onCreateNew={handleCreateNew}
-        configCount={configurations.length}
-      />
+    <div className={hideHeader ? "" : "container mx-auto py-6 px-4"}>
+      {!hideHeader && (
+        <PageHeader
+          onCreateNew={handleCreateNew}
+          configCount={configurations.length}
+        />
+      )}
 
       {/* Error State */}
       {error && (

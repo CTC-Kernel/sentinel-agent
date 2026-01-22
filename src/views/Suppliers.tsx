@@ -6,7 +6,8 @@ import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
 import { Supplier, Criticality } from '../types';
-import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert, LayoutDashboard, List, PieChart } from '../components/ui/Icons';
+import { Plus, Building, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert, LayoutDashboard, List, PieChart, Shield } from '../components/ui/Icons';
+import { DORAProviders } from './DORAProviders';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Button } from '../components/ui/button';
 import { useStore } from '../store';
@@ -125,7 +126,7 @@ export const Suppliers: React.FC = () => {
 
     // Handle tab deep link (e.g., from /vendor-concentration redirect)
     useEffect(() => {
-        if (deepLinkTab && ['overview', 'suppliers', 'concentration'].includes(deepLinkTab)) {
+        if (deepLinkTab && ['overview', 'suppliers', 'concentration', 'dora'].includes(deepLinkTab)) {
             setActiveTab(deepLinkTab);
             // Clean up the tab param after applying it
             setSearchParams(params => {
@@ -391,7 +392,8 @@ export const Suppliers: React.FC = () => {
     const tabs = [
         { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
         { id: 'suppliers', label: 'Fournisseurs', icon: List, count: filteredSuppliers.length },
-        { id: 'concentration', label: 'Concentration', icon: PieChart }
+        { id: 'concentration', label: 'Concentration', icon: PieChart },
+        { id: 'dora', label: t('suppliers.tabs.dora') || 'Registre DORA', icon: Shield }
     ];
 
     const handleConfirmClose = useCallback(() => {
@@ -495,6 +497,18 @@ export const Suppliers: React.FC = () => {
                         transition={{ duration: 0.2 }}
                     >
                         <SupplierConcentrationTab />
+                    </motion.div>
+                )}
+
+                {activeTab === 'dora' && (
+                    <motion.div
+                        key="dora"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <DORAProviders hideHeader />
                     </motion.div>
                 )}
 

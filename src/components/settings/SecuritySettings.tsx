@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { passwordSchema, PasswordFormData } from '../../schemas/settingsSchema';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { updatePassword } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -28,6 +29,8 @@ export const SecuritySettings: React.FC = () => {
     const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
     const [mfaCode, setMfaCode] = useState('');
     const [verifyingMFA, setVerifyingMFA] = useState(false);
+    const [showDisableMFAConfirm, setShowDisableMFAConfirm] = useState(false);
+    const [disablingMFA, setDisablingMFA] = useState(false);
 
     const handleChangePassword: SubmitHandler<PasswordFormData> = async (data) => {
         setChangingPassword(true);
@@ -87,12 +90,15 @@ export const SecuritySettings: React.FC = () => {
     };
 
     const handleDisableMFA = async () => {
-        if (!confirm("Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?")) return;
+        setDisablingMFA(true);
         try {
             await unenrollMFA();
-            addToast("MFA désactivé", "success");
+            addToast(t('settings.mfaDisabled') || "MFA désactivé", "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'SecuritySettings.handleDisableMFA', 'UNKNOWN_ERROR');
+        } finally {
+            setDisablingMFA(false);
+            setShowDisableMFAConfirm(false);
         }
     };
 
@@ -160,10 +166,10 @@ export const SecuritySettings: React.FC = () => {
                                 Activer MFA
                             </Button>
                             <button
-                                onClick={handleDisableMFA}
+                                onClick={() => setShowDisableMFAConfirm(true)}
                                 className="w-full text-xs text-red-500 hover:text-red-600 font-bold hover:underline"
                             >
-                                Désactiver MFA
+                                {t('settings.disableMFA') || 'Désactiver MFA'}
                             </button>
                         </div>
                     ) : (
@@ -209,6 +215,19 @@ export const SecuritySettings: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showDisableMFAConfirm}
+                onClose={() => setShowDisableMFAConfirm(false)}
+                onConfirm={handleDisableMFA}
+                title={t('settings.disableMFATitle') || "Désactiver l'authentification à deux facteurs"}
+                message={t('settings.disableMFAMessage') || "Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ? Votre compte sera moins sécurisé."}
+                type="danger"
+                confirmText={t('settings.disableMFAConfirm') || "Désactiver"}
+                cancelText={t('common.cancel') || "Annuler"}
+                loading={disablingMFA}
+                closeOnConfirm={false}
+            />
         </div>
     );
 };

@@ -397,8 +397,8 @@ export const ANNOTATION_TYPE_LABELS: Record<AnnotationType, string> = {
  */
 export const ANNOTATION_VISIBILITY_LABELS: Record<AnnotationVisibility, string> = {
   public: 'Public',
-  private: 'Prive',
-  team: 'Equipe',
+  private: 'Privé',
+  team: 'Équipe',
 };
 
 /**
@@ -407,6 +407,6 @@ export const ANNOTATION_VISIBILITY_LABELS: Record<AnnotationVisibility, string> 
 export const ANNOTATION_STATUS_LABELS: Record<AnnotationStatus, string> = {
   open: 'Ouvert',
   in_progress: 'En cours',
-  resolved: 'Resolu',
-  closed: 'Ferme',
+  resolved: 'Résolu',
+  closed: 'Fermé',
 };

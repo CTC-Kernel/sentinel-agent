@@ -351,12 +351,12 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Ecrivez votre annotation... (Utilisez @nom pour mentionner quelqu'un)"
+                placeholder="Écrivez votre annotation... (Utilisez @nom pour mentionner quelqu'un)"
                 rows={4}
                 className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
               />
               <p className="text-xs text-slate-500">
-                Supporte Markdown. Utilisez @username pour mentionner des collegues.
+                Supporte Markdown. Utilisez @username pour mentionner des collègues.
               </p>
             </div>
 

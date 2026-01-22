@@ -172,10 +172,10 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
             const newComment = await add({
                 userId: user.uid,
                 userName: user.displayName || user.email || 'Utilisateur',
-                organizationId: user.organizationId,
                 content: data.content.trim(),
-                parentId: replyTo || undefined,
                 mentions,
+                ...(user.organizationId ? { organizationId: user.organizationId } : {}),
+                ...(replyTo ? { parentId: replyTo } : {}),
                 // read: false // TODO: Implement read tracking
             });
 

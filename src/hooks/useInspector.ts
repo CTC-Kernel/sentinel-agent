@@ -11,7 +11,7 @@
  * @module useInspector
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useTransition } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LucideIcon } from 'lucide-react';
 import { ErrorHandler, ErrorSeverity, ErrorCategory } from '../utils/errorHandler';
@@ -102,6 +102,9 @@ export interface UseInspectorReturn {
   /** Est en mode création */
   isCreateMode: boolean;
 
+  /** État de transition (onglet en cours de chargement) */
+  isPending: boolean;
+
   /** Nom de l'entité */
   entityName: string | null;
 
@@ -185,6 +188,7 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
   const [internalTab, setInternalTab] = useState<string>(
     defaultTab || tabs[0]?.id || 'details'
   );
+  const [isPending, startTransition] = useTransition();
 
   // Tab actif (sync avec URL si activé)
   const activeTab = useMemo(() => {
@@ -199,13 +203,15 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
 
   // Changer de tab
   const setActiveTab = useCallback((tabId: string) => {
-    setInternalTab(tabId);
+    startTransition(() => {
+      setInternalTab(tabId);
 
-    if (syncWithUrl) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set('tab', tabId);
-      setSearchParams(newParams, { replace: true });
-    }
+      if (syncWithUrl) {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('tab', tabId);
+        setSearchParams(newParams, { replace: true });
+      }
+    });
   }, [syncWithUrl, searchParams, setSearchParams]);
 
   // Sync initial depuis URL
@@ -394,7 +400,7 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
     ];
   }, [customBreadcrumbs, isCreateMode, moduleName, entityName, navigate]);
 
-  return {
+  return useMemo(() => ({
     activeTab,
     setActiveTab,
     loading,
@@ -408,8 +414,25 @@ export function useInspector<T extends { id?: string }, TFormData = T>({
     isEditing,
     toggleEditMode,
     enterEditMode,
-    exitEditMode
-  };
+    exitEditMode,
+    isPending
+  }), [
+    activeTab,
+    setActiveTab,
+    loading,
+    saving,
+    handleUpdate,
+    handleCreate,
+    handleDelete,
+    breadcrumbs,
+    isCreateMode,
+    entityName,
+    isEditing,
+    toggleEditMode,
+    enterEditMode,
+    exitEditMode,
+    isPending
+  ]);
 }
 
 /**
@@ -424,7 +447,7 @@ export function useInspectorReadOnly<T extends { id?: string }>(
     syncWithUrl?: boolean;
     getEntityName?: (entity: T) => string;
   }
-): Pick<UseInspectorReturn, 'activeTab' | 'setActiveTab' | 'breadcrumbs' | 'entityName' | 'isEditing' | 'toggleEditMode' | 'enterEditMode' | 'exitEditMode'> {
+): Pick<UseInspectorReturn, 'activeTab' | 'setActiveTab' | 'breadcrumbs' | 'entityName' | 'isEditing' | 'toggleEditMode' | 'enterEditMode' | 'exitEditMode' | 'isPending'> {
   const inspector = useInspector<T, never>({
     entity,
     tabs,
@@ -443,6 +466,7 @@ export function useInspectorReadOnly<T extends { id?: string }>(
     isEditing: false,
     toggleEditMode: () => { },
     enterEditMode: () => { },
-    exitEditMode: () => { }
+    exitEditMode: () => { },
+    isPending: inspector.isPending
   };
 }

@@ -557,7 +557,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
           </button>
           <span className="text-xs text-white/40">|</span>
           <span className="text-xs text-white/60">
-            {selectedIds.size} selectionne{selectedIds.size !== 1 ? 's' : ''}
+            {selectedIds.size} sélectionné{selectedIds.size !== 1 ? 's' : ''}
           </span>
           <div className="flex-1" />
           {onResolve && (
@@ -565,7 +565,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
               onClick={handleBulkResolve}
               className="px-3 py-1 text-xs bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"
             >
-              Resoudre tout
+              Résoudre tout
             </button>
           )}
         </div>

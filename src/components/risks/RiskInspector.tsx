@@ -53,6 +53,19 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
 }) => {
     const navigate = useNavigate();
 
+    // Memoize tabs configuration early for use in hook
+    const tabs = React.useMemo(() => [
+        { id: 'details', label: 'Détails', icon: ShieldAlert },
+        { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'projects', label: 'Projets', icon: FolderKanban },
+        { id: 'audits', label: 'Audits', icon: CheckCircle2 },
+        { id: 'history', label: 'Historique', icon: History },
+        { id: 'comments', label: 'Discussion', icon: MessageSquare },
+        { id: 'graph', label: 'Graphe', icon: Network },
+        { id: 'threats', label: 'Menaces', icon: ShieldAlert }
+    ], []);
+
     // Use standardized hook
     const {
         activeTab,
@@ -64,22 +77,10 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         handleUpdate: handleHookUpdate
     } = useInspector({
         entity: risk,
-        // Define tabs configuration
-        tabs: [
-            { id: 'details', label: 'Détails', icon: ShieldAlert },
-            { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
-            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-            { id: 'projects', label: 'Projets', icon: FolderKanban },
-            { id: 'audits', label: 'Audits', icon: CheckCircle2 },
-            { id: 'history', label: 'Historique', icon: History },
-            { id: 'comments', label: 'Discussion', icon: MessageSquare },
-            { id: 'graph', label: 'Graphe', icon: Network },
-            { id: 'threats', label: 'Menaces', icon: ShieldAlert }
-        ],
+        tabs,
         moduleName: 'Risk',
         actions: {
             onUpdate: async (id, data) => {
-                // Bridge between hook's expect (boolean|string) and prop's (boolean)
                 const success = await onUpdate(id, data as Partial<Risk>);
                 return success;
             },
@@ -185,17 +186,6 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     }, [risk?.mitreTechniques, handleLocalUpdate]);
     const handleMitreQueryChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => setMitreQuery(e.target.value), []);
 
-    const tabs = React.useMemo(() => [
-        { id: 'details', label: 'Détails', icon: ShieldAlert },
-        { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
-        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'projects', label: 'Projets', icon: FolderKanban },
-        { id: 'audits', label: 'Audits', icon: CheckCircle2 },
-        { id: 'history', label: 'Historique', icon: History },
-        { id: 'comments', label: 'Discussion', icon: MessageSquare },
-        { id: 'graph', label: 'Graphe', icon: Network },
-        { id: 'threats', label: 'Menaces', icon: ShieldAlert }
-    ], []);
 
     if (!risk) return null;
 

@@ -3,6 +3,7 @@ import { Monitor, Smartphone, Globe, Trash2, ShieldCheck, Clock } from '../ui/Ic
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { Tooltip } from '../ui/Tooltip';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -19,6 +20,7 @@ interface Session {
 
 export const ActiveSessions: React.FC = () => {
     const { t, addToast } = useStore();
+    const [showRevokeAllConfirm, setShowRevokeAllConfirm] = useState(false);
 
     const [sessions, setSessions] = useState<Session[]>(() => [
         {
@@ -60,9 +62,9 @@ export const ActiveSessions: React.FC = () => {
     };
 
     const handleRevokeAll = () => {
-        if (!confirm(t('settings.revokeAllConfirm') || "Voulez-vous vraiment déconnecter tous les autres appareils ?")) return;
         setSessions(prev => prev.filter(s => s.isCurrent));
         addToast(t('settings.allSessionsRevoked') || "Toutes les autres sessions ont été fermées", "success");
+        setShowRevokeAllConfirm(false);
     };
 
     return (
@@ -83,7 +85,7 @@ export const ActiveSessions: React.FC = () => {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={handleRevokeAll}
+                        onClick={() => setShowRevokeAllConfirm(true)}
                         className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 dark:text-red-400"
                     >
                         {t('settings.revokeAll') || "Tout déconnecter"}
@@ -145,6 +147,17 @@ export const ActiveSessions: React.FC = () => {
                     </div>
                 ))}
             </div>
+
+            <ConfirmModal
+                isOpen={showRevokeAllConfirm}
+                onClose={() => setShowRevokeAllConfirm(false)}
+                onConfirm={handleRevokeAll}
+                title={t('settings.revokeAllTitle') || "Déconnecter tous les appareils"}
+                message={t('settings.revokeAllConfirm') || "Voulez-vous vraiment déconnecter tous les autres appareils ? Ils devront se reconnecter."}
+                type="warning"
+                confirmText={t('settings.revokeAllConfirmBtn') || "Tout déconnecter"}
+                cancelText={t('common.cancel') || "Annuler"}
+            />
         </div>
     );
 };
