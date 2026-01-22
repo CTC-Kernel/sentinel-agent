@@ -9,6 +9,7 @@ const admin = require("firebase-admin");
 const { defineSecret } = require("firebase-functions/params");
 const crypto = require("crypto");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { checkCallableRateLimit } = require("../utils/rateLimiter");
 
 // Secrets
 const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");
@@ -188,6 +189,9 @@ exports.saveUserApiKeys = onCall({
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
 
+    // SECURITY: Rate limit API key updates (sensitive operation)
+    checkCallableRateLimit(request, 'admin');
+
     const {
         geminiApiKey,
         shodanApiKey,
@@ -274,6 +278,9 @@ exports.callGeminiGenerateContent = onCall({
     if (!uid) {
         throw new HttpsError('unauthenticated', 'User must be logged in.');
     }
+
+    // SECURITY: Rate limit AI calls (expensive operation)
+    checkCallableRateLimit(request, 'heavy');
 
     const prompt = request.data?.prompt;
     const modelName = request.data?.modelName || "gemini-3-pro-preview";
