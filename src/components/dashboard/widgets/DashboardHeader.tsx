@@ -31,7 +31,7 @@ interface DashboardHeaderProps {
     loading: boolean;
     isEmpty?: boolean;
     navigate?: (path: string) => void;
-    t?: (key: string, options?: any) => string;
+    t?: (key: string, options?: Record<string, unknown>) => string;
     insight?: DashboardInsight;
     generateICal?: () => void;
     generateExecutiveReport?: () => void;

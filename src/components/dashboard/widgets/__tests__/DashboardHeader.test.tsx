@@ -7,14 +7,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DashboardHeader } from '../DashboardHeader';
 
-// Mock framer-motion
-vi.mock('framer-motion', () => ({
-    motion: {
-        div: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
-            <div {...props}>{children}</div>
-        )
-    }
-}));
+// Mock framer-motion - create a handler that returns a passthrough component for any element
+vi.mock('framer-motion', () => {
+    const createMotionComponent = (element: string) => {
+        return ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => {
+            // Filter out framer-motion specific props
+            const { initial, animate, exit, transition, whileHover, whileTap, variants, ...htmlProps } = props;
+            const Element = element as keyof JSX.IntrinsicElements;
+            return <Element {...htmlProps}>{children}</Element>;
+        };
+    };
+
+    return {
+        motion: new Proxy({}, {
+            get: (_target, prop: string) => createMotionComponent(prop)
+        }),
+        AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
+    };
+});
 
 // Mock Icons - use importOriginal to include all icons
 vi.mock('../../../ui/Icons', async (importOriginal) => {
@@ -34,6 +44,26 @@ vi.mock('../../../ui/ShinyText', () => ({
 // Mock Tooltip
 vi.mock('../../../ui/Tooltip', () => ({
     Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>
+}));
+
+// Mock GlassCard
+vi.mock('../../../ui/GlassCard', () => ({
+    GlassCard: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+        <div data-testid="glass-card" className={className}>{children}</div>
+    )
+}));
+
+// Mock Aceternity UI components
+vi.mock('../../../ui/aceternity/Spotlight', () => ({
+    Spotlight: () => null
+}));
+
+vi.mock('../../../ui/aceternity/BorderBeam', () => ({
+    BorderBeam: () => null
+}));
+
+vi.mock('../../../ui/aceternity/Sparkles.tsx', () => ({
+    SparklesCore: () => null
 }));
 
 describe('DashboardHeader', () => {
