@@ -20,7 +20,7 @@ export default defineConfig({
     tsconfigPaths({ ignoreConfigErrors: true }),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: null,
+      injectRegister: 'auto',
       includeAssets: ['favicon.webp'],
       manifest: {
         name: 'Sentinel GRC',
@@ -45,6 +45,11 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB limit
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Force immediate update - no waiting for all tabs to close
+        skipWaiting: true,
+        clientsClaim: true,
+        // Clean up old caches automatically
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
