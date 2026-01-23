@@ -35,6 +35,13 @@ export interface DashboardData {
         highRisks: number;
         totalAssets: number;
     } | null;
+    // Agent data for dashboard integration
+    agentStats?: {
+        totalAgents: number;
+        activeAgents: number;
+        offlineAgents: number;
+        averageComplianceScore: number | null;
+    } | null;
 }
 
 // Cache for counts with organization-specific keys to prevent race conditions

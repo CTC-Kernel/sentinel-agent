@@ -151,7 +151,43 @@ export const translations = {
                     mySpace: { description: 'Vos tâches et actions immédiates.' },
                     projectStatus: { description: 'Avancement des tâches projets.' },
                     recentActivity: { description: 'Dernières actions sur la plateforme.' },
-                    auditStatus: { description: 'Répartition des audits par statut.' }
+                    auditStatus: { description: 'Répartition des audits par statut.' },
+                    agentStatus: { description: 'État des agents endpoint Sentinel.' }
+                }
+            },
+            agents: {
+                widget: {
+                    title: 'Agents Endpoint',
+                    subtitle: 'Conformité machines',
+                    noAgents: 'Aucun agent installé',
+                    noAgentsInstalled: 'Aucun agent Sentinel installé',
+                    installDescription: 'Installez l\'agent Sentinel sur vos postes pour surveiller leur conformité.',
+                    installNow: 'Installer un agent',
+                    allHealthy: 'Tous les agents sont en ligne',
+                    someOffline: 'Certains agents sont hors ligne',
+                    hasErrors: 'Des agents ont des erreurs',
+                    machineCompliance: 'Conformité Machines',
+                    avgScore: 'score moyen',
+                    checkResults: 'Vérifications',
+                    manage: 'Gérer les agents',
+                    activeTooltip: 'Agents actifs et connectés',
+                    offlineTooltip: 'Agents hors ligne (plus de 3 min sans heartbeat)',
+                    errorTooltip: 'Agents en erreur'
+                },
+                status: {
+                    active: 'Actif',
+                    offline: 'Hors ligne',
+                    error: 'Erreur'
+                },
+                checks: {
+                    pass: 'OK',
+                    fail: 'Échec'
+                },
+                verification: {
+                    verifiedByAgent: 'Vérifié par agent',
+                    lastCheck: 'Dernière vérification',
+                    evidence: 'Preuve automatique',
+                    notVerified: 'Non vérifié par agent'
                 }
             },
             assets: 'Actifs',
@@ -1150,6 +1186,41 @@ export const translations = {
             exportError: 'Export error',
             invalidData: 'Invalid data',
             bulkDeleteError: 'Bulk delete error',
+            agents: {
+                widget: {
+                    title: 'Endpoint Agents',
+                    subtitle: 'Machine compliance',
+                    noAgents: 'No agents installed',
+                    noAgentsInstalled: 'No Sentinel agents installed',
+                    installDescription: 'Install Sentinel agent on your machines to monitor their compliance.',
+                    installNow: 'Install an agent',
+                    allHealthy: 'All agents are online',
+                    someOffline: 'Some agents are offline',
+                    hasErrors: 'Some agents have errors',
+                    machineCompliance: 'Machine Compliance',
+                    avgScore: 'average score',
+                    checkResults: 'Checks',
+                    manage: 'Manage agents',
+                    activeTooltip: 'Active and connected agents',
+                    offlineTooltip: 'Offline agents (no heartbeat for 3+ min)',
+                    errorTooltip: 'Agents with errors'
+                },
+                status: {
+                    active: 'Active',
+                    offline: 'Offline',
+                    error: 'Error'
+                },
+                checks: {
+                    pass: 'OK',
+                    fail: 'Fail'
+                },
+                verification: {
+                    verifiedByAgent: 'Verified by agent',
+                    lastCheck: 'Last check',
+                    evidence: 'Automatic evidence',
+                    notVerified: 'Not verified by agent'
+                }
+            },
         },
         documents: {
             title: 'Document Repository',

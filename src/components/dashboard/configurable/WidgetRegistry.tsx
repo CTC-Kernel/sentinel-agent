@@ -19,6 +19,7 @@ import { AssetStatsWidget } from '../widgets/AssetStatsWidget';
 import { SuppliersStatsWidget } from '../widgets/SuppliersStatsWidget';
 import { ContinuityPlansWidget } from '../widgets/ContinuityPlansWidget';
 import { NIS2DoraKPIWidget } from '../widgets/NIS2DoraKPIWidget';
+import { AgentStatusWidget } from '../widgets/AgentStatusWidget';
 
 // Import Story 2-2 to 2-5 widgets
 import { ComplianceScoreWidget } from '../ComplianceScoreWidget';
@@ -238,6 +239,16 @@ export const WIDGET_REGISTRY: Record<string, {
         minColSpan: 1,
         minRowSpan: 1,
         titleKey: 'dashboard.pmProgress'
+    },
+    // Story: Agent Status Widget - Endpoint compliance monitoring
+    'agent-status': {
+        id: 'agent-status',
+        component: AgentStatusWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
+        titleKey: 'agents.widget.title'
     }
 };
 export type WidgetId = keyof typeof WIDGET_REGISTRY;

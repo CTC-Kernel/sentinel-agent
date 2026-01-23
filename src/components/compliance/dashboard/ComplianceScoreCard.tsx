@@ -1,11 +1,13 @@
 import React from 'react';
 import { Control } from '../../../types';
-import { Clock, TrendingUp, ShieldAlert } from '../../ui/Icons';
+import { Clock, TrendingUp, ShieldAlert, Bot } from '../../ui/Icons';
 import {
     CONTROL_STATUS,
     PARTIAL_CONTROL_WEIGHT,
     isActionableStatus,
 } from '../../../constants/complianceConfig';
+import { useAgentResultsByControl } from '../../../hooks/useAgentData';
+import { Tooltip } from '../../ui/Tooltip';
 
 interface ComplianceScoreCardProps {
     controls: Control[];
@@ -20,6 +22,12 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
     trend,
     onFilterChange
 }) => {
+    // Agent verification data
+    const agentResults = useAgentResultsByControl(currentFramework);
+    const agentVerifiedControls = React.useMemo(() => {
+        return controls.filter(c => agentResults.has(c.code)).length;
+    }, [controls, agentResults]);
+
     // Calculate metrics using centralized constants (harmonized with Cloud Function)
     const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
     const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
@@ -131,6 +139,19 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
 
             {/* Right: Quick Stats */}
             <div className="flex xl:flex-col gap-3 min-w-[160px]">
+                {/* Agent Verified Controls */}
+                {agentVerifiedControls > 0 && (
+                    <Tooltip content="Contrôles vérifiés automatiquement par les agents Sentinel" position="top">
+                        <div className="flex-1 flex items-center justify-between px-4 py-3 bg-brand-50 dark:bg-brand-900/20 rounded-2xl border border-brand-200 dark:border-brand-800/50">
+                            <div className="flex items-center gap-2">
+                                <Bot className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                                <span className="text-xs font-bold text-brand-600/70 dark:text-brand-400/70">Agent</span>
+                            </div>
+                            <span className="text-lg font-black text-brand-600 dark:text-brand-400">{agentVerifiedControls}</span>
+                        </div>
+                    </Tooltip>
+                )}
+
                 <div
                     onClick={() => onFilterChange?.(CONTROL_STATUS.NOT_STARTED)}
                     onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.(CONTROL_STATUS.NOT_STARTED)}

@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, Paperclip, AlertTriangle, ShieldAlert, Alert
 import { Skeleton } from '../../components/ui/Skeleton';
 import { Tooltip as CustomTooltip } from '../../components/ui/Tooltip';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { AgentVerificationIndicator } from './AgentVerificationBadge';
 
 interface ComplianceListProps {
     controls: Control[];
@@ -275,6 +276,12 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                             {findingsCount}
                                                         </span>
                                                     )}
+
+                                                    {/* Agent Verification Indicator */}
+                                                    <AgentVerificationIndicator
+                                                        controlId={control.code}
+                                                        framework={currentFramework}
+                                                    />
 
                                                     <div className="flex-1" />
 

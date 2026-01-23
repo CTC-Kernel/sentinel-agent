@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../store';
 import { subscribeToAgents } from '../services/AgentService';
 import { SentinelAgent, AgentResult } from '../types/agent';
@@ -6,7 +6,6 @@ import { ErrorLogger } from '../services/errorLogger';
 import {
     collection,
     query,
-    where,
     orderBy,
     limit,
     onSnapshot,
@@ -69,54 +68,56 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
     // Subscribe to agents
     useEffect(() => {
         if (demoMode) {
-            // In demo mode, provide mock agent data
-            setAgents([
-                {
-                    id: 'demo-agent-1',
-                    name: 'DESKTOP-DEMO-01',
-                    os: 'windows',
-                    osVersion: '11 Pro',
-                    status: 'active',
-                    version: '1.0.0',
-                    lastHeartbeat: new Date().toISOString(),
-                    hostname: 'DESKTOP-DEMO-01',
-                    organizationId: 'demo',
-                    complianceScore: 87,
-                    lastCheckAt: new Date().toISOString(),
-                },
-                {
-                    id: 'demo-agent-2',
-                    name: 'MacBook-Pro-Demo',
-                    os: 'darwin',
-                    osVersion: 'macOS 14.2',
-                    status: 'active',
-                    version: '1.0.0',
-                    lastHeartbeat: new Date().toISOString(),
-                    hostname: 'MacBook-Pro-Demo',
-                    organizationId: 'demo',
-                    complianceScore: 92,
-                    lastCheckAt: new Date().toISOString(),
-                },
-                {
-                    id: 'demo-agent-3',
-                    name: 'WORKSTATION-03',
-                    os: 'windows',
-                    osVersion: '10 Enterprise',
-                    status: 'offline',
-                    version: '1.0.0',
-                    lastHeartbeat: new Date(Date.now() - 3600000).toISOString(),
-                    hostname: 'WORKSTATION-03',
-                    organizationId: 'demo',
-                    complianceScore: 65,
-                    lastCheckAt: new Date(Date.now() - 3600000).toISOString(),
-                }
-            ]);
-            setLoading(false);
+            // In demo mode, provide mock agent data asynchronously to avoid cascading renders
+            Promise.resolve().then(() => {
+                setAgents([
+                    {
+                        id: 'demo-agent-1',
+                        name: 'DESKTOP-DEMO-01',
+                        os: 'windows',
+                        osVersion: '11 Pro',
+                        status: 'active',
+                        version: '1.0.0',
+                        lastHeartbeat: new Date().toISOString(),
+                        hostname: 'DESKTOP-DEMO-01',
+                        organizationId: 'demo',
+                        complianceScore: 87,
+                        lastCheckAt: new Date().toISOString(),
+                    },
+                    {
+                        id: 'demo-agent-2',
+                        name: 'MacBook-Pro-Demo',
+                        os: 'darwin',
+                        osVersion: 'macOS 14.2',
+                        status: 'active',
+                        version: '1.0.0',
+                        lastHeartbeat: new Date().toISOString(),
+                        hostname: 'MacBook-Pro-Demo',
+                        organizationId: 'demo',
+                        complianceScore: 92,
+                        lastCheckAt: new Date().toISOString(),
+                    },
+                    {
+                        id: 'demo-agent-3',
+                        name: 'WORKSTATION-03',
+                        os: 'windows',
+                        osVersion: '10 Enterprise',
+                        status: 'offline',
+                        version: '1.0.0',
+                        lastHeartbeat: new Date(Date.now() - 3600000).toISOString(),
+                        hostname: 'WORKSTATION-03',
+                        organizationId: 'demo',
+                        complianceScore: 65,
+                        lastCheckAt: new Date(Date.now() - 3600000).toISOString(),
+                    }
+                ]);
+                setLoading(false);
+            });
             return;
         }
 
         if (!user?.organizationId || !realtime) {
-            setLoading(false);
+            Promise.resolve().then(() => setLoading(false));
             return;
         }
 
@@ -143,39 +144,41 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
     // Subscribe to recent results
     useEffect(() => {
         if (demoMode) {
-            // Demo mode: provide mock results
-            setRecentResults([
-                {
-                    id: 'demo-result-1',
-                    checkId: 'firewall-enabled',
-                    framework: 'ISO27001',
-                    controlId: 'A.13.1.1',
-                    status: 'pass',
-                    evidence: { enabled: true },
-                    timestamp: new Date().toISOString(),
-                    durationMs: 150,
-                },
-                {
-                    id: 'demo-result-2',
-                    checkId: 'antivirus-active',
-                    framework: 'ISO27001',
-                    controlId: 'A.12.2.1',
-                    status: 'pass',
-                    evidence: { active: true, name: 'Windows Defender' },
-                    timestamp: new Date().toISOString(),
-                    durationMs: 200,
-                },
-                {
-                    id: 'demo-result-3',
-                    checkId: 'disk-encryption',
-                    framework: 'ISO27001',
-                    controlId: 'A.8.3.1',
-                    status: 'fail',
-                    evidence: { encrypted: false },
-                    timestamp: new Date().toISOString(),
-                    durationMs: 300,
-                },
-            ]);
+            // Demo mode: provide mock results asynchronously to avoid cascading renders
+            Promise.resolve().then(() => {
+                setRecentResults([
+                    {
+                        id: 'demo-result-1',
+                        checkId: 'firewall-enabled',
+                        framework: 'ISO27001',
+                        controlId: 'A.13.1.1',
+                        status: 'pass',
+                        evidence: { enabled: true },
+                        timestamp: new Date().toISOString(),
+                        durationMs: 150,
+                    },
+                    {
+                        id: 'demo-result-2',
+                        checkId: 'antivirus-active',
+                        framework: 'ISO27001',
+                        controlId: 'A.12.2.1',
+                        status: 'pass',
+                        evidence: { active: true, name: 'Windows Defender' },
+                        timestamp: new Date().toISOString(),
+                        durationMs: 200,
+                    },
+                    {
+                        id: 'demo-result-3',
+                        checkId: 'disk-encryption',
+                        framework: 'ISO27001',
+                        controlId: 'A.8.3.1',
+                        status: 'fail',
+                        evidence: { encrypted: false },
+                        timestamp: new Date().toISOString(),
+                        durationMs: 300,
+                    },
+                ]);
+            });
             return;
         }
 
