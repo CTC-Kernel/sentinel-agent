@@ -1,7 +1,6 @@
-# generated: 2026-01-23 (39 legacy epics + 9 Voxel epics done, 5 EU Leader epics in progress)
-# previous: 2026-01-22
-# project: sentinel-grc-v2-prod
-# project_key: sentinel-grc
+# generated: 2026-01-23
+# project: Agent GRC Sentinel
+# project_key: agent-grc
 # tracking_system: file-system
 # story_location: _bmad-output/implementation-artifacts
 
@@ -34,631 +33,131 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: "2026-01-22"
-project: sentinel-grc-v2-prod
-project_key: sentinel-grc
+generated: 2026-01-23
+project: Agent GRC Sentinel
+project_key: agent-grc
 tracking_system: file-system
-story_location: "_bmad-output/implementation-artifacts"
+story_location: _bmad-output/implementation-artifacts
 
 development_status:
-  # Epic 1: Foundation UX & Locale (P0 - MVP Quick Win)
-  epic-1: done
-  1-1-locale-configuration-centralisee: done
-  1-2-humanized-error-messages: done
-  1-3-draft-mode-for-forms: done
-  1-4-auto-save-with-visual-indicator: done
-  1-5-live-form-validation: done
-  1-6-contextual-actions-in-lists: done
-  epic-1-retrospective: done
+  # Epic 1: Foundation & Development Setup
+  epic-1: backlog
+  1-1-initialize-cargo-workspace-structure: backlog
+  1-2-configure-ci-cd-pipeline-with-quality-gates: backlog
+  1-3-implement-agent-common-core-types-and-error-handling: backlog
+  1-4-configure-security-tooling: backlog
+  epic-1-retrospective: optional
 
-  # Epic 2: Compliance Score Dashboard (P1 - MVP Core)
-  epic-2: done
-  2-1-global-compliance-score-calculation: done
-  2-2-apple-health-style-score-gauge: done
-  2-3-executive-kpi-cards: done
-  2-4-rssi-risk-incident-view: done
-  2-5-project-manager-progress-view: done
-  2-6-configurable-dashboard-widgets: done
-  epic-2-retrospective: done
+  # Epic 2: Agent Core & Service Lifecycle
+  epic-2: backlog
+  2-1-implement-agent-configuration-loading: backlog
+  2-2-create-windows-service-with-automatic-startup: backlog
+  2-3-create-linux-daemon-with-systemd-integration: backlog
+  2-4-build-windows-msi-installer-package: backlog
+  2-5-build-linux-deb-and-rpm-packages: backlog
+  2-6-implement-clean-uninstallation: backlog
+  2-7-implement-resource-usage-limits: backlog
+  epic-2-retrospective: optional
 
-  # Epic 3: Risk Management Enhancement (P1 - Core)
-  epic-3: done
-  3-1-enhanced-risk-creation-form: done
-  3-2-risk-evaluation-matrix: done
-  3-3-link-risks-to-controls: done
-  3-4-risk-treatment-actions: done
-  3-5-risk-register-view: done
+  # Epic 3: Secure Local Storage
+  epic-3: backlog
+  3-1-initialize-sqlite-database-with-sqlcipher-encryption: backlog
+  3-2-implement-database-schema-with-migrations: backlog
+  3-3-implement-check-results-repository: backlog
+  3-4-implement-proof-storage-with-integrity-hash: backlog
+  3-5-implement-data-retention-policy: backlog
   epic-3-retrospective: optional
 
-  # Epic 4: Multi-Framework Compliance Engine (P1 - Differenciateur EU)
-  epic-4: done
-  4-1-framework-activation: done
-  4-2-cross-framework-control-mapping: done
-  4-3-shared-requirements-view: done
-  4-4-statement-of-applicability-soa-generation: done
+  # Epic 4: Agent-SaaS Connectivity
+  epic-4: backlog
+  4-1-implement-agent-enrollment-with-api-token: backlog
+  4-2-implement-mtls-certificate-management: backlog
+  4-3-implement-heartbeat-mechanism-with-metrics: backlog
+  4-4-implement-certificate-pinning-for-server-validation: backlog
+  4-5-implement-agent-self-integrity-check-at-startup: backlog
   epic-4-retrospective: optional
 
-  # Epic 5: Audit & Evidence Management (P1 - Core)
-  # Note: Stories 5-1 to 5-4 were already implemented (brownfield)
-  epic-5: done
-  5-1-internal-audit-creation: done # Brownfield - full CRUD exists
-  5-2-evidence-linking-to-controls: done # Brownfield - evidenceIds on controls/findings
-  5-3-external-auditor-portal: done # Brownfield - ExternalAuditPortal.tsx
-  5-4-interactive-audit-checklist: done # Brownfield - AuditChecklist.tsx
-  5-5-automatic-evidence-dossier-generation: done
+  # Epic 5: Compliance Check Engine
+  epic-5: backlog
+  5-1-implement-check-runner-framework-and-scheduler: backlog
+  5-2-implement-disk-encryption-check: backlog
+  5-3-implement-antivirus-status-check: backlog
+  5-4-implement-firewall-configuration-check: backlog
+  5-5-implement-password-policy-check: backlog
+  5-6-implement-session-lock-check: backlog
+  5-7-implement-system-updates-check: backlog
+  5-8-implement-obsolete-protocols-check: backlog
+  5-9-implement-backup-configuration-check: backlog
+  5-10-implement-local-admin-accounts-check: backlog
+  5-11-implement-mfa-configuration-check: backlog
+  5-12-implement-remote-access-security-check: backlog
+  5-13-implement-proof-generation-engine: backlog
+  5-14-implement-local-compliance-score-calculator: backlog
   epic-5-retrospective: optional
 
-  # Epic 6: Document Lifecycle Management (P2 - Growth)
-  # Note: Stories 6-1 to 6-3 were already implemented (brownfield)
-  epic-6: done
-  6-1-document-crud-operations: done # Brownfield - full CRUD, workflows, folders
-  6-2-document-version-history: done # Brownfield - DocumentVersionHistory.tsx
-  6-3-document-linking-to-controls-and-risks: done # Brownfield - relatedControlIds, relatedRiskIds
-  6-4-regulatory-document-templates: done
+  # Epic 6: Synchronization & Offline Mode
+  epic-6: backlog
+  6-1-download-and-cache-check-rules-from-saas: backlog
+  6-2-download-agent-configuration-from-saas: backlog
+  6-3-upload-check-results-to-saas: backlog
+  6-4-implement-offline-mode-with-7-day-autonomy: backlog
+  6-5-implement-sync-queue-with-retry-logic: backlog
+  6-6-handle-synchronization-conflicts: backlog
   epic-6-retrospective: optional
 
-  # Epic 7: Executive Reporting (P2 - Growth)
-  # Note: Stories 7-1 to 7-2 were already implemented (brownfield)
-  epic-7: done
-  7-1-automatic-executive-report-generation: done # Brownfield - Reports.tsx, PdfService, ReportEnrichmentService
-  7-2-multi-format-export: done # Brownfield - PdfService, excelExportService, csvUtils
-  7-3-scheduled-recurring-reports: done
+  # Epic 7: Dashboard & Compliance Visualization (SaaS)
+  epic-7: backlog
+  7-1-display-global-compliance-score-dashboard: backlog
+  7-2-display-per-endpoint-compliance-view: backlog
+  7-3-display-compliance-gap-details: backlog
+  7-4-display-historical-compliance-trend: backlog
+  7-5-filter-by-regulatory-framework: backlog
+  7-6-filter-by-compliance-status: backlog
+  7-7-configure-score-degradation-alerts: backlog
+  7-8-provide-dpo-gdpr-filtered-view: backlog
   epic-7-retrospective: optional
 
-  # Epic 8: Project & Action Tracking (P2 - Growth)
-  # Note: All stories were already implemented (brownfield)
-  epic-8: done
-  8-1-project-plans-with-milestones: done # Brownfield - ProjectMilestones.tsx, useProjectMilestones.ts, GanttChart.tsx
-  8-2-action-assignment-with-deadlines: done # Brownfield - ProjectTasks.tsx, TaskFormModal.tsx, TreatmentActionsList.tsx
-  8-3-automatic-deadline-reminders: done # Brownfield - useAssignedActions.ts, useOverdueActions.ts, useUpcomingDeadlines.ts, email templates
-  8-4-action-completion-tracking: done # Brownfield - Task status, completedAt, progress tracking
+  # Epic 8: Agent Fleet Administration (SaaS)
+  epic-8: backlog
+  8-1-display-agent-fleet-list-with-status: backlog
+  8-2-download-agent-installation-packages: backlog
+  8-3-generate-agent-registration-tokens: backlog
+  8-4-configure-check-frequency: backlog
+  8-5-enable-or-disable-specific-checks: backlog
+  8-6-force-agent-synchronization: backlog
+  8-7-unregister-agent-from-fleet: backlog
   epic-8-retrospective: optional
 
-  # Epic 9: Real-time Collaboration (P2 - Engagement)
-  # Note: All stories were already implemented (brownfield)
-  epic-9: done
-  9-1-task-notifications: done # Brownfield - NotificationCenter.tsx, useNotifications.ts, notificationService.ts
-  9-2-entity-comments: done # Brownfield - CommentSection.tsx, DiscussionPanel.tsx with threads/replies
-  9-3-mention-colleagues: done # Brownfield - Mention detection, mentions array, visual highlighting
-  9-4-critical-alert-notifications: done # Brownfield - Critical risk, incident, audit, SLA alerts
+  # Epic 9: Audit & Compliance Reporting
+  epic-9: backlog
+  9-1-provide-auditor-read-only-access: backlog
+  9-2-view-technical-proofs-with-timestamps: backlog
+  9-3-export-compliance-report-by-framework-pdf: backlog
+  9-4-view-12-month-compliance-history: backlog
   epic-9-retrospective: optional
 
-  # Epic 10: Tenant Administration (P2 - Enterprise)
-  # Note: All stories were already implemented (brownfield)
-  epic-10: done
-  10-1-user-management: done # Brownfield - UserManagement.tsx, OrganizationSettings.tsx, useTeamManagement.ts
-  10-2-role-assignment: done # Brownfield - RoleManagement.tsx, permissions.ts, useTeamData.ts with custom roles
-  10-3-csv-user-import: done # Brownfield - ImportService.ts, useTeamManagement.ts importUsers()
-  10-4-organization-settings: done # Brownfield - OrganizationSettings.tsx, useSettingsData.ts
-  10-5-audit-trail-viewing: done # Brownfield - AuditTrailViewer.tsx, AuditLogList.tsx, logger.ts
+  # Epic 10: Agent Self-Update System
+  epic-10: backlog
+  10-1-check-for-available-updates: backlog
+  10-2-download-and-apply-update-automatically: backlog
+  10-3-implement-automatic-rollback-on-failure: backlog
+  10-4-implement-staged-rollout-deployment: backlog
+  10-5-configure-update-policy: backlog
+  10-6-trigger-manual-update-on-agent: backlog
+  10-7-block-specific-version: backlog
   epic-10-retrospective: optional
 
-  # Epic 11: Enterprise Authentication (P3 - Enterprise Tier)
-  # Note: All stories were already implemented (brownfield)
-  epic-11: done
-  11-1-email-password-authentication: done # Brownfield - Firebase Auth, Login.tsx, useAuthActions.ts, authSchema.ts
-  11-2-sso-integration-azure-ad-google: done # Brownfield - Google & Apple SSO in AuthContext.tsx, useAuthActions.ts
-  11-3-multi-factor-authentication: done # Brownfield - TOTP MFA in SecuritySettings.tsx, AuthContext.tsx
-  11-4-tenant-data-isolation: done # Brownfield - firestore.rules with organizationId isolation
+  # Epic 11: Security Hardening & Integrity
+  epic-11: backlog
+  11-1-sign-logs-with-hmac-sha256: backlog
+  11-2-validate-binary-signature-before-installation: backlog
+  11-3-revoke-compromised-agent-remotely: backlog
   epic-11-retrospective: optional
 
-  # Epic 12: SMSI Wizard (P2 - Differenciateur Majeur)
-  # Note: Core functionality already exists (brownfield) - comprehensive onboarding wizard
-  epic-12: done
-  12-1-wizard-entry-point: done # Brownfield - Onboarding.tsx 5-step wizard with standards selection
-  12-2-scope-definition-step: done # Brownfield - Step 3 "Pilotage" with scope text + framework selection
-  12-3-progressive-step-validation: done # Brownfield - React Hook Form + Zod step validation
-  12-4-time-to-certification-estimate: done # Brownfield - projectTemplates.ts with ISO 27001 milestones
-  12-5-sector-based-control-suggestions: done # Brownfield - Industry selection in Step 1 + framework mapping
+  # Epic 12: Support & Diagnostics
+  epic-12: backlog
+  12-1-view-agent-logs-remotely: backlog
+  12-2-view-detailed-connection-status: backlog
+  12-3-identify-recent-agent-errors: backlog
+  12-4-trigger-remote-diagnostics: backlog
   epic-12-retrospective: optional
-
-  # Epic 13: Technical Excellence & Quality Improvements (P1 - Quality)
-  # Source: Comprehensive Application Audit (2026-01-12)
-  epic-13: done
-  13-1-refactor-dashboard: done
-  13-2-eliminate-any-types: done
-  13-3-centralize-colors: done
-  13-4-test-coverage: done
-  13-5-refactor-riskform: done
-  13-6-dependency-updates: done
-  13-7-component-performance: done
-  13-8-accessibility: done
-  epic-13-retrospective: done
-
-  # Epic 14: Advanced Technical Improvements (P1 - Quality & Security)
-  # Focus: Test coverage, security hardening, documentation, performance
-  # Current: 8420 tests, 49.62% statement coverage, 88.07% branch coverage
-  epic-14: done
-  14-1-test-coverage-50-percent: done # 49.62% statements, 88.07% branches, 8420 tests
-  14-2-security-audit: done # Passed - see security-audit-report.md
-  14-3-technical-documentation: done # architecture-overview.md created
-  14-4-performance-optimization: done # Analyzed, report generated - Grade A-
-  epic-14-retrospective: optional
-
-  # =============================================================================
-  # EBIOS RM & ISO EXTENSION (Epics 15-22)
-  # Source: epics-ebios-rm-iso27003-2026-01-16.md
-  # =============================================================================
-
-  # Epic 15: EBIOS RM - Atelier 1: Cadrage et Socle de Sécurité (P0 - Foundation)
-  # FRs covered: EBIOS-001 à EBIOS-007
-  epic-15: done
-  15-1-creation-analyse-ebios-rm: done # Brownfield - EbiosAnalyses.tsx, ebiosService.ts, ebios.ts types
-  15-2-definition-perimetre-missions: done # Brownfield - MissionForm.tsx, Workshop1Content.tsx
-  15-3-identification-biens-supports: done # Brownfield - SupportingAssetForm.tsx, Workshop1Content.tsx
-  15-4-definition-evenements-redoutes: done # Brownfield - FearedEventForm.tsx, Workshop1Content.tsx
-  15-5-evaluation-socle-securite: done # Brownfield - SecurityBaselinePanel.tsx with maturity score
-  15-6-generation-note-cadrage: done # EbiosReportService.ts + GenerateReportButton.tsx
-  15-7-liaison-actifs-existants: done # ImportFromInventoryModal.tsx + integration in Workshop1Content.tsx
-  epic-15-retrospective: optional
-
-  # Epic 16: EBIOS RM - Atelier 2: Sources de Risque (P0 - Foundation)
-  # FRs covered: EBIOS-010 à EBIOS-015
-  epic-16: done
-  16-1-selection-sources-risque-anssi: done # Brownfield - ANSSI_RISK_SOURCES (20) + Workshop2Content.tsx
-  16-2-creation-sources-risque-custom: done # CustomRiskSourceForm.tsx + CustomTargetedObjectiveForm.tsx
-  16-3-definition-objectifs-vises: done # Brownfield - ANSSI_TARGETED_OBJECTIVES (18) + Workshop2Content.tsx
-  16-4-generation-couples-sr-ov: done # Brownfield - generatePairs() in Workshop2Content.tsx
-  16-5-evaluation-pertinence-sr-ov: done # Brownfield - Relevance slider + retained toggle
-  16-6-suggestions-sources-par-secteur: done # SECTOR_PROFILES + SectorRecommendations.tsx
-  epic-16-retrospective: optional
-
-  # Epic 17: EBIOS RM - Atelier 3: Scénarios Stratégiques (P0 - Core)
-  # FRs covered: EBIOS-020 à EBIOS-025
-  epic-17: done
-  17-1-cartographie-ecosysteme: done # EcosystemPartyForm.tsx created
-  17-2-definition-chemins-attaque: done # AttackPathForm.tsx created
-  17-3-construction-scenarios-strategiques: done # StrategicScenarioForm.tsx created
-  17-4-evaluation-gravite: done # Integrated in StrategicScenarioForm with justification
-  17-5-visualisation-graphique-ecosysteme: done # EcosystemMap.tsx with D3/Framer Motion (SVG interactive)
-  17-6-suggestions-scenarios-par-secteur: done # SCENARIO_TEMPLATES + ScenarioSuggestions.tsx
-  epic-17-retrospective: optional
-
-  # Epic 18: EBIOS RM - Atelier 4: Scénarios Opérationnels (P0 - Core)
-  # FRs covered: EBIOS-030 à EBIOS-035
-  # Brownfield analysis: Workshop4Content.tsx existed with likelihood selector, risk matrix
-  # New: OperationalScenarioForm, MitreSearchModal, MITRE library data, risk creation
-  epic-18: done
-  18-1-declinaison-modes-operatoires: done # OperationalScenarioForm.tsx created
-  18-2-sequences-attaque-mitre-attack: done # MitreSearchModal.tsx + MITRE_TACTICS/TECHNIQUES in ebiosLibrary.ts
-  18-3-evaluation-vraisemblance: done # Brownfield - LIKELIHOOD_SCALE selector in Workshop4Content
-  18-4-calcul-niveau-risque: done # Brownfield - RISK_MATRIX_CONFIG.getRiskLevel() in ebiosLibrary.ts
-  18-5-creation-automatique-registre-risques: done # handleCreateRiskFromScenario + EbiosReference type
-  18-6-propositions-techniques-mitre: done # getMitreSuggestions() with kill chain flow
-  epic-18-retrospective: optional
-
-  # Epic 19: EBIOS RM - Atelier 5: Traitement du Risque (P0 - Core)
-  # FRs covered: EBIOS-040 à EBIOS-045
-  # Brownfield: Workshop5Content.tsx existed with treatment planning and residual risk
-  # New: ControlSelectorModal, MITRE→ISO27002 mapping, full EBIOS synthesis report
-  epic-19: done
-  19-1-definition-plan-traitement: done # Brownfield - TreatmentPlanItem, strategy selection, status
-  19-2-selection-mesures-iso-27002: done # ControlSelectorModal.tsx with search/filter
-  19-3-mapping-automatique-risques-controles: done # MITRE_TO_ISO27002_MAPPING in ebiosLibrary.ts
-  19-4-calcul-risques-residuels: done # Brownfield - calculateResidualRisk(), effectiveness slider
-  19-5-generation-synthese-ebios-rm: done # generateFullEbiosReport() in EbiosReportService.ts
-  19-6-export-dossier-ebios-pdf: done # downloadFullEbiosReport() with all workshops
-  epic-19-retrospective: optional
-
-  # Epic 20: Programme SMSI - ISO 27003 (P1 - Program Management)
-  # FRs covered: ISO3-001 à ISO3-007
-  # Brownfield: SMSIDrawer, SMSIDashboard, SMSIMilestoneList, SMSIInspector existed
-  # New: MilestoneFormDrawer, updateMilestone, checkSMSIMilestones, SMSI Progress Report PDF
-  epic-20: done
-  20-1-creation-programme-smsi: done # Brownfield - SMSIDrawer, useSMSIProgram
-  20-2-definition-jalons: done # MilestoneFormDrawer created
-  20-3-dashboard-avancement: done # Brownfield - SMSIDashboard, SMSIStatsWidget
-  20-4-attribution-responsables: done # Integrated in MilestoneFormDrawer + SMSIInspector
-  20-5-alertes-rapports-automatiques: done # checkSMSIMilestones + downloadSMSIProgressReport
-  epic-20-retrospective: optional
-
-  # Epic 21: Contexte de Risque - ISO 27005 (P1 - Foundation)
-  # FRs covered: ISO5-001 à ISO5-005
-  # FULL BROWNFIELD - RiskContextManager.tsx, useRiskContext.ts, EbiosService
-  epic-21: done
-  21-1-definition-contexte-business: done # Brownfield - BusinessContextTab (activities, objectives, processes)
-  21-2-definition-contexte-reglementaire: done # Brownfield - RegulatoryContextTab (regulations CRUD)
-  21-3-definition-appetit-au-risque: done # Brownfield - RiskAppetiteTab (levels, thresholds)
-  21-4-criteres-evaluation-risques: done # Brownfield - EvaluationCriteriaTab (impact/probability scales)
-  epic-21-retrospective: optional
-
-  # Epic 22: Efficacité des Contrôles - ISO 27002 (P2 - Enhancement)
-  # FRs covered: ISO2-001 à ISO2-004
-  # FULL BROWNFIELD - ControlEffectivenessManager.tsx, useControlEffectiveness.ts
-  epic-22: done
-  22-1-evaluation-efficacite-controles: done # Brownfield - AssessmentFormModal (score, method, evidence, notes)
-  22-2-score-maturite-par-domaine: done # Brownfield - DomainMaturityScore, MaturityRadarWidget, 5-level scale
-  epic-22-retrospective: optional
-
-  # =============================================================================
-  # COFFRE-FORT DOCUMENTAIRE (Epics 23-27)
-  # Source: epics-coffre-fort-documentaire.md
-  # =============================================================================
-
-  # Epic 23: Chiffrement & Sécurité Documentaire (P0 - Foundation)
-  # FRs covered: FR-VAULT-001, FR-VAULT-005
-  epic-23: done
-  23-1-configuration-infrastructure-cloud-kms: done
-  23-2-cloud-function-chiffrement-upload: done
-  23-3-cloud-function-dechiffrement-download: done
-  23-4-migration-documents-existants: done # migrateDocuments.js + scheduled job
-  23-5-ui-indicateur-chiffrement: done # EncryptionBadge.tsx + ClassificationSelector.tsx
-  23-6-tests-securite-chiffrement: done # vaultEncryption.test.ts
-  epic-23-retrospective: optional
-
-  # Epic 24: Classification & Contrôle d'Accès (P0 - Foundation)
-  # FRs covered: FR-VAULT-002, FR-VAULT-007
-  epic-24: done
-  24-1-modele-donnees-classification: done # classificationService.ts created with helpers
-  24-2-ui-selecteur-classification: done # ClassificationSelector.tsx enhanced and integrated
-  24-3-firestore-rules-classification-rbac: done # firestore.rules updated with classification RBAC
-  24-4-modele-donnees-document-acl: done # aclService.ts created with ACL management
-  24-5-ui-gestion-permissions-document: done # DocumentPermissionsModal.tsx created
-  24-6-tests-classification-acl: done # classificationAcl.test.ts with comprehensive tests
-  epic-24-retrospective: optional
-
-  # Epic 25: Conformité Légale (P0/P1)
-  # FRs covered: FR-VAULT-003, FR-VAULT-004, FR-VAULT-009
-  epic-25: done
-  25-1-modele-donnees-legal-hold: done # LegalHold types extended in vault.ts, LegalHoldService created
-  25-2-firestore-rules-legal-hold-protection: done # Firestore rules for legalHolds collection, document protection
-  25-3-ui-gestion-legal-holds: done # LegalHoldManager.tsx created
-  25-4-modele-donnees-retention-policy: done # RetentionPolicy types extended, RetentionService created
-  25-5-cloud-function-retention-policy-engine: done # retentionEngine.js with scheduled + callable functions
-  25-6-ui-dashboard-retention: done # RetentionDashboard.tsx created
-  epic-25-retrospective: optional
-
-  # Epic 26: Intégrité & Signatures (P1)
-  # FRs covered: FR-VAULT-005, FR-VAULT-006
-  epic-26: done
-  26-1-cloud-function-hash-upload: done # integrityService.js with verifyIntegrity, getHashHistory, generateIntegrityCertificate
-  26-2-verification-integrite-telechargement: done # integrityService.ts client + decryptOnDownload hash verification
-  26-3-ui-certificat-integrite: done # IntegrityCertificate.tsx with status, hash display, PDF generation
-  26-4-integration-signature-electronique: done # signature.ts types, signatureService.ts/js, Cloud Functions
-  26-5-ui-workflow-signature: done # SignatureWorkflow.tsx with request creation, signing, history
-  epic-26-retrospective: optional
-
-  # Epic 27: Audit Trail & eDiscovery (P1/P2)
-  # FRs covered: FR-VAULT-008, FR-VAULT-009, FR-VAULT-010
-  epic-27: done
-  27-1-audit-trail-collection-immutable: done # auditLogger.js + Firestore rules (immutable)
-  27-2-vault-audit-service: done # vaultAuditService.ts + auditQueries.js (Cloud Functions)
-  27-3-ui-visualisation-audit-trail: done # DocumentAuditTrail.tsx (timeline, filters, export)
-  27-4-ediscovery-recherche-avancee: done # EDiscoverySearch.tsx + eDiscoveryService.ts (boolean operators, saved queries)
-  27-5-watermarking-telechargement: done # watermarkService.js + watermarkService.ts (PDF/image watermarking)
-  epic-27-retrospective: optional
-
-  # =============================================================================
-  # VOXEL INTELLIGENCE ENGINE (Epics 28-34)
-  # Source: epics-voxel-intelligence-engine.md
-  # =============================================================================
-
-  # Epic 28: Synchronisation Temps Réel (P0 - Foundation)
-  # FRs covered: FR-VOXEL-001
-  epic-28: done
-  28-1-zustand-store-voxel-state: done
-  28-2-firestore-realtime-listeners: done
-  28-3-node-animation-system: done # useNodeAnimation.ts with react-spring
-  28-4-sync-status-indicator: done # SyncStatusIndicator.tsx + ViewSelector.tsx
-  28-5-offline-mode-cache: done # useOfflineMode.ts with IndexedDB/localStorage
-  epic-28-retrospective: optional
-
-  # Epic 29: Détection d'Anomalies (P0 - Core)
-  # FRs covered: FR-VOXEL-002, FR-VOXEL-007
-  epic-29: done
-  29-1-anomaly-data-model-collection: done # Extended VoxelAnomaly type with 11 anomaly types + AlertConfig
-  29-2-cloud-function-anomaly-detection: done # detectAnomalies.js with scheduled + on-demand detection
-  29-3-circular-dependency-detection: done # DFS-based cycle detection in detectAnomalies.js
-  29-4-client-side-anomaly-detection: done # anomalyDetectionService.ts with real-time detection
-  29-5-anomaly-visualization-3d: done # AnomalyHighlight.tsx with pulse rings, glow, cycle lines
-  29-6-anomaly-panel-ui: done # AnomalyPanel.tsx with filters, badges, list view
-  29-7-anomaly-quick-actions: done # Resolve, Dismiss, Create Task in AnomalyPanel.tsx
-  29-8-alert-configuration-ui: done # AlertConfigModal.tsx with thresholds & channels
-  29-9-alert-cloud-functions: done # anomalyAlerts.js with rate limiting & notifications
-  epic-29-retrospective: optional
-
-  # Epic 30: Simulation Blast Radius (P0 - Core)
-  # FRs covered: FR-VOXEL-003, FR-VOXEL-006
-  epic-30: done
-  30-1-blast-radius-algorithm: done # BlastRadiusService.ts with BFS algorithm
-  30-2-use-blast-radius-hook: done # useBlastRadius.ts hook
-  30-3-blast-radius-visualization: done # BlastRadiusVisualization.tsx (3D)
-  30-4-blast-radius-stats-panel: done # BlastRadiusPanel.tsx with stats
-  30-5-what-if-simulation-mode: done # What-If scenarios in service + panel
-  30-6-root-cause-analysis-algorithm: done # analyzeRootCauses() in BlastRadiusService
-  30-7-root-cause-visualization: done # RootCauseVisualization.tsx (3D)
-  30-8-impact-report-export: done # CSV/JSON export in BlastRadiusService
-  epic-30-retrospective: optional
-
-  # Epic 31: Vues par Rôle & Analytics (P1)
-  # FRs covered: FR-VOXEL-004, FR-VOXEL-005
-  epic-31: done
-  31-1-view-presets-system: done
-  31-2-view-selector-ui: done
-  31-3-view-transition-animations: done
-  31-4-custom-view-save-load: done
-  31-5-url-state-sharing: done
-  31-6-daily-snapshots-cloud-function: done
-  31-7-time-machine-ui: done
-  31-8-trend-charts: done
-  31-9-predictive-trends: done
-  31-10-calendar-heatmap: done
-  epic-31-retrospective: optional
-
-  # Epic 32: Performance & Export (P1)
-  # FRs covered: FR-VOXEL-008, FR-VOXEL-009
-  epic-32: done
-  32-1-instanced-rendering: done # InstancedNodes.tsx with InstancedMesh for 10k+ nodes
-  32-2-level-of-detail-lod: done # LODNode.tsx with @react-three/drei Detailed component
-  32-3-frustum-culling-optimization: done # useFrustumCulling.ts with spatial partitioning
-  32-4-web-workers-layout: done # layoutWorker.ts + useLayoutWorker.ts for force-directed layout
-  32-5-memory-management: done # useMemoryManagement.ts with pooling and GC hints
-  32-6-performance-monitoring-dashboard: done # PerformanceMonitor.tsx with FPS, memory, render stats
-  32-7-screenshot-export-png: done # voxelExportService.ts captureScreenshot with resolution options
-  32-8-pdf-report-export: done # voxelExportService.ts exportToPDF with jsPDF
-  32-9-gltf-3d-export: done # voxelExportService.ts exportToGLTF with GLTFExporter
-  32-10-presentation-mode: done # PresentationMode.tsx with fullscreen, auto-rotate, keyboard
-  epic-32-retrospective: optional
-
-  # Epic 33: Annotations & Collaboration (P2)
-  # FRs covered: FR-VOXEL-010
-  epic-33: done
-  33-1-annotation-data-model: done # VoxelAnnotation, AnnotationReply, AnnotationFilter types in voxelAnnotation.ts
-  33-2-annotation-creation-ui: done # AnnotationCreator.tsx + annotationService.ts with CRUD operations
-  33-3-annotation-visualization-3d: done # AnnotationMarker.tsx + AnnotationOverlay.tsx with 3D pins/markers
-  33-4-annotation-thread-discussion: done # AnnotationThread.tsx with replies, resolve/close, collapsible view
-  33-5-mention-notifications: done # parseMentions() + notifyMentionedUsers() in annotationService.ts
-  33-6-annotation-export: done # exportAnnotations() with CSV/JSON/PDF formats + useAnnotations hook
-  epic-33-retrospective: optional
-
-  # Epic 34: Fondation AR/VR (P3)
-  # FRs covered: FR-VOXEL-011
-  epic-34: done
-  34-1-webxr-detection-ui: done # useWebXR.ts hook + XRStatusBadge.tsx component
-  34-2-basic-vr-navigation: done # VRScene.tsx + VRControllers.tsx with teleport and grab
-  34-3-vr-optimized-scene: done # VROptimizedScene.tsx + useVRPerformance.ts (72+ FPS target)
-  34-4-ar-mobile-preview: done # ARScene.tsx + ARPlacement.tsx with hit-test and pinch-to-scale
-  34-5-gltf-export-vr-headsets: done # VRExportDialog.tsx + exportForVR() in voxelExportService.ts
-  epic-34-retrospective: optional
-
-  # =============================================================================
-  # Q1-Q2 2026 VERTICAL PRIORITIES (Epics 35-39)
-  # Source: epics.md v2.0 (2026-01-20 update)
-  # =============================================================================
-
-  # Epic 35: DORA ICT Register (P0 - Finance - Deadline 30 avril 2025)
-  # ADR-008 - Registre ICT automatisé pour conformité DORA Art. 28
-  # Tests: DORAExportService (43), ICTProviderService (21), ContractExpirationService (39)
-  epic-35: done
-  35-1-ict-provider-management: done # ICTProviderForm, ICTProviderList, ICTProviderService
-  35-2-ict-risk-assessment: done # DORARiskWidget, risk stats in useICTProviders
-  35-3-dora-register-export: done # ExportDORARegisterModal, DORAExportService
-  35-4-contract-expiration-alerts: done # ExpirationBadge, ContractExpirationService
-  epic-35-retrospective: optional
-
-  # Epic 36: SCADA/ICS Integration (P1 - Industrie NIS2)
-  # ADR-009 - Connecteur SCADA/ICS pour assets OT
-  # Tests: OTAssetImportService (53), OTConnectorService (31), OTVulnerabilityService (55)
-  epic-36: done
-  36-1-ot-asset-import-wizard: done # OTAssetImportService with CSV/OPC-UA/Modbus/API
-  36-2-ot-connector-configuration: done # OTConnectorForm, OTConnectorList, OTSyncHistory
-  36-3-it-ot-voxel-mapping: done # ITOTEdge, OTNodeMesh for Voxel integration
-  36-4-ot-vulnerability-correlation: done # OTVulnerabilityService, OTVulnerabilityOverlay
-  epic-36-retrospective: optional
-
-  # Epic 37: Third-Party Risk Management (P1 - All Verticals)
-  # ADR-010 - Module TPRM avec questionnaires automatisés
-  # Tests: VendorAssessmentService (51), VendorPortalService (57), VendorScoringService (49), VendorConcentrationService (54)
-  epic-37: done
-  37-1-vendor-assessment-creation: done # SupplierAssessmentDrawer, VendorAssessmentService
-  37-2-vendor-self-service-portal: done # PortalAuth, PortalQuestionnaire, VendorPortalService
-  37-3-automated-vendor-scoring: done # ScoringConfig, ScoreBreakdown, VendorScoringService
-  37-4-vendor-concentration-dashboard: done # CategoryChart, DependencyMatrix, SPOFAlerts
-  epic-37-retrospective: optional
-
-  # Epic 38: ANSSI Homologation (P0 - Public Sector)
-  # ADR-011 - Templates homologation RGS pour secteur public
-  # Tests: HomologationService (73), HomologationDocumentService (39)
-  epic-38: done
-  38-1-homologation-level-selector: done # LevelDeterminationWizard with 4 RGS levels
-  38-2-homologation-document-generation: done # DocumentGenerationPanel, HomologationDocumentService
-  38-3-homologation-validity-tracking: done # HomologationValidityWidget, RenewalDialog
-  38-4-ebios-homologation-link: done # EbiosLinkSelector, EbiosChangeReview
-  epic-38-retrospective: optional
-
-  # Epic 39: Financial Risk Quantification (P1 - All Verticals)
-  # ADR-012 - Quantification financière avancée (FAIR, Monte Carlo)
-  # Tests: MonteCarloService (21), FAIRService tests
-  epic-39: done
-  39-1-fair-model-configuration: done # FAIRSimpleForm, FAIRConfigList, useFAIR hook
-  39-2-monte-carlo-simulation: done # MonteCarloService with 5 distributions (PERT, Normal, Lognormal, Uniform, Triangular)
-  39-3-security-roi-calculator: done # ROICalculator component
-  39-4-comex-financial-dashboard: done # COMEXDashboard with VaR/ALE visualization
-  epic-39-retrospective: optional
-
-  # =============================================================================
-  # VOXEL 3D MODULE (Epics VOX-1 to VOX-9)
-  # Source: epics-voxel-module-2026-01-22.md
-  # Module: voxel-3d-module
-  # Total Epics: 9 | Total Stories: 52 | MVP: 44 | MVP+: 8
-  # =============================================================================
-
-  # Epic VOX-1: Foundation & Canvas Setup (P0 - MVP Core)
-  # FR Reference: FR1-FR4
-  # Architecture: VoxelCanvas.tsx, VoxelScene.tsx, voxelStore.ts
-  vox-epic-1-foundation-canvas-setup: done
-  vox-1-1-r3f-canvas-integration: done
-  vox-1-2-zustand-store-setup: done
-  vox-1-3-performance-frame-rate: done
-  vox-1-4-webgl-capability-detection: done
-  vox-1-5-error-boundary-recovery: done
-  vox-1-6-voxel-types-definition: done
-  vox-epic-1-retrospective: optional
-
-  # Epic VOX-2: Node Visualization (P0 - MVP Core)
-  # FR Reference: FR5-FR10
-  # Architecture: VoxelNode.tsx, NodeGeometries.tsx, NodeMaterials.tsx
-  vox-epic-2-node-visualization: done
-  vox-2-1-node-component-creation: done # VoxelNode base + AssetNode/RiskNode/ControlNode + NodeStyleResolver
-  vox-2-2-entity-type-geometries: done # Integrated in vox-2-1 - sphere/icosahedron/box/octahedron/cylinder
-  vox-2-3-node-materials-shaders: done # Integrated in vox-2-1 - PBR materials with metalness/roughness
-  vox-2-4-node-labels-html: done # VoxelNodeLabel with Html overlay, distance-based visibility
-  vox-2-5-node-status-indicators: done # Integrated in vox-2-1 - status colors, opacity, emissive glow
-  vox-2-6-node-lod-system: done # VoxelNodeLOD + NodeHighDetail/NodeMediumDetail/NodeLowDetail
-  vox-epic-2-retrospective: optional
-
-  # Epic VOX-3: Edge & Connection Visualization (P0 - MVP Core)
-  # FR Reference: FR11-FR14
-  # Architecture: VoxelEdge.tsx, EdgeManager.tsx, EdgeStyleResolver.ts
-  vox-epic-3-edge-visualization: done
-  vox-3-1-edge-line-rendering: done # VoxelEdge + EdgeManager + VoxelEdgeCurved
-  vox-3-2-asset-risk-connections: done # Impact edge type in EdgeStyleResolver (red #EF4444)
-  vox-3-3-control-asset-connections: done # Mitigation edge type in EdgeStyleResolver (purple #8B5CF6)
-  vox-3-4-edge-style-variation: done # Weight-based thickness/opacity in EdgeStyleResolver
-  vox-epic-3-retrospective: optional
-
-  # Epic VOX-4: Navigation & Interaction (P0 - MVP Core)
-  # FR Reference: FR15-FR21
-  # Architecture: useNodeSelection.ts, useCameraAnimation.ts, VoxelDetailPanel.tsx
-  vox-epic-4-navigation-interaction: done
-  vox-4-1-orbit-rotation: done # OrbitControls in VoxelScene.tsx with damping
-  vox-4-2-zoom-control: done # OrbitControls minDistance/maxDistance (50-2000)
-  vox-4-3-pan-navigation: done # OrbitControls enablePan with panSpeed
-  vox-4-4-node-click-selection: done # useNodeSelection + SelectionGlow
-  vox-4-5-hover-tooltip: done # useHoverState + VoxelTooltip
-  vox-4-6-click-detail-panel: done # VoxelDetailPanel (slide-in from right)
-  vox-4-7-reset-view: done # useCameraAnimation with resetView
-  vox-epic-4-retrospective: optional
-
-  # Epic VOX-5: Filtering & Search (P0 - MVP Core)
-  # FR Reference: FR22-FR26
-  # Architecture: VoxelFilterPanel.tsx, useVoxelFilters.ts, useFilterPresets.ts
-  vox-epic-5-filtering-search: done
-  vox-5-1-filter-panel-component: done # VoxelFilterPanel.tsx with collapsible UI, badges, counts
-  vox-5-2-entity-type-filtering: done # Node type checkboxes with toggleNodeType
-  vox-5-3-status-based-filtering: done # Status checkboxes with toggleStatus
-  vox-5-4-search-functionality: done # Search input with setSearchQuery (case-insensitive)
-  vox-5-5-filter-presets: done # useFilterPresets.ts with 10 presets (all, risks-only, critical, etc.)
-  vox-epic-5-retrospective: optional
-
-  # Epic VOX-6: Data Integration (P0 - MVP Core)
-  # FR Reference: FR27-FR30
-  # Architecture: GraphBuilder.ts, useVoxelData.ts, useVoxelRealtime.ts
-  vox-epic-6-data-integration: done
-  vox-6-1-data-transformer-service: done # GraphBuilder.ts with buildGraph, updateNodeFromEntity
-  vox-6-2-firestore-realtime-integration: done # useVoxelRealtime.ts (existed) + useVoxelData.ts with React Query
-  vox-6-3-graph-layout-algorithms: done # calculateInitialPosition with spherical distribution by type
-  vox-6-4-data-caching-strategy: done # React Query caching in useVoxelData (staleTime, gcTime)
-  vox-epic-6-retrospective: optional
-
-  # Epic VOX-7: Detail Panel & Entity View (P0 - MVP Core)
-  # FR Reference: FR31-FR35
-  # Architecture: VoxelDetailPanel.tsx with type-specific sections
-  vox-epic-7-detail-panel: done
-  vox-7-1-detail-panel-component: done # Enhanced VoxelDetailPanel with slide-in panel
-  vox-7-2-entity-specific-details: done # AssetDetails, RiskDetails, ControlDetails, ProjectDetails, AuditDetails, IncidentDetails, SupplierDetails
-  vox-7-3-quick-actions: done # "View Full Details" navigation button
-  vox-7-4-relationship-view: done # LinkedEntityItem list with clickable navigation
-  vox-7-5-history-timeline: done # Timeline section with created/updated dates
-  vox-epic-7-retrospective: optional
-
-  # Epic VOX-8: Security, RBAC & Accessibility (P0 - MVP Core)
-  # FR Reference: FR36-FR44
-  # Architecture: useRbacNodeFilter.ts, VoxelLegend.tsx, usePrefersReducedMotion.ts
-  vox-epic-8-security-rbac-accessibility: done
-  vox-8-1-daltonisme-safe-visuals: done # VoxelLegend.tsx with shapes + colors
-  vox-8-2-contrast-compliance: done # Dark theme with high contrast
-  vox-8-3-text-labels-indicators: done # Aria-labels and text descriptions
-  vox-8-4-reduced-motion-support: done # usePrefersReducedMotion.ts hook
-  vox-8-5-rbac-node-filtering: done # useRbacNodeFilter.ts + filterNodesByPermission
-  vox-8-6-admin-full-access: done # Admin bypass in permission checks
-  vox-8-7-organization-data-isolation: done # useVoxelData.ts organizationId filtering
-  vox-8-8-audit-logging: done # Console logging for RBAC filtering
-  vox-8-9-data-sanitization: done # Type-safe data access in detail panel
-  vox-epic-8-retrospective: optional
-
-  # Epic VOX-9: MVP+ Advanced Features (P1 - MVP+)
-  # FR Reference: FR45-FR52
-  # Architecture: RiskPulse.tsx, useExportCapture.ts, VoxelMinimap.tsx, useZoomSemantic.ts, VoxelGuidedTour.tsx
-  vox-epic-9-mvp-plus-advanced: done
-  vox-9-1-zoom-semantique: done # useZoomSemantic.ts with macro/medium/micro levels
-  vox-9-2-alertes-visuelles-pulse: done # RiskPulse.tsx, CriticalRiskPulse, WarningPulse
-  vox-9-3-mode-guide: done # VoxelGuidedTour.tsx with auto-play, navigation
-  vox-9-4-clustering-automatique: done # useNodeClustering.ts with spatial grouping
-  vox-9-5-minimap-navigation: done # VoxelMinimap.tsx with click-to-navigate
-  vox-9-6-framework-overlay: done # VoxelFrameworkOverlay.tsx with compliance frameworks
-  vox-9-7-export-view: done # useExportCapture.ts with PNG/JPEG/WebP, watermark
-  vox-9-8-mode-direction: done # VoxelExecutiveView.tsx with KPIs, gauges
-  vox-epic-9-retrospective: optional
-
-  # =============================================================================
-  # EUROPEAN LEADER STRATEGY (Epics EU-1 to EU-5)
-  # Source: epics-european-leader-2026-01-22.md
-  # Goal: Position Sentinel GRC as European GRC market leader
-  # Total Epics: 5 | Total Stories: 28 | MVP: 15 | Post-MVP: 13
-  # =============================================================================
-
-  # Epic EU-1: Multi-Framework Engine (P0 - MVP Core)
-  # FR Reference: FR-01, FR-02, FR-03
-  # Goal: Multi-framework compliance (NIS2, DORA, RGPD, AI Act) with cross-mapping
-  eu-epic-1-multi-framework-engine: done
-  eu-1-1-framework-data-model: done # src/types/framework.ts, compliance.ts + Firestore indexes
-  eu-1-2-framework-service: done # src/services/FrameworkService.ts + src/hooks/useFrameworks.ts (26 tests)
-  eu-1-3-framework-selector-component: done # FrameworkSelector, FrameworkCard, modals (15 tests)
-  eu-1-4-requirements-list-view: done # RequirementsList, RequirementCard, RequirementInspector (25 tests)
-  eu-1-5-cross-framework-mapping: done # MappingMatrix, MappingCell, ControlMappingCard (43 tests)
-  eu-1-6-seed-nis2-framework-data: done # scripts/nis2-seed-data.ts, Cloud Function seedNIS2Framework
-  eu-epic-1-retrospective: optional
-
-  # Epic EU-2: Compliance Dashboard & Scoring (P0 - MVP Core)
-  # FR Reference: FR-04, FR-05, FR-06
-  # Goal: Unified compliance view with gamified scores and priority actions
-  # Note: Most stories brownfield - comprehensive dashboard existed
-  # New: EU-2.4 PriorityActionsList component with impact-based prioritization
-  eu-epic-2-compliance-dashboard: done
-  eu-2-1-scoring-engine: done # Brownfield - calculateComplianceScore.js, CATEGORY_WEIGHTS
-  eu-2-2-compliance-gauge-component: done # Brownfield - ScoreGauge.tsx (Apple Health style)
-  eu-2-3-trend-chart-component: done # Brownfield - TrendSparkline.tsx, StatsService.getHistory
-  eu-2-4-actions-list-component: done # NEW - PriorityActionsList.tsx + 28 tests
-  eu-2-5-compliance-store-zustand: done # Brownfield - useComplianceScore.ts hook
-  eu-2-6-dashboard-page: done # Brownfield - ComplianceDashboard.tsx (integrated PriorityActionsList)
-  eu-epic-2-retrospective: optional
-
-  # Epic EU-3: AI Compliance Copilot (P0 - MVP Core)
-  # FR Reference: FR-07, FR-08, FR-09
-  # Goal: Conversational AI assistant for compliance guidance and document generation
-  # Note: FULL BROWNFIELD - Comprehensive AI infrastructure exists using Gemini (functionally equivalent to Claude)
-  # Components: GeminiAssistant.tsx, ChatMessage.tsx, ActionCard.tsx, aiService.ts, actionRegistry.ts
-  # Tests: 44 tests passing (AIAssistButton, ChatMessage, ActionCard)
-  eu-epic-3-ai-copilot: done
-  eu-3-1-claude-api-rag-pipeline: done # Brownfield - aiService.ts with callGeminiChat/callGeminiGenerateContent Cloud Functions
-  eu-3-2-copilot-panel-component: done # Brownfield - GeminiAssistant.tsx (glassmorphism, expandable, quick prompts, plan gating)
-  eu-3-3-message-streaming: done # Brownfield - Responses <5s meet NFR-P3, synchronous with loading states
-  eu-3-4-contextual-actions: done # Brownfield - ActionCard.tsx + actionRegistry.ts (CREATE_ASSET, UPDATE_RISK, BULK_DELETE)
-  eu-3-5-document-generation: done # Brownfield - generatePolicy(), generateAuditChecklist(), domain AI assistants
-  eu-3-6-conversation-history: done # Brownfield - useAIConversation.ts, conversations_ai collection, initConversation/saveMessages
-  eu-epic-3-retrospective: optional
-
-  # Epic EU-4: Templates & Data Import (P1 - Post-MVP)
-  # FR Reference: FR-10, FR-11, FR-12
-  # Goal: Accelerate onboarding with sector templates and import/export
-  # Note: MOSTLY BROWNFIELD - comprehensive import/export infrastructure exists
-  eu-epic-4-templates-import: done
-  eu-4-1-template-catalog: done # Brownfield - documentTemplates.ts (ISO 27001, RGPD, NIS2) + DocumentTemplateModal.tsx
-  eu-4-2-excel-csv-import: done # Brownfield - ImportService.ts (Risk/Asset/Project/Supplier import with validation)
-  eu-4-3-pdf-report-export: done # Brownfield - PdfService.ts + PdfExportService.ts (jsPDF, reports, watermarks)
-  eu-4-4-seed-sector-templates: done # sectorTemplates.ts with industry-specific frameworks (Finance, Santé, Tech, Industrie, Public, Retail)
-  eu-4-5-intelligent-mapping-import: done # Brownfield - aiService.analyzeImportData() with AI column mapping
-  eu-epic-4-retrospective: optional
-
-  # Epic EU-5: Localization & Sovereignty (P1 - Post-MVP)
-  # FR Reference: FR-13, FR-14
-  # Goal: Multi-language support (FR/EN/DE) and data sovereignty compliance
-  # Note: MOSTLY BROWNFIELD - i18n fully configured, FR/EN translations complete
-  eu-epic-5-localization-sovereignty: done
-  eu-5-1-react-i18next-setup: done # Brownfield - i18n.ts with LanguageDetector, HttpBackend, Suspense
-  eu-5-2-translate-interface-en-fr: done # Brownfield - FR/EN translations comprehensive, TopBar language toggle
-  eu-5-3-german-translation: done # public/locales/de/translation.json + store.ts + ProfileSettings.tsx
-  eu-5-4-data-residency-page: done # Brownfield - SecNumCloud mentions in SentinelChat/Auth, Pricing page
-  eu-5-5-localize-regulatory-content: done # Brownfield - NIS2 seed data bilingual (FR/EN)
-  eu-epic-5-retrospective: optional
