@@ -20,6 +20,53 @@ import { SentinelAgent, AgentStatus } from '../../types/agent';
 import { cn } from '../../lib/utils';
 import { motion } from 'framer-motion';
 
+// Download API base URL
+const RELEASE_API_URL = 'https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/downloadRelease';
+
+interface DownloadButtonProps {
+    platform: string;
+    label: string;
+    sublabel: string;
+    icon: React.ReactNode;
+    available?: boolean;
+}
+
+const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, available = true }) => {
+    const handleDownload = () => {
+        if (!available) {
+            toast.info("Cette version sera disponible prochainement");
+            return;
+        }
+        // Redirect to Cloud Function which will generate signed URL
+        window.location.href = `${RELEASE_API_URL}/agent/${platform}/latest`;
+    };
+
+    return (
+        <button
+            onClick={handleDownload}
+            className={cn(
+                "flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full",
+                !available && "opacity-60"
+            )}
+        >
+            <div className="flex items-center gap-3">
+                {icon}
+                <div>
+                    <div className="text-sm font-bold text-slate-900 dark:text-white">{label}</div>
+                    <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{sublabel}</div>
+                </div>
+            </div>
+            {available ? (
+                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+            ) : (
+                <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600">
+                    Bientôt
+                </Badge>
+            )}
+        </button>
+    );
+};
+
 export const AgentManagement: React.FC = () => {
     const { user } = useStore();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
@@ -345,61 +392,34 @@ export const AgentManagement: React.FC = () => {
 
                         {/* Desktop Downloads */}
                         <div className="grid grid-cols-1 gap-3">
-                            <a
-                                href="/releases/agent/windows/latest"
-                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Monitor className="w-5 h-5 text-blue-500" />
-                                    <div>
-                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Windows</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Installateur .MSI</div>
-                                    </div>
-                                </div>
-                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-                            </a>
-
-                            <a
-                                href="/releases/agent/macos/latest"
-                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Cpu className="w-5 h-5 text-slate-600" />
-                                    <div>
-                                        <div className="text-sm font-bold text-slate-900 dark:text-white">macOS</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Apple Silicon & Intel</div>
-                                    </div>
-                                </div>
-                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-                            </a>
-
-                            <a
-                                href="/releases/agent/linux_deb/latest"
-                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Terminal className="w-5 h-5 text-orange-500" />
-                                    <div>
-                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux DEB</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Debian / Ubuntu</div>
-                                    </div>
-                                </div>
-                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-                            </a>
-
-                            <a
-                                href="/releases/agent/linux_rpm/latest"
-                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Terminal className="w-5 h-5 text-red-500" />
-                                    <div>
-                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux RPM</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">RHEL / Fedora</div>
-                                    </div>
-                                </div>
-                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-                            </a>
+                            <DownloadButton
+                                platform="windows"
+                                label="Windows"
+                                sublabel="Installateur .MSI"
+                                icon={<Monitor className="w-5 h-5 text-blue-500" />}
+                                available={false}
+                            />
+                            <DownloadButton
+                                platform="macos"
+                                label="macOS"
+                                sublabel="Apple Silicon & Intel"
+                                icon={<Cpu className="w-5 h-5 text-slate-600" />}
+                                available={true}
+                            />
+                            <DownloadButton
+                                platform="linux_deb"
+                                label="Linux DEB"
+                                sublabel="Debian / Ubuntu"
+                                icon={<Terminal className="w-5 h-5 text-orange-500" />}
+                                available={false}
+                            />
+                            <DownloadButton
+                                platform="linux_rpm"
+                                label="Linux RPM"
+                                sublabel="RHEL / Fedora"
+                                icon={<Terminal className="w-5 h-5 text-red-500" />}
+                                available={false}
+                            />
                         </div>
 
                         {/* Mobile Apps */}
