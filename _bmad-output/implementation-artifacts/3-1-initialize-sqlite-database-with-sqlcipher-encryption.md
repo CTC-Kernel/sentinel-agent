@@ -1,6 +1,6 @@
 # Story 3.1: Initialize SQLite Database with SQLCipher Encryption
 
-Status: in-progress
+Status: review
 
 ## Story
 
@@ -33,24 +33,26 @@ So that **confidential compliance data is protected at rest**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add SQLite/SQLCipher Dependencies (AC: 2)
-  - [ ] Add rusqlite with bundled-sqlcipher feature
-  - [ ] Verify encryption capabilities
+- [x] Task 1: Add SQLite/SQLCipher Dependencies (AC: 2)
+  - [x] Add rusqlite with bundled-sqlcipher feature
+  - [x] Verify encryption capabilities
 
-- [ ] Task 2: Implement Database Manager (AC: 1, 4)
-  - [ ] Create database module in agent-storage
-  - [ ] Platform-specific database paths
-  - [ ] Connection pool management
+- [x] Task 2: Implement Database Manager (AC: 1, 4)
+  - [x] Create database module in agent-storage
+  - [x] Platform-specific database paths
+  - [x] Connection pool management (via Arc<Mutex<Connection>>)
 
-- [ ] Task 3: Implement Key Derivation (AC: 3)
-  - [ ] Machine-specific key derivation
-  - [ ] DPAPI integration (Windows)
-  - [ ] Secure key storage (Linux)
+- [x] Task 3: Implement Key Derivation (AC: 3)
+  - [x] Machine-specific key derivation
+  - [x] DPAPI integration (Windows) - CryptProtectData/CryptUnprotectData
+  - [x] Secure key storage (Linux) - file with 0600 permissions
+  - [x] BCryptGenRandom for secure key generation on Windows
+  - [x] /dev/urandom for secure key generation on Linux
 
-- [ ] Task 4: Add Encryption Tests (AC: 2)
-  - [ ] Test database creation with encryption
-  - [ ] Test data cannot be read without key
-  - [ ] Test key rotation (future)
+- [x] Task 4: Add Encryption Tests (AC: 2)
+  - [x] Test database creation with encryption
+  - [x] Test data cannot be read without key
+  - [ ] Test key rotation (future - not required for this story)
 
 ## Dev Notes
 
@@ -77,12 +79,39 @@ Use machine-specific data combined with a salt:
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
+- Database module with SQLCipher encryption working
+- Key management with platform-specific secure storage
+- 12 tests passing for agent-storage crate
+
 ### Completion Notes List
+
+- ✅ rusqlite v0.37 with bundled-sqlcipher feature
+- ✅ DatabaseConfig with platform-specific paths from agent-common constants
+- ✅ Database::open() with SQLCipher encryption (AES-256-CBC)
+- ✅ PRAGMA cipher_page_size, kdf_iter, HMAC_SHA256, PBKDF2_HMAC_SHA256
+- ✅ KeyManager with secure key generation and storage
+- ✅ Windows DPAPI via CryptProtectData/CryptUnprotectData
+- ✅ Windows BCryptGenRandom for cryptographically secure random bytes
+- ✅ Linux /dev/urandom for cryptographically secure random bytes
+- ✅ Linux key file with 0600 permissions
+- ✅ Test: database cannot be read with wrong key
+- ✅ All paths use constants from agent-common (DEFAULT_DATA_DIR, DB_FILE_NAME)
 
 ### File List
 
+**Modified Files:**
+- sentinel-agent/Cargo.toml (added Win32_Security_Cryptography, Win32_System_Memory features)
+- sentinel-agent/crates/agent-storage/Cargo.toml (added windows dependency, removed unused directories)
+- sentinel-agent/crates/agent-storage/src/key.rs (DPAPI, BCryptGenRandom, improved key generation)
+- sentinel-agent/crates/agent-storage/src/database.rs (use constants from agent-common)
+
 ### Change Log
+
+- 2026-01-23: Implemented Windows DPAPI for secure key storage
+- 2026-01-23: Added BCryptGenRandom for Windows key generation
+- 2026-01-23: Unified paths using agent-common constants
+- 2026-01-23: Fixed test_database_file_size test

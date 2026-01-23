@@ -1,6 +1,6 @@
 # Story 2.1: Implement Agent Configuration Loading
 
-Status: review
+Status: done
 
 ## Story
 
@@ -131,7 +131,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - ✅ Environment variables with SENTINEL_ prefix (e.g., SENTINEL_SERVER_URL)
 - ✅ Comprehensive validation: URL format, log levels, numeric ranges
 - ✅ Created example configuration files in config/ directory
-- ✅ 37 unit tests passing + 2 doctests
+- ✅ 40 unit tests passing + 2 doctests
 - ✅ Clippy and fmt pass
 
 ### File List
@@ -140,14 +140,44 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - sentinel-agent/Cargo.toml (added config, directories, url, tempfile)
 - sentinel-agent/crates/agent-common/Cargo.toml (added dependencies)
 - sentinel-agent/crates/agent-common/src/config.rs (config loading, validation)
-- sentinel-agent/crates/agent-common/src/constants.rs (const assertions)
+- sentinel-agent/crates/agent-common/src/constants.rs (const assertions, DEFAULT_SERVER_URL)
 
 **New Files Created:**
 - sentinel-agent/config/agent.example.json
 - sentinel-agent/config/agent.full.example.json
+- sentinel-agent/config/README.md (platform-specific paths documentation)
 
 ### Change Log
 
 - 2026-01-23: Implemented configuration loading with layered sources
 - 2026-01-23: Added URL and log level validation
 - 2026-01-23: Created example configuration files
+
+## Senior Developer Review (AI)
+
+**Reviewer:** Mary (Business Analyst) via Code Review Workflow
+**Date:** 2026-01-23
+**Model:** Claude Opus 4.5
+
+### Issues Found & Fixed
+
+| # | Severity | Issue | Resolution |
+|---|----------|-------|------------|
+| 1 | 🔴 CRITICAL | Windows db_path inconsistent (`SentinelGRC` vs `Sentinel`) | Fixed: `C:\ProgramData\Sentinel\data\agent.db` |
+| 2 | 🔴 CRITICAL | constants.rs Windows paths inconsistent | Fixed: Unified to `Sentinel` |
+| 3 | 🟡 MEDIUM | Constants not reused in config.rs defaults | Fixed: Now uses `DEFAULT_CHECK_INTERVAL_SECS`, etc. |
+| 4 | 🟡 MEDIUM | No env var tests | Fixed: Added `test_environment_source_configuration` |
+| 5 | 🟡 MEDIUM | Example files Linux-only | Fixed: Added config/README.md with platform docs |
+| 6 | 🟡 MEDIUM | Missing env var documentation | Fixed: Added module-level docs in config.rs |
+| 7 | 🟢 LOW | `find_config_file()` behavior undocumented | Fixed: Added detailed docstring |
+| 8 | 🟢 LOW | Magic string for default URL | Fixed: Added `DEFAULT_SERVER_URL` constant |
+| 9 | 🟢 LOW | JSON comment fields in examples | Kept: Valid JSON, removed unnecessary fields |
+
+### Verification
+
+- ✅ 40 unit tests passing
+- ✅ 2 doctests passing
+- ✅ Clippy clean (no warnings)
+- ✅ All AC requirements verified
+
+### Decision: **APPROVED** ✅

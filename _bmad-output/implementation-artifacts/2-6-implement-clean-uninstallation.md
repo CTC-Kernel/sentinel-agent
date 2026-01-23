@@ -1,6 +1,6 @@
 # Story 2.6: Implement Clean Uninstallation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -110,3 +110,9 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - 2026-01-23: Created cleanup module with platform-specific paths
 - 2026-01-23: Enhanced CLI uninstall command with --purge and --keep-logs
 - 2026-01-23: Integrated cleanup with service uninstallation workflow
+
+## Senior Developer Review (AI)
+
+**Date:** 2026-01-23 | **Decision:** **APPROVED** ✅
+
+Fixed during story 2-3 review: `INSTALL_DIR` path unified to `/opt/sentinel-grc`
