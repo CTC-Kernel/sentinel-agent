@@ -130,7 +130,7 @@ export const Risks: React.FC = () => {
                     ...v,
                     icon: v.id === 'all' ? ShieldAlert : v.id === 'critical' ? Zap : v.id === 'my-risks' ? Star : undefined
                 }));
-            } catch (_e) { return DEFAULT_VIEWS; }
+            } catch { return DEFAULT_VIEWS; }
         }
         return DEFAULT_VIEWS;
     });

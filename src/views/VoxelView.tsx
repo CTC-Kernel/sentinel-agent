@@ -610,7 +610,7 @@ export const VoxelView: React.FC = () => {
         link.click();
         addToast("Capture sauvegardée", "success");
       }
-    } catch (_error) {
+    } catch {
       addToast("Erreur lors de la capture", "error");
     } finally {
       setIsCapturing(false);
@@ -809,8 +809,8 @@ export const VoxelView: React.FC = () => {
               onClick={handleAIAnalysis}
               disabled={analyzing}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 ${analyzing
-                  ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
-                  : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30'
+                ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
+                : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30'
                 }`}
             >
               {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}

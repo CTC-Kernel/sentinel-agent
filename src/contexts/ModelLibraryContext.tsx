@@ -51,7 +51,7 @@ export const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
                 console.log(`[3D Models] Loaded ${type} model`);
                 return model;
-            } catch (_error) {
+            } catch {
                 if (mountedRef.current) {
                     setLoadingStates(prev => ({ ...prev, [type]: false }));
                 }
