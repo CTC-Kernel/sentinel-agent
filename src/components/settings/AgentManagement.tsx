@@ -323,7 +323,11 @@ export const AgentManagement: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-1 gap-3">
-                            <button className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left">
+                            <a
+                                href="/downloads/sentinel-agent-windows-x64.msi"
+                                download
+                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
+                            >
                                 <div className="flex items-center gap-3">
                                     <Monitor className="w-5 h-5 text-blue-500" />
                                     <div>
@@ -332,26 +336,71 @@ export const AgentManagement: React.FC = () => {
                                     </div>
                                 </div>
                                 <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-                            </button>
+                            </a>
 
-                            <button className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left">
+                            <a
+                                href="/downloads/sentinel-agent-linux-amd64.deb"
+                                download
+                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
+                            >
                                 <div className="flex items-center gap-3">
                                     <Terminal className="w-5 h-5 text-orange-500" />
                                     <div>
-                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux .DEB / .RPM</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Universal binary</div>
+                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux .DEB</div>
+                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Debian / Ubuntu</div>
                                     </div>
                                 </div>
                                 <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-                            </button>
+                            </a>
+
+                            <a
+                                href="/downloads/sentinel-agent-linux-amd64.rpm"
+                                download
+                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Terminal className="w-5 h-5 text-red-500" />
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux .RPM</div>
+                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">RHEL / CentOS / Fedora</div>
+                                    </div>
+                                </div>
+                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+                            </a>
+
+                            <a
+                                href="/downloads/sentinel-agent-darwin-arm64"
+                                download
+                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Cpu className="w-5 h-5 text-slate-600" />
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-900 dark:text-white">macOS</div>
+                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Apple Silicon / Intel</div>
+                                    </div>
+                                </div>
+                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+                            </a>
                         </div>
 
-                        <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                        <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-3">
                             <a
-                                href="#"
+                                href="/docs/agent-installation"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="flex items-center justify-between text-sm text-brand-500 font-bold hover:underline"
                             >
                                 Manuel d'installation
+                                <ExternalLink className="w-4 h-4" />
+                            </a>
+                            <a
+                                href="/docs/agent-troubleshooting"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-between text-sm text-slate-500 hover:text-brand-500 hover:underline"
+                            >
+                                Guide de dépannage
                                 <ExternalLink className="w-4 h-4" />
                             </a>
                         </div>
