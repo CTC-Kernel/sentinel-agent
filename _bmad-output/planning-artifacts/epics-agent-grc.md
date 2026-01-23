@@ -1,7 +1,11 @@
 ---
-stepsCompleted: [1, 2]
+stepsCompleted: [1, 2, 3, 4]
 inputDocuments: ['prd-agent-grc.md', 'architecture-agent-grc.md']
 project_name: 'Agent GRC Sentinel'
+workflow_completed: true
+total_epics: 12
+total_stories: 74
+total_frs_covered: 72
 ---
 
 # Agent GRC Sentinel - Epic Breakdown
@@ -1816,3 +1820,131 @@ So that **it can no longer access the SaaS or report data**.
 **And** revoked agent cannot re-enroll without new token
 **And** revocation is logged with reason and admin ID
 **And** compliance data from compromised agent is flagged for review
+
+---
+
+## Epic 12: Support & Diagnostics - Stories
+
+### Story 12.1: View Agent Logs Remotely
+
+As a **Support Engineer**,
+I want **to view logs from a specific agent**,
+So that **I can diagnose issues without accessing the endpoint**.
+
+**Acceptance Criteria:**
+
+**Given** I select an agent from the fleet list
+**When** I click "View Logs"
+**Then** I see the last 1000 log entries from the agent
+**And** logs are displayed with: timestamp, level, component, message
+**And** I can filter by log level (DEBUG, INFO, WARN, ERROR)
+**And** I can search logs by keyword
+**And** logs are in JSON structured format (NFR-M6, NFR-I7)
+**And** log integrity signatures are verified on display
+
+---
+
+### Story 12.2: View Detailed Connection Status
+
+As a **Support Engineer**,
+I want **to see detailed connection diagnostics for an agent**,
+So that **I can troubleshoot connectivity issues**.
+
+**Acceptance Criteria:**
+
+**Given** I select an agent
+**When** I view connection details
+**Then** I see: last_heartbeat, connection_uptime, latency_p95, failed_requests_24h
+**And** connection history shows connect/disconnect events
+**And** network path info includes: proxy_detected, certificate_status, dns_resolution
+**And** current sync queue size and oldest pending item are shown
+**And** offline periods in last 30 days are highlighted
+
+---
+
+### Story 12.3: Identify Recent Agent Errors
+
+As a **Support Engineer**,
+I want **to quickly see recent errors for an agent**,
+So that **I can identify and resolve issues efficiently**.
+
+**Acceptance Criteria:**
+
+**Given** I select an agent
+**When** I view the error summary
+**Then** I see errors from the last 7 days grouped by type
+**And** each error shows: timestamp, error_code, message, stack_trace (if available)
+**And** error frequency and trend are displayed
+**And** I can click an error to see full context
+**And** common errors have linked knowledge base articles
+**And** critical errors are highlighted
+
+---
+
+### Story 12.4: Trigger Remote Diagnostics
+
+As a **Support Engineer**,
+I want **to trigger a diagnostic routine on an agent remotely**,
+So that **I can gather troubleshooting data without endpoint access**.
+
+**Acceptance Criteria:**
+
+**Given** I select an online agent
+**When** I click "Run Diagnostics"
+**Then** a diagnostic command is sent to the agent
+**And** agent executes diagnostic routine: connectivity test, check execution test, storage health, resource usage
+**And** diagnostic results are uploaded to SaaS within 2 minutes
+**And** results include: system_info, agent_health, error_log_excerpt, recommendation
+**And** diagnostics can be scheduled for offline agents (run on reconnect)
+**And** diagnostic history is retained for 30 days
+
+---
+
+## Summary
+
+### Story Count by Epic
+
+| Epic | Name | Stories | FRs Covered |
+|------|------|---------|-------------|
+| 1 | Foundation & Development Setup | 4 | Architecture |
+| 2 | Agent Core & Service Lifecycle | 7 | FR1-FR4, FR7, FR8 |
+| 3 | Secure Local Storage | 5 | FR25, FR52-FR54, FR58 |
+| 4 | Agent-SaaS Connectivity | 5 | FR5, FR6, FR55-FR57 |
+| 5 | Compliance Check Engine | 14 | FR9-FR22 |
+| 6 | Synchronization & Offline Mode | 6 | FR23, FR24, FR26-FR30 |
+| 7 | Dashboard & Compliance Visualization | 8 | FR31-FR38 |
+| 8 | Agent Fleet Administration | 7 | FR39-FR47 |
+| 9 | Audit & Compliance Reporting | 4 | FR48-FR51 |
+| 10 | Agent Self-Update System | 7 | FR62-FR68 |
+| 11 | Security Hardening & Integrity | 3 | FR59-FR61 |
+| 12 | Support & Diagnostics | 4 | FR69-FR72 |
+| **Total** | | **74 stories** | **72 FRs** |
+
+### Coverage Validation
+
+- ✅ **All 72 Functional Requirements covered**
+- ✅ **59 NFRs addressed** via acceptance criteria references
+- ✅ **Architecture decisions integrated** (Cargo Workspace, SQLCipher, mTLS, etc.)
+- ✅ **No orphan FRs** - every FR mapped to at least one story
+- ✅ **No circular dependencies** - epics follow logical build order
+
+### Recommended Implementation Order
+
+1. **Epic 1** - Foundation (prerequisite for all)
+2. **Epic 2** - Agent Core (service lifecycle)
+3. **Epic 3** - Local Storage (data persistence)
+4. **Epic 4** - SaaS Connectivity (communication layer)
+5. **Epic 5** - Compliance Checks (core value)
+6. **Epic 6** - Sync & Offline (resilience)
+7. **Epic 7-8** - Dashboard & Administration (SaaS features)
+8. **Epic 9** - Audit & Reporting
+9. **Epic 10** - Self-Update
+10. **Epic 11** - Security Hardening
+11. **Epic 12** - Support & Diagnostics
+
+### Document Status
+
+- **Created:** 2026-01-23
+- **PRD Source:** prd-agent-grc.md
+- **Architecture Source:** architecture-agent-grc.md
+- **Status:** ✅ Ready for Implementation
