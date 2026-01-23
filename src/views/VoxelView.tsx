@@ -43,9 +43,8 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 
 import { SEO } from '../components/SEO';
 
-import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode, LayerType, VoxelNodeStatus, VoxelEdge } from '../types';
+import { Asset, Risk, Project, Incident, AISuggestedLink, VoxelNode, DataNode, LayerType, VoxelNodeStatus, VoxelEdge } from '../types';
 import { VoxelSidebar } from '../components/voxel/VoxelSidebar';
-import { VoxelSilhouettes } from '../components/voxel/VoxelSilhouettes';
 import { VoxelDetailPanel } from '../components/voxel/overlays/VoxelDetailPanel';
 
 import { useVoxelStore, voxelStoreActions } from '../stores/voxelStore';
@@ -136,14 +135,16 @@ interface ToolButtonProps {
   active?: boolean;
   badge?: number | string;
   disabled?: boolean;
+  compact?: boolean;
 }
 
-const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, badge, disabled }) => (
+const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, badge, disabled, compact }) => (
   <button
     onClick={onClick}
     disabled={disabled}
     className={`
-      relative p-2.5 rounded-xl transition-all duration-200
+      relative transition-all duration-200
+      ${compact ? 'p-1.5 rounded-lg' : 'p-2 rounded-xl'}
       ${active
         ? 'bg-white/15 text-white shadow-lg'
         : 'text-white/60 hover:text-white hover:bg-white/10'
@@ -155,7 +156,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, b
   >
     {icon}
     {badge !== undefined && (
-      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white px-1">
+      <span className={`absolute -top-0.5 -right-0.5 flex items-center justify-center rounded-full bg-indigo-500 font-bold text-white ${compact ? 'min-w-[14px] h-[14px] text-[8px] px-0.5' : 'min-w-[16px] h-[16px] text-[9px] px-1'}`}>
         {badge}
       </span>
     )}
@@ -176,51 +177,38 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
   <motion.div
     initial={{ y: 40 }}
     animate={{ y: 0 }}
-    className="absolute bottom-0 left-0 right-0 h-12 z-[100000] flex items-center justify-between px-6 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5"
+    className="absolute bottom-0 left-0 right-0 h-10 z-[100000] flex items-center justify-between px-3 sm:px-4 lg:px-6 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5"
   >
-    {/* Left - Stats */}
-    <div className="flex items-center gap-6">
-      <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5">
-          <Network className="w-4 h-4 text-white/60" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-xs text-white/40">Nœuds</span>
-          <span className="text-sm font-semibold text-white">{totalNodes}</span>
-        </div>
+    {/* Left - Stats (compact) */}
+    <div className="flex items-center gap-2 sm:gap-4">
+      <div className="flex items-center gap-1.5">
+        <Network className="w-3.5 h-3.5 text-white/50" />
+        <span className="text-xs font-medium text-white">{totalNodes}</span>
+        <span className="text-xs text-white/40 hidden sm:inline">nœuds</span>
       </div>
 
-      <div className="w-px h-6 bg-white/10" />
+      <div className="w-px h-4 bg-white/10 hidden sm:block" />
 
-      <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5">
-          <Layers className="w-4 h-4 text-white/60" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-xs text-white/40">Calques</span>
-          <span className="text-sm font-semibold text-white">{activeLayers}/7</span>
-        </div>
+      <div className="flex items-center gap-1.5 hidden sm:flex">
+        <Layers className="w-3.5 h-3.5 text-white/50" />
+        <span className="text-xs font-medium text-white">{activeLayers}/7</span>
       </div>
 
-      <div className="w-px h-6 bg-white/10" />
-
-      <div className="flex items-center gap-3">
-        {criticalCount > 0 && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/30">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-xs font-medium text-red-400">{criticalCount} critiques</span>
-          </div>
-        )}
-        {warningCount > 0 && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span className="text-xs font-medium text-amber-400">{warningCount} alertes</span>
-          </div>
-        )}
-      </div>
+      {criticalCount > 0 && (
+        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/20 border border-red-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-[10px] font-medium text-red-400">{criticalCount}</span>
+        </div>
+      )}
+      {warningCount > 0 && (
+        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          <span className="text-[10px] font-medium text-amber-400">{warningCount}</span>
+        </div>
+      )}
     </div>
 
-    {/* Center - Selected Node */}
+    {/* Center - Selected Node (hidden on small screens) */}
     <AnimatePresence mode="wait">
       {selectedNode && (
         <motion.div
@@ -228,29 +216,29 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30"
+          className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30"
         >
-          <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-lg shadow-indigo-500/50" />
-          <span className="text-sm text-white/90 font-medium max-w-[200px] truncate">
+          <span className="w-2 h-2 rounded-full bg-indigo-400" />
+          <span className="text-xs text-white/90 font-medium max-w-[150px] truncate">
             {safeRender((selectedNode.data as { name?: string; title?: string; threat?: string }).name || (selectedNode.data as { title?: string }).title || (selectedNode.data as { threat?: string }).threat)}
           </span>
-          <span className="text-xs text-white/40 capitalize">{selectedNode.type}</span>
+          <span className="text-[10px] text-white/40 capitalize">{selectedNode.type}</span>
           {connectionCount > 0 && (
-            <span className="text-xs text-indigo-400">{connectionCount} connexions</span>
+            <span className="text-[10px] text-indigo-400">{connectionCount}</span>
           )}
         </motion.div>
       )}
     </AnimatePresence>
 
-    {/* Right - Controls hint */}
-    <div className="flex items-center gap-4 text-xs text-white/30">
+    {/* Right - Controls hint (compact) */}
+    <div className="flex items-center gap-2 sm:gap-3 text-[10px] text-white/30">
       {isFullscreen && (
-        <span className="px-2 py-1 rounded bg-white/5 text-white/50">ESC pour quitter</span>
+        <span className="px-1.5 py-0.5 rounded bg-white/5 text-white/50">ESC</span>
       )}
-      <span>Scroll: zoom</span>
-      <span>Drag: orbite</span>
-      <span className="flex items-center gap-1">
-        <Command className="w-3 h-3" />K: recherche
+      <span className="hidden lg:inline">Scroll: zoom</span>
+      <span className="hidden lg:inline">Drag: orbite</span>
+      <span className="flex items-center gap-0.5">
+        <Command className="w-2.5 h-2.5" />K
       </span>
     </div>
   </motion.div>
@@ -747,107 +735,96 @@ export const VoxelView: React.FC = () => {
         </React.Suspense>
       </div>
 
-      {/* Top Bar */}
+      {/* Top Bar - Compact & Responsive */}
       <motion.div
         initial={{ y: -60 }}
         animate={{ y: 0 }}
-        className="absolute top-0 left-0 right-0 z-[100000] px-4 pt-4"
+        className="absolute top-0 left-0 right-0 z-[100000] px-2 sm:px-3 lg:px-4 pt-2 sm:pt-3"
       >
-        <div className="flex items-center justify-between h-14 px-4 rounded-2xl bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl">
+        <div className="flex items-center justify-between h-12 px-2 sm:px-3 lg:px-4 rounded-xl sm:rounded-2xl bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl">
           {/* Left - Logo & Title */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 hover:scale-105"
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30">
-                <Shield className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30">
+                <Shield className="w-4 h-4 text-white" />
               </div>
-              <div>
-                <h1 className="text-base font-bold text-white tracking-tight">CTC Engine</h1>
-                <p className="text-xs text-white/40">Cyber Threat Cartography</p>
+              <div className="hidden sm:block">
+                <h1 className="text-sm font-bold text-white tracking-tight">CTC Engine</h1>
+                <p className="text-[10px] text-white/40 hidden lg:block">Cyber Threat Cartography</p>
               </div>
             </div>
           </div>
 
-          {/* Center - Health Indicators */}
-          <div className="flex items-center gap-4">
+          {/* Center - Health Indicators (hidden on small) */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-3">
             {criticalCount > 0 && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-red-500/15 border border-red-500/30"
               >
-                <span className="relative flex h-2.5 w-2.5">
+                <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
                 </span>
-                <span className="text-sm font-medium text-red-400">{criticalCount}</span>
-                <span className="text-xs text-red-400/70">critiques</span>
+                <span className="text-xs font-medium text-red-400">{criticalCount}</span>
+                <span className="text-[10px] text-red-400/70 hidden lg:inline">critiques</span>
               </motion.div>
             )}
             {warningCount > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                <span className="text-sm font-medium text-amber-400">{warningCount}</span>
-                <span className="text-xs text-amber-400/70">alertes</span>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span className="text-xs font-medium text-amber-400">{warningCount}</span>
+                <span className="text-[10px] text-amber-400/70 hidden lg:inline">alertes</span>
               </div>
             )}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
-              <Activity className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-medium text-emerald-400">{orderedNodes.length}</span>
-              <span className="text-xs text-emerald-400/70">nœuds</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30">
+              <Activity className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-xs font-medium text-emerald-400">{orderedNodes.length}</span>
+              <span className="text-[10px] text-emerald-400/70 hidden lg:inline">nœuds</span>
             </div>
           </div>
 
           {/* Right - Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Search Button */}
             <button
               onClick={() => setShowCommandPalette(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 group"
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 group"
             >
               <Search className="w-4 h-4" />
-              <span className="text-sm hidden lg:inline">Rechercher</span>
-              <kbd className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-medium text-white/40 group-hover:text-white/60">
+              <kbd className="hidden sm:flex items-center gap-0.5 px-1 py-0.5 rounded bg-white/10 text-[9px] font-medium text-white/40 group-hover:text-white/60">
                 <Command className="w-2.5 h-2.5" />K
               </kbd>
-            </button>
-
-            {/* Screenshot */}
-            <button
-              onClick={handleScreenshot}
-              disabled={isCapturing}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 disabled:opacity-50"
-              title="Capture d'écran (S)"
-            >
-              <Camera className={`w-5 h-5 ${isCapturing ? 'animate-pulse' : ''}`} />
             </button>
 
             {/* AI Analysis */}
             <button
               onClick={handleAIAnalysis}
               disabled={analyzing}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 ${
                 analyzing
                   ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
-                  : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02]'
+                  : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30'
               }`}
             >
-              {analyzing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              <span>{analyzing ? 'Analyse...' : 'Analyse IA'}</span>
+              {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{analyzing ? 'Analyse...' : 'IA'}</span>
             </button>
 
             {/* Refresh */}
             <button
               onClick={refresh}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 hover:rotate-180"
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 hover:rotate-180"
               title="Actualiser"
             >
-              <RefreshCw className="w-5 h-5 transition-transform duration-500" />
+              <RefreshCw className="w-4 h-4 transition-transform duration-500" />
             </button>
           </div>
         </div>
@@ -867,163 +844,162 @@ export const VoxelView: React.FC = () => {
         onLayerToggle={handleLayerToggle}
       />
 
-      {/* Right Toolbar */}
+      {/* Right Toolbar - Responsive & Compact */}
       <motion.div
         initial={{ x: 60, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="absolute top-24 right-4 z-[100000] flex flex-col gap-2"
+        className="absolute top-20 right-2 sm:right-3 lg:right-4 z-[100000] flex flex-col gap-1.5 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-none"
       >
-        {/* Navigation */}
-        <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-          <ToolButton icon={<ChevronLeft className="w-5 h-5" />} label="Précédent" onClick={() => focusByOffset(-1)} />
-          <ToolButton icon={<ChevronRight className="w-5 h-5" />} label="Suivant" onClick={() => focusByOffset(1)} />
-        </div>
-
-        {/* Layers */}
-        <div className="relative">
-          <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-            <ToolButton
-              icon={<Layers className="w-5 h-5" />}
-              label="Calques"
-              onClick={() => setShowLayerMenu(!showLayerMenu)}
-              active={showLayerMenu}
-              badge={activeLayers.length}
-            />
+        {/* Row 1: Navigation + Layers */}
+        <div className="flex gap-1.5">
+          <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+            <ToolButton icon={<ChevronLeft className="w-4 h-4" />} label="Précédent" onClick={() => focusByOffset(-1)} compact />
+            <ToolButton icon={<ChevronRight className="w-4 h-4" />} label="Suivant" onClick={() => focusByOffset(1)} compact />
           </div>
-
-          {/* Layer Dropdown */}
-          <AnimatePresence>
-            {showLayerMenu && (
-              <motion.div
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                className="absolute right-14 top-0 w-56 p-2 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
-              >
-                <div className="flex items-center justify-between px-2 py-1.5 mb-1">
-                  <span className="text-xs font-medium text-white/60">Calques</span>
-                  <span className="text-xs text-white/40">{activeLayers.length}/7</span>
-                </div>
-                {LAYER_CONFIG.map(layer => {
-                  const isActive = activeLayers.includes(layer.id);
-                  const count = categorizedNodes.find(c => c.id === layer.id)?.items.length || 0;
-                  return (
-                    <button
-                      key={layer.id}
-                      onClick={() => handleLayerToggle(layer.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition ${
-                        isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 rounded-full ${layer.bgColor}`} />
-                        <span>{layer.label}</span>
-                      </div>
-                      <span className="text-xs text-white/40">{count}</span>
-                    </button>
-                  );
-                })}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="relative">
+            <div className="flex p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+              <ToolButton
+                icon={<Layers className="w-4 h-4" />}
+                label="Calques"
+                onClick={() => setShowLayerMenu(!showLayerMenu)}
+                active={showLayerMenu}
+                badge={activeLayers.length}
+                compact
+              />
+            </div>
+            {/* Layer Dropdown */}
+            <AnimatePresence>
+              {showLayerMenu && (
+                <motion.div
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className="absolute right-10 top-0 w-48 p-1.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+                >
+                  <div className="flex items-center justify-between px-2 py-1 mb-0.5">
+                    <span className="text-[10px] font-medium text-white/60">Calques</span>
+                    <span className="text-[10px] text-white/40">{activeLayers.length}/7</span>
+                  </div>
+                  {LAYER_CONFIG.map(layer => {
+                    const isActive = activeLayers.includes(layer.id);
+                    const count = categorizedNodes.find(c => c.id === layer.id)?.items.length || 0;
+                    return (
+                      <button
+                        key={layer.id}
+                        onClick={() => handleLayerToggle(layer.id)}
+                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition ${
+                          isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${layer.bgColor}`} />
+                          <span>{layer.label}</span>
+                        </div>
+                        <span className="text-[10px] text-white/40">{count}</span>
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Visualization */}
-        <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-          <ToolButton icon={<Flame className="w-5 h-5" />} label="Heatmap" onClick={() => setHeatmapEnabled(!heatmapEnabled)} active={heatmapEnabled} />
-          <ToolButton icon={<Eye className="w-5 h-5" />} label="X-Ray" onClick={() => setXRayEnabled(!xRayEnabled)} active={xRayEnabled} />
-          <ToolButton icon={<RotateCw className="w-5 h-5" />} label="Auto-rotation" onClick={() => setAutoRotateEnabled(!autoRotateEnabled)} active={autoRotateEnabled} />
+        {/* Row 2: Visualization */}
+        <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<Flame className="w-4 h-4" />} label="Heatmap" onClick={() => setHeatmapEnabled(!heatmapEnabled)} active={heatmapEnabled} compact />
+          <ToolButton icon={<Eye className="w-4 h-4" />} label="X-Ray" onClick={() => setXRayEnabled(!xRayEnabled)} active={xRayEnabled} compact />
+          <ToolButton icon={<RotateCw className="w-4 h-4" />} label="Auto-rotation" onClick={() => setAutoRotateEnabled(!autoRotateEnabled)} active={autoRotateEnabled} compact />
         </div>
 
-        {/* Analysis */}
-        <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-          <ToolButton icon={<AlertTriangle className="w-5 h-5" />} label="Anomalies" onClick={() => setIsAnomalyPanelOpen(!isAnomalyPanelOpen)} active={isAnomalyPanelOpen} />
-          <ToolButton icon={<Zap className="w-5 h-5" />} label="Blast Radius" onClick={() => setIsBlastRadiusPanelOpen(!isBlastRadiusPanelOpen)} active={isBlastRadiusPanelOpen} />
-          <ToolButton icon={<Clock className="w-5 h-5" />} label="Time Machine" onClick={() => setIsTimeMachineOpen(!isTimeMachineOpen)} active={isTimeMachineOpen} />
+        {/* Row 3: Analysis */}
+        <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<AlertTriangle className="w-4 h-4" />} label="Anomalies" onClick={() => setIsAnomalyPanelOpen(!isAnomalyPanelOpen)} active={isAnomalyPanelOpen} compact />
+          <ToolButton icon={<Zap className="w-4 h-4" />} label="Blast Radius" onClick={() => setIsBlastRadiusPanelOpen(!isBlastRadiusPanelOpen)} active={isBlastRadiusPanelOpen} compact />
+          <ToolButton icon={<Clock className="w-4 h-4" />} label="Time Machine" onClick={() => setIsTimeMachineOpen(!isTimeMachineOpen)} active={isTimeMachineOpen} compact />
         </div>
 
-        {/* View */}
-        <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-          <ToolButton icon={<RefreshCw className="w-5 h-5" />} label="Réinitialiser (R)" onClick={handleResetView} />
+        {/* Row 4: View Controls */}
+        <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<RefreshCw className="w-4 h-4" />} label="Réinitialiser (R)" onClick={handleResetView} compact />
           <ToolButton
-            icon={isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+            icon={isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             label={isFullscreen ? "Quitter plein écran (F)" : "Plein écran (F)"}
             onClick={() => setIsFullscreen(!isFullscreen)}
             active={isFullscreen}
+            compact
           />
-          <ToolButton icon={<Camera className="w-5 h-5" />} label="Capture (S)" onClick={handleScreenshot} disabled={isCapturing} />
-          <ToolButton icon={<Info className="w-5 h-5" />} label="Légende" onClick={() => setShowLegend(!showLegend)} active={showLegend} />
-          <ToolButton icon={<Keyboard className="w-5 h-5" />} label="Raccourcis" onClick={() => setShowShortcuts(!showShortcuts)} active={showShortcuts} />
-          <ToolButton icon={<HelpCircle className="w-5 h-5" />} label="Guide" onClick={() => setShowGuide(true)} />
+          <ToolButton icon={<Camera className="w-4 h-4" />} label="Capture (S)" onClick={handleScreenshot} disabled={isCapturing} compact />
+        </div>
+
+        {/* Row 5: Help */}
+        <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<Info className="w-4 h-4" />} label="Légende" onClick={() => setShowLegend(!showLegend)} active={showLegend} compact />
+          <ToolButton icon={<Keyboard className="w-4 h-4" />} label="Raccourcis" onClick={() => setShowShortcuts(!showShortcuts)} active={showShortcuts} compact />
+          <ToolButton icon={<HelpCircle className="w-4 h-4" />} label="Guide" onClick={() => setShowGuide(true)} compact />
         </div>
       </motion.div>
 
-      {/* Legend Panel */}
+      {/* Legend Panel - Compact */}
       <AnimatePresence>
         {showLegend && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="absolute bottom-16 right-4 z-[100000] w-72 p-4 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+            className="absolute top-20 right-24 sm:right-28 z-[100000] w-52 p-3 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-none"
           >
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-white">Légende</span>
-              <button onClick={() => setShowLegend(false)} className="p-1 hover:bg-white/10 rounded-lg transition">
-                <X className="w-4 h-4 text-white/60" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-white">Légende</span>
+              <button onClick={() => setShowLegend(false)} className="p-0.5 hover:bg-white/10 rounded transition">
+                <X className="w-3.5 h-3.5 text-white/60" />
               </button>
             </div>
 
             {/* Node Types */}
-            <div className="mb-4">
-              <span className="text-xs font-medium text-white/40 uppercase tracking-wide">Types de nœuds</span>
-              <div className="mt-2 space-y-1.5">
+            <div className="mb-2">
+              <span className="text-[10px] font-medium text-white/40 uppercase tracking-wide">Types</span>
+              <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5">
                 {LAYER_CONFIG.map(layer => (
-                  <div key={layer.id} className="flex items-center gap-2 py-1">
-                    <span className={`w-3 h-3 rounded-full ${layer.bgColor}`} />
-                    <span className="text-sm text-white/80">{layer.label}</span>
-                    <span className="ml-auto text-xs text-white/40">
-                      {categorizedNodes.find(c => c.id === layer.id)?.items.length || 0}
-                    </span>
+                  <div key={layer.id} className="flex items-center gap-1 py-0.5">
+                    <span className={`w-2 h-2 rounded-full ${layer.bgColor}`} />
+                    <span className="text-[10px] text-white/80 truncate">{layer.label}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Status */}
-            <div className="mb-4">
-              <span className="text-xs font-medium text-white/40 uppercase tracking-wide">États</span>
-              <div className="mt-2 space-y-1.5">
-                <div className="flex items-center gap-2 py-1">
-                  <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-sm text-white/80">Critique</span>
-                  <span className="ml-auto text-xs text-red-400">{criticalCount}</span>
+            <div className="mb-2 pt-2 border-t border-white/5">
+              <span className="text-[10px] font-medium text-white/40 uppercase tracking-wide">États</span>
+              <div className="mt-1 flex flex-wrap gap-2">
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-[10px] text-red-400">{criticalCount}</span>
                 </div>
-                <div className="flex items-center gap-2 py-1">
-                  <span className="w-3 h-3 rounded-full bg-amber-500" />
-                  <span className="text-sm text-white/80">Alerte</span>
-                  <span className="ml-auto text-xs text-amber-400">{warningCount}</span>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="text-[10px] text-amber-400">{warningCount}</span>
                 </div>
-                <div className="flex items-center gap-2 py-1">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="text-sm text-white/80">Normal</span>
-                  <span className="ml-auto text-xs text-emerald-400">{orderedNodes.length - criticalCount - warningCount}</span>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] text-emerald-400">{orderedNodes.length - criticalCount - warningCount}</span>
                 </div>
               </div>
             </div>
 
             {/* Connections */}
-            <div>
-              <span className="text-xs font-medium text-white/40 uppercase tracking-wide">Connexions</span>
-              <div className="mt-2 space-y-1.5">
-                <div className="flex items-center gap-2 py-1">
-                  <div className="w-6 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded" />
-                  <span className="text-sm text-white/80">Lien de dépendance</span>
+            <div className="pt-2 border-t border-white/5">
+              <span className="text-[10px] font-medium text-white/40 uppercase tracking-wide">Liens</span>
+              <div className="mt-1 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded" />
+                  <span className="text-[10px] text-white/70">Dépendance</span>
                 </div>
-                <div className="flex items-center gap-2 py-1">
-                  <div className="w-6 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded" />
-                  <span className="text-sm text-white/80">Impact critique</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded" />
+                  <span className="text-[10px] text-white/70">Impact</span>
                 </div>
               </div>
             </div>
@@ -1031,26 +1007,26 @@ export const VoxelView: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Keyboard Shortcuts Panel */}
+      {/* Keyboard Shortcuts Panel - Compact */}
       <AnimatePresence>
         {showShortcuts && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-16 right-4 z-[100000] w-64 p-4 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+            className="absolute top-20 right-24 sm:right-28 z-[100000] w-48 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
           >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-white">Raccourcis clavier</span>
-              <button onClick={() => setShowShortcuts(false)} className="p-1 hover:bg-white/10 rounded-lg">
-                <X className="w-4 h-4 text-white/60" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-white">Raccourcis</span>
+              <button onClick={() => setShowShortcuts(false)} className="p-0.5 hover:bg-white/10 rounded">
+                <X className="w-3.5 h-3.5 text-white/60" />
               </button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {KEYBOARD_SHORTCUTS.map(({ key, action }) => (
-                <div key={key} className="flex items-center justify-between text-sm">
+                <div key={key} className="flex items-center justify-between text-[10px]">
                   <span className="text-white/60">{action}</span>
-                  <kbd className="px-2 py-0.5 rounded bg-white/10 text-white/80 text-xs font-mono">{key}</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/80 font-mono">{key}</kbd>
                 </div>
               ))}
             </div>
