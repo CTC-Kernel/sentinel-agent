@@ -706,7 +706,7 @@ export const VoxelView: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-950 overflow-hidden">
+    <div className="relative w-[calc(100%+3rem)] md:w-[calc(100%+4rem)] h-[calc(100vh-4.5rem)] bg-slate-950 overflow-hidden -mx-6 md:-mx-8 -mt-6 md:-mt-8 -mb-24">
       <SEO title="CTC Engine" description="Visualisation 3D de l'écosystème de sécurité" />
 
       {/* Main 3D Container */}
@@ -844,84 +844,84 @@ export const VoxelView: React.FC = () => {
         onLayerToggle={handleLayerToggle}
       />
 
-      {/* Right Toolbar - Responsive & Compact */}
+      {/* Right Toolbar - Vertical */}
       <motion.div
         initial={{ x: 60, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="absolute top-20 right-2 sm:right-3 lg:right-4 z-[100000] flex flex-col gap-1.5 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-none"
+        className="absolute top-20 right-3 z-[100000] flex flex-col gap-1.5"
       >
-        {/* Row 1: Navigation + Layers */}
-        <div className="flex gap-1.5">
-          <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-            <ToolButton icon={<ChevronLeft className="w-4 h-4" />} label="Précédent" onClick={() => focusByOffset(-1)} compact />
-            <ToolButton icon={<ChevronRight className="w-4 h-4" />} label="Suivant" onClick={() => focusByOffset(1)} compact />
-          </div>
-          <div className="relative">
-            <div className="flex p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
-              <ToolButton
-                icon={<Layers className="w-4 h-4" />}
-                label="Calques"
-                onClick={() => setShowLayerMenu(!showLayerMenu)}
-                active={showLayerMenu}
-                badge={activeLayers.length}
-                compact
-              />
-            </div>
-            {/* Layer Dropdown */}
-            <AnimatePresence>
-              {showLayerMenu && (
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  className="absolute right-10 top-0 w-48 p-1.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
-                >
-                  <div className="flex items-center justify-between px-2 py-1 mb-0.5">
-                    <span className="text-[10px] font-medium text-white/60">Calques</span>
-                    <span className="text-[10px] text-white/40">{activeLayers.length}/7</span>
-                  </div>
-                  {LAYER_CONFIG.map(layer => {
-                    const isActive = activeLayers.includes(layer.id);
-                    const count = categorizedNodes.find(c => c.id === layer.id)?.items.length || 0;
-                    return (
-                      <button
-                        key={layer.id}
-                        onClick={() => handleLayerToggle(layer.id)}
-                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition ${
-                          isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <span className={`w-2 h-2 rounded-full ${layer.bgColor}`} />
-                          <span>{layer.label}</span>
-                        </div>
-                        <span className="text-[10px] text-white/40">{count}</span>
-                      </button>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+        {/* Navigation */}
+        <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<ChevronLeft className="w-4 h-4" />} label="Précédent" onClick={() => focusByOffset(-1)} compact />
+          <ToolButton icon={<ChevronRight className="w-4 h-4" />} label="Suivant" onClick={() => focusByOffset(1)} compact />
         </div>
 
-        {/* Row 2: Visualization */}
-        <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+        {/* Layers */}
+        <div className="relative">
+          <div className="flex flex-col p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+            <ToolButton
+              icon={<Layers className="w-4 h-4" />}
+              label="Calques"
+              onClick={() => setShowLayerMenu(!showLayerMenu)}
+              active={showLayerMenu}
+              badge={activeLayers.length}
+              compact
+            />
+          </div>
+          {/* Layer Dropdown */}
+          <AnimatePresence>
+            {showLayerMenu && (
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                className="absolute right-10 top-0 w-44 p-1.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+              >
+                <div className="flex items-center justify-between px-2 py-1 mb-0.5">
+                  <span className="text-[10px] font-medium text-white/60">Calques</span>
+                  <span className="text-[10px] text-white/40">{activeLayers.length}/7</span>
+                </div>
+                {LAYER_CONFIG.map(layer => {
+                  const isActive = activeLayers.includes(layer.id);
+                  const count = categorizedNodes.find(c => c.id === layer.id)?.items.length || 0;
+                  return (
+                    <button
+                      key={layer.id}
+                      onClick={() => handleLayerToggle(layer.id)}
+                      className={`w-full flex items-center justify-between px-2 py-1 rounded-lg text-[11px] transition ${
+                        isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${layer.bgColor}`} />
+                        <span>{layer.label}</span>
+                      </div>
+                      <span className="text-[9px] text-white/40">{count}</span>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Visualization */}
+        <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
           <ToolButton icon={<Flame className="w-4 h-4" />} label="Heatmap" onClick={() => setHeatmapEnabled(!heatmapEnabled)} active={heatmapEnabled} compact />
           <ToolButton icon={<Eye className="w-4 h-4" />} label="X-Ray" onClick={() => setXRayEnabled(!xRayEnabled)} active={xRayEnabled} compact />
           <ToolButton icon={<RotateCw className="w-4 h-4" />} label="Auto-rotation" onClick={() => setAutoRotateEnabled(!autoRotateEnabled)} active={autoRotateEnabled} compact />
         </div>
 
-        {/* Row 3: Analysis */}
-        <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+        {/* Analysis */}
+        <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
           <ToolButton icon={<AlertTriangle className="w-4 h-4" />} label="Anomalies" onClick={() => setIsAnomalyPanelOpen(!isAnomalyPanelOpen)} active={isAnomalyPanelOpen} compact />
           <ToolButton icon={<Zap className="w-4 h-4" />} label="Blast Radius" onClick={() => setIsBlastRadiusPanelOpen(!isBlastRadiusPanelOpen)} active={isBlastRadiusPanelOpen} compact />
           <ToolButton icon={<Clock className="w-4 h-4" />} label="Time Machine" onClick={() => setIsTimeMachineOpen(!isTimeMachineOpen)} active={isTimeMachineOpen} compact />
         </div>
 
-        {/* Row 4: View Controls */}
-        <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+        {/* View */}
+        <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
           <ToolButton icon={<RefreshCw className="w-4 h-4" />} label="Réinitialiser (R)" onClick={handleResetView} compact />
           <ToolButton
             icon={isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -930,25 +930,24 @@ export const VoxelView: React.FC = () => {
             active={isFullscreen}
             compact
           />
-          <ToolButton icon={<Camera className="w-4 h-4" />} label="Capture (S)" onClick={handleScreenshot} disabled={isCapturing} compact />
         </div>
 
-        {/* Row 5: Help */}
-        <div className="flex gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+        {/* Help */}
+        <div className="flex flex-col gap-0.5 p-1 rounded-xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
           <ToolButton icon={<Info className="w-4 h-4" />} label="Légende" onClick={() => setShowLegend(!showLegend)} active={showLegend} compact />
           <ToolButton icon={<Keyboard className="w-4 h-4" />} label="Raccourcis" onClick={() => setShowShortcuts(!showShortcuts)} active={showShortcuts} compact />
           <ToolButton icon={<HelpCircle className="w-4 h-4" />} label="Guide" onClick={() => setShowGuide(true)} compact />
         </div>
       </motion.div>
 
-      {/* Legend Panel - Compact */}
+      {/* Legend Panel */}
       <AnimatePresence>
         {showLegend && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="absolute top-20 right-24 sm:right-28 z-[100000] w-52 p-3 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-none"
+            className="absolute top-20 right-16 z-[100000] w-48 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-white">Légende</span>
@@ -1007,14 +1006,14 @@ export const VoxelView: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Keyboard Shortcuts Panel - Compact */}
+      {/* Keyboard Shortcuts Panel */}
       <AnimatePresence>
         {showShortcuts && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute top-20 right-24 sm:right-28 z-[100000] w-48 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="absolute top-20 right-16 z-[100000] w-44 p-2.5 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-white">Raccourcis</span>

@@ -4,9 +4,9 @@ import { ModelLibrary, loadSafe } from './modelLibraryConstants';
 import { ModelLibraryContext } from './ModelLibraryContextDefinition';
 
 
-const assetModelUrl = '/models/lock/lock.obj';
+const assetModelUrl = '/models/server/console.obj';
 const riskModelUrl = '/models/flame/flame.obj';
-const incidentModelUrl = '/models/alert/alert.obj';
+const incidentModelUrl = '/models/shield/shield.obj';
 const supplierModelUrl = '/models/cap/cap.obj';
 const projectModelUrl = '/models/box/box.obj';
 

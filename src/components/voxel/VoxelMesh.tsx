@@ -379,7 +379,15 @@ export const VoxelMesh: React.FC<{
         const config = MODEL_LIBRARY_CONFIG[node.type];
         if (!config) return null;
         const source = modelLibrary[config.key];
-        if (!source || source.children.length === 0) return null;
+        // Check if source exists and has any geometry (children or is itself a mesh)
+        if (!source) return null;
+        let hasGeometry = source.children.length > 0;
+        if (!hasGeometry) {
+            source.traverse((child) => {
+                if ((child as Mesh).isMesh) hasGeometry = true;
+            });
+        }
+        if (!hasGeometry) return null;
         const clone = source.clone(true);
         const uniformScale = safeSize * config.scale;
         clone.scale.setScalar(uniformScale);

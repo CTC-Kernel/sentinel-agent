@@ -275,3 +275,8 @@ exports.onNewSignificantIncident = onDocumentCreated({
         });
     }
 });
+
+// Export utility functions for testing
+module.exports.getTimeRemaining = getTimeRemaining;
+module.exports.formatTimeRemaining = formatTimeRemaining;
+module.exports.NIS2_DEADLINES = NIS2_DEADLINES;
