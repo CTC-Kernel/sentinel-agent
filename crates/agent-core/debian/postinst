@@ -1,0 +1,42 @@
+#!/bin/sh
+# Sentinel GRC Agent - Post-installation script
+set -e
+
+# Create data directories
+mkdir -p /var/lib/sentinel-grc
+mkdir -p /var/log/sentinel-grc
+mkdir -p /etc/sentinel
+
+# Set permissions
+chmod 755 /opt/sentinel-grc/bin/sentinel-agent
+chmod 700 /var/lib/sentinel-grc
+chmod 755 /var/log/sentinel-grc
+chmod 700 /etc/sentinel
+
+# Set config file permissions if exists
+if [ -f /etc/sentinel/agent.json ]; then
+    chmod 600 /etc/sentinel/agent.json
+fi
+
+# Reload systemd and enable service
+systemctl daemon-reload
+systemctl enable sentinel-agent.service
+
+# Start service if not upgrading
+case "$1" in
+    configure)
+        if [ -z "$2" ]; then
+            # Fresh install - start service
+            systemctl start sentinel-agent.service || true
+        else
+            # Upgrade - restart service
+            systemctl restart sentinel-agent.service || true
+        fi
+        ;;
+esac
+
+echo "Sentinel GRC Agent installed successfully."
+echo "Service status: systemctl status sentinel-agent"
+echo "Configuration: /etc/sentinel/agent.json"
+
+exit 0
