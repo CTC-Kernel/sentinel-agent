@@ -35,7 +35,7 @@ interface FirestoreFramework {
   description?: string;
   localizedDescriptions?: Record<string, string>;
   version: string;
-  effectiveDate: any;
+  effectiveDate: Date | string | { toDate(): Date };
   isActive: boolean;
   requirementCount: number;
   createdAt: Date;
