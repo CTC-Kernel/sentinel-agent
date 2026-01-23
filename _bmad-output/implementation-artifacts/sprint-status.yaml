@@ -41,27 +41,27 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: Foundation & Development Setup
-  epic-1: in-progress
-  1-1-initialize-cargo-workspace-structure: review
-  1-2-configure-ci-cd-pipeline-with-quality-gates: review
-  1-3-implement-agent-common-core-types-and-error-handling: review
-  1-4-configure-security-tooling: review
+  epic-1: done
+  1-1-initialize-cargo-workspace-structure: done
+  1-2-configure-ci-cd-pipeline-with-quality-gates: done
+  1-3-implement-agent-common-core-types-and-error-handling: done
+  1-4-configure-security-tooling: done
   epic-1-retrospective: optional
 
   # Epic 2: Agent Core & Service Lifecycle
-  epic-2: backlog
-  2-1-implement-agent-configuration-loading: backlog
-  2-2-create-windows-service-with-automatic-startup: backlog
-  2-3-create-linux-daemon-with-systemd-integration: backlog
-  2-4-build-windows-msi-installer-package: backlog
-  2-5-build-linux-deb-and-rpm-packages: backlog
-  2-6-implement-clean-uninstallation: backlog
-  2-7-implement-resource-usage-limits: backlog
+  epic-2: in-progress
+  2-1-implement-agent-configuration-loading: review
+  2-2-create-windows-service-with-automatic-startup: review
+  2-3-create-linux-daemon-with-systemd-integration: review
+  2-4-build-windows-msi-installer-package: review
+  2-5-build-linux-deb-and-rpm-packages: review
+  2-6-implement-clean-uninstallation: review
+  2-7-implement-resource-usage-limits: review
   epic-2-retrospective: optional
 
   # Epic 3: Secure Local Storage
-  epic-3: backlog
-  3-1-initialize-sqlite-database-with-sqlcipher-encryption: backlog
+  epic-3: in-progress
+  3-1-initialize-sqlite-database-with-sqlcipher-encryption: in-progress
   3-2-implement-database-schema-with-migrations: backlog
   3-3-implement-check-results-repository: backlog
   3-4-implement-proof-storage-with-integrity-hash: backlog
