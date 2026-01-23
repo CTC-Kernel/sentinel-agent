@@ -1,0 +1,150 @@
+# cargo-deny configuration for Sentinel GRC Agent
+# https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+# If true, metadata will be collected with `--all-features`
+all-features = true
+
+# ============================================================================
+# ADVISORIES - Security vulnerability checks
+# ============================================================================
+[advisories]
+# The database of advisories to check against
+db-path = "~/.cargo/advisory-db"
+
+# The url(s) of the advisory databases to use
+db-urls = ["https://github.com/rustsec/advisory-db"]
+
+# How to handle vulnerabilities
+version = 2
+yanked = "deny"
+
+# Crates to ignore (use sparingly, with justification)
+ignore = [
+    # Example: "RUSTSEC-2020-0071", # Temporarily ignored due to no fix available
+]
+
+# ============================================================================
+# LICENSES - License compliance checks
+# ============================================================================
+[licenses]
+version = 2
+
+# List of allowed licenses (SPDX identifiers)
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MPL-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "BSL-1.0",
+    # Licenses from transitive dependencies
+    "OpenSSL",                # aws-lc-sys (crypto library)
+    "CDLA-Permissive-2.0",    # webpki-root-certs (root certificates)
+    # Our proprietary crates
+    "LicenseRef-Proprietary",
+]
+
+# Confidence threshold for license detection
+confidence-threshold = 0.8
+
+# Crate-specific license exceptions
+exceptions = [
+    # Example: { allow = ["LGPL-3.0"], crate = "some-crate" }
+]
+
+# Private crates that don't need license checks
+# Registries where our private crates are published (if any)
+private = { ignore = true, registries = [] }
+
+# Explicitly list our workspace crates that don't have standard SPDX licenses
+[[licenses.clarify]]
+crate = "agent-common"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "agent-core"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "agent-scanner"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "agent-storage"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "agent-sync"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "agent-system"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+[[licenses.clarify]]
+crate = "xtask"
+expression = "LicenseRef-Proprietary"
+license-files = []
+
+# ============================================================================
+# BANS - Dependency bans and restrictions
+# ============================================================================
+[bans]
+# How to handle multiple versions of the same crate
+multiple-versions = "warn"
+
+# How to handle wildcard dependencies
+wildcards = "deny"
+
+# Allow path dependencies without version (workspace members)
+allow-wildcard-paths = true
+
+# Highlight the crate responsible for bringing in duplicates
+highlight = "all"
+
+# Specific crates to deny (known problematic crates)
+deny = [
+    # Crates with known security issues or that should not be used
+    # { crate = "openssl", reason = "Use rustls instead for TLS" },
+    # { crate = "native-tls", reason = "Use rustls instead for TLS" },
+]
+
+# Crates to skip when checking for duplicates
+skip = [
+    # Example: { crate = "windows-sys", reason = "Multiple versions needed by dependencies" }
+]
+
+# Tree of dependencies to skip
+skip-tree = [
+    # Example: { crate = "windows@0.48", reason = "Transitive dependency version mismatch" }
+]
+
+# ============================================================================
+# SOURCES - Allowed crate sources
+# ============================================================================
+[sources]
+# How to handle crates from unknown sources
+unknown-registry = "deny"
+
+# How to handle crates from git repositories
+unknown-git = "warn"
+
+# Allowed registries
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+# Allowed git sources (for internal crates if needed)
+allow-git = []

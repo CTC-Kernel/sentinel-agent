@@ -1,28 +1,21 @@
-<div align="center">
-<img width="1200" height="475" alt="Sentinel GRC" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Sentinel GRC Agent
 
-# Sentinel GRC v2.0
-
-Plateforme professionnelle de gestion de la sécurité des systèmes d'information (SSI) conforme aux normes ISO 27001 et ISO 27005.
+Agent de surveillance et de conformité pour la plateforme Sentinel GRC v2.0.
 
 ## 🎯 Objectifs
 
-- **Gestion des actifs** : Classification, criticité, localisation, maintenance
-- **Gestion des risques** : Évaluation selon ISO 27005, plans de traitement
-- **Gestion de projet SSI** : Suivi, jalons, responsables, avancement
-- **Gestion des audits** : Planification, grilles de vérification, rapports PDF
-- **Gestion documentaire** : Versionning, validation, publication
-- **Conformité ISO 27001** : Tableaux de bord, SoA automatisé
-- **Notifications temps réel** : Alertes persistantes avec Firestore
-- **RBAC avancé** : Contrôle d'accès granulaire par rôle/ressource/action
+- **Surveillance continue** : Monitoring en temps réel des actifs et vulnérabilités
+- **Détection de menaces** : Analyse de sécurité proactive et remédiation
+- **Conformité automatisée** : Vérification des contrôles ISO 27001
+- **Rapporting** : Génération automatique de preuves d'audit
+- **Intégration** : Communication sécurisée avec la plateforme centrale
 
 ## 🚀 Démarrage rapide
 
 ### Prérequis
-- Node.js 18+
-- Firebase projet configuré
-- Navigateur moderne
+- Rust 1.70+
+- SQLite 3
+- Système d'exploitation supporté (Linux, Windows, macOS)
 
 ### Installation
 
@@ -237,3 +230,103 @@ Pour toute question ou support :
 ---
 
 **Sentinel GRC v2.0** - La sécurité au cœur de votre transformation digitale
+=======
+# Sentinel GRC Agent
+
+[![CI](https://github.com/sentinel/agent/actions/workflows/ci.yml/badge.svg)](https://github.com/sentinel/agent/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Proprietary-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-2024%20edition-orange.svg)](https://www.rust-lang.org/)
+
+A lightweight, secure compliance agent for endpoint monitoring and GRC (Governance, Risk, Compliance) enforcement.
+
+## Overview
+
+Sentinel GRC Agent is a cross-platform agent that:
+- Monitors endpoint compliance with security policies
+- Executes configurable compliance checks
+- Reports results to the Sentinel GRC SaaS platform
+- Works offline with local caching and sync
+
+## Architecture
+
+The agent is built as a Rust workspace with modular crates:
+
+```
+sentinel-agent/
+├── crates/
+│   ├── agent-common/    # Shared types and utilities
+│   ├── agent-system/    # Platform-specific system interactions
+│   ├── agent-storage/   # SQLite-based encrypted local storage
+│   ├── agent-scanner/   # Compliance check engine
+│   ├── agent-sync/      # SaaS communication and synchronization
+│   └── agent-core/      # Main entry point and orchestration
+└── xtask/               # Build automation tasks
+```
+
+## Requirements
+
+- Rust 2024 Edition (1.93.0+)
+- Supported platforms:
+  - Windows 10+ (x64)
+  - Linux (Ubuntu 20.04+, RHEL 8+)
+
+## Building
+
+```bash
+# Debug build
+cargo build
+
+# Release build
+cargo build --release
+
+# Run tests
+cargo test
+
+# Run with all checks
+cargo fmt --check && cargo clippy -- -D warnings && cargo test
+```
+
+## Development
+
+### Prerequisites
+
+```bash
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Install development tools
+cargo install cargo-deny cargo-audit
+rustup component add rustfmt clippy llvm-tools-preview
+```
+
+### Quality Gates
+
+All PRs must pass:
+- `cargo fmt --check` - Code formatting
+- `cargo clippy -- -D warnings` - Linting
+- `cargo test` - Unit tests
+- `cargo deny check` - License and security checks
+- `cargo audit` - Vulnerability scanning
+
+### Code Coverage
+
+Coverage reports are generated using `cargo-llvm-cov`:
+
+```bash
+cargo install cargo-llvm-cov
+cargo llvm-cov --all-features --workspace
+```
+
+Minimum coverage threshold: **70%**
+
+## Security
+
+- All data encrypted at rest (SQLCipher/AES-256)
+- TLS 1.3 + mTLS for all communications
+- Binary signing (Authenticode/GPG)
+- Regular security audits via cargo-audit
+
+## License
+
+Proprietary - All rights reserved.
+>>>>>>> 9c7e4d1a7 (feat: Sentinel GRC Agent with vulnerability detection and incident reporting)

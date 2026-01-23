@@ -1,0 +1,29 @@
+[Unit]
+Description=Sentinel GRC Agent
+Documentation=https://docs.sentinel-grc.com
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/sentinel-grc/bin/sentinel-agent
+Restart=always
+RestartSec=10
+User=root
+Group=root
+WorkingDirectory=/opt/sentinel-grc
+Environment=RUST_LOG=info
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/sentinel-grc /var/log/sentinel-grc /etc/sentinel
+
+# Resource limits (NFR-P1, NFR-P3)
+MemoryMax=100M
+CPUQuota=5%
+
+[Install]
+WantedBy=multi-user.target
