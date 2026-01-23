@@ -4,6 +4,9 @@ import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, Ac
 import { Rocket } from '../../ui/Icons';
 import { GlassCard } from '../../ui/GlassCard';
 import { ShinyText } from '../../ui/ShinyText';
+import { Spotlight } from '../../ui/aceternity/Spotlight';
+import { BorderBeam } from '../../ui/aceternity/BorderBeam';
+import { SparklesCore } from '../../ui/aceternity/Sparkles.tsx';
 
 type DashboardInsight = {
     type?: 'danger' | 'warning' | 'success' | string;
@@ -28,7 +31,7 @@ interface DashboardHeaderProps {
     loading: boolean;
     isEmpty?: boolean;
     navigate?: (path: string) => void;
-    t?: (key: string) => string;
+    t?: (key: string, options?: any) => string;
     insight?: DashboardInsight;
     generateICal?: () => void;
     generateExecutiveReport?: () => void;
@@ -37,12 +40,13 @@ interface DashboardHeaderProps {
     onToggleEdit?: () => void;
     onShowGettingStarted?: () => void;
     isGettingStartedClosed?: boolean;
+    activeIncidentsCount?: number;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     user, organizationName, loading, isEmpty,
     navigate = () => { },
-    t = (k) => k,
+    t = (k, _o) => k,
     insight,
     generateICal = () => { },
     generateExecutiveReport = () => { },
@@ -50,7 +54,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     isEditing = false,
     onToggleEdit,
     onShowGettingStarted,
-    isGettingStartedClosed
+    isGettingStartedClosed,
+    activeIncidentsCount = 0
 }) => {
 
     type Role = 'admin' | 'rssi' | 'direction' | 'auditor' | 'project_manager' | 'user';
@@ -151,12 +156,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-500/50 to-transparent animate-shine opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
             <GlassCard className="glass-premium relative rounded-5xl overflow-hidden shadow-none border-none">
+                {/* Spotlight Effect */}
+                <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--brand-500)" />
+
+                {/* Border Beam */}
+                <BorderBeam size={400} duration={20} colorFrom="var(--brand-500)" colorTo="var(--info-500)" />
+
                 {/* Aurora Dynamic Background */}
-                <div className="absolute inset-0 bg-aurora animate-aurora opacity-40 dark:opacity-20 pointer-events-none" />
+                <div className="absolute inset-0 bg-aurora animate-aurora opacity-30 dark:opacity-15 pointer-events-none" />
                 <div className="absolute inset-0 bg-grid-slate-900/5 dark:bg-grid-white/5 opacity-50 pointer-events-none" />
 
                 {/* Inner Content Container */}
-                <div className="relative z-10 p-4 md:p-6">
+                <div className="relative z-10 p-5 md:p-8">
 
                     <div className="relative z-10 px-6 py-3">
                         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -164,60 +175,155 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             {/* Left: Organization & Welcome */}
                             <div className="flex items-center gap-5 min-w-[280px]">
                                 <div className="relative shrink-0 group/orb cursor-default">
-                                    <div className="w-20 h-20 rounded-4xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 via-slate-800 dark:to-slate-950 shadow-2xl shadow-slate-300/20 dark:shadow-slate-800/30 relative overflow-hidden transition-all duration-500 group-hover/orb:scale-110 group-hover/orb:rotate-3 group-hover/orb:-translate-y-1 ring-2 ring-slate-200/60 dark:ring-slate-700/40 backdrop-blur-sm">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-brand-500/8 via-transparent to-transparent opacity-0 group-hover/orb:opacity-40 transition-opacity duration-500" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-white/15 dark:from-white/8 to-transparent opacity-0 group-hover/orb:opacity-20 transition-opacity duration-500" />
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent opacity-0 group-hover/orb:opacity-15 transition-opacity duration-500" />
-                                        <div className="absolute inset-0 rounded-4xl bg-gradient-to-br from-slate-200/25 via-slate-100/15 to-transparent opacity-0 group-hover/orb:opacity-25 transition-opacity duration-500" />
+                                    <div className="w-24 h-24 rounded-4xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 via-slate-800 dark:to-slate-950 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden transition-all duration-700 group-hover/orb:scale-110 group-hover/orb:rotate-6 group-hover/orb:-translate-y-2 ring-2 ring-white/60 dark:ring-white/10 backdrop-blur-xl">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-brand-500/15 via-transparent to-transparent opacity-0 group-hover/orb:opacity-60 transition-opacity duration-500" />
+
+                                        {/* Subtle Sparkles inside logo */}
+                                        <div className="absolute inset-0 opacity-0 group-hover/orb:opacity-100 transition-opacity duration-1000">
+                                            <SparklesCore
+                                                id="logo-sparkles"
+                                                background="transparent"
+                                                minSize={0.4}
+                                                maxSize={1.2}
+                                                particleDensity={40}
+                                                className="w-full h-full"
+                                                particleColor="var(--brand-400)"
+                                            />
+                                        </div>
+
                                         <img
                                             src="/images/pilotage.png"
                                             alt="PILOTAGE"
-                                            className="w-full h-full object-contain relative z-10 p-2"
+                                            className="w-full h-full object-contain relative z-10 p-3 drop-shadow-2xl"
                                         />
-                                        {/* Holographic ring */}
-                                        <div className="absolute inset-0 border-2 border-slate-200/40 dark:border-slate-700/40 rounded-4xl animate-spin-slow" />
-                                        <div className="absolute inset-0 border border-white/20 dark:border-white/10 rounded-4xl animate-spin-slow-reverse" />
+
+                                        {/* Holographic rings */}
+                                        <div className="absolute inset-0 border-2 border-brand-500/20 rounded-4xl animate-spin-slow" />
+                                        <div className="absolute inset-0 border border-info-500/10 rounded-4xl animate-spin-slow-reverse" />
                                     </div>
-                                    <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-background/50 backdrop-blur-sm flex items-center justify-center shadow-sm border border-white/10">
-                                        <div className="w-3 h-3 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
-                                        <div className="w-3 h-3 rounded-full bg-emerald-500 relative z-10 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                    <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-center shadow-xl border border-white/20 dark:border-white/10">
+                                        <div className="w-4 h-4 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
+                                        <div className="w-4 h-4 rounded-full bg-emerald-500 relative z-10 shadow-[0_0_15px_rgba(16,185,129,0.7)]" />
                                     </div>
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white tracking-tight leading-none mb-3 drop-shadow-sm">
-                                        {organizationName || user?.organizationName || t('sidebar.dashboard')}
-                                    </h1>
-                                    <div className="flex items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400 drop-shadow-xs">
-                                        <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-                                        <span className="uppercase tracking-wider font-semibold">{t('dashboard.workspace')}</span>
+                                    <div className="flex flex-col gap-0.5">
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.2 }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <span className="text-[11px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-[0.3em] mb-1">
+                                                {t('common.pilotage')}
+                                            </span>
+                                            <div className="h-[1px] w-8 bg-gradient-to-r from-brand-500/50 to-transparent" />
+                                        </motion.div>
+
+                                        <motion.h1
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.3 }}
+                                            className="text-3xl sm:text-5xl font-black font-display text-slate-900 dark:text-white tracking-tight leading-none mb-3 drop-shadow-md"
+                                        >
+                                            <ShinyText speed={4}>{organizationName || user?.organizationName || t('sidebar.dashboard')}</ShinyText>
+                                        </motion.h1>
+
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: 0.4 }}
+                                            className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400"
+                                        >
+                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+                                                <CalendarDays className="h-3 w-3 text-brand-500" />
+                                                <span className="capitalize">{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                                            </div>
+                                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                            <span className="uppercase tracking-[0.15em] font-black text-brand-500/80 dark:text-brand-400/80">{t('dashboard.workspace')}</span>
+                                        </motion.div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Middle: Integrated Insight Banner */}
-                            <div className="flex-1 w-full lg:w-auto">
+                            {/* Middle: Integrated Insight & Incidents */}
+                            <div className="flex-1 w-full lg:w-auto flex flex-col sm:flex-row items-stretch gap-4">
+                                {/* Active Incidents Quick View */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.5 }}
+                                    className="flex flex-col p-5 rounded-3xl bg-white/40 dark:bg-slate-900/40 border border-white/20 dark:border-slate-800/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.05)] min-w-[220px] group/incidents hover:border-brand-500/40 hover:bg-white/60 dark:hover:bg-slate-900/60 transition-all duration-500"
+                                >
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
+                                            {t('dashboard.incidents')} Actifs
+                                        </span>
+                                        <div className="relative">
+                                            <div className={`w-2.5 h-2.5 rounded-full ${activeIncidentsCount > 0 ? 'bg-error-500 animate-pulse' : 'bg-emerald-500'} transition-colors duration-500`} />
+                                            {activeIncidentsCount > 0 && (
+                                                <div className="absolute inset-0 rounded-full bg-error-500 animate-ping opacity-40" />
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end gap-3">
+                                        <span className="text-4xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">
+                                            {activeIncidentsCount}
+                                        </span>
+                                        <div className="flex flex-col -mb-1">
+                                            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 leading-tight uppercase">
+                                                {t('dashboard.incidents')}
+                                            </span>
+                                            <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
+                                                En cours de traitement
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
                                 {insight?.text ? (
-                                    <button
+                                    <motion.button
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.6 }}
                                         onClick={() => {
                                             if (insight.link && insight.link.startsWith('/')) navigate(insight.link); // validateUrl check
                                         }}
-                                        className={`flex w-full text-left items-start sm:items-center gap-3 p-3 rounded-2xl border ${insight.type === 'danger' ? 'bg-error-bg border-error-border/30 shadow-sm' : insight.type === 'warning' ? 'bg-warning-bg border-warning-border/30 shadow-sm' : 'bg-success-bg border-success-border/30 shadow-sm'} hover:bg-opacity-80 transition-all cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                        className={`flex-1 flex text-left items-center gap-4 p-4 rounded-3xl border transition-all duration-500 cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 backdrop-blur-xl
+                                            ${insight.type === 'danger'
+                                                ? 'bg-error-500/5 border-error-500/20 hover:bg-error-500/10'
+                                                : insight.type === 'warning'
+                                                    ? 'bg-warning-500/5 border-warning-500/20 hover:bg-warning-500/10'
+                                                    : 'bg-success-500/5 border-success-500/20 hover:bg-success-500/10'
+                                            }`}
                                     >
-                                        <div className={`p-2 rounded-xl shrink-0 ${insight.type === 'danger' ? 'bg-error-bg text-error-text shadow-sm' : 'bg-warning-bg text-warning-text shadow-sm'}`}>
-                                            {insight.type === 'danger' ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
+                                        <div className={`p-3 rounded-2xl shrink-0 transition-transform duration-500 group-hover/insight:scale-110
+                                            ${insight.type === 'danger' ? 'bg-error-500/20 text-error-600 dark:text-error-400' : 'bg-success-500/20 text-success-600 dark:text-success-400'}`}>
+                                            {insight.type === 'danger' ? <AlertTriangle className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-black text-foreground truncate pr-2 tracking-tight">{insight.text}</p>
-                                            <p className="text-xs text-muted-foreground/80 truncate hidden sm:block font-medium">{insight.details}</p>
+                                            <p className="text-sm font-black text-foreground truncate pr-2 tracking-tight mb-0.5">{insight.text}</p>
+                                            <p className="text-xs text-muted-foreground/80 truncate font-medium">{insight.details}</p>
                                         </div>
-                                        {insight.link && <ArrowRight className="h-4 w-4 text-muted-foreground group-hover/insight:translate-x-1 transition-transform" />}
-                                    </button>
+                                        <div className="p-2 rounded-xl bg-background/50 opacity-0 group-hover/insight:opacity-100 transition-all duration-500 translate-x-4 group-hover/insight:translate-x-0">
+                                            <ArrowRight className="h-4 w-4 text-brand-500" />
+                                        </div>
+                                    </motion.button>
                                 ) : (
-                                    <div className="hidden lg:flex items-center gap-2 p-3 rounded-2xl bg-accent/30 border border-border/50 text-muted-foreground text-sm shadow-sm">
-                                        <Activity className="h-4 w-4" />
-                                        <span className="font-semibold tracking-tight">{t('dashboard.allSystemsOperational')}</span>
-                                    </div>
+                                    <motion.div
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.6 }}
+                                        className="hidden lg:flex flex-1 items-center gap-3 p-4 rounded-3xl bg-slate-100/30 dark:bg-slate-800/20 border border-slate-200/50 dark:border-slate-700/30 text-muted-foreground text-sm shadow-apple-sm backdrop-blur-xl"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-brand-500/10 flex items-center justify-center">
+                                            <Activity className="h-5 w-5 text-brand-500 animate-pulse" />
+                                        </div>
+                                        <div>
+                                            <p className="font-extrabold text-foreground tracking-tight leading-none mb-1">{t('dashboard.allSystemsOperational')}</p>
+                                            <p className="text-[10px] text-muted-foreground/60 font-medium">Surveillance en temps réel active</p>
+                                        </div>
+                                    </motion.div>
                                 )}
                             </div>
 

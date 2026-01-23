@@ -198,6 +198,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                         onToggleEdit={() => setIsEditing(!isEditing)}
                         onShowGettingStarted={() => setGettingStartedState('expanded')}
                         isGettingStartedClosed={!showGettingStarted}
+                        activeIncidentsCount={activeIncidentsCount}
                     />
 
                     {showGettingStarted && (
