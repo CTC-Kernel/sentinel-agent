@@ -516,8 +516,8 @@ export const Reports: React.FC = () => {
                                 <div
                                     key={report.id}
                                     className={`glass-premium p-6 rounded-2xl border transition-all ${report.status === 'active'
-                                            ? 'border-emerald-200 dark:border-emerald-800'
-                                            : 'border-slate-200 dark:border-slate-700 opacity-60'
+                                        ? 'border-emerald-200 dark:border-emerald-800'
+                                        : 'border-slate-200 dark:border-slate-700 opacity-60'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between mb-4">
@@ -525,8 +525,8 @@ export const Reports: React.FC = () => {
                                             <Calendar className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                                         </div>
                                         <span className={`px-2 py-1 rounded-lg text-xs font-bold ${report.status === 'active'
-                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                                             }`}>
                                             {report.status === 'active' ? t('reports.status.active') : t('reports.status.paused')}
                                         </span>

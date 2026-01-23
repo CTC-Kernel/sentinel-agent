@@ -56,7 +56,7 @@ export class PdfService {
      */
     static getWatermarkOptions(planId: string, hasWhiteLabelReports: boolean): { watermark: boolean; watermarkText?: string } {
         const shouldWatermark = this.shouldApplyWatermark(planId, hasWhiteLabelReports);
-        
+
         return {
             watermark: shouldWatermark,
             watermarkText: shouldWatermark && planId === 'discovery' ? 'Version Essai - Sentinel GRC' : undefined
@@ -626,8 +626,16 @@ export class PdfService {
 
                 // Add top highlight for 3D effect (only if bar is tall enough)
                 if (barHeight > 4) {
-                    doc.setFillColor(255, 255, 255, 0.3);
-                    doc.roundedRect(currentX + 1, chartStartY + actualChartHeight - barHeight, barWidth - 2, 2, 1, 1, 'F');
+                    try {
+                        doc.saveGraphicsState();
+                        if ((doc as any).GState) {
+                            doc.setGState(new (doc as any).GState({ opacity: 0.3 }));
+                        }
+                        doc.setFillColor(255, 255, 255);
+                        doc.roundedRect(currentX + 1, chartStartY + actualChartHeight - barHeight, barWidth - 2, 2, 1, 1, 'F');
+                    } finally {
+                        doc.restoreGraphicsState();
+                    }
                 }
             }
 
@@ -671,8 +679,16 @@ export class PdfService {
 
             // Add background for value (only if not inside bar)
             if (barTopY - chartStartY >= minSpaceAboveBar || barHeight < 15) {
-                doc.setFillColor(255, 255, 255, 0.9);
-                doc.roundedRect(currentX + (barWidth - valueBgWidth) / 2, valueY - 4, valueBgWidth, 6, 1, 1, 'F');
+                try {
+                    doc.saveGraphicsState();
+                    if ((doc as any).GState) {
+                        doc.setGState(new (doc as any).GState({ opacity: 0.9 }));
+                    }
+                    doc.setFillColor(255, 255, 255);
+                    doc.roundedRect(currentX + (barWidth - valueBgWidth) / 2, valueY - 4, valueBgWidth, 6, 1, 1, 'F');
+                } finally {
+                    doc.restoreGraphicsState();
+                }
             }
 
             doc.text(valueText, currentX + barWidth / 2, valueY, { align: 'center' });
@@ -882,8 +898,16 @@ export class PdfService {
         const pageWidth = doc.internal.pageSize.width;
 
         // Draw shadow effect (subtle)
-        doc.setFillColor(0, 0, 0, 0.08);
-        doc.circle(centerX + 1.5, centerY + 1.5, radius, 'F');
+        try {
+            doc.saveGraphicsState();
+            if ((doc as any).GState) {
+                doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+            }
+            doc.setFillColor(0, 0, 0);
+            doc.circle(centerX + 1.5, centerY + 1.5, radius, 'F');
+        } finally {
+            doc.restoreGraphicsState();
+        }
 
         // Draw segments with enhanced styling
         filteredData.forEach((item) => {
@@ -1166,8 +1190,16 @@ export class PdfService {
 
                     // White background for count
                     const badgeSize = Math.min(cellSize * 0.6, 12);
-                    doc.setFillColor(255, 255, 255, 0.9);
-                    doc.circle(cellX + cellSize / 2, cellY + cellSize / 2, badgeSize / 2, 'F');
+                    try {
+                        doc.saveGraphicsState();
+                        if ((doc as any).GState) {
+                            doc.setGState(new (doc as any).GState({ opacity: 0.9 }));
+                        }
+                        doc.setFillColor(255, 255, 255);
+                        doc.circle(cellX + cellSize / 2, cellY + cellSize / 2, badgeSize / 2, 'F');
+                    } finally {
+                        doc.restoreGraphicsState();
+                    }
 
                     doc.text(countText, cellX + cellSize / 2, cellY + cellSize / 2, {
                         align: 'center',

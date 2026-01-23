@@ -7,6 +7,7 @@ import { PdfService } from './PdfService';
 import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset, Project } from '../types';
 import { format } from 'date-fns';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
+import { ErrorLogger } from './errorLogger';
 
 export class CompliancePackService {
 
@@ -97,8 +98,8 @@ Ce pack contient des preuves extraites du système Sentinel GRC.
 L'intégrité de ces données est garantie par le système.
             `;
             rootFolder.file("00_LISEZ_MOI.txt", readmeContent.trim());
-        } catch {
-            // README creation failed, but continue with other files
+        } catch (error) {
+            ErrorLogger.error('Pack Generation: README failed', 'CompliancePackService.generatePack', { metadata: { error } });
         }
 
         // 2. Risk Management
@@ -194,10 +195,15 @@ L'intégrité de ces données est garantie par le système.
                         });
                     }
                 );
-                riskFolder.file("Registre_Risques_Enrichi.pdf", riskDoc.output('blob'));
+                const buffer = riskDoc.output('arraybuffer');
+                if (buffer && buffer.byteLength > 0) {
+                    riskFolder.file("Registre_Risques_Enrichi.pdf", new Uint8Array(buffer));
+                } else {
+                    ErrorLogger.error('Pack Generation: Risk PDF is empty', 'CompliancePackService.generatePack');
+                }
             }
-        } catch {
-            // Continue with other sections
+        } catch (error) {
+            ErrorLogger.error('Pack Generation: Risk section failed', 'CompliancePackService.generatePack', { metadata: { error } });
         }
 
         // 3. SoA (Statement of Applicability)
@@ -269,10 +275,15 @@ L'intégrité de ces données est garantie par le système.
                         });
                     }
                 );
-                soaFolder.file("SoA_Enrichi.pdf", soaDoc.output('blob'));
+                const buffer = soaDoc.output('arraybuffer');
+                if (buffer && buffer.byteLength > 0) {
+                    soaFolder.file("SoA_Enrichi.pdf", new Uint8Array(buffer));
+                } else {
+                    ErrorLogger.error('Pack Generation: SoA PDF is empty', 'CompliancePackService.generatePack');
+                }
             }
-        } catch {
-            // README creation failed, but continue with other files
+        } catch (error) {
+            ErrorLogger.error('Pack Generation: SoA section failed', 'CompliancePackService.generatePack', { metadata: { error } });
         }
 
         // 4. Policies (Generated from content)
@@ -295,7 +306,10 @@ L'intégrité de ces données est garantie par le système.
                         this.safeFormatDate(d.updatedAt)
                     ])
                 );
-                docFolder.file("00_Index_Documentaire.pdf", indexDoc.output('blob'));
+                const buffer = indexDoc.output('arraybuffer');
+                if (buffer && buffer.byteLength > 0) {
+                    docFolder.file("00_Index_Documentaire.pdf", new Uint8Array(buffer));
+                }
 
                 // Generate individual PDFs for text-based policies
                 data.documents.forEach(docItem => {
@@ -329,9 +343,12 @@ L'intégrité de ces données est garantie par le système.
                             );
                             // Sanitize filename
                             const safeName = (docItem.title || 'Doc').replace(/[^a-z0-9]/gi, '_').substring(0, 50);
-                            docFolder.file(`${safeName}_v${docItem.version}.pdf`, policyPdf.output('blob'));
-                        } catch {
-                            // Policy PDF generation failed, but continue
+                            const buffer = policyPdf.output('arraybuffer');
+                            if (buffer && buffer.byteLength > 0) {
+                                docFolder.file(`${safeName}_v${docItem.version}.pdf`, new Uint8Array(buffer));
+                            }
+                        } catch (error) {
+                            ErrorLogger.error('Pack Generation: Individual Policy PDF failed', 'CompliancePackService.generatePack', { metadata: { error, title: docItem.title } });
                         }
                     }
                 });
@@ -349,17 +366,23 @@ L'intégrité de ces données est garantie par le système.
                     ['Titre', 'Sévérité', 'Statut', 'Date', 'Impact'],
                     data.incidents.map(i => [i.title || '', i.severity || 'Medium', i.status || 'Open', this.safeFormatDate(i.dateReported), i.impact || 'N/A'])
                 );
-                incidentFolder.file("Registre_Incidents.pdf", incDoc.output('blob'));
+                const incBuffer = incDoc.output('arraybuffer');
+                if (incBuffer && incBuffer.byteLength > 0) {
+                    incidentFolder.file("Registre_Incidents.pdf", new Uint8Array(incBuffer));
+                }
 
                 const assetDoc = PdfService.generateTableReport(
                     { title: "Inventaire des Actifs", organizationName: data.organizationName, save: false },
                     ['Nom', 'Type', 'Criticité', 'Propriétaire'],
                     data.assets.map(a => [a.name || '', a.type || 'N/A', a.confidentiality || 'Low', a.owner || 'N/A'])
                 );
-                incidentFolder.file("Inventaire_Actifs.pdf", assetDoc.output('blob'));
+                const assetBuffer = assetDoc.output('arraybuffer');
+                if (assetBuffer && assetBuffer.byteLength > 0) {
+                    incidentFolder.file("Inventaire_Actifs.pdf", new Uint8Array(assetBuffer));
+                }
             }
-        } catch {
-            // README creation failed, but continue with other files
+        } catch (error) {
+            ErrorLogger.error('Pack Generation: Incidents/Assets section failed', 'CompliancePackService.generatePack', { metadata: { error } });
         }
 
         // 6. Audits
@@ -371,10 +394,13 @@ L'intégrité de ces données est garantie par le système.
                     ['Audit', 'Date', 'Auditeur', 'Statut', 'Conformité'],
                     data.audits.map(a => [a.name || '', this.safeFormatDate(a.dateScheduled), a.auditor || 'N/A', a.status || 'Planned', `${a.score || 0}%`])
                 );
-                auditFolder.file("Suivi_Audits.pdf", auditDoc.output('blob'));
+                const auditBuffer = auditDoc.output('arraybuffer');
+                if (auditBuffer && auditBuffer.byteLength > 0) {
+                    auditFolder.file("Suivi_Audits.pdf", new Uint8Array(auditBuffer));
+                }
             }
-        } catch {
-            // README creation failed, but continue with other files
+        } catch (error) {
+            ErrorLogger.error('Pack Generation: Audits section failed', 'CompliancePackService.generatePack', { metadata: { error } });
         }
 
         // Generate and Save Final Zip
