@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import {
     Server,
     Terminal,
     Download,
     Trash2,
-    RefreshCw,
     CheckCircle2,
     XCircle,
     Clock,
@@ -26,33 +25,30 @@ export const AgentManagement: React.FC = () => {
     const { user } = useStore();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [showEnrollment, setShowEnrollment] = useState(false);
     const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
 
-    const loadAgents = useCallback(async () => {
-        if (!user?.organizationId) return;
-        setLoading(true);
-        try {
-            const data = await AgentService.getAgents(user.organizationId);
-            setAgents(data);
-        } catch {
-            toast.error("Échec du chargement des agents");
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.organizationId]);
-
+    // Subscribe to real-time agent updates
     useEffect(() => {
-        loadAgents();
-    }, [loadAgents]);
+        if (!user?.organizationId) return;
 
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-        await loadAgents();
-        setIsRefreshing(false);
-        toast.success("Liste mis à jour");
-    };
+        setLoading(true);
+
+        const unsubscribe = AgentService.subscribeToAgents(
+            user.organizationId,
+            (data) => {
+                setAgents(data);
+                setLoading(false);
+            },
+            (error) => {
+                console.error('Agent subscription error:', error);
+                toast.error("Échec du chargement des agents");
+                setLoading(false);
+            }
+        );
+
+        return () => unsubscribe();
+    }, [user?.organizationId]);
 
     const handleDelete = async (agentId: string) => {
         if (!user?.organizationId) return;
@@ -128,15 +124,10 @@ export const AgentManagement: React.FC = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={handleRefresh}
-                        disabled={isRefreshing || loading}
-                        className="rounded-xl border border-slate-200 dark:border-white/10"
-                    >
-                        <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
-                        Actualiser
-                    </Button>
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        Temps réel
+                    </div>
                     <Button
                         onClick={handleGenerateToken}
                         className="rounded-xl bg-brand-500 dark:bg-brand-600 shadow-lg shadow-brand-500/20"

@@ -50,6 +50,9 @@ const integrations = require('./integrations');
 // Scheduled Module (Backups, Audit, Logs)
 const scheduled = require('./scheduled');
 
+// Agents Module (Endpoint Compliance Agents)
+const agents = require('./agents');
+
 // =============================================================================
 // EXISTING MODULES (already modularized)
 // =============================================================================
@@ -136,6 +139,9 @@ module.exports = {
 
   // --- Scheduled Module ---
   ...scheduled,
+
+  // --- Agents Module ---
+  ...agents,
 
   // --- API ---
   api,

@@ -307,6 +307,46 @@ service cloud.firestore {
         allow read: if canRead(orgId);
         allow write: if canWrite(orgId);
       }
+
+      // ===========================================================================
+      // AGENTS - Endpoint Compliance Agents (Sentinel Agent)
+      // ===========================================================================
+
+      // Agents Subcollection
+      // Agents are created/updated by Cloud Functions (Admin SDK) via agent API
+      // Frontend can read agents for management UI
+      match /agents/{agentId} {
+        allow read: if canRead(orgId);
+        // Create/Update/Delete handled by Cloud Functions via agent API
+        allow create: if false;
+        allow update: if canWrite(orgId); // Allow admin to update config via frontend
+        allow delete: if canDelete(orgId); // Allow admin to delete via frontend
+
+        // Agent Results (Check results)
+        match /results/{resultId} {
+          allow read: if canRead(orgId);
+          allow write: if false; // Only Cloud Functions (agent API) can write
+        }
+
+        // Agent Commands (Pending commands)
+        match /commands/{commandId} {
+          allow read: if canRead(orgId);
+          allow create: if canWrite(orgId); // Admin can send commands
+          allow update: if false; // Only Cloud Functions can update
+          allow delete: if canWrite(orgId);
+        }
+      }
+
+      // Enrollment Tokens Subcollection
+      // Tokens are created/managed by Cloud Functions
+      // Frontend can read tokens for management UI
+      match /enrollmentTokens/{tokenId} {
+        allow read: if canRead(orgId);
+        // Create/Revoke handled by Cloud Functions
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
+      }
     }
 
     // Users collection
