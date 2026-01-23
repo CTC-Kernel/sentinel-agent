@@ -5,6 +5,15 @@ import { fr } from 'date-fns/locale';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
 import { Risk, Project, ProjectTask, Control, Audit, Finding } from '../types';
 
+// Type extension for jsPDF GState (graphics state for transparency effects)
+interface GStateOptions {
+    opacity?: number;
+}
+
+interface jsPDFWithGState extends jsPDF {
+    GState?: new (options: GStateOptions) => object;
+}
+
 export interface ReportOptions {
     title: string;
     subtitle?: string;
@@ -628,8 +637,8 @@ export class PdfService {
                 if (barHeight > 4) {
                     try {
                         doc.saveGraphicsState();
-                        if ((doc as any).GState) {
-                            doc.setGState(new (doc as any).GState({ opacity: 0.3 }));
+                        if ((doc as jsPDFWithGState).GState) {
+                            doc.setGState(new (doc as jsPDFWithGState).GState!({ opacity: 0.3 }));
                         }
                         doc.setFillColor(255, 255, 255);
                         doc.roundedRect(currentX + 1, chartStartY + actualChartHeight - barHeight, barWidth - 2, 2, 1, 1, 'F');
@@ -681,8 +690,8 @@ export class PdfService {
             if (barTopY - chartStartY >= minSpaceAboveBar || barHeight < 15) {
                 try {
                     doc.saveGraphicsState();
-                    if ((doc as any).GState) {
-                        doc.setGState(new (doc as any).GState({ opacity: 0.9 }));
+                    if ((doc as jsPDFWithGState).GState) {
+                        doc.setGState(new (doc as jsPDFWithGState).GState!({ opacity: 0.9 }));
                     }
                     doc.setFillColor(255, 255, 255);
                     doc.roundedRect(currentX + (barWidth - valueBgWidth) / 2, valueY - 4, valueBgWidth, 6, 1, 1, 'F');
@@ -900,8 +909,8 @@ export class PdfService {
         // Draw shadow effect (subtle)
         try {
             doc.saveGraphicsState();
-            if ((doc as any).GState) {
-                doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+            if ((doc as jsPDFWithGState).GState) {
+                doc.setGState(new (doc as jsPDFWithGState).GState!({ opacity: 0.08 }));
             }
             doc.setFillColor(0, 0, 0);
             doc.circle(centerX + 1.5, centerY + 1.5, radius, 'F');
@@ -1192,8 +1201,8 @@ export class PdfService {
                     const badgeSize = Math.min(cellSize * 0.6, 12);
                     try {
                         doc.saveGraphicsState();
-                        if ((doc as any).GState) {
-                            doc.setGState(new (doc as any).GState({ opacity: 0.9 }));
+                        if ((doc as jsPDFWithGState).GState) {
+                            doc.setGState(new (doc as jsPDFWithGState).GState!({ opacity: 0.9 }));
                         }
                         doc.setFillColor(255, 255, 255);
                         doc.circle(cellX + cellSize / 2, cellY + cellSize / 2, badgeSize / 2, 'F');

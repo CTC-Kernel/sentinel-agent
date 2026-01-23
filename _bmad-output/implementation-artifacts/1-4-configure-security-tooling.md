@@ -1,6 +1,6 @@
 # Story 1.4: Configure Security Tooling (cargo-audit, cargo-deny)
 
-Status: in-progress
+Status: review
 
 ## Story
 
@@ -36,32 +36,32 @@ So that **we maintain a secure and compliant codebase**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Enhance deny.toml Configuration (AC: 2, 3)
-  - [ ] Add detailed advisories section with source config
-  - [ ] Configure license exceptions if needed
-  - [ ] Add known-bad crates to bans.deny list
-  - [ ] Configure skip-tree for false positives
+- [x] Task 1: Enhance deny.toml Configuration (AC: 2, 3)
+  - [x] Add detailed advisories section with source config
+  - [x] Configure license exceptions if needed
+  - [x] Add known-bad crates to bans.deny list
+  - [x] Configure skip-tree for false positives
 
-- [ ] Task 2: Install and Test cargo-audit (AC: 1)
-  - [ ] Install cargo-audit locally
-  - [ ] Run cargo audit and verify output
-  - [ ] Create .cargo/audit.toml if needed
+- [x] Task 2: Install and Test cargo-audit (AC: 1)
+  - [x] Install cargo-audit locally
+  - [x] Run cargo audit and verify output
+  - [x] Create .cargo/audit.toml if needed (not needed - default config works)
 
-- [ ] Task 3: Run cargo-deny Verification (AC: 2, 3)
-  - [ ] Run cargo deny check advisories
-  - [ ] Run cargo deny check licenses
-  - [ ] Run cargo deny check bans
-  - [ ] Fix any issues found
+- [x] Task 3: Run cargo-deny Verification (AC: 2, 3)
+  - [x] Run cargo deny check advisories
+  - [x] Run cargo deny check licenses
+  - [x] Run cargo deny check bans
+  - [x] Fix any issues found
 
-- [ ] Task 4: Verify CI Integration (AC: 4)
-  - [ ] Confirm cargo-deny action in CI
-  - [ ] Confirm cargo-audit action in CI
-  - [ ] Verify failure behavior
+- [x] Task 4: Verify CI Integration (AC: 4)
+  - [x] Confirm cargo-deny action in CI
+  - [x] Confirm cargo-audit action in CI
+  - [x] Verify failure behavior
 
-- [ ] Task 5: Create SECURITY.md (AC: 5)
-  - [ ] Document security scanning process
-  - [ ] Document dependency approval process
-  - [ ] Document vulnerability response process
+- [x] Task 5: Create SECURITY.md (AC: 5)
+  - [x] Document security scanning process
+  - [x] Document dependency approval process
+  - [x] Document vulnerability response process
 
 ## Dev Notes
 
@@ -87,13 +87,46 @@ The existing deny.toml has basic configuration. Enhancements needed:
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
+- Fixed deny.toml for cargo-deny 0.19 (version 2 format)
+- Added OpenSSL and CDLA-Permissive-2.0 licenses for transitive dependencies (aws-lc-sys, webpki-root-certs)
+- Added `publish = false` to all workspace crates to mark them as private
+- Added `allow-wildcard-paths = true` for workspace path dependencies
+- Added `licenses.clarify` sections for our proprietary crates
+
 ### Completion Notes List
+
+- ✅ Enhanced deny.toml with version 2 format for cargo-deny 0.19
+- ✅ Configured advisory database (RustSec) with yanked = "deny"
+- ✅ Added comprehensive license allowlist (15 licenses including transitive deps)
+- ✅ Added licenses.clarify for proprietary workspace crates
+- ✅ Configured bans with wildcards = "deny" and allow-wildcard-paths = true
+- ✅ Installed cargo-audit and cargo-deny locally
+- ✅ Verified `cargo audit` passes (0 vulnerabilities)
+- ✅ Verified `cargo deny check` passes (advisories ok, bans ok, licenses ok, sources ok)
+- ✅ Verified CI has EmbarkStudios/cargo-deny-action@v2 and rustsec/audit-check@v2
+- ✅ Created SECURITY.md with comprehensive security documentation
 
 ### File List
 
+**Modified Files:**
+- sentinel-agent/deny.toml (enhanced for cargo-deny 0.19)
+- sentinel-agent/crates/agent-common/Cargo.toml (added publish = false)
+- sentinel-agent/crates/agent-core/Cargo.toml (added publish = false)
+- sentinel-agent/crates/agent-scanner/Cargo.toml (added publish = false)
+- sentinel-agent/crates/agent-storage/Cargo.toml (added publish = false)
+- sentinel-agent/crates/agent-sync/Cargo.toml (added publish = false)
+- sentinel-agent/crates/agent-system/Cargo.toml (added publish = false)
+- sentinel-agent/xtask/Cargo.toml (added publish = false)
+
+**New Files Created:**
+- sentinel-agent/SECURITY.md
+
 ### Change Log
+
+- 2026-01-23: Configured cargo-deny and cargo-audit security tooling
+- 2026-01-23: Created SECURITY.md with security policy documentation
 
