@@ -304,6 +304,39 @@ export const AgentManagement: React.FC = () => {
                         </motion.div>
                     )}
 
+                    {/* What is the Agent? */}
+                    <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-600">
+                                <ShieldCheck className="w-5 h-5" />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Qu'est-ce que l'Agent ?</h3>
+                        </div>
+                        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                            <p>
+                                L'Agent Sentinel est un logiciel léger qui s'exécute en arrière-plan sur vos terminaux.
+                            </p>
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <span>Vérifie la conformité de sécurité</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <span>Fonctionne silencieusement ({"<"}1% CPU)</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <span>Ne collecte pas vos données personnelles</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <span>Communications chiffrées (TLS 1.3)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Documentation / Downloads */}
                     <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 space-y-6">
                         <div className="flex items-center gap-3">
@@ -315,52 +348,22 @@ export const AgentManagement: React.FC = () => {
 
                         <div className="grid grid-cols-1 gap-3">
                             <a
-                                href="/downloads/sentinel-agent-windows-x64.msi"
+                                href="https://app.cyber-threat-consulting.com/releases/agent/SentinelAgentSetup-latest.msi"
                                 download
                                 className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
                             >
                                 <div className="flex items-center gap-3">
                                     <Monitor className="w-5 h-5 text-blue-500" />
                                     <div>
-                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Windows .MSI</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">x64 Architecture</div>
+                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Windows</div>
+                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Installateur .MSI</div>
                                     </div>
                                 </div>
                                 <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
                             </a>
 
                             <a
-                                href="/downloads/sentinel-agent-linux-amd64.deb"
-                                download
-                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Terminal className="w-5 h-5 text-orange-500" />
-                                    <div>
-                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux .DEB</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Debian / Ubuntu</div>
-                                    </div>
-                                </div>
-                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-                            </a>
-
-                            <a
-                                href="/downloads/sentinel-agent-linux-amd64.rpm"
-                                download
-                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Terminal className="w-5 h-5 text-red-500" />
-                                    <div>
-                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux .RPM</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">RHEL / CentOS / Fedora</div>
-                                    </div>
-                                </div>
-                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
-                            </a>
-
-                            <a
-                                href="/downloads/sentinel-agent-darwin-arm64"
+                                href="https://app.cyber-threat-consulting.com/releases/agent/SentinelAgent-latest.dmg"
                                 download
                                 className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
                             >
@@ -368,32 +371,63 @@ export const AgentManagement: React.FC = () => {
                                     <Cpu className="w-5 h-5 text-slate-600" />
                                     <div>
                                         <div className="text-sm font-bold text-slate-900 dark:text-white">macOS</div>
-                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Apple Silicon / Intel</div>
+                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Apple Silicon & Intel</div>
+                                    </div>
+                                </div>
+                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+                            </a>
+
+                            <a
+                                href="https://app.cyber-threat-consulting.com/releases/agent/sentinel-agent_latest_amd64.deb"
+                                download
+                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Terminal className="w-5 h-5 text-orange-500" />
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux DEB</div>
+                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Debian / Ubuntu</div>
+                                    </div>
+                                </div>
+                                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+                            </a>
+
+                            <a
+                                href="https://app.cyber-threat-consulting.com/releases/agent/sentinel-agent-latest.x86_64.rpm"
+                                download
+                                className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Terminal className="w-5 h-5 text-red-500" />
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-900 dark:text-white">Linux RPM</div>
+                                        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">RHEL / Fedora</div>
                                     </div>
                                 </div>
                                 <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
                             </a>
                         </div>
 
-                        <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-3">
-                            <a
-                                href="/docs/agent-installation"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between text-sm text-brand-500 font-bold hover:underline"
-                            >
-                                Manuel d'installation
-                                <ExternalLink className="w-4 h-4" />
-                            </a>
-                            <a
-                                href="/docs/agent-troubleshooting"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between text-sm text-slate-500 hover:text-brand-500 hover:underline"
-                            >
-                                Guide de dépannage
-                                <ExternalLink className="w-4 h-4" />
-                            </a>
+                        <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Installation rapide</h4>
+                            <ol className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-brand-500">1.</span>
+                                    Téléchargez l'installateur pour votre système
+                                </li>
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-brand-500">2.</span>
+                                    Lancez l'installation (admin requis)
+                                </li>
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-brand-500">3.</span>
+                                    Générez un token ci-dessus et configurez l'agent
+                                </li>
+                                <li className="flex gap-2">
+                                    <span className="font-bold text-brand-500">4.</span>
+                                    L'agent apparaît dans la barre système
+                                </li>
+                            </ol>
                         </div>
                     </div>
                 </div>
