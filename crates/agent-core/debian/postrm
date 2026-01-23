@@ -1,0 +1,33 @@
+#!/bin/sh
+# Sentinel GRC Agent - Post-removal script
+set -e
+
+case "$1" in
+    purge)
+        # Remove configuration and data on purge
+        echo "Purging Sentinel GRC Agent data..."
+        rm -rf /etc/sentinel
+        rm -rf /var/lib/sentinel-grc
+        rm -rf /var/log/sentinel-grc
+        ;;
+    remove)
+        # Standard removal - keep config and data
+        echo "Sentinel GRC Agent removed."
+        echo "Configuration preserved at /etc/sentinel/"
+        echo "Data preserved at /var/lib/sentinel-grc/"
+        echo "To remove all data, run: apt purge sentinel-agent"
+        ;;
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+# Reload systemd to forget the unit
+if [ -d /run/systemd/system ]; then
+    systemctl daemon-reload || true
+fi
+
+exit 0

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sentinel GRC Agent - Windows Installer (MSI)
+
+  Build with WiX v4:
+    dotnet tool install --global wix
+    wix build -o sentinel-agent.msi main.wxs
+
+  Silent installation:
+    msiexec /i sentinel-agent.msi /qn
+
+  With custom properties:
+    msiexec /i sentinel-agent.msi /qn SERVERURL=https://api.example.com ENROLLMENTTOKEN=xxx
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <!-- Product definition -->
+  <Package
+    Name="Sentinel Agent"
+    Manufacturer="Cyber Threat Consulting"
+    Version="!(bind.FileVersion.SentinelAgentExe)"
+    UpgradeCode="E8F3C2A1-4B5D-4E6F-8A9B-0C1D2E3F4A5B"
+    Scope="perMachine">
+
+    <!-- Application icon for Add/Remove Programs -->
+    <Icon Id="SentinelIcon" SourceFile="$(var.AssetsDir)\sentinel-agent.ico" />
+    <Property Id="ARPPRODUCTICON" Value="SentinelIcon" />
+    <Property Id="ARPHELPLINK" Value="https://app.cyber-threat-consulting.com" />
+    <Property Id="ARPURLINFOABOUT" Value="https://cyber-threat-consulting.com" />
+
+    <SummaryInformation
+      Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
+      Manufacturer="Cyber Threat Consulting" />
+
+    <!-- Upgrade handling - remove previous versions -->
+    <MajorUpgrade
+      DowngradeErrorMessage="Une version plus récente de [ProductName] est déjà installée."
+      Schedule="afterInstallInitialize" />
+
+    <!-- Embedded UI for progress during silent install -->
+    <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+
+    <!-- Custom properties for configuration -->
+    <Property Id="SERVERURL" Value="https://app.cyber-threat-consulting.com" />
+    <Property Id="ENROLLMENTTOKEN" Value="" />
+    <Property Id="INSTALLDIR" Value="[ProgramFiles64Folder]Sentinel\" />
+
+    <!-- Media definition -->
+    <Media Id="1" Cabinet="sentinel.cab" EmbedCab="yes" />
+
+    <!-- Feature definition -->
+    <Feature Id="MainFeature" Title="Sentinel Agent" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ShortcutComponents" />
+      <ComponentGroupRef Id="ConfigComponents" />
+    </Feature>
+
+    <!-- Directory structure -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLDIR" Name="Sentinel">
+        <Directory Id="BinDir" Name="bin" />
+        <Directory Id="ConfigDir" Name="config" />
+        <Directory Id="LogDir" Name="logs" />
+        <Directory Id="DocsDir" Name="docs" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="SentinelDataDir" Name="Sentinel">
+        <Directory Id="DataDir" Name="data" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Start Menu shortcuts -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="SentinelMenuFolder" Name="Sentinel Agent" />
+    </StandardDirectory>
+
+    <!-- Desktop shortcut directory -->
+    <StandardDirectory Id="DesktopFolder" />
+
+    <!-- Product components - main binary with service registration -->
+    <ComponentGroup Id="ProductComponents" Directory="BinDir">
+      <Component Id="MainExecutable" Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
+        <File Id="SentinelAgentExe"
+              Name="sentinel-agent.exe"
+              Source="$(var.TargetDir)\agent-core.exe"
+              KeyPath="yes" />
+
+        <!-- Windows Service registration using the same binary -->
+        <ServiceInstall
+          Id="SentinelServiceInstall"
+          Name="SentinelGRCAgent"
+          DisplayName="Sentinel Agent"
+          Description="Agent de conformité endpoint pour la plateforme Sentinel GRC"
+          Type="ownProcess"
+          Start="auto"
+          ErrorControl="normal"
+          Arguments="--service">
+
+          <!-- Service recovery settings -->
+          <ServiceConfig
+            DelayedAutoStart="no"
+            OnInstall="yes"
+            OnReinstall="yes" />
+
+          <!-- Failure actions: restart on failure -->
+          <util:ServiceConfig
+            FirstFailureActionType="restart"
+            SecondFailureActionType="restart"
+            ThirdFailureActionType="restart"
+            RestartServiceDelayInSeconds="60"
+            ResetPeriodInDays="1" />
+        </ServiceInstall>
+
+        <ServiceControl
+          Id="SentinelServiceControl"
+          Name="SentinelGRCAgent"
+          Start="install"
+          Stop="both"
+          Remove="uninstall"
+          Wait="yes" />
+      </Component>
+
+      <!-- Icon file for shortcuts -->
+      <Component Id="IconComponent" Guid="B2C3D4E5-F6A7-8901-BCDE-F23456789012">
+        <File Id="AppIconFile"
+              Name="sentinel-agent.ico"
+              Source="$(var.AssetsDir)\sentinel-agent.ico"
+              KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Shortcut components -->
+    <ComponentGroup Id="ShortcutComponents">
+      <!-- Start Menu folder and shortcuts -->
+      <Component Id="StartMenuShortcuts" Guid="F6A7B8C9-D0E1-2345-6789-0ABCDEF12345" Directory="SentinelMenuFolder">
+        <Shortcut Id="StartMenuShortcut"
+                  Name="Sentinel Agent"
+                  Description="Lancer l'agent de conformité Sentinel"
+                  Target="[BinDir]sentinel-agent.exe"
+                  WorkingDirectory="BinDir"
+                  Icon="SentinelIcon" />
+
+        <Shortcut Id="DashboardShortcut"
+                  Name="Tableau de bord Sentinel"
+                  Description="Ouvrir le tableau de bord en ligne"
+                  Target="[SystemFolder]cmd.exe"
+                  Arguments='/c start https://app.cyber-threat-consulting.com/settings?tab=agents'
+                  Icon="SentinelIcon" />
+
+        <Shortcut Id="UninstallShortcut"
+                  Name="Désinstaller Sentinel Agent"
+                  Target="[SystemFolder]msiexec.exe"
+                  Arguments="/x [ProductCode]" />
+
+        <RemoveFolder Id="RemoveStartMenuFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\Sentinel\Agent" Name="StartMenuInstalled" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Startup entry - runs on user login -->
+      <Component Id="StartupEntry" Guid="A7B8C9D0-E1F2-3456-7890-ABCDEF123456" Directory="BinDir">
+        <RegistryValue Root="HKLM"
+                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+                       Name="SentinelAgent"
+                       Type="string"
+                       Value="&quot;[BinDir]sentinel-agent.exe&quot;"
+                       KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Configuration component -->
+    <ComponentGroup Id="ConfigComponents" Directory="ConfigDir">
+      <Component Id="ConfigFileComponent" Guid="C3D4E5F6-A7B8-9012-CDEF-345678901234">
+        <File Id="DefaultConfigFile"
+              Name="agent.json"
+              Source="config\agent.example.json" />
+      </Component>
+
+      <!-- Documentation -->
+      <Component Id="DocsComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012346" Directory="DocsDir">
+        <File Id="UserGuide"
+              Name="Guide-Utilisateur.md"
+              Source="docs\USER_GUIDE.md" />
+      </Component>
+
+      <!-- Create data directory with proper permissions -->
+      <Component Id="DataDirComponent" Guid="D4E5F6A7-B8C9-0123-DEF0-456789012345" Directory="DataDir">
+        <CreateFolder>
+          <Permission User="SYSTEM" GenericAll="yes" />
+          <Permission User="Administrators" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+
+      <!-- Create log directory -->
+      <Component Id="LogDirComponent" Guid="E5F6A7B8-C9D0-1234-EF01-567890123456" Directory="LogDir">
+        <CreateFolder>
+          <Permission User="SYSTEM" GenericAll="yes" />
+          <Permission User="Administrators" GenericRead="yes" />
+        </CreateFolder>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Custom actions for configuration -->
+    <CustomAction Id="SetServerUrl"
+                  Property="SERVERURL"
+                  Value="[SERVERURL]" />
+
+    <!-- Installation sequence -->
+    <InstallExecuteSequence>
+      <Custom Action="SetServerUrl" After="InstallInitialize">NOT Installed</Custom>
+    </InstallExecuteSequence>
+
+  </Package>
+</Wix>

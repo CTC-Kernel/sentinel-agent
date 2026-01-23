@@ -1,0 +1,211 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Build macOS universal binary and DMG
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build ARM64
+        run: cargo build --release --package agent-core --target aarch64-apple-darwin
+
+      - name: Build x86_64
+        run: cargo build --release --package agent-core --target x86_64-apple-darwin
+
+      - name: Create universal binary
+        run: |
+          mkdir -p target/release
+          lipo -create \
+            target/aarch64-apple-darwin/release/agent-core \
+            target/x86_64-apple-darwin/release/agent-core \
+            -output target/release/agent-core
+
+      - name: Build DMG
+        run: |
+          chmod +x scripts/build-macos.sh
+          ./scripts/build-macos.sh
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-macos-dmg
+          path: target/release/*.dmg
+
+  # Build Windows MSI installer
+  build-windows:
+    name: Build Windows MSI
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release --package agent-core
+
+      - name: Install WiX Toolset
+        run: dotnet tool install --global wix
+
+      - name: Build MSI
+        run: |
+          $version = "${{ github.event.inputs.version || '1.0.0' }}"
+          wix build -d "TargetDir=.\target\release" -d "Version=$version" -o "target/release/SentinelAgentSetup-$version.msi" wix/sentinel-agent.wxs
+        shell: pwsh
+
+      - name: Create latest copy
+        run: |
+          $version = "${{ github.event.inputs.version || '1.0.0' }}"
+          Copy-Item "target/release/SentinelAgentSetup-$version.msi" "target/release/SentinelAgentSetup-latest.msi"
+        shell: pwsh
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-windows-msi
+          path: target/release/*.msi
+
+  # Build Linux DEB package
+  build-deb:
+    name: Build Linux DEB
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Build release binary
+        run: cargo build --release --package agent-core
+
+      - name: Build DEB package
+        run: cargo deb --package agent-core --no-build
+
+      - name: Create latest copy
+        run: |
+          VERSION="${{ github.event.inputs.version || '1.0.0' }}"
+          cp target/debian/sentinel-agent_*.deb target/debian/sentinel-agent_latest_amd64.deb
+
+      - name: Upload DEB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-linux-deb
+          path: target/debian/*.deb
+
+  # Build Linux RPM package
+  build-rpm:
+    name: Build Linux RPM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev
+
+      - name: Install cargo-generate-rpm
+        run: cargo install cargo-generate-rpm
+
+      - name: Build release binary
+        run: cargo build --release --package agent-core
+
+      - name: Strip binary
+        run: strip target/release/agent-core
+
+      - name: Build RPM package
+        run: cargo generate-rpm --package agent-core
+
+      - name: Create latest copy
+        run: |
+          cp target/generate-rpm/sentinel-agent-*.rpm target/generate-rpm/sentinel-agent-latest.x86_64.rpm
+
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-linux-rpm
+          path: target/generate-rpm/*.rpm
+
+  # Upload all artifacts to Firebase Storage
+  upload-releases:
+    name: Upload to Firebase Storage
+    runs-on: ubuntu-latest
+    needs: [build-macos, build-windows, build-deb, build-rpm]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: sentinel-grc-a8701
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Upload to Firebase Storage
+        run: |
+          VERSION="${{ github.event.inputs.version || '1.0.0' }}"
+          BUCKET="gs://sentinel-grc-a8701.appspot.com/releases/agent"
+
+          # Upload macOS DMG
+          gsutil cp artifacts/sentinel-agent-macos-dmg/*.dmg "$BUCKET/SentinelAgent-$VERSION.dmg"
+          gsutil cp artifacts/sentinel-agent-macos-dmg/*.dmg "$BUCKET/SentinelAgent-latest.dmg"
+
+          # Upload Windows MSI
+          gsutil cp artifacts/sentinel-agent-windows-msi/*-$VERSION.msi "$BUCKET/SentinelAgentSetup-$VERSION.msi"
+          gsutil cp artifacts/sentinel-agent-windows-msi/*-latest.msi "$BUCKET/SentinelAgentSetup-latest.msi"
+
+          # Upload Linux DEB
+          gsutil cp artifacts/sentinel-agent-linux-deb/*_${VERSION}_*.deb "$BUCKET/sentinel-agent_${VERSION}_amd64.deb"
+          gsutil cp artifacts/sentinel-agent-linux-deb/*_latest_*.deb "$BUCKET/sentinel-agent_latest_amd64.deb"
+
+          # Upload Linux RPM
+          gsutil cp artifacts/sentinel-agent-linux-rpm/*-$VERSION.*.rpm "$BUCKET/sentinel-agent-$VERSION.x86_64.rpm"
+          gsutil cp artifacts/sentinel-agent-linux-rpm/*-latest.*.rpm "$BUCKET/sentinel-agent-latest.x86_64.rpm"
+
+          echo "All releases uploaded to Firebase Storage"
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/sentinel-agent-macos-dmg/*.dmg
+            artifacts/sentinel-agent-windows-msi/*.msi
+            artifacts/sentinel-agent-linux-deb/*.deb
+            artifacts/sentinel-agent-linux-rpm/*.rpm
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

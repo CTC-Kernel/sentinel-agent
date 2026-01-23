@@ -1,0 +1,47 @@
+Sentinel GRC Agent - Proprietary License
+
+Copyright (c) 2024-2026 Sentinel GRC. All rights reserved.
+
+This software is proprietary and confidential. Unauthorized copying,
+modification, distribution, or use of this software, via any medium,
+is strictly prohibited without the express written permission of
+Sentinel GRC.
+
+1. LICENSE GRANT
+Subject to the terms of this Agreement, Sentinel GRC grants you a limited,
+non-exclusive, non-transferable license to install and use the Sentinel GRC
+Agent software on endpoints within your organization as part of an active
+Sentinel GRC subscription.
+
+2. RESTRICTIONS
+You may not:
+- Reverse engineer, decompile, or disassemble the software
+- Modify or create derivative works based on the software
+- Distribute, sublicense, or transfer the software to third parties
+- Remove or alter any proprietary notices or labels on the software
+- Use the software for any unlawful purpose
+
+3. DATA COLLECTION
+The Sentinel GRC Agent collects compliance and security configuration data
+from endpoints and transmits it to the Sentinel GRC platform. This data is
+used solely for compliance monitoring purposes. No personal user data is
+collected without explicit consent.
+
+4. WARRANTY DISCLAIMER
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+5. LIMITATION OF LIABILITY
+IN NO EVENT SHALL SENTINEL GRC BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION
+WITH THIS SOFTWARE.
+
+6. TERMINATION
+This license is effective until terminated. It will terminate automatically
+if you fail to comply with any term of this Agreement. Upon termination,
+you must destroy all copies of the software.
+
+7. CONTACT
+For licensing inquiries: licensing@sentinel-grc.com
+For support: support@sentinel-grc.com
