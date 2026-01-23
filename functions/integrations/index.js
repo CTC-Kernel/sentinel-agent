@@ -679,3 +679,241 @@ exports.ingestWebhook = onRequest({
         res.status(500).json({ error: error.message });
     }
 });
+
+/**
+ * Fetch Scanner Vulnerabilities (Nessus, Qualys, OpenVAS)
+ * Requires proper scanner configuration in organization settings
+ */
+exports.fetchScannerVulnerabilities = onCall({
+    memory: '512MiB',
+    timeoutSeconds: 120,
+    region: 'europe-west1',
+    secrets: [userSecretsKey]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be authenticated.');
+    }
+
+    const { scanner } = request.data;
+    const organizationId = request.auth.token.organizationId || request.auth.token.sub;
+
+    if (!scanner || !['nessus', 'qualys', 'openvas'].includes(scanner)) {
+        throw new HttpsError('invalid-argument', 'Scanner must be one of: nessus, qualys, openvas');
+    }
+
+    const db = admin.firestore();
+
+    // Check if scanner is configured for this organization
+    const configDoc = await db.collection('organizations').doc(organizationId)
+        .collection('integrations').doc(scanner).get();
+
+    if (!configDoc.exists) {
+        throw new HttpsError('failed-precondition',
+            `Scanner ${scanner} is not configured. Please configure the integration in Settings > Integrations.`);
+    }
+
+    const config = configDoc.data();
+    if (!config || !config.apiUrl || !config.credentials) {
+        throw new HttpsError('failed-precondition',
+            `Scanner ${scanner} configuration is incomplete. Please provide API URL and credentials.`);
+    }
+
+    try {
+        // Decrypt credentials
+        const apiKey = config.credentials.apiKey ? decryptUserSecret(config.credentials.apiKey) : null;
+        const accessKey = config.credentials.accessKey ? decryptUserSecret(config.credentials.accessKey) : null;
+        const secretKey = config.credentials.secretKey ? decryptUserSecret(config.credentials.secretKey) : null;
+
+        let vulnerabilities = [];
+
+        switch (scanner) {
+            case 'nessus':
+                vulnerabilities = await fetchNessusVulnerabilities(config.apiUrl, accessKey, secretKey);
+                break;
+            case 'qualys':
+                vulnerabilities = await fetchQualysVulnerabilities(config.apiUrl, apiKey);
+                break;
+            case 'openvas':
+                vulnerabilities = await fetchOpenVASVulnerabilities(config.apiUrl, apiKey);
+                break;
+        }
+
+        logger.info(`Fetched ${vulnerabilities.length} vulnerabilities from ${scanner} for org ${organizationId}`);
+        return vulnerabilities;
+
+    } catch (error) {
+        logger.error(`Scanner ${scanner} fetch error:`, error);
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError('internal', `Failed to fetch vulnerabilities from ${scanner}: ${error.message}`);
+    }
+});
+
+// Scanner-specific fetch functions
+async function fetchNessusVulnerabilities(apiUrl, accessKey, secretKey) {
+    if (!accessKey || !secretKey) {
+        throw new HttpsError('failed-precondition', 'Nessus requires Access Key and Secret Key');
+    }
+
+    // Nessus API authentication uses X-ApiKeys header
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const response = await fetch(`${apiUrl}/scans`, {
+            method: 'GET',
+            headers: {
+                'X-ApiKeys': `accessKey=${accessKey}; secretKey=${secretKey}`,
+                'Content-Type': 'application/json'
+            },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`Nessus API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Transform Nessus format to our vulnerability format
+        return (data.scans || []).flatMap(scan =>
+            (scan.vulnerabilities || []).map(vuln => ({
+                id: `nessus-${vuln.plugin_id}`,
+                title: vuln.plugin_name,
+                severity: mapNessusSeverity(vuln.severity),
+                cvss: vuln.cvss_score || null,
+                cve: vuln.cve || [],
+                description: vuln.description,
+                solution: vuln.solution,
+                affectedAssets: vuln.hosts || [],
+                source: 'nessus',
+                discoveredAt: new Date().toISOString()
+            }))
+        );
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
+async function fetchQualysVulnerabilities(apiUrl, apiKey) {
+    if (!apiKey) {
+        throw new HttpsError('failed-precondition', 'Qualys requires API Key');
+    }
+
+    // Qualys uses basic auth with username:password or API token
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const response = await fetch(`${apiUrl}/api/2.0/fo/asset/host/vm/detection/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Basic ${Buffer.from(apiKey).toString('base64')}`,
+                'X-Requested-With': 'Sentinel-GRC'
+            },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`Qualys API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Transform Qualys format to our vulnerability format
+        return (data.HOST_LIST_VM_DETECTION_OUTPUT?.RESPONSE?.HOST_LIST?.HOST || []).flatMap(host =>
+            (host.DETECTION_LIST?.DETECTION || []).map(det => ({
+                id: `qualys-${det.QID}`,
+                title: det.TITLE,
+                severity: mapQualysSeverity(det.SEVERITY),
+                cvss: det.CVSS?.BASE || null,
+                cve: det.CVE_LIST?.CVE?.map(c => c.ID) || [],
+                description: det.RESULTS,
+                solution: det.SOLUTION,
+                affectedAssets: [host.IP],
+                source: 'qualys',
+                discoveredAt: det.FIRST_FOUND_DATETIME || new Date().toISOString()
+            }))
+        );
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
+async function fetchOpenVASVulnerabilities(apiUrl, apiKey) {
+    if (!apiKey) {
+        throw new HttpsError('failed-precondition', 'OpenVAS requires API Key');
+    }
+
+    // OpenVAS/GVM uses GMP protocol, typically via REST API wrapper
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const response = await fetch(`${apiUrl}/gmp`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                command: 'get_results',
+                filter: 'levels=hml'
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`OpenVAS API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Transform OpenVAS format to our vulnerability format
+        return (data.results || []).map(result => ({
+            id: `openvas-${result.id}`,
+            title: result.name,
+            severity: mapOpenVASSeverity(result.severity),
+            cvss: parseFloat(result.severity) || null,
+            cve: result.nvt?.cve ? [result.nvt.cve] : [],
+            description: result.description,
+            solution: result.nvt?.solution,
+            affectedAssets: [result.host?.hostname || result.host?.ip],
+            source: 'openvas',
+            discoveredAt: result.creation_time || new Date().toISOString()
+        }));
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
+// Severity mapping functions
+function mapNessusSeverity(severity) {
+    const severityMap = { 0: 'info', 1: 'low', 2: 'medium', 3: 'high', 4: 'critical' };
+    return severityMap[severity] || 'unknown';
+}
+
+function mapQualysSeverity(severity) {
+    if (severity >= 5) return 'critical';
+    if (severity >= 4) return 'high';
+    if (severity >= 3) return 'medium';
+    if (severity >= 2) return 'low';
+    return 'info';
+}
+
+function mapOpenVASSeverity(cvss) {
+    const score = parseFloat(cvss);
+    if (score >= 9.0) return 'critical';
+    if (score >= 7.0) return 'high';
+    if (score >= 4.0) return 'medium';
+    if (score >= 0.1) return 'low';
+    return 'info';
+}

@@ -110,3 +110,36 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 3. **upload_logs()** - New function to upload logs to SaaS (AC4)
 4. **LogUploadRequest/Response** - New types for log upload API
 5. **is_empty()** - Added to LogBuffer
+
+---
+
+## Senior Developer Review #2 (AI)
+
+**Date:** 2026-01-23 | **Decision:** APPROVED WITH FIXES
+
+### Review Findings (Fixed)
+
+| Issue | Severity | Status |
+|-------|----------|--------|
+| AC4 Backend endpoint missing (`/v1/agents/:agentId/logs`) | CRITICAL | ✅ Fixed |
+| No test for upload_logs | HIGH | ✅ Documented (requires integration test) |
+| MD5 used for chain hashing (cryptographically weak) | MEDIUM | ✅ Fixed - replaced with SHA-256 |
+| No test for with_signer() | MEDIUM | ✅ Fixed |
+| No test for verify_chain() | MEDIUM | ✅ Fixed |
+| No test for clear() | LOW | ✅ Fixed |
+| Default impl not tested | LOW | ✅ Fixed |
+
+### Fixes Applied (Review #2)
+
+1. **Backend API** - Added `POST /v1/agents/:agentId/logs` endpoint in `functions/agents/api.js`
+2. **Backend API** - Added `POST /v1/agents/:agentId/diagnostics` endpoint (Story 12.4)
+3. **Crypto** - Replaced MD5 with SHA-256 for chain hashing in `diagnostics.rs`
+4. **Dependencies** - Removed `md5` crate dependency from Cargo.toml
+5. **Tests** - Added tests for: `with_signer()`, `verify_chain()`, `clear()`, `default()`, `verify_signature()`
+
+### File List Updated
+
+**Modified Files (Review #2):**
+- functions/agents/api.js - Added logs and diagnostics endpoints
+- sentinel-agent/crates/agent-sync/src/diagnostics.rs - SHA-256, new tests
+- sentinel-agent/crates/agent-sync/Cargo.toml - Removed md5 dependency
