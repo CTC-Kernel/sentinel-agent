@@ -1,4 +1,5 @@
 import { Control } from '../types';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 /**
  * Risk level classification based on score
@@ -12,9 +13,10 @@ export interface RiskLevel {
 
 /**
  * Get risk level based on score (impact × probability)
+ * Uses centralized thresholds from complianceConfig.ts
  */
 export function getRiskLevelFromScore(score: number): RiskLevel {
-    if (score >= 15) {
+    if (score >= RISK_THRESHOLDS.CRITICAL) {
         return {
             label: 'Critique',
             color: 'rose',
@@ -22,7 +24,7 @@ export function getRiskLevelFromScore(score: number): RiskLevel {
             textColor: 'text-rose-600 dark:text-rose-400'
         };
     }
-    if (score >= 10) {
+    if (score >= RISK_THRESHOLDS.HIGH) {
         return {
             label: 'Élevé',
             color: 'orange',
@@ -30,7 +32,7 @@ export function getRiskLevelFromScore(score: number): RiskLevel {
             textColor: 'text-orange-600 dark:text-orange-400'
         };
     }
-    if (score >= 5) {
+    if (score >= RISK_THRESHOLDS.MEDIUM) {
         return {
             label: 'Moyen',
             color: 'amber',

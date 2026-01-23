@@ -18,6 +18,21 @@ import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { LegalModal } from '../components/ui/LegalModal';
 import { getSectorTemplate, getMandatoryFrameworks, type IndustryType } from '../data/sectorTemplates';
 
+// Framework ID to display name mapping for sector templates
+const frameworkDisplayNames: Record<string, string> = {
+    'ISO27001': 'ISO 27001',
+    'ISO27005': 'ISO 27005',
+    'ISO22301': 'ISO 22301',
+    'GDPR': 'RGPD',
+    'NIS2': 'NIS 2',
+    'DORA': 'DORA',
+    'SOC2': 'SOC 2',
+    'HDS': 'HDS',
+    'PCI_DSS': 'PCI-DSS',
+    'NIST_CSF': 'NIST CSF',
+    'EBIOS': 'EBIOS RM'
+};
+
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast, t } = useStore();
     // Removed direct auth import, relying on useAuth or useStore user
@@ -61,20 +76,6 @@ export const Onboarding: React.FC = () => {
     const [standards, setStandards] = useState<string[]>([]);
     const [scope, setScope] = useState('');
 
-    // Framework ID to display name mapping for sector templates
-    const frameworkDisplayNames: Record<string, string> = {
-        'ISO27001': 'ISO 27001',
-        'ISO27005': 'ISO 27005',
-        'ISO22301': 'ISO 22301',
-        'GDPR': 'RGPD',
-        'NIS2': 'NIS 2',
-        'DORA': 'DORA',
-        'SOC2': 'SOC 2',
-        'HDS': 'HDS',
-        'PCI_DSS': 'PCI-DSS',
-        'NIST_CSF': 'NIST CSF',
-        'EBIOS': 'EBIOS RM'
-    };
 
     // Get sector-specific frameworks based on selected industry
     const getIndustryFrameworks = useCallback(() => {

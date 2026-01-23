@@ -610,7 +610,7 @@ export const VoxelView: React.FC = () => {
         link.click();
         addToast("Capture sauvegardée", "success");
       }
-    } catch (error) {
+    } catch (_error) {
       addToast("Erreur lors de la capture", "error");
     } finally {
       setIsCapturing(false);
@@ -808,11 +808,10 @@ export const VoxelView: React.FC = () => {
             <button
               onClick={handleAIAnalysis}
               disabled={analyzing}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 ${
-                analyzing
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 ${analyzing
                   ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
                   : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30'
-              }`}
+                }`}
             >
               {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
               <span className="hidden sm:inline">{analyzing ? 'Analyse...' : 'IA'}</span>
@@ -889,9 +888,8 @@ export const VoxelView: React.FC = () => {
                     <button
                       key={layer.id}
                       onClick={() => handleLayerToggle(layer.id)}
-                      className={`w-full flex items-center justify-between px-2 py-1 rounded-lg text-[11px] transition ${
-                        isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
-                      }`}
+                      className={`w-full flex items-center justify-between px-2 py-1 rounded-lg text-[11px] transition ${isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                        }`}
                     >
                       <div className="flex items-center gap-1.5">
                         <span className={`w-2 h-2 rounded-full ${layer.bgColor}`} />
@@ -1083,9 +1081,8 @@ export const VoxelView: React.FC = () => {
                           <button
                             key={node.id}
                             onClick={() => handleCommandSelect(node)}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 ${
-                              index === 0 ? 'bg-indigo-500/20 border border-indigo-500/30' : 'hover:bg-white/5'
-                            }`}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 ${index === 0 ? 'bg-indigo-500/20 border border-indigo-500/30' : 'hover:bg-white/5'
+                              }`}
                           >
                             <span className={`w-3 h-3 rounded-full ${layer?.bgColor || 'bg-gray-500'}`} />
                             <div className="flex-1 min-w-0">

@@ -1,4 +1,5 @@
 import { Risk, Control } from '../types';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 /**
  * Control status weight map for mitigation calculations
@@ -95,10 +96,11 @@ export function calculateSuggestedResidualRisk(
     };
 }
 
+// Uses centralized thresholds from complianceConfig.ts
 export const getRiskLevel = (score: number) => {
-    if (score >= 15) return { label: 'Critique', status: 'error' as const };
-    if (score >= 10) return { label: 'Élevé', status: 'warning' as const };
-    if (score >= 5) return { label: 'Moyen', status: 'info' as const };
+    if (score >= RISK_THRESHOLDS.CRITICAL) return { label: 'Critique', status: 'error' as const };
+    if (score >= RISK_THRESHOLDS.HIGH) return { label: 'Élevé', status: 'warning' as const };
+    if (score >= RISK_THRESHOLDS.MEDIUM) return { label: 'Moyen', status: 'info' as const };
     return { label: 'Faible', status: 'success' as const };
 };
 

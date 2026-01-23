@@ -6,6 +6,8 @@
  * For React components, prefer Tailwind classes or CSS variables.
  */
 
+import { RISK_THRESHOLDS } from './complianceConfig';
+
 // Risk Level Colors
 export const RISK_COLORS = {
   critical: '#ef4444', // red-500
@@ -69,10 +71,11 @@ export const BRAND_COLORS = {
 } as const;
 
 // Utility function to get risk color by score
+// Uses centralized thresholds from complianceConfig.ts
 export function getRiskColorByScore(score: number): string {
-  if (score >= 15) return RISK_COLORS.critical;
-  if (score >= 10) return RISK_COLORS.high;
-  if (score >= 5) return RISK_COLORS.medium;
+  if (score >= RISK_THRESHOLDS.CRITICAL) return RISK_COLORS.critical;
+  if (score >= RISK_THRESHOLDS.HIGH) return RISK_COLORS.high;
+  if (score >= RISK_THRESHOLDS.MEDIUM) return RISK_COLORS.medium;
   return RISK_COLORS.low;
 }
 

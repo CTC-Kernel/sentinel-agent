@@ -1,10 +1,13 @@
 import { collection, query, where, getCountFromServer, getDoc, doc, setDoc, Query, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { RISK_THRESHOLDS } from '../constants/complianceConfig';
 
 export interface DashboardCounts {
     activeIncidentsCount: number;
     openAuditsCount: number;
+    /** True if any count failed to load (partial data) */
+    hasPartialData?: boolean;
 }
 
 export interface OrganizationDetails {
@@ -36,8 +39,11 @@ export class DashboardService {
     /**
      * Fetch dashboard counts (active incidents and open audits)
      * Uses parallel execution for better performance
+     * Returns hasPartialData: true if any query failed
      */
     static async getDashboardCounts(organizationId: string): Promise<DashboardCounts> {
+        let hasPartialData = false;
+
         try {
             const incQuery = query(
                 collection(db, 'incidents'),
@@ -53,27 +59,31 @@ export class DashboardService {
 
             const [incCount, auditCount] = await Promise.all([
                 getCountFromServer(incQuery).catch(error => {
-                    ErrorLogger.warn('Failed to count incidents', 'DashboardService.getDashboardCounts', { error });
+                    hasPartialData = true;
+                    ErrorLogger.warn('Failed to count incidents', 'DashboardService.getDashboardCounts', { metadata: { error } });
                     return { data: () => ({ count: 0 }) };
                 }),
                 getCountFromServer(auditQuery).catch(error => {
-                    ErrorLogger.warn('Failed to count audits', 'DashboardService.getDashboardCounts', { error });
+                    hasPartialData = true;
+                    ErrorLogger.warn('Failed to count audits', 'DashboardService.getDashboardCounts', { metadata: { error } });
                     return { data: () => ({ count: 0 }) };
                 })
             ]);
 
             return {
                 activeIncidentsCount: incCount.data().count,
-                openAuditsCount: auditCount.data().count
+                openAuditsCount: auditCount.data().count,
+                hasPartialData
             };
         } catch (_error) {
             ErrorLogger.error(_error, 'DashboardService.getDashboardCounts');
-            return { activeIncidentsCount: 0, openAuditsCount: 0 };
+            return { activeIncidentsCount: 0, openAuditsCount: 0, hasPartialData: true };
         }
     }
     /**
      * Fetch aggregated stats (Risk counts by level, total assets)
      * Optimized to use server-side counting to save reads
+     * Returns hasPartialData: true if any query failed
      */
     static async getAggregatedStats(organizationId: string): Promise<{
         totalRisks: number;
@@ -83,7 +93,11 @@ export class DashboardService {
         lowRisks: number;
         totalAssets: number;
         controlsStats: { implemented: number; actionable: number; total: number };
+        hasPartialData?: boolean;
+        failedQueries?: string[];
     }> {
+        const failedQueries: string[] = [];
+
         // Helper to safely get count or return 0 on error
         const safeCount = async (q: Query<DocumentData>, label: string) => {
             try {
@@ -93,21 +107,23 @@ export class DashboardService {
                 const err = error as { message?: string } | null;
                 // Log the full error to see the "create index" link if missing
                 console.error(`[DashboardService] Failed to fetch ${label} count:`, error);
-                ErrorLogger.warn(`Failed to fetch ${label} count: ${err?.message || 'Unknown error'}`, `DashboardService.getAggregatedStats`, { error });
+                ErrorLogger.warn(`Failed to fetch ${label} count: ${err?.message || 'Unknown error'}`, `DashboardService.getAggregatedStats`, { metadata: { error } });
+                // Track the failure
+                failedQueries.push(label);
                 // Don't throw, just return 0 to keep dashboard alive
                 return 0;
             }
         };
 
         try {
-            // queries
+            // queries using centralized RISK_THRESHOLDS
             const qTotalRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId));
-            const qCriticalRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 15));
-            const qHighRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 10), where('score', '<', 15));
+            const qCriticalRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', RISK_THRESHOLDS.CRITICAL));
+            const qHighRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', RISK_THRESHOLDS.HIGH), where('score', '<', RISK_THRESHOLDS.CRITICAL));
             // Firestore composite index might be needed for range queries with other filters
             // We split medium risks query if it fails often, but let's try safe execution first
-            const qMediumRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', 5), where('score', '<', 10));
-            const qLowRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '<', 5));
+            const qMediumRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '>=', RISK_THRESHOLDS.MEDIUM), where('score', '<', RISK_THRESHOLDS.HIGH));
+            const qLowRisks = query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('score', '<', RISK_THRESHOLDS.MEDIUM));
             const qAssets = query(collection(db, 'assets'), where('organizationId', '==', organizationId));
             const qControlsImpl = query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('status', '==', 'Implémenté'));
             const qControlsTotal = query(collection(db, 'controls'), where('organizationId', '==', organizationId));
@@ -143,7 +159,9 @@ export class DashboardService {
                     implemented,
                     actionable: totalControls, // Approx
                     total: totalControls
-                }
+                },
+                hasPartialData: failedQueries.length > 0,
+                failedQueries: failedQueries.length > 0 ? failedQueries : undefined
             };
 
         } catch (_error) {
@@ -155,7 +173,9 @@ export class DashboardService {
                 mediumRisks: 0,
                 lowRisks: 0,
                 totalAssets: 0,
-                controlsStats: { implemented: 0, actionable: 0, total: 0 }
+                controlsStats: { implemented: 0, actionable: 0, total: 0 },
+                hasPartialData: true,
+                failedQueries: ['all']
             };
         }
     }
@@ -175,15 +195,18 @@ export class DashboardService {
                 };
             }
             return null;
-        } catch {
+        } catch (error) {
+            // Log the error instead of silently swallowing it
+            ErrorLogger.warn('Failed to fetch executive summary', 'DashboardService.getExecutiveSummary', { metadata: { error } });
             return null;
         }
     }
 
     /**
      * Save executive summary
+     * Returns true on success, false on failure
      */
-    static async saveExecutiveSummary(organizationId: string, summary: string, generatedAt: string, metricsSnapshot?: { compliance: number }): Promise<void> {
+    static async saveExecutiveSummary(organizationId: string, summary: string, generatedAt: string, metricsSnapshot?: { compliance: number }): Promise<boolean> {
         try {
             await setDoc(doc(db, 'dashboard_summaries', organizationId), {
                 summary,
@@ -191,8 +214,10 @@ export class DashboardService {
                 metricsSnapshot,
                 updatedAt: new Date().toISOString()
             }, { merge: true });
+            return true;
         } catch (_error) {
             ErrorLogger.error(_error, 'DashboardService.saveExecutiveSummary');
+            return false;
         }
     }
 }

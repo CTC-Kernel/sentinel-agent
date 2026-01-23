@@ -3,6 +3,8 @@
  *
  * This hook manages real-time subscriptions to Firestore collections
  * and syncs data to the Voxel Zustand store with debounced batch updates.
+ *
+ * RELIABILITY FIX: Added exponential backoff retry logic for failed listeners
  */
 
 import { useEffect, useRef, useCallback } from 'react';
@@ -20,6 +22,7 @@ import { db } from '@/firebase';
 import { useStore } from '@/store';
 import { useVoxelStore } from '@/stores/voxelStore';
 import type { VoxelNode, VoxelNodeType, VoxelNodeStatus } from '@/types/voxel';
+import { ErrorLogger } from '@/services/errorLogger';
 
 interface RealtimeConfig {
   /** Enable/disable real-time sync */
@@ -28,12 +31,21 @@ interface RealtimeConfig {
   debounceMs: number;
   /** Collections to subscribe to */
   collections: string[];
+  /** Maximum retry attempts per collection */
+  maxRetries: number;
+  /** Base delay for exponential backoff (ms) */
+  retryBaseDelayMs: number;
+  /** Maximum delay between retries (ms) */
+  retryMaxDelayMs: number;
 }
 
 const DEFAULT_CONFIG: RealtimeConfig = {
   enabled: true,
   debounceMs: 100,
   collections: ['assets', 'risks', 'controls', 'incidents', 'suppliers', 'projects', 'audits'],
+  maxRetries: 5,
+  retryBaseDelayMs: 1000,
+  retryMaxDelayMs: 30000,
 };
 
 /** Mapping from Firestore collection name to VoxelNodeType */
@@ -214,7 +226,7 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
   const updateNode = useVoxelStore((s) => s.updateNode);
   const removeNode = useVoxelStore((s) => s.removeNode);
 
-  const unsubscribersRef = useRef<Unsubscribe[]>([]);
+  const unsubscribersRef = useRef<Map<string, Unsubscribe>>(new Map());
   const pendingUpdatesRef = useRef<{
     added: VoxelNode[];
     modified: VoxelNode[];
@@ -223,7 +235,24 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitializedRef = useRef(false);
 
+  // Retry state tracking
+  const retryAttemptsRef = useRef<Map<string, number>>(new Map());
+  const retryTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const connectedCollectionsRef = useRef<Set<string>>(new Set());
+
   const mergedConfig = { ...DEFAULT_CONFIG, ...config };
+
+  /**
+   * Calculate exponential backoff delay with jitter
+   */
+  const calculateBackoff = useCallback((attempt: number): number => {
+    const baseDelay = mergedConfig.retryBaseDelayMs;
+    const maxDelay = mergedConfig.retryMaxDelayMs;
+    // Exponential backoff: base * 2^attempt with jitter
+    const exponentialDelay = baseDelay * Math.pow(2, attempt);
+    const jitter = Math.random() * 0.3 * exponentialDelay; // 0-30% jitter
+    return Math.min(exponentialDelay + jitter, maxDelay);
+  }, [mergedConfig.retryBaseDelayMs, mergedConfig.retryMaxDelayMs]);
 
   /**
    * Flush pending updates to the store
@@ -290,6 +319,119 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
   );
 
   /**
+   * Update overall sync status based on connected collections
+   */
+  const updateSyncStatus = useCallback(() => {
+    const totalCollections = mergedConfig.collections.length;
+    const connectedCount = connectedCollectionsRef.current.size;
+
+    if (connectedCount === 0) {
+      setSyncStatus('offline');
+    } else if (connectedCount < totalCollections) {
+      // Partial connectivity - show syncing
+      setSyncStatus('syncing');
+    } else {
+      setSyncStatus('connected');
+    }
+  }, [mergedConfig.collections.length, setSyncStatus]);
+
+  /**
+   * Setup a single collection listener with retry capability
+   */
+  const setupCollectionListener = useCallback(
+    (collectionName: string, orgId: string) => {
+      const nodeType = COLLECTION_TO_NODE_TYPE[collectionName];
+      if (!nodeType) {
+        console.warn(`[VoxelRealtime] Unknown collection: ${collectionName}`);
+        return;
+      }
+
+      // Clear any existing retry timer
+      const existingTimer = retryTimersRef.current.get(collectionName);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+        retryTimersRef.current.delete(collectionName);
+      }
+
+      // Unsubscribe from existing listener if any
+      const existingUnsub = unsubscribersRef.current.get(collectionName);
+      if (existingUnsub) {
+        existingUnsub();
+        unsubscribersRef.current.delete(collectionName);
+      }
+
+      try {
+        const q = query(
+          collection(db, collectionName),
+          where('organizationId', '==', orgId)
+        );
+
+        const unsubscribe = onSnapshot(
+          q,
+          (snapshot: QuerySnapshot<DocumentData>) => {
+            handleSnapshotChanges(snapshot.docChanges(), nodeType);
+
+            // Mark collection as connected and reset retry count
+            connectedCollectionsRef.current.add(collectionName);
+            retryAttemptsRef.current.set(collectionName, 0);
+            updateSyncStatus();
+          },
+          (error) => {
+            // Remove from connected set
+            connectedCollectionsRef.current.delete(collectionName);
+            updateSyncStatus();
+
+            // Get current retry attempt
+            const currentAttempt = retryAttemptsRef.current.get(collectionName) ?? 0;
+
+            if (currentAttempt < mergedConfig.maxRetries) {
+              // Calculate backoff delay
+              const delay = calculateBackoff(currentAttempt);
+              const nextAttempt = currentAttempt + 1;
+
+              ErrorLogger.warn(
+                `Firestore listener error, retrying (${nextAttempt}/${mergedConfig.maxRetries})`,
+                'useVoxelRealtime.setupCollectionListener',
+                { metadata: { collectionName, error: error.message, delay } }
+              );
+
+              console.warn(
+                `[VoxelRealtime] Error in ${collectionName} listener, retry ${nextAttempt}/${mergedConfig.maxRetries} in ${Math.round(delay)}ms`
+              );
+
+              // Schedule retry
+              retryAttemptsRef.current.set(collectionName, nextAttempt);
+              const retryTimer = setTimeout(() => {
+                setupCollectionListener(collectionName, orgId);
+              }, delay);
+              retryTimersRef.current.set(collectionName, retryTimer);
+            } else {
+              // Max retries exceeded
+              ErrorLogger.error(
+                error,
+                'useVoxelRealtime.setupCollectionListener.maxRetriesExceeded',
+                { metadata: { collectionName, maxRetries: mergedConfig.maxRetries } }
+              );
+
+              console.error(
+                `[VoxelRealtime] Max retries (${mergedConfig.maxRetries}) exceeded for ${collectionName} listener`
+              );
+            }
+          }
+        );
+
+        unsubscribersRef.current.set(collectionName, unsubscribe);
+      } catch (error) {
+        ErrorLogger.error(error, 'useVoxelRealtime.setupCollectionListener.setupFailed', {
+          metadata: { collectionName },
+        });
+        console.error(`[VoxelRealtime] Failed to setup ${collectionName} listener:`, error);
+      }
+    },
+    [handleSnapshotChanges, updateSyncStatus, calculateBackoff, mergedConfig.maxRetries]
+  );
+
+  /**
    * Setup real-time listeners
    */
   useEffect(() => {
@@ -306,52 +448,30 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
     console.log('[VoxelRealtime] Setting up listeners for org:', organizationId);
     setSyncStatus('syncing');
 
-    // Track successful listener count
-    let activeListeners = 0;
-    const totalListeners = mergedConfig.collections.length;
+    // Reset retry state
+    retryAttemptsRef.current.clear();
+    connectedCollectionsRef.current.clear();
 
     // Setup listener for each collection
     for (const collectionName of mergedConfig.collections) {
-      const nodeType = COLLECTION_TO_NODE_TYPE[collectionName];
-      if (!nodeType) {
-        console.warn(`[VoxelRealtime] Unknown collection: ${collectionName}`);
-        continue;
-      }
-
-      try {
-        const q = query(
-          collection(db, collectionName),
-          where('organizationId', '==', organizationId)
-        );
-
-        const unsubscribe = onSnapshot(
-          q,
-          (snapshot: QuerySnapshot<DocumentData>) => {
-            handleSnapshotChanges(snapshot.docChanges(), nodeType);
-
-            // Update sync status after first successful snapshot
-            activeListeners++;
-            if (activeListeners >= totalListeners) {
-              setSyncStatus('connected');
-            }
-          },
-          (error) => {
-            console.error(`[VoxelRealtime] Error in ${collectionName} listener:`, error);
-            setSyncStatus('offline');
-          }
-        );
-
-        unsubscribersRef.current.push(unsubscribe);
-      } catch (error) {
-        console.error(`[VoxelRealtime] Failed to setup ${collectionName} listener:`, error);
-      }
+      setupCollectionListener(collectionName, organizationId);
     }
 
     // Cleanup function
     return () => {
       console.log('[VoxelRealtime] Cleaning up listeners');
+
+      // Clear all unsubscribers
       unsubscribersRef.current.forEach((unsub) => unsub());
-      unsubscribersRef.current = [];
+      unsubscribersRef.current.clear();
+
+      // Clear all retry timers
+      retryTimersRef.current.forEach((timer) => clearTimeout(timer));
+      retryTimersRef.current.clear();
+
+      // Reset state
+      retryAttemptsRef.current.clear();
+      connectedCollectionsRef.current.clear();
       isInitializedRef.current = false;
 
       if (debounceTimerRef.current) {
@@ -365,12 +485,55 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
     mergedConfig.enabled,
     mergedConfig.collections,
     setSyncStatus,
-    handleSnapshotChanges,
+    setupCollectionListener,
   ]);
+
+  /**
+   * Manually retry all failed listeners
+   * Useful for reconnection after network recovery
+   */
+  const retryAllFailed = useCallback(() => {
+    if (!organizationId) return;
+
+    const failedCollections = mergedConfig.collections.filter(
+      (col) => !connectedCollectionsRef.current.has(col)
+    );
+
+    if (failedCollections.length === 0) {
+      console.log('[VoxelRealtime] All collections already connected');
+      return;
+    }
+
+    console.log('[VoxelRealtime] Retrying failed collections:', failedCollections);
+
+    // Reset retry attempts for failed collections
+    failedCollections.forEach((col) => {
+      retryAttemptsRef.current.set(col, 0);
+      setupCollectionListener(col, organizationId);
+    });
+  }, [organizationId, mergedConfig.collections, setupCollectionListener]);
+
+  /**
+   * Listen for online/offline events to trigger reconnection
+   */
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('[VoxelRealtime] Network online - retrying failed listeners');
+      retryAllFailed();
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [retryAllFailed]);
 
   return {
     isEnabled: mergedConfig.enabled,
     collections: mergedConfig.collections,
+    connectedCount: connectedCollectionsRef.current.size,
+    retryAllFailed,
   };
 }
 

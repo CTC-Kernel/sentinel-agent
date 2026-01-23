@@ -12,9 +12,8 @@
 
 import type {
   RegulatoryFramework,
-  Requirement,
   RequirementCategory,
-  RequirementCriticality,
+  CriticalityLevel as RequirementCriticality,
 } from '../src/types/framework';
 
 // ============================================================================
@@ -23,22 +22,14 @@ import type {
 
 export const NIS2_FRAMEWORK: Omit<RegulatoryFramework, 'id' | 'createdAt' | 'updatedAt'> = {
   code: 'NIS2',
-  name: {
+  name: 'Directive NIS2',
+  localizedNames: {
     en: 'NIS2 Directive',
     fr: 'Directive NIS2',
   },
-  fullName: {
-    en: 'Directive (EU) 2022/2555 on measures for a high common level of cybersecurity across the Union',
-    fr: 'Directive (UE) 2022/2555 concernant des mesures destinées à assurer un niveau élevé commun de cybersécurité dans l\'Union',
-  },
-  description: {
-    en: 'The NIS2 Directive establishes cybersecurity risk management and reporting obligations for essential and important entities across the EU. It replaces the original NIS Directive with expanded scope and stricter requirements.',
-    fr: 'La directive NIS2 établit des obligations en matière de gestion des risques de cybersécurité et de notification pour les entités essentielles et importantes dans l\'UE. Elle remplace la directive NIS originale avec un champ d\'application élargi et des exigences plus strictes.',
-  },
   version: '2022/2555',
-  effectiveDate: new Date('2023-01-16'),
-  complianceDeadline: new Date('2024-10-17'),
-  jurisdiction: ['EU'],
+  effectiveDate: '2023-01-16',
+  jurisdiction: 'EU',
   sectors: [
     'energy',
     'transport',
@@ -71,15 +62,15 @@ export const NIS2_FRAMEWORK: Omit<RegulatoryFramework, 'id' | 'createdAt' | 'upd
 export const NIS2_CATEGORIES: RequirementCategory[] = [
   'governance',
   'risk_management',
-  'incident_response',
+  'incident_management',
   'supply_chain',
-  'security_measures',
-  'continuity',
+  'technical_measures',
+  'business_continuity',
   'cryptography',
   'access_control',
   'reporting',
-  'training',
-  'asset_management',
+  'awareness_training',
+  'compliance',
 ];
 
 // ============================================================================
@@ -141,7 +132,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 20(3)',
-    category: 'training',
+    category: 'awareness_training',
     criticality: 'high',
     title: {
       en: 'Management cybersecurity training',
@@ -193,7 +184,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 21(2)(b)',
-    category: 'incident_response',
+    category: 'incident_management',
     criticality: 'high',
     title: {
       en: 'Incident handling',
@@ -209,7 +200,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 21(2)(c)',
-    category: 'continuity',
+    category: 'business_continuity',
     criticality: 'high',
     title: {
       en: 'Business continuity and crisis management',
@@ -241,7 +232,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 21(2)(e)',
-    category: 'security_measures',
+    category: 'technical_measures',
     criticality: 'high',
     title: {
       en: 'Network and system acquisition security',
@@ -273,7 +264,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 21(2)(g)',
-    category: 'training',
+    category: 'awareness_training',
     criticality: 'medium',
     title: {
       en: 'Cyber hygiene and training',
@@ -569,7 +560,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   // ============================================================================
   {
     articleRef: 'Art. 28',
-    category: 'asset_management',
+    category: 'governance',
     criticality: 'medium',
     title: {
       en: 'Entity registration',
@@ -589,7 +580,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   // ============================================================================
   {
     articleRef: 'Art. 21-Phys',
-    category: 'security_measures',
+    category: 'technical_measures',
     criticality: 'medium',
     title: {
       en: 'Physical and environmental security',
@@ -605,7 +596,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 21-Net',
-    category: 'security_measures',
+    category: 'technical_measures',
     criticality: 'high',
     title: {
       en: 'Network security',
@@ -621,7 +612,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 21-Log',
-    category: 'security_measures',
+    category: 'technical_measures',
     criticality: 'medium',
     title: {
       en: 'Logging and monitoring',
@@ -637,7 +628,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 21-Mal',
-    category: 'security_measures',
+    category: 'technical_measures',
     criticality: 'high',
     title: {
       en: 'Malware protection',
@@ -653,7 +644,7 @@ export const NIS2_REQUIREMENTS: NIS2Requirement[] = [
   },
   {
     articleRef: 'Art. 21-Vuln',
-    category: 'security_measures',
+    category: 'technical_measures',
     criticality: 'high',
     title: {
       en: 'Vulnerability management',
