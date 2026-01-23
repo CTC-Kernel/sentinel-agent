@@ -12,7 +12,7 @@ vi.mock('framer-motion', () => {
     const createMotionComponent = (element: string) => {
         return ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => {
             // Filter out framer-motion specific props
-            const { initial, animate, exit, transition, whileHover, whileTap, variants, ...htmlProps } = props;
+            const { initial: _initial, animate: _animate, exit: _exit, transition: _transition, whileHover: _whileHover, whileTap: _whileTap, variants: _variants, ...htmlProps } = props;
             const Element = element as keyof JSX.IntrinsicElements;
             return <Element {...htmlProps}>{children}</Element>;
         };
