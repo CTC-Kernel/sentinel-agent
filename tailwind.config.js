@@ -82,18 +82,30 @@ export default {
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "white",
+          text: "hsl(var(--success-text))",
+          bg: "hsl(var(--success-bg))",
+          border: "hsl(var(--success-border))",
         },
         warning: {
           DEFAULT: "hsl(var(--warning))",
           foreground: "white",
+          text: "hsl(var(--warning-text))",
+          bg: "hsl(var(--warning-bg))",
+          border: "hsl(var(--warning-border))",
         },
         error: {
           DEFAULT: "hsl(var(--error))",
           foreground: "white",
+          text: "hsl(var(--error-text))",
+          bg: "hsl(var(--error-bg))",
+          border: "hsl(var(--error-border))",
         },
         info: {
           DEFAULT: "hsl(var(--info))",
           foreground: "white",
+          text: "hsl(var(--info-text))",
+          bg: "hsl(var(--info-bg))",
+          border: "hsl(var(--info-border))",
         },
         brand: {
           50: "hsl(var(--primary) / 0.05)",
@@ -147,11 +159,42 @@ export default {
         'widest': '0.05em',
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.04)',
+        // Elevation system (use CSS variables for theme-aware shadows)
+        'elevation-xs': 'var(--shadow-xs)',
+        'elevation-sm': 'var(--shadow-sm)',
+        'elevation-md': 'var(--shadow-md)',
+        'elevation-lg': 'var(--shadow-lg)',
+        'elevation-xl': 'var(--shadow-xl)',
+        'elevation-2xl': 'var(--shadow-2xl)',
+        // Colored shadows
+        'primary': 'var(--shadow-primary)',
+        'success': 'var(--shadow-success)',
+        'warning': 'var(--shadow-warning)',
+        'error': 'var(--shadow-error)',
+        // Legacy support
+        'glass': 'var(--glass-shadow)',
         'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.45)',
-        'apple': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-        'apple-md': '0 8px 30px rgba(0,0,0,0.08)',
-        'apple-xl': '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+        'apple': 'var(--shadow-sm)',
+        'apple-md': 'var(--shadow-md)',
+        'apple-xl': 'var(--shadow-xl)',
+        // Glow effects
+        'glow': '0 0 20px hsl(var(--primary) / 0.25)',
+        'glow-success': '0 0 20px hsl(var(--success) / 0.25)',
+        'glow-warning': '0 0 20px hsl(var(--warning) / 0.25)',
+        'glow-danger': '0 0 20px hsl(var(--error) / 0.25)',
+        // Interactive states
+        'button': 'var(--shadow-button)',
+        'button-hover': 'var(--shadow-button-hover)',
+        'card': 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+        'modal': 'var(--shadow-modal)',
+      },
+      backgroundImage: {
+        'gradient-primary': 'var(--gradient-primary)',
+        'gradient-success': 'var(--gradient-success)',
+        'gradient-warning': 'var(--gradient-warning)',
+        'gradient-danger': 'var(--gradient-danger)',
+        'gradient-info': 'var(--gradient-info)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s var(--ease-apple)',
@@ -159,7 +202,19 @@ export default {
         'scale-in': 'scaleIn 0.3s var(--ease-apple)',
       },
       transitionTimingFunction: {
+        'apple': 'var(--ease-apple)',
+        'out': 'var(--ease-out)',
+        'in': 'var(--ease-in)',
+        'in-out': 'var(--ease-in-out)',
+        'spring': 'var(--ease-spring)',
         'custom-ease': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      },
+      transitionDuration: {
+        'instant': 'var(--duration-instant)',
+        'fast': 'var(--duration-fast)',
+        'normal': 'var(--duration-normal)',
+        'slow': 'var(--duration-slow)',
+        'slower': 'var(--duration-slower)',
       },
       keyframes: {
         spotlight: {
