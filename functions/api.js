@@ -143,7 +143,7 @@ app.post("/v1/consent/log", async (req, res) => {
 // Audit Log
 app.post("/v1/audit/log", async (req, res) => {
     try {
-        const { action, resource, details, metadata } = req.body;
+        const { action, resource, details, metadata, changes } = req.body;
         const uid = req.user.uid;
         const organizationId = req.user.organizationId;
 
@@ -157,7 +157,7 @@ app.post("/v1/audit/log", async (req, res) => {
             return;
         }
 
-        await admin.firestore().collection("audit_logs").add({
+        const logEntry = {
             organizationId, // Enforced from token
             userId: uid,    // Enforced from token
             userEmail: req.user.email || '',
@@ -167,7 +167,14 @@ app.post("/v1/audit/log", async (req, res) => {
             metadata: metadata || {},
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
             source: 'api'
-        });
+        };
+
+        // Add field-level changes if provided for better audit trail granularity
+        if (changes && typeof changes === 'object') {
+            logEntry.changes = changes;
+        }
+
+        await admin.firestore().collection("audit_logs").add(logEntry);
         res.json({ success: true, message: "Event logged" });
     } catch (error) {
         logger.error("Error logging audit event:", error);

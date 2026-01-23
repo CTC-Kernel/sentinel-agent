@@ -129,8 +129,8 @@ const detectCoverageGaps = async (db, organizationId) => {
     risksSnap.forEach(doc => {
         const risk = doc.data();
         const hasControls = risk.mitigationControlIds &&
-                          Array.isArray(risk.mitigationControlIds) &&
-                          risk.mitigationControlIds.length > 0;
+            Array.isArray(risk.mitigationControlIds) &&
+            risk.mitigationControlIds.length > 0;
 
         if (!hasControls && risk.strategy !== 'Accepter' && risk.strategy !== 'accept') {
             anomalies.push(createAnomaly(
@@ -722,12 +722,108 @@ exports.updateAnomalyStatus = onCall({
     }
 });
 
+/**
+ * Story 29.5: Remediate Anomalies - Convert Anomaly to Incident
+ * Bridges the gap between Voxel detection and GRC remediation
+ */
+exports.convertAnomalyToIncident = onCall({
+    memory: '512MiB',
+    region: 'europe-west1',
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { anomalyId, title, severity: overrideSeverity } = request.data || {};
+
+    if (!anomalyId) {
+        throw new HttpsError('invalid-argument', 'Missing anomalyId.');
+    }
+
+    const organizationId = request.auth.token.organizationId;
+    if (!organizationId) {
+        throw new HttpsError('failed-precondition', 'User must belong to an organization.');
+    }
+
+    const db = admin.firestore();
+
+    try {
+        return await db.runTransaction(async (transaction) => {
+            const anomalyRef = db.collection('voxel_anomalies').doc(anomalyId);
+            const anomalySnap = await transaction.get(anomalyRef);
+
+            if (!anomalySnap.exists) {
+                throw new HttpsError('not-found', 'Anomaly not found.');
+            }
+
+            const anomaly = anomalySnap.data();
+            if (anomaly.organizationId !== organizationId) {
+                throw new HttpsError('permission-denied', 'Cannot access this anomaly.');
+            }
+
+            if (anomaly.status === 'resolved' || anomaly.incidentId) {
+                throw new HttpsError('failed-precondition', 'Anomaly already handled.');
+            }
+
+            // Create new Incident
+            const incidentRef = db.collection('incidents').doc();
+            const incidentData = {
+                title: title || `Remédiation: ${anomaly.message}`,
+                description: `Incident généré automatiquement par Voxel Intelligence suite à la détection d'une anomalie.\n\nType: ${anomaly.type}\nMessage: ${anomaly.message}\nDétails: ${JSON.stringify(anomaly.details, null, 2)}`,
+                severity: overrideSeverity || (anomaly.severity === 'critical' ? 'Critique' : anomaly.severity === 'high' ? 'Haute' : 'Moyenne'),
+                status: 'Ouvert',
+                category: 'Anomalie de Conformité',
+                organizationId,
+                reporter: request.auth.token.email || 'SYSTEM',
+                dateReported: new Date().toISOString(),
+                source: 'Voxel',
+                relatedAnomalyId: anomalyId,
+                affectedAssetId: anomaly.nodeId && anomaly.type !== 'stale_assessment' ? anomaly.nodeId : null,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+
+            transaction.set(incidentRef, incidentData);
+
+            // Link Incident to Anomaly and mark as resolved/acknowledged
+            transaction.update(anomalyRef, {
+                status: 'resolved',
+                incidentId: incidentRef.id,
+                resolvedBy: request.auth.uid,
+                resolvedAt: admin.firestore.FieldValue.serverTimestamp(),
+                remediationType: 'incident'
+            });
+
+            // Log action in Audit Trail
+            const auditRef = db.collection('audit_logs').doc();
+            transaction.set(auditRef, {
+                organizationId,
+                userId: request.auth.uid,
+                userEmail: request.auth.token.email || '',
+                action: 'CREATE',
+                resource: 'Incident',
+                details: `Incident ${incidentRef.id} created from anomaly ${anomalyId}`,
+                metadata: { anomalyId, incidentId: incidentRef.id },
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                source: 'voxel_bridge'
+            });
+
+            return { success: true, incidentId: incidentRef.id };
+        });
+    } catch (error) {
+        if (error instanceof HttpsError) throw error;
+        logger.error("Failed to convert anomaly to incident:", error);
+        throw new HttpsError('internal', `Remediation failed: ${error.message}`);
+    }
+});
+
 // Export helper functions for testing
 module.exports = {
     scheduledAnomalyDetection: exports.scheduledAnomalyDetection,
     detectAnomaliesOnDemand: exports.detectAnomaliesOnDemand,
     getAnomalies: exports.getAnomalies,
     updateAnomalyStatus: exports.updateAnomalyStatus,
+    convertAnomalyToIncident: exports.convertAnomalyToIncident,
     // Internal helpers for testing
     _internal: {
         detectOrphanControls,
