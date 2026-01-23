@@ -169,6 +169,16 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
         </div>
       )}
 
+      {/* Action Bar when embedded */}
+      {hideHeader && (
+        <div className="flex items-center justify-end mb-2">
+          <Button onClick={() => setShowWizard(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('homologation.newDossier', 'Nouveau dossier')}
+          </Button>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {renderStatsCard(

@@ -1413,7 +1413,7 @@ So that **I implement relevant controls**.
 **Goal:** Les institutions financières gèrent leur registre ICT DORA-compliant pour le reporting ESA.
 
 **ADR:** ADR-008
-**Priority:** P0 - Deadline réglementaire 30 avril 2025
+**Priority:** P0 - CRITIQUE (deadline passee 30 avril 2025)
 **Vertical:** Finance (DORA)
 
 ### Story 13.1: ICT Provider Management

@@ -15,6 +15,7 @@ import { SystemSettings } from '../components/settings/SystemSettings';
 import { FrameworkSettings } from '../components/settings/FrameworkSettings';
 import { PartnerManagement } from '../components/settings/PartnerManagement';
 import { IntegrationSettings } from '../components/settings/IntegrationSettings';
+import { AgentManagement } from '../components/settings/AgentManagement';
 
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -46,6 +47,7 @@ const Settings: React.FC = () => {
                     ? <PartnerManagement />
                     : <ProfileSettings />;
             case 'integrations': return <IntegrationSettings />;
+            case 'agents': return <AgentManagement />;
             default: return <ProfileSettings />;
         }
     };

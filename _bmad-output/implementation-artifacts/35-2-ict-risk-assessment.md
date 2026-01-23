@@ -10,7 +10,7 @@
 
 **Current Status:** dev-complete
 **Epic:** Epic 35 - DORA ICT Register (P0 - Finance)
-**Priority:** P0 - Deadline 30 avril 2025
+**Priority:** P0 - CRITIQUE (deadline passee 30 avril 2025)
 **ADR:** ADR-008
 **Dependency:** Requires Story 35-1 (ICT Provider Management) - DONE
 

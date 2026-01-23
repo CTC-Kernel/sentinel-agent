@@ -247,7 +247,7 @@ CRITÈRES DE DÉCISION:
 |----------|-------------|
 | **Driver principal** | DORA (obligatoire Jan 2025) |
 | **Pain spécifique** | Registre ICT, 88+ fournisseurs |
-| **Deadline** | 30 avril 2025 (reporting ESA) |
+| **Deadline** | URGENT - deadline passee (30 avril 2025) |
 | **Budget** | Élevé mais contrôlé |
 | **Citation** | "Le régulateur va auditer dans 6 mois" |
 | **Message clé** | "DORA entre en vigueur. Votre registre ICT est-il prêt ?" |

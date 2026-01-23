@@ -145,6 +145,30 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
             )}
 
             <div className={hideHeader ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"}>
+                {/* Action Bar when embedded */}
+                {hideHeader && (
+                    <div className="flex items-center justify-end gap-3 mb-6">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsImportOpen(true)}
+                        >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {t('dora.providers.importCsv')}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={handleExport}
+                        >
+                            <Download className="w-4 h-4 mr-2" />
+                            {t('dora.providers.exportRegister')}
+                        </Button>
+                        <Button onClick={handleCreate}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            {t('dora.providers.new')}
+                        </Button>
+                    </div>
+                )}
+
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">

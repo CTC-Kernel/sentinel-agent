@@ -364,6 +364,19 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
         />
       )}
 
+      {/* Action Bar when embedded */}
+      {hideHeader && (
+        <div className="flex items-center justify-between mb-6">
+          <Badge variant="outline" className="text-sm">
+            {configurations.length} {t('fair.analyses', 'analyses')}
+          </Badge>
+          <Button onClick={handleCreateNew}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('fair.actions.newAnalysis', 'Nouvelle analyse')}
+          </Button>
+        </div>
+      )}
+
       {/* Error State */}
       {error && (
         <Card className="p-4 mb-6 bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
