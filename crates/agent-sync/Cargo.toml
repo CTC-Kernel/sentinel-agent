@@ -1,0 +1,30 @@
+[package]
+name = "agent-sync"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+agent-common = { path = "../agent-common" }
+agent-storage = { path = "../agent-storage" }
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+hostname = "0.4"
+os_info = "3"
+sysinfo = { workspace = true }
+sha2.workspace = true
+hex.workspace = true
+flate2 = "1.0"
+semver.workspace = true
+hmac.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+agent-storage = { path = "../agent-storage", features = ["test-utils"] }

@@ -1,0 +1,9 @@
+# Clippy configuration for strict linting
+# Note: Most clippy lints are configured via Cargo.toml or command-line flags
+# This file exists for clippy-specific configurations
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 25
+
+# Maximum allowed lines in a function
+too-many-lines-threshold = 100

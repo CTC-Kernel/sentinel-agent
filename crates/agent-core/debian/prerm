@@ -1,0 +1,21 @@
+#!/bin/sh
+# Sentinel GRC Agent - Pre-removal script
+set -e
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        # Stop the service before removal
+        if systemctl is-active --quiet sentinel-agent.service; then
+            echo "Stopping Sentinel GRC Agent service..."
+            systemctl stop sentinel-agent.service || true
+        fi
+        ;;
+    failed-upgrade)
+        ;;
+    *)
+        echo "prerm called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

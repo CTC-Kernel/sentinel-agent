@@ -1,0 +1,70 @@
+[package]
+name = "agent-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+agent-common = { path = "../agent-common" }
+agent-scanner = { path = "../agent-scanner" }
+agent-storage = { path = "../agent-storage" }
+agent-sync = { path = "../agent-sync" }
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+reqwest.workspace = true
+hostname.workspace = true
+tray-icon.workspace = true
+muda.workspace = true
+image.workspace = true
+open.workspace = true
+tao.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-service.workspace = true
+windows.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+signal-hook.workspace = true
+
+# DEB package metadata (cargo-deb)
+[package.metadata.deb]
+name = "sentinel-agent"
+maintainer = "Sentinel GRC <support@sentinel-grc.com>"
+copyright = "2024-2026 Sentinel GRC"
+license-file = ["../../LICENSE", "0"]
+extended-description = """\
+Endpoint compliance monitoring agent for Sentinel GRC platform. \
+Performs automated security checks and reports compliance status."""
+section = "admin"
+priority = "optional"
+depends = "$auto"
+assets = [
+    ["target/release/agent-core", "/opt/sentinel-grc/bin/sentinel-agent", "755"],
+    ["../../config/agent.example.json", "/etc/sentinel/agent.json", "600"],
+    ["../../wix/license.rtf", "/opt/sentinel-grc/share/doc/LICENSE.rtf", "644"],
+]
+maintainer-scripts = "debian/"
+systemd-units = { unit-name = "sentinel-agent", enable = true, start = true }
+
+# RPM package metadata (cargo-generate-rpm)
+[package.metadata.rpm]
+package = "sentinel-agent"
+
+[package.metadata.rpm.cargo]
+buildflags = ["--release"]
+
+[package.metadata.rpm.targets]
+sentinel-agent = { path = "/opt/sentinel-grc/bin/sentinel-agent" }
+
+[package.metadata.rpm.files]
+"../../config/agent.example.json" = { path = "/etc/sentinel/agent.json", mode = "600" }
+"debian/sentinel-agent.service" = { path = "/etc/systemd/system/sentinel-agent.service" }

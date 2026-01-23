@@ -1,0 +1,220 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Format check - fast, run first
+  fmt:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --check
+
+  # Clippy linting
+  clippy:
+    name: Clippy Linting
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+
+  # License and security checks with cargo-deny
+  deny:
+    name: License & Security (cargo-deny)
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+
+  # Security audit with cargo-audit
+  audit:
+    name: Security Audit (cargo-audit)
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Unit tests
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: [clippy, deny]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --all-features
+
+  # Code coverage
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate coverage report
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: lcov.info
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(cargo llvm-cov --all-features --workspace --json | jq '.data[0].totals.lines.percent')
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+            echo "::warning::Coverage is below 70% threshold: $COVERAGE%"
+          fi
+
+  # Build release artifacts - Linux
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release --package agent-core
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-linux
+          path: target/release/agent-core
+
+  # Build release artifacts - Windows
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release --package agent-core
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-windows
+          path: target/release/agent-core.exe
+
+  # Build Windows MSI installer
+  build-msi:
+    name: Build MSI Installer
+    runs-on: windows-latest
+    needs: build-windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release --package agent-core
+
+      - name: Install WiX Toolset
+        run: dotnet tool install --global wix
+
+      - name: Build MSI
+        run: |
+          $version = "0.1.0"
+          wix build -d "TargetDir=.\target\release" -d "Version=$version" -o "sentinel-agent-$version.msi" wix/main.wxs
+        shell: pwsh
+
+      - name: Generate checksum
+        run: |
+          $hash = Get-FileHash -Path "sentinel-agent-0.1.0.msi" -Algorithm SHA256
+          "$($hash.Hash.ToLower())  sentinel-agent-0.1.0.msi" | Out-File -FilePath "sentinel-agent-0.1.0.msi.sha256" -Encoding ASCII
+        shell: pwsh
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-msi
+          path: |
+            sentinel-agent-*.msi
+            sentinel-agent-*.sha256
+
+  # Build Linux DEB package
+  build-deb:
+    name: Build DEB Package
+    runs-on: ubuntu-latest
+    needs: build-linux
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Build DEB package
+        run: cargo deb --package agent-core --no-build --target x86_64-unknown-linux-gnu
+        working-directory: .
+
+      - name: Build release binary first
+        run: cargo build --release --package agent-core
+
+      - name: Build DEB
+        run: cargo deb --package agent-core --no-build
+
+      - name: Upload DEB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-deb
+          path: target/debian/*.deb
+
+  # Build Linux RPM package
+  build-rpm:
+    name: Build RPM Package
+    runs-on: ubuntu-latest
+    needs: build-linux
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-generate-rpm
+        run: cargo install cargo-generate-rpm
+
+      - name: Build release binary
+        run: cargo build --release --package agent-core
+
+      - name: Strip binary
+        run: strip target/release/agent-core
+
+      - name: Build RPM
+        run: cargo generate-rpm --package agent-core
+
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-rpm
+          path: target/generate-rpm/*.rpm
