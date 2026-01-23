@@ -5,7 +5,17 @@ import { useStore } from '../../../store';
 import { SentinelAgent, AgentEnrollmentToken } from '../../../types/agent';
 import { vi, expect, it, describe, beforeEach } from 'vitest';
 
-vi.mock('../../../services/AgentService');
+vi.mock('../../../services/AgentService', () => ({
+    AgentService: {
+        subscribeToAgents: vi.fn((_orgId, onAgents) => {
+            // We'll set the initial data here or in the test
+            onAgents([]);
+            return () => { };
+        }),
+        generateEnrollmentToken: vi.fn(),
+        deleteAgent: vi.fn(),
+    }
+}));
 vi.mock('../../../store');
 
 const mockUser = {

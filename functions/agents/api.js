@@ -480,6 +480,137 @@ app.post('/v1/agents/:agentId/results', async (req, res) => {
 });
 
 // ============================================================================
+// Agent Logs Upload (Story 12.1 AC4)
+// POST /v1/agents/:agentId/logs
+// ============================================================================
+app.post('/v1/agents/:agentId/logs', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        const { entries, uploaded_at } = req.body;
+
+        // Validate entries
+        if (!entries || !Array.isArray(entries)) {
+            return res.status(400).json({
+                error: 'entries array is required',
+            });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentDoc = agentQuery.docs[0];
+        const agentData = agentDoc.data();
+        const organizationId = agentData.organizationId;
+
+        // Store logs in a subcollection
+        const batch = db.batch();
+        const logsCollection = db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agents')
+            .doc(agentId)
+            .collection('logs');
+
+        // Create a log upload document
+        const uploadRef = logsCollection.doc();
+        batch.set(uploadRef, {
+            uploadedAt: uploaded_at || new Date().toISOString(),
+            receivedAt: admin.firestore.FieldValue.serverTimestamp(),
+            entryCount: entries.length,
+            hostname: agentData.hostname,
+        });
+
+        // Store individual entries (limit to 100 per upload to avoid write limits)
+        const entriesToStore = entries.slice(0, 100);
+        for (const entry of entriesToStore) {
+            const entryRef = logsCollection.doc(uploadRef.id).collection('entries').doc();
+            batch.set(entryRef, {
+                ...entry,
+                storedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        }
+
+        await batch.commit();
+
+        logger.info(`Received ${entries.length} log entries from agent ${agentId}`);
+
+        return res.status(200).json({
+            received_count: entriesToStore.length,
+            ack_id: uploadRef.id,
+        });
+    } catch (error) {
+        logger.error('Log upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Agent Diagnostics Upload (Story 12.4)
+// POST /v1/agents/:agentId/diagnostics
+// ============================================================================
+app.post('/v1/agents/:agentId/diagnostics', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        const diagnosticData = req.body;
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentDoc = agentQuery.docs[0];
+        const agentData = agentDoc.data();
+        const organizationId = agentData.organizationId;
+
+        // Store diagnostic result
+        const diagnosticRef = await db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agents')
+            .doc(agentId)
+            .collection('diagnostics')
+            .add({
+                ...diagnosticData,
+                receivedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+        logger.info(`Received diagnostics from agent ${agentId}: ${diagnosticData.id}`);
+
+        return res.status(200).json({
+            acknowledged: true,
+            diagnostic_id: diagnosticRef.id,
+        });
+    } catch (error) {
+        logger.error('Diagnostics upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
 // Health Check
 // GET /v1/health
 // ============================================================================
