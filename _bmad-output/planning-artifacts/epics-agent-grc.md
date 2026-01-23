@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1]
+stepsCompleted: [1, 2]
 inputDocuments: ['prd-agent-grc.md', 'architecture-agent-grc.md']
 project_name: 'Agent GRC Sentinel'
 ---
@@ -225,8 +225,1190 @@ This document provides the complete epic and story breakdown for Agent GRC Senti
 
 ### FR Coverage Map
 
-{{requirements_coverage_map}}
+| FR | Epic | Description |
+|----|------|-------------|
+| FR1 | Epic 2 | Installation Windows silencieuse |
+| FR2 | Epic 2 | Installation Linux via package manager |
+| FR3 | Epic 2 | Service système avec démarrage auto |
+| FR4 | Epic 2 | Configuration via JSON/env vars |
+| FR5 | Epic 4 | Enregistrement SaaS avec token |
+| FR6 | Epic 4 | Heartbeat périodique |
+| FR7 | Epic 2 | Désinstallation propre |
+| FR8 | Epic 2 | Empreinte ressources minimale |
+| FR9 | Epic 5 | Exécution checks conformité |
+| FR10 | Epic 5 | Vérification chiffrement disque |
+| FR11 | Epic 5 | Vérification antivirus |
+| FR12 | Epic 5 | Vérification pare-feu |
+| FR13 | Epic 5 | Vérification politique mot de passe |
+| FR14 | Epic 5 | Vérification verrouillage session |
+| FR15 | Epic 5 | Vérification mises à jour système |
+| FR16 | Epic 5 | Vérification protocoles obsolètes |
+| FR17 | Epic 5 | Vérification configuration sauvegarde |
+| FR18 | Epic 5 | Vérification comptes admin locaux |
+| FR19 | Epic 5 | Vérification MFA |
+| FR20 | Epic 5 | Vérification bureau à distance |
+| FR21 | Epic 5 | Génération preuve horodatée |
+| FR22 | Epic 5 | Calcul score conformité local |
+| FR23 | Epic 6 | Téléchargement règles depuis SaaS |
+| FR24 | Epic 6 | Cache règles local |
+| FR25 | Epic 3 | Stockage résultats SQLite |
+| FR26 | Epic 6 | Mode offline 7 jours |
+| FR27 | Epic 6 | Synchronisation retour connectivité |
+| FR28 | Epic 6 | Gestion conflits sync |
+| FR29 | Epic 6 | Téléchargement config SaaS |
+| FR30 | Epic 6 | Upload résultats vers SaaS |
+| FR31 | Epic 7 | Visualisation score global |
+| FR32 | Epic 7 | Visualisation score par endpoint |
+| FR33 | Epic 7 | Visualisation écarts détaillés |
+| FR34 | Epic 7 | Tendance historique 30 jours |
+| FR35 | Epic 7 | Filtre par référentiel |
+| FR36 | Epic 7 | Filtre par statut conformité |
+| FR37 | Epic 7 | Alerte dégradation score |
+| FR38 | Epic 7 | Vue filtrée DPO RGPD |
+| FR39 | Epic 8 | Liste agents déployés |
+| FR40 | Epic 8 | État connexion agents |
+| FR41 | Epic 8 | Version agents |
+| FR42 | Epic 8 | Téléchargement packages |
+| FR43 | Epic 8 | Génération token enregistrement |
+| FR44 | Epic 8 | Configuration fréquence checks |
+| FR45 | Epic 8 | Activation/désactivation checks |
+| FR46 | Epic 8 | Force sync agent |
+| FR47 | Epic 8 | Désinscription agent |
+| FR48 | Epic 9 | Accès auditeur lecture seule |
+| FR49 | Epic 9 | Visualisation preuves techniques |
+| FR50 | Epic 9 | Export rapport PDF |
+| FR51 | Epic 9 | Historique 12 mois |
+| FR52 | Epic 3 | Conservation preuves 12 mois |
+| FR53 | Epic 3 | Horodatage ISO 8601 UTC |
+| FR54 | Epic 3 | Intégrité preuves SHA-256 |
+| FR55 | Epic 4 | Authentification mTLS |
+| FR56 | Epic 4 | Certificate pinning |
+| FR57 | Epic 4 | Self-check intégrité démarrage |
+| FR58 | Epic 3 | Chiffrement données locales |
+| FR59 | Epic 11 | Signature logs |
+| FR60 | Epic 11 | Validation signature binaire |
+| FR61 | Epic 11 | Révocation agent à distance |
+| FR62 | Epic 10 | Vérification nouvelle version |
+| FR63 | Epic 10 | Téléchargement mise à jour auto |
+| FR64 | Epic 10 | Rollback version précédente |
+| FR65 | Epic 10 | Déploiement par phases |
+| FR66 | Epic 10 | Configuration politique update |
+| FR67 | Epic 10 | Mise à jour manuelle |
+| FR68 | Epic 10 | Blocage version spécifique |
+| FR69 | Epic 12 | Visualisation logs agent |
+| FR70 | Epic 12 | État connexion détaillé |
+| FR71 | Epic 12 | Identification erreurs récentes |
+| FR72 | Epic 12 | Diagnostic à distance |
 
 ## Epic List
 
-{{epics_list}}
+### Epic 1: Foundation & Development Setup
+**Goal:** L'équipe de développement peut initialiser, builder et tester le projet agent avec une structure Cargo Workspace conforme à l'architecture.
+
+**FRs couverts:** Architecture requirements (Cargo Workspace, CI/CD)
+**NFRs couverts:** NFR-M1 à NFR-M8 (Maintainability)
+
+**Scope:**
+- Initialisation Cargo Workspace multi-crates
+- Configuration CI/CD (GitHub Actions)
+- Setup cargo-audit, cargo-deny, clippy
+- Structure projet complète (150+ fichiers)
+
+---
+
+### Epic 2: Agent Core & Service Lifecycle
+**Goal:** L'administrateur IT peut déployer l'agent sur les endpoints Windows et Linux comme service système avec installation silencieuse.
+
+**FRs couverts:** FR1, FR2, FR3, FR4, FR7, FR8
+**NFRs couverts:** NFR-P1 à NFR-P5, NFR-I5, NFR-I6
+
+**Scope:**
+- Installation silencieuse Windows (MSI) et Linux (DEB/RPM)
+- Service système avec démarrage automatique
+- Configuration via JSON/variables environnement
+- Désinstallation propre
+- Empreinte ressources minimale (<2% CPU, <100MB RAM)
+
+---
+
+### Epic 3: Secure Local Storage
+**Goal:** L'agent peut stocker les données de conformité de manière sécurisée et chiffrée localement avec intégrité garantie.
+
+**FRs couverts:** FR25, FR52, FR53, FR54, FR58
+**NFRs couverts:** NFR-S2, NFR-C2, NFR-C3, NFR-C4
+
+**Scope:**
+- Base SQLite avec SQLCipher (AES-256)
+- Schéma 5 tables (agent_config, check_rules, check_results, proofs, sync_queue)
+- Horodatage ISO 8601 UTC
+- Hash SHA-256 pour intégrité preuves
+- Conservation 12 mois
+
+---
+
+### Epic 4: Agent-SaaS Connectivity
+**Goal:** L'agent peut se connecter de façon sécurisée au SaaS Sentinel et l'administrateur voit l'agent en ligne dans la console.
+
+**FRs couverts:** FR5, FR6, FR55, FR56, FR57
+**NFRs couverts:** NFR-S1, NFR-S5, NFR-S6, NFR-S7, NFR-I1, NFR-I2, NFR-I4
+
+**Scope:**
+- Enrollment avec token API + génération certificat mTLS
+- Heartbeat périodique avec métriques
+- Certificate pinning SHA-256
+- Self-check intégrité au démarrage
+- Communication port 443 uniquement
+
+---
+
+### Epic 5: Compliance Check Engine
+**Goal:** L'agent vérifie les 20 points de conformité NIS2/DORA sur l'endpoint et génère les preuves horodatées avec score.
+
+**FRs couverts:** FR9, FR10, FR11, FR12, FR13, FR14, FR15, FR16, FR17, FR18, FR19, FR20, FR21, FR22
+**NFRs couverts:** NFR-P6, NFR-P7
+
+**Scope:**
+- Check runner avec scheduler
+- 20 checks: chiffrement, AV, firewall, password, MFA, etc.
+- Génération preuve horodatée par check
+- Calcul score conformité local
+- Abstraction Windows/Linux pour chaque check
+
+---
+
+### Epic 6: Synchronization & Offline Mode
+**Goal:** L'agent fonctionne en mode déconnecté pendant 7 jours et synchronise automatiquement au retour de connectivité sans perte de données.
+
+**FRs couverts:** FR23, FR24, FR26, FR27, FR28, FR29, FR30
+**NFRs couverts:** NFR-R2, NFR-R4, NFR-R6, NFR-P9
+
+**Scope:**
+- Téléchargement et cache règles localement
+- Queue de synchronisation avec retry exponential backoff
+- Mode offline 7 jours minimum
+- Réconciliation conflits après reconnexion
+- Upload résultats vers SaaS
+
+---
+
+### Epic 7: Dashboard & Compliance Visualization (SaaS)
+**Goal:** Le RSSI visualise le score de conformité global et par endpoint avec filtres par référentiel et alertes de dégradation.
+
+**FRs couverts:** FR31, FR32, FR33, FR34, FR35, FR36, FR37, FR38
+**NFRs couverts:** NFR-U1 à NFR-U4
+
+**Scope:**
+- Score conformité global parc
+- Score par endpoint avec détail écarts
+- Tendance historique 30 jours
+- Filtres NIS2, DORA, RGPD
+- Alertes dégradation score
+- Vue DPO filtrée RGPD
+
+---
+
+### Epic 8: Agent Fleet Administration (SaaS)
+**Goal:** L'administrateur IT gère l'ensemble des agents déployés depuis la console SaaS avec génération tokens et configuration à distance.
+
+**FRs couverts:** FR39, FR40, FR41, FR42, FR43, FR44, FR45, FR46, FR47
+**NFRs couverts:** NFR-SC1, NFR-SC2
+
+**Scope:**
+- Liste agents avec état connexion et version
+- Téléchargement packages (MSI, DEB, RPM)
+- Génération tokens d'enregistrement
+- Configuration fréquence et activation checks
+- Force sync et désinscription agents
+
+---
+
+### Epic 9: Audit & Compliance Reporting
+**Goal:** L'auditeur accède aux preuves de conformité vérifiables et génère des rapports officiels par référentiel.
+
+**FRs couverts:** FR48, FR49, FR50, FR51
+**NFRs couverts:** NFR-C5, NFR-C7
+
+**Scope:**
+- Accès auditeur lecture seule
+- Visualisation preuves techniques horodatées
+- Export rapport conformité PDF par référentiel
+- Historique conformité 12 mois
+
+---
+
+### Epic 10: Agent Self-Update System
+**Goal:** L'agent se met à jour automatiquement de façon sécurisée avec staged rollout et rollback automatique si échec.
+
+**FRs couverts:** FR62, FR63, FR64, FR65, FR66, FR67, FR68
+**NFRs couverts:** NFR-R5, NFR-S3, NFR-S4
+
+**Scope:**
+- Vérification disponibilité nouvelle version
+- Téléchargement et application auto (shadow copy)
+- Rollback automatique si échec
+- Déploiement par phases (1%→10%→50%→100%)
+- Configuration politique update (auto/manuel/différé)
+
+---
+
+### Epic 11: Security Hardening & Integrity
+**Goal:** L'agent garantit son intégrité et celle des logs avec signatures cryptographiques et possibilité de révocation.
+
+**FRs couverts:** FR59, FR60, FR61
+**NFRs couverts:** NFR-S6, NFR-S8, NFR-S9, NFR-S10, NFR-S11
+
+**Scope:**
+- Signature logs HMAC-SHA256
+- Validation signature binaire avant installation
+- Révocation agent compromis à distance
+- Permissions fichiers restrictives
+- Isolation processus
+
+---
+
+### Epic 12: Support & Diagnostics
+**Goal:** L'équipe support peut diagnostiquer et résoudre les problèmes d'agents à distance efficacement.
+
+**FRs couverts:** FR69, FR70, FR71, FR72
+**NFRs couverts:** NFR-M6, NFR-M7
+
+**Scope:**
+- Visualisation logs agent spécifique
+- État connexion détaillé
+- Identification erreurs récentes
+- Diagnostic à distance
+
+---
+
+## Epic 1: Foundation & Development Setup - Stories
+
+### Story 1.1: Initialize Cargo Workspace Structure
+
+As a **developer**,
+I want **to have a properly configured Cargo Workspace with all 6 crates initialized**,
+So that **I can start implementing agent features with proper module separation**.
+
+**Acceptance Criteria:**
+
+**Given** a new repository
+**When** I run `cargo build` in the workspace root
+**Then** all 6 crates compile successfully (agent-common, agent-system, agent-storage, agent-scanner, agent-sync, agent-core)
+**And** the workspace uses Rust 2024 Edition with resolver v3
+**And** workspace dependencies are configured for shared crates (tokio, serde, tracing, etc.)
+
+---
+
+### Story 1.2: Configure CI/CD Pipeline with Quality Gates
+
+As a **developer**,
+I want **automated CI/CD checks on every PR**,
+So that **code quality is enforced consistently across the team**.
+
+**Acceptance Criteria:**
+
+**Given** a pull request is opened
+**When** GitHub Actions CI runs
+**Then** `cargo fmt --check` passes (formatting)
+**And** `cargo clippy -- -D warnings` passes (linting)
+**And** `cargo test` passes (all unit tests)
+**And** `cargo deny check` passes (license/security)
+**And** the pipeline fails if any check fails
+
+---
+
+### Story 1.3: Implement agent-common Core Types and Error Handling
+
+As a **developer**,
+I want **shared types, configuration structs, and error enums in agent-common**,
+So that **all crates have consistent type definitions and error handling**.
+
+**Acceptance Criteria:**
+
+**Given** the agent-common crate exists
+**When** I define shared types
+**Then** `AgentConfig` struct with all configuration fields is available
+**And** `CommonError` enum with thiserror derives is available
+**And** common types (`CheckResult`, `Proof`, `AgentStatus`) are defined
+**And** all types implement Serialize/Deserialize with snake_case
+**And** unit tests verify type serialization roundtrip
+
+---
+
+### Story 1.4: Configure Security Tooling (cargo-audit, cargo-deny)
+
+As a **developer**,
+I want **security tooling configured to catch vulnerabilities and license issues**,
+So that **we maintain a secure and compliant codebase**.
+
+**Acceptance Criteria:**
+
+**Given** the workspace is initialized
+**When** I run `cargo audit`
+**Then** the RustSec advisory database is checked for vulnerabilities
+**And** `deny.toml` is configured with license allowlist (MIT, Apache-2.0, MPL-2.0)
+**And** known-bad crates are blocked
+**And** CI fails if vulnerabilities or license violations are detected
+
+---
+
+## Epic 2: Agent Core & Service Lifecycle - Stories
+
+### Story 2.1: Implement Agent Configuration Loading
+
+As an **administrator**,
+I want **the agent to load configuration from JSON file or environment variables**,
+So that **I can configure agent behavior without recompiling**.
+
+**Acceptance Criteria:**
+
+**Given** a configuration file `agent.json` exists
+**When** the agent starts
+**Then** configuration is loaded from the JSON file
+**And** environment variables override file values (e.g., `SENTINEL_SERVER_URL`)
+**And** missing required config results in clear error message
+**And** default values are used for optional settings
+
+---
+
+### Story 2.2: Create Windows Service with Automatic Startup
+
+As an **administrator**,
+I want **the agent to run as a Windows Service with automatic startup**,
+So that **it starts on boot and runs in the background**.
+
+**Acceptance Criteria:**
+
+**Given** the agent binary is installed on Windows
+**When** I register it as a Windows Service
+**Then** the service appears in services.msc as "Sentinel GRC Agent"
+**And** the service starts automatically on system boot
+**And** the service runs under SYSTEM account
+**And** the service restarts automatically on crash (recovery settings)
+
+---
+
+### Story 2.3: Create Linux Daemon with systemd Integration
+
+As an **administrator**,
+I want **the agent to run as a Linux daemon via systemd**,
+So that **it integrates with standard Linux service management**.
+
+**Acceptance Criteria:**
+
+**Given** the agent binary is installed on Linux
+**When** I enable the systemd service
+**Then** a unit file `sentinel-agent.service` exists in `/etc/systemd/system/`
+**And** the service starts on boot (`systemctl enable sentinel-agent`)
+**And** the service can be controlled via `systemctl start/stop/restart`
+**And** the service restarts automatically on crash (Restart=always)
+
+---
+
+### Story 2.4: Build Windows MSI Installer Package
+
+As an **administrator**,
+I want **an MSI installer for silent deployment on Windows**,
+So that **I can deploy via GPO, SCCM, or Intune**.
+
+**Acceptance Criteria:**
+
+**Given** the agent binary is built for Windows
+**When** I run the MSI installer silently (`msiexec /i agent.msi /qn`)
+**Then** the agent binary is installed to `C:\Program Files\Sentinel\`
+**And** the Windows Service is registered and started
+**And** configuration file is created with defaults
+**And** installation completes without user interaction or reboot
+
+---
+
+### Story 2.5: Build Linux DEB and RPM Packages
+
+As an **administrator**,
+I want **DEB and RPM packages for Linux deployment**,
+So that **I can deploy via apt, yum, or Ansible**.
+
+**Acceptance Criteria:**
+
+**Given** the agent binary is built for Linux
+**When** I install via `apt install ./sentinel-agent.deb` or `yum install sentinel-agent.rpm`
+**Then** the agent binary is installed to `/opt/sentinel/`
+**And** the systemd service is registered and enabled
+**And** configuration file is created at `/etc/sentinel/agent.json`
+**And** proper file permissions (0755 binary, 0600 config) are set
+
+---
+
+### Story 2.6: Implement Clean Uninstallation
+
+As an **administrator**,
+I want **the agent to uninstall cleanly without leaving residues**,
+So that **I can remove agents from endpoints completely**.
+
+**Acceptance Criteria:**
+
+**Given** the agent is installed
+**When** I uninstall via MSI or package manager
+**Then** the service is stopped and unregistered
+**And** all agent files are removed from installation directory
+**And** configuration files are optionally preserved (configurable)
+**And** logs are preserved for audit purposes
+**And** no orphan registry keys (Windows) or files remain
+
+---
+
+### Story 2.7: Implement Resource Usage Limits
+
+As an **administrator**,
+I want **the agent to operate within strict resource limits**,
+So that **it doesn't impact endpoint performance**.
+
+**Acceptance Criteria:**
+
+**Given** the agent is running
+**When** the agent is idle
+**Then** CPU usage is < 0.5% average
+**And** when running checks, CPU usage is < 5% peak
+**And** memory usage is always < 100 MB
+**And** disk I/O is < 10 IOPS average
+**And** agent startup time is < 5 seconds
+
+---
+
+## Epic 3: Secure Local Storage - Stories
+
+### Story 3.1: Initialize SQLite Database with SQLCipher Encryption
+
+As a **security officer**,
+I want **all local data stored in an encrypted SQLite database**,
+So that **confidential compliance data is protected at rest**.
+
+**Acceptance Criteria:**
+
+**Given** the agent starts for the first time
+**When** the database is initialized
+**Then** a SQLite database is created at the designated location
+**And** SQLCipher encryption is enabled with AES-256-CBC
+**And** the encryption key is derived from machine-specific data (DPAPI on Windows, keyring on Linux)
+**And** the database cannot be read without the correct key
+**And** unit tests verify encryption is active
+
+---
+
+### Story 3.2: Implement Database Schema with Migrations
+
+As a **developer**,
+I want **a versioned database schema with migration support**,
+So that **database updates can be applied safely across agent versions**.
+
+**Acceptance Criteria:**
+
+**Given** the encrypted database is initialized
+**When** the agent runs schema migrations
+**Then** 5 tables are created: `agent_config`, `check_rules`, `check_results`, `proofs`, `sync_queue`
+**And** a `schema_version` table tracks applied migrations
+**And** migrations run in order and are idempotent
+**And** failed migrations trigger rollback and error logging
+**And** foreign key constraints are enforced
+
+---
+
+### Story 3.3: Implement Check Results Repository
+
+As an **agent**,
+I want **to store check results with full context**,
+So that **compliance history is available locally for offline operation**.
+
+**Acceptance Criteria:**
+
+**Given** a compliance check has executed
+**When** the result is stored
+**Then** the `check_results` table contains: check_id, timestamp, status, score, raw_data
+**And** timestamp is in ISO 8601 UTC format
+**And** results can be queried by date range and check type
+**And** concurrent writes are handled safely (WAL mode)
+**And** unit tests verify CRUD operations
+
+---
+
+### Story 3.4: Implement Proof Storage with Integrity Hash
+
+As an **auditor**,
+I want **each proof to have a SHA-256 integrity hash**,
+So that **I can verify proofs have not been tampered with**.
+
+**Acceptance Criteria:**
+
+**Given** a compliance check generates proof data
+**When** the proof is stored
+**Then** the `proofs` table contains: proof_id, check_result_id, data, hash, created_at
+**And** hash is computed as SHA-256 of (check_result_id + data + created_at)
+**And** timestamp is in ISO 8601 UTC format (NFR-C3)
+**And** proof data is stored as JSON blob
+**And** integrity can be verified by recomputing the hash
+**And** unit tests verify hash computation and verification
+
+---
+
+### Story 3.5: Implement Data Retention Policy (12 Months)
+
+As a **compliance officer**,
+I want **proofs retained for 12 months then automatically purged**,
+So that **storage is managed and compliance requirements (NFR-C2) are met**.
+
+**Acceptance Criteria:**
+
+**Given** proofs older than 12 months exist in the database
+**When** the retention policy job runs (daily)
+**Then** proofs older than 12 months are deleted
+**And** associated check results are marked as archived
+**And** deletion is logged with count and date range
+**And** sync_queue entries for deleted data are also cleaned
+**And** storage usage is reported after cleanup
+
+---
+
+## Epic 4: Agent-SaaS Connectivity - Stories
+
+### Story 4.1: Implement Agent Enrollment with API Token
+
+As an **administrator**,
+I want **to enroll a new agent using a registration token**,
+So that **only authorized agents can connect to my organization**.
+
+**Acceptance Criteria:**
+
+**Given** an administrator has generated a registration token in the SaaS console
+**When** the agent starts with the token in configuration
+**Then** the agent calls the `/v1/agents/enroll` endpoint with the token
+**And** the SaaS validates the token and returns agent credentials (agent_id, client certificate)
+**And** the agent stores credentials securely in the encrypted database
+**And** subsequent restarts use stored credentials (no re-enrollment)
+**And** invalid/expired tokens result in clear error message and retry
+
+---
+
+### Story 4.2: Implement mTLS Certificate Management
+
+As a **security officer**,
+I want **all agent-SaaS communication secured with mTLS**,
+So that **both parties are mutually authenticated**.
+
+**Acceptance Criteria:**
+
+**Given** the agent has enrolled successfully
+**When** the agent communicates with the SaaS
+**Then** mTLS is used with the agent's client certificate
+**And** TLS 1.3 is enforced as minimum version (NFR-S1)
+**And** the client certificate is stored encrypted (SQLCipher)
+**And** certificate renewal is handled automatically before expiry
+**And** communication fails gracefully if certificate is invalid
+
+---
+
+### Story 4.3: Implement Heartbeat Mechanism with Metrics
+
+As an **administrator**,
+I want **agents to send periodic heartbeats with health metrics**,
+So that **I can monitor agent connectivity and health in real-time**.
+
+**Acceptance Criteria:**
+
+**Given** the agent is enrolled and running
+**When** the heartbeat interval elapses (default: 60 seconds)
+**Then** the agent sends a heartbeat to `/v1/agents/{id}/heartbeat`
+**And** the payload includes: agent_version, os_info, cpu_usage, memory_usage, last_check_timestamp, compliance_score
+**And** heartbeat latency is < 1s at p95 (NFR-P8)
+**And** failed heartbeats are retried with exponential backoff
+**And** 3 consecutive failures trigger offline mode
+
+---
+
+### Story 4.4: Implement Certificate Pinning for Server Validation
+
+As a **security officer**,
+I want **the agent to validate the server certificate against a pinned fingerprint**,
+So that **MITM attacks are prevented even with compromised CAs**.
+
+**Acceptance Criteria:**
+
+**Given** the agent connects to the SaaS API
+**When** the TLS handshake occurs
+**Then** the server certificate SHA-256 fingerprint is validated against the pinned value
+**And** pinned fingerprints are stored in agent configuration (updatable via SaaS)
+**And** connection is rejected if fingerprint doesn't match
+**And** backup pins are supported for certificate rotation
+**And** pin validation failures are logged with details
+
+---
+
+### Story 4.5: Implement Agent Self-Integrity Check at Startup
+
+As a **security officer**,
+I want **the agent to verify its own binary integrity at startup**,
+So that **tampered agents are detected and refused to run**.
+
+**Acceptance Criteria:**
+
+**Given** the agent binary is installed
+**When** the agent starts
+**Then** the agent computes SHA-256 hash of its own binary
+**And** the hash is compared against the expected value (embedded or from secure storage)
+**And** if hash mismatch, agent logs critical error and exits
+**And** self-check result is included in first heartbeat
+**And** the check completes in < 1 second
+
+---
+
+## Epic 5: Compliance Check Engine - Stories
+
+### Story 5.1: Implement Check Runner Framework and Scheduler
+
+As a **developer**,
+I want **a pluggable check runner with configurable scheduling**,
+So that **compliance checks execute reliably at defined intervals**.
+
+**Acceptance Criteria:**
+
+**Given** the agent is running with configured check rules
+**When** the scheduler triggers
+**Then** enabled checks are executed according to their configured frequency
+**And** checks run in parallel with configurable concurrency limit
+**And** each check has a timeout (default 30s) to prevent hangs
+**And** check execution time is < 2s per check (NFR-P6)
+**And** full scan of 20 checks completes in < 30s (NFR-P7)
+**And** check results are passed to the storage layer
+
+---
+
+### Story 5.2: Implement Disk Encryption Check (BitLocker/LUKS)
+
+As a **CISO**,
+I want **the agent to verify disk encryption status**,
+So that **I know endpoints have data-at-rest protection**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the disk encryption check executes
+**Then** BitLocker status is retrieved via WMI/PowerShell
+**And** result includes: enabled (bool), encryption_percentage, protection_status, key_protectors
+
+**Given** the agent runs on Linux
+**When** the disk encryption check executes
+**Then** LUKS status is retrieved via `cryptsetup status`
+**And** result includes: encrypted_partitions[], encryption_type, is_unlocked
+
+**And** proof contains raw command output with timestamp
+
+---
+
+### Story 5.3: Implement Antivirus Status Check
+
+As a **CISO**,
+I want **the agent to verify antivirus is active with current definitions**,
+So that **I know endpoints have malware protection**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the antivirus check executes
+**Then** Windows Security Center is queried for AV status
+**And** result includes: av_name, enabled, real_time_protection, definition_date, definition_version
+
+**Given** the agent runs on Linux
+**When** the antivirus check executes
+**Then** common AV agents are detected (ClamAV, Sophos, etc.)
+**And** result includes: av_name, service_running, last_scan_date
+
+**And** definitions older than 7 days trigger non-compliant status
+
+---
+
+### Story 5.4: Implement Firewall Configuration Check
+
+As a **CISO**,
+I want **the agent to verify firewall is enabled**,
+So that **I know endpoints have network protection**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the firewall check executes
+**Then** Windows Firewall status is retrieved for all profiles (Domain, Private, Public)
+**And** result includes: profile_name, enabled, default_inbound_action, default_outbound_action
+
+**Given** the agent runs on Linux
+**When** the firewall check executes
+**Then** iptables/nftables/ufw status is retrieved
+**And** result includes: firewall_type, enabled, rule_count, default_policy
+
+---
+
+### Story 5.5: Implement Password Policy Check
+
+As a **CISO**,
+I want **the agent to verify password policy compliance**,
+So that **I know credential policies meet security standards**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the password policy check executes
+**Then** Local Security Policy is queried
+**And** result includes: min_length, complexity_required, max_age_days, history_count, lockout_threshold
+
+**Given** the agent runs on Linux
+**When** the password policy check executes
+**Then** PAM configuration and /etc/login.defs are parsed
+**And** result includes: min_length, complexity_modules, max_age_days, password_history
+
+**And** non-compliance is flagged if min_length < 12 or complexity disabled
+
+---
+
+### Story 5.6: Implement Session Lock Check
+
+As a **CISO**,
+I want **the agent to verify automatic session lock is configured**,
+So that **unattended endpoints are protected**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the session lock check executes
+**Then** Screen saver and lock settings are retrieved from registry/GPO
+**And** result includes: lock_enabled, timeout_minutes, require_password
+
+**Given** the agent runs on Linux
+**When** the session lock check executes
+**Then** Desktop environment lock settings are retrieved (GNOME, KDE, etc.)
+**And** result includes: lock_enabled, timeout_minutes, lock_on_suspend
+
+**And** non-compliance if timeout > 15 minutes or lock disabled
+
+---
+
+### Story 5.7: Implement System Updates Check
+
+As a **CISO**,
+I want **the agent to verify system updates are current**,
+So that **I know endpoints have security patches applied**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the updates check executes
+**Then** Windows Update status is retrieved
+**And** result includes: last_check_date, pending_updates_count, pending_security_updates, last_install_date
+
+**Given** the agent runs on Linux
+**When** the updates check executes
+**Then** Package manager (apt/yum) is queried
+**And** result includes: last_update_date, upgradable_packages_count, security_updates_pending
+
+**And** non-compliance if security updates pending > 7 days
+
+---
+
+### Story 5.8: Implement Obsolete Protocols Check
+
+As a **CISO**,
+I want **the agent to verify obsolete protocols are disabled**,
+So that **I know endpoints don't expose legacy vulnerabilities**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the protocols check executes
+**Then** SMBv1 status is checked via registry/feature
+**And** TLS 1.0/1.1 status is checked via registry
+**And** result includes: smbv1_enabled, tls10_enabled, tls11_enabled, sslv3_enabled
+
+**Given** the agent runs on Linux
+**When** the protocols check executes
+**Then** OpenSSL/system crypto policy is checked
+**And** result includes: min_tls_version, weak_ciphers_enabled
+
+**And** any legacy protocol enabled triggers non-compliant
+
+---
+
+### Story 5.9: Implement Backup Configuration Check
+
+As a **CISO**,
+I want **the agent to verify backup is configured and recent**,
+So that **I know data recovery is possible**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the backup check executes
+**Then** Windows Backup / File History status is retrieved
+**And** result includes: backup_enabled, last_backup_date, backup_destination, backup_size
+
+**Given** the agent runs on Linux
+**When** the backup check executes
+**Then** Common backup tools are detected (rsync cron, timeshift, etc.)
+**And** result includes: backup_configured, last_backup_date, backup_location
+
+**And** non-compliance if last backup > 30 days or not configured
+
+---
+
+### Story 5.10: Implement Local Admin Accounts Check
+
+As a **CISO**,
+I want **the agent to audit local administrator accounts**,
+So that **I know privileged access is controlled**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the admin accounts check executes
+**Then** Local Administrators group members are enumerated
+**And** result includes: admin_accounts[], count, non_standard_admins[]
+
+**Given** the agent runs on Linux
+**When** the admin accounts check executes
+**Then** Users with sudo/wheel group or UID 0 are enumerated
+**And** result includes: root_enabled, sudo_users[], wheel_members[]
+
+**And** warning if admin count > 3 or unexpected accounts found
+
+---
+
+### Story 5.11: Implement MFA Configuration Check
+
+As a **CISO**,
+I want **the agent to verify MFA is configured where applicable**,
+So that **I know authentication is strengthened**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows domain-joined machine
+**When** the MFA check executes
+**Then** Azure AD / Windows Hello status is checked
+**And** result includes: mfa_provider, mfa_enforced, enrollment_status
+
+**Given** the agent runs on Linux
+**When** the MFA check executes
+**Then** PAM MFA modules are detected (Google Authenticator, Duo, etc.)
+**And** result includes: mfa_module, mfa_required_for_sudo, mfa_required_for_ssh
+
+**And** check is marked "not_applicable" if no MFA infrastructure detected
+
+---
+
+### Story 5.12: Implement Remote Access Security Check
+
+As a **CISO**,
+I want **the agent to verify remote access is secured**,
+So that **I know RDP/SSH are hardened**.
+
+**Acceptance Criteria:**
+
+**Given** the agent runs on Windows
+**When** the remote access check executes
+**Then** RDP settings are retrieved
+**And** result includes: rdp_enabled, nla_required, encryption_level, port
+
+**Given** the agent runs on Linux
+**When** the remote access check executes
+**Then** SSH configuration is parsed
+**And** result includes: ssh_enabled, password_auth, root_login, key_only, port, protocol_version
+
+**And** non-compliance if NLA disabled (Windows) or root login enabled (Linux)
+
+---
+
+### Story 5.13: Implement Proof Generation Engine
+
+As an **auditor**,
+I want **each check to generate a timestamped proof**,
+So that **compliance evidence is verifiable and tamper-evident**.
+
+**Acceptance Criteria:**
+
+**Given** a compliance check has executed
+**When** the proof is generated
+**Then** proof contains: check_id, timestamp (ISO 8601 UTC), raw_output, computed_result
+**And** SHA-256 hash is computed over the proof content
+**And** proof is stored in the `proofs` table via Story 3.4
+**And** proof generation adds < 100ms overhead per check
+**And** proofs are linked to check_results via foreign key
+
+---
+
+### Story 5.14: Implement Local Compliance Score Calculator
+
+As a **CISO**,
+I want **the agent to calculate a local compliance score**,
+So that **I have immediate visibility into endpoint compliance**.
+
+**Acceptance Criteria:**
+
+**Given** all checks have completed
+**When** the score is calculated
+**Then** score is computed as: (compliant_checks / total_checks) * 100
+**And** weighted scoring is supported (critical checks have higher weight)
+**And** score is stored locally with timestamp
+**And** score is included in heartbeat payload
+**And** score trend (vs last scan) is calculated
+**And** checks marked "not_applicable" are excluded from calculation
+
+---
+
+## Epic 6: Synchronization & Offline Mode - Stories
+
+### Story 6.1: Download and Cache Check Rules from SaaS
+
+As an **agent**,
+I want **to download check rules from the SaaS and cache them locally**,
+So that **I can execute compliance checks even when offline**.
+
+**Acceptance Criteria:**
+
+**Given** the agent is connected to the SaaS
+**When** a sync cycle runs or rules are updated server-side
+**Then** the agent downloads check rules from `/v1/agents/{id}/rules`
+**And** rules are stored in the `check_rules` table with version hash
+**And** only changed rules are downloaded (delta sync via ETag)
+**And** cached rules remain valid for 7 days minimum
+**And** rule download failure doesn't prevent using cached rules
+
+---
+
+### Story 6.2: Download Agent Configuration from SaaS
+
+As an **administrator**,
+I want **agent configuration to sync from the SaaS console**,
+So that **I can manage agent settings centrally**.
+
+**Acceptance Criteria:**
+
+**Given** the agent is connected to the SaaS
+**When** configuration is updated in the console
+**Then** the agent downloads new config from `/v1/agents/{id}/config`
+**And** configuration is stored in `agent_config` table
+**And** configuration changes take effect without agent restart (hot reload)
+**And** local config file overrides are preserved (merge strategy)
+**And** config sync occurs on heartbeat response signal
+
+---
+
+### Story 6.3: Upload Check Results to SaaS
+
+As a **CISO**,
+I want **check results uploaded to the SaaS in real-time**,
+So that **I see compliance status as soon as checks complete**.
+
+**Acceptance Criteria:**
+
+**Given** a compliance check has completed
+**When** the agent is online
+**Then** results are uploaded to `/v1/agents/{id}/results` within 60s
+**And** payload includes: check_id, timestamp, status, score, proof_hash
+**And** upload uses gzip compression (NFR-I8)
+**And** successful upload marks local record as synced
+**And** upload rate is limited to 200 req/s (NFR-SC4)
+
+---
+
+### Story 6.4: Implement Offline Mode with 7-Day Autonomy
+
+As an **agent**,
+I want **to operate fully offline for at least 7 days**,
+So that **disconnected endpoints maintain compliance monitoring**.
+
+**Acceptance Criteria:**
+
+**Given** the agent loses connectivity to the SaaS
+**When** 7 days pass without connection
+**Then** checks continue executing on schedule using cached rules
+**And** results and proofs are stored locally (NFR-R4: 0% data loss)
+**And** compliance score continues updating locally
+**And** agent logs offline duration and queued item count
+**And** no functionality degrades during offline period
+
+---
+
+### Story 6.5: Implement Sync Queue with Retry Logic
+
+As an **agent**,
+I want **pending uploads queued and retried with exponential backoff**,
+So that **data is eventually synchronized without overwhelming the server**.
+
+**Acceptance Criteria:**
+
+**Given** an upload fails due to network error
+**When** retry logic executes
+**Then** the item is queued in `sync_queue` table with attempt count
+**And** retry uses exponential backoff: 1s, 2s, 4s, 8s... up to 1 hour max
+**And** circuit breaker opens after 5 consecutive failures (pause 5 min)
+**And** queue is processed FIFO with oldest items first
+**And** sync completes within 5 minutes after reconnection (NFR-P9)
+**And** retry continues up to 24 hours (NFR-R6)
+
+---
+
+### Story 6.6: Handle Synchronization Conflicts
+
+As an **administrator**,
+I want **conflicts handled gracefully after offline periods**,
+So that **no data is lost and state is consistent**.
+
+**Acceptance Criteria:**
+
+**Given** the agent was offline and configuration changed on SaaS
+**When** the agent reconnects
+**Then** server configuration takes precedence (server wins)
+**And** local results are uploaded regardless of config changes
+**And** conflicting check rules are resolved by version timestamp
+**And** conflict resolution is logged with before/after state
+**And** manual conflict items are flagged for admin review (edge cases)
+
+---
+
+## Epic 7: Dashboard & Compliance Visualization (SaaS) - Stories
+
+### Story 7.1: Display Global Compliance Score Dashboard
+
+As a **CISO**,
+I want **to see a global compliance score for my entire fleet**,
+So that **I have immediate visibility into organizational risk posture**.
+
+**Acceptance Criteria:**
+
+**Given** I am logged into the SaaS console
+**When** I navigate to the Endpoints dashboard
+**Then** I see a prominent global compliance score (0-100%)
+**And** the score is calculated as weighted average of all endpoint scores
+**And** the score updates in real-time as agent results arrive
+**And** color coding indicates status: green (≥80%), yellow (60-79%), red (<60%)
+**And** dashboard loads in < 3s initial, < 1s navigation (NFR-U1)
+
+---
+
+### Story 7.2: Display Per-Endpoint Compliance View
+
+As a **CISO**,
+I want **to see compliance score for each individual endpoint**,
+So that **I can identify which machines need attention**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Endpoints dashboard
+**When** I view the endpoints list
+**Then** each endpoint shows: hostname, OS, compliance_score, last_check_time, status
+**And** endpoints are sortable by score, name, or last check time
+**And** clicking an endpoint opens detail view
+**And** offline endpoints are visually distinguished
+**And** pagination supports 10,000+ agents (NFR-SC1)
+
+---
+
+### Story 7.3: Display Compliance Gap Details
+
+As a **CISO**,
+I want **to see detailed compliance gaps per check**,
+So that **I understand exactly what needs remediation**.
+
+**Acceptance Criteria:**
+
+**Given** I select an endpoint
+**When** I view the compliance details
+**Then** I see each check with: name, status, score, last_run, framework_mapping
+**And** non-compliant checks are highlighted with reason
+**And** I can expand each check to see proof data
+**And** remediation guidance is shown for failed checks
+**And** checks are grouped by category (encryption, access, network, etc.)
+
+---
+
+### Story 7.4: Display Historical Compliance Trend
+
+As a **CISO**,
+I want **to see compliance score trends over time**,
+So that **I can track improvement or degradation**.
+
+**Acceptance Criteria:**
+
+**Given** I am viewing the dashboard or endpoint detail
+**When** I view the trend chart
+**Then** a line chart shows daily compliance score for last 30 days minimum
+**And** I can change the time range (7d, 30d, 90d, 12m)
+**And** significant changes (>5% delta) are marked on the chart
+**And** hovering shows exact score and date
+**And** trend data is available for global and per-endpoint views
+
+---
+
+### Story 7.5: Filter by Regulatory Framework
+
+As a **CISO**,
+I want **to filter compliance view by regulatory framework**,
+So that **I can focus on specific compliance requirements**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Endpoints dashboard
+**When** I select a framework filter (NIS2, DORA, RGPD)
+**Then** only checks mapped to that framework are included in scores
+**And** global and endpoint scores recalculate for selected framework
+**And** multiple frameworks can be selected (OR logic)
+**And** filter selection persists across navigation
+**And** "All frameworks" option resets to default view
+
+---
+
+### Story 7.6: Filter by Compliance Status
+
+As a **CISO**,
+I want **to filter endpoints by compliance status**,
+So that **I can focus on non-compliant machines**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Endpoints dashboard
+**When** I apply a status filter
+**Then** I can filter by: Compliant (≥80%), At Risk (60-79%), Non-Compliant (<60%)
+**And** endpoint count per status is shown in filter UI
+**And** filters combine with framework filter (AND logic)
+**And** "Show all" clears status filter
+**And** filtered view URL is shareable
+
+---
+
+### Story 7.7: Configure Score Degradation Alerts
+
+As a **CISO**,
+I want **to receive alerts when compliance score degrades**,
+So that **I'm notified of emerging risks immediately**.
+
+**Acceptance Criteria:**
+
+**Given** I have configured alert thresholds
+**When** global or endpoint score drops below threshold
+**Then** an alert is generated with: scope, previous_score, new_score, delta, trigger_time
+**And** alert is delivered via configured channel (email, webhook, in-app)
+**And** configurable thresholds: critical (<60%), warning (<80%)
+**And** alert cooldown prevents spam (min 1 hour between same alert)
+**And** alert history is viewable in console
+
+---
+
+### Story 7.8: Provide DPO GDPR-Filtered View
+
+As a **DPO**,
+I want **a dedicated view filtered for GDPR-relevant checks**,
+So that **I can assess data protection compliance specifically**.
+
+**Acceptance Criteria:**
+
+**Given** I am logged in with DPO role
+**When** I access the DPO dashboard
+**Then** only RGPD-mapped checks are shown
+**And** endpoints processing personal data are highlighted
+**And** encryption and access control checks are prioritized
+**And** I can generate RGPD-specific compliance report
+**And** view is read-only (no configuration changes)
