@@ -168,6 +168,7 @@ module.exports = {
   getVoxelSnapshots: voxelSnapshots.getVoxelSnapshots,
   getVoxelSnapshotByDate: voxelSnapshots.getVoxelSnapshotByDate,
   compareVoxelSnapshots: voxelSnapshots.compareVoxelSnapshots,
+  convertAnomalyToIncident: detectAnomalies.convertAnomalyToIncident,
 
   // --- Document Vault ---
   scheduledRetentionEngine: retentionEngine.scheduledRetentionEngine,
