@@ -1,5 +1,7 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+workflow_completed: true
+completion_date: '2026-01-23'
 inputDocuments: ['brainstorming-session-2026-01-23.md', 'comprehensive-agent-grc-research-2026-01-23.md', 'project-context.md', 'prd.md']
 workflowType: 'prd'
 lastStep: 1
@@ -507,4 +509,525 @@ L'agent doit supporter simultanément plusieurs référentiels avec mapping croi
 - Si adoption lente → Focus clients régulés (NIS2/DORA obligatoire)
 - Si concurrents copient → Accélérer roadmap, brevets potentiels
 - Si intelligence collective rejetée → Feature désactivée, focus single-tenant
+
+## Endpoint Agent Specific Requirements
+
+### Project-Type Overview
+
+L'Agent GRC Sentinel est un **agent endpoint natif** qui s'exécute en tant que service système sur Windows et Linux. Il combine les caractéristiques d'un agent de sécurité (léger, toujours actif, privilégié) avec les capacités d'un outil de conformité (checks, preuves, reporting).
+
+**Caractéristiques clés du type endpoint_agent :**
+- Exécution en arrière-plan permanente (daemon/service)
+- Privilèges élevés pour accès système
+- Communication cloud sécurisée
+- Mode offline robuste
+- Mise à jour automatique sans intervention utilisateur
+
+### Technical Architecture Considerations
+
+#### Modules Agent
+
+| Module | Responsabilité | Crates Rust |
+|--------|---------------|-------------|
+| **Core** | Configuration, scheduler, lifecycle | `tokio`, `serde`, `config` |
+| **Scanner** | Exécution checks, génération preuves | `windows-rs`, `nix` |
+| **Sync** | Communication SaaS, queue, retry | `reqwest`, `tokio` |
+| **Storage** | SQLite, cache règles, preuves | `rusqlite`, `serde_json` |
+| **Logs** | Tracing structuré, rotation, upload | `tracing`, `tracing-subscriber` |
+| **System** | Abstraction OS (Windows/Linux) | `windows-rs`, `nix`, `libc` |
+
+### Platform Support Requirements
+
+#### Windows
+
+| Composant | Exigence | Justification |
+|-----------|----------|---------------|
+| **Version minimale** | Windows 10 1809+ | API modernes, support actif |
+| **Architecture** | x64, ARM64 (V1.1) | Couverture parc standard |
+| **Installation** | MSI, MSIX | GPO, SCCM, Intune compatible |
+| **Service** | Windows Service | Auto-start, recovery |
+| **Privilèges** | SYSTEM | Accès Registry, WMI, services |
+| **Intégration** | Event Log, ETW | Diagnostic, SIEM |
+
+**APIs Windows utilisées :**
+- `WMI` — Inventaire hardware/software
+- `Registry` — Configurations système
+- `Windows Security Center` — État antivirus/firewall
+- `BitLocker WMI` — État chiffrement
+- `Group Policy` — Politiques appliquées
+- `Windows Defender API` — Définitions, scans
+
+#### Linux
+
+| Composant | Exigence | Justification |
+|-----------|----------|---------------|
+| **Distributions** | Ubuntu 20.04+, RHEL 8+, Debian 11+ | 90%+ serveurs enterprise |
+| **Architecture** | x64, ARM64 (V1.1) | Cloud + edge |
+| **Installation** | DEB, RPM, tarball | Package managers standards |
+| **Service** | systemd unit | Auto-start, watchdog |
+| **Privilèges** | root | Accès /etc, /proc, /sys |
+| **Intégration** | journald, syslog | Diagnostic, SIEM |
+
+**Méthodes Linux utilisées :**
+- `/etc/*` — Fichiers configuration
+- `/proc/*` — État système runtime
+- `PAM` — Politiques authentification
+- `systemctl` — État services
+- `dpkg/rpm` — Packages installés
+- `iptables/nftables` — Règles firewall
+
+### System Integration Requirements
+
+#### Privilèges et Sécurité
+
+| Aspect | Windows | Linux |
+|--------|---------|-------|
+| **Compte exécution** | NT AUTHORITY\SYSTEM | root |
+| **Permissions fichiers** | ACL restrictives | 0600/0700 |
+| **Protection binaire** | Authenticode signing | GPG signing |
+| **Intégrité runtime** | Self-check hash | Self-check hash |
+| **Communication** | mTLS + cert pinning | mTLS + cert pinning |
+
+#### Installation Enterprise
+
+| Méthode | Windows | Linux |
+|---------|---------|-------|
+| **GPO/SCCM** | MSI + transform | — |
+| **Ansible** | win_package | apt/yum module |
+| **Intune/MDM** | MSIX | — |
+| **Script** | PowerShell | Bash |
+| **Image** | WIM/DISM | Cloud-init |
+
+### Update Strategy
+
+#### Staged Rollout
+
+| Phase | % Endpoints | Observation | Critère rollback |
+|-------|-------------|-------------|------------------|
+| **Canary** | 1% | 24h | Crash rate > 0.1% |
+| **Early** | 10% | 48h | Error rate > 1% |
+| **General** | 50% | 72h | Performance dégradée |
+| **Complete** | 100% | Continu | Monitoring standard |
+
+**Mécanisme rollback :**
+- Backup version précédente conservée
+- Rollback automatique si critères échec
+- Rollback manuel via console admin
+- Version minimum garantie (jamais downgrade critique)
+
+### Offline Capabilities
+
+| Capacité | Offline | Justification |
+|----------|---------|---------------|
+| **Exécution checks** | ✅ Oui | Règles en cache local |
+| **Stockage preuves** | ✅ Oui | SQLite local |
+| **Score local** | ✅ Oui | Calcul embarqué |
+| **Alertes locales** | ✅ Oui | Logs système |
+| **Nouvelles règles** | ❌ Non | Nécessite sync |
+| **Reporting cloud** | ❌ Non | Nécessite connectivité |
+
+**Durée autonomie :** 7 jours minimum (extensible par configuration)
+
+### Security Model
+
+#### Defence in Depth
+
+| Couche | Protection | Implémentation |
+|--------|------------|----------------|
+| **Transport** | TLS 1.3 + mTLS | Certificate pinning |
+| **Binaire** | Code signing | Authenticode/GPG |
+| **Runtime** | Intégrité | Self-check SHA-256 |
+| **Données** | Chiffrement | SQLite encryption |
+| **Logs** | Signature | HMAC logs |
+| **Config** | Protection | ACL/permissions restrictives |
+
+### Connectivity Protocol
+
+#### API Agent ↔ SaaS
+
+| Endpoint | Méthode | Fréquence | Payload |
+|----------|---------|-----------|---------|
+| `/agent/register` | POST | Une fois | Agent info, token |
+| `/agent/heartbeat` | POST | 5 min | Status, metrics |
+| `/agent/rules` | GET | 1h | Règles actives |
+| `/agent/results` | POST | Sur check | Preuves, scores |
+| `/agent/config` | GET | 1h | Configuration |
+| `/agent/update` | GET | 4h | Version disponible |
+
+**Caractéristiques réseau :**
+- HTTPS only (port 443)
+- Proxy support (HTTP/SOCKS5)
+- Retry avec backoff exponentiel
+- Compression gzip
+
+### Implementation Considerations
+
+#### Build & Release
+
+| Aspect | Choix | Justification |
+|--------|-------|---------------|
+| **CI/CD** | GitHub Actions | Cross-compile, signing |
+| **Cross-compile** | cargo cross | Windows/Linux depuis Linux |
+| **Signing Windows** | Azure SignTool | Authenticode EV |
+| **Signing Linux** | GPG | Dépôts apt/yum |
+| **Artifacts** | MSI, DEB, RPM, tarball | Couverture maximale |
+| **Versioning** | SemVer | Compatibilité claire |
+
+#### Testing Strategy
+
+| Type | Couverture | Outils |
+|------|------------|--------|
+| **Unit tests** | 80%+ | cargo test |
+| **Integration** | Checks réels | VMs Windows/Linux |
+| **E2E** | Workflow complet | API tests |
+| **Performance** | Benchmarks | criterion |
+| **Security** | SAST + Pentest | cargo-audit, externe |
+
+## Project Scoping & Phased Development
+
+### MVP Strategy & Philosophy
+
+**MVP Approach:** Platform MVP — Construire la fondation technique pour expansion future
+
+**Rationale :**
+- L'agent endpoint est le **cœur technique** de l'innovation
+- Sans agent robuste, les features avancées sont impossibles
+- Le marché NIS2/DORA crée une **urgence réglementaire**
+- Les clients SaaS existants sont un **canal de distribution** immédiat
+
+**Resource Requirements MVP :**
+
+| Rôle | Effectif | Profil |
+|------|----------|--------|
+| **Tech Lead Rust** | 1 | Senior, expérience systèmes Windows/Linux |
+| **Développeur Rust** | 2 | Mid-Senior, cross-platform |
+| **Développeur Backend** | 1 | API Sentinel, intégration agent |
+| **DevOps/SRE** | 0.5 | CI/CD, signing, déploiement |
+| **QA** | 1 | Tests Windows/Linux, automatisation |
+| **Product Manager** | 0.5 | Coordination, specs, clients beta |
+
+**Équipe MVP totale :** 6 ETP
+
+### MVP Feature Set (Phase 1)
+
+#### Core User Journeys Supported
+
+| Journey | Supported MVP | Limitations |
+|---------|---------------|-------------|
+| **Sophie (RSSI)** | ✅ Complet | Dashboard basique |
+| **Thomas (Admin IT)** | ✅ Complet | — |
+| **Marie (DPO)** | ⚠️ Partiel | RGPD simplifié |
+| **Pierre (Auditeur)** | ⚠️ Partiel | Export PDF uniquement |
+| **Julien (MSP)** | ❌ Post-MVP | Multi-tenant V1.1 |
+| **Sarah (Support)** | ⚠️ Partiel | Logs basiques |
+| **Alexandre (SecOps)** | ❌ Post-MVP | API webhook V1.1 |
+
+#### Must-Have Capabilities MVP
+
+| Capability | Priorité | Justification |
+|------------|----------|---------------|
+| **Agent Windows** | P0 | 70% parc client |
+| **Agent Linux** | P0 | 30% parc client (serveurs) |
+| **20 checks NIS2/DORA** | P0 | Valeur conformité core |
+| **Score temps réel** | P0 | Différenciateur clé |
+| **Mode offline 7j** | P0 | Fiabilité requise |
+| **Dashboard endpoint** | P0 | Visibilité RSSI |
+| **Preuves horodatées** | P0 | Audit trail |
+| **Installation silencieuse** | P0 | Adoption enterprise |
+| **mTLS + signing** | P0 | Sécurité non-négociable |
+| **Staged rollout** | P1 | Risque déploiement |
+
+#### Explicitly Out of MVP Scope
+
+| Feature | Raison exclusion | Phase cible |
+|---------|------------------|-------------|
+| **macOS** | Complexité + faible demande | V1.1 |
+| **Multi-tenant MSP** | Complexité archi | V1.1 |
+| **Intelligence collective** | Nécessite volume clients | V1.2 |
+| **Checks personnalisés** | UI complexe | V1.2 |
+| **API publique webhook** | Intégrations tierces | V1.1 |
+| **Remediation assistée** | Risque + complexité | V2.0 |
+| **IA prédictive** | R&D | V2.0 |
+
+### Post-MVP Features
+
+#### Phase 2: Growth (V1.1 — MVP + 3 mois)
+
+| Feature | Valeur business | Effort |
+|---------|-----------------|--------|
+| **macOS Support** | Couverture 95%+ parc | Moyen |
+| **Multi-tenant MSP** | Channel MSSP | Élevé |
+| **API webhook SIEM** | Intégration SecOps | Moyen |
+| **+10 checks RGPD** | Conformité étendue | Faible |
+| **Export PDF amélioré** | Auditeurs | Faible |
+| **Console support avancée** | Réduction tickets | Moyen |
+
+**Objectif V1.1 :** 25 000 endpoints, 100 clients, €75k MRR
+
+#### Phase 3: Expansion (V1.2 — V1.1 + 3 mois)
+
+| Feature | Valeur business | Effort |
+|---------|-----------------|--------|
+| **Intelligence collective opt-in** | Premium + effet réseau | Élevé |
+| **Checks personnalisés UI** | Flexibilité client | Élevé |
+| **+15 checks ISO 27001** | Marché SMSI | Moyen |
+| **Benchmarks sectoriels** | Valeur analytique | Moyen |
+| **ARM64 (Windows/Linux)** | Edge + IoT | Moyen |
+
+**Objectif V1.2 :** 50 000 endpoints, conversion 40% SaaS→Agent
+
+#### Vision Phase (V2.0 — V1.2 + 6 mois)
+
+| Feature | Innovation | Complexité |
+|---------|------------|------------|
+| **Remediation assistée** | One-click fix avec validation | Très élevé |
+| **IA prédictive** | Anticipation dérives | R&D |
+| **Marketplace checks** | Communauté | Élevé |
+| **Certification continue** | Attestation temps réel | Moyen |
+
+### Risk Mitigation Strategy
+
+#### Technical Risks
+
+| Risque | Probabilité | Impact | Mitigation |
+|--------|-------------|--------|------------|
+| **Cross-compile Rust complexe** | Moyenne | Élevé | PoC early, expertise externe |
+| **APIs Windows/Linux divergentes** | Moyenne | Moyen | Abstraction layer dès le départ |
+| **Performance agent insuffisante** | Faible | Élevé | Benchmarks continus, profiling |
+| **Mode offline bugs sync** | Moyenne | Moyen | Tests E2E, simulation déconnexions |
+
+#### Market Risks
+
+| Risque | Probabilité | Impact | Mitigation |
+|--------|-------------|--------|------------|
+| **Adoption lente clients SaaS** | Moyenne | Élevé | Pilotes gratuits, incentives early adopters |
+| **Concurrents réagissent** | Moyenne | Moyen | First-mover, intégration profonde |
+| **Pricing rejeté** | Faible | Moyen | Tiers flexibles, négociation volume |
+
+#### Resource Risks
+
+| Risque | Probabilité | Impact | Mitigation |
+|--------|-------------|--------|------------|
+| **Recrutement Rust difficile** | Élevée | Élevé | Remote OK, formation interne, consultants |
+| **Équipe sous-dimensionnée** | Moyenne | Élevé | Scope MVP minimal, priorisation stricte |
+| **Turnover clé** | Faible | Critique | Documentation, pair programming |
+
+**Contingency :** MVP réalisable avec 4 ETP si scope réduit (Windows only, 10 checks)
+
+### Scoping Decision Summary
+
+| Dimension | Décision | Rationale |
+|-----------|----------|-----------|
+| **MVP Scope** | Platform MVP | Fondation technique prioritaire |
+| **OS MVP** | Windows + Linux | 100% couverture cible |
+| **Checks MVP** | 20 (NIS2/DORA) | Valeur conformité immédiate |
+| **Journeys MVP** | 3/7 complets | Core value first |
+| **Équipe MVP** | 6 ETP | Balance scope/vélocité |
+| **Timeline MVP** | 4-5 mois | Marché NIS2 urgent |
+
+## Functional Requirements
+
+### Agent Core
+
+- **FR1:** L'agent peut s'installer silencieusement sur Windows 10+ sans redémarrage
+- **FR2:** L'agent peut s'installer silencieusement sur Linux (Ubuntu 20.04+, RHEL 8+) via package manager
+- **FR3:** L'agent peut s'exécuter en tant que service système avec démarrage automatique
+- **FR4:** L'agent peut se configurer via fichier JSON ou variables d'environnement
+- **FR5:** L'agent peut s'enregistrer auprès du SaaS Sentinel avec token d'authentification
+- **FR6:** L'agent peut envoyer un heartbeat périodique (état, métriques) au SaaS
+- **FR7:** L'agent peut se désinstaller proprement sans laisser de résidus
+- **FR8:** L'agent peut fonctionner avec une empreinte ressources minimale (< 2% CPU, < 100MB RAM)
+
+### Compliance Checks
+
+- **FR9:** L'agent peut exécuter des checks de conformité selon les règles configurées
+- **FR10:** L'agent peut vérifier l'état du chiffrement disque (BitLocker/LUKS)
+- **FR11:** L'agent peut vérifier l'état de l'antivirus (actif, définitions à jour)
+- **FR12:** L'agent peut vérifier l'état du pare-feu (activé, règles)
+- **FR13:** L'agent peut vérifier la politique de mot de passe (complexité, expiration)
+- **FR14:** L'agent peut vérifier le verrouillage automatique de session
+- **FR15:** L'agent peut vérifier l'état des mises à jour système
+- **FR16:** L'agent peut vérifier les protocoles obsolètes désactivés (SMBv1, TLS 1.0/1.1)
+- **FR17:** L'agent peut vérifier la configuration sauvegarde (active, date dernière)
+- **FR18:** L'agent peut vérifier les comptes administrateurs locaux
+- **FR19:** L'agent peut vérifier la configuration MFA si applicable
+- **FR20:** L'agent peut vérifier la sécurité du bureau à distance (NLA/SSH hardened)
+- **FR21:** L'agent peut générer une preuve horodatée pour chaque check exécuté
+- **FR22:** L'agent peut calculer un score de conformité local basé sur les résultats
+
+### Synchronization & Offline
+
+- **FR23:** L'agent peut télécharger les règles de checks depuis le SaaS
+- **FR24:** L'agent peut mettre en cache les règles localement pour exécution offline
+- **FR25:** L'agent peut stocker les résultats de checks et preuves localement (SQLite)
+- **FR26:** L'agent peut fonctionner en mode offline pendant 7 jours minimum
+- **FR27:** L'agent peut synchroniser les données en attente lors du retour de connectivité
+- **FR28:** L'agent peut gérer les conflits de synchronisation après période offline
+- **FR29:** L'agent peut télécharger sa configuration depuis le SaaS
+- **FR30:** L'agent peut uploader les résultats de checks vers le SaaS
+
+### Dashboard & Visualization (SaaS)
+
+- **FR31:** Le RSSI peut visualiser le score de conformité global de son parc
+- **FR32:** Le RSSI peut visualiser le score de conformité par endpoint
+- **FR33:** Le RSSI peut visualiser les écarts de conformité détaillés par check
+- **FR34:** Le RSSI peut visualiser la tendance historique du score (30 jours minimum)
+- **FR35:** Le RSSI peut filtrer la vue par référentiel (NIS2, DORA, RGPD)
+- **FR36:** Le RSSI peut filtrer la vue par statut de conformité (conforme, non-conforme)
+- **FR37:** Le RSSI peut recevoir une alerte lors de dégradation du score
+- **FR38:** Le DPO peut visualiser une vue filtrée RGPD des endpoints
+
+### Administration
+
+- **FR39:** L'administrateur IT peut visualiser la liste des agents déployés
+- **FR40:** L'administrateur IT peut visualiser l'état de connexion de chaque agent
+- **FR41:** L'administrateur IT peut visualiser la version de chaque agent
+- **FR42:** L'administrateur IT peut télécharger les packages d'installation (MSI, DEB, RPM)
+- **FR43:** L'administrateur IT peut générer un token d'enregistrement pour nouveaux agents
+- **FR44:** L'administrateur IT peut configurer la fréquence des checks
+- **FR45:** L'administrateur IT peut activer/désactiver des checks spécifiques
+- **FR46:** L'administrateur IT peut forcer une synchronisation d'un agent
+- **FR47:** L'administrateur IT peut désinscrire un agent du parc
+
+### Audit & Reporting
+
+- **FR48:** L'auditeur peut accéder en lecture seule aux données de conformité
+- **FR49:** L'auditeur peut visualiser les preuves techniques horodatées
+- **FR50:** L'auditeur peut exporter un rapport de conformité par référentiel (PDF)
+- **FR51:** L'auditeur peut visualiser l'historique de conformité sur 12 mois
+- **FR52:** Le système peut conserver les preuves pendant 12 mois minimum
+- **FR53:** Le système peut horodater chaque preuve au format ISO 8601 UTC
+- **FR54:** Le système peut garantir l'intégrité des preuves (hash SHA-256)
+
+### Security & Authentication
+
+- **FR55:** L'agent peut s'authentifier auprès du SaaS via mTLS
+- **FR56:** L'agent peut valider le certificat serveur (certificate pinning)
+- **FR57:** L'agent peut vérifier sa propre intégrité au démarrage (self-check)
+- **FR58:** L'agent peut chiffrer les données stockées localement
+- **FR59:** L'agent peut signer les logs pour garantir leur intégrité
+- **FR60:** Le système peut valider la signature du binaire agent avant installation
+- **FR61:** Le système peut révoquer un agent compromis à distance
+
+### Updates & Deployment
+
+- **FR62:** L'agent peut vérifier la disponibilité d'une nouvelle version
+- **FR63:** L'agent peut télécharger et appliquer une mise à jour automatiquement
+- **FR64:** L'agent peut effectuer un rollback vers la version précédente en cas d'échec
+- **FR65:** Le système peut déployer les mises à jour par phases (staged rollout)
+- **FR66:** L'administrateur peut configurer la politique de mise à jour (automatique, manuel, différé)
+- **FR67:** L'administrateur peut déclencher une mise à jour manuelle sur un agent
+- **FR68:** L'administrateur peut bloquer une version spécifique
+
+### Support & Diagnostics
+
+- **FR69:** L'équipe support peut visualiser les logs d'un agent spécifique
+- **FR70:** L'équipe support peut visualiser l'état de connexion détaillé d'un agent
+- **FR71:** L'équipe support peut identifier les erreurs récentes d'un agent
+- **FR72:** L'équipe support peut déclencher un diagnostic à distance
+
+## Non-Functional Requirements
+
+### Performance
+
+| ID | Exigence | Métrique | Cible |
+|----|----------|----------|-------|
+| **NFR-P1** | Impact CPU agent au repos | % CPU moyen | < 0.5% |
+| **NFR-P2** | Impact CPU agent pendant check | % CPU pic | < 5% |
+| **NFR-P3** | Consommation mémoire agent | RAM | < 100 MB |
+| **NFR-P4** | Taille binaire agent | MB | < 20 MB |
+| **NFR-P5** | Temps démarrage agent | Secondes | < 5s |
+| **NFR-P6** | Temps exécution check unitaire | Secondes | < 2s |
+| **NFR-P7** | Temps exécution scan complet (20 checks) | Secondes | < 30s |
+| **NFR-P8** | Latence heartbeat | Secondes | < 1s (p95) |
+| **NFR-P9** | Temps synchronisation post-offline | Minutes | < 5 min |
+| **NFR-P10** | Impact I/O disque | IOPS | < 10 IOPS moyen |
+
+### Security
+
+| ID | Exigence | Spécification |
+|----|----------|---------------|
+| **NFR-S1** | Chiffrement transport | TLS 1.3 minimum, mTLS obligatoire |
+| **NFR-S2** | Chiffrement stockage local | SQLite avec SQLCipher (AES-256) |
+| **NFR-S3** | Signature binaire Windows | Authenticode avec certificat EV |
+| **NFR-S4** | Signature binaire Linux | GPG avec clé dédiée |
+| **NFR-S5** | Certificate pinning | Empreinte SHA-256 du certificat serveur |
+| **NFR-S6** | Intégrité runtime | Self-check SHA-256 au démarrage |
+| **NFR-S7** | Protection credentials | Jamais stockés en clair, token rotatif |
+| **NFR-S8** | Logs signés | HMAC-SHA256 pour chaque entrée |
+| **NFR-S9** | Permissions fichiers | 0600 (Linux) / ACL restrictives (Windows) |
+| **NFR-S10** | Isolation processus | Service dédié, pas de shell externe |
+| **NFR-S11** | Audit vulnérabilités | cargo-audit CI, pentest externe avant GA |
+
+### Reliability
+
+| ID | Exigence | Métrique | Cible |
+|----|----------|----------|-------|
+| **NFR-R1** | Uptime agent | Disponibilité | ≥ 99.5% |
+| **NFR-R2** | Mode offline | Durée autonomie | ≥ 7 jours |
+| **NFR-R3** | Récupération crash | Redémarrage automatique | < 30s |
+| **NFR-R4** | Perte données offline | Données perdues après crash | 0% |
+| **NFR-R5** | Rollback update | Temps restauration version | < 2 min |
+| **NFR-R6** | Tolérance réseau | Retry avec backoff | Jusqu'à 24h |
+| **NFR-R7** | Corruption données | Détection et récupération | Automatique |
+| **NFR-R8** | Watchdog service | Détection agent bloqué | < 60s |
+
+### Scalability
+
+| ID | Exigence | Métrique | Cible |
+|----|----------|----------|-------|
+| **NFR-SC1** | Agents simultanés | Endpoints par tenant | 10 000+ |
+| **NFR-SC2** | Agents totaux plateforme | Endpoints totaux | 100 000+ |
+| **NFR-SC3** | Heartbeats simultanés | Requêtes/seconde API | 500 req/s |
+| **NFR-SC4** | Upload résultats | Requêtes/seconde API | 200 req/s |
+| **NFR-SC5** | Stockage preuves | Croissance par endpoint/mois | < 50 MB |
+| **NFR-SC6** | Dégradation performance | Impact à 10x charge | < 20% latence |
+
+### Compliance
+
+| ID | Exigence | Spécification |
+|----|----------|---------------|
+| **NFR-C1** | Localisation données | EU uniquement (pas de transfert hors EEE) |
+| **NFR-C2** | Rétention preuves | 12 mois minimum |
+| **NFR-C3** | Horodatage preuves | ISO 8601 UTC, source NTP |
+| **NFR-C4** | Intégrité preuves | Hash SHA-256 signé |
+| **NFR-C5** | Audit trail | Toute modification tracée avec acteur |
+| **NFR-C6** | Droit à l'oubli | Suppression données agent possible |
+| **NFR-C7** | Export données | Format structuré (JSON) sur demande |
+| **NFR-C8** | Sous-traitants | Conformité RGPD avec clauses contractuelles |
+
+### Integration
+
+| ID | Exigence | Spécification |
+|----|----------|---------------|
+| **NFR-I1** | Protocole API | REST/HTTPS, JSON |
+| **NFR-I2** | Authentification API | Bearer token + mTLS |
+| **NFR-I3** | Compatibilité proxy | HTTP/SOCKS5 avec authentification |
+| **NFR-I4** | Ports réseau | 443 uniquement (firewall-friendly) |
+| **NFR-I5** | Déploiement Windows | GPO, SCCM, Intune compatible |
+| **NFR-I6** | Déploiement Linux | apt, yum, Ansible compatible |
+| **NFR-I7** | Format logs | JSON structuré, compatible SIEM |
+| **NFR-I8** | Compression | gzip pour tous les transfers |
+
+### Maintainability
+
+| ID | Exigence | Spécification |
+|----|----------|---------------|
+| **NFR-M1** | Couverture tests | ≥ 80% code coverage |
+| **NFR-M2** | Documentation code | Rustdoc pour modules publics |
+| **NFR-M3** | CI/CD | Build + tests automatiques sur PR |
+| **NFR-M4** | Versioning | SemVer strict |
+| **NFR-M5** | Backward compatibility | API stable sur version majeure |
+| **NFR-M6** | Logging structuré | tracing avec niveaux (ERROR, WARN, INFO, DEBUG) |
+| **NFR-M7** | Métriques runtime | CPU, RAM, état checks exposés |
+| **NFR-M8** | Cross-compile | Build unique pour Windows + Linux |
+
+### Usability (Dashboard SaaS)
+
+| ID | Exigence | Spécification |
+|----|----------|---------------|
+| **NFR-U1** | Temps chargement dashboard | < 3s initial, < 1s navigation |
+| **NFR-U2** | Responsive design | Desktop + tablette |
+| **NFR-U3** | Langues supportées | FR, EN, DE |
+| **NFR-U4** | Export données | PDF, CSV, JSON |
 
