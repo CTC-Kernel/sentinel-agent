@@ -131,7 +131,8 @@ async function getGeminiClientForUser(uid, apiVersion) {
         throw new HttpsError('failed-precondition', 'Gemini API key not configured.');
     }
 
-    return new GoogleGenerativeAI(apiKey);
+    const options = apiVersion ? { apiVersion } : undefined;
+    return new GoogleGenerativeAI(apiKey, options);
 }
 
 /**
