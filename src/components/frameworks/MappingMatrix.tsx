@@ -14,8 +14,6 @@ import {
   Search,
   Grid,
   List,
-  Filter,
-  Download,
   RefreshCw,
   Check,
   Minus,
@@ -30,7 +28,6 @@ import type {
   RegulatoryFramework,
   ControlWithMappings,
   CoverageStatus,
-  ActiveFramework,
 } from '../../types/framework';
 
 // ============================================================================

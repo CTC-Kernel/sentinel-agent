@@ -24,6 +24,16 @@ const labels = {
         minutesAgo: (n: number) => `${n} min ago`,
         hoursAgo: (n: number) => `${n}h ago`,
     },
+    de: {
+        saving: 'Speichern...',
+        saved: 'Gespeichert',
+        error: 'Speichern fehlgeschlagen',
+        retry: 'Erneut versuchen',
+        pending: 'Änderungen ausstehend...',
+        justNow: 'Gerade eben',
+        minutesAgo: (n: number) => `vor ${n} Min.`,
+        hoursAgo: (n: number) => `vor ${n} Std.`,
+    },
 } as const;
 
 /**

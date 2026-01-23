@@ -28,11 +28,8 @@ import {
   Building2,
   User,
   MapPin,
-  Target,
-  TrendingUp,
   Activity,
   CheckCircle2,
-  XCircle,
   ChevronRight,
   Zap,
   Lock,
@@ -124,7 +121,7 @@ const panelVariants = {
     x: 0,
     opacity: 1,
     transition: {
-      type: 'spring',
+      type: 'spring' as const,
       damping: 30,
       stiffness: 300,
       mass: 0.8,
@@ -134,7 +131,7 @@ const panelVariants = {
     x: '100%',
     opacity: 0,
     transition: {
-      type: 'spring',
+      type: 'spring' as const,
       damping: 30,
       stiffness: 300,
     }
@@ -149,7 +146,7 @@ const contentVariants = {
     transition: {
       delay: 0.1,
       duration: 0.3,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]
     }
   }
 };
@@ -179,28 +176,6 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, icon }) => (
     <span className="text-sm text-slate-200 font-medium">{value}</span>
   </div>
 );
-
-interface CriticalityBadgeProps {
-  level: string;
-  label?: string;
-}
-
-const CriticalityBadge: React.FC<CriticalityBadgeProps> = ({ level, label }) => {
-  const config: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
-    'Critique': { bg: 'bg-red-500/20', text: 'text-red-400', icon: <Lock className="w-3 h-3" /> },
-    'Élevée': { bg: 'bg-orange-500/20', text: 'text-orange-400', icon: <AlertTriangle className="w-3 h-3" /> },
-    'Modérée': { bg: 'bg-yellow-500/20', text: 'text-yellow-400', icon: <Activity className="w-3 h-3" /> },
-    'Faible': { bg: 'bg-green-500/20', text: 'text-green-400', icon: <CheckCircle2 className="w-3 h-3" /> },
-  };
-  const style = config[level] || config['Faible'];
-
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${style.bg} ${style.text}`}>
-      {style.icon}
-      {label || level}
-    </span>
-  );
-};
 
 interface RiskScoreIndicatorProps {
   probability: number;
@@ -421,7 +396,6 @@ const RiskDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
 const ControlDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const data = node.data || {};
-  const name = getDataString(data, 'name');
   const status = getDataString(data, 'status');
   const effectiveness = getDataNumber(data, 'effectiveness');
   const owner = getDataString(data, 'owner');
@@ -609,7 +583,6 @@ const IncidentDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
 const SupplierDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const data = node.data || {};
-  const name = getDataString(data, 'name');
   const status = getDataString(data, 'status');
   const riskLevel = getDataString(data, 'riskLevel');
   const contact = getDataString(data, 'contact');

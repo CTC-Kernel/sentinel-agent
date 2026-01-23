@@ -18,6 +18,7 @@ import type { SupportedLocale } from '../config/localeConfig';
 const warningMessages = {
   fr: 'Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter?',
   en: 'You have unsaved changes. Are you sure you want to leave?',
+  de: 'Sie haben nicht gespeicherte Änderungen. Sind Sie sicher, dass Sie die Seite verlassen möchten?',
 } as const;
 
 /**

@@ -12,15 +12,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   Search,
-  Filter,
-  ChevronDown,
   ChevronRight,
   FileText,
   AlertTriangle,
   AlertCircle,
   Info,
-  List,
-  LayoutGrid,
   X,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
@@ -32,7 +28,6 @@ import type {
   RequirementCategory,
   CriticalityLevel,
   RequirementsByCategory,
-  CATEGORY_LABELS,
 } from '../../types/framework';
 
 // ============================================================================
@@ -67,7 +62,7 @@ interface CategoryAccordionProps {
 }
 
 const CategoryAccordion: React.FC<CategoryAccordionProps> = ({
-  category,
+  category: _category,
   categoryLabel,
   requirements,
   isExpanded,
@@ -77,7 +72,6 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({
   linkedControlsCounts,
   locale,
 }) => {
-  const { t } = useTranslation();
 
   // Count requirements by criticality
   const criticalityCounts = useMemo(() => {

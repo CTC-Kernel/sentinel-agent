@@ -1,7 +1,7 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Risk, Asset, UserProfile, Control } from '../../../types';
-import { ShieldAlert, Clock, Shield } from '../../ui/Icons';
+import { ShieldAlert, Clock, Shield, CheckCircle, ShieldCheck, Share2, XCircle, FileText, AlertTriangle, CreditCard, Globe } from '../../ui/Icons';
 import { Edit, Copy, Trash2 } from '../../ui/Icons';
 import { Badge } from '../../ui/Badge';
 import { DraftBadge } from '../../ui/DraftBadge';
@@ -42,6 +42,61 @@ function getMitigationCoverage(risk: Risk, controls: Control[]): { count: number
     const coverage = Math.min(Math.round((effectiveScore / linkedControls.length) * 100), 100);
     return { count: linkedControls.length, coverage };
 }
+
+const getStrategyStyles = (strategy: string) => {
+    switch (strategy) {
+        case 'Accepter':
+            return {
+                icon: CheckCircle,
+                color: 'text-slate-600 dark:text-slate-400',
+                bg: 'bg-slate-100 dark:bg-slate-800',
+                border: 'border-slate-200 dark:border-white/10',
+                badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+            };
+        case 'Atténuer':
+            return {
+                icon: ShieldCheck,
+                color: 'text-blue-600 dark:text-blue-400',
+                bg: 'bg-blue-50 dark:bg-blue-900/20',
+                border: 'border-blue-100 dark:border-blue-800/50',
+                badge: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-100 dark:border-blue-800'
+            };
+        case 'Transférer':
+            return {
+                icon: Share2,
+                color: 'text-purple-600 dark:text-purple-400',
+                bg: 'bg-purple-50 dark:bg-purple-900/20',
+                border: 'border-purple-100 dark:border-purple-800/50',
+                badge: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-100 dark:border-purple-800'
+            };
+        case 'Éviter':
+            return {
+                icon: XCircle,
+                color: 'text-red-600 dark:text-red-400',
+                bg: 'bg-red-50 dark:bg-red-900/20',
+                border: 'border-red-100 dark:border-red-800/50',
+                badge: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-100 dark:border-red-800'
+            };
+        default:
+            return {
+                icon: Shield,
+                color: 'text-slate-600 dark:text-slate-400',
+                bg: 'bg-slate-100 dark:bg-slate-800',
+                border: 'border-slate-200 dark:border-white/10',
+                badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+            };
+    }
+};
+
+const getCategoryStyles = (category: string) => {
+    const cat = category.toLowerCase();
+    if (cat.includes('financier')) return { icon: CreditCard, color: 'text-emerald-600', bg: 'bg-emerald-50' };
+    if (cat.includes('opérationnel')) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' };
+    if (cat.includes('juridique') || cat.includes('compliance')) return { icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' };
+    if (cat.includes('cyber') || cat.includes('sécurité')) return { icon: Shield, color: 'text-purple-600', bg: 'bg-purple-50' };
+    if (cat.includes('réputation')) return { icon: Globe, color: 'text-indigo-600', bg: 'bg-indigo-50' };
+    return { icon: ShieldAlert, color: 'text-slate-600', bg: 'bg-slate-50' };
+};
 
 export const useRiskColumns = ({
     canEdit,
@@ -118,10 +173,17 @@ export const useRiskColumns = ({
                 if (!category) {
                     return <span className="text-xs text-slate-400 italic">Non définie</span>;
                 }
+                const styles = getCategoryStyles(category);
+                const CategoryIcon = styles.icon;
                 return (
-                    <span className="text-slate-600 dark:text-slate-400 font-medium">
-                        {category}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <div className={`p-1 rounded-md ${styles.bg} ${styles.color} dark:bg-white/5`}>
+                            <CategoryIcon className="h-3 w-3" />
+                        </div>
+                        <span className="text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">
+                            {category}
+                        </span>
+                    </div>
                 );
             },
         },
@@ -137,11 +199,20 @@ export const useRiskColumns = ({
         {
             header: 'Stratégie',
             accessorKey: 'strategy',
-            cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-slate-400 font-medium">
-                    {row.original.strategy}
-                </span>
-            ),
+            cell: ({ row }) => {
+                const styles = getStrategyStyles(row.original.strategy);
+                const StrategyIcon = styles.icon;
+                return (
+                    <div className="flex items-center gap-2">
+                        <div className={`p-1.5 rounded-lg ${styles.bg} ${styles.color} border ${styles.border}`}>
+                            <StrategyIcon className="h-3.5 w-3.5" />
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-sm ${styles.badge}`}>
+                            {row.original.strategy}
+                        </span>
+                    </div>
+                );
+            },
         },
         {
             header: 'Contrôles',
@@ -164,7 +235,7 @@ export const useRiskColumns = ({
                             <div className="w-10 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div
                                     className={`h-full rounded-full transition-all duration-500 ${coverage >= 80 ? 'bg-success-text' :
-                                            coverage >= 50 ? 'bg-warning-text' : 'bg-error-text'
+                                        coverage >= 50 ? 'bg-warning-text' : 'bg-error-text'
                                         }`}
                                     style={{ width: `${coverage}%` }}
                                 />

@@ -97,6 +97,10 @@ const validationLabels = {
         required: 'This field is required',
         invalid: 'Invalid value',
     },
+    de: {
+        required: 'Dieses Feld ist erforderlich',
+        invalid: 'Ungültiger Wert',
+    },
 } as const;
 
 /**

@@ -21,7 +21,6 @@ const mockDeleteDoc = vi.fn();
 const mockOnSnapshot = vi.fn();
 const mockWriteBatch = vi.fn();
 
-const mockDoc = vi.fn(() => ({ id: 'mock-doc-id' }));
 const mockCollection = vi.fn(() => ({}));
 
 vi.mock('firebase/firestore', () => ({
@@ -38,7 +37,7 @@ vi.mock('firebase/firestore', () => ({
   setDoc: (...args: unknown[]) => mockSetDoc(...args),
   updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
   deleteDoc: (...args: unknown[]) => mockDeleteDoc(...args),
-  collection: (...args: unknown[]) => mockCollection(...args),
+  collection: () => mockCollection(),
   query: vi.fn(() => ({})),
   where: vi.fn(() => ({})),
   orderBy: vi.fn(() => ({})),

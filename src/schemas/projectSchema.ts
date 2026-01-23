@@ -36,6 +36,7 @@ export const projectSchema = z.object({
     relatedAssetIds: z.array(z.string()).optional().default([]),
     relatedAuditIds: z.array(z.string()).optional().default([]),
     members: z.array(z.string()).optional().default([]),
+    category: z.string().optional(),
 });
 
 export type ProjectFormData = z.infer<typeof projectSchema>;

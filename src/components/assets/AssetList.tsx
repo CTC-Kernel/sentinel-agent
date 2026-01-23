@@ -3,13 +3,66 @@ import { Tooltip } from '../ui/Tooltip';
 import { Asset, Criticality, UserProfile } from '../../types';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
 import { DataTable } from '../ui/DataTable';
-import { Server, Edit, Trash2, Tag, Copy } from '../ui/Icons';
+import { Server, Edit, Trash2, Tag, Copy, HardDrive, Cpu, Database, Activity, Users } from '../ui/Icons';
 import { CardSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
 import { RowActionsMenu, RowActionItem } from '../ui/RowActionsMenu';
 import { canDeleteResource } from '../../utils/permissions';
 import { ColumnDef } from '@tanstack/react-table';
 import { useStore } from '../../store';
+
+const getTypeStyles = (type: string) => {
+    switch (type) {
+        case 'Matériel':
+            return {
+                icon: HardDrive,
+                color: 'text-slate-600 dark:text-slate-400',
+                bg: 'bg-slate-100 dark:bg-slate-800',
+                border: 'border-slate-200 dark:border-white/10',
+                badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+            };
+        case 'Logiciel':
+            return {
+                icon: Cpu,
+                color: 'text-blue-600 dark:text-blue-400',
+                bg: 'bg-blue-50 dark:bg-blue-900/20',
+                border: 'border-blue-100 dark:border-blue-800/50',
+                badge: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-100 dark:border-blue-800'
+            };
+        case 'Données':
+            return {
+                icon: Database,
+                color: 'text-purple-600 dark:text-purple-400',
+                bg: 'bg-purple-50 dark:bg-purple-900/20',
+                border: 'border-purple-100 dark:border-purple-800/50',
+                badge: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-100 dark:border-purple-800'
+            };
+        case 'Service':
+            return {
+                icon: Activity,
+                color: 'text-emerald-600 dark:text-emerald-400',
+                bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+                border: 'border-emerald-100 dark:border-emerald-800/50',
+                badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800'
+            };
+        case 'Humain':
+            return {
+                icon: Users,
+                color: 'text-amber-600 dark:text-amber-400',
+                bg: 'bg-amber-50 dark:bg-amber-900/20',
+                border: 'border-amber-100 dark:border-amber-800/50',
+                badge: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-100 dark:border-amber-800'
+            };
+        default:
+            return {
+                icon: Server,
+                color: 'text-slate-600 dark:text-slate-400',
+                bg: 'bg-slate-100 dark:bg-slate-800',
+                border: 'border-slate-200 dark:border-white/10',
+                badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+            };
+    }
+};
 
 interface AssetListProps {
     assets: Asset[];
@@ -67,7 +120,24 @@ export const AssetList = React.memo<AssetListProps>(({
 
     const columns = useMemo<ColumnDef<Asset>[]>(() => [
         { header: t('common.name'), accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
-        { header: t('common.type'), accessorKey: 'type' },
+        {
+            header: t('common.type'),
+            accessorKey: 'type',
+            cell: ({ row }) => {
+                const styles = getTypeStyles(row.original.type);
+                const TypeIcon = styles.icon;
+                return (
+                    <div className="flex items-center gap-2">
+                        <div className={`p-1.5 rounded-lg ${styles.bg} ${styles.color} border ${styles.border}`}>
+                            <TypeIcon className="h-3.5 w-3.5" />
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-sm ${styles.badge}`}>
+                            {row.original.type}
+                        </span>
+                    </div>
+                );
+            }
+        },
         { header: t('common.criticality'), accessorKey: 'confidentiality', cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span> },
         {
             header: t('common.owner'),
@@ -258,8 +328,8 @@ export const AssetList = React.memo<AssetListProps>(({
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300">
-                                        <Server className="h-6 w-6" />
+                                    <div className={`p-3 rounded-2xl border shadow-sm transition-transform group-hover:scale-110 duration-300 ${getTypeStyles(asset.type).bg} ${getTypeStyles(asset.type).color} ${getTypeStyles(asset.type).border}`}>
+                                        {React.createElement(getTypeStyles(asset.type).icon, { className: "h-6 w-6" })}
                                     </div>
                                     <div className="flex gap-2">
                                         <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
@@ -267,7 +337,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
                                 <div className="flex items-center gap-2 mb-4">
-                                    <span className="text-xs text-slate-600 font-medium">{asset.type}</span>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
                                     <span className="text-slate-400">•</span>
                                     <div className="flex items-center gap-1.5">
                                         <img

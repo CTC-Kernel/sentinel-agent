@@ -130,7 +130,8 @@ function generatePriorityActions(
       // Include if missing evidence
       return !c.evidenceIds || c.evidenceIds.length === 0;
     }
-    return c.status !== 'Implémenté';
+    // All non-implemented controls are actionable
+    return true;
   });
 
   // Calculate impact score for each control

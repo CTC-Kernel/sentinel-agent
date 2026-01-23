@@ -22,6 +22,7 @@ import type { SupportedLocale } from '../config/localeConfig';
 const DUPLICATE_SUFFIX: Record<SupportedLocale, string> = {
   fr: '(Copie)',
   en: '(Copy)',
+  de: '(Kopie)',
 };
 
 /**

@@ -50,6 +50,7 @@ export interface Project {
     startDate?: string; // Added for Gantt chart
     dueDate: string;
     progress: number;
+    category?: string;
     tasks: ProjectTask[];
     relatedRiskIds?: string[];
     relatedControlIds?: string[];

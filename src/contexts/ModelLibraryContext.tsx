@@ -21,6 +21,7 @@ export const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     useEffect(() => {
         const loadModels = async () => {
+            console.log('[3D Models] Starting to load models...');
             const [asset, risk, incident, supplier, project] = await Promise.all([
                 loadSafe(assetModelUrl),
                 loadSafe(riskModelUrl),
@@ -28,6 +29,22 @@ export const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 loadSafe(supplierModelUrl),
                 loadSafe(projectModelUrl)
             ]);
+
+            // Debug log
+            const countMeshes = (group: Group) => {
+                let count = 0;
+                group.traverse((child) => {
+                    if ((child as { isMesh?: boolean }).isMesh) count++;
+                });
+                return count;
+            };
+            console.log('[3D Models] Loaded:', {
+                asset: countMeshes(asset) + ' meshes',
+                risk: countMeshes(risk) + ' meshes',
+                incident: countMeshes(incident) + ' meshes',
+                supplier: countMeshes(supplier) + ' meshes',
+                project: countMeshes(project) + ' meshes'
+            });
 
             setLibrary({ asset, risk, incident, supplier, project });
         };

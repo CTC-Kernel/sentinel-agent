@@ -10,7 +10,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { FileText, AlertTriangle, AlertCircle, Info, ChevronRight, Link2 } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Info, ChevronRight, Link2 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import type { Requirement, CriticalityLevel } from '../../types/framework';
 
@@ -19,7 +19,7 @@ import type { Requirement, CriticalityLevel } from '../../types/framework';
 // ============================================================================
 
 const CRITICALITY_CONFIG: Record<CriticalityLevel, {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
   textColor: string;

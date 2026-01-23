@@ -2,9 +2,19 @@
 import React from 'react';
 import { Project, UserProfile } from '../../types';
 import { Badge } from '../ui/Badge';
-import { Edit, Trash2, CheckSquare } from '../ui/Icons';
+import { Edit, Trash2, CheckSquare, ClipboardList, ShieldCheck, Rocket, Building2, Siren, Target } from '../ui/Icons';
 import { canDeleteResource } from '../../utils/permissions';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
+
+const getProjectCategoryStyles = (category: string) => {
+    const cat = category?.toLowerCase() || '';
+    if (cat.includes('audit')) return { icon: ClipboardList, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-100 dark:border-amber-800/50', progress: 'bg-amber-500' };
+    if (cat.includes('conformité') || cat.includes('compliance')) return { icon: ShieldCheck, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-100 dark:border-blue-800/50', progress: 'bg-blue-500' };
+    if (cat.includes('déploiement') || cat.includes('technique')) return { icon: Rocket, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-100 dark:border-emerald-800/50', progress: 'bg-emerald-500' };
+    if (cat.includes('gouvernance')) return { icon: Building2, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20', border: 'border-indigo-100 dark:border-indigo-800/50', progress: 'bg-indigo-500' };
+    if (cat.includes('crise')) return { icon: Siren, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-100 dark:border-red-800/50', progress: 'bg-red-500' };
+    return { icon: Target, color: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-white/5', border: 'border-slate-100 dark:border-white/10', progress: 'bg-brand-500' };
+};
 
 interface ProjectCardProps {
     project: Project;
@@ -62,12 +72,17 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             className={`glass-panel rounded-[2.5rem] ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
         >
             <div className="flex justify-between items-start mb-4">
-                <Badge
-                    status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
-                    variant="soft"
-                >
-                    {project.status}
-                </Badge>
+                <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl border shadow-sm ${getProjectCategoryStyles(project.category || '').bg} ${getProjectCategoryStyles(project.category || '').color} ${getProjectCategoryStyles(project.category || '').border} transition-transform group-hover:scale-110`}>
+                        {React.createElement(getProjectCategoryStyles(project.category || '').icon, { className: "h-5 w-5" })}
+                    </div>
+                    <Badge
+                        status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
+                        variant="soft"
+                    >
+                        {project.status}
+                    </Badge>
+                </div>
                 {!compact && (
                     <div className="flex space-x-1">
                         {canEdit && (
@@ -101,10 +116,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             <div className={compact ? "mb-4" : "mb-6"}>
                 <div className="flex justify-between text-xs mb-1.5 font-medium">
                     <span className="text-slate-600 dark:text-slate-300">Avancement</span>
-                    <span className="text-brand-600">{project.progress}%</span>
+                    <span className={getProjectCategoryStyles(project.category || '').color}>{project.progress}%</span>
                 </div>
                 <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5">
-                    <div className="bg-brand-500 h-1.5 rounded-full transition-all duration-500 shadow-sm" style={{ width: `${project.progress}%` }}></div>
+                    <div className={`${getProjectCategoryStyles(project.category || '').progress} h-1.5 rounded-full transition-all duration-500 shadow-sm shadow-black/5`} style={{ width: `${project.progress}%` }}></div>
                 </div>
             </div>
 

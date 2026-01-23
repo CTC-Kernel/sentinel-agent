@@ -17,6 +17,81 @@ interface ComplianceListProps {
     filter?: string;
 }
 
+const getFrameworkStyles = (framework: Framework) => {
+    switch (framework) {
+        case 'ISO27001':
+            return {
+                accent: 'text-brand-600 dark:text-brand-400',
+                bg: 'bg-brand-50 dark:bg-brand-900/20',
+                border: 'border-brand-100 dark:border-brand-800/50',
+                progress: 'bg-brand-600 shadow-brand-600/20'
+            };
+        case 'NIS2':
+            return {
+                accent: 'text-purple-600 dark:text-purple-400',
+                bg: 'bg-purple-50 dark:bg-purple-900/20',
+                border: 'border-purple-100 dark:border-purple-800/50',
+                progress: 'bg-purple-600 shadow-purple-600/20'
+            };
+        case 'GDPR':
+            return {
+                accent: 'text-emerald-600 dark:text-emerald-400',
+                bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+                border: 'border-emerald-100 dark:border-emerald-800/50',
+                progress: 'bg-emerald-600 shadow-emerald-600/20'
+            };
+        case 'DORA':
+            return {
+                accent: 'text-amber-600 dark:text-amber-400',
+                bg: 'bg-amber-50 dark:bg-amber-900/20',
+                border: 'border-amber-100 dark:border-amber-800/50',
+                progress: 'bg-amber-600 shadow-amber-600/20'
+            };
+        case 'ISO22301':
+            return {
+                accent: 'text-indigo-600 dark:text-indigo-400',
+                bg: 'bg-indigo-50 dark:bg-indigo-900/20',
+                border: 'border-indigo-100 dark:border-indigo-800/50',
+                progress: 'bg-indigo-600 shadow-indigo-600/20'
+            };
+        case 'SOC2':
+            return {
+                accent: 'text-rose-600 dark:text-rose-400',
+                bg: 'bg-rose-50 dark:bg-rose-900/20',
+                border: 'border-rose-100 dark:border-rose-800/50',
+                progress: 'bg-rose-600 shadow-rose-600/20'
+            };
+        case 'HDS':
+            return {
+                accent: 'text-cyan-600 dark:text-cyan-400',
+                bg: 'bg-cyan-50 dark:bg-cyan-900/20',
+                border: 'border-cyan-100 dark:border-cyan-800/50',
+                progress: 'bg-cyan-600 shadow-cyan-600/20'
+            };
+        case 'PCI_DSS':
+            return {
+                accent: 'text-red-600 dark:text-red-400',
+                bg: 'bg-red-50 dark:bg-red-900/20',
+                border: 'border-red-100 dark:border-red-800/50',
+                progress: 'bg-red-600 shadow-red-600/20'
+            };
+        case 'NIST_CSF':
+            return {
+                accent: 'text-orange-600 dark:text-orange-400',
+                bg: 'bg-orange-50 dark:bg-orange-900/20',
+                border: 'border-orange-100 dark:border-orange-800/50',
+                progress: 'bg-orange-600 shadow-orange-600/20'
+            };
+        default:
+            return {
+                accent: 'text-brand-600 dark:text-brand-400',
+                bg: 'bg-brand-50 dark:bg-brand-900/20',
+                border: 'border-brand-100 dark:border-brand-800/50',
+                progress: 'bg-brand-600 shadow-brand-600/20'
+            };
+    }
+};
+
 export const ComplianceList: React.FC<ComplianceListProps> = ({
     controls,
     risks,
@@ -95,6 +170,8 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                 // Expand if user filtered or manually expanded
                 const isExpanded = expandedDomains.includes(domain.id) || (filter && filter.length > 0);
 
+                const fwStyles = getFrameworkStyles(currentFramework);
+
                 return (
                     <div key={domain.id} className="glass-premium rounded-5xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
@@ -104,7 +181,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                             className={`p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
                             <div className="flex items-center gap-5 flex-1 min-w-0">
-                                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-200 flex items-center justify-center font-black text-lg border border-slate-200 dark:border-white/10 shrink-0 shadow-sm shadow-black/5">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border shrink-0 shadow-sm shadow-black/5 transition-all group-hover:scale-110 ${fwStyles.bg} ${fwStyles.accent} ${fwStyles.border}`}>
                                     {domain.id.split('.')[1] || domain.id}
                                 </div>
                                 <div className="min-w-0">
@@ -119,7 +196,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                         <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
                                     </div>
                                     <div className="w-full bg-slate-100 dark:bg-slate-800/50 rounded-full h-2 overflow-hidden shadow-inner">
-                                        <div className={`h-full rounded-full transition-all duration-700 ease-in-out ${stats.progress === 100 ? 'bg-success-text shadow-glow shadow-success-text/20' : 'bg-brand-600 shadow-glow shadow-brand-600/20'}`} style={{ width: `${stats.progress}%` }}></div>
+                                        <div className={`h-full rounded-full transition-all duration-700 ease-in-out ${stats.progress === 100 ? 'bg-success-text shadow-glow shadow-success-text/20' : `${fwStyles.progress} shadow-glow`}`} style={{ width: `${stats.progress}%` }}></div>
                                     </div>
                                 </div>
                                 <div className={`p-2 rounded-xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-slate-900 dark:text-white ring-1 ring-black/5' : 'text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-100 dark:group-hover:bg-white/5'}`}>
@@ -151,7 +228,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                             >
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex items-start gap-3 min-w-0">
-                                                        <div className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl text-xs font-black transition-colors shadow-sm ${isActive ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-600'}`}>
+                                                        <div className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl text-xs font-black transition-all shadow-sm ${isActive ? 'bg-brand-600 text-white' : `bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:${fwStyles.bg} group-hover:${fwStyles.accent} border border-transparent group-hover:${fwStyles.border}`}`}>
                                                             {control.code.split('.').slice(1).join('.') || control.code}
                                                         </div>
                                                         <div className="min-w-0 pt-0.5">

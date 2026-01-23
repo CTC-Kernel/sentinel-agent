@@ -14,7 +14,8 @@ export * from './subscriptions';
 export * from './sso';
 export * from './voxel';
 export * from './tlpt';
-export * from './score.types';
+// Note: score.types.ts exports are not re-exported to avoid name conflicts with compliance.ts
+// Import directly from './score.types' if needed
 export * from './privacy';
 export * from './dora';
 export * from './homologation';

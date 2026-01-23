@@ -47,12 +47,10 @@ vi.mock('../../../../services/errorLogger', () => ({
 }));
 
 // Mock ConfirmModal
-let confirmModalCallback: (() => void) | null = null;
 let confirmModalCancelCallback: (() => void) | null = null;
 vi.mock('../../../../components/ui/ConfirmModal', () => ({
     ConfirmModal: ({ isOpen, onConfirm, onClose }: { isOpen: boolean; onConfirm: () => void; onClose: () => void }) => {
         if (isOpen) {
-            confirmModalCallback = onConfirm;
             confirmModalCancelCallback = onClose;
             return (
                 <div data-testid="confirm-modal">
@@ -61,7 +59,6 @@ vi.mock('../../../../components/ui/ConfirmModal', () => ({
                 </div>
             );
         }
-        confirmModalCallback = null;
         confirmModalCancelCallback = null;
         return null;
     },
@@ -167,8 +164,7 @@ describe('TenantDetailModal', () => {
         });
         mockToggleTenantStatus.mockResolvedValue(undefined);
         mockUpdateTenantSubscription.mockResolvedValue(undefined);
-        // Reset confirmation modal callbacks
-        confirmModalCallback = null;
+        // Reset confirmation modal callback
         confirmModalCancelCallback = null;
     });
 

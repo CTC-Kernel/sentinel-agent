@@ -204,7 +204,7 @@ describe('useFrameworks hooks', () => {
       });
 
       expect(result.current.data).toHaveLength(1);
-      expect(result.current.data?.[0].articleRef).toBe('Article 21');
+      expect((result.current.data?.[0] as { articleRef?: string }).articleRef).toBe('Article 21');
       expect(result.current.isGrouped).toBe(false);
     });
 
@@ -241,7 +241,7 @@ describe('useFrameworks hooks', () => {
       });
 
       expect(result.current.data).toHaveLength(1);
-      expect(result.current.data?.[0].categoryLabel).toBe('Gestion des risques');
+      expect((result.current.data?.[0] as { categoryLabel?: string }).categoryLabel).toBe('Gestion des risques');
       expect(result.current.isGrouped).toBe(true);
     });
 

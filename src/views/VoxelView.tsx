@@ -22,7 +22,6 @@ import {
   Keyboard,
   HelpCircle,
   Network,
-  Camera,
   Command,
   Shield,
   Activity,
@@ -47,7 +46,7 @@ import { Asset, Risk, Project, Incident, AISuggestedLink, VoxelNode, DataNode, L
 import { VoxelSidebar } from '../components/voxel/VoxelSidebar';
 import { VoxelDetailPanel } from '../components/voxel/overlays/VoxelDetailPanel';
 
-import { useVoxelStore, voxelStoreActions } from '../stores/voxelStore';
+import { voxelStoreActions } from '../stores/voxelStore';
 
 import { AnomalyPanel } from '../components/voxel/AnomalyPanel';
 import { BlastRadiusPanel } from '../components/voxel/BlastRadiusPanel';
@@ -260,7 +259,7 @@ export const VoxelView: React.FC = () => {
   // UI State
   const [selectedNode, setSelectedNode] = useState<DataNode | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-  const [releaseToken, setReleaseToken] = useState<number | null>(null);
+  const [releaseToken, _setReleaseToken] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(() => {
     const saved = localStorage.getItem('voxel_navCollapsed');
@@ -370,8 +369,9 @@ export const VoxelView: React.FC = () => {
     const now = new Date();
 
     const getStatusFromAsset = (asset: Asset): VoxelNodeStatus => {
-      const hasCritical = [asset.confidentiality, asset.integrity, asset.availability].includes('Critique');
-      const hasHigh = [asset.confidentiality, asset.integrity, asset.availability].includes('Élevée');
+      const values = [asset.confidentiality, asset.integrity, asset.availability];
+      const hasCritical = values.some(v => v === 'Critique');
+      const hasHigh = values.some(v => v === 'Élevée');
       return hasCritical ? 'critical' : hasHigh ? 'warning' : 'normal';
     };
 
@@ -469,13 +469,13 @@ export const VoxelView: React.FC = () => {
   // Sync to store
   useEffect(() => {
     if (voxelNodesForPanel.length > 0) {
-      voxelStoreActions.setNodes(new Map(voxelNodesForPanel.map(n => [n.id, n])));
+      voxelStoreActions.setNodes(voxelNodesForPanel);
     }
   }, [voxelNodesForPanel]);
 
   useEffect(() => {
     if (voxelEdgesForStore.length > 0) {
-      voxelStoreActions.setEdges(new Map(voxelEdgesForStore.map(e => [e.id, e])));
+      voxelStoreActions.setEdges(voxelEdgesForStore);
     }
   }, [voxelEdgesForStore]);
 

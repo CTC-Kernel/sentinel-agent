@@ -21,19 +21,17 @@ import {
   Shield,
   Tag,
   Calendar,
-  CheckCircle,
-  Clock,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { appleEasing } from '../../utils/microInteractions';
-import type { Requirement, CriticalityLevel, ControlMapping } from '../../types/framework';
+import type { Requirement, CriticalityLevel } from '../../types/framework';
 
 // ============================================================================
 // Criticality Config
 // ============================================================================
 
 const CRITICALITY_CONFIG: Record<CriticalityLevel, {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   color: string;
   bgColor: string;

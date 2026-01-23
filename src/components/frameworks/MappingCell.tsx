@@ -19,7 +19,7 @@ import type { CoverageStatus } from '../../types/framework';
 // ============================================================================
 
 const COVERAGE_CONFIG: Record<CoverageStatus, {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   bgColor: string;
   textColor: string;
   borderColor: string;

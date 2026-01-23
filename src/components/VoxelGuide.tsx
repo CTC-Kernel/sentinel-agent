@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Layers, Eye, Flame, RotateCw, AlertTriangle, Zap, Clock, RefreshCw, Maximize2, Camera, Info, Keyboard, HelpCircle, Search, Command, Shield, Activity, Network, MousePointer, Move3D } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Layers, Eye, Flame, RotateCw, AlertTriangle, Zap, Clock, RefreshCw, Maximize2, Camera, Keyboard, HelpCircle, Search, Command, Shield, Activity, Network, MousePointer, Move3D } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VoxelGuideProps {
