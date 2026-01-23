@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AgentManagement } from '../AgentManagement';
 import { AgentService } from '../../../services/AgentService';
 import { useStore } from '../../../store';
+import { useAuth } from '../../../hooks/useAuth';
 import { SentinelAgent, AgentEnrollmentToken } from '../../../types/agent';
 import { vi, expect, it, describe, beforeEach } from 'vitest';
 
@@ -17,6 +18,7 @@ vi.mock('../../../services/AgentService', () => ({
     }
 }));
 vi.mock('../../../store');
+vi.mock('../../../hooks/useAuth');
 
 const mockUser = {
     organizationId: 'test-org',
@@ -44,6 +46,23 @@ describe('AgentManagement', () => {
             user: mockUser,
             t: (key: string) => key
         } as unknown as ReturnType<typeof useStore>);
+
+        // Mock useAuth to return claimsSynced: true so subscriptions are enabled
+        vi.mocked(useAuth).mockReturnValue({
+            claimsSynced: true,
+            user: null,
+            firebaseUser: null,
+            loading: false,
+            error: null,
+            isAdmin: true,
+            dismissBlockerError: vi.fn(),
+            refreshSession: vi.fn(),
+            logout: vi.fn(),
+            enrollMFA: vi.fn(),
+            verifyMFA: vi.fn(),
+            unenrollMFA: vi.fn(),
+            loginWithSSO: vi.fn(),
+        });
 
         vi.mocked(AgentService.subscribeToAgents).mockImplementation((_orgId, onAgents) => {
             onAgents(mockAgents as unknown as SentinelAgent[]);

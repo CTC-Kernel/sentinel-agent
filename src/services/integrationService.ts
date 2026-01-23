@@ -662,20 +662,19 @@ class IntegrationService {
         }
 
         try {
-            // N8N URL is hardcoded or fetched from config
-            const N8N_BASE_URL = 'https://cyber-threat-consulting.com/n8n/webhook'; // Or /webhook-test for testing
+            // N8N URL from environment variable - NEVER hardcode URLs
+            const N8N_BASE_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
+
+            if (!N8N_BASE_URL) {
+                ErrorLogger.warn('N8N webhook URL not configured (VITE_N8N_WEBHOOK_URL)', 'IntegrationService.triggerN8nWorkflow');
+                return {
+                    success: false,
+                    message: 'N8N integration not configured. Please set VITE_N8N_WEBHOOK_URL environment variable.'
+                };
+            }
 
             // Note: Direct calls from Frontend to N8N might fail if CORS is not configured on N8N.
-            // Best practice is to proxy through a Cloud Function if N8N is secure/internal,
-            // but for this implementation we assume N8N allows CORS or we use a proxy function if needed.
-            // For now, we will use a direct fetch, but if that fails due to CORS, we should switch to a Cloud Function proxy.
-
-            // To be safe and secure, we'll actually use a proxy Cloud Function 'triggerAutomation' (to be created)
-            // OR we'll use the existing 'ingestWebhook' pattern in reverse? No.
-
-            // Let's assume we call a Cloud Function wrapper for security (hiding N8N creds/structure)
-            // But since 'triggerAutomation' doesn't exist yet, let's implement a direct call 
-            // and assume the user will configure N8N CORS.
+            // Best practice is to proxy through a Cloud Function if N8N is secure/internal.
 
             const url = `${N8N_BASE_URL}/${webhookPath}`;
 

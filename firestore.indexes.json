@@ -1035,16 +1035,6 @@
             ]
         },
         {
-            "collectionGroup": "activeFrameworks",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "activatedAt",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
             "collectionGroup": "copilotConversations",
             "queryScope": "COLLECTION",
             "fields": [
@@ -1064,30 +1054,6 @@
             "fields": [
                 {
                     "fieldPath": "id",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "agents",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "lastHeartbeat",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "agents",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "machineId",
                     "order": "ASCENDING"
                 }
             ]

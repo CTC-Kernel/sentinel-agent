@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../store';
+import { useAuth } from './useAuth';
 import { subscribeToAgents } from '../services/AgentService';
 import { SentinelAgent, AgentResult } from '../types/agent';
 import { ErrorLogger } from '../services/errorLogger';
@@ -60,12 +61,16 @@ export interface UseAgentDataOptions {
 export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummary {
     const { realtime = true, includeResults = true, resultsLimit = 50 } = options;
     const { user, demoMode } = useStore();
+    const { claimsSynced } = useAuth();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [recentResults, setRecentResults] = useState<AgentResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
     // Subscribe to agents
+    // IMPORTANT: Wait for claimsSynced to be true before subscribing
+    // This prevents "permission-denied" errors when the Firebase Auth token
+    // hasn't been refreshed yet with the organizationId custom claim
     useEffect(() => {
         if (demoMode) {
             // In demo mode, provide mock agent data asynchronously to avoid cascading renders
@@ -121,6 +126,12 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
             return;
         }
 
+        // Wait for custom claims to be synced before subscribing to prevent permission errors
+        if (!claimsSynced) {
+            setLoading(true);
+            return;
+        }
+
         const unsubscribe = subscribeToAgents(
             user.organizationId,
             (newAgents) => {
@@ -139,9 +150,10 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
         );
 
         return () => unsubscribe();
-    }, [user?.organizationId, realtime, demoMode]);
+    }, [user?.organizationId, realtime, demoMode, claimsSynced]);
 
     // Subscribe to recent results
+    // Also needs to wait for claimsSynced for organization subcollections
     useEffect(() => {
         if (demoMode) {
             // Demo mode: provide mock results asynchronously to avoid cascading renders
@@ -184,6 +196,9 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
 
         if (!user?.organizationId || !includeResults) return;
 
+        // Wait for custom claims to be synced before subscribing
+        if (!claimsSynced) return;
+
         // Query results from all agents (using collectionGroup would be ideal,
         // but we'll query the main results collection)
         const resultsQuery = query(
@@ -225,7 +240,7 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
         );
 
         return () => unsubscribe();
-    }, [user?.organizationId, includeResults, resultsLimit, demoMode]);
+    }, [user?.organizationId, includeResults, resultsLimit, demoMode, claimsSynced]);
 
     // Compute summary statistics
     const summary = useMemo((): AgentDataSummary => {

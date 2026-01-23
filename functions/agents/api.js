@@ -636,25 +636,48 @@ function getDefaultAgentConfig() {
     };
 }
 
+/**
+ * Generate self-signed certificate for agent enrollment
+ * NOTE: In production, replace with proper PKI using Cloud KMS
+ */
 function generatePlaceholderCert(type, agentId = '') {
-    const now = new Date().toISOString();
-    return Buffer.from(
-        JSON.stringify({
-            type,
-            agentId,
-            issuedAt: now,
-            placeholder: true,
-        })
-    ).toString('base64');
+    const crypto = require('crypto');
+
+    logger.warn('Using self-signed certificates. For production, implement proper PKI with Cloud KMS.');
+
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+        privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+    });
+
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+    const certData = {
+        version: 3,
+        serialNumber: crypto.randomBytes(16).toString('hex'),
+        issuer: 'CN=Sentinel GRC Agent CA, O=Sentinel GRC',
+        subject: `CN=${agentId || 'agent'}, O=Sentinel GRC, OU=${type}`,
+        notBefore: now.toISOString(),
+        notAfter: expiresAt.toISOString(),
+        publicKey: publicKey,
+        signature: crypto.sign('sha256',
+            Buffer.from(JSON.stringify({ agentId, type, notBefore: now.toISOString(), notAfter: expiresAt.toISOString() })),
+            privateKey
+        ).toString('base64')
+    };
+
+    return Buffer.from(JSON.stringify(certData)).toString('base64');
 }
 
 function generatePlaceholderKey() {
-    return Buffer.from(
-        JSON.stringify({
-            type: 'placeholder_key',
-            generated: new Date().toISOString(),
-        })
-    ).toString('base64');
+    const crypto = require('crypto');
+    const { privateKey } = crypto.generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+        privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+    });
+    return Buffer.from(privateKey).toString('base64');
 }
 
 // Export the Express API as a Cloud Function

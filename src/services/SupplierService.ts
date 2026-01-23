@@ -67,13 +67,26 @@ export class SupplierService {
     }
 
     /**
-     * Get a single supplier by ID
+     * Get a single supplier by ID with organization validation
+     * @param supplierId - The supplier ID
+     * @param organizationId - The organization ID (required for security)
+     * @returns The supplier if found and belongs to the organization, null otherwise
      */
-    static async getById(supplierId: string): Promise<Supplier | null> {
+    static async getById(supplierId: string, organizationId: string): Promise<Supplier | null> {
+        if (!organizationId) {
+            ErrorLogger.error(new Error('organizationId is required for security'), 'SupplierService.getById');
+            throw new Error('organizationId is required');
+        }
         try {
             const supplierDoc = await getDoc(doc(db, 'suppliers', supplierId));
             if (supplierDoc.exists()) {
-                return supplierDoc.data() as Supplier;
+                const supplier = supplierDoc.data() as Supplier;
+                // Security: Verify supplier belongs to the requesting organization
+                if (supplier.organizationId !== organizationId) {
+                    ErrorLogger.warn(`Access denied: Supplier ${supplierId} does not belong to organization ${organizationId}`, 'SupplierService.getById');
+                    return null;
+                }
+                return supplier;
             }
             return null;
         } catch (error) {

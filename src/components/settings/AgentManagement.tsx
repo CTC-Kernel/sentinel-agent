@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
+import { useAuth } from '../../hooks/useAuth';
 import {
     Server,
     Terminal,
@@ -69,16 +70,40 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
 
 export const AgentManagement: React.FC = () => {
     const { user } = useStore();
+    const { claimsSynced } = useAuth();
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
     const [showEnrollment, setShowEnrollment] = useState(false);
     const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
 
     // Subscribe to real-time agent updates
+    // IMPORTANT: Wait for claimsSynced to be true before subscribing
+    // This prevents "permission-denied" errors when the Firebase Auth token
+    // hasn't been refreshed yet with the organizationId custom claim
     useEffect(() => {
         if (!user?.organizationId) return;
 
-        const unsubscribe = AgentService.subscribeToAgents(
+        // Wait for custom claims to be synced before subscribing
+        if (!claimsSynced) {
+            setLoading(true);
+            return;
+        }
+
+        let unsubscribe: (() => void) | null = null;
+
+        // Force token refresh before subscribing to ensure fresh credentials
+        const initSubscription = async () => {
+            try {
+                // Force token refresh to ensure Firestore uses latest claims
+                const { auth } = await import('../../firebase');
+                if (auth.currentUser) {
+                    await auth.currentUser.getIdToken(true);
+                }
+            } catch (e) {
+                console.warn('Token refresh failed, proceeding anyway:', e);
+            }
+
+            unsubscribe = AgentService.subscribeToAgents(
             user.organizationId,
             (data) => {
                 setAgents(data);
@@ -86,13 +111,26 @@ export const AgentManagement: React.FC = () => {
             },
             (error) => {
                 console.error('Agent subscription error:', error);
-                toast.error("Échec du chargement des agents");
+                // Show more detailed error message for debugging
+                const errorCode = (error as { code?: string }).code;
+                if (errorCode === 'permission-denied') {
+                    toast.error("Accès refusé aux agents. Essayez de vous reconnecter.");
+                } else if (errorCode === 'unavailable') {
+                    toast.error("Service Firestore indisponible. Réessayez plus tard.");
+                } else {
+                    toast.error(`Échec du chargement des agents: ${errorCode || error.message}`);
+                }
                 setLoading(false);
             }
         );
+        };
 
-        return () => unsubscribe();
-    }, [user?.organizationId]);
+        initSubscription();
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
+    }, [user?.organizationId, claimsSynced]);
 
     const handleDelete = async (agentId: string) => {
         if (!user?.organizationId) return;

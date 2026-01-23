@@ -23,11 +23,24 @@ export class SupplierDoraSyncService {
     /**
      * Synchronizes a supplier to ICT Provider if it's marked as ICT Provider
      * @param supplierId - The supplier ID to sync
+     * @param organizationId - The organization ID (required for security)
      * @returns Promise<boolean> - True if sync was performed, false if not needed
      */
-    static async syncSupplierToICTProvider(supplierId: string): Promise<boolean> {
+    static async syncSupplierToICTProvider(supplierId: string, organizationId?: string): Promise<boolean> {
         try {
-            const supplier = await SupplierService.getById(supplierId);
+            // If organizationId not provided, we need to get it from the supplier document directly
+            // This is a security fallback - caller should always provide organizationId when known
+            let supplier: Supplier | null = null;
+            if (organizationId) {
+                supplier = await SupplierService.getById(supplierId, organizationId);
+            } else {
+                // Direct fetch without org validation (legacy support - to be deprecated)
+                const supplierDoc = await getDoc(doc(db, 'suppliers', supplierId));
+                if (supplierDoc.exists()) {
+                    supplier = supplierDoc.data() as Supplier;
+                }
+                ErrorLogger.warn('syncSupplierToICTProvider called without organizationId - using legacy fallback', 'SupplierDoraSyncService');
+            }
             if (!supplier) {
                 ErrorLogger.warn(`Supplier ${supplierId} not found for DORA sync`, 'SupplierDoraSyncService.syncSupplierToICTProvider');
                 return false;
@@ -282,9 +295,28 @@ export class SupplierDoraSyncService {
     /**
      * Removes ICT Provider status from a supplier
      * @param supplierId - The supplier ID
+     * @param organizationId - The organization ID (required for security)
      */
-    static async removeICTProviderStatus(supplierId: string): Promise<void> {
+    static async removeICTProviderStatus(supplierId: string, organizationId?: string): Promise<void> {
         try {
+            // First verify the supplier exists and belongs to the organization
+            let supplier: Supplier | null = null;
+            if (organizationId) {
+                supplier = await SupplierService.getById(supplierId, organizationId);
+            } else {
+                // Direct fetch without org validation (legacy support - to be deprecated)
+                const supplierDoc = await getDoc(doc(db, 'suppliers', supplierId));
+                if (supplierDoc.exists()) {
+                    supplier = supplierDoc.data() as Supplier;
+                }
+                ErrorLogger.warn('removeICTProviderStatus called without organizationId - using legacy fallback', 'SupplierDoraSyncService');
+            }
+
+            if (!supplier) {
+                ErrorLogger.warn(`Supplier ${supplierId} not found or access denied`, 'SupplierDoraSyncService.removeICTProviderStatus');
+                return;
+            }
+
             // Update supplier to remove ICT Provider status
             await updateDoc(doc(db, 'suppliers', supplierId), {
                 isICTProvider: false,
@@ -293,16 +325,13 @@ export class SupplierDoraSyncService {
             });
 
             // Find and deactivate corresponding ICT Provider
-            const supplier = await SupplierService.getById(supplierId);
-            if (supplier) {
-                const providers = await ICTProviderService.getAll(supplier.organizationId);
-                const matchingProvider = providers.find(p => this.isSameEntity(p, supplier));
-                
-                if (matchingProvider) {
-                    await ICTProviderService.update(matchingProvider.id, {
-                        status: 'terminated'
-                    }, supplier.organizationId);
-                }
+            const providers = await ICTProviderService.getAll(supplier.organizationId);
+            const matchingProvider = providers.find(p => this.isSameEntity(p, supplier));
+
+            if (matchingProvider) {
+                await ICTProviderService.update(matchingProvider.id, {
+                    status: 'terminated'
+                }, supplier.organizationId);
             }
 
             ErrorLogger.info(`Removed ICT Provider status from supplier ${supplierId}`, 'SupplierDoraSyncService.removeICTProviderStatus');
