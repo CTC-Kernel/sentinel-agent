@@ -4,6 +4,7 @@ import { Users, Building, Activity, Zap } from '../../../components/ui/Icons';
 import { collection, getCountFromServer, query, where } from 'firebase/firestore';
 import { db } from '../../../firebase';
 import { ErrorLogger } from '../../../services/errorLogger';
+import { SENTINEL_PALETTE, CHART_AXIS_COLORS } from '../../../theme/chartTheme';
 
 const StatCard: React.FC<{
     title: string;
@@ -123,17 +124,17 @@ export const GlobalMetrics: React.FC = () => {
                         <AreaChart data={data}>
                             <defs>
                                 <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                    <stop offset="5%" stopColor={SENTINEL_PALETTE.secondary} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={SENTINEL_PALETTE.secondary} stopOpacity={0} />
                                 </linearGradient>
                                 <linearGradient id="colorTenants" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                    <stop offset="5%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                            <XAxis dataKey="name" stroke="#64748b" />
-                            <YAxis stroke="#64748b" />
+                            <CartesianGrid strokeDasharray="3 3" stroke={CHART_AXIS_COLORS.gridDark} vertical={false} />
+                            <XAxis dataKey="name" stroke={CHART_AXIS_COLORS.tick} />
+                            <YAxis stroke={CHART_AXIS_COLORS.tick} />
                             <Tooltip
                                 contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f1f5f9' }}
                                 itemStyle={{ color: '#f1f5f9' }}
@@ -141,7 +142,7 @@ export const GlobalMetrics: React.FC = () => {
                             <Area
                                 type="monotone"
                                 dataKey="users"
-                                stroke="#8b5cf6"
+                                stroke={SENTINEL_PALETTE.secondary}
                                 strokeWidth={3}
                                 fillOpacity={1}
                                 fill="url(#colorUsers)"
@@ -150,7 +151,7 @@ export const GlobalMetrics: React.FC = () => {
                             <Area
                                 type="monotone"
                                 dataKey="tenants"
-                                stroke="#3b82f6"
+                                stroke={SENTINEL_PALETTE.primary}
                                 strokeWidth={3}
                                 fillOpacity={1}
                                 fill="url(#colorTenants)"

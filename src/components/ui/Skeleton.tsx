@@ -25,9 +25,14 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   };
 
   const content = (
-    <div className={`relative overflow-hidden bg-gray-200 dark:bg-white/5 ${variantClasses[variant]} ${className}`}>
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent"></div>
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-blue-400/30 to-transparent w-1/2 blur-sm" style={{ animationDelay: '0.1s' }}></div>
+    <div className={`relative overflow-hidden bg-muted/50 dark:bg-white/5 ${variantClasses[variant]} ${className}`}>
+      {/* Primary shimmer - uses skeleton-shimmer class from index.css */}
+      <div className="absolute inset-0 skeleton-shimmer" />
+      {/* Secondary accent shimmer for depth */}
+      <div
+        className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-primary/10 to-transparent w-1/2 blur-sm"
+        style={{ animationDelay: '0.1s' }}
+      />
     </div>
   );
 

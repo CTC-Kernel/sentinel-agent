@@ -10,9 +10,17 @@
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 2.5%;
 
-  /* Primary - Vivid Apple Blue (more vibrant) */
-  --primary: 221.2 91% 48%;
+  /* Primary - Refined Apple Blue (professional vibrance) */
+  --primary: 221 83% 50%;
   --primary-foreground: 210 40% 98%;
+
+  /* Navigation Icon Colors - Harmonized palette */
+  --nav-pilotage: 221 75% 55%;     /* Blue - steering/dashboard */
+  --nav-operations: 28 70% 52%;    /* Orange - operations */
+  --nav-governance: 152 58% 42%;   /* Teal - governance (matches success) */
+  --nav-repository: 270 60% 55%;   /* Purple - repository */
+  --nav-admin: 4 62% 52%;          /* Red - admin (matches error) */
+  --nav-support: 215 20% 50%;      /* Slate - support */
 
   /* Secondary/Muted - Better contrast (was 96.1% luminosity, now 92%) */
   --secondary: 210 40% 92%;
@@ -29,37 +37,40 @@
 
   --border: 214.3 31.8% 88%;
   --input: 214.3 31.8% 88%;
-  --ring: 221.2 91% 48%;
+  --ring: 221 83% 50%;
 
-  /* Status Colors - Light Mode (WCAG AA Compliant) */
-  --success: 142 71% 40%;
-  --warning: 38 92% 45%;
-  --error: 0 72% 51%;
-  --info: 199 89% 42%;
+  /* ===== STATUS COLORS - Light Mode (Harmonized Palette) ===== */
+  /* Reduced saturation (62-72%) for professional, non-aggressive appearance */
+  /* Consistent hues that work in both light and dark modes */
+  --success: 152 62% 38%;          /* Teal-green - balanced */
+  --warning: 38 72% 48%;           /* Amber - warm but not harsh */
+  --error: 4 68% 50%;              /* True red - consistent */
+  --info: 201 68% 44%;             /* Cyan-blue - professional */
 
   /* Semantic Badge Tokens - Light Mode */
-  --success-text: 142 76% 30%;
-  --success-bg: 142 76% 95%;
-  --success-border: 142 70% 75%;
+  /* Text: 28-38% luminosity for WCAG AA on light backgrounds */
+  --success-text: 152 58% 28%;
+  --success-bg: 152 45% 95%;
+  --success-border: 152 40% 75%;
 
-  --warning-text: 38 92% 30%;
-  --warning-bg: 38 92% 95%;
-  --warning-border: 38 80% 70%;
+  --warning-text: 38 68% 30%;
+  --warning-bg: 38 50% 94%;
+  --warning-border: 38 45% 72%;
 
-  --error-text: 0 72% 40%;
-  --error-bg: 0 72% 96%;
-  --error-border: 0 70% 80%;
+  --error-text: 4 65% 40%;
+  --error-bg: 4 50% 96%;
+  --error-border: 4 45% 80%;
 
-  --info-text: 199 89% 32%;
-  --info-bg: 199 89% 95%;
-  --info-border: 199 80% 75%;
+  --info-text: 201 65% 32%;
+  --info-bg: 201 50% 95%;
+  --info-border: 201 45% 75%;
 
-  /* Gradient Variables */
-  --gradient-primary: linear-gradient(135deg, hsl(221 91% 48%) 0%, hsl(240 80% 55%) 100%);
-  --gradient-success: linear-gradient(135deg, hsl(142 71% 40%) 0%, hsl(160 70% 45%) 100%);
-  --gradient-warning: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(25 90% 48%) 100%);
-  --gradient-danger: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(350 80% 45%) 100%);
-  --gradient-info: linear-gradient(135deg, hsl(199 89% 42%) 0%, hsl(210 85% 50%) 100%);
+  /* Gradient Variables - Harmonized with reduced saturation */
+  --gradient-primary: linear-gradient(135deg, hsl(221 83% 50%) 0%, hsl(235 70% 55%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(152 62% 38%) 0%, hsl(162 58% 42%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(38 72% 48%) 0%, hsl(28 68% 46%) 100%);
+  --gradient-danger: linear-gradient(135deg, hsl(4 68% 50%) 0%, hsl(358 65% 46%) 100%);
+  --gradient-info: linear-gradient(135deg, hsl(201 68% 44%) 0%, hsl(210 65% 50%) 100%);
 
   /* Spacing Scale - Standard (Tailwind compatible) */
   --spacing-1: 0.25rem;
@@ -176,9 +187,17 @@
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
 
-  /* Primary - Vivid Blue for Dark with higher luminance */
-  --primary: 217.2 91.2% 59.8%;
+  /* Primary - Refined Blue for Dark (matches light mode hue) */
+  --primary: 221 78% 60%;
   --primary-foreground: 222.2 47.4% 11.2%;
+
+  /* Navigation Icon Colors - Dark Mode (brighter for visibility) */
+  --nav-pilotage: 221 72% 62%;     /* Blue */
+  --nav-operations: 28 68% 58%;    /* Orange */
+  --nav-governance: 152 55% 52%;   /* Teal */
+  --nav-repository: 270 58% 62%;   /* Purple */
+  --nav-admin: 4 60% 60%;          /* Red */
+  --nav-support: 215 18% 58%;      /* Slate */
 
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
@@ -196,35 +215,37 @@
   --input: 217.2 32.6% 17.5%;
   --ring: 212.7 26.8% 83.9%;
 
-  /* Status Colors (Dark Mode) - WCAG Optimized */
-  --success: 158 64% 52%;
-  --warning: 38 92% 50%;
-  --error: 350 89% 60%;
-  --info: 199 89% 48%;
+  /* ===== STATUS COLORS - Dark Mode (Consistent Hues with Light) ===== */
+  /* Same hues as light mode, adjusted luminosity for dark backgrounds */
+  --success: 152 58% 52%;          /* Same hue 152 as light */
+  --warning: 38 68% 55%;           /* Same hue 38 as light */
+  --error: 4 65% 58%;              /* Same hue 4 as light (not 350) */
+  --info: 201 65% 52%;             /* Same hue 201 as light */
 
   /* Semantic Badge Tokens - Dark Mode */
-  --success-text: 158 64% 60%;
-  --success-bg: 158 60% 12%;
-  --success-border: 158 50% 30%;
+  /* Text: 58-68% luminosity for readability on dark backgrounds */
+  --success-text: 152 55% 62%;
+  --success-bg: 152 50% 12%;
+  --success-border: 152 45% 32%;
 
-  --warning-text: 38 92% 65%;
-  --warning-bg: 38 70% 12%;
-  --warning-border: 38 70% 35%;
+  --warning-text: 38 65% 65%;
+  --warning-bg: 38 55% 13%;
+  --warning-border: 38 50% 35%;
 
-  --error-text: 350 89% 65%;
-  --error-bg: 350 70% 12%;
-  --error-border: 350 70% 35%;
+  --error-text: 4 62% 65%;
+  --error-bg: 4 55% 12%;
+  --error-border: 4 50% 35%;
 
-  --info-text: 199 89% 60%;
-  --info-bg: 199 70% 12%;
-  --info-border: 199 70% 35%;
+  --info-text: 201 62% 62%;
+  --info-bg: 201 55% 12%;
+  --info-border: 201 50% 35%;
 
-  /* Gradient Variables - Dark Mode (lighter for visibility) */
-  --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(240 80% 65%) 100%);
-  --gradient-success: linear-gradient(135deg, hsl(158 64% 52%) 0%, hsl(160 70% 55%) 100%);
-  --gradient-warning: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(25 90% 55%) 100%);
-  --gradient-danger: linear-gradient(135deg, hsl(350 89% 60%) 0%, hsl(360 80% 55%) 100%);
-  --gradient-info: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(210 85% 55%) 100%);
+  /* Gradient Variables - Dark Mode (harmonized) */
+  --gradient-primary: linear-gradient(135deg, hsl(217 80% 58%) 0%, hsl(235 70% 62%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(152 58% 52%) 0%, hsl(162 55% 55%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(38 68% 55%) 0%, hsl(28 65% 52%) 100%);
+  --gradient-danger: linear-gradient(135deg, hsl(4 65% 58%) 0%, hsl(358 62% 54%) 100%);
+  --gradient-info: linear-gradient(135deg, hsl(201 65% 52%) 0%, hsl(210 62% 55%) 100%);
 
   /* Shadow System - Dark Mode (deeper shadows) */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);

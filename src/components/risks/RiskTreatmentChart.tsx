@@ -22,13 +22,13 @@ export const RiskTreatmentChart: React.FC<RiskTreatmentChartProps> = ({ risks })
             }
         });
 
-        // Colors for statuses
+        // Colors for statuses (harmonized palette)
         const COLORS: Record<string, string> = {
-            'Planifié': '#94a3b8', // Slate 400
-            'En cours': '#3b82f6', // Brand Blue
-            'Terminé': '#10b981', // Emerald
-            'Retard': '#ef4444', // Red
-            'Non Traité': '#f59e0b' // Amber
+            'Planifié': '#6b8fa3', // Slate-blue (neutral)
+            'En cours': '#4a7fc7', // Primary blue
+            'Terminé': '#2d9d6a', // Teal-green (success)
+            'Retard': '#d64545',  // Red (error)
+            'Non Traité': '#c87f1a' // Amber (warning)
         };
 
         return Object.entries(map)

@@ -1,47 +1,77 @@
 /**
  * Centralized color constants for Sentinel GRC
  *
- * These values match the CSS variables in design-tokens.css.
+ * HARMONIZED PALETTE - Matches design-tokens.css
+ * All colors use consistent hues and reduced saturation (62-72%)
+ * for a professional, non-aggressive appearance.
+ *
+ * Hue Reference:
+ * - Primary: 221° (Blue)
+ * - Success: 152° (Teal-green)
+ * - Warning: 38° (Amber)
+ * - Error: 4° (True red)
+ * - Info: 201° (Cyan-blue)
+ *
  * Use these for JavaScript contexts (charts, canvas, PDF generation).
  * For React components, prefer Tailwind classes or CSS variables.
  */
 
 import { RISK_THRESHOLDS } from './complianceConfig';
 
-// Risk Level Colors
-export const RISK_COLORS = {
-  critical: '#ef4444', // red-500
-  high: '#f97316',     // orange-500
-  medium: '#eab308',   // yellow-500
-  low: '#22c55e',      // green-500
-} as const;
-
-// Score Colors (for compliance scores, gauges)
-export const SCORE_COLORS = {
-  bad: '#ef4444',      // red-500 (< 50%)
-  warning: '#f97316',  // orange-500 (50-80%)
-  good: '#22c55e',     // green-500 (> 80%)
-} as const;
-
-// Status Colors
+// ===== SEMANTIC STATUS COLORS (Harmonized) =====
 export const STATUS_COLORS = {
-  success: '#10b981',  // emerald-500
-  error: '#ef4444',    // red-500
-  warning: '#f59e0b',  // amber-500
-  info: '#3b82f6',     // blue-500
+  success: '#2d9d6a',  // hsl(152 62% 38%) - Teal-green
+  warning: '#c87f1a',  // hsl(38 72% 48%) - Amber
+  error: '#d64545',    // hsl(4 68% 50%) - True red
+  info: '#2a8ab8',     // hsl(201 68% 44%) - Cyan-blue
 } as const;
 
-// Chart Colors (for data visualization palettes)
+// Dark mode variants (higher luminosity)
+export const STATUS_COLORS_DARK = {
+  success: '#4db88a',  // hsl(152 58% 52%)
+  warning: '#d9a03d',  // hsl(38 68% 55%)
+  error: '#e06060',    // hsl(4 65% 58%)
+  info: '#4ba3cc',     // hsl(201 65% 52%)
+} as const;
+
+// ===== RISK LEVEL COLORS (Harmonized severity scale) =====
+export const RISK_COLORS = {
+  critical: '#d64545', // hsl(4 68% 50%) - Same as error
+  high: '#c87f1a',     // hsl(38 72% 48%) - Same as warning
+  medium: '#d4a820',   // hsl(45 75% 48%) - Yellow-gold
+  low: '#2d9d6a',      // hsl(152 62% 38%) - Same as success
+} as const;
+
+// ===== SCORE COLORS (For gauges & progress) =====
+export const SCORE_COLORS = {
+  bad: '#d64545',      // hsl(4 68% 50%) - Red (< 50%)
+  warning: '#c87f1a',  // hsl(38 72% 48%) - Amber (50-80%)
+  good: '#2d9d6a',     // hsl(152 62% 38%) - Teal (> 80%)
+} as const;
+
+// ===== CHART PALETTE (Harmonized data visualization) =====
+// Ordered for visual distinction while maintaining harmony
 export const CHART_COLORS = [
-  '#3b82f6', // blue-500
-  '#8b5cf6', // violet-500
-  '#ec4899', // pink-500
-  '#f59e0b', // amber-500
-  '#10b981', // emerald-500
-  '#6366f1', // indigo-500
+  '#4a7fc7',  // Primary blue (hsl 221 55% 54%)
+  '#2d9d6a',  // Teal-green (success)
+  '#9b6dd7',  // Purple (hsl 270 55% 64%)
+  '#2a8ab8',  // Cyan-blue (info)
+  '#c87f1a',  // Amber (warning)
+  '#d64545',  // Red (error)
+  '#6b8fa3',  // Slate-blue (neutral)
+  '#7c5cbd',  // Violet
 ] as const;
 
-// Slate/Neutral Colors
+// Extended palette for more data series
+export const CHART_COLORS_EXTENDED = [
+  ...CHART_COLORS,
+  '#3d8b70',  // Dark teal
+  '#8c7853',  // Bronze
+  '#5a7d99',  // Steel blue
+  '#a85858',  // Muted red
+] as const;
+
+// ===== SLATE/NEUTRAL COLORS =====
 export const SLATE_COLORS = {
   50: '#f8fafc',
   100: '#f1f5f9',
@@ -56,18 +86,18 @@ export const SLATE_COLORS = {
   950: '#020617',
 } as const;
 
-// Brand Colors
+// ===== BRAND/PRIMARY COLORS =====
 export const BRAND_COLORS = {
-  50: '#eef2ff',
-  100: '#dbeafe',
-  200: '#bfdbfe',
-  300: '#93c5fd',
-  400: '#60a5fa',
-  500: '#3b82f6',
-  600: '#2563eb',
-  700: '#1d4ed8',
-  800: '#1e40af',
-  900: '#1e3a8a',
+  50: '#eff4ff',
+  100: '#dbe6fe',
+  200: '#bfd3fe',
+  300: '#93b8fd',
+  400: '#6090f9',
+  500: '#4a7fc7',  // Primary (hsl 221 55% 54%)
+  600: '#3b68b0',
+  700: '#31548f',
+  800: '#2b4575',
+  900: '#273b62',
 } as const;
 
 // Utility function to get risk color by score

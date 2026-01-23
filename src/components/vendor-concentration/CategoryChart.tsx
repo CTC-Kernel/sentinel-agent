@@ -22,6 +22,7 @@ import {
 } from '../ui/Icons';
 import type { CategoryConcentration } from '../../types/vendorConcentration';
 import { formatPercentage, getHHILevel } from '../../types/vendorConcentration';
+import { DONUT_COLORS, SEVERITY_COLORS } from '../../theme/chartTheme';
 
 // ============================================================================
 // Types
@@ -48,17 +49,13 @@ interface ChartDataItem {
 // Constants
 // ============================================================================
 
-const COLORS = [
-  '#3B82F6', // blue
-  '#10B981', // green
-  '#F59E0B', // amber
-  '#EF4444', // red
-  '#8B5CF6', // purple
-  '#EC4899', // pink
-  '#06B6D4', // cyan
-  '#F97316', // orange
-  '#84CC16', // lime
-  '#6366F1', // indigo
+// Extended harmonized chart colors from design system
+const CHART_COLORS = [
+  ...DONUT_COLORS.category,
+  SEVERITY_COLORS.high,      // Amber
+  SEVERITY_COLORS.critical,  // Red
+  SEVERITY_COLORS.medium,    // Yellow-gold
+  SEVERITY_COLORS.low,       // Teal
 ];
 
 const RADIAN = Math.PI / 180;
@@ -352,7 +349,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
               {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${entry.category}`}
-                  fill={COLORS[index % COLORS.length]}
+                  fill={CHART_COLORS[index % CHART_COLORS.length]}
                   stroke={entry.hasSPOF ? '#EF4444' : 'transparent'}
                   strokeWidth={entry.hasSPOF ? 3 : 0}
                   className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -387,7 +384,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
           <LegendItem
             key={category.category}
             category={category}
-            color={COLORS[index % COLORS.length]}
+            color={CHART_COLORS[index % CHART_COLORS.length]}
             onClick={() => handleCategoryClick(category)}
           />
         ))}

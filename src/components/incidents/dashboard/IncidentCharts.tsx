@@ -3,6 +3,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, 
 import { EmptyChartState } from '../../ui/EmptyChartState';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { GlassCard } from '../../ui/GlassCard';
+import { DONUT_COLORS, SEVERITY_COLORS, CHART_AXIS_COLORS } from '../../../theme/chartTheme';
 
 interface IncidentChartsProps {
     categoryData: { name: string; value: number }[];
@@ -33,7 +34,7 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                                     cornerRadius={4}
                                 >
                                     {categoryData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981'][index % 5]} stroke="rgba(255,255,255,0.05)" strokeWidth={2} />
+                                        <Cell key={`cell-${index}`} fill={DONUT_COLORS.category[index % DONUT_COLORS.category.length]} stroke="rgba(255,255,255,0.05)" strokeWidth={2} />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
@@ -58,13 +59,13 @@ export const IncidentCharts: React.FC<IncidentChartsProps> = ({ categoryData, ti
                             >
                                 <defs>
                                     <linearGradient id="incidentGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.8} />
-                                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.3} />
+                                        <stop offset="0%" stopColor={SEVERITY_COLORS.high} stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor={SEVERITY_COLORS.high} stopOpacity={0.3} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} allowDecimals={false} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_AXIS_COLORS.grid} strokeOpacity={CHART_AXIS_COLORS.gridOpacity} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 12 }} allowDecimals={false} />
                                 <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
                                 <Bar dataKey="count" fill="url(#incidentGradient)" radius={[6, 6, 0, 0]} barSize={32} />
                             </BarChart>

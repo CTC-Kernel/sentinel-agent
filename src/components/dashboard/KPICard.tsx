@@ -114,25 +114,25 @@ export interface KPICardProps {
  */
 const SIZE_CONFIG = {
   sm: {
+    value: 'text-xl',
+    title: 'text-xs',
+    subtitle: 'text-[10px]',
+    padding: 'p-3',
+    minWidth: 'min-w-[120px]',
+  },
+  md: {
     value: 'text-2xl',
     title: 'text-sm',
     subtitle: 'text-xs',
-    padding: 'p-3',
-    minWidth: 'min-w-[140px]',
-  },
-  md: {
-    value: 'text-4xl',
-    title: 'text-lg',
-    subtitle: 'text-sm',
     padding: 'p-4',
-    minWidth: 'min-w-[180px]',
+    minWidth: 'min-w-[160px]',
   },
   lg: {
-    value: 'text-5xl',
-    title: 'text-xl',
-    subtitle: 'text-base',
-    padding: 'p-6',
-    minWidth: 'min-w-[220px]',
+    value: 'text-3xl',
+    title: 'text-base',
+    subtitle: 'text-sm',
+    padding: 'p-5',
+    minWidth: 'min-w-[200px]',
   },
 } as const;
 

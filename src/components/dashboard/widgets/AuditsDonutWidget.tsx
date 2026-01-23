@@ -58,7 +58,7 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
 
     if (data.length === 0) {
         return (
-        <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm max-h-96 overflow-hidden">
+            <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm max-h-96 overflow-hidden">
                 <h3 className="text-lg font-bold mb-4 flex-shrink-0">{t('dashboard.auditsStatus')}</h3>
                 <div className="flex-1 flex items-center justify-center min-h-[220px] max-h-[280px] overflow-hidden">
                     <EmptyChartState
@@ -98,6 +98,10 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
                             stroke="none"
                             cursor="pointer"
                             onClick={() => navigate && navigate('/audits')}
+                            isAnimationActive={true}
+                            animationBegin={100}
+                            animationDuration={1200}
+                            animationEasing="ease-out"
                         >
                             {data.map((_entry, index) => (
                                 <Cell key={`cell-${index}`} fill={`url(#auditPieGradient-${index})`} className="drop-shadow-sm" />

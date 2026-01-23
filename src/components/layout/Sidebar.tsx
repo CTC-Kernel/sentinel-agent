@@ -34,26 +34,27 @@ interface NavGroup {
 
 /**
  * Icon color coding by navigation section for visual differentiation
+ * Uses design token colors for theme consistency (harmonized palette)
  * Includes both French and English keys to support i18n
  */
 const NAV_GROUP_COLORS: Record<string, string> = {
-  // French labels
-  'PILOTAGE': 'text-blue-500',
-  'Pilotage': 'text-blue-500',
-  'OPÉRATIONS': 'text-orange-500',
-  'Opérations': 'text-orange-500',
-  'GOVERNANCE': 'text-emerald-500',
-  'Gouvernance': 'text-emerald-500',
-  'RÉFÉRENTIEL': 'text-purple-500',
-  'Référentiel': 'text-purple-500',
-  'ADMINISTRATION': 'text-rose-500',
-  'Administration': 'text-rose-500',
-  'SUPPORT': 'text-slate-500',
-  'Support': 'text-slate-500',
+  // French labels - using design token nav colors
+  'PILOTAGE': 'text-nav-pilotage',
+  'Pilotage': 'text-nav-pilotage',
+  'OPÉRATIONS': 'text-nav-operations',
+  'Opérations': 'text-nav-operations',
+  'GOVERNANCE': 'text-nav-governance',
+  'Gouvernance': 'text-nav-governance',
+  'RÉFÉRENTIEL': 'text-nav-repository',
+  'Référentiel': 'text-nav-repository',
+  'ADMINISTRATION': 'text-nav-admin',
+  'Administration': 'text-nav-admin',
+  'SUPPORT': 'text-nav-support',
+  'Support': 'text-nav-support',
   // English labels
-  'STEERING': 'text-blue-500',
-  'OPERATIONS': 'text-orange-500',
-  'REPOSITORY': 'text-purple-500',
+  'STEERING': 'text-nav-pilotage',
+  'OPERATIONS': 'text-nav-operations',
+  'REPOSITORY': 'text-nav-repository',
 };
 
 import { useTranslation } from 'react-i18next';

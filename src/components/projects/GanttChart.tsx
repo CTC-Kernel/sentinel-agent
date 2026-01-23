@@ -5,6 +5,7 @@ import { ProjectTask, UserProfile } from '../../types';
 import { CalendarDays, User } from '../ui/Icons';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { getUserAvatarUrl } from '../../utils/avatarUtils';
+import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../theme/chartTheme';
 
 interface GanttChartProps {
     tasks: ProjectTask[];
@@ -51,26 +52,26 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     startDate.setDate(endDate.getDate() - 1);
                 }
 
-                // Determine color based on status
-                let progressColor = '#3b82f6'; // Blue default
-                let backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                // Determine color based on status (using harmonized palette)
+                let progressColor = SENTINEL_PALETTE.primary; // Blue default
+                let backgroundColor = `${SENTINEL_PALETTE.primary}1a`; // 10% opacity
 
                 switch (task.status) {
                     case 'Terminé':
-                        progressColor = '#10b981'; // Green
-                        backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                        progressColor = SENTINEL_PALETTE.success;
+                        backgroundColor = `${SENTINEL_PALETTE.success}1a`;
                         break;
                     case 'En cours':
-                        progressColor = '#3b82f6'; // Blue
-                        backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                        progressColor = SENTINEL_PALETTE.primary;
+                        backgroundColor = `${SENTINEL_PALETTE.primary}1a`;
                         break;
                     case 'Bloqué':
-                        progressColor = '#ef4444'; // Red
-                        backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                        progressColor = SEVERITY_COLORS.critical;
+                        backgroundColor = `${SEVERITY_COLORS.critical}1a`;
                         break;
                     default: // A faire
-                        progressColor = 'hsl(var(--muted-foreground) / 0.75)'; // Tokenized neutral
-                        backgroundColor = 'rgba(100, 116, 139, 0.1)';
+                        progressColor = SENTINEL_PALETTE.tertiary;
+                        backgroundColor = `${SENTINEL_PALETTE.tertiary}1a`;
                 }
 
                 return {
@@ -347,7 +348,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     fontSize="12px"
                     arrowColor={'hsl(var(--muted-foreground) / 0.55)'}
                     arrowIndent={20}
-                    todayColor="rgba(59, 130, 246, 0.1)"
+                    todayColor={`${SENTINEL_PALETTE.primary}1a`}
                 />
             </div>
         </div>

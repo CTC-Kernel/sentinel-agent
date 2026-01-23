@@ -36,7 +36,7 @@ export const FormError: React.FC<FormErrorProps> = ({
             id={id}
             role="alert"
             className={cn(
-                "mt-1 text-sm text-red-500 dark:text-red-400",
+                "mt-1 text-sm text-error-text font-medium animate-fade-in",
                 className
             )}
         >

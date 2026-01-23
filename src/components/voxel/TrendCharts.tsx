@@ -336,12 +336,13 @@ export function TrendCharts({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Chart colors based on theme
+  // Chart colors based on harmonized design system
+  // Hues: Primary=221, Success=152, Warning=38, Error=4
   const chartColors = {
     nodes: 'hsl(var(--primary))',
-    risks: 'hsl(0, 84%, 60%)', // Red
-    anomalies: 'hsl(38, 92%, 50%)', // Orange
-    compliance: 'hsl(142, 71%, 45%)', // Green
+    risks: 'hsl(4, 68%, 50%)', // Harmonized red (error hue)
+    anomalies: 'hsl(38, 72%, 48%)', // Harmonized amber (warning hue)
+    compliance: 'hsl(152, 62%, 38%)', // Harmonized teal-green (success hue)
     predicted: 'hsl(var(--muted-foreground))',
     grid: 'hsl(var(--border) / 0.5)',
   };
@@ -691,13 +692,13 @@ export function TrendCharts({
               {/* Warning threshold */}
               <ReferenceLine
                 y={70}
-                stroke="hsl(38, 92%, 50%)"
+                stroke="hsl(38, 72%, 48%)"
                 strokeDasharray="3 3"
                 label={{
                   value: 'Seuil d\'alerte (70%)',
                   position: 'insideTopRight',
                   fontSize: 10,
-                  fill: 'hsl(38, 92%, 50%)',
+                  fill: 'hsl(38, 72%, 48%)',
                 }}
               />
             </AreaChart>

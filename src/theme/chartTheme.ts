@@ -1,28 +1,42 @@
+/**
+ * HARMONIZED CHART PALETTE
+ * Matches design-tokens.css with consistent hues and reduced saturation
+ *
+ * Hue Reference:
+ * - Primary: 221° (Blue)
+ * - Success: 152° (Teal-green)
+ * - Warning: 38° (Amber)
+ * - Error/Danger: 4° (True red)
+ * - Info: 201° (Cyan-blue)
+ * - Purple: 270°
+ */
 export const SENTINEL_PALETTE = {
-    // Vibrant Cyber Palette (Gradients can be derived from these)
-    primary: '#6366f1',   // Indigo 500
-    secondary: '#8b5cf6', // Violet 500
-    success: '#10b981',   // Emerald 500
-    warning: '#f59e0b',   // Amber 500
-    danger: '#ef4444',    // Red 500
-    info: '#06b6d4',      // Cyan 500
-    tertiary: '#0ea5e9',  // Sky 500 (Adding for charts)
+    // Semantic colors (harmonized with design tokens)
+    primary: '#4a7fc7',   // hsl(221 55% 54%) - Blue
+    secondary: '#9b6dd7', // hsl(270 55% 64%) - Purple
+    success: '#2d9d6a',   // hsl(152 62% 38%) - Teal-green
+    warning: '#c87f1a',   // hsl(38 72% 48%) - Amber
+    danger: '#d64545',    // hsl(4 68% 50%) - True red
+    info: '#2a8ab8',      // hsl(201 68% 44%) - Cyan-blue
+    tertiary: '#6b8fa3',  // hsl(200 22% 53%) - Slate-blue
 
-    // Abstract/Data Series Colors
-    series1: '#8b5cf6', // Violet
-    series2: '#3b82f6', // Blue
-    series3: '#06b6d4', // Cyan
-    series4: '#10b981', // Emerald
-    series5: '#f59e0b', // Amber
-    series6: '#ec4899', // Pink
+    // Data Series Colors (for multi-series charts)
+    series1: '#4a7fc7',   // Primary blue
+    series2: '#2d9d6a',   // Teal-green
+    series3: '#9b6dd7',   // Purple
+    series4: '#2a8ab8',   // Cyan-blue
+    series5: '#c87f1a',   // Amber
+    series6: '#d64545',   // Red
+    series7: '#6b8fa3',   // Slate-blue
+    series8: '#7c5cbd',   // Violet
 };
 
 export const SEVERITY_COLORS = {
-    critical: '#ef4444', // Red-500
-    high: '#f97316',     // Orange-500
-    medium: '#eab308',   // Yellow-500
-    low: '#22c55e',      // Green-500
-    info: '#3b82f6',     // Blue-500
+    critical: '#d64545',  // hsl(4 68% 50%) - True red
+    high: '#c87f1a',      // hsl(38 72% 48%) - Amber
+    medium: '#d4a820',    // hsl(45 75% 48%) - Yellow-gold
+    low: '#2d9d6a',       // hsl(152 62% 38%) - Teal-green
+    info: '#2a8ab8',      // hsl(201 68% 44%) - Cyan-blue
 };
 
 export const CHART_STYLES = {
@@ -80,33 +94,58 @@ export const CHART_STYLES = {
     cursor: 'hsl(var(--muted-foreground))' // Simple string for stroke/fill reference
 };
 
-// Helper for Recharts Gradient Definitions (to be used inside <defs>)
+// Helper for Recharts Gradient Definitions (harmonized)
 export const ChartGradients = {
-    violet: { id: 'gradientViolet', from: '#8b5cf6', to: '#c4b5fd' },
-    blue: { id: 'gradientBlue', from: '#3b82f6', to: '#93c5fd' },
-    emerald: { id: 'gradientEmerald', from: '#10b981', to: '#6ee7b7' },
-    amber: { id: 'gradientAmber', from: '#f59e0b', to: '#fcd34d' },
-    rose: { id: 'gradientRose', from: '#f43f5e', to: '#fda4af' },
+    primary: { id: 'gradientPrimary', from: '#4a7fc7', to: '#93b8fd' },
+    blue: { id: 'gradientBlue', from: '#4a7fc7', to: '#93b8fd' },
+    success: { id: 'gradientSuccess', from: '#2d9d6a', to: '#6fcca3' },
+    teal: { id: 'gradientTeal', from: '#2d9d6a', to: '#6fcca3' },
+    purple: { id: 'gradientPurple', from: '#9b6dd7', to: '#c9aee8' },
+    violet: { id: 'gradientViolet', from: '#7c5cbd', to: '#b49dda' },
+    warning: { id: 'gradientWarning', from: '#c87f1a', to: '#e8b86d' },
+    amber: { id: 'gradientAmber', from: '#c87f1a', to: '#e8b86d' },
+    danger: { id: 'gradientDanger', from: '#d64545', to: '#eb9090' },
+    info: { id: 'gradientInfo', from: '#2a8ab8', to: '#7ac0de' },
+    cyan: { id: 'gradientCyan', from: '#2a8ab8', to: '#7ac0de' },
 };
 
-// Score gauge gradient colors (for circular progress indicators)
+// Score gauge gradient colors (harmonized)
 export const SCORE_GRADIENT_COLORS = {
-    critical: { start: '#fca5a5', end: '#ef4444' }, // red-300 to red-500
-    warning: { start: '#fdba74', end: '#f97316' },  // orange-300 to orange-500
-    good: { start: '#86efac', end: '#22c55e' },     // green-300 to green-500
+    critical: { start: '#eb9090', end: '#d64545' }, // Light red to red
+    warning: { start: '#e8b86d', end: '#c87f1a' },  // Light amber to amber
+    good: { start: '#6fcca3', end: '#2d9d6a' },     // Light teal to teal
 } as const;
 
-// Finding type colors for audit charts
+// Finding type colors for audit charts (harmonized)
 export const FINDING_COLORS = {
-    majeure: '#EF4444',      // Red-500
-    mineure: '#F59E0B',      // Amber-500
-    observation: '#3B82F6',  // Blue-500
-    opportunite: '#10B981',  // Emerald-500
+    majeure: '#d64545',      // Red (hsl 4 68% 50%)
+    mineure: '#c87f1a',      // Amber (hsl 38 72% 48%)
+    observation: '#4a7fc7',  // Blue (hsl 221 55% 54%)
+    opportunite: '#2d9d6a',  // Teal (hsl 152 62% 38%)
+} as const;
+
+// Audit status colors
+export const AUDIT_STATUS_COLORS = {
+    planifie: '#6b8fa3',     // Slate-blue (neutral)
+    en_cours: '#4a7fc7',     // Blue (primary)
+    termine: '#2d9d6a',      // Teal (success)
+    annule: '#d64545',       // Red (error)
 } as const;
 
 // Chart axis and grid colors
 export const CHART_AXIS_COLORS = {
     grid: '#94a3b8',         // Slate-400
-    tick: '#94a3b8',         // Slate-400
-    gridOpacity: 0.1,
+    tick: '#64748b',         // Slate-500
+    gridOpacity: 0.15,
+    gridDark: '#475569',     // Slate-600 for dark mode
+} as const;
+
+// Donut/Pie chart color sequences
+export const DONUT_COLORS = {
+    // For status distribution
+    status: ['#2d9d6a', '#4a7fc7', '#c87f1a', '#d64545', '#6b8fa3'],
+    // For category distribution
+    category: ['#4a7fc7', '#2d9d6a', '#9b6dd7', '#2a8ab8', '#c87f1a', '#7c5cbd'],
+    // For severity distribution
+    severity: ['#d64545', '#c87f1a', '#d4a820', '#2d9d6a'],
 } as const;

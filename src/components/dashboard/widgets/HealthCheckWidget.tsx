@@ -35,8 +35,16 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = React.memo(({
             expandable={true}
             headerAction={
                 <CustomTooltip content={healthIssues.length > 0 ? t('dashboard.actionsRequired') : t('dashboard.systemHealthy')} position="left">
-                    <div className={`p-1.5 rounded-lg ${healthIssues.length > 0 ? 'bg-orange-500/10' : 'bg-emerald-500/10'}`}>
-                        <div className={`w-2 h-2 rounded-full ${healthIssues.length > 0 ? 'bg-orange-500 animate-pulse' : 'bg-emerald-500'}`} />
+                    <div className={`p-1.5 rounded-lg relative ${healthIssues.length > 0 ? 'bg-orange-500/10' : 'bg-emerald-500/10'}`}>
+                        {/* Heartbeat rings */}
+                        {healthIssues.length > 0 && (
+                            <>
+                                <div className="absolute inset-0 rounded-lg bg-orange-500/20 animate-ping" style={{ animationDuration: '1.5s' }} />
+                                <div className="absolute inset-0 rounded-lg bg-orange-500/10 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
+                            </>
+                        )}
+                        <div className={`relative w-2 h-2 rounded-full ${healthIssues.length > 0 ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                            style={healthIssues.length > 0 ? { animation: 'heartbeat 1s ease-in-out infinite' } : undefined} />
                     </div>
                 </CustomTooltip>
             }

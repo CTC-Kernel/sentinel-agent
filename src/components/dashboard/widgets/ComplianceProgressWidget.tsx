@@ -87,7 +87,8 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                             r="42"
                             cx="48"
                             cy="48"
-                            className="drop-shadow-sm"
+                            className="drop-shadow-sm transition-all duration-1000 ease-out"
+                            style={{ filter: 'drop-shadow(0 0 6px hsl(var(--success) / 0.4))' }}
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -115,11 +116,14 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                     <span className="text-muted-foreground font-bold uppercase tracking-wider text-[10px]">Implémenté</span>
                     <span className="font-bold text-foreground">{stats.implementedControls}/{stats.totalControls}</span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden relative">
                     <div
-                        className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
+                        className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
                         style={{ width: `${(stats.implementedControls / (stats.totalControls || 1)) * 100}%` }}
-                    />
+                    >
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent w-[50%] animate-shimmer" style={{ animationDuration: '2s' }} />
+                    </div>
                 </div>
             </div>
         </div>

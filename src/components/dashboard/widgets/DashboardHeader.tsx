@@ -114,7 +114,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                     <div className="mb-4">
                         {/* Welcome Text with Shiny Effect */}
-                        <h2 className="text-4xl sm:text-5xl font-black font-display text-foreground tracking-tight mb-3">
+                        <h2 className="text-2xl sm:text-3xl font-bold font-display text-foreground tracking-tight mb-3">
                             {t(welcomeKey).split(',')[0]}, <ShinyText speed={3} className="text-foreground">{user?.displayName || 'Utilisateur'}</ShinyText>
                         </h2>
                         <p className="text-lg font-medium text-muted-foreground max-w-2xl leading-relaxed">
@@ -175,7 +175,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             {/* Left: Organization & Welcome */}
                             <div className="flex items-center gap-5 min-w-[280px]">
                                 <div className="relative shrink-0 group/orb cursor-default">
-                                    <div className="w-24 h-24 rounded-4xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 via-slate-800 dark:to-slate-950 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden transition-all duration-700 group-hover/orb:scale-110 group-hover/orb:rotate-6 group-hover/orb:-translate-y-2 ring-2 ring-white/60 dark:ring-white/10 backdrop-blur-xl">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 via-slate-800 dark:to-slate-950 shadow-elevation-md relative overflow-hidden transition-all duration-500 ease-apple group-hover/orb:scale-105 ring-1 ring-white/60 dark:ring-white/10 backdrop-blur-xl">
                                         <div className="absolute inset-0 bg-gradient-to-br from-brand-500/15 via-transparent to-transparent opacity-0 group-hover/orb:opacity-60 transition-opacity duration-500" />
 
                                         {/* Subtle Sparkles inside logo */}
@@ -201,9 +201,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <div className="absolute inset-0 border-2 border-brand-500/20 rounded-4xl animate-spin-slow" />
                                         <div className="absolute inset-0 border border-info-500/10 rounded-4xl animate-spin-slow-reverse" />
                                     </div>
-                                    <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-center shadow-xl border border-white/20 dark:border-white/10">
-                                        <div className="w-4 h-4 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
-                                        <div className="w-4 h-4 rounded-full bg-emerald-500 relative z-10 shadow-[0_0_15px_rgba(16,185,129,0.7)]" />
+                                    <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md flex items-center justify-center shadow-sm border border-white/20 dark:border-white/10">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
                                     </div>
                                 </div>
                                 <div>
@@ -224,7 +223,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.3 }}
-                                            className="text-3xl sm:text-5xl font-black font-display text-slate-900 dark:text-white tracking-tight leading-none mb-3 drop-shadow-md"
+                                            className="text-xl sm:text-2xl font-bold font-display text-slate-900 dark:text-white tracking-tight leading-none mb-2"
                                         >
                                             <ShinyText speed={4}>{organizationName || user?.organizationName || t('sidebar.dashboard')}</ShinyText>
                                         </motion.h1>

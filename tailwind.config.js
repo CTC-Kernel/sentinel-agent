@@ -135,6 +135,15 @@ export default {
           900: '#18181b',
           950: '#09090b',
         },
+        // Navigation section colors (harmonized with design tokens)
+        nav: {
+          pilotage: "hsl(var(--nav-pilotage))",
+          operations: "hsl(var(--nav-operations))",
+          governance: "hsl(var(--nav-governance))",
+          repository: "hsl(var(--nav-repository))",
+          admin: "hsl(var(--nav-admin))",
+          support: "hsl(var(--nav-support))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

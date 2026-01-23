@@ -8,7 +8,7 @@ import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
-import { SEVERITY_COLORS } from '../../theme/chartTheme';
+import { SEVERITY_COLORS, SENTINEL_PALETTE, CHART_AXIS_COLORS } from '../../theme/chartTheme';
 
 interface SupplierDashboardProps {
     suppliers: Supplier[];
@@ -264,22 +264,22 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                                 <BarChart data={categoryData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                            <stop offset="5%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.9} />
+                                            <stop offset="95%" stopColor={SENTINEL_PALETTE.secondary} stopOpacity={0.8} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_AXIS_COLORS.grid} strokeOpacity={CHART_AXIS_COLORS.gridOpacity} />
                                     <XAxis
                                         dataKey="name"
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
+                                        tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 11, fontWeight: 600 }}
                                         dy={10}
                                     />
                                     <YAxis
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: '#94a3b8', fontSize: 11 }}
+                                        tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 11 }}
                                     />
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                                     <Bar

@@ -118,24 +118,25 @@ const NotificationContainer: React.FC = () => {
     }
   };
 
+  // Use design tokens for consistent theming
   const getColors = (type: NotificationType) => {
     switch (type) {
       case 'success':
-        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200';
+        return 'bg-success-bg border-success-border text-success-text';
       case 'error':
-        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200';
+        return 'bg-error-bg border-error-border text-error-text';
       case 'warning':
-        return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200';
+        return 'bg-warning-bg border-warning-border text-warning-text';
       case 'info':
-        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200';
+        return 'bg-info-bg border-info-border text-info-text';
       default:
-        return 'bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200';
+        return 'bg-muted border-border text-muted-foreground';
     }
   };
 
   return (
     <div
-      className="fixed top-4 right-4 z-[200] space-y-2 max-w-sm"
+      className="fixed top-4 right-4 z-popover space-y-2 max-w-sm w-full sm:w-96"
       role="region"
       aria-label="Notifications"
       aria-live="polite"
@@ -156,12 +157,12 @@ const NotificationContainer: React.FC = () => {
         {notifications.map((notification) => (
           <motion.div
             key={notification.id}
-            initial={{ opacity: 0, x: 100, scale: 0.8 }}
+            initial={{ opacity: 0, x: 100, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 100, scale: 0.8 }}
+            exit={{ opacity: 0, x: 100, scale: 0.9 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              "flex items-start gap-3 p-4 rounded-lg border shadow-lg backdrop-blur-sm",
+              "flex items-start gap-3 p-4 rounded-2xl border shadow-elevation-lg backdrop-blur-md",
               getColors(notification.type)
             )}
           >

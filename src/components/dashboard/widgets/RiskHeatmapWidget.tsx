@@ -4,6 +4,7 @@ import { Risk } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
 import { Loader2 } from '../../ui/Icons';
+import { motion } from 'framer-motion';
 
 interface RiskHeatmapWidgetProps {
     navigate?: (path: string) => void;
@@ -65,14 +66,22 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
                                 {matrixData.map((row, rowIndex) => (
                                     <React.Fragment key={rowIndex}>
                                         {row.map((count, colIndex) => (
-                                            <div
+                                            <motion.div
                                                 key={`${rowIndex}-${colIndex}`}
-                                                className={`rounded-md flex items-center justify-center text-xs font-bold transition-transform hover:scale-105 cursor-pointer ${getCellColor(rowIndex, colIndex)} ${count === 0 ? 'opacity-30' : 'shadow-sm'}`}
+                                                initial={{ opacity: 0, scale: 0.5 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{
+                                                    delay: (rowIndex * 5 + colIndex) * 0.03,
+                                                    duration: 0.3,
+                                                    ease: [0.16, 1, 0.3, 1]
+                                                }}
+                                                whileHover={{ scale: count > 0 ? 1.15 : 1 }}
+                                                className={`rounded-md flex items-center justify-center text-xs font-bold cursor-pointer ${getCellColor(rowIndex, colIndex)} ${count === 0 ? 'opacity-30' : 'shadow-sm hover:shadow-lg hover:z-10'} transition-shadow duration-200`}
                                                 onClick={() => navigate && navigate('/risks')}
                                                 title={`Prob: ${5 - rowIndex}, Impact: ${colIndex + 1}`}
                                             >
                                                 {count > 0 && count}
-                                            </div>
+                                            </motion.div>
                                         ))}
                                     </React.Fragment>
                                 ))}
