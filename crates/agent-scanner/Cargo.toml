@@ -1,0 +1,25 @@
+[package]
+name = "agent-scanner"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+agent-common = { path = "../agent-common" }
+agent-system = { path = "../agent-system" }
+async-trait.workspace = true
+chrono.workspace = true
+hex.workspace = true
+hmac = "0.12"
+regex = "1"
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
