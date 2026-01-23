@@ -9,7 +9,8 @@
 5. [Notifications Temps Réel](#notifications-temps-réel)
 6. [Exports et Rapports](#exports-et-rapports)
 7. [Tests et Qualité](#tests-et-qualité)
-8. [Dépannage](#dépannage)
+8. [Agent de Conformité Endpoint](#agent-de-conformité-endpoint)
+9. [Dépannage](#dépannage)
 
 ## Introduction
 
@@ -254,6 +255,113 @@ npm run test:coverage
 - **ESLint** : Linting automatique
 - **Prettier** : Formatage standardisé
 - **Tests** : Couverture > 80%
+
+## Agent de Conformité Endpoint
+
+### Présentation
+
+L'agent Sentinel GRC est un logiciel léger installé sur vos serveurs et postes de travail pour collecter automatiquement des preuves de conformité.
+
+### Fonctionnalités
+
+- **Vérifications automatisées** : Contrôles de sécurité en continu
+- **Collecte de preuves** : Screenshots, fichiers de config, logs
+- **Mode hors-ligne** : Fonctionne jusqu'à 7 jours sans connexion
+- **Faible empreinte** : < 0.5% CPU, < 100 MB RAM
+
+### Installation
+
+#### Accès
+Rendez-vous dans **Paramètres → Agents** pour :
+1. Générer un token d'enrôlement
+2. Télécharger l'installeur pour votre système
+
+#### Windows
+```powershell
+# Installation silencieuse avec MSI
+msiexec /i sentinel-agent.msi /qn ENROLLMENTTOKEN="votre_token"
+
+# Vérification
+sc query sentinel-agent
+```
+
+#### Linux (Debian/Ubuntu)
+```bash
+# Installation du package
+sudo dpkg -i sentinel-agent_*.deb
+
+# Configuration
+sudo nano /etc/sentinel/agent.json
+# Ajouter le token d'enrôlement
+
+# Démarrage du service
+sudo systemctl enable sentinel-agent
+sudo systemctl start sentinel-agent
+```
+
+#### Linux (RHEL/CentOS)
+```bash
+# Installation du package
+sudo rpm -i sentinel-agent_*.rpm
+
+# Configuration et démarrage
+sudo systemctl enable sentinel-agent
+sudo systemctl start sentinel-agent
+```
+
+#### macOS
+```bash
+# Installation manuelle
+sudo ./sentinel-agent install
+
+# Configuration
+sudo nano /etc/sentinel/agent.json
+
+# Démarrage
+sudo ./sentinel-agent start
+```
+
+### Configuration
+
+Fichier de configuration (`agent.json`) :
+```json
+{
+  "server_url": "https://app.cyber-threat-consulting.com",
+  "enrollment_token": "VOTRE_TOKEN",
+  "check_interval_secs": 3600,
+  "log_level": "info"
+}
+```
+
+### Variables d'Environnement
+
+| Variable | Description |
+|----------|-------------|
+| `SENTINEL_SERVER_URL` | URL du serveur |
+| `SENTINEL_ENROLLMENT_TOKEN` | Token d'enrôlement |
+| `SENTINEL_CHECK_INTERVAL_SECS` | Intervalle entre vérifications |
+| `SENTINEL_LOG_LEVEL` | Niveau de log (debug, info, warn, error) |
+
+### Commandes CLI
+
+```bash
+# Statut de l'agent
+sentinel-agent status
+
+# Exécution manuelle
+sentinel-agent run
+
+# Désinstallation
+sentinel-agent uninstall
+```
+
+### Dépannage Agent
+
+| Problème | Solution |
+|----------|----------|
+| Agent hors-ligne | Vérifier connectivité réseau et certificats TLS |
+| Token invalide | Générer un nouveau token (expiration 24h) |
+| Erreur de démarrage | Consulter les logs dans `/var/log/sentinel-grc/` |
 
 ## Dépannage
 
