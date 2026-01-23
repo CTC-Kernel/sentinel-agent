@@ -2,7 +2,7 @@
 import React from 'react';
 import { Incident, Criticality } from '../../types';
 import { Badge } from '../ui/Badge';
-import { Edit, Trash2 } from '../ui/Icons';
+import { Edit, Trash2, Bot } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { EmptyState } from '../ui/EmptyState';
 import { ShieldAlert } from '../ui/Icons';
@@ -152,10 +152,21 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
 
                                     <div className="flex items-center justify-between mt-3 text-xs text-slate-500">
                                         <div className="flex items-center gap-1.5">
-                                            <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-[9px] font-bold">
-                                                {incident.reporter.charAt(0)}
-                                            </div>
-                                            <span className="truncate max-w-[80px]">{incident.reporter}</span>
+                                            {incident.reporter?.includes('Agent') ? (
+                                                <>
+                                                    <div className="w-5 h-5 rounded-full bg-brand-500/10 flex items-center justify-center">
+                                                        <Bot className="w-3 h-3 text-brand-600" />
+                                                    </div>
+                                                    <span className="text-brand-600 font-medium">Agent</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-[9px] font-bold">
+                                                        {incident.reporter?.charAt(0) || '?'}
+                                                    </div>
+                                                    <span className="truncate max-w-[80px]">{incident.reporter}</span>
+                                                </>
+                                            )}
                                         </div>
                                         {incident.category && (
                                             <span className="px-1.5 py-0.5 rounded bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 text-[10px]">
