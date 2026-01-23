@@ -29,6 +29,13 @@
         "region": "europe-west1"
       },
       {
+        "source": "/releases/**",
+        "run": {
+          "serviceId": "downloadrelease",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
