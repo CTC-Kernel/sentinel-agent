@@ -38,8 +38,8 @@ export const Breadcrumbs: React.FC = () => {
     }
 
     return (
-        <nav aria-label="Breadcrumb" className="hidden lg:flex items-center text-sm text-slate-500 dark:text-slate-400 animate-fade-in mr-6">
-            <Link to="/" className="flex items-center hover:text-brand-500 transition-colors">
+        <nav aria-label="Breadcrumb" className="hidden lg:flex items-center text-sm text-muted-foreground animate-fade-in mr-6">
+            <Link to="/" className="flex items-center hover:text-primary transition-colors">
                 <Home className="w-4 h-4" />
                 <span className="sr-only">Accueil</span>
             </Link>
@@ -51,13 +51,13 @@ export const Breadcrumbs: React.FC = () => {
 
                 return (
                     <div key={to} className="flex items-center">
-                        <ChevronRight className="w-4 h-4 mx-2 text-slate-400" />
+                        <ChevronRight className="w-4 h-4 mx-2 text-muted-foreground/50" />
                         {isLast ? (
-                            <span className="font-medium text-slate-900 dark:text-white" aria-current="page">
+                            <span className="font-medium text-foreground" aria-current="page">
                                 {name}
                             </span>
                         ) : (
-                            <Link to={to} className="hover:text-brand-500 transition-colors">
+                            <Link to={to} className="hover:text-primary transition-colors">
                                 {name}
                             </Link>
                         )}

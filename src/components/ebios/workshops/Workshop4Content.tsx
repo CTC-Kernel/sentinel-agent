@@ -428,7 +428,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                           {!readOnly && (
                             <button
                               onClick={() => handleAddScenario(strategicScenario.id)}
-                              className="text-sm text-blue-500 hover:text-blue-600 font-medium hover:underline"
+                              className="text-sm text-info hover:text-blue-600 font-medium hover:underline"
                             >
                               {t('ebios.workshop4.clickToAdd', 'Cliquez pour commencer')}
                             </button>

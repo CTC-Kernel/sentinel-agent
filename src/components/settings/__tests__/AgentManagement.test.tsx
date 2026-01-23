@@ -6,6 +6,21 @@ import { useAuth } from '../../../hooks/useAuth';
 import { SentinelAgent, AgentEnrollmentToken } from '../../../types/agent';
 import { vi, expect, it, describe, beforeEach } from 'vitest';
 
+// Mock firebase/functions to avoid getReleaseInfo errors
+vi.mock('firebase/functions', () => ({
+    getFunctions: vi.fn(),
+    httpsCallable: vi.fn(() => vi.fn().mockResolvedValue({
+        data: {
+            version: '1.0.0',
+            platforms: {
+                macos: { available: true, filename: 'SentinelAgent-macOS-1.0.0.dmg', size: 6600000 },
+                windows: { available: false },
+                linux: { available: false }
+            }
+        }
+    }))
+}));
+
 vi.mock('../../../services/AgentService', () => ({
     AgentService: {
         subscribeToAgents: vi.fn((_orgId, onAgents) => {
@@ -93,7 +108,7 @@ describe('AgentManagement', () => {
 
         await waitFor(() => {
             expect(screen.getByText('test-token-123')).toBeDefined();
-            expect(screen.getByText('Nouveau Token')).toBeDefined();
+            expect(screen.getByText("Token d'Enrôlement")).toBeDefined();
         });
     });
 

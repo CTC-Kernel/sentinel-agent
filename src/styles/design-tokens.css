@@ -1,184 +1,114 @@
 /* Design Tokens - Sentinel GRC */
 :root {
-  /* Colors - Light Theme */
-  --color-primary: 59 130 246;
-  --color-primary-foreground: 255 255 255;
-  --color-secondary: 107 114 128;
-  --color-secondary-foreground: 255 255 255;
-  --color-background: 255 255 255;
-  --color-foreground: 15 23 42;
-  --color-muted: 241 245 249;
-  --color-muted-foreground: 107 114 128;
-  --color-border: 226 232 240;
-  --color-input: 255 255 255;
-  --color-ring: 59 130 246;
-  --color-accent: 99 102 241;
-  --color-accent-foreground: 255 255 255;
-  --color-destructive: 239 68 68;
-  --color-destructive-foreground: 255 255 255;
-  
-  /* Brand Colors */
-  --color-brand-50: 238 242 255;
-  --color-brand-100: 219 234 254;
-  --color-brand-200: 191 219 254;
-  --color-brand-300: 147 197 253;
-  --color-brand-400: 96 165 250;
-  --color-brand-500: 59 130 246;
-  --color-brand-600: 37 99 235;
-  --color-brand-700: 29 78 216;
-  --color-brand-800: 30 64 175;
-  --color-brand-900: 30 58 138;
-  
-  /* Neutral Colors */
-  --color-slate-50: 248 250 252;
-  --color-slate-100: 241 245 249;
-  --color-slate-200: 226 232 240;
-  --color-slate-300: 203 213 225;
-  --color-slate-400: 148 163 184;
-  --color-slate-500: 100 116 139;
-  --color-slate-600: 71 85 105;
-  --color-slate-700: 51 65 85;
-  --color-slate-800: 30 41 59;
-  --color-slate-900: 15 23 42;
-  --color-slate-950: 2 6 23;
+  /* Shadcn UI Variables - Refined for Premium Light Mode */
+  --background: 210 40% 98%;
+  --foreground: 222.2 84% 2.5%;
 
-  /* Risk Level Colors (semantic) */
-  --color-risk-critical: 239 68 68;     /* red-500 #ef4444 */
-  --color-risk-high: 249 115 22;        /* orange-500 #f97316 */
-  --color-risk-medium: 234 179 8;       /* yellow-500 #eab308 */
-  --color-risk-low: 34 197 94;          /* green-500 #22c55e */
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 2.5%;
 
-  /* Score Colors (semantic) */
-  --color-score-bad: 239 68 68;         /* red-500 #ef4444 */
-  --color-score-warning: 249 115 22;    /* orange-500 #f97316 */
-  --color-score-good: 34 197 94;        /* green-500 #22c55e */
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 2.5%;
 
-  /* Status Colors (semantic) */
-  --color-status-success: 16 185 129;   /* emerald-500 #10b981 */
-  --color-status-error: 239 68 68;      /* red-500 #ef4444 */
-  --color-status-warning: 245 158 11;   /* amber-500 #f59e0b */
-  --color-status-info: 59 130 246;      /* blue-500 #3b82f6 */
+  /* Primary - Vivid Apple Blue */
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
 
-  /* Chart Colors (for data visualization) */
-  --color-chart-1: 59 130 246;          /* blue-500 #3b82f6 */
-  --color-chart-2: 139 92 246;          /* violet-500 #8b5cf6 */
-  --color-chart-3: 236 72 153;          /* pink-500 #ec4899 */
-  --color-chart-4: 245 158 11;          /* amber-500 #f59e0b */
-  --color-chart-5: 16 185 129;          /* emerald-500 #10b981 */
-  --color-chart-6: 99 102 241;          /* indigo-500 #6366f1 */
-  
-  /* Standardized Spacing Scale */
-  --spacing-0: 0;
-  --spacing-1: 0.25rem; /* 4px */
-  --spacing-2: 0.5rem;  /* 8px */
-  --spacing-3: 0.75rem; /* 12px */
-  --spacing-4: 1rem;    /* 16px */
-  --spacing-5: 1.25rem; /* 20px */
-  --spacing-6: 1.5rem;  /* 24px */
-  --spacing-8: 2rem;    /* 32px */
-  --spacing-10: 2.5rem; /* 40px */
-  --spacing-12: 3rem;   /* 48px */
-  --spacing-16: 4rem;   /* 64px */
-  --spacing-20: 5rem;   /* 80px */
-  --spacing-24: 6rem;   /* 96px */
-  
-  /* Legacy spacing tokens (deprecated, use standardized scale above) */
-  --spacing-xs: var(--spacing-1);
-  --spacing-sm: var(--spacing-2);
-  --spacing-md: var(--spacing-4);
-  --spacing-lg: var(--spacing-6);
-  --spacing-xl: var(--spacing-8);
-  --spacing-2xl: var(--spacing-12);
-  --spacing-3xl: var(--spacing-16);
-  --spacing-4xl: var(--spacing-24);
-  
-  /* Standardized Border Radius Scale */
-  --radius-none: 0;
-  --radius-sm: 0.25rem;  /* 4px */
-  --radius-md: 0.375rem; /* 6px */
-  --radius-lg: 0.5rem;   /* 8px */
-  --radius-xl: 0.75rem;  /* 12px - PRIMARY RADIUS */
-  --radius-2xl: 1rem;    /* 16px */
-  --radius-3xl: 1.5rem;  /* 24px */
-  --radius-4xl: 2rem;    /* 32px */
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 40%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 90%;
+  --input: 214.3 31.8% 90%;
+  --ring: 221.2 83.2% 53.3%;
+
+  /* Spacing Scale - Standard (Tailwind compatible) */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+
+  /* Radius Scale - Apple Style */
+  --radius: 0.75rem;
+  /* Primary Radius 12px */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
   --radius-full: 9999px;
-  
-  /* Legacy radius tokens (deprecated, use standardized scale above) */
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: var(--radius-2xl);
-  --radius-3xl: var(--radius-3xl);
-  --radius-full: var(--radius-full);
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  --shadow-brand: 0 10px 15px -3px rgb(var(--color-brand-500) / 0.3);
-  
-  /* Typography */
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-  --font-size-4xl: 2.25rem;
-  --font-size-5xl: 3rem;
-  
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-  
-  /* Standardized Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Easing Functions */
-  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  
-  /* Z-Index */
-  --z-dropdown: 1000;
-  --z-sticky: 1020;
-  --z-fixed: 1030;
-  --z-modal-backdrop: 1040;
-  --z-modal: 1050;
-  --z-popover: 1060;
-  --z-tooltip: 1070;
-  --z-toast: 1080;
-}
 
-/* Dark Theme */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: 15 23 42;
-    --color-foreground: 248 250 252;
-    --color-muted: 30 41 59;
-    --color-muted-foreground: 148 163 184;
-    --color-border: 51 65 85;
-    --color-input: 30 41 59;
-    --color-ring: 96 165 250;
-  }
+  /* Transitions */
+  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 150ms var(--ease-apple);
+  --transition-normal: 300ms var(--ease-apple);
+  --transition-slow: 500ms var(--ease-apple);
+
+  /* Glassmorphism Crystalline - Deep Depth */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(28, 32, 48, 0.12);
+  --glass-shadow: 0 4px 20px -2px rgba(28, 32, 48, 0.08), 0 0 0 1px rgba(28, 32, 48, 0.02) inset;
 }
 
 .dark {
-  --color-background: 15 23 42;
-  --color-foreground: 248 250 252;
-  --color-muted: 30 41 59;
-  --color-muted-foreground: 148 163 184;
-  --color-border: 51 65 85;
-  --color-input: 30 41 59;
-  --color-ring: 96 165 250;
+  /* Shadcn UI Dark Mode - Deep Oceanic Blue/Slate */
+  --background: 222.2 84% 4.9%;
+  /* #020617 */
+  --foreground: 210 40% 98%;
+
+  --card: 222.2 84% 6.9%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+
+  /* Primary - Vivid Blue for Dark with higher luminance */
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+
+  /* Status Colors (Dark Mode) - WCAG Optimized */
+  --success: 158 64% 52%;
+  /* Emerald-400 equivalent for dark */
+  --warning: 38 92% 50%;
+  /* Amber-400 */
+  --error: 350 89% 60%;
+  /* Rose-400 */
+  --info: 199 89% 48%;
+  /* Sky-400 */
+
+  /* Glassmorphism Dark - Ethereal */
+  --glass-bg: rgba(15, 23, 42, 0.80);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }

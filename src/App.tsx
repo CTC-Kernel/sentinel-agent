@@ -150,7 +150,7 @@ const AppLayout: React.FC = () => {
     }, [user, user?.organizationId]);
 
     return (
-        <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">
+        <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-primary/30 selection:text-primary transition-colors duration-300 pb-safe">
             <MasterpieceBackground />
 
             <div>

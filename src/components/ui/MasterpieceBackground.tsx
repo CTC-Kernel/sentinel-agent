@@ -14,7 +14,7 @@ export const MasterpieceBackground: React.FC<MasterpieceBackgroundProps> = ({
     return (
         <div className={cn("fixed inset-0 pointer-events-none overflow-hidden -z-10", className)}>
             {/* Base Background Color - Deep Space in Dark Mode */}
-            <div className="absolute inset-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-500" />
+            <div className="absolute inset-0 bg-background transition-colors duration-500" />
 
             {/* Ambient Aurora/Orb Effects - Living Breath - INVERTED (Blue on Right, Clear on Left) - ENHANCED */}
             <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-600/20 dark:bg-blue-600/25 rounded-full blur-[120px] animate-blob animate-pulse-gentle mix-blend-multiply dark:mix-blend-screen" />

@@ -61,7 +61,7 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
                             cy="48"
                         />
                         <circle
-                            className={`${stats.coverageRate >= 80 ? 'text-emerald-500' : stats.coverageRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                            className={`${stats.coverageRate >= 80 ? 'text-success' : stats.coverageRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
                             strokeWidth="8"
                             strokeDasharray={251.2}
                             strokeDashoffset={251.2 - (251.2 * stats.coverageRate) / 100}

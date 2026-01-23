@@ -7,6 +7,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ComplianceList } from '../ComplianceList';
 
+// Mock useAgentData hooks to avoid AuthProvider dependency
+vi.mock('../../../hooks/useAgentData', () => ({
+    useAgentResultsByControl: vi.fn(() => new Map()),
+    useControlAgentVerification: vi.fn(() => ({ status: 'none', hasResults: false }))
+}));
+
 // Mock complianceData
 vi.mock('../../../data/complianceData', () => ({
     ISO_DOMAINS: [

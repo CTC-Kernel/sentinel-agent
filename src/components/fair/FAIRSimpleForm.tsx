@@ -125,10 +125,10 @@ export const FAIRSimpleForm: React.FC<FAIRSimpleFormProps> = ({
           id="name"
           {...register('name')}
           placeholder={t('fair.form.namePlaceholder', 'Ex: Analyse risque violation données')}
-          className={errors.name ? 'border-red-500' : ''}
+          className={errors.name ? 'border-destructive' : ''}
         />
         {errors.name && (
-          <p className="text-sm text-red-500">{errors.name.message}</p>
+          <p className="text-sm text-destructive">{errors.name.message}</p>
         )}
       </div>
 

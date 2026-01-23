@@ -28,14 +28,14 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     return (
         <div className={`relative ${className}`}>
             <div className={`
-                relative flex items-center w-full rounded-2xl transition-all duration-300 group
+                relative flex items-center w-full rounded-2xl transition-all duration-400 var(--ease-apple) group
                 ${error
                     ? 'border border-destructive bg-destructive/5'
                     : 'glass-input shadow-sm group-focus-within:border-primary/50 group-focus-within:shadow-glow'
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 transition-colors duration-200 ${error ? 'text-destructive' : 'text-muted-foreground group-focus-within:text-primary'} ${textarea ? 'self-start mt-3.5' : ''}`}>
+                    <div className={`pl-4 transition-colors duration-300 var(--ease-apple) ${error ? 'text-destructive' : 'text-muted-foreground group-focus-within:text-primary'} ${textarea ? 'self-start mt-3.5' : ''}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}
@@ -77,7 +77,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                 <label
                     htmlFor={fieldId}
                     className={`
-                        absolute left-4 transition-all duration-200 pointer-events-none
+                        absolute left-4 transition-all duration-300 var(--ease-apple) pointer-events-none
                         -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-background px-1 rounded
                         peer-focus:text-primary
                         ${error

@@ -2,51 +2,51 @@
 
 /* Base transition styles - using design tokens */
 .interactive-element {
-  transition: all var(--transition-normal) var(--ease-out);
+  transition: all var(--transition-normal);
 }
 
 .interactive-element-fast {
-  transition: all var(--transition-fast) var(--ease-out);
+  transition: all var(--transition-fast);
 }
 
 .interactive-element-slow {
-  transition: all var(--transition-slow) var(--ease-out);
+  transition: all var(--transition-slow);
 }
 
 /* Hover states - standardized */
 .hover-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px hsl(var(--primary) / 0.15);
 }
 
 .hover-secondary:hover {
-  background-color: rgb(var(--color-primary) / 0.05);
-  border-color: rgb(var(--color-primary) / 0.2);
+  background-color: hsl(var(--primary) / 0.05);
+  border-color: hsl(var(--primary) / 0.2);
   transform: translateY(-1px);
 }
 
 .hover-danger:hover {
-  background-color: rgba(239, 68, 68, 0.05);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: rgb(239, 68, 68);
+  background-color: hsl(var(--destructive) / 0.05);
+  border-color: hsl(var(--destructive) / 0.2);
+  color: hsl(var(--destructive));
   transform: translateY(-1px);
 }
 
 .hover-success:hover {
-  background-color: rgba(34, 197, 94, 0.05);
-  border-color: rgba(34, 197, 94, 0.2);
-  color: rgb(34, 197, 94);
+  background-color: hsl(var(--success, 142 71% 45%) / 0.05);
+  border-color: hsl(var(--success, 142 71% 45%) / 0.2);
+  color: hsl(var(--success, 142 71% 45%));
   transform: translateY(-1px);
 }
 
 /* Focus states - standardized */
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.2);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
 }
 
 .focus-ring:focus-visible {
-  outline: 2px solid rgb(var(--color-primary) / 0.5);
+  outline: 2px solid hsl(var(--primary) / 0.5);
   outline-offset: 2px;
 }
 
@@ -82,7 +82,7 @@
   height: 100%;
   background: linear-gradient(90deg,
       transparent,
-      rgba(255, 255, 255, 0.2),
+      hsl(var(--background) / 0.2),
       transparent);
   animation: loading-shimmer 1.5s infinite;
 }
@@ -99,17 +99,17 @@
 
 /* Button-specific states - standardized */
 .btn-interactive {
-  transition: all var(--transition-normal) var(--ease-out);
+  transition: all var(--transition-normal);
   outline: none;
   border-radius: var(--radius-xl);
 }
 
 .btn-interactive:focus {
-  box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.2);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
 }
 
 .btn-interactive:focus-visible {
-  outline: 2px solid rgb(var(--color-primary) / 0.5);
+  outline: 2px solid hsl(var(--primary) / 0.5);
   outline-offset: 2px;
 }
 
@@ -123,7 +123,7 @@
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px hsl(var(--primary) / 0.15);
 }
 
 .btn-secondary {
@@ -131,8 +131,8 @@
 }
 
 .btn-secondary:hover {
-  background-color: rgb(var(--color-primary) / 0.05);
-  border-color: rgb(var(--color-primary) / 0.2);
+  background-color: hsl(var(--primary) / 0.05);
+  border-color: hsl(var(--primary) / 0.2);
   transform: translateY(-1px);
 }
 
@@ -141,9 +141,9 @@
 }
 
 .btn-danger:hover {
-  background-color: rgba(239, 68, 68, 0.05);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: rgb(239, 68, 68);
+  background-color: hsl(var(--destructive) / 0.05);
+  border-color: hsl(var(--destructive) / 0.2);
+  color: hsl(var(--destructive));
   transform: translateY(-1px);
 }
 
@@ -152,9 +152,9 @@
 }
 
 .btn-success:hover {
-  background-color: rgba(34, 197, 94, 0.05);
-  border-color: rgba(34, 197, 94, 0.2);
-  color: rgb(34, 197, 94);
+  background-color: hsl(var(--success, 142 71% 45%) / 0.05);
+  border-color: hsl(var(--success, 142 71% 45%) / 0.2);
+  color: hsl(var(--success, 142 71% 45%));
   transform: translateY(-1px);
 }
 
@@ -165,7 +165,7 @@
 }
 
 .card-interactive:hover {
-  border-color: rgb(var(--color-primary) / 0.2);
+  border-color: hsl(var(--primary) / 0.2);
 }
 
 /* Input field states - standardized */
@@ -175,8 +175,8 @@
 }
 
 .input-interactive:focus {
-  border-color: rgb(var(--color-primary) / 0.5);
-  box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.1);
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
 }
 
 /* Table row states - standardized */
@@ -185,7 +185,7 @@
 }
 
 .table-row-interactive:hover {
-  background-color: rgb(var(--color-primary) / 0.02);
+  background-color: hsl(var(--primary) / 0.02);
 }
 
 /* Navigation states - standardized */
@@ -195,18 +195,18 @@
 }
 
 .nav-item-interactive:hover {
-  background-color: rgb(var(--color-primary) / 0.08);
+  background-color: hsl(var(--primary) / 0.08);
 }
 
 .nav-item-interactive.active {
-  background-color: rgb(var(--color-primary) / 0.1);
-  border-left: 3px solid rgb(var(--color-primary));
+  background-color: hsl(var(--primary) / 0.1);
+  border-left: 3px solid hsl(var(--primary));
 }
 
 /* Modal overlay states - standardized */
 .modal-overlay {
   backdrop-filter: blur(4px);
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: hsl(var(--background) / 0.5);
   transition: all var(--transition-normal) var(--ease-out);
 }
 
@@ -226,7 +226,7 @@
 }
 
 .dropdown-item-interactive:hover {
-  background-color: rgb(var(--color-primary) / 0.05);
+  background-color: hsl(var(--primary) / 0.05);
 }
 
 /* Tab states - standardized */
@@ -236,30 +236,30 @@
 }
 
 .tab-interactive:hover {
-  border-bottom-color: rgb(var(--color-primary) / 0.3);
+  border-bottom-color: hsl(var(--primary) / 0.3);
 }
 
 .tab-interactive.active {
-  border-bottom-color: rgb(var(--color-primary));
-  color: rgb(var(--color-primary));
+  border-bottom-color: hsl(var(--primary));
+  color: hsl(var(--primary));
 }
 
 /* Form validation states - standardized */
 .input-error {
-  border-color: rgb(239, 68, 68);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: hsl(var(--destructive));
+  box-shadow: 0 0 0 3px hsl(var(--destructive) / 0.1);
   border-radius: var(--radius-lg);
 }
 
 .input-success {
-  border-color: rgb(34, 197, 94);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  border-color: hsl(var(--success, 142 71% 45%));
+  box-shadow: 0 0 0 3px hsl(var(--success, 142 71% 45%) / 0.1);
   border-radius: var(--radius-lg);
 }
 
 .input-warning {
-  border-color: rgb(245, 158, 11);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  border-color: hsl(var(--warning, 38 92% 50%));
+  box-shadow: 0 0 0 3px hsl(var(--warning, 38 92% 50%) / 0.1);
   border-radius: var(--radius-lg);
 }
 
@@ -278,7 +278,7 @@
 
 /* Focus visible for keyboard navigation - standardized */
 .focus-visible-only:focus-visible {
-  outline: 2px solid rgb(var(--color-primary) / 0.5);
+  outline: 2px solid hsl(var(--primary) / 0.5);
   outline-offset: 2px;
 }
 

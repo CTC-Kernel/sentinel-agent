@@ -66,11 +66,11 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className
     const Icon = config.icon;
 
     const colorClasses = {
-        emerald: "bg-emerald-50/50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200/50 dark:ring-emerald-500/20 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20",
-        blue: "bg-blue-50/50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200/50 dark:ring-blue-500/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20",
-        indigo: "bg-indigo-50/50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 ring-indigo-200/50 dark:ring-indigo-500/20 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20",
-        purple: "bg-purple-50/50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 ring-purple-200/50 dark:ring-purple-500/20 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20",
-        red: "bg-red-50/50 dark:bg-red-500/10 text-red-700 dark:text-red-400 ring-red-200/50 dark:ring-red-500/20 group-hover:bg-red-100 dark:group-hover:bg-red-500/20"
+        emerald: "bg-success/10 text-success ring-success/20 group-hover:bg-success/20",
+        blue: "bg-info/10 text-info ring-info/20 group-hover:bg-info/20",
+        indigo: "bg-brand-500/10 text-brand-600 dark:text-brand-400 ring-brand-500/20 group-hover:bg-brand-500/20",
+        purple: "bg-brand-500/10 text-brand-600 dark:text-brand-400 ring-brand-500/20 group-hover:bg-brand-500/20",
+        red: "bg-destructive/10 text-destructive ring-destructive/20 group-hover:bg-destructive/20"
     };
 
     return (

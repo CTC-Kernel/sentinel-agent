@@ -10,6 +10,7 @@ import {
 import { db } from '../firebase';
 import { AssetFormData, assetSchema } from '../schemas/assetSchema';
 import { logAction } from './logger';
+import { getDiff } from '../utils/diffUtils';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 import { UserProfile, Risk, Incident, Project, Audit, Document, Control, SystemLog } from '../types';
@@ -68,18 +69,30 @@ export const AssetService = {
     /**
      * Update an existing asset
      */
-    async update(id: string, data: Partial<AssetFormData>, user: UserProfile): Promise<void> {
+    async update(id: string, data: Partial<AssetFormData>, user: UserProfile, oldData?: Record<string, any>): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
 
         const validatedData = assetSchema.partial().parse(data);
         const cleanData = sanitizeData(validatedData);
+
+        // Calculate changes for Audit Trail using standard utility
+        const changes = oldData ? getDiff(cleanData as any, oldData) : [];
 
         await updateDoc(doc(db, 'assets', id), {
             ...cleanData,
             updatedAt: serverTimestamp()
         });
 
-        await logAction(user, 'UPDATE', 'Asset', `Mise à jour Actif: ${cleanData.name}`);
+        await logAction(
+            user,
+            'UPDATE',
+            'Asset',
+            `Mise à jour Actif: ${cleanData.name || oldData?.name || 'Inconnu'}`,
+            undefined,
+            id,
+            undefined,
+            changes.length > 0 ? changes : undefined
+        );
     },
 
     /**
@@ -121,40 +134,21 @@ export const AssetService = {
     /**
      * Get asset history logs
      */
-    async getAssetHistory(assetName: string, organizationId: string) {
-        // This is a simplified fetch. Ideally we query system_logs where resource == 'Asset' and details contains name
-        // However, standard Audit Trail usually filters by 'details' string or we store resourceId.
-        // Assuming we store resourceId in logs or filtering by text for now as per legacy.
-        // If we strictly want to filter by asset ID, logAction should store resourceId.
-        // For now, let's keep it generic or check how useAssetDetails was doing it.
-        // The original code passed asset.name.
-
-        // Dynamic import to avoid circular dep if needed, but normally unrelated.
+    async getAssetHistory(assetId: string, organizationId: string) {
         const { getDocs, query, where, orderBy, limit } = await import('firebase/firestore');
         const logsRef = collection(db, 'system_logs');
 
-        // Actually, without resourceId in logs, looking up by name is fragile.
-        // Let's assume we want to fix this in the future.
-        // For now, let's return [] or implement a proper ID based query if logs have it.
-        // Looking at logger.ts, it stores resourceType, action, details.
-
-        // Let's try to fetch recent logs for this org and filter in memory if needed, or rely on a better query.
-        // BUT, given `useAssetDetails` was calling this, maybe I should check if `assetService.ts` really existed with this code.
-        // If I overwrote it, I might have lost the specific query logic.
-        // Re-implementing a basic version.
-
-        const simpleQ = query(
+        // AUDIT FIX: Primary query by resourceId for accurate traceability
+        const primaryQ = query(
             logsRef,
             where('organizationId', '==', organizationId),
-            where('resourceType', '==', 'Asset'),
+            where('resourceId', '==', assetId),
             orderBy('timestamp', 'desc'),
-            limit(20)
+            limit(50)
         );
 
-        // We filter client side for the name to be safe
-        const snap = await getDocs(simpleQ);
-        const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog))
-            .filter(l => l.details && l.details.includes(assetName));
+        const snap = await getDocs(primaryQ);
+        const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
 
         return { logs };
     },

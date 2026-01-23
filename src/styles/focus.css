@@ -7,25 +7,25 @@
 /* Focus visible global avec ring Apple-like - AUDIT FIX: Contraste amélioré */
 *:focus-visible {
   outline: none;
-  @apply ring-2 ring-brand-600 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+  @apply ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
   transition: box-shadow 0.2s ease-in-out;
 }
 
 /* Focus pour les boutons */
 button:focus-visible {
-  @apply ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+  @apply ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
 }
 
 /* Focus pour les inputs */
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  @apply ring-2 ring-brand-500 ring-offset-0;
+  @apply ring-2 ring-primary ring-offset-0;
 }
 
 /* Focus pour les liens */
 a:focus-visible {
-  @apply ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 rounded-md;
+  @apply ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-slate-900 rounded-md;
 }
 
 /* Skip link pour navigation clavier */
@@ -34,15 +34,15 @@ a:focus-visible {
 }
 
 .skip-link:focus {
-  @apply not-sr-only fixed top-4 left-4 z-[9999] px-4 py-2 bg-brand-600 text-white font-bold rounded-xl shadow-lg;
-  @apply ring-4 ring-brand-300;
+  @apply not-sr-only fixed top-4 left-4 z-[9999] px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg;
+  @apply ring-4 ring-primary/30;
 }
 
 /* Focus pour les éléments interactifs */
 [role="button"]:focus-visible,
 [role="link"]:focus-visible,
 [role="tab"]:focus-visible {
-  @apply ring-2 ring-brand-500 ring-offset-2;
+  @apply ring-2 ring-primary ring-offset-2;
 }
 
 /* Focus trap pour les modals */
@@ -52,9 +52,12 @@ a:focus-visible {
 
 /* Animation de pulse pour les éléments focus - AUDIT FIX: Contraste amélioré */
 @keyframes focus-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6);
   }
+
   50% {
     box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.15);
   }
@@ -66,14 +69,14 @@ a:focus-visible {
 
 /* States pour les cartes interactives */
 .card-interactive:focus-within {
-  @apply ring-2 ring-brand-500/30 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+  @apply ring-2 ring-primary/30 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
   transition: all 0.2s ease-in-out;
 }
 
 /* Focus pour les checkboxes et radios */
 input[type="checkbox"]:focus-visible,
 input[type="radio"]:focus-visible {
-  @apply ring-2 ring-brand-500 ring-offset-2;
+  @apply ring-2 ring-primary ring-offset-2;
 }
 
 /* Suppression du focus par défaut du navigateur */
@@ -84,6 +87,6 @@ input[type="radio"]:focus-visible {
 /* Assurer que :focus-visible fonctionne sur tous les navigateurs */
 @supports not selector(:focus-visible) {
   *:focus {
-    @apply ring-2 ring-brand-500 ring-offset-2;
+    @apply ring-2 ring-primary ring-offset-2;
   }
 }

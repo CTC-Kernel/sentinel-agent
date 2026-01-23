@@ -123,7 +123,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                 {/* Contacts Card */}
                 <div className="md:col-span-2 glass-panel p-6 rounded-2xl border border-white/10">
                     <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <Phone className="w-5 h-5 text-blue-500" /> Annuaire de Crise (Décideurs)
+                        <Phone className="w-5 h-5 text-info" /> Annuaire de Crise (Décideurs)
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {crisisTeam.map(member => (

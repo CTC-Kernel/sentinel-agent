@@ -246,7 +246,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                         type="checkbox"
                         checked={linkedMissionIds?.includes(mission.id) || false}
                         onChange={() => toggleMission(mission.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-500"
+                        className="w-4 h-4 rounded border-gray-300 text-info"
                       />
                       <span className="text-gray-700 dark:text-gray-300 truncate">
                         {mission.name}

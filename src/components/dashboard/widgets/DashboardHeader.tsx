@@ -260,18 +260,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                             {t('dashboard.incidents')} Actifs
                                         </span>
                                         <div className="relative">
-                                            <div className={`w-2.5 h-2.5 rounded-full ${activeIncidentsCount > 0 ? 'bg-error-500 animate-pulse' : 'bg-emerald-500'} transition-colors duration-500`} />
+                                            <div className={`w-2.5 h-2.5 rounded-full ${activeIncidentsCount > 0 ? 'bg-destructive animate-pulse' : 'bg-success'} transition-colors duration-500`} />
                                             {activeIncidentsCount > 0 && (
-                                                <div className="absolute inset-0 rounded-full bg-error-500 animate-ping opacity-40" />
+                                                <div className="absolute inset-0 rounded-full bg-destructive animate-ping opacity-40" />
                                             )}
                                         </div>
                                     </div>
                                     <div className="flex items-end gap-3">
-                                        <span className="text-4xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">
+                                        <span className="text-4xl font-black text-foreground leading-none tracking-tighter">
                                             {activeIncidentsCount}
                                         </span>
                                         <div className="flex flex-col -mb-1">
-                                            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 leading-tight uppercase">
+                                            <span className="text-[10px] font-extrabold text-muted-foreground leading-tight uppercase">
                                                 {t('dashboard.incidents')}
                                             </span>
                                             <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
@@ -298,7 +298,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                             }`}
                                     >
                                         <div className={`p-3 rounded-2xl shrink-0 transition-transform duration-500 group-hover/insight:scale-110
-                                            ${insight.type === 'danger' ? 'bg-error-500/20 text-error-600 dark:text-error-400' : 'bg-success-500/20 text-success-600 dark:text-success-400'}`}>
+                                            ${insight.type === 'danger' ? 'bg-destructive/20 text-destructive' : 'bg-success/20 text-success'}`}>
                                             {insight.type === 'danger' ? <AlertTriangle className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
                                         </div>
                                         <div className="flex-1 min-w-0">

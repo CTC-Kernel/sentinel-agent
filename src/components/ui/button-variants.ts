@@ -5,7 +5,7 @@ export const buttonVariants = cva(
     {
         variants: {
             variant: {
-                default: "bg-primary text-primary-foreground shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300",
+                default: "bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300",
                 destructive:
                     "bg-destructive text-destructive-foreground shadow-lg shadow-destructive/25 hover:shadow-destructive/50 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300",
                 outline:
@@ -15,7 +15,7 @@ export const buttonVariants = cva(
                 ghost: "hover:bg-accent hover:text-accent-foreground active:scale-[0.98] transition-all duration-300",
                 link: "text-primary underline-offset-4 hover:underline transition-all duration-300",
                 glass: "bg-[var(--glass-bg)] border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] hover:bg-[var(--glass-bg)]/80 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300 backdrop-blur-md",
-                premium: "relative overflow-hidden bg-gradient-to-r from-primary to-blue-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] active:scale-[0.98] after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent after:translate-x-[-200%] hover:after:translate-x-[200%] after:transition-transform after:duration-1000 after:ease-in-out transition-all duration-300",
+                premium: "relative overflow-hidden bg-gradient-to-r from-primary to-blue-600 text-primary-foreground shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/50 hover:scale-[1.02] active:scale-[0.98] after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent after:translate-x-[-200%] hover:after:translate-x-[200%] after:transition-transform after:duration-1000 after:ease-in-out transition-all duration-300",
             },
             size: {
                 default: "h-11 px-6 py-2.5",

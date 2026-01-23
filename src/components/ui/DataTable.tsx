@@ -213,7 +213,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                     </caption>
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <tr key={headerGroup.id} className="border-b border-slate-200/50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
+                            <tr key={headerGroup.id} className="border-b border-muted/50 bg-muted/20">
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <th
@@ -268,8 +268,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                                     }}
                                     className={cn(
                                         "transition-all duration-200 border-l-2 border-l-transparent",
-                                        onRowClick && "cursor-pointer hover:bg-slate-50/80 dark:hover:bg-white/5 hover:border-l-brand-600 dark:hover:border-l-brand-500",
-                                        row.getIsSelected() && "bg-brand-50/50 dark:bg-brand-900/20 border-l-brand-600 dark:border-l-brand-500"
+                                        onRowClick && "cursor-pointer hover:bg-muted/40 hover:border-l-primary",
+                                        row.getIsSelected() && "bg-primary/5 border-l-primary"
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
@@ -284,8 +284,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 <td colSpan={tableColumns.length} className="p-0">
                                     {emptyState || (
                                         <div className="flex flex-col items-center justify-center py-16 text-slate-500 dark:text-slate-400">
-                                            <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center mb-4">
-                                                <Search className="h-8 w-8 opacity-20" />
+                                            <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mb-4">
+                                                <Search className="h-8 w-8 opacity-40 text-muted-foreground" />
                                             </div>
                                             <p className="font-medium">Aucune donnée à afficher</p>
                                         </div>

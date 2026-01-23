@@ -29,7 +29,7 @@
 }
 
 .rbc-date-cell.rbc-now {
-    @apply text-brand-600 dark:text-brand-400 font-black !important;
+    @apply text-primary font-black !important;
 }
 
 .rbc-date-cell a {
@@ -38,7 +38,7 @@
 
 /* Current Day Highlight - much softer in dark mode */
 .rbc-day-bg.rbc-today {
-    @apply bg-brand-50/50 dark:bg-brand-500/5 !important;
+    @apply bg-primary/5 !important;
 }
 
 /* Hover effect on cells */
@@ -93,7 +93,7 @@
 
 /* Current Time Indicator */
 .rbc-current-time-indicator {
-    @apply bg-brand-500 h-[2px] !important;
+    @apply bg-primary h-[2px] !important;
 }
 
 .rbc-current-time-indicator::before {

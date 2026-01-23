@@ -50,10 +50,10 @@ export const RoleManagement: React.FC = () => {
         return (
             <div className="p-8 text-center">
                 <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                <h3 className="text-lg font-bold text-foreground mb-2">
                     Accès Restreint
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-muted-foreground">
                     Vous n'avez pas les permissions nécessaires pour gérer les rôles.
                 </p>
             </div>
@@ -63,7 +63,7 @@ export const RoleManagement: React.FC = () => {
     if (loading) {
         return (
             <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                 {/* Skeleton: Loading state for user roles table */}
             </div>
         );
@@ -74,12 +74,12 @@ export const RoleManagement: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        <ShieldCheck className="h-7 w-7 text-brand-600 dark:text-brand-400" />
+                    <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                        <ShieldCheck className="h-7 w-7 text-primary" />
                         Gestion des Rôles et Permissions
                     </h2>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        Gérez les rôles et permissions des utilisateurs de votre organisation
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Gerez les rôles et permissions des utilisateurs de votre organisation
                     </p>
                 </div>
             </div>
@@ -105,21 +105,21 @@ export const RoleManagement: React.FC = () => {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/10">
+                            <thead className="bg-muted/30 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/10">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                                         Utilisateur
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                                         Email
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                                         Rôle Actuel
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                                         Dernière Connexion
                                     </th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
@@ -148,12 +148,12 @@ export const RoleManagement: React.FC = () => {
             </div>
 
             {/* Info Box */}
-            <div className="glass-panel p-4 rounded-2xl border border-blue-200 dark:border-blue-900/30 bg-blue-50/50 dark:bg-slate-900/10">
+            <div className="glass-panel p-4 rounded-2xl border border-primary/20 bg-primary/5">
                 <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-blue-900 dark:text-blue-100">
+                    <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-foreground">
                         <p className="font-bold mb-1">Note importante</p>
-                        <p className="text-blue-700 dark:text-blue-300">
+                        <p className="text-muted-foreground">
                             Les modifications de rôles prennent effet immédiatement. Les utilisateurs devront peut-être se reconnecter pour voir les changements appliqués.
                         </p>
                     </div>

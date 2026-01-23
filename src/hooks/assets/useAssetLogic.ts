@@ -104,7 +104,7 @@ export const useAssetLogic = () => {
         }
     };
 
-    const updateAsset = async (id: string, data: AssetFormData): Promise<{ success: boolean; error?: unknown }> => {
+    const updateAsset = async (id: string, data: AssetFormData, oldData?: Asset): Promise<{ success: boolean; error?: unknown }> => {
         if (!user?.organizationId) return { success: false, error: 'No organization ID' };
 
         if (!canEditResource(user as UserProfile, 'Asset')) {
@@ -114,7 +114,7 @@ export const useAssetLogic = () => {
 
         setIsSubmitting(true);
         try {
-            await AssetService.update(id, data, user);
+            await AssetService.update(id, data, user as UserProfile, oldData as any);
             refreshAssets();
             return { success: true };
         } catch (e) {

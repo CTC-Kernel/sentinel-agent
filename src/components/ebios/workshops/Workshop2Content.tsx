@@ -330,7 +330,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
 
           {expandedSections.has('riskSources') && (
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
-              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+              <p className="text-sm text-slate-500 font-medium mb-6 bg-muted/30 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
                 <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
                 {t('ebios.workshop2.riskSourcesHelp')}
               </p>
@@ -347,7 +347,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                               category.includes('activist') ? "bg-yellow-500 ring-yellow-500" :
                                 category.includes('competitor') ? "bg-blue-500 ring-blue-500" :
                                   category.includes('insider') ? "bg-pink-500 ring-pink-500" :
-                                    "bg-slate-500 ring-slate-500"
+                                    "bg-muted/300 ring-slate-500"
                       )} />
                       {RISK_SOURCE_CATEGORY_LABELS[category as keyof typeof RISK_SOURCE_CATEGORY_LABELS]?.[locale] || category}
                     </h4>
@@ -361,7 +361,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                             "group relative p-4 rounded-2xl border text-left transition-all duration-200",
                             isRiskSourceSelected(source.id)
                               ? "border-red-500 bg-red-50/50 dark:bg-red-900/20 shadow-sm"
-                              : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-red-300 dark:hover:border-red-700 hover:shadow-md",
+                              : "border-slate-200 dark:border-slate-700 bg-muted/30/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-red-300 dark:hover:border-red-700 hover:shadow-md",
                             readOnly && "cursor-default opacity-80"
                           )}
                         >
@@ -448,7 +448,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
 
           {expandedSections.has('targetedObjectives') && (
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
-              <p className="text-sm text-slate-500 font-medium mb-6 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+              <p className="text-sm text-slate-500 font-medium mb-6 bg-muted/30 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
                 <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
                 {t('ebios.workshop2.targetedObjectivesHelp')}
               </p>
@@ -478,7 +478,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                               "group relative p-4 rounded-2xl border text-left transition-all duration-200",
                               isTargetedObjectiveSelected(objective.id)
                                 ? "border-amber-500 bg-amber-50/50 dark:bg-amber-900/20 shadow-sm"
-                                : "border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md",
+                                : "border-slate-200 dark:border-slate-700 bg-muted/30/50 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md",
                               readOnly && "cursor-default opacity-80"
                             )}
                           >
@@ -567,7 +567,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
           {expandedSections.has('srOvPairs') && (
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
               {selectedSourcesCount === 0 || selectedObjectivesCount === 0 ? (
-                <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                <div className="text-center py-12 bg-muted/30/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                   <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
                     <Info className="w-8 h-8 text-slate-400" />
                   </div>
@@ -593,7 +593,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                   )}
 
                   {data.srOvPairs.length === 0 ? (
-                    <div className="text-center py-12 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <div className="text-center py-12 bg-muted/30/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                       <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                         {t('ebios.workshop2.noPairsYet')}
                       </p>

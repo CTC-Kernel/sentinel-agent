@@ -182,18 +182,18 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       onClick={() => setMobileOpen(false)}
                       data-tour={`${item.key}-nav`}
                       className={({ isActive }) => `
-                         group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 overflow-hidden
+                         group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 overflow-hidden
                          ${isActive
-                          ? 'bg-gradient-to-r from-brand-50/10 to-brand-100/10 dark:from-brand-500/10 dark:to-brand-400/5 text-brand-700 dark:text-brand-100 font-bold border border-brand-200/50 dark:border-brand-500/10 shadow-sm backdrop-blur-md'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white hover:translate-x-1'}
+                          ? 'bg-primary/10 text-primary font-bold border border-primary/10 shadow-sm backdrop-blur-md'
+                          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:translate-x-1'}
                        `}
                     >
                       {({ isActive }) => (
                         <>
                           {/* Active Indicator Glow */}
-                          {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-500 shadow-[0_0_10px_2px_rgba(59,130,246,0.5)]" />}
+                          {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_2px_hsl(var(--primary)/0.3)]" />}
 
-                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-300 ${isActive ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-500/10' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-300 ${isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground group-hover:text-foreground'}`}>
                             <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                           </span>
                           <span className="flex-1 truncate relative z-10">{item.name}</span>

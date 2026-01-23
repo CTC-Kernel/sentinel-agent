@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { Control, UserProfile, Framework } from '../types';
 import { AuditLogService } from '../services/auditLogService';
 import { logAction } from '../services/logger';
+import { getDiff } from '../utils/diffUtils';
 import { toast } from '@/lib/toast';
 import { controlSchema } from '../schemas/controlSchema';
 import { z } from 'zod';
@@ -14,7 +15,7 @@ import { hasPermission } from '../utils/permissions';
 export const useComplianceActions = (user: UserProfile | null) => {
     const [updating, setUpdating] = useState(false);
 
-    const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation = false, controlOrganizationId?: string) => {
+    const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string, skipValidation = false, controlOrganizationId?: string, oldData?: Control) => {
         setUpdating(true);
         try {
             // SECURITY: Check authorization - only admin/rssi can modify controls
@@ -57,11 +58,28 @@ export const useComplianceActions = (user: UserProfile | null) => {
             }
 
             const ref = doc(db, 'controls', controlId);
-            await updateDoc(ref, sanitizeData({
+            const sanitizedUpdates = sanitizeData({
                 ...updates,
                 updatedAt: serverTimestamp(),
                 lastUpdatedBy: user?.uid
-            }));
+            });
+
+            await updateDoc(ref, sanitizedUpdates);
+
+            if (user) {
+                const changes = oldData ? getDiff(updates as any, oldData as any) : [];
+                logAction(
+                    user,
+                    'UPDATE_CONTROL',
+                    'Control',
+                    `Mise à jour contrôle: ${oldData?.name || controlId}`,
+                    undefined,
+                    controlId,
+                    undefined,
+                    changes.length > 0 ? changes : undefined
+                );
+            }
+
             if (successMessage) toast.success(successMessage);
             return true;
         } catch (_error) {
@@ -87,14 +105,16 @@ export const useComplianceActions = (user: UserProfile | null) => {
     const handleStatusChange = async (control: Control, newStatus: Control['status']) => {
         const success = await updateControl(control.id, { status: newStatus }, "Statut mis à jour", false, control.organizationId);
         if (success && user) {
-            await AuditLogService.logStatusChange(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ status: newStatus }, { status: control.status });
+            await logAction(
+                user,
+                'UPDATE_STATUS',
+                'Control',
+                `Statut contrôle [${control.name}]: ${control.status} -> ${newStatus}`,
+                undefined,
                 control.id,
-                control.name,
-                control.status,
-                newStatus
+                undefined,
+                changes
             );
         }
     };
@@ -102,30 +122,35 @@ export const useComplianceActions = (user: UserProfile | null) => {
     const handleAssign = async (control: Control, userId: string) => {
         const success = await updateControl(control.id, { assigneeId: userId }, "Responsable assigné", false, control.organizationId);
         if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ assigneeId: userId }, { assigneeId: control.assigneeId });
+            await logAction(
+                user,
+                'ASSIGN_CONTROL',
+                'Control',
+                `Responsable assigné pour [${control.name}]`,
+                undefined,
                 control.id,
-                { assigneeId: control.assigneeId },
-                { assigneeId: userId },
-                control.name
+                undefined,
+                changes
             );
         }
     };
 
     // Safe cast via unknown if needed, or rely on Firebase handling
     const handleLinkAsset = async (control: Control, assetId: string) => {
+        const newAssetIds = [...(control.relatedAssetIds || []), assetId];
         const success = await updateControl(control.id, { relatedAssetIds: arrayUnion(assetId) as unknown as string[] }, "Actif lié", true, control.organizationId);
         if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ relatedAssetIds: newAssetIds }, { relatedAssetIds: control.relatedAssetIds || [] });
+            await logAction(
+                user,
+                'LINK_ASSET',
+                'Control',
+                `Actif lié au contrôle [${control.name}]`,
+                undefined,
                 control.id,
-                { relatedAssetIds: control.relatedAssetIds },
-                { relatedAssetIds: [...(control.relatedAssetIds || []), assetId] },
-                control.name
+                undefined,
+                changes
             );
         }
     };
@@ -146,16 +171,19 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleLinkSupplier = async (control: Control, supplierId: string) => {
+        const newSupplierIds = [...(control.relatedSupplierIds || []), supplierId];
         const success = await updateControl(control.id, { relatedSupplierIds: arrayUnion(supplierId) as unknown as string[] }, "Fournisseur lié", true, control.organizationId);
         if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ relatedSupplierIds: newSupplierIds }, { relatedSupplierIds: control.relatedSupplierIds || [] });
+            await logAction(
+                user,
+                'LINK_SUPPLIER',
+                'Control',
+                `Fournisseur lié au contrôle [${control.name}]`,
+                undefined,
                 control.id,
-                { relatedSupplierIds: control.relatedSupplierIds },
-                { relatedSupplierIds: [...(control.relatedSupplierIds || []), supplierId] },
-                control.name
+                undefined,
+                changes
             );
         }
     };
@@ -165,16 +193,19 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleLinkProject = async (control: Control, projectId: string) => {
+        const newProjectIds = [...(control.relatedProjectIds || []), projectId];
         const success = await updateControl(control.id, { relatedProjectIds: arrayUnion(projectId) as unknown as string[] }, "Projet lié", true, control.organizationId);
         if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ relatedProjectIds: newProjectIds }, { relatedProjectIds: control.relatedProjectIds || [] });
+            await logAction(
+                user,
+                'LINK_PROJECT',
+                'Control',
+                `Projet lié au contrôle [${control.name}]`,
+                undefined,
                 control.id,
-                { relatedProjectIds: control.relatedProjectIds },
-                { relatedProjectIds: [...(control.relatedProjectIds || []), projectId] },
-                control.name
+                undefined,
+                changes
             );
         }
     };
@@ -184,16 +215,19 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const handleLinkDocument = async (control: Control, documentId: string) => {
+        const newDocIds = [...(control.evidenceIds || []), documentId];
         const success = await updateControl(control.id, { evidenceIds: arrayUnion(documentId) as unknown as string[] }, "Document lié", true, control.organizationId);
         if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ evidenceIds: newDocIds }, { evidenceIds: control.evidenceIds || [] });
+            await logAction(
+                user,
+                'LINK_DOCUMENT',
+                'Control',
+                `Document lié au contrôle [${control.name}]`,
+                undefined,
                 control.id,
-                { evidenceIds: control.evidenceIds },
-                { evidenceIds: [...(control.evidenceIds || []), documentId] },
-                control.name
+                undefined,
+                changes
             );
         }
     };
@@ -205,14 +239,16 @@ export const useComplianceActions = (user: UserProfile | null) => {
     const updateJustification = async (control: Control, text: string) => {
         const success = await updateControl(control.id, { justification: text }, "Justification enregistrée", false, control.organizationId);
         if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ justification: text }, { justification: control.justification || '' });
+            await logAction(
+                user,
+                'UPDATE_JUSTIFICATION',
+                'Control',
+                `Justification modifiée pour [${control.name}]`,
+                undefined,
                 control.id,
-                { justification: control.justification },
-                { justification: text },
-                control.name
+                undefined,
+                changes
             );
         }
     };
@@ -227,14 +263,16 @@ export const useComplianceActions = (user: UserProfile | null) => {
         }, `Contrôle marqué comme ${newApplicability}`, false, control.organizationId);
 
         if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ status: newStatus, applicability: newApplicability }, { status: control.status, applicability: control.applicability });
+            await logAction(
+                user,
+                'UPDATE_APPLICABILITY',
+                'Control',
+                `Applicabilité modifiée pour [${control.name}]: ${newApplicability}`,
+                undefined,
                 control.id,
-                { status: control.status, applicability: control.applicability },
-                { status: newStatus, applicability: newApplicability },
-                control.name
+                undefined,
+                changes
             );
         }
     };
@@ -251,19 +289,22 @@ export const useComplianceActions = (user: UserProfile | null) => {
             return;
         }
 
+        const newMappedFrameworks = [...(control.mappedFrameworks || []), frameworkId];
         const success = await updateControl(control.id, {
             mappedFrameworks: arrayUnion(frameworkId) as unknown as Framework[]
         }, "Référentiel mappé", true, control.organizationId);
 
         if (success && user) {
-            await AuditLogService.logUpdate(
-                user.organizationId || '',
-                { id: user.uid, name: user.displayName || '', email: user.email || '' },
-                'control',
+            const changes = getDiff({ mappedFrameworks: newMappedFrameworks }, { mappedFrameworks: control.mappedFrameworks || [] });
+            await logAction(
+                user,
+                'MAP_FRAMEWORK',
+                'Control',
+                `Référentiel [${frameworkId}] mappé au contrôle [${control.name}]`,
+                undefined,
                 control.id,
-                { mappedFrameworks: control.mappedFrameworks },
-                { mappedFrameworks: [...(control.mappedFrameworks || []), frameworkId] },
-                control.name
+                undefined,
+                changes
             );
         }
     };

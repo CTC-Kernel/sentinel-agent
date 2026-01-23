@@ -8,6 +8,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ComplianceScoreCard } from '../ComplianceScoreCard';
 import { Control } from '../../../../types';
 
+// Mock useAgentData to avoid AuthProvider dependency
+vi.mock('../../../../hooks/useAgentData', () => ({
+    useAgentResultsByControl: vi.fn(() => new Map())
+}));
+
 describe('ComplianceScoreCard', () => {
     const createControl = (overrides: Partial<Control> = {}): Control => ({
         id: 'ctrl-1',

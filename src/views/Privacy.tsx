@@ -189,14 +189,14 @@ export const Privacy: React.FC = () => {
                             <button
                                 aria-label="Importer"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="flex items-center px-5 py-2.5 bg-background border border-muted rounded-xl text-sm font-bold hover:bg-muted/40 transition-all shadow-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             >
                                 <Upload className="h-4 w-4 mr-2" /> {t('common.importCsv')}
                             </button>
                             <button
                                 aria-label="Nouveau Traitement"
                                 onClick={handleAddActivity}
-                                className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="flex items-center px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             >
                                 <Plus className="h-4 w-4 mr-2" /> {t('privacy.newActivity')}
                             </button>
@@ -211,13 +211,13 @@ export const Privacy: React.FC = () => {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
                 <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                        <span className="inline-flex h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse" />
                         {t('privacy.registryLabel')}
                     </p>
                     <div className="flex items-baseline gap-3">
-                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</h2>
-                        <span className="text-sm font-bold text-slate-600">{t('privacy.activitiesIdentified')}</span>
+                        <h2 className="text-4xl font-black text-foreground tracking-tight">{stats.total}</h2>
+                        <span className="text-sm font-bold text-muted-foreground">{t('privacy.activitiesIdentified')}</span>
                     </div>
                 </div>
 

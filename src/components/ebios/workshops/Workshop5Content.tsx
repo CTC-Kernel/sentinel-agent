@@ -405,7 +405,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                     {/* Scenario Header */}
                     <div
                       onClick={() => setExpandedScenario(isExpanded ? null : opScenario.id)}
-                      className="flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/50 -m-6 p-6 transition-colors"
+                      className="flex items-center justify-between cursor-pointer hover:bg-muted/30/50 dark:hover:bg-slate-800/50 -m-6 p-6 transition-colors"
                     >
                       <div className="flex items-center gap-5">
                         {/* Risk Badge Transition */}
@@ -512,7 +512,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                           <div className="lg:col-span-7 space-y-6">
                             <div>
                               <h5 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
-                                <ShieldCheck className="w-4 h-4 text-blue-500" />
+                                <ShieldCheck className="w-4 h-4 text-info" />
                                 {t('ebios.workshop5.treatmentStrategy')}
                               </h5>
 
@@ -543,7 +543,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                             "relative p-4 rounded-xl border-2 transition-all text-left overflow-hidden group/card",
                                             isSelected
                                               ? `border-${strategy.color}-500 bg-${strategy.color}-50 dark:bg-${strategy.color}-900/20 shadow-md`
-                                              : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                              : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-muted/30 dark:hover:bg-slate-800/50"
                                           )}
                                         >
                                           {isSelected && (
@@ -574,7 +574,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                   </div>
 
                                   {/* Strategy Details Form */}
-                                  <div className="bg-slate-50/80 dark:bg-slate-800/30 rounded-xl p-5 border border-slate-200/50 dark:border-slate-700/50 space-y-4">
+                                  <div className="bg-muted/30/80 dark:bg-slate-800/30 rounded-xl p-5 border border-slate-200/50 dark:border-slate-700/50 space-y-4">
                                     {/* Justification */}
                                     <div>
                                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
@@ -643,7 +643,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                       <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
                                         <div className="flex items-center justify-between mb-3">
                                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                                            <Shield className="w-3.5 h-3.5 text-blue-500" />
+                                            <Shield className="w-3.5 h-3.5 text-info" />
                                             {t('ebios.workshop5.selectedControls')}
                                           </label>
                                           {!readOnly && (
@@ -693,7 +693,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                             ))}
                                           </div>
                                         ) : (
-                                          <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/50">
+                                          <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-muted/30/50 dark:bg-slate-800/50">
                                             <p className="text-sm text-slate-400 dark:text-slate-500 italic">
                                               {t('ebios.workshop5.noControlsSelected')}
                                             </p>
@@ -715,7 +715,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                                 "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border",
                                                 treatment.status === status.value
                                                   ? `bg-${status.color}-500 text-white border-${status.color}-500 shadow-sm`
-                                                  : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                                  : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-muted/30 dark:hover:bg-slate-800"
                                               )}
                                             >
                                               {status.label[locale]}
@@ -746,7 +746,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                   {t('ebios.workshop5.residualRiskAssessment')}
                                 </h5>
 
-                                <div className="flex-1 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col gap-6">
+                                <div className="flex-1 p-6 bg-muted/30 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col gap-6">
                                   {/* Risk Comparison Visualization */}
                                   <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                                     <div className="text-center">
