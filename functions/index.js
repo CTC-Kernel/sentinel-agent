@@ -53,6 +53,9 @@ const scheduled = require('./scheduled');
 // Agents Module (Endpoint Compliance Agents)
 const agents = require('./agents');
 
+// Releases Module (Agent Downloads)
+const releases = require('./releases');
+
 // =============================================================================
 // EXISTING MODULES (already modularized)
 // =============================================================================
@@ -142,6 +145,9 @@ module.exports = {
 
   // --- Agents Module ---
   ...agents,
+
+  // --- Releases Module ---
+  ...releases,
 
   // --- API ---
   api,

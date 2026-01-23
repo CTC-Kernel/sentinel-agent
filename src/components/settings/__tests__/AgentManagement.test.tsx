@@ -34,7 +34,11 @@ describe('AgentManagement', () => {
             user: mockUser,
             t: (key: string) => key
         } as unknown as ReturnType<typeof useStore>);
-        vi.mocked(AgentService.getAgents).mockResolvedValue(mockAgents as unknown as SentinelAgent[]);
+
+        vi.mocked(AgentService.subscribeToAgents).mockImplementation((_orgId, onAgents) => {
+            onAgents(mockAgents as unknown as SentinelAgent[]);
+            return () => { };
+        });
     });
 
     it('renders agent list', async () => {

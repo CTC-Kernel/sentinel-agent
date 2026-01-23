@@ -343,10 +343,10 @@ export const AgentManagement: React.FC = () => {
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Téléchargements</h3>
                         </div>
 
+                        {/* Desktop Downloads */}
                         <div className="grid grid-cols-1 gap-3">
                             <a
-                                href="https://app.cyber-threat-consulting.com/releases/agent/SentinelAgentSetup-latest.msi"
-                                download
+                                href="/releases/agent/windows/latest"
                                 className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
                             >
                                 <div className="flex items-center gap-3">
@@ -360,8 +360,7 @@ export const AgentManagement: React.FC = () => {
                             </a>
 
                             <a
-                                href="https://app.cyber-threat-consulting.com/releases/agent/SentinelAgent-latest.dmg"
-                                download
+                                href="/releases/agent/macos/latest"
                                 className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
                             >
                                 <div className="flex items-center gap-3">
@@ -375,8 +374,7 @@ export const AgentManagement: React.FC = () => {
                             </a>
 
                             <a
-                                href="https://app.cyber-threat-consulting.com/releases/agent/sentinel-agent_latest_amd64.deb"
-                                download
+                                href="/releases/agent/linux_deb/latest"
                                 className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
                             >
                                 <div className="flex items-center gap-3">
@@ -390,8 +388,7 @@ export const AgentManagement: React.FC = () => {
                             </a>
 
                             <a
-                                href="https://app.cyber-threat-consulting.com/releases/agent/sentinel-agent-latest.x86_64.rpm"
-                                download
+                                href="/releases/agent/linux_rpm/latest"
                                 className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left"
                             >
                                 <div className="flex items-center gap-3">
@@ -403,6 +400,39 @@ export const AgentManagement: React.FC = () => {
                                 </div>
                                 <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
                             </a>
+                        </div>
+
+                        {/* Mobile Apps */}
+                        <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Applications Mobiles</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                <a
+                                    href="https://apps.apple.com/app/sentinel-grc/id0000000000"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
+                                >
+                                    <Cpu className="w-6 h-6 text-slate-600 mb-2" />
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white">iOS</div>
+                                    <div className="text-[10px] text-slate-500">App Store</div>
+                                    <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
+                                        Bientôt
+                                    </Badge>
+                                </a>
+                                <a
+                                    href="https://play.google.com/store/apps/details?id=com.cyberthreatconsulting.sentinel"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
+                                >
+                                    <Server className="w-6 h-6 text-emerald-500 mb-2" />
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white">Android</div>
+                                    <div className="text-[10px] text-slate-500">Play Store</div>
+                                    <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
+                                        Bientôt
+                                    </Badge>
+                                </a>
+                            </div>
                         </div>
 
                         <div className="pt-4 border-t border-slate-100 dark:border-white/5">
