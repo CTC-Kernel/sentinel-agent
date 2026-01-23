@@ -43,8 +43,7 @@ const Vulnerabilities = React.lazy(() => import('../../views/Vulnerabilities').t
 const ThreatIntelligence = React.lazy(() => import('../../views/ThreatIntelligence').then(module => ({ default: module.ThreatIntelligence })));
 const Reports = React.lazy(() => import('../../views/Reports').then(module => ({ default: module.Reports })));
 
-// EBIOS RM Module
-const EbiosAnalyses = React.lazy(() => import('../../views/EbiosAnalyses').then(module => ({ default: module.EbiosAnalyses })));
+// EBIOS RM Module (detail page only - list view is now in Risks)
 const EbiosAnalysisDetail = React.lazy(() => import('../../views/EbiosAnalysisDetail').then(module => ({ default: module.EbiosAnalysisDetail })));
 
 // SMSI Program Module (ISO 27003)
@@ -86,7 +85,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/threat-intelligence" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatIntelligence /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/reports" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Reports /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/compliance" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Compliance /></AnimatedPage></RoleGuardComponent>} />
-                <Route path="/ebios" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalyses /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/ebios" element={<Navigate to="/risks?tab=ebios" replace />} />
                 <Route path="/ebios/:id" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><EbiosAnalysisDetail /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/smsi" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><SMSIProgram /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/risk-context" element={<Navigate to="/risks?tab=context" replace />} />

@@ -117,7 +117,7 @@ describe('DORAProviders View', () => {
 
   it('renders the view title', () => {
     renderComponent();
-    expect(screen.getByText('dora.providers.title')).toBeInTheDocument();
+    expect(screen.getByText('dora.title')).toBeInTheDocument();
   });
 
   it('renders the provider list', () => {
@@ -132,12 +132,12 @@ describe('DORAProviders View', () => {
 
   it('shows add provider button', () => {
     renderComponent();
-    expect(screen.getByText('dora.providers.actions.add')).toBeInTheDocument();
+    expect(screen.getByText('dora.providers.new')).toBeInTheDocument();
   });
 
   it('opens drawer when add button clicked', async () => {
     renderComponent();
-    const addButton = screen.getByText('dora.providers.actions.add');
+    const addButton = screen.getByText('dora.providers.new');
     fireEvent.click(addButton);
     await waitFor(() => {
       expect(screen.getByTestId('provider-drawer')).toBeInTheDocument();

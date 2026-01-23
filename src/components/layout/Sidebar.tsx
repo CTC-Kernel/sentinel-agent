@@ -77,7 +77,6 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.governance'),
       items: [
         { key: 'risks', name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert, resource: 'Risk' },
-        { key: 'ebios', name: 'EBIOS RM', to: '/ebios', icon: Scale, resource: 'Risk' }, // EBIOS Risk Manager
         { key: 'smsi', name: 'Programme SMSI', to: '/smsi', icon: RefreshCcw, resource: 'Risk' }, // ISO 27003 PDCA
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText, resource: 'Audit' }, // Compliance often mapped to Audit roles
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
