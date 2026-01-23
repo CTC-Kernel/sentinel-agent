@@ -7,7 +7,9 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test": "jest --testPathPattern='__tests__'",
+    "test:watch": "jest --watch --testPathPattern='__tests__'"
   },
   "engines": {
     "node": "22"
@@ -30,7 +32,8 @@
   "devDependencies": {
     "eslint": "^8.15.0",
     "eslint-config-google": "^0.14.0",
-    "firebase-functions-test": "^3.4.1"
+    "firebase-functions-test": "^3.4.1",
+    "jest": "^29.7.0"
   },
   "private": true
 }
