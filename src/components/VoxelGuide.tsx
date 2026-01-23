@@ -282,13 +282,11 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
         }
     }, [isOpen, handleKeyDown]);
 
-    useEffect(() => {
-        if (isOpen) setCurrentSection(0);
-    }, [isOpen]);
-
     const section = GUIDE_SECTIONS[currentSection];
     const Icon = section?.icon || HelpCircle;
 
+    // Reset section when modal closes (will be 0 when reopened due to fresh useState)
+    // Using key on the wrapper to reset state when isOpen changes from false to true
     return (
         <AnimatePresence>
             {isOpen && (
@@ -359,11 +357,10 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                     <button
                                         key={idx}
                                         onClick={() => setCurrentSection(idx)}
-                                        className={`w-2 h-2 rounded-full transition-all ${
-                                            idx === currentSection
-                                                ? 'w-6 bg-indigo-500'
-                                                : 'bg-white/20 hover:bg-white/40'
-                                        }`}
+                                        className={`w-2 h-2 rounded-full transition-all ${idx === currentSection
+                                            ? 'w-6 bg-indigo-500'
+                                            : 'bg-white/20 hover:bg-white/40'
+                                            }`}
                                     />
                                 ))}
                             </div>

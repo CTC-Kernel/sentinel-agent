@@ -240,6 +240,9 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
   const retryTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const connectedCollectionsRef = useRef<Set<string>>(new Set());
 
+  // Ref to hold setupCollectionListener for recursive calls
+  const setupCollectionListenerRef = useRef<((collectionName: string, orgId: string) => void) | null>(null);
+
   const mergedConfig = { ...DEFAULT_CONFIG, ...config };
 
   /**
@@ -399,10 +402,10 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
                 `[VoxelRealtime] Error in ${collectionName} listener, retry ${nextAttempt}/${mergedConfig.maxRetries} in ${Math.round(delay)}ms`
               );
 
-              // Schedule retry
+              // Schedule retry using ref to avoid accessing variable before declaration
               retryAttemptsRef.current.set(collectionName, nextAttempt);
               const retryTimer = setTimeout(() => {
-                setupCollectionListener(collectionName, orgId);
+                setupCollectionListenerRef.current?.(collectionName, orgId);
               }, delay);
               retryTimersRef.current.set(collectionName, retryTimer);
             } else {
@@ -430,6 +433,11 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
     },
     [handleSnapshotChanges, updateSyncStatus, calculateBackoff, mergedConfig.maxRetries]
   );
+
+  // Store the callback in ref for recursive calls (must be in effect, not render)
+  useEffect(() => {
+    setupCollectionListenerRef.current = setupCollectionListener;
+  }, [setupCollectionListener]);
 
   /**
    * Setup real-time listeners
@@ -536,10 +544,13 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
     };
   }, [retryAllFailed]);
 
+  // Provide a getter function to avoid accessing ref during render
+  const getConnectedCount = useCallback(() => connectedCollectionsRef.current.size, []);
+
   return {
     isEnabled: mergedConfig.enabled,
     collections: mergedConfig.collections,
-    connectedCount: connectedCollectionsRef.current.size,
+    getConnectedCount,
     retryAllFailed,
   };
 }
