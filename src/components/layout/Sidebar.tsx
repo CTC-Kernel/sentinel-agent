@@ -29,7 +29,32 @@ interface NavItem {
 interface NavGroup {
   title: string;
   items: NavItem[];
+  iconColor?: string;
 }
+
+/**
+ * Icon color coding by navigation section for visual differentiation
+ * Includes both French and English keys to support i18n
+ */
+const NAV_GROUP_COLORS: Record<string, string> = {
+  // French labels
+  'PILOTAGE': 'text-blue-500',
+  'Pilotage': 'text-blue-500',
+  'OPÉRATIONS': 'text-orange-500',
+  'Opérations': 'text-orange-500',
+  'GOVERNANCE': 'text-emerald-500',
+  'Gouvernance': 'text-emerald-500',
+  'RÉFÉRENTIEL': 'text-purple-500',
+  'Référentiel': 'text-purple-500',
+  'ADMINISTRATION': 'text-rose-500',
+  'Administration': 'text-rose-500',
+  'SUPPORT': 'text-slate-500',
+  'Support': 'text-slate-500',
+  // English labels
+  'STEERING': 'text-blue-500',
+  'OPERATIONS': 'text-orange-500',
+  'REPOSITORY': 'text-purple-500',
+};
 
 import { useTranslation } from 'react-i18next';
 
@@ -169,6 +194,9 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             const visibleItems = group.items.filter(filterItem);
             if (visibleItems.length === 0) return null;
 
+            // Get icon color for this group
+            const groupIconColor = NAV_GROUP_COLORS[group.title] || 'text-muted-foreground';
+
             return (
               <div key={groupIndex}>
                 <div className="px-1 mb-2">
@@ -193,7 +221,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                           {/* Active Indicator Glow */}
                           {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_2px_hsl(var(--primary)/0.3)]" />}
 
-                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-300 ${isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-300 ${isActive ? 'text-primary bg-primary/10' : `${groupIconColor} group-hover:text-foreground`}`}>
                             <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                           </span>
                           <span className="flex-1 truncate relative z-10">{item.name}</span>

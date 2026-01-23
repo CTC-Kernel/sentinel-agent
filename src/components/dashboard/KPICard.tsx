@@ -137,6 +137,16 @@ const SIZE_CONFIG = {
 } as const;
 
 /**
+ * Gradient overlays by color scheme for visual differentiation
+ */
+const GRADIENT_BY_SCHEME: Record<KPIColorScheme, string> = {
+  success: 'bg-gradient-to-br from-success/5 via-transparent to-transparent',
+  warning: 'bg-gradient-to-br from-warning/5 via-transparent to-transparent',
+  danger: 'bg-gradient-to-br from-destructive/5 via-transparent to-transparent',
+  neutral: 'bg-gradient-to-br from-primary/3 via-transparent to-transparent',
+};
+
+/**
  * KPICard - Displays a single KPI metric
  *
  * @example
@@ -194,15 +204,17 @@ export const KPICard = React.memo(function KPICard({
     );
   }
 
+  const gradientClass = GRADIENT_BY_SCHEME[colorScheme];
+
   return (
     <div
       className={cn(
-        'rounded-2xl border bg-card transition-all duration-200',
+        'relative overflow-hidden rounded-2xl border bg-card transition-all duration-200',
         colorClasses.bgLight,
         colorClasses.border,
         sizeConfig.padding,
         sizeConfig.minWidth,
-        onClick && 'cursor-pointer hover:shadow-md hover:scale-[1.02]',
+        onClick && 'cursor-pointer hover:shadow-md hover:scale-[1.02] hover:shadow-glow',
         className
       )}
       onClick={onClick}
@@ -220,7 +232,10 @@ export const KPICard = React.memo(function KPICard({
       }
       aria-label={`${title}: ${value}${subtitle ? `, ${subtitle}` : ''}${trendAriaLabel ? `, ${trendAriaLabel}` : ''}`}
     >
-      <div className="flex flex-col">
+      {/* Gradient overlay for visual differentiation */}
+      <div className={cn('absolute inset-0 pointer-events-none', gradientClass)} />
+
+      <div className="relative flex flex-col">
         {/* Trend Arrow */}
         {trend && (
           <div className="flex items-center gap-1 mb-1">

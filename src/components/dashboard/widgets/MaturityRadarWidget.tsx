@@ -25,8 +25,14 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                 className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center overflow-hidden mb-6"
                 onClick={() => navigate('/compliance')}
             >
-                {/* Radar Sweep Effect */}
-                <div className="absolute inset-0 rounded-full animate-spin-slow pointer-events-none opacity-20 dark:opacity-10 bg-[conic-gradient(from_0deg,transparent_0deg,transparent_270deg,hsl(var(--primary))_360deg)]" style={{ animationDuration: '4s' }}></div>
+                {/* Radar Sweep Effect - Premium Animated */}
+                <div className="absolute inset-0 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '4s' }}>
+                    <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_270deg,hsl(var(--primary)/0.6)_360deg)]" />
+                    <div className="absolute right-1/2 top-0 h-1/2 w-1 bg-gradient-to-b from-primary/80 to-transparent origin-bottom" />
+                </div>
+                <div className="absolute inset-0 rounded-full animate-spin pointer-events-none opacity-30" style={{ animationDuration: '8s', animationDirection: 'reverse' }}>
+                    <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_180deg,transparent_0deg,transparent_350deg,hsl(var(--brand-500)/0.4)_360deg)]" />
+                </div>
 
                 <div className="w-full h-full relative z-10">
                     {radarData.every(d => d.A === 0) ? (

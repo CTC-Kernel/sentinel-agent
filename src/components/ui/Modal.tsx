@@ -26,28 +26,28 @@ export const Modal: React.FC<ModalProps> = ({
                 {/* FocusTrap and keyboard navigation are handled internally by Headless UI */}
                 <Transition.Child
                     as={Fragment}
-                    enter="ease-out duration-300"
+                    enter="ease-out duration-normal"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
-                    leave="ease-in duration-200"
+                    leave="ease-in duration-fast"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" />
+                    <div className="fixed inset-0 bg-[var(--overlay-bg)] backdrop-blur-[var(--overlay-blur)] transition-opacity" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
                     <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                         <Transition.Child
                             as={Fragment}
-                            enter="ease-out duration-300"
+                            enter="ease-apple duration-normal"
                             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                             enterTo="opacity-100 translate-y-0 sm:scale-100"
-                            leave="ease-in duration-200"
+                            leave="ease-in duration-fast"
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className={`relative transform overflow-hidden rounded-[2rem] bg-white dark:bg-slate-900 text-left shadow-xl transition-all w-full border border-white/60 dark:border-white/5 glass-premium ${maxWidth}`}>
+                            <Dialog.Panel className={`relative transform overflow-hidden rounded-3xl bg-white dark:bg-slate-900 text-left shadow-modal transition-all w-full border border-white/60 dark:border-white/5 glass-premium ${maxWidth}`}>
                                 {title && (
                                     <div className="flex items-center justify-between p-6 border-b border-slate-200/60 dark:border-white/5 shrink-0 transition-colors">
                                         <Dialog.Title as="h3" className="text-xl font-bold font-display text-slate-900 dark:text-white tracking-tight">

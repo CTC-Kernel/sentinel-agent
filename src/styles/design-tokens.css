@@ -10,25 +10,56 @@
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 2.5%;
 
-  /* Primary - Vivid Apple Blue */
-  --primary: 221.2 83.2% 53.3%;
+  /* Primary - Vivid Apple Blue (more vibrant) */
+  --primary: 221.2 91% 48%;
   --primary-foreground: 210 40% 98%;
 
-  --secondary: 210 40% 96.1%;
+  /* Secondary/Muted - Better contrast (was 96.1% luminosity, now 92%) */
+  --secondary: 210 40% 92%;
   --secondary-foreground: 222.2 47.4% 11.2%;
 
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 40%;
+  --muted: 210 40% 92%;
+  --muted-foreground: 215.4 20% 35%;
 
-  --accent: 210 40% 96.1%;
+  --accent: 210 40% 92%;
   --accent-foreground: 222.2 47.4% 11.2%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 214.3 31.8% 90%;
-  --input: 214.3 31.8% 90%;
-  --ring: 221.2 83.2% 53.3%;
+  --border: 214.3 31.8% 88%;
+  --input: 214.3 31.8% 88%;
+  --ring: 221.2 91% 48%;
+
+  /* Status Colors - Light Mode (WCAG AA Compliant) */
+  --success: 142 71% 40%;
+  --warning: 38 92% 45%;
+  --error: 0 72% 51%;
+  --info: 199 89% 42%;
+
+  /* Semantic Badge Tokens - Light Mode */
+  --success-text: 142 76% 30%;
+  --success-bg: 142 76% 95%;
+  --success-border: 142 70% 75%;
+
+  --warning-text: 38 92% 30%;
+  --warning-bg: 38 92% 95%;
+  --warning-border: 38 80% 70%;
+
+  --error-text: 0 72% 40%;
+  --error-bg: 0 72% 96%;
+  --error-border: 0 70% 80%;
+
+  --info-text: 199 89% 32%;
+  --info-bg: 199 89% 95%;
+  --info-border: 199 80% 75%;
+
+  /* Gradient Variables */
+  --gradient-primary: linear-gradient(135deg, hsl(221 91% 48%) 0%, hsl(240 80% 55%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(142 71% 40%) 0%, hsl(160 70% 45%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(25 90% 48%) 100%);
+  --gradient-danger: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(350 80% 45%) 100%);
+  --gradient-info: linear-gradient(135deg, hsl(199 89% 42%) 0%, hsl(210 85% 50%) 100%);
 
   /* Spacing Scale - Standard (Tailwind compatible) */
   --spacing-1: 0.25rem;
@@ -53,16 +84,84 @@
   --radius-3xl: 1.5rem;
   --radius-full: 9999px;
 
-  /* Transitions */
-  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 150ms var(--ease-apple);
-  --transition-normal: 300ms var(--ease-apple);
-  --transition-slow: 500ms var(--ease-apple);
+  /* ===== TYPOGRAPHY SYSTEM ===== */
+  /* Font Families */
+  --font-display: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'SF Mono', Menlo, Monaco, Consolas, monospace;
 
-  /* Glassmorphism Crystalline - Deep Depth */
+  /* Font Weights - Standardized */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Letter Spacing - Apple Precision */
+  --tracking-tighter: -0.04em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+
+  /* ===== MOTION SYSTEM ===== */
+  /* Easing Functions */
+  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Duration Scale */
+  --duration-instant: 75ms;
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 700ms;
+
+  /* Composed Transitions */
+  --transition-fast: var(--duration-fast) var(--ease-apple);
+  --transition-normal: var(--duration-normal) var(--ease-apple);
+  --transition-slow: var(--duration-slow) var(--ease-apple);
+
+  /* ===== SHADOW SYSTEM ===== */
+  /* Elevation Scale - Unified */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.18);
+
+  /* Colored Shadows - For buttons and status elements */
+  --shadow-primary: 0 8px 24px -4px hsl(var(--primary) / 0.3);
+  --shadow-success: 0 8px 24px -4px hsl(var(--success) / 0.3);
+  --shadow-warning: 0 8px 24px -4px hsl(var(--warning) / 0.3);
+  --shadow-error: 0 8px 24px -4px hsl(var(--error) / 0.3);
+
+  /* Interactive Shadow Elevations */
+  --shadow-button: var(--shadow-sm);
+  --shadow-button-hover: var(--shadow-md);
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-lg);
+  --shadow-modal: var(--shadow-2xl);
+
+  /* ===== BLUR SYSTEM ===== */
+  --blur-xs: 4px;
+  --blur-sm: 8px;
+  --blur-md: 16px;
+  --blur-lg: 24px;
+  --blur-xl: 40px;
+
+  /* ===== GLASSMORPHISM ===== */
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(28, 32, 48, 0.12);
-  --glass-shadow: 0 4px 20px -2px rgba(28, 32, 48, 0.08), 0 0 0 1px rgba(28, 32, 48, 0.02) inset;
+  --glass-shadow: var(--shadow-md);
+
+  /* Modal Overlay */
+  --overlay-bg: rgba(15, 23, 42, 0.4);
+  --overlay-blur: var(--blur-xs);
 }
 
 .dark {
@@ -85,7 +184,7 @@
   --secondary-foreground: 210 40% 98%;
 
   --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
+  --muted-foreground: 215 20.2% 55.1%;
 
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
@@ -99,16 +198,48 @@
 
   /* Status Colors (Dark Mode) - WCAG Optimized */
   --success: 158 64% 52%;
-  /* Emerald-400 equivalent for dark */
   --warning: 38 92% 50%;
-  /* Amber-400 */
   --error: 350 89% 60%;
-  /* Rose-400 */
   --info: 199 89% 48%;
-  /* Sky-400 */
+
+  /* Semantic Badge Tokens - Dark Mode */
+  --success-text: 158 64% 60%;
+  --success-bg: 158 60% 12%;
+  --success-border: 158 50% 30%;
+
+  --warning-text: 38 92% 65%;
+  --warning-bg: 38 70% 12%;
+  --warning-border: 38 70% 35%;
+
+  --error-text: 350 89% 65%;
+  --error-bg: 350 70% 12%;
+  --error-border: 350 70% 35%;
+
+  --info-text: 199 89% 60%;
+  --info-bg: 199 70% 12%;
+  --info-border: 199 70% 35%;
+
+  /* Gradient Variables - Dark Mode (lighter for visibility) */
+  --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(240 80% 65%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(158 64% 52%) 0%, hsl(160 70% 55%) 100%);
+  --gradient-warning: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(25 90% 55%) 100%);
+  --gradient-danger: linear-gradient(135deg, hsl(350 89% 60%) 0%, hsl(360 80% 55%) 100%);
+  --gradient-info: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(210 85% 55%) 100%);
+
+  /* Shadow System - Dark Mode (deeper shadows) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px -4px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.25);
+  --shadow-2xl: 0 24px 56px -12px rgba(0, 0, 0, 0.6);
 
   /* Glassmorphism Dark - Ethereal */
   --glass-bg: rgba(15, 23, 42, 0.80);
   --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --glass-shadow: var(--shadow-lg);
+
+  /* Modal Overlay - Dark Mode */
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --overlay-blur: var(--blur-sm);
 }

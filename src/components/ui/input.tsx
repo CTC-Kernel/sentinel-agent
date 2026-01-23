@@ -15,11 +15,20 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <input
                 type={type}
                 className={cn(
-                    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                    // Dark mode explicit styles
-                    "dark:bg-slate-800/50 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-400",
+                    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                    "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+                    "placeholder:text-muted-foreground",
+                    // Focus states
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    // Hover states for better feedback
+                    "hover:border-primary/30 hover:bg-background/80 transition-colors duration-200",
+                    // Disabled state
+                    "disabled:cursor-not-allowed disabled:opacity-50",
+                    // Dark mode explicit styles - improved placeholder contrast
+                    "dark:bg-slate-800/50 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500",
+                    "dark:hover:border-primary/40 dark:hover:bg-slate-800/70",
                     // Error state styling
-                    hasError && "border-red-500 dark:border-red-500 focus-visible:ring-red-500",
+                    hasError && "border-red-500 dark:border-red-500 focus-visible:ring-red-500 hover:border-red-500",
                     className
                 )}
                 ref={ref}

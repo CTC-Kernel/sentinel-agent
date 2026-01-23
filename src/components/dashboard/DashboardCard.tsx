@@ -17,7 +17,19 @@ interface DashboardCardProps {
     isExpanded?: boolean;
     onToggleExpand?: () => void;
     expandable?: boolean;
+
+    // Tier system for visual hierarchy
+    tier?: 'standard' | 'featured' | 'hero';
 }
+
+/**
+ * Tier-based styling for visual hierarchy
+ */
+const TIER_STYLES = {
+    standard: '',
+    featured: 'ring-1 ring-primary/10 shadow-apple-md',
+    hero: 'ring-2 ring-primary/20 shadow-glow',
+};
 
 import { createPortal } from 'react-dom';
 
@@ -31,8 +43,10 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
     loading = false,
     isExpanded = false,
     onToggleExpand,
-    expandable = false
+    expandable = false,
+    tier = 'standard'
 }) => {
+    const tierStyle = TIER_STYLES[tier];
     // Lock body scroll when expanded
     React.useEffect(() => {
         if (isExpanded) {
@@ -134,6 +148,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
         <GlassCard
             className={`
                 p-0 flex flex-col group h-full relative
+                ${tierStyle}
                 ${className}
             `}
             hoverEffect={true}

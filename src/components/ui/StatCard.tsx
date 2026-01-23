@@ -74,8 +74,8 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                 isInteractive && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2'
             )}
         >
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {/* Gradient overlay - visible at 60%, 100% on hover */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
 
             <div className="flex flex-col h-full justify-between relative z-10">
                 {/* Header with icon and trend */}
@@ -120,7 +120,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                                 return (
                                     <div
                                         key={`spark-${idx}`}
-                                        className={`flex-1 rounded-t ${colorClass} opacity-30 transition-all hover:opacity-60`}
+                                        className={`flex-1 rounded-t ${colorClass} opacity-50 transition-all hover:opacity-80`}
                                         style={{ height: `${height}%` }}
                                     />
                                 );
