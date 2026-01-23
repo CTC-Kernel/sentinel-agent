@@ -149,7 +149,7 @@ app.use(express.static(distPath, {
             return;
         }
 
-        if (base === 'sw.js') {
+        if (base === 'sw.js' || base === 'version.json' || base === 'manifest.webmanifest') {
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             return;
         }
