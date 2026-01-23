@@ -11,6 +11,10 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 
+// Import vulnerability and incident handlers
+const { uploadVulnerabilities } = require('./vulnerabilities');
+const { reportIncident } = require('./incidents');
+
 const db = admin.firestore();
 
 // Express app for agent API
@@ -606,6 +610,74 @@ app.post('/v1/agents/:agentId/diagnostics', async (req, res) => {
         });
     } catch (error) {
         logger.error('Diagnostics upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Agent Vulnerabilities Upload
+// POST /v1/agents/:agentId/vulnerabilities
+// ============================================================================
+app.post('/v1/agents/:agentId/vulnerabilities', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentDoc = agentQuery.docs[0];
+        const agentData = agentDoc.data();
+
+        // Delegate to vulnerability handler
+        return await uploadVulnerabilities(req, res, agentId, agentDoc, agentData);
+    } catch (error) {
+        logger.error('Vulnerabilities upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Agent Incident Report
+// POST /v1/agents/:agentId/incidents
+// ============================================================================
+app.post('/v1/agents/:agentId/incidents', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentDoc = agentQuery.docs[0];
+        const agentData = agentDoc.data();
+
+        // Delegate to incident handler
+        return await reportIncident(req, res, agentId, agentDoc, agentData);
+    } catch (error) {
+        logger.error('Incident report error:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
