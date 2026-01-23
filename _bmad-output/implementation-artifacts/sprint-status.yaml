@@ -603,10 +603,10 @@ development_status:
   # Goal: Multi-framework compliance (NIS2, DORA, RGPD, AI Act) with cross-mapping
   eu-epic-1-multi-framework-engine: in-progress
   eu-1-1-framework-data-model: done # src/types/framework.ts, compliance.ts + Firestore indexes
-  eu-1-2-framework-service: ready-for-dev
-  eu-1-3-framework-selector-component: backlog
-  eu-1-4-requirements-list-view: backlog
-  eu-1-5-cross-framework-mapping: backlog
+  eu-1-2-framework-service: done # src/services/FrameworkService.ts + src/hooks/useFrameworks.ts (26 tests)
+  eu-1-3-framework-selector-component: done
+  eu-1-4-requirements-list-view: done
+  eu-1-5-cross-framework-mapping: in-progress
   eu-1-6-seed-nis2-framework-data: backlog
   eu-epic-1-retrospective: optional
 

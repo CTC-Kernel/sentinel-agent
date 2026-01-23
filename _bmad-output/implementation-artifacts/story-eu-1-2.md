@@ -2,7 +2,7 @@
 story_id: EU-1.2
 epic_id: EU-1
 title: Implémenter FrameworkService
-status: ready-for-dev
+status: done
 priority: P0
 points: 5
 sprint: 1
@@ -63,20 +63,20 @@ source: epics-european-leader-2026-01-22.md
 
 ## Tasks
 
-- [ ] Create `src/services/FrameworkService.ts` with static methods
-- [ ] Implement `getFrameworks()` with Firestore query
-- [ ] Implement `getRequirements(frameworkId)` with category grouping
-- [ ] Implement `getMappings(controlId)` for cross-framework queries
-- [ ] Implement `subscribeToFrameworks()` for real-time updates
-- [ ] Create `src/hooks/useFrameworks.ts` hook
-- [ ] Write unit tests for FrameworkService
-- [ ] Write unit tests for useFrameworks hook
+- [x] Create `src/services/FrameworkService.ts` with static methods
+- [x] Implement `getFrameworks()` with Firestore query
+- [x] Implement `getRequirements(frameworkId)` with category grouping
+- [x] Implement `getMappings(controlId)` for cross-framework queries
+- [x] Implement `subscribeToFrameworks()` for real-time updates
+- [x] Create `src/hooks/useFrameworks.ts` hook with TanStack Query
+- [x] Write unit tests for FrameworkService (15 tests)
+- [x] Write unit tests for useFrameworks hook (11 tests)
 
 ## Definition of Done
 
-- [ ] All CRUD methods implemented
-- [ ] TanStack Query integration working
-- [ ] Real-time subscriptions working
-- [ ] Error handling with ErrorLogger
-- [ ] Unit tests passing (>80% coverage)
-- [ ] Code passes linting
+- [x] All CRUD methods implemented
+- [x] TanStack Query integration working
+- [x] Real-time subscriptions working
+- [x] Error handling with ErrorLogger
+- [x] Unit tests passing (26/26)
+- [x] Code passes linting
