@@ -99,7 +99,7 @@ function isDocumentExcluded(document, exceptions) {
  */
 function isUnderLegalHold(document) {
   return document.isUnderHold === true ||
-         (document.legalHoldIds && document.legalHoldIds.length > 0);
+         (Array.isArray(document.legalHoldIds) && document.legalHoldIds.length > 0);
 }
 
 /**
@@ -625,3 +625,20 @@ exports.getRetentionHistory = onCall(
     }
   }
 );
+
+// Export utility functions for testing
+module.exports = {
+  scheduledRetentionEngine: exports.scheduledRetentionEngine,
+  previewRetentionActions: exports.previewRetentionActions,
+  runRetentionEngine: exports.runRetentionEngine,
+  getRetentionHistory: exports.getRetentionHistory,
+  // Internal helpers for testing
+  _internal: {
+    calculateExpiryDate,
+    documentMatchesScope,
+    isDocumentExcluded,
+    isUnderLegalHold,
+    findApplicablePolicy,
+    BATCH_SIZE,
+  },
+};

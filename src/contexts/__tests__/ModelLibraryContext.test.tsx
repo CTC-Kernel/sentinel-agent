@@ -74,7 +74,7 @@ describe('ModelLibraryContext', () => {
             renderHook(() => useModelLibrary(), { wrapper });
 
             await waitFor(() => {
-                expect(mockLoadSafe).toHaveBeenCalledWith('/models/lock/lock.obj');
+                expect(mockLoadSafe).toHaveBeenCalledWith('/models/server/console.obj');
             });
         });
 
@@ -90,7 +90,7 @@ describe('ModelLibraryContext', () => {
             renderHook(() => useModelLibrary(), { wrapper });
 
             await waitFor(() => {
-                expect(mockLoadSafe).toHaveBeenCalledWith('/models/alert/alert.obj');
+                expect(mockLoadSafe).toHaveBeenCalledWith('/models/shield/shield.obj');
             });
         });
 

@@ -8,14 +8,14 @@
  */
 
 import { format, parse, isValid } from 'date-fns';
-import { fr, enUS } from 'date-fns/locale';
+import { fr, enUS, de } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 import { z } from 'zod';
 
 /**
  * Supported locale types
  */
-export type SupportedLocale = 'fr' | 'en';
+export type SupportedLocale = 'fr' | 'en' | 'de';
 
 /**
  * Number format configuration
@@ -186,6 +186,53 @@ export const localeConfig = {
     dateFnsLocale: enUS,
     intlLocale: 'en-US',
   },
+  de: {
+    dateFormat: 'dd.MM.yyyy',
+    dateTimeFormat: 'dd.MM.yyyy HH:mm',
+    timeFormat: 'HH:mm',
+    numberFormat: {
+      decimal: ',',
+      thousands: '.',
+    },
+    zodMessages: {
+      // Basic validations
+      required: 'Dieses Feld ist erforderlich',
+      invalidType: 'Ungültiger Werttyp',
+
+      // String validations
+      invalidString: 'Dieses Feld muss Text sein',
+      tooShort: (min: number) => `Mindestens ${min} Zeichen erforderlich`,
+      tooLong: (max: number) => `Maximal ${max} Zeichen erlaubt`,
+      invalidEmail: 'Ungültige E-Mail-Adresse',
+      invalidUrl: 'Ungültige URL (z.B. https://beispiel.de)',
+      invalidUuid: 'Ungültige Kennung',
+      invalidRegex: 'Ungültiges Format',
+
+      // Number validations
+      invalidNumber: 'Bitte geben Sie eine gültige Zahl ein',
+      notInteger: 'Bitte geben Sie eine ganze Zahl ein',
+      tooSmall: (min: number) => `Der Wert muss mindestens ${min} sein`,
+      tooBig: (max: number) => `Der Wert darf höchstens ${max} sein`,
+      notPositive: 'Der Wert muss positiv sein',
+      notNegative: 'Der Wert muss negativ sein',
+      notNonNegative: 'Der Wert darf nicht negativ sein',
+
+      // Date validations
+      invalidDate: 'Ungültiges Datum (erwartetes Format: TT.MM.JJJJ)',
+
+      // Array validations
+      arrayTooShort: (min: number) => `Wählen Sie mindestens ${min} Element${min > 1 ? 'e' : ''}`,
+      arrayTooLong: (max: number) => `Maximal ${max} Element${max > 1 ? 'e' : ''} erlaubt`,
+
+      // Enum validations
+      invalidEnum: (options: string[]) => `Ungültiger Wert. Optionen: ${options.join(', ')}`,
+
+      // Custom messages
+      custom: 'Ungültiger Wert',
+    },
+    dateFnsLocale: de,
+    intlLocale: 'de-DE',
+  },
 } as const satisfies Record<SupportedLocale, LocaleConfig>;
 
 /**
@@ -331,7 +378,7 @@ export function formatCurrency(
   currency?: string
 ): string {
   const config = localeConfig[locale];
-  const defaultCurrency = locale === 'fr' ? 'EUR' : 'USD';
+  const defaultCurrency = locale === 'en' ? 'USD' : 'EUR';
   return new Intl.NumberFormat(config.intlLocale, {
     style: 'currency',
     currency: currency ?? defaultCurrency,

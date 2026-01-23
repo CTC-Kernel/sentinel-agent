@@ -151,7 +151,7 @@ function generatePriorityActions(
       controlCode: control.code || '',
       controlName: control.name || '',
       currentStatus: control.status || 'Non commencé',
-      category: control.category || control.domain || '',
+      category: control.framework || '',
       impactScore,
       potentialImprovement,
       criticality,
@@ -271,7 +271,7 @@ const ActionCard: React.FC<{
 
 export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
   controls,
-  currentFramework,
+  currentFramework: _currentFramework,
   maxActions = 5,
   onActionClick,
   className,

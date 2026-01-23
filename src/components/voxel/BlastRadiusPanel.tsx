@@ -15,7 +15,7 @@ import React, { useState, useMemo } from 'react';
 import {
   Activity,
   AlertTriangle,
-
+  Info,
   Target,
   Layers,
   TrendingUp,
@@ -375,6 +375,51 @@ const ConfigPanel: React.FC<{
 );
 
 // ============================================================================
+// Help Content Component
+// ============================================================================
+
+const BlastRadiusHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, height: 0 }}
+    animate={{ opacity: 1, height: 'auto' }}
+    exit={{ opacity: 0, height: 0 }}
+    className="px-5 py-4 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border-b border-white/10"
+  >
+    <div className="flex items-start justify-between mb-3">
+      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+        <Info className="w-4 h-4 text-purple-400" />
+        Guide Blast Radius
+      </h3>
+      <button onClick={onClose} className="text-white/40 hover:text-white">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+    <div className="space-y-3 text-xs text-white/70">
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">1</span>
+        <p><strong className="text-white">Simulation d'impact</strong> - Cliquez sur un noeud dans la vue 3D pour voir tous les elements qui seraient affectes en cas de defaillance.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">2</span>
+        <p><strong className="text-white">Statistiques</strong> - Visualisez le nombre de noeuds impactes, la profondeur de propagation et l'impact metier global.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">3</span>
+        <p><strong className="text-white">Scenario What-If</strong> - Simulez la suppression d'un controle pour evaluer l'impact sur votre posture de securite.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">4</span>
+        <p><strong className="text-white">Configuration</strong> - Ajustez la profondeur max et le seuil minimum d'impact pour affiner vos analyses.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">5</span>
+        <p><strong className="text-white">Export</strong> - Generez des rapports PDF ou CSV pour partager vos analyses avec votre equipe.</p>
+      </div>
+    </div>
+  </motion.div>
+);
+
+// ============================================================================
 // Main BlastRadiusPanel Component
 // ============================================================================
 
@@ -401,6 +446,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showConfig, setShowConfig] = useState(false);
   const [showWhatIf, setShowWhatIf] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'impact' | 'depth' | 'type'>('impact');
   const [filterType, setFilterType] = useState<VoxelNodeType | 'all'>('all');
@@ -619,6 +665,15 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
           <option value="type">Type</option>
         </select>
 
+        {/* Help toggle */}
+        <button
+          onClick={() => setShowHelp(!showHelp)}
+          className={`p-2 rounded-lg transition-colors ${showHelp ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
+          title="Aide"
+        >
+          <Info className="h-4 w-4" />
+        </button>
+
         {/* Config toggle */}
         <button
           onClick={() => setShowConfig(!showConfig)}
@@ -627,6 +682,11 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
           <Sliders className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Help Content */}
+      <AnimatePresence>
+        {showHelp && <BlastRadiusHelpContent onClose={() => setShowHelp(false)} />}
+      </AnimatePresence>
 
       {/* Config Panel */}
       <AnimatePresence>

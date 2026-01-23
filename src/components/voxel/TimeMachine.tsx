@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RotateCcw,
+  Info,
 } from '../ui/Icons';
 import { format, subDays, addDays, isAfter, isBefore, isEqual } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -185,6 +186,51 @@ function SnapshotSkeleton() {
 }
 
 // ============================================================================
+// Help Content Component
+// ============================================================================
+
+const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, height: 0 }}
+    animate={{ opacity: 1, height: 'auto' }}
+    exit={{ opacity: 0, height: 0 }}
+    className="px-5 py-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-b border-white/10"
+  >
+    <div className="flex items-start justify-between mb-3">
+      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+        <Info className="w-4 h-4 text-cyan-400" />
+        Guide Time Machine
+      </h3>
+      <button onClick={onClose} className="text-white/40 hover:text-white">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+    <div className="space-y-3 text-xs text-white/70">
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">1</span>
+        <p><strong className="text-white">Navigation temporelle</strong> - Utilisez le calendrier ou le slider pour naviguer dans l'historique de votre graphe (jusqu'a 90 jours).</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">2</span>
+        <p><strong className="text-white">Snapshots quotidiens</strong> - Chaque jour, un snapshot capture l'etat de vos noeuds, connexions, anomalies et metriques de conformite.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">3</span>
+        <p><strong className="text-white">Mode comparaison</strong> - Cliquez sur "Comparer" pour voir les differences entre deux dates et identifier les tendances.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">4</span>
+        <p><strong className="text-white">Indicateurs delta</strong> - Les fleches vertes/rouges montrent l'evolution par rapport a la date de comparaison.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">5</span>
+        <p><strong className="text-white">Lecture seule</strong> - Les donnees historiques sont preservees et ne peuvent pas etre modifiees.</p>
+      </div>
+    </div>
+  </motion.div>
+);
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -205,6 +251,7 @@ export function TimeMachine({
   const [error, setError] = useState<string | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isCompareCalendarOpen, setIsCompareCalendarOpen] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Date range for the timeline (last 90 days)
   const dateRange = useMemo(() => {
@@ -395,13 +442,27 @@ export function TimeMachine({
             </Badge>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-cyan-500/20 text-cyan-400' : 'hover:bg-white/10 text-white/60 hover:text-white'}`}
+            title="Aide"
+          >
+            <Info className="h-5 w-5" />
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
+
+      {/* Help Content */}
+      <AnimatePresence>
+        {showHelp && <TimeMachineHelpContent onClose={() => setShowHelp(false)} />}
+      </AnimatePresence>
 
       {/* Date Navigation */}
       <div className="p-4 border-b space-y-4">

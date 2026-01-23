@@ -309,6 +309,44 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
 // Main AnomalyPanel Component
 // ============================================================================
 
+// Help content component
+const AnomalyHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, height: 0 }}
+    animate={{ opacity: 1, height: 'auto' }}
+    exit={{ opacity: 0, height: 0 }}
+    className="px-5 py-4 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-b border-white/10"
+  >
+    <div className="flex items-start justify-between mb-3">
+      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+        <Info className="w-4 h-4 text-indigo-400" />
+        Comment utiliser ce panneau
+      </h3>
+      <button onClick={onClose} className="text-white/40 hover:text-white">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+    <div className="space-y-3 text-xs text-white/70">
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-red-500/20 flex items-center justify-center text-red-400 shrink-0">1</span>
+        <p><strong className="text-white">Détection automatique</strong> - Le système analyse votre graphe et détecte les anomalies : contrôles orphelins, dépendances circulaires, lacunes de couverture...</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-orange-500/20 flex items-center justify-center text-orange-400 shrink-0">2</span>
+        <p><strong className="text-white">Filtrez par sévérité</strong> - Cliquez sur les badges Critique/Élevé/Moyen/Faible pour filtrer les anomalies.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">3</span>
+        <p><strong className="text-white">Actions rapides</strong> - Cliquez sur ⋮ pour : voir le nœud en 3D, marquer résolu, ignorer, ou créer une tâche.</p>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">4</span>
+        <p><strong className="text-white">Actions groupées</strong> - Sélectionnez plusieurs anomalies pour les résoudre en lot.</p>
+      </div>
+    </div>
+  </motion.div>
+);
+
 export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
   isOpen,
   onClose,
@@ -324,6 +362,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
   const [severityFilter, setSeverityFilter] = useState<VoxelAnomalySeverity[]>([]);
   const [typeFilter, setTypeFilter] = useState<VoxelAnomalyType[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const activeAnomalies = useActiveAnomalies();
   const severityCounts = useAnomalyCountBySeverity();
@@ -502,6 +541,14 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
 
         <div className="flex-1" />
 
+        <button
+          onClick={() => setShowHelp(!showHelp)}
+          className={`p-1.5 rounded-lg transition-colors ${showHelp ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
+          title="Aide"
+        >
+          <Info className="h-4 w-4" />
+        </button>
+
         {onRefresh && (
           <button
             onClick={handleRefresh}
@@ -523,6 +570,11 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
           </button>
         )}
       </div>
+
+      {/* Help Content */}
+      <AnimatePresence>
+        {showHelp && <AnomalyHelpContent onClose={() => setShowHelp(false)} />}
+      </AnimatePresence>
 
       {/* Type Filters */}
       <AnimatePresence>
