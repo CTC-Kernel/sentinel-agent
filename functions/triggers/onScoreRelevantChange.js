@@ -185,10 +185,23 @@ const onRisksChange = onDocumentWritten({
   document: 'risks/{riskId}',
   region: 'us-west1',
 }, async (event) => {
-  const data = event.data?.after?.data() || event.data?.before?.data();
-  if (!data?.organizationId) return;
+  const before = event.data?.before?.data();
+  const after = event.data?.after?.data();
 
-  await queueScoreRecalculation(data.organizationId, 'risks');
+  // If deleted or new, always recalculate
+  if (!before || !after) {
+    const data = after || before;
+    if (data?.organizationId) await queueScoreRecalculation(data.organizationId, 'risks');
+    return;
+  }
+
+  // Optimize: only recalculate if core fields changed
+  const coreFields = ['score', 'residualScore', 'status', 'strategy', 'mitigationControlIds'];
+  const hasChanged = coreFields.some(field => JSON.stringify(before[field]) !== JSON.stringify(after[field]));
+
+  if (hasChanged && after.organizationId) {
+    await queueScoreRecalculation(after.organizationId, 'risks');
+  }
 });
 
 /**
@@ -198,10 +211,21 @@ const onControlsChange = onDocumentWritten({
   document: 'controls/{controlId}',
   region: 'us-west1',
 }, async (event) => {
-  const data = event.data?.after?.data() || event.data?.before?.data();
-  if (!data?.organizationId) return;
+  const before = event.data?.before?.data();
+  const after = event.data?.after?.data();
 
-  await queueScoreRecalculation(data.organizationId, 'controls');
+  if (!before || !after) {
+    const data = after || before;
+    if (data?.organizationId) await queueScoreRecalculation(data.organizationId, 'controls');
+    return;
+  }
+
+  const coreFields = ['effectiveness', 'maturity', 'score', 'status'];
+  const hasChanged = coreFields.some(field => JSON.stringify(before[field]) !== JSON.stringify(after[field]));
+
+  if (hasChanged && after.organizationId) {
+    await queueScoreRecalculation(after.organizationId, 'controls');
+  }
 });
 
 /**
@@ -211,10 +235,21 @@ const onDocumentsChange = onDocumentWritten({
   document: 'documents/{documentId}',
   region: 'us-west1',
 }, async (event) => {
-  const data = event.data?.after?.data() || event.data?.before?.data();
-  if (!data?.organizationId) return;
+  const before = event.data?.before?.data();
+  const after = event.data?.after?.data();
 
-  await queueScoreRecalculation(data.organizationId, 'documents');
+  if (!before || !after) {
+    const data = after || before;
+    if (data?.organizationId) await queueScoreRecalculation(data.organizationId, 'documents');
+    return;
+  }
+
+  const coreFields = ['status', 'validUntil'];
+  const hasChanged = coreFields.some(field => JSON.stringify(before[field]) !== JSON.stringify(after[field]));
+
+  if (hasChanged && after.organizationId) {
+    await queueScoreRecalculation(after.organizationId, 'documents');
+  }
 });
 
 /**
@@ -224,10 +259,21 @@ const onAuditsChange = onDocumentWritten({
   document: 'audits/{auditId}',
   region: 'us-west1',
 }, async (event) => {
-  const data = event.data?.after?.data() || event.data?.before?.data();
-  if (!data?.organizationId) return;
+  const before = event.data?.before?.data();
+  const after = event.data?.after?.data();
 
-  await queueScoreRecalculation(data.organizationId, 'audits');
+  if (!before || !after) {
+    const data = after || before;
+    if (data?.organizationId) await queueScoreRecalculation(data.organizationId, 'audits');
+    return;
+  }
+
+  const coreFields = ['overallResult', 'status'];
+  const hasChanged = coreFields.some(field => JSON.stringify(before[field]) !== JSON.stringify(after[field]));
+
+  if (hasChanged && after.organizationId) {
+    await queueScoreRecalculation(after.organizationId, 'audits');
+  }
 });
 
 module.exports = {

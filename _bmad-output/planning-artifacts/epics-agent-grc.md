@@ -1625,3 +1625,194 @@ So that **I can assess compliance trends and demonstrate continuous improvement*
 **And** I can drill down into historical check results
 **And** historical proofs are accessible and verifiable
 **And** data older than 12 months is marked as archived (NFR-C2)
+
+---
+
+## Epic 10: Agent Self-Update System - Stories
+
+### Story 10.1: Check for Available Updates
+
+As an **agent**,
+I want **to check for new versions periodically**,
+So that **I can stay up-to-date with the latest security and features**.
+
+**Acceptance Criteria:**
+
+**Given** the agent is running and connected
+**When** the update check interval elapses (default: 4 hours)
+**Then** the agent queries `/v1/updates/check` with current version
+**And** response includes: available (bool), version, release_notes, mandatory, sha256
+**And** update availability is logged
+**And** if update available, agent evaluates update policy before proceeding
+**And** check respects staged rollout assignment (rollout_group)
+
+---
+
+### Story 10.2: Download and Apply Update Automatically
+
+As an **agent**,
+I want **to download and install updates automatically**,
+So that **endpoints stay current without manual intervention**.
+
+**Acceptance Criteria:**
+
+**Given** an update is available and policy allows automatic update
+**When** the update process starts
+**Then** new binary is downloaded to staging directory
+**And** SHA-256 hash is verified against expected value
+**And** code signature is verified (Authenticode/GPG)
+**And** shadow copy mechanism preserves current binary for rollback
+**And** service is restarted with new binary
+**And** post-update health check confirms successful start
+**And** update result is reported to SaaS
+
+---
+
+### Story 10.3: Implement Automatic Rollback on Failure
+
+As an **agent**,
+I want **to rollback to previous version if update fails**,
+So that **endpoints remain functional even if update is faulty**.
+
+**Acceptance Criteria:**
+
+**Given** an update has been applied
+**When** the post-update health check fails
+**Then** the agent restores the shadow copy of previous binary
+**And** service restarts with previous version
+**And** rollback completes in < 2 minutes (NFR-R5)
+**And** failure is reported to SaaS with error details
+**And** failed version is marked for investigation
+**And** agent continues operating on previous version
+
+---
+
+### Story 10.4: Implement Staged Rollout Deployment
+
+As a **Platform Operator**,
+I want **updates deployed in phases**,
+So that **faulty updates are caught before affecting all agents**.
+
+**Acceptance Criteria:**
+
+**Given** a new version is released
+**When** staged rollout is configured
+**Then** agents are assigned to rollout groups (1%, 10%, 50%, 100%)
+**And** each phase waits for success signals before proceeding
+**And** failure rate threshold (>5%) halts rollout
+**And** operator can manually advance or pause rollout
+**And** rollout status is visible in SaaS console
+**And** emergency rollback affects all updated agents
+
+---
+
+### Story 10.5: Configure Update Policy
+
+As an **IT Administrator**,
+I want **to configure how agents handle updates**,
+So that **I control when and how updates are applied**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Agent Configuration page
+**When** I configure update policy
+**Then** I can select: Automatic, Manual approval, Deferred (delay days)
+**And** policy can apply to: All agents, Agent group, Individual agent
+**And** maintenance window can be set (e.g., weekends only)
+**And** mandatory security updates can override policy
+**And** policy is pushed to agents on next sync
+
+---
+
+### Story 10.6: Trigger Manual Update on Agent
+
+As an **IT Administrator**,
+I want **to manually trigger an update on specific agents**,
+So that **I can update critical endpoints immediately**.
+
+**Acceptance Criteria:**
+
+**Given** I select an agent with available update
+**When** I click "Update Now"
+**Then** update command is sent to the agent
+**And** agent bypasses policy and downloads update immediately
+**And** update progress is shown: Downloading, Verifying, Installing, Restarting
+**And** completion or failure is displayed
+**And** I can bulk update multiple selected agents
+
+---
+
+### Story 10.7: Block Specific Version
+
+As an **IT Administrator**,
+I want **to block a specific agent version**,
+So that **faulty versions cannot be installed or remain running**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Version Management page
+**When** I block a version
+**Then** agents on that version are prompted to update immediately
+**And** blocked version cannot be installed by any agent
+**And** staged rollout using blocked version is halted
+**And** block reason and admin are recorded
+**And** block can be lifted if issue is resolved
+
+---
+
+## Epic 11: Security Hardening & Integrity - Stories
+
+### Story 11.1: Sign Logs with HMAC-SHA256
+
+As a **security officer**,
+I want **all agent logs signed with HMAC-SHA256**,
+So that **log tampering can be detected**.
+
+**Acceptance Criteria:**
+
+**Given** the agent generates a log entry
+**When** the entry is written
+**Then** HMAC-SHA256 signature is computed using agent's secret key
+**And** signature is appended to log entry (NFR-S8)
+**And** each entry includes: timestamp, level, message, previous_hash (chain)
+**And** log chain can be verified for integrity
+**And** tampering detection alerts are generated on verification failure
+**And** signing adds < 1ms overhead per entry
+
+---
+
+### Story 11.2: Validate Binary Signature Before Installation
+
+As a **security officer**,
+I want **agent binary signatures validated before installation**,
+So that **only authentic binaries are deployed**.
+
+**Acceptance Criteria:**
+
+**Given** an agent installer is executed
+**When** installation begins
+**Then** Windows validates Authenticode signature (EV certificate)
+**And** Linux validates GPG signature against trusted key
+**And** installation is blocked if signature is invalid or missing
+**And** signature validation result is logged
+**And** certificate/key revocation is checked (CRL/OCSP)
+**And** self-update also validates signature before applying
+
+---
+
+### Story 11.3: Revoke Compromised Agent Remotely
+
+As a **security officer**,
+I want **to revoke a compromised agent remotely**,
+So that **it can no longer access the SaaS or report data**.
+
+**Acceptance Criteria:**
+
+**Given** I identify a compromised agent
+**When** I click "Revoke Agent" in the console
+**Then** agent's mTLS certificate is added to revocation list
+**And** all active sessions for the agent are terminated immediately
+**And** agent receives revocation notice and stops all operations
+**And** revoked agent cannot re-enroll without new token
+**And** revocation is logged with reason and admin ID
+**And** compliance data from compromised agent is flagged for review
