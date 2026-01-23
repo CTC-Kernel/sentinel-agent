@@ -145,7 +145,12 @@ const downloadRelease = onRequest({
 }, async (req, res) => {
     try {
         // Parse URL: /releases/{product}/{platform}/{version?}
-        const pathParts = req.path.replace(/^\/+|\/+$/g, '').split('/');
+        let pathParts = req.path.replace(/^\/+|\/+$/g, '').split('/');
+
+        // Skip 'releases' prefix if present (when routed via hosting rewrite)
+        if (pathParts[0] === 'releases') {
+            pathParts = pathParts.slice(1);
+        }
 
         if (pathParts.length < 2) {
             res.status(400).json({
