@@ -19,7 +19,7 @@ export default defineConfig({
     react({ jsxRuntime: 'automatic' }),
     tsconfigPaths({ ignoreConfigErrors: true }),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // Better for manual handling and visibility
       injectRegister: 'auto',
       includeAssets: ['favicon.webp'],
       manifest: {
@@ -44,7 +44,7 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB limit
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'], // Excluded .html to force fresh index.html
         // Force immediate update - no waiting for all tabs to close
         skipWaiting: true,
         clientsClaim: true,
