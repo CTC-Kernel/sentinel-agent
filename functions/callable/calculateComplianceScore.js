@@ -27,36 +27,71 @@ const TREND_THRESHOLD = 5;
 // Critical risk score threshold (risks with score >= this value are considered critical)
 const CRITICAL_RISK_THRESHOLD = 15;
 
+// Partial control weight (harmonized with frontend)
+const PARTIAL_CONTROL_WEIGHT = 0.5;
+
+// Control statuses (harmonized with frontend src/constants/complianceConfig.ts)
+const CONTROL_STATUS = {
+  IMPLEMENTED: 'Implémenté',
+  PARTIAL: 'Partiel',
+  IN_PROGRESS: 'En cours',
+  NOT_STARTED: 'Non commencé',
+  PLANNED: 'Planifié',
+  NOT_APPLICABLE: 'Non applicable',
+  EXCLUDED: 'Exclu',
+};
+
+// Statuses that count as actionable (excludes N/A and Excluded)
+const ACTIONABLE_STATUSES = [
+  CONTROL_STATUS.IMPLEMENTED,
+  CONTROL_STATUS.PARTIAL,
+  CONTROL_STATUS.IN_PROGRESS,
+  CONTROL_STATUS.NOT_STARTED,
+  CONTROL_STATUS.PLANNED,
+];
+
 /**
  * Calculate controls score
- * Formula: (implementedControls / actionableControls) * 100
+ * Formula: (Implemented + (Partial × 0.5)) / Actionable × 100
+ * Harmonized with frontend (src/components/compliance/dashboard/ComplianceScoreCard.tsx)
  */
 async function calculateControlsScore(db, organizationId) {
   const controlsRef = db.collection('controls');
 
-  const [implementedSnap, actionableSnap] = await Promise.all([
+  // Get counts for implemented, partial, and actionable controls
+  const [implementedSnap, partialSnap, actionableSnap] = await Promise.all([
     controlsRef
       .where('organizationId', '==', organizationId)
-      .where('status', '==', 'Implémenté')
+      .where('status', '==', CONTROL_STATUS.IMPLEMENTED)
       .count()
       .get(),
     controlsRef
       .where('organizationId', '==', organizationId)
-      .where('status', 'in', ['Implémenté', 'En cours', 'Planifié', 'Non Applicable'])
+      .where('status', '==', CONTROL_STATUS.PARTIAL)
+      .count()
+      .get(),
+    controlsRef
+      .where('organizationId', '==', organizationId)
+      .where('status', 'in', ACTIONABLE_STATUSES)
       .count()
       .get(),
   ]);
 
   const implemented = implementedSnap.data().count;
+  const partial = partialSnap.data().count;
   const actionable = actionableSnap.data().count;
 
   if (actionable === 0) {
-    return { score: 100, implemented, actionable };
+    return { score: 100, implemented, partial, actionable };
   }
 
+  // Harmonized formula: (Implemented + (Partial × 0.5)) / Actionable × 100
+  const score = ((implemented + (partial * PARTIAL_CONTROL_WEIGHT)) / actionable) * 100;
+
   return {
-    score: Math.round((implemented / actionable) * 100 * 100) / 100,
+    score: Math.round(score * 100) / 100,
     implemented,
+    partial,
     actionable,
   };
 }
@@ -235,7 +270,8 @@ async function calculateFrameworkScores(db, organizationId) {
   // Group controls by framework and calculate scores
   for (const framework of frameworks) {
     let implementedCount = 0;
-    let totalCount = 0;
+    let partialCount = 0;
+    let actionableCount = 0;
 
     controlsSnap.forEach((doc) => {
       const data = doc.data();
@@ -258,18 +294,24 @@ async function calculateFrameworkScores(db, organizationId) {
         : false;
 
       if (isMapped || (data.framework && frameworkNames[framework].includes(data.framework.toLowerCase()))) {
-        totalCount++;
-        if (data.status === 'Implémenté') {
-          implementedCount++;
+        // Only count actionable controls (exclude N/A and Excluded)
+        if (ACTIONABLE_STATUSES.includes(data.status)) {
+          actionableCount++;
+          if (data.status === CONTROL_STATUS.IMPLEMENTED) {
+            implementedCount++;
+          } else if (data.status === CONTROL_STATUS.PARTIAL) {
+            partialCount++;
+          }
         }
       }
     });
 
-    // Calculate framework score
-    if (totalCount > 0) {
-      results[framework] = Math.round((implementedCount / totalCount) * 100 * 100) / 100;
+    // Calculate framework score with harmonized formula
+    if (actionableCount > 0) {
+      const score = ((implementedCount + (partialCount * PARTIAL_CONTROL_WEIGHT)) / actionableCount) * 100;
+      results[framework] = Math.round(score * 100) / 100;
     }
-    // If no controls mapped to this framework, keep default 100
+    // If no actionable controls mapped to this framework, keep default 100
   }
 
   return results;
@@ -342,6 +384,7 @@ const calculateComplianceScore = onCall({
         totalRisks: risksResult.total,
         criticalRisks: risksResult.critical,
         implementedControls: controlsResult.implemented,
+        partialControls: controlsResult.partial || 0,
         actionableControls: controlsResult.actionable,
         validDocuments: documentsResult.valid,
         totalDocuments: documentsResult.total,
@@ -378,7 +421,11 @@ module.exports = {
   calculateDocumentsScore,
   calculateAuditsScore,
   calculateTrend,
+  // Export constants (harmonized with frontend src/constants/complianceConfig.ts)
   DEFAULT_WEIGHTS,
   TREND_THRESHOLD,
   CRITICAL_RISK_THRESHOLD,
+  PARTIAL_CONTROL_WEIGHT,
+  CONTROL_STATUS,
+  ACTIONABLE_STATUSES,
 };

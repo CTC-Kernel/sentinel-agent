@@ -1,6 +1,11 @@
 import React from 'react';
 import { Control } from '../../../types';
 import { Clock, TrendingUp, ShieldAlert } from '../../ui/Icons';
+import {
+    CONTROL_STATUS,
+    PARTIAL_CONTROL_WEIGHT,
+    isActionableStatus,
+} from '../../../constants/complianceConfig';
 
 interface ComplianceScoreCardProps {
     controls: Control[];
@@ -15,33 +20,32 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
     trend,
     onFilterChange
 }) => {
-    // Calculate metrics
-    // Metrics Calculation (Harmonized with StatsService)
-    const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
-    const partialControls = controls.filter(c => c.status === 'Partiel').length;
-    const inProgressControls = controls.filter(c => c.status === 'En cours').length;
-    const notImplementedControls = controls.filter(c => c.status === 'Non commencé').length;
+    // Calculate metrics using centralized constants (harmonized with Cloud Function)
+    const implementedControls = controls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+    const partialControls = controls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
+    const inProgressControls = controls.filter(c => c.status === CONTROL_STATUS.IN_PROGRESS).length;
+    const notImplementedControls = controls.filter(c => c.status === CONTROL_STATUS.NOT_STARTED).length;
 
-    // Calculate actionable controls (Total - N/A - Excluded)
-    const actionableControls = controls.filter(c => c.status !== 'Non applicable' && c.status !== 'Exclu').length;
+    // Calculate actionable controls using centralized helper
+    const actionableControls = controls.filter(c => isActionableStatus(c.status)).length;
 
-    // Harmonized Score Formula: (Implemented + (Partial * 0.5)) / Actionable * 100
+    // Harmonized Score Formula: (Implemented + (Partial × 0.5)) / Actionable × 100
     const globalScore = actionableControls > 0
-        ? ((implementedControls + (partialControls * 0.5)) / actionableControls * 100)
+        ? ((implementedControls + (partialControls * PARTIAL_CONTROL_WEIGHT)) / actionableControls * 100)
         : 0;
 
-    // Framework specific scores (Harmonized)
+    // Framework specific scores (Harmonized with Cloud Function)
     const calculateScore = (fw: string) => {
         const fwControls = controls.filter(c => c.framework === fw);
         if (fwControls.length === 0) return 0;
 
-        const fwActionable = fwControls.filter(c => c.status !== 'Non applicable' && c.status !== 'Exclu').length;
+        const fwActionable = fwControls.filter(c => isActionableStatus(c.status)).length;
         if (fwActionable === 0) return 0;
 
-        const fwImplemented = fwControls.filter(c => c.status === 'Implémenté').length;
-        const fwPartial = fwControls.filter(c => c.status === 'Partiel').length;
+        const fwImplemented = fwControls.filter(c => c.status === CONTROL_STATUS.IMPLEMENTED).length;
+        const fwPartial = fwControls.filter(c => c.status === CONTROL_STATUS.PARTIAL).length;
 
-        return ((fwImplemented + (fwPartial * 0.5)) / fwActionable) * 100;
+        return ((fwImplemented + (fwPartial * PARTIAL_CONTROL_WEIGHT)) / fwActionable) * 100;
     };
 
     const isoScore = calculateScore('ISO27001');
@@ -128,8 +132,8 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
             {/* Right: Quick Stats */}
             <div className="flex xl:flex-col gap-3 min-w-[160px]">
                 <div
-                    onClick={() => onFilterChange?.('Non commencé')}
-                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('Non commencé')}
+                    onClick={() => onFilterChange?.(CONTROL_STATUS.NOT_STARTED)}
+                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.(CONTROL_STATUS.NOT_STARTED)}
                     role="button"
                     tabIndex={0}
                     className="flex-1 flex items-center justify-between px-4 py-3 bg-error-bg rounded-2xl border border-error-border/50 cursor-pointer hover:shadow-apple-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-error-text"
@@ -142,8 +146,8 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                 </div>
 
                 <div
-                    onClick={() => onFilterChange?.('En cours')}
-                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('En cours')}
+                    onClick={() => onFilterChange?.(CONTROL_STATUS.IN_PROGRESS)}
+                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.(CONTROL_STATUS.IN_PROGRESS)}
                     role="button"
                     tabIndex={0}
                     className="flex-1 flex items-center justify-between px-4 py-3 bg-warning-bg rounded-2xl border border-warning-border/50 cursor-pointer hover:shadow-apple-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-warning-text"
@@ -156,8 +160,8 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                 </div>
 
                 <div
-                    onClick={() => onFilterChange?.('Partiel')}
-                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('Partiel')}
+                    onClick={() => onFilterChange?.(CONTROL_STATUS.PARTIAL)}
+                    onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.(CONTROL_STATUS.PARTIAL)}
                     role="button"
                     tabIndex={0}
                     className="flex-1 flex items-center justify-between px-4 py-3 bg-info-bg rounded-2xl border border-info-border/50 cursor-pointer hover:shadow-apple-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-info-text"

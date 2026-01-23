@@ -9,6 +9,19 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Sentry from "@sentry/react";
 
+// Suppress expected non-passive wheel listener warning from OrbitControls (three.js)
+// OrbitControls requires non-passive wheel events to preventDefault during zoom
+if (import.meta.env.DEV) {
+  const originalWarn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    const msg = args[0];
+    if (typeof msg === 'string' && msg.includes('non-passive event listener')) {
+      return; // Suppress this specific warning
+    }
+    originalWarn.apply(console, args);
+  };
+}
+
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   integrations: [

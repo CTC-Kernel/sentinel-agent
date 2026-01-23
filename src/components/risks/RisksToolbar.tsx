@@ -13,6 +13,14 @@ import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ObsidianService } from '../../services/ObsidianService';
 import { useStore } from '../../store';
 import { Risk } from '../../types';
+import { FilterPill } from '../ui/FilterPill';
+
+interface RiskFilters {
+    query: string;
+    status: string[] | null;
+    category: string[] | null;
+    criticality: string[] | null;
+}
 
 interface RisksToolbarProps {
     // Search & Filter
@@ -28,6 +36,11 @@ interface RisksToolbarProps {
 
     showAdvancedSearch: boolean;
     setShowAdvancedSearch: (show: boolean) => void;
+
+    // Filter Detail State
+    activeFilters: RiskFilters;
+    onClearFilter: (key: keyof RiskFilters, value: string) => void;
+    onClearAll: () => void;
 
     // Data Actions
     filteredRisks: Risk[];
@@ -65,7 +78,10 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
     handleStartAiAnalysis,
     handleCreateRisk,
     canEdit,
-    isAnalyzing
+    isAnalyzing,
+    activeFilters,
+    onClearFilter,
+    onClearAll
 }) => {
     const { t } = useStore();
 
@@ -211,6 +227,48 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                 </Button>
                             </CustomTooltip>
                         </>
+                    )}
+                </>
+            }
+            showBottomContent={!!activeFilters.status || !!activeFilters.category || !!activeFilters.criticality}
+            bottomContent={
+                <>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                        {activeFilters.status?.map(s => (
+                            <FilterPill
+                                key={`status-${s}`}
+                                label="Statut"
+                                value={s}
+                                onRemove={() => onClearFilter('status', s)}
+                                color="brand"
+                            />
+                        ))}
+                        {activeFilters.category?.map(c => (
+                            <FilterPill
+                                key={`cat-${c}`}
+                                label="Catégorie"
+                                value={c}
+                                onRemove={() => onClearFilter('category', c)}
+                                color="emerald"
+                            />
+                        ))}
+                        {activeFilters.criticality?.map(crit => (
+                            <FilterPill
+                                key={`crit-${crit}`}
+                                label="Criticité"
+                                value={crit}
+                                onRemove={() => onClearFilter('criticality', crit)}
+                                color="amber"
+                            />
+                        ))}
+                    </div>
+                    {(activeFilters.status || activeFilters.category || activeFilters.criticality) && (
+                        <button
+                            onClick={onClearAll}
+                            className="text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 transition-colors ml-auto px-2 py-1"
+                        >
+                            {t('common.reset') || 'Effacer'}
+                        </button>
                     )}
                 </>
             }

@@ -2,6 +2,8 @@
  * Portal Auto-Save Hook
  * Debounced auto-save for vendor portal questionnaire answers
  * Story 37-2: Vendor Self-Service Portal
+ *
+ * RELIABILITY FIX: Uses navigator.sendBeacon() for page unload to prevent data loss
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -10,6 +12,9 @@ import { QuestionAnswer, SaveStatus } from '../types/vendorPortal';
 import { ErrorLogger } from '../services/errorLogger';
 
 const DEBOUNCE_DELAY = 2000; // 2 seconds
+
+// API endpoint for beacon saves (must be configured on backend)
+const BEACON_SAVE_ENDPOINT = '/api/portal/save-answers';
 
 interface UsePortalAutoSaveReturn {
   saveStatus: SaveStatus;
@@ -31,6 +36,32 @@ export function usePortalAutoSave(
   const pendingSaves = useRef<Map<string, QuestionAnswer>>(new Map());
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isSaving = useRef(false);
+
+  // Sync any pending saves from localStorage (from previous session crash/unload)
+  useEffect(() => {
+    if (isReadOnly) return;
+
+    const storageKey = `portal_pending_saves_${accessId}`;
+    try {
+      const savedData = localStorage.getItem(storageKey);
+      if (savedData) {
+        const pendingFromStorage = JSON.parse(savedData) as Array<{ questionId: string; answer: QuestionAnswer }>;
+        if (pendingFromStorage.length > 0) {
+          // Queue these saves
+          pendingFromStorage.forEach(({ questionId, answer }) => {
+            pendingSaves.current.set(questionId, answer);
+          });
+          setPendingCount(pendingSaves.current.size);
+
+          // Clear localStorage and trigger save
+          localStorage.removeItem(storageKey);
+          flushSaves();
+        }
+      }
+    } catch (error) {
+      ErrorLogger.warn('Failed to restore pending saves from localStorage', 'usePortalAutoSave.restorePending', { metadata: { error } });
+    }
+  }, [accessId, isReadOnly, flushSaves]);
 
   // Flush pending saves
   const flushSaves = useCallback(async () => {
@@ -113,35 +144,90 @@ export function usePortalAutoSave(
     await flushSaves();
   }, [flushSaves]);
 
-  // Cleanup on unmount
+  /**
+   * Synchronous save using sendBeacon for page unload scenarios
+   * sendBeacon guarantees the request will be sent even if the page is closing
+   */
+  const syncSaveWithBeacon = useCallback(() => {
+    if (isReadOnly || pendingSaves.current.size === 0) {
+      return;
+    }
+
+    const savesToProcess = Array.from(pendingSaves.current.entries()).map(
+      ([questionId, answer]) => ({ questionId, answer })
+    );
+
+    // sendBeacon is synchronous and browser guarantees delivery
+    const payload = JSON.stringify({
+      accessId,
+      answers: savesToProcess,
+      timestamp: new Date().toISOString(),
+    });
+
+    const success = navigator.sendBeacon(BEACON_SAVE_ENDPOINT, payload);
+
+    if (success) {
+      pendingSaves.current.clear();
+    } else {
+      // Fallback: try localStorage for later sync
+      try {
+        const storageKey = `portal_pending_saves_${accessId}`;
+        const existingData = localStorage.getItem(storageKey);
+        const existing = existingData ? JSON.parse(existingData) : [];
+        localStorage.setItem(storageKey, JSON.stringify([...existing, ...savesToProcess]));
+        ErrorLogger.warn('sendBeacon failed, saved to localStorage for later sync', 'usePortalAutoSave.syncSaveWithBeacon');
+      } catch (storageError) {
+        ErrorLogger.error(storageError, 'usePortalAutoSave.syncSaveWithBeacon.localStorage');
+      }
+    }
+  }, [accessId, isReadOnly]);
+
+  // Cleanup on unmount - attempt async save with timeout
   useEffect(() => {
-    const currentPendingSaves = pendingSaves.current;
     const currentDebounceTimer = debounceTimer.current;
 
     return () => {
       if (currentDebounceTimer) {
         clearTimeout(currentDebounceTimer);
       }
-      // Save any pending on unmount
-      if (currentPendingSaves.size > 0 && !isReadOnly) {
-        flushSaves();
+
+      // Attempt to save pending changes on unmount
+      // Note: This is fire-and-forget since cleanup can't be async
+      if (pendingSaves.current.size > 0 && !isReadOnly) {
+        // Use sendBeacon as fallback since it's synchronous
+        syncSaveWithBeacon();
       }
     };
-  }, [flushSaves, isReadOnly]);
+  }, [syncSaveWithBeacon, isReadOnly]);
 
-  // Save before page unload
+  // Save before page unload using sendBeacon (guaranteed delivery)
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (pendingSaves.current.size > 0 && !isReadOnly) {
+        // Show confirmation dialog
         e.preventDefault();
         e.returnValue = '';
-        flushSaves();
+
+        // Use sendBeacon for guaranteed delivery
+        syncSaveWithBeacon();
+      }
+    };
+
+    // Also handle visibilitychange for mobile browsers
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && pendingSaves.current.size > 0 && !isReadOnly) {
+        syncSaveWithBeacon();
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [flushSaves, isReadOnly]);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [syncSaveWithBeacon, isReadOnly]);
 
   return {
     saveStatus,

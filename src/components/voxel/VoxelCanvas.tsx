@@ -59,6 +59,7 @@ export const VoxelCanvas: React.FC<VoxelCanvasProps> = ({
       style={{
         height: 'calc(100vh - 48px)',
         background: CANVAS_BACKGROUND,
+        touchAction: 'none', // Prevents scroll conflicts with OrbitControls
       }}
       data-testid="voxel-canvas-container"
     >
@@ -80,6 +81,7 @@ export const VoxelCanvas: React.FC<VoxelCanvasProps> = ({
         style={{
           width: '100%',
           height: '100%',
+          touchAction: 'none', // Required for OrbitControls wheel/touch handling
         }}
       >
         <VoxelScene />

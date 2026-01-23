@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Search, MoreVertical, LayoutGrid, List, LayoutDashboard, RefreshCcw } from './Icons';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PremiumPageControlProps {
     searchQuery: string;
@@ -26,6 +27,13 @@ interface PremiumPageControlProps {
      * Additional actions to render on the right side
      */
     actions?: React.ReactNode;
+
+    /**
+     * Bottom content area (e.g. Filter Pills)
+     */
+    bottomContent?: React.ReactNode;
+    showBottomContent?: boolean;
+
     children?: React.ReactNode;
 }
 
@@ -42,6 +50,8 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
     onViewChange,
     viewOptions,
     actions,
+    bottomContent,
+    showBottomContent,
     children
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -160,6 +170,22 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                     </div>
                 )}
             </div>
+
+            <AnimatePresence>
+                {showBottomContent && bottomContent && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                        className="overflow-hidden"
+                    >
+                        <div className="px-4 py-3 border-t border-slate-200/50 dark:border-white/5 mt-1.5 flex flex-wrap gap-2 items-center">
+                            {bottomContent}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

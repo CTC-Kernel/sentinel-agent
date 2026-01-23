@@ -467,166 +467,200 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   const safeSuppliers = useMemo(() => suppliers ?? [], [suppliers]);
   const safeControls = useMemo(() => controls ?? [], [controls]);
 
-  // Voxel Nodes Generation
-  const voxelNodes = useMemo(() => {
-    const nodes: VoxelNode[] = [];
-    const GRID_SIZE = 10;
-    const spacing = 4;
-    const currentVisible = visibleTypes || [];
+  const currentVisible = useMemo(() => visibleTypes || [], [visibleTypes]);
 
+  // Split node generation into smaller chunks for better performance
+  const GRID_SIZE = 10;
+  const SPACING = 4;
+
+  // Asset nodes (memoized separately)
+  const assetNodes = useMemo((): VoxelNode[] => {
+    if (!currentVisible.includes('asset')) return [];
     const now = new Date();
+    return safeAssets.map((asset, i) => {
+      const row = Math.floor(i / GRID_SIZE);
+      const col = i % GRID_SIZE;
+      const maxCriticality = [asset.confidentiality, asset.integrity, asset.availability]
+        .find(c => c === 'Critique') ? 'Critique' :
+        [asset.confidentiality, asset.integrity, asset.availability]
+        .find(c => c === 'Élevée') ? 'Élevée' : 'Normal';
+      const status: VoxelNodeStatus = maxCriticality === 'Critique' ? 'critical' : maxCriticality === 'Élevée' ? 'warning' : 'normal';
+      return {
+        id: asset.id,
+        type: 'asset' as const,
+        label: asset.name || 'Asset',
+        status,
+        position: applySceneOffset(col * 3 - (GRID_SIZE * 1.5), 0, row * 3 - (GRID_SIZE * 1.5)),
+        size: 1,
+        data: asset as unknown as Record<string, unknown>,
+        connections: [],
+        createdAt: now,
+        updatedAt: now
+      };
+    });
+  }, [safeAssets, currentVisible]);
 
-    if (currentVisible.includes('asset')) {
-      safeAssets.forEach((asset, i) => {
-        const row = Math.floor(i / GRID_SIZE);
-        const col = i % GRID_SIZE;
-        // Determine status from highest criticality among C/I/A
-        const maxCriticality = [asset.confidentiality, asset.integrity, asset.availability]
-          .find(c => c === 'Critique') ? 'Critique' :
-          [asset.confidentiality, asset.integrity, asset.availability]
-          .find(c => c === 'Élevée') ? 'Élevée' : 'Normal';
-        const status: VoxelNodeStatus = maxCriticality === 'Critique' ? 'critical' : maxCriticality === 'Élevée' ? 'warning' : 'normal';
-        nodes.push({
-          id: asset.id,
-          type: 'asset',
-          label: asset.name || 'Asset',
-          status,
-          position: applySceneOffset(col * 3 - (GRID_SIZE * 1.5), 0, row * 3 - (GRID_SIZE * 1.5)),
-          size: 1,
-          data: asset as unknown as Record<string, unknown>,
-          connections: [],
-          createdAt: now,
-          updatedAt: now
-        });
-      });
-    }
-    if (currentVisible.includes('risk')) {
-      safeRisks.forEach((risk, index) => {
-        const x = (index % GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
-        const z = Math.floor(index / GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
-        const safeScore = Number.isFinite(risk.score) ? risk.score : 0;
-        const status: VoxelNodeStatus = safeScore >= 15 ? 'critical' : safeScore >= 10 ? 'warning' : 'normal';
-        nodes.push({
-          id: risk.id,
-          type: 'risk',
-          label: risk.threat || 'Risk',
-          status,
-          position: applySceneOffset(x, -4, z),
-          size: 0.6 + (safeScore / 25) * 0.4,
-          data: risk as unknown as Record<string, unknown>,
-          connections: risk.assetId ? [risk.assetId] : [],
-          createdAt: now,
-          updatedAt: now
-        });
-      });
-    }
-    if (currentVisible.includes('project')) {
-      safeProjects.forEach((project, index) => {
-        const x = (index % GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
-        const z = Math.floor(index / GRID_SIZE) * spacing - (GRID_SIZE * spacing) / 2;
-        const status: VoxelNodeStatus = (project.status || '').toLowerCase().includes('retard') ? 'warning' : 'normal';
-        nodes.push({
-          id: project.id,
-          type: 'project',
-          label: project.name || 'Project',
-          status,
-          position: applySceneOffset(x, 0, z),
-          size: 1.2,
-          data: project as unknown as Record<string, unknown>,
-          connections: project.relatedRiskIds || [],
-          createdAt: now,
-          updatedAt: now
-        });
-      });
-    }
-    if (currentVisible.includes('audit')) {
-      safeAudits.forEach((audit, i) => {
-        const angle = (i / (safeAudits.length || 1)) * Math.PI * 2;
-        const radius = 12;
-        nodes.push({
-          id: audit.id,
-          type: 'audit',
-          label: audit.name || 'Audit',
-          status: 'normal',
-          position: applySceneOffset(Math.cos(angle) * radius, 8, Math.sin(angle) * radius),
-          size: 0.9,
-          data: audit as unknown as Record<string, unknown>,
-          connections: [
-            ...(Array.isArray(audit.relatedAssetIds) ? audit.relatedAssetIds : []),
-            ...(Array.isArray(audit.relatedRiskIds) ? audit.relatedRiskIds : []),
-            ...(Array.isArray(audit.relatedProjectIds) ? audit.relatedProjectIds : [])
-          ],
-          createdAt: now,
-          updatedAt: now
-        });
-      });
-    }
-    if (currentVisible.includes('incident')) {
-      safeIncidents.forEach((incident, i) => {
-        const angle = (i / (safeIncidents.length || 1)) * Math.PI * 2 + 1;
-        const radius = 15;
-        const isCritical = incident.severity === 'Critique' || incident.severity === 'Élevée';
-        const status: VoxelNodeStatus = incident.severity === 'Critique' ? 'critical' : incident.severity === 'Élevée' ? 'warning' : 'normal';
-        nodes.push({
-          id: incident.id,
-          type: 'incident',
-          label: incident.title || 'Incident',
-          status,
-          position: applySceneOffset(Math.cos(angle) * radius, isCritical ? 12 : 6, Math.sin(angle) * radius),
-          size: isCritical ? 1.5 : 1,
-          data: incident as unknown as Record<string, unknown>,
-          connections: incident.affectedAssetId ? [incident.affectedAssetId] : [],
-          createdAt: now,
-          updatedAt: now
-        });
-      });
-    }
-    if (currentVisible.includes('supplier')) {
-      safeSuppliers.forEach((s, i) => {
-        const x = Math.cos(i * 0.5 + 2) * 16;
-        const z = Math.sin(i * 0.5 + 2) * 16;
-        const connections: string[] = [];
-        if (Array.isArray(s.relatedAssetIds)) connections.push(...s.relatedAssetIds);
-        if (Array.isArray(s.relatedProjectIds)) connections.push(...s.relatedProjectIds);
-        nodes.push({
-          id: s.id,
-          type: 'supplier',
-          label: s.name || 'Supplier',
-          status: 'normal',
-          position: applySceneOffset(x, 1, z),
-          size: 1.1,
-          data: s as unknown as Record<string, unknown>,
-          connections,
-          createdAt: now,
-          updatedAt: now
-        });
-      });
-    }
-    if (currentVisible.includes('control')) {
-      safeControls.forEach((c, i) => {
-        const angle = (i / (safeControls.length || 1)) * Math.PI * 2;
-        const radius = 35;
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        const connections: string[] = [];
-        if (Array.isArray(c.relatedAssetIds)) connections.push(...c.relatedAssetIds);
-        if (Array.isArray(c.relatedRiskIds)) connections.push(...c.relatedRiskIds);
-        nodes.push({
-          id: c.id,
-          type: 'control',
-          label: c.name || 'Control',
-          status: 'normal',
-          position: applySceneOffset(x, 2, z),
-          size: 1.0,
-          data: c as unknown as Record<string, unknown>,
-          connections,
-          createdAt: now,
-          updatedAt: now
-        });
-      });
-    }
-    return nodes;
-  }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, safeSuppliers, safeControls, visibleTypes]);
+  // Risk nodes (memoized separately)
+  const riskNodes = useMemo((): VoxelNode[] => {
+    if (!currentVisible.includes('risk')) return [];
+    const now = new Date();
+    return safeRisks.map((risk, index) => {
+      const x = (index % GRID_SIZE) * SPACING - (GRID_SIZE * SPACING) / 2;
+      const z = Math.floor(index / GRID_SIZE) * SPACING - (GRID_SIZE * SPACING) / 2;
+      const safeScore = Number.isFinite(risk.score) ? risk.score : 0;
+      const status: VoxelNodeStatus = safeScore >= 15 ? 'critical' : safeScore >= 10 ? 'warning' : 'normal';
+      return {
+        id: risk.id,
+        type: 'risk' as const,
+        label: risk.threat || 'Risk',
+        status,
+        position: applySceneOffset(x, -4, z),
+        size: 0.6 + (safeScore / 25) * 0.4,
+        data: risk as unknown as Record<string, unknown>,
+        connections: risk.assetId ? [risk.assetId] : [],
+        createdAt: now,
+        updatedAt: now
+      };
+    });
+  }, [safeRisks, currentVisible]);
+
+  // Project nodes (memoized separately)
+  const projectNodes = useMemo((): VoxelNode[] => {
+    if (!currentVisible.includes('project')) return [];
+    const now = new Date();
+    return safeProjects.map((project, index) => {
+      const x = (index % GRID_SIZE) * SPACING - (GRID_SIZE * SPACING) / 2;
+      const z = Math.floor(index / GRID_SIZE) * SPACING - (GRID_SIZE * SPACING) / 2;
+      const status: VoxelNodeStatus = (project.status || '').toLowerCase().includes('retard') ? 'warning' : 'normal';
+      return {
+        id: project.id,
+        type: 'project' as const,
+        label: project.name || 'Project',
+        status,
+        position: applySceneOffset(x, 0, z),
+        size: 1.2,
+        data: project as unknown as Record<string, unknown>,
+        connections: project.relatedRiskIds || [],
+        createdAt: now,
+        updatedAt: now
+      };
+    });
+  }, [safeProjects, currentVisible]);
+
+  // Audit nodes (memoized separately)
+  const auditNodes = useMemo((): VoxelNode[] => {
+    if (!currentVisible.includes('audit')) return [];
+    const now = new Date();
+    return safeAudits.map((audit, i) => {
+      const angle = (i / (safeAudits.length || 1)) * Math.PI * 2;
+      const radius = 12;
+      return {
+        id: audit.id,
+        type: 'audit' as const,
+        label: audit.name || 'Audit',
+        status: 'normal' as const,
+        position: applySceneOffset(Math.cos(angle) * radius, 8, Math.sin(angle) * radius),
+        size: 0.9,
+        data: audit as unknown as Record<string, unknown>,
+        connections: [
+          ...(Array.isArray(audit.relatedAssetIds) ? audit.relatedAssetIds : []),
+          ...(Array.isArray(audit.relatedRiskIds) ? audit.relatedRiskIds : []),
+          ...(Array.isArray(audit.relatedProjectIds) ? audit.relatedProjectIds : [])
+        ],
+        createdAt: now,
+        updatedAt: now
+      };
+    });
+  }, [safeAudits, currentVisible]);
+
+  // Incident nodes (memoized separately)
+  const incidentNodes = useMemo((): VoxelNode[] => {
+    if (!currentVisible.includes('incident')) return [];
+    const now = new Date();
+    return safeIncidents.map((incident, i) => {
+      const angle = (i / (safeIncidents.length || 1)) * Math.PI * 2 + 1;
+      const radius = 15;
+      const isCritical = incident.severity === 'Critique' || incident.severity === 'Élevée';
+      const status: VoxelNodeStatus = incident.severity === 'Critique' ? 'critical' : incident.severity === 'Élevée' ? 'warning' : 'normal';
+      return {
+        id: incident.id,
+        type: 'incident' as const,
+        label: incident.title || 'Incident',
+        status,
+        position: applySceneOffset(Math.cos(angle) * radius, isCritical ? 12 : 6, Math.sin(angle) * radius),
+        size: isCritical ? 1.5 : 1,
+        data: incident as unknown as Record<string, unknown>,
+        connections: incident.affectedAssetId ? [incident.affectedAssetId] : [],
+        createdAt: now,
+        updatedAt: now
+      };
+    });
+  }, [safeIncidents, currentVisible]);
+
+  // Supplier nodes (memoized separately)
+  const supplierNodes = useMemo((): VoxelNode[] => {
+    if (!currentVisible.includes('supplier')) return [];
+    const now = new Date();
+    return safeSuppliers.map((s, i) => {
+      const x = Math.cos(i * 0.5 + 2) * 16;
+      const z = Math.sin(i * 0.5 + 2) * 16;
+      const connections: string[] = [];
+      if (Array.isArray(s.relatedAssetIds)) connections.push(...s.relatedAssetIds);
+      if (Array.isArray(s.relatedProjectIds)) connections.push(...s.relatedProjectIds);
+      return {
+        id: s.id,
+        type: 'supplier' as const,
+        label: s.name || 'Supplier',
+        status: 'normal' as const,
+        position: applySceneOffset(x, 1, z),
+        size: 1.1,
+        data: s as unknown as Record<string, unknown>,
+        connections,
+        createdAt: now,
+        updatedAt: now
+      };
+    });
+  }, [safeSuppliers, currentVisible]);
+
+  // Control nodes (memoized separately)
+  const controlNodes = useMemo((): VoxelNode[] => {
+    if (!currentVisible.includes('control')) return [];
+    const now = new Date();
+    return safeControls.map((c, i) => {
+      const angle = (i / (safeControls.length || 1)) * Math.PI * 2;
+      const radius = 35;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      const connections: string[] = [];
+      if (Array.isArray(c.relatedAssetIds)) connections.push(...c.relatedAssetIds);
+      if (Array.isArray(c.relatedRiskIds)) connections.push(...c.relatedRiskIds);
+      return {
+        id: c.id,
+        type: 'control' as const,
+        label: c.name || 'Control',
+        status: 'normal' as const,
+        position: applySceneOffset(x, 2, z),
+        size: 1.0,
+        data: c as unknown as Record<string, unknown>,
+        connections,
+        createdAt: now,
+        updatedAt: now
+      };
+    });
+  }, [safeControls, currentVisible]);
+
+  // Combine all nodes (lightweight operation since individual arrays are pre-computed)
+  const voxelNodes = useMemo((): VoxelNode[] => {
+    return [
+      ...assetNodes,
+      ...riskNodes,
+      ...projectNodes,
+      ...auditNodes,
+      ...incidentNodes,
+      ...supplierNodes,
+      ...controlNodes
+    ];
+  }, [assetNodes, riskNodes, projectNodes, auditNodes, incidentNodes, supplierNodes, controlNodes]);
 
   const handleNodeClick = useCallback((node: VoxelNode) => {
     isUserInteracting.current = false;
@@ -775,8 +809,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   }, [voxelNodes, suggestedLinks]);
 
   return (
-    <div className={`w-full h-full ${className}`}>
-      <Canvas camera={{ position: [22, 12, 22], fov: 58 }} className="bg-slate-950" dpr={[1, 2]} gl={{ antialias: true }} style={{ width: '100%', height: '100%' }}>
+    <div className={`w-full h-full ${className}`} style={{ touchAction: 'none' }}>
+      <Canvas camera={{ position: [22, 12, 22], fov: 58 }} className="bg-slate-950" dpr={[1, 2]} gl={{ antialias: true }} style={{ width: '100%', height: '100%', touchAction: 'none' }}>
         <fog attach="fog" args={['#020617', 40, 90]} />
         <VoxelErrorBoundary fallback={null}>
           <Suspense fallback={null}>

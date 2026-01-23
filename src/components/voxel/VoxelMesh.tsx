@@ -378,7 +378,7 @@ export const VoxelMesh: React.FC<{
     const libraryPrimitive = useMemo(() => {
         const config = MODEL_LIBRARY_CONFIG[node.type];
         if (!config) return null;
-        const source = modelLibrary[config.key];
+        const source = modelLibrary.getModel(config.key);
         // Check if source exists and has any geometry (children or is itself a mesh)
         if (!source) return null;
         let hasGeometry = source.children.length > 0;

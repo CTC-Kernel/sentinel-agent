@@ -9,6 +9,7 @@ import { RowActionsMenu, RowActionItem } from '../../ui/RowActionsMenu';
 import { getRiskLevel, getSLAStatus, CONTROL_STATUS_WEIGHTS } from '../../../utils/riskUtils';
 import { getUserAvatarUrl } from '../../../utils/avatarUtils';
 import { RISK_DRAFT_STATUS } from '../../../utils/riskDraftSchema';
+import { TextHighlight } from '../../ui/TextHighlight';
 
 interface UseRiskColumnsProps {
     canEdit: boolean;
@@ -20,6 +21,7 @@ interface UseRiskColumnsProps {
     onDuplicate?: (risk: Risk) => void;
     deletingIds: Set<string>;
     duplicatingIds?: Set<string>;
+    searchQuery?: string;
 }
 
 /**
@@ -108,6 +110,7 @@ export const useRiskColumns = ({
     onDuplicate,
     deletingIds,
     duplicatingIds = new Set(),
+    searchQuery = '',
 }: UseRiskColumnsProps): ColumnDef<Risk>[] => {
 
     const getOwnerName = React.useCallback((ownerId?: string) => {
@@ -140,7 +143,9 @@ export const useRiskColumns = ({
                             )}
                         </div>
                         <div>
-                            <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
+                            <div className="font-bold text-slate-900 dark:text-white text-[15px]">
+                                <TextHighlight text={row.original.threat} query={searchQuery} />
+                            </div>
                             <div className="text-xs text-slate-600 font-medium">{getOwnerName(row.original.owner)}</div>
                         </div>
                     </div>
@@ -152,7 +157,7 @@ export const useRiskColumns = ({
             accessorKey: 'vulnerability',
             cell: ({ row }) => (
                 <div className="max-w-xs truncate" title={row.original.vulnerability}>
-                    {row.original.vulnerability}
+                    <TextHighlight text={row.original.vulnerability || ''} query={searchQuery} />
                 </div>
             ),
         },

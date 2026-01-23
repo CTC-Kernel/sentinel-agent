@@ -23,12 +23,14 @@ interface RiskListProps {
     emptyStateDescription?: string;
     emptyStateActionLabel?: string;
     onEmptyStateAction?: () => void;
+    searchQuery?: string;
 }
 
 export const RiskList = React.memo<RiskListProps>(({
     risks, loading, canEdit, assets, users, onEdit, onDelete, onDuplicate, onBulkDelete, onSelect,
     duplicatingIds = new Set(),
-    emptyStateTitle, emptyStateDescription, emptyStateActionLabel, onEmptyStateAction
+    emptyStateTitle, emptyStateDescription, emptyStateActionLabel, onEmptyStateAction,
+    searchQuery = ''
 }) => {
     const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
 
@@ -55,6 +57,7 @@ export const RiskList = React.memo<RiskListProps>(({
         onDuplicate,
         deletingIds,
         duplicatingIds,
+        searchQuery,
     });
 
     return (

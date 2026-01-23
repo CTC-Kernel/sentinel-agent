@@ -4,12 +4,12 @@ import { RiskCalculator } from '../../utils/RiskCalculator';
 import { Server, TrendingDown, TrendingUp, ArrowRight, Clock, LucideIcon, ShieldAlert, Edit, Trash2 } from '../ui/Icons';
 import { CardSkeleton } from '../ui/Skeleton';
 import { Badge } from '../ui/Badge';
-import { SafeHTML } from '../ui/SafeHTML';
 import { EmptyState } from '../ui/EmptyState';
 import { Button } from '../ui/button';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk, Asset } from '../../types';
 import { GlassCard } from '../ui/GlassCard';
+import { TextHighlight } from '../ui/TextHighlight';
 
 interface RiskGridProps {
     risks: Risk[];
@@ -24,11 +24,12 @@ interface RiskGridProps {
     onEdit?: (risk: Risk) => void;
     onDelete?: (id: string, name: string) => void;
     canEdit?: boolean;
+    searchQuery?: string;
 }
 
 export const RiskGrid: React.FC<RiskGridProps> = ({
     risks, loading, onSelect, assets, emptyStateIcon, emptyStateTitle, emptyStateDescription, onEmptyStateAction, emptyStateActionLabel,
-    onEdit, onDelete, canEdit
+    onEdit, onDelete, canEdit, searchQuery = ''
 }) => {
     const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
@@ -158,10 +159,12 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
                                     <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
                                 </div>
-                                <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
+                                <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">
+                                    <TextHighlight text={risk.threat} query={searchQuery || ''} />
+                                </h4>
                                 <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-500/5 dark:bg-white/5 p-3 rounded-2xl inline-block w-full border border-slate-200/50 dark:border-white/5">
                                     <span className="font-bold text-xs uppercase text-slate-500 block mb-1">Vulnérabilité</span>
-                                    <SafeHTML content={risk.vulnerability || ''} className="line-clamp-3" />
+                                    <TextHighlight text={risk.vulnerability || ''} query={searchQuery || ''} isHtml className="line-clamp-3" />
                                 </div>
                             </div>
                             <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">

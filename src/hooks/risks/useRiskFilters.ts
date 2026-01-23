@@ -4,14 +4,19 @@ import { getRiskLevel } from '../../utils/riskUtils';
 
 export interface RiskFiltersState {
     query: string;
-    status?: string | null;
+    status: string[] | null;
     owner?: string | null;
-    criticality?: string | null;
-    category?: string | null;
+    criticality: string[] | null;
+    category: string[] | null;
 }
 
 export const useRiskFilters = (risks: Risk[]) => {
-    const [activeFilters, setActiveFilters] = useState<RiskFiltersState>({ query: '' });
+    const [activeFilters, setActiveFilters] = useState<RiskFiltersState>({
+        query: '',
+        status: null,
+        category: null,
+        criticality: null
+    });
     const [frameworkFilter, setFrameworkFilter] = useState<string>('');
     const [matrixFilter, setMatrixFilter] = useState<{ p: number; i: number } | null>(null);
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
@@ -46,14 +51,18 @@ export const useRiskFilters = (risks: Risk[]) => {
             const matchesMatrix = matrixFilter ? (Number(r.probability) === Number(matrixFilter.p) && Number(r.impact) === Number(matrixFilter.i)) : true;
 
             // Status Filter
-            const matchesStatus = activeFilters.status ? r.status === activeFilters.status : true;
+            const matchesStatus = activeFilters.status && activeFilters.status.length > 0
+                ? activeFilters.status.includes(r.status)
+                : true;
 
             // Category Filter
-            const matchesCategory = activeFilters.category ? r.category === activeFilters.category : true;
+            const matchesCategory = activeFilters.category && activeFilters.category.length > 0
+                ? activeFilters.category.includes(r.category || '')
+                : true;
 
             // Criticality Filter (based on score level)
-            const matchesCriticality = activeFilters.criticality
-                ? getRiskLevel(r.score).label === activeFilters.criticality
+            const matchesCriticality = activeFilters.criticality && activeFilters.criticality.length > 0
+                ? activeFilters.criticality.includes(getRiskLevel(r.score).label)
                 : true;
 
             return matchesSearch && matchesMatrix && matchesFramework && matchesStatus && matchesCategory && matchesCriticality;

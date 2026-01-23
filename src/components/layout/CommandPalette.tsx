@@ -25,7 +25,11 @@ export const CommandPalette: React.FC = () => {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const { assets, risks, documents, incidents, projects, loading } = useLayoutData();
+    // Only load search data when command palette is open (deferred loading)
+    const { assets, risks, documents, incidents, projects, loading } = useLayoutData({
+        enableSearch: isOpen,
+        enableNotifications: false, // CommandPalette doesn't need notifications
+    });
 
     const NAVIGATION_ITEMS: CommandItem[] = React.useMemo(() => [
         { id: 'nav-dash', title: t('commandPalette.nav.dashboard'), icon: LayoutDashboard, path: '/', category: t('commandPalette.categories.navigation') },

@@ -1,56 +1,42 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
-    LayoutDashboard, List, Grid3x3, ShieldAlert, Loader, Target, Scale
+    LayoutDashboard, List, Grid3x3, ShieldAlert, Loader, Target, Scale,
+    Zap, Star, Calculator
 } from '../components/ui/Icons';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
 import { PageHeader } from '../components/ui/PageHeader';
-// PremiumPageControl removed
-// AdvancedSearch replaced by RiskAdvancedFilters
 import { RiskAdvancedFilters } from '../components/risks/RiskAdvancedFilters';
-// Tooltip removed
-// ObsidianService removed
+import { SavedViewsBar, DEFAULT_VIEWS, SavedView } from '../components/ui/SavedViewsBar';
 import { RisksToolbar } from '../components/risks/RisksToolbar';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useStore } from '../store';
 import { exportRisksToExcel } from '../utils/riskExportUtils';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { motion, AnimatePresence } from 'framer-motion';
 import { UserProfile, Risk } from '../types';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-
-
 import { RiskImportModal } from '../components/risks/RiskImportModal';
-
-// New Optimized Hooks
 import { useRiskLogic } from '../hooks/risks/useRiskLogic';
 import { useRiskDependencies } from '../hooks/risks/useRiskDependencies';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
 import { useRiskFilters } from '../hooks/risks/useRiskFilters';
 import { RiskCalculator } from '../utils/RiskCalculator';
 import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
-
 import { RiskFormData } from '../schemas/riskSchema';
 import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
 import { RiskStatsWidget } from '../components/risks/RiskStatsWidget';
-// RiskMatrix removed for lazy load
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { RiskContextManager } from '../components/risks/context/RiskContextManager';
-// CustomSelect removed
-// Button removed
 import { FinancialRisk } from './FinancialRisk';
-import { Calculator } from '../components/ui/Icons';
-
-
-// ... existing imports ...
 import { Drawer } from '../components/ui/Drawer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { aiService } from '../services/aiService';
 import { PdfService } from '../services/PdfService';
-import { useStore } from '../store';
 import { toast } from '@/lib/toast';
 import { canEditResource } from '../utils/permissions';
 import { useAuth } from '../hooks/useAuth';
@@ -71,7 +57,6 @@ export const Risks: React.FC = () => {
     const { user } = useAuth();
     const { demoMode, t } = useStore();
 
-    // ... (keep state logic same) ...
     // 1. Core Data (Always Fetch)
     const { risks, loading: loadingRisks } = useRiskLogic();
 
@@ -96,10 +81,10 @@ export const Risks: React.FC = () => {
     const {
         assets,
         controls,
+        processes,
+        suppliers,
         projects,
         audits,
-        suppliers,
-        processes,
         usersList,
         loading: loadingDeps
     } = useRiskDependencies({
@@ -114,32 +99,12 @@ export const Risks: React.FC = () => {
 
     const loading = loadingRisks || (shouldFetchDetails && loadingDeps);
 
-    // ... (keep actions and effects same) ...
     const {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
-        exportCSV, setIsGeneratingReport, submitting,
-        importRisks, checkDependencies
+        exportCSV, setIsGeneratingReport,
+        importRisks, checkDependencies,
+        submitting
     } = useRiskActions(() => { });
-
-    useEffect(() => {
-        // Use requestIdleCallback if available to avoid blocking main thread during initial render
-        const startTour = () => {
-            OnboardingService.startRisksTour();
-        };
-
-        interface IOSWindow {
-            requestIdleCallback: (cb: () => void, options?: { timeout: number }) => number;
-            cancelIdleCallback: (handle: number) => void;
-        }
-
-        if ('requestIdleCallback' in window) {
-            const handle = (window as unknown as IOSWindow).requestIdleCallback(startTour, { timeout: 3000 });
-            return () => (window as unknown as IOSWindow).cancelIdleCallback(handle);
-        } else {
-            const timer = setTimeout(startTour, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, []);
 
     const {
         activeFilters, setActiveFilters,
@@ -152,15 +117,62 @@ export const Risks: React.FC = () => {
 
     const navigate = useNavigate();
     const location = useLocation();
-
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkTab = searchParams.get('tab');
 
-    // Handle tab deep link (e.g., from /risk-context redirect)
+    // --- Saved Views Logic ---
+    const [savedViews, setSavedViews] = useState<SavedView[]>(() => {
+        const saved = localStorage.getItem('sentinel_risk_views');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                return parsed.map((v: any) => ({
+                    ...v,
+                    icon: v.id === 'all' ? ShieldAlert : v.id === 'critical' ? Zap : v.id === 'my-risks' ? Star : undefined
+                }));
+            } catch (e) { return DEFAULT_VIEWS; }
+        }
+        return DEFAULT_VIEWS;
+    });
+
+    const [activeViewId, setActiveViewId] = useState('all');
+
+    const isFiltersModified = useMemo(() => {
+        const activeView = savedViews.find(v => v.id === activeViewId);
+        if (!activeView) return true;
+        const current = { status: activeFilters.status, category: activeFilters.category, criticality: activeFilters.criticality };
+        return JSON.stringify(current) !== JSON.stringify(activeView.filters);
+    }, [activeFilters.status, activeFilters.category, activeFilters.criticality, activeViewId, savedViews]);
+
+    const handleSaveView = () => {
+        const name = prompt('Nom de la vue :');
+        if (!name) return;
+        const newView: SavedView = {
+            id: `custom-${Date.now()}`,
+            name,
+            filters: { status: activeFilters.status, category: activeFilters.category, criticality: activeFilters.criticality }
+        };
+        const updated = [...savedViews, newView];
+        setSavedViews(updated);
+        setActiveViewId(newView.id);
+        localStorage.setItem('sentinel_risk_views', JSON.stringify(updated.map(({ icon, ...v }) => v)));
+    };
+
+    const handleViewSelect = (view: SavedView) => {
+        setActiveViewId(view.id);
+        setActiveFilters(prev => ({
+            ...prev,
+            ...view.filters
+        }));
+    };
+
+    useEffect(() => {
+        OnboardingService.startRisksTour();
+    }, []);
+
     useEffect(() => {
         if (deepLinkTab && ['overview', 'list', 'matrix', 'context', 'financial', 'ebios'].includes(deepLinkTab)) {
             setActiveTab(deepLinkTab as RiskTab);
-            // Clean up the tab param after applying it
             setSearchParams(params => {
                 const next = new URLSearchParams(params);
                 next.delete('tab');
@@ -194,7 +206,6 @@ export const Risks: React.FC = () => {
         }
     }, [location.state, creationMode]);
 
-    // Handlers
     const handleEdit = useCallback((risk: Risk) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return;
         setEditingRisk(risk);
@@ -234,13 +245,7 @@ export const Risks: React.FC = () => {
 
     const handleFormSubmit = useCallback(async (data: RiskFormData) => {
         const calculatedValues = RiskCalculator.parseRiskValues(data);
-
-        const cleanedData = {
-            ...data,
-            ...calculatedValues,
-            aiAnalysis: data.aiAnalysis || undefined
-        };
-
+        const cleanedData = { ...data, ...calculatedValues, aiAnalysis: data.aiAnalysis || undefined };
         if (editingRisk) {
             await updateRisk(editingRisk.id, cleanedData, editingRisk);
         } else {
@@ -299,7 +304,6 @@ export const Risks: React.FC = () => {
     const handleTemplateSelect = useCallback(async (template: { risks: Partial<Risk>[] }, ownerId: string) => {
         const promises = template.risks.map((risk: Partial<Risk>) => {
             const calculatedValues = RiskCalculator.parseRiskValues(risk);
-
             return createRisk({
                 threat: risk.threat,
                 vulnerability: risk.vulnerability,
@@ -377,64 +381,33 @@ export const Risks: React.FC = () => {
         { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },
     ], [t]);
 
+
+
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-10 pb-24 rounded-5xl">
             <MasterpieceBackground />
             <PageHeader
                 title={risksTitle}
                 subtitle={risksSubtitle}
-                icon={
-                    <img
-                        src="/images/gouvernance.png"
-                        alt="GOUVERNANCE"
-                        className="w-full h-full object-contain"
-                    />
-                }
+                icon={<img src="/images/gouvernance.png" alt="GOUVERNANCE" className="w-full h-full object-contain" />}
                 breadcrumbs={[{ label: t('commandPalette.nav.risks') }]}
                 trustType="integrity"
             />
 
-
             <RiskStatsWidget risks={filteredRisks} />
 
-            <ScrollableTabs
-                tabs={tabs}
-                activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id as RiskTab)}
-            />
+            <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as RiskTab)} />
 
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
-                <motion.div
-                    variants={slideUpVariants}
-                    initial="initial"
-                    animate="visible"
-                    exit="exit"
-                    key="overview-tab"
-                    data-tour="risks-stats"
-                    role="tabpanel"
-                    id="panel-overview"
-                    aria-labelledby="tab-overview"
-                    tabIndex={0}
-                    className="focus:outline-none"
-                >
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="overview-tab" data-tour="risks-stats" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" tabIndex={0} className="focus:outline-none">
                     <RiskDashboard risks={filteredRisks} />
                 </motion.div>
             )}
 
             {/* CONTEXT TAB */}
             {activeTab === 'context' && (
-                <motion.div
-                    variants={slideUpVariants}
-                    initial="initial"
-                    animate="visible"
-                    exit="exit"
-                    key="context-tab"
-                    role="tabpanel"
-                    id="panel-context"
-                    aria-labelledby="tab-context"
-                    className="focus:outline-none"
-                >
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="context-tab" role="tabpanel" id="panel-context" aria-labelledby="tab-context" className="focus:outline-none">
                     <div className="glass-premium p-8 rounded-5xl border border-white/60 dark:border-white/10 shadow-apple-sm">
                         <RiskContextManager />
                     </div>
@@ -443,34 +416,14 @@ export const Risks: React.FC = () => {
 
             {/* FINANCIAL TAB */}
             {activeTab === 'financial' && (
-                <motion.div
-                    variants={slideUpVariants}
-                    initial="initial"
-                    animate="visible"
-                    exit="exit"
-                    key="financial-tab"
-                    role="tabpanel"
-                    id="panel-financial"
-                    aria-labelledby="tab-financial"
-                    className="focus:outline-none"
-                >
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="financial-tab" role="tabpanel" id="panel-financial" aria-labelledby="tab-financial" className="focus:outline-none">
                     <FinancialRisk hideHeader />
                 </motion.div>
             )}
 
             {/* EBIOS RM TAB */}
             {activeTab === 'ebios' && (
-                <motion.div
-                    variants={slideUpVariants}
-                    initial="initial"
-                    animate="visible"
-                    exit="exit"
-                    key="ebios-tab"
-                    role="tabpanel"
-                    id="panel-ebios"
-                    aria-labelledby="tab-ebios"
-                    className="focus:outline-none"
-                >
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="ebios-tab" role="tabpanel" id="panel-ebios" aria-labelledby="tab-ebios" className="focus:outline-none">
                     <React.Suspense fallback={<Spinner />}>
                         <EbiosAnalyses />
                     </React.Suspense>
@@ -479,41 +432,61 @@ export const Risks: React.FC = () => {
 
             {/* CONTENT TABS */}
             {activeTab !== 'overview' && activeTab !== 'context' && activeTab !== 'financial' && activeTab !== 'ebios' && (
-                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
-                    <RisksToolbar
-                        searchQuery={activeFilters.query}
-                        onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
-                        viewMode={viewMode}
-                        onViewModeChange={(m) => setViewMode(m)}
-                        activeTab={activeTab}
-                        frameworkFilter={frameworkFilter}
-                        setFrameworkFilter={setFrameworkFilter}
-                        showAdvancedSearch={showAdvancedSearch}
-                        setShowAdvancedSearch={setShowAdvancedSearch}
-                        filteredRisks={filteredRisks}
-                        handleCommonExport={handleCommonExport}
-                        exportCSV={exportCSV}
-                        onExportExcel={handleExportExcel}
-                        setImportModalOpen={setImportModalOpen}
-                        setIsTemplateModalOpen={setIsTemplateModalOpen}
-                        handleStartAiAnalysis={handleStartAiAnalysis}
-                        handleCreateRisk={() => { setEditingRisk(null); setCreationMode(true); }}
-                        canEdit={canEdit}
-                        isAnalyzing={isAnalyzing}
+                <div className="space-y-4">
+                    <SavedViewsBar
+                        views={savedViews}
+                        activeViewId={activeViewId}
+                        onViewSelect={handleViewSelect}
+                        onSaveCurrentView={handleSaveView}
+                        isModified={isFiltersModified}
                     />
-                </motion.div>
+                    <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
+                        <RisksToolbar
+                            searchQuery={activeFilters.query}
+                            onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
+                            viewMode={viewMode}
+                            onViewModeChange={(m) => setViewMode(m)}
+                            activeTab={activeTab}
+                            frameworkFilter={frameworkFilter}
+                            setFrameworkFilter={setFrameworkFilter}
+                            showAdvancedSearch={showAdvancedSearch}
+                            setShowAdvancedSearch={setShowAdvancedSearch}
+                            filteredRisks={filteredRisks}
+                            handleCommonExport={handleCommonExport}
+                            exportCSV={exportCSV}
+                            onExportExcel={handleExportExcel}
+                            setImportModalOpen={setImportModalOpen}
+                            setIsTemplateModalOpen={setIsTemplateModalOpen}
+                            handleStartAiAnalysis={handleStartAiAnalysis}
+                            handleCreateRisk={() => { setEditingRisk(null); setCreationMode(true); }}
+                            canEdit={canEdit}
+                            isAnalyzing={isAnalyzing}
+                            activeFilters={{
+                                query: activeFilters.query,
+                                status: activeFilters.status || null,
+                                category: activeFilters.category || null,
+                                criticality: activeFilters.criticality || null
+                            }}
+                            onClearFilter={(key, value) => setActiveFilters(prev => ({
+                                ...prev,
+                                [key]: (prev[key] as string[])?.filter(v => v !== value) || null
+                            }))}
+                            onClearAll={() => setActiveFilters({ query: '', status: null, category: null, criticality: null })}
+                        />
+                    </motion.div>
+                </div>
             )}
 
             <AnimatePresence>
                 {showAdvancedSearch && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                         <RiskAdvancedFilters
-                            statusFilter={activeFilters.status || ''}
-                            onStatusFilterChange={(status) => setActiveFilters(prev => ({ ...prev, status: status || null }))}
-                            categoryFilter={activeFilters.category || ''}
-                            onCategoryFilterChange={(category) => setActiveFilters(prev => ({ ...prev, category: category || null }))}
-                            criticalityFilter={activeFilters.criticality || ''}
-                            onCriticalityFilterChange={(criticality) => setActiveFilters(prev => ({ ...prev, criticality: criticality || null }))}
+                            statusFilter={activeFilters.status || []}
+                            onStatusFilterChange={(status) => setActiveFilters(prev => ({ ...prev, status: status.length > 0 ? status : null }))}
+                            categoryFilter={activeFilters.category || []}
+                            onCategoryFilterChange={(category) => setActiveFilters(prev => ({ ...prev, category: category.length > 0 ? category : null }))}
+                            criticalityFilter={activeFilters.criticality || []}
+                            onCriticalityFilterChange={(criticality) => setActiveFilters(prev => ({ ...prev, criticality: criticality.length > 0 ? criticality : null }))}
                             availableCategories={availableCategories.filter((c): c is string => !!c)}
                             onClose={() => setShowAdvancedSearch(false)}
                         />
@@ -522,127 +495,70 @@ export const Risks: React.FC = () => {
             </AnimatePresence>
 
             {activeTab === 'list' && (
-                <motion.div
-                    variants={slideUpVariants}
-                    initial="initial"
-                    animate="visible"
-                    exit="exit"
-                    className="mt-8 focus:outline-none"
-                    role="tabpanel"
-                    id="panel-list"
-                    aria-labelledby="tab-list"
-                    tabIndex={0}
-                >
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="mt-8 focus:outline-none" role="tabpanel" id="panel-list" aria-labelledby="tab-list" tabIndex={0}>
                     {viewMode === 'list' ? (
-                        <RiskList
-                            risks={filteredRisks}
-                            loading={loading}
-                            canEdit={canEdit}
-                            onEdit={handleEdit}
-                            onDelete={handleDeleteRiskItem}
-                            onDuplicate={handleDuplicateRisk}
-                            onBulkDelete={bulkDeleteRisks}
-                            onSelect={setSelectedRisk}
-                            duplicatingIds={duplicatingIds}
-                            users={[]}
-                            assets={assets}
-                            emptyStateTitle={emptyStateTitle}
-                            emptyStateDescription={emptyStateDescription}
-                            emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined}
-                            onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined}
-                        />
+                        <RiskList risks={filteredRisks} loading={loading} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDeleteRiskItem} onDuplicate={handleDuplicateRisk} onBulkDelete={bulkDeleteRisks} onSelect={setSelectedRisk} duplicatingIds={duplicatingIds} users={[]} assets={assets} emptyStateTitle={emptyStateTitle} emptyStateDescription={emptyStateDescription} emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined} onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined} searchQuery={activeFilters.query} />
                     ) : (
-                        <RiskGrid
-                            risks={filteredRisks}
-                            loading={loading}
-                            onSelect={setSelectedRisk}
-                            assets={assets}
-                            emptyStateIcon={ShieldAlert}
-                            emptyStateTitle={emptyStateTitle}
-                            emptyStateDescription={emptyStateDescription}
-                            emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined}
-                            onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined}
-                            canEdit={canEdit}
-                            onEdit={handleEdit}
-                            onDelete={handleDeleteRiskItem}
-                        />
+                        <RiskGrid risks={filteredRisks} loading={loading} onSelect={setSelectedRisk} assets={assets} emptyStateIcon={ShieldAlert} emptyStateTitle={emptyStateTitle} emptyStateDescription={emptyStateDescription} emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined} onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDeleteRiskItem} searchQuery={activeFilters.query} />
                     )}
                 </motion.div>
             )}
 
             {activeTab === 'matrix' && (
-                <motion.div
-                    variants={slideUpVariants}
-                    initial="initial"
-                    animate="visible"
-                    className="p-1 focus:outline-none"
-                    role="tabpanel"
-                    id="panel-matrix"
-                    aria-labelledby="tab-matrix"
-                    tabIndex={0}
-                >
-                    {matrixFilter && (
-                        <div className="bg-primary/5 dark:bg-primary/20 p-4 rounded-2xl border border-primary/20 dark:border-primary/30 flex justify-between items-center mb-6">
-                            <span className="text-sm font-bold text-primary">
-                                {t('risks.matrix')} : {t('risks.searchPlaceholder')}
-                            </span>
-                            <button type="button" onClick={() => setMatrixFilter(null)} className="text-xs text-destructive font-bold hover:underline">{t('common.reset')}</button>
-                        </div>
-                    )}
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1 focus:outline-none" role="tabpanel" id="panel-matrix" aria-labelledby="tab-matrix" tabIndex={0}>
                     <React.Suspense fallback={<Spinner />}>
                         <RiskMatrix
                             risks={filteredRisks}
                             matrixFilter={matrixFilter}
-                            setMatrixFilter={(f) => { setMatrixFilter(f); if (f) setActiveTab('list'); }}
+                            setMatrixFilter={setMatrixFilter}
                             frameworkFilter={frameworkFilter}
                         />
                     </React.Suspense>
                 </motion.div>
             )}
 
-            <React.Suspense fallback={null}>
-                <RiskInspector
-                    isOpen={!!selectedRisk}
-                    onClose={() => setSelectedRisk(null)}
-                    risk={selectedRisk}
-                    assets={assets}
-                    controls={controls}
-                    projects={projects}
-                    audits={audits}
-                    suppliers={suppliers}
-                    usersList={usersList}
-                    processes={processes}
-                    canEdit={canEdit}
-                    demoMode={demoMode}
-                    onUpdate={updateRisk}
-                    onDelete={(id, name) => handleDelete({ id, name })}
-                    onDuplicate={handleDuplicateRisk}
-                />
-            </React.Suspense>
+            {/* Modals & Inspectors */}
+            <AnimatePresence>
+                {selectedRisk && (
+                    <RiskInspector
+                        isOpen={!!selectedRisk}
+                        onClose={() => setSelectedRisk(null)}
+                        risk={selectedRisk}
+                        assets={assets}
+                        controls={controls}
+                        projects={projects}
+                        audits={audits}
+                        suppliers={suppliers}
+                        usersList={usersList}
+                        processes={processes}
+                        canEdit={canEdit}
+                        demoMode={demoMode}
+                        onUpdate={async (id, data) => { await updateRisk(id, data as any, selectedRisk); return true; }}
+                        onDelete={handleDeleteRiskItem}
+                        onDuplicate={handleDuplicateRisk}
+                    />
+                )}
+            </AnimatePresence>
 
-            <Drawer
-                isOpen={creationMode}
-                onClose={() => setCreationMode(false)}
-                title={editingRisk ? t('risks.editRisk') : t('risks.newRisk')}
-                width="max-w-6xl"
-            >
-                <div className="p-6">
-                    <React.Suspense fallback={<Spinner />}>
-                        <RiskForm
-                            initialData={initialFormData}
-                            existingRisk={editingRisk}
-                            onSubmit={handleFormSubmit}
-                            onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
-                            assets={assets}
-                            usersList={usersList}
-                            processes={processes}
-                            suppliers={suppliers}
-                            controls={controls}
-                            isLoading={submitting}
-                        />
-                    </React.Suspense>
-                </div>
-            </Drawer>
+            <AnimatePresence>
+                {creationMode && (
+                    <Drawer isOpen={creationMode} onClose={() => { setCreationMode(false); setEditingRisk(null); }} title={editingRisk ? t('risks.editRisk') : t('risks.newRisk')}>
+                        <React.Suspense fallback={<Spinner />}>
+                            <RiskForm
+                                onSubmit={handleFormSubmit}
+                                onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
+                                initialData={editingRisk || initialFormData || undefined}
+                                isLoading={submitting}
+                                assets={assets}
+                                processes={processes}
+                                controls={controls}
+                                suppliers={suppliers}
+                                usersList={usersList}
+                            />
+                        </React.Suspense>
+                    </Drawer>
+                )}
+            </AnimatePresence>
 
             <RiskTemplateModal
                 isOpen={isTemplateModalOpen}
@@ -650,20 +566,12 @@ export const Risks: React.FC = () => {
                 onSelectTemplate={handleTemplateSelect}
                 users={usersList}
             />
-
-            <ConfirmModal
-                isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData(prev => ({ ...prev, isOpen: false }))}
-                onConfirm={confirmData.onConfirm}
-                title={confirmData.title}
-                message={confirmData.message}
-            />
-
             <RiskImportModal
                 isOpen={importModalOpen}
                 onClose={() => setImportModalOpen(false)}
                 importRisks={importRisks}
             />
+            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData(prev => ({ ...prev, isOpen: false }))} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} />
         </motion.div>
     );
 };

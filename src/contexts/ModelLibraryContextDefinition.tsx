@@ -1,4 +1,4 @@
 import { createContext } from 'react';
-import { ModelLibrary } from './modelLibraryConstants';
+import { LazyModelLibrary } from './modelLibraryConstants';
 
-export const ModelLibraryContext = createContext<ModelLibrary | null>(null);
+export const ModelLibraryContext = createContext<LazyModelLibrary | null>(null);
