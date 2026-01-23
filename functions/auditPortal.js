@@ -3,14 +3,65 @@ const admin = require("firebase-admin");
 const { logger } = require("firebase-functions");
 const crypto = require("crypto");
 
-// Helper to validate token
-const validatePortalToken = async (token) => {
+// Rate limiting for token validation (prevents brute-force attacks)
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_ATTEMPTS = 5; // Max 5 failed attempts per minute
+
+const checkTokenRateLimit = async (clientIp) => {
+    if (!clientIp) return true; // Allow if no IP (shouldn't happen)
+
+    const db = admin.firestore();
+    const rateLimitRef = db.collection('rate_limits').doc(`portal_token_${clientIp.replace(/\./g, '_')}`);
+
+    try {
+        const doc = await rateLimitRef.get();
+        if (!doc.exists) return true;
+
+        const data = doc.data();
+        const windowStart = Date.now() - RATE_LIMIT_WINDOW_MS;
+
+        if (data.lastAttempt < windowStart) {
+            // Window expired, reset
+            return true;
+        }
+
+        if (data.attempts >= RATE_LIMIT_MAX_ATTEMPTS) {
+            throw new HttpsError('resource-exhausted', 'Too many attempts. Please try again later.');
+        }
+
+        return true;
+    } catch (error) {
+        if (error.code === 'resource-exhausted') throw error;
+        // Allow on rate limit check failure (fail-open for availability)
+        return true;
+    }
+};
+
+const recordFailedTokenAttempt = async (clientIp) => {
+    if (!clientIp) return;
+
+    const db = admin.firestore();
+    const rateLimitRef = db.collection('rate_limits').doc(`portal_token_${clientIp.replace(/\./g, '_')}`);
+
+    await rateLimitRef.set({
+        attempts: admin.firestore.FieldValue.increment(1),
+        lastAttempt: Date.now()
+    }, { merge: true });
+};
+
+// Helper to validate token with rate limiting
+const validatePortalToken = async (token, clientIp = null) => {
     if (!token) throw new HttpsError('unauthenticated', 'Token missing');
+
+    // Check rate limit before validation
+    await checkTokenRateLimit(clientIp);
 
     const db = admin.firestore();
     const shareDoc = await db.collection('audit_shares').doc(token).get();
 
     if (!shareDoc.exists) {
+        // Record failed attempt for rate limiting
+        await recordFailedTokenAttempt(clientIp);
         throw new HttpsError('not-found', 'Invalid audit token');
     }
 
@@ -30,10 +81,32 @@ const validatePortalToken = async (token) => {
 exports.generateAuditShareLink = onCall(async (request) => {
     if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
 
-    // Check if user is admin/manager/auditor
     const { auditId, auditorEmail, expiryDays } = request.data;
+    const db = admin.firestore();
+    const organizationId = request.auth.token.organizationId;
+    const userRole = request.auth.token.role || 'user';
 
-    // TODO: Add strict RBAC check here (e.g. check if user owns the audit or is manager)
+    // RBAC: Verify user has permission to share audits
+    const allowedRoles = ['admin', 'rssi', 'manager', 'auditor'];
+    if (!allowedRoles.includes(userRole)) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions to share audits');
+    }
+
+    // Verify the audit exists and belongs to the user's organization
+    const auditDoc = await db.collection('audits').doc(auditId).get();
+    if (!auditDoc.exists) {
+        throw new HttpsError('not-found', 'Audit not found');
+    }
+
+    const audit = auditDoc.data();
+    if (audit.organizationId !== organizationId) {
+        throw new HttpsError('permission-denied', 'Cannot share audit from another organization');
+    }
+
+    // Additional check: User must be audit owner or admin
+    if (audit.createdBy !== request.auth.uid && !['admin', 'rssi'].includes(userRole)) {
+        throw new HttpsError('permission-denied', 'Only audit owner or admin can share this audit');
+    }
 
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date();
@@ -41,7 +114,7 @@ exports.generateAuditShareLink = onCall(async (request) => {
 
     const shareData = {
         auditId,
-        organizationId: request.auth.token.organizationId,
+        organizationId,
         auditorEmail,
         generatedBy: request.auth.uid,
         createdAt: new Date().toISOString(),
@@ -68,7 +141,8 @@ exports.generateAuditShareLink = onCall(async (request) => {
 // 2. Get Shared Audit Data (External Public Access via Token)
 exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) => {
     const { token } = request.data;
-    const shareData = await validatePortalToken(token);
+    const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;
+    const shareData = await validatePortalToken(token, clientIp);
     const db = admin.firestore();
 
     try {
@@ -138,7 +212,8 @@ exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) 
 // 3. Submit Finding (External)
 exports.portal_submitFinding = onCall({ enforceAppCheck: false }, async (request) => {
     const { token, finding } = request.data;
-    const shareData = await validatePortalToken(token);
+    const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;
+    const shareData = await validatePortalToken(token, clientIp);
 
     if (!shareData.permissions.includes('write_findings')) {
         throw new HttpsError('permission-denied', 'Write permission denied');
@@ -176,7 +251,8 @@ exports.portal_submitFinding = onCall({ enforceAppCheck: false }, async (request
 // 4. Update Status / Certify
 exports.portal_updateStatus = onCall({ enforceAppCheck: false }, async (request) => {
     const { token, status, certificationData } = request.data;
-    const shareData = await validatePortalToken(token);
+    const clientIp = request.rawRequest?.ip || request.rawRequest?.headers?.['x-forwarded-for'] || null;
+    const shareData = await validatePortalToken(token, clientIp);
 
     if (!shareData.permissions.includes('certify')) {
         throw new HttpsError('permission-denied', 'Certification permission denied');
