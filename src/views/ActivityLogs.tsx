@@ -19,17 +19,17 @@ export const ActivityLogs: React.FC = () => {
     return (
         <div className="relative min-h-screen">
             <MasterpieceBackground />
-            <div className="relative z-10 p-6 md:p-8 space-y-8 max-w-[1920px] mx-auto">
+            <div className="relative z-10 p-6 md:p-8 space-y-10 max-w-[1920px] mx-auto pb-24">
                 <PageHeader
                     title={t('activity.title')}
                     subtitle={t('activity.subtitle')}
                     icon={
-                    <img 
-                        src="/images/administration.png" 
-                        alt="ADMINISTRATION" 
-                        className="w-full h-full object-contain"
-                    />
-                }
+                        <img
+                            src="/images/administration.png"
+                            alt="ADMINISTRATION"
+                            className="w-full h-full object-contain"
+                        />
+                    }
                     actions={
                         <div className="flex items-center gap-2">
                             <Button

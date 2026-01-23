@@ -105,6 +105,9 @@ const {
   onAuditsChange,
 } = require('./triggers/onScoreRelevantChange');
 
+// Framework Seeding
+const { seedNIS2Framework } = require('./callable/seedNIS2Framework');
+
 // =============================================================================
 // RE-EXPORTS
 // =============================================================================
@@ -201,4 +204,7 @@ module.exports = {
   onControlsScoreChange: onControlsChange,
   onDocumentsScoreChange: onDocumentsChange,
   onAuditsScoreChange: onAuditsChange,
+
+  // --- Framework Seeding ---
+  seedNIS2Framework,
 };

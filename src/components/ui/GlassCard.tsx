@@ -18,7 +18,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     return (
         <div
             className={cn(
-                "relative rounded-2xl p-6 overflow-hidden transition-all duration-300",
+                "relative rounded-3xl p-6 overflow-hidden transition-all duration-300",
                 "backdrop-blur-xl saturate-150",
                 // Use CSS variables for consistent theming
                 "bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-[var(--glass-shadow)]",

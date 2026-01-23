@@ -195,7 +195,7 @@ const Team: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-10 pb-24"
         >
             <MasterpieceBackground />
             <ConfirmModal
@@ -223,8 +223,8 @@ const Team: React.FC = () => {
             />
 
             {/* Summary Card */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-sm hover:shadow-apple transition-all duration-500">
-                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-5xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-apple transition-all duration-500">
+                <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
                 </div>
 
@@ -271,38 +271,38 @@ const Team: React.FC = () => {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-3 gap-4 md:gap-8 w-full md:w-auto relative z-10">
-                    <div className="flex items-center justify-between p-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+                    <div className="flex items-center justify-between p-2.5 bg-success-bg rounded-2xl border border-success-border/30 shadow-sm">
                         <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{t('team.stats.active')}</span>
+                            <Check className="h-4 w-4 text-success-text" />
+                            <span className="text-xs font-black text-success-text uppercase tracking-widest">{t('team.stats.active')}</span>
                         </div>
-                        <span className="text-sm font-black text-emerald-700 dark:text-emerald-400">{activeUsersCount}</span>
+                        <span className="text-sm font-black text-success-text">{activeUsersCount}</span>
                     </div>
-                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                    <div className="flex items-center justify-between p-2.5 bg-info-bg rounded-2xl border border-info-border/30 shadow-sm">
                         <div className="flex items-center gap-2">
-                            <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{t('team.stats.requests')}</span>
+                            <UserPlus className="h-4 w-4 text-info-text" />
+                            <span className="text-xs font-black text-info-text uppercase tracking-widest">{t('team.stats.requests')}</span>
                         </div>
-                        <span className="text-sm font-black text-blue-700 dark:text-blue-400">{joinRequestsCount}</span>
+                        <span className="text-sm font-black text-info-text">{joinRequestsCount}</span>
                     </div>
-                    <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                    <div className="flex items-center justify-between p-2.5 bg-warning-bg rounded-2xl border border-warning-border/30 shadow-sm">
                         <div className="flex items-center gap-2">
-                            <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">{t('team.stats.pending')}</span>
+                            <Timer className="h-4 w-4 text-warning-text" />
+                            <span className="text-xs font-black text-warning-text uppercase tracking-widest">{t('team.stats.pending')}</span>
                         </div>
-                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{pendingInvites}</span>
+                        <span className="text-sm font-black text-warning-text">{pendingInvites}</span>
                     </div>
                 </div>
             </motion.div>
 
-            <motion.div variants={slideUpVariants} className="flex space-x-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-fit">
+            <motion.div variants={slideUpVariants} className="flex space-x-1 bg-slate-100/50 dark:bg-slate-800/20 p-1.5 rounded-2xl w-fit backdrop-blur-sm border border-border/50">
                 <button
                     type="button"
                     aria-label={t('team.tabs.members')}
                     onClick={handleMembersTab}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'members'
-                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
+                    className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'members'
+                        ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-apple-sm'
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'
                         }`}
                 >
                     {t('team.tabs.members')}
@@ -397,7 +397,7 @@ const Team: React.FC = () => {
                                         <JoinRequestCard key={req.id} req={req} onApprove={handleApproveRequest} onReject={handleRejectRequest} />
                                     ))}
                                 </div>
-                                <div className="h-px bg-slate-200 dark:bg-white/10 my-6" />
+                                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-10 opacity-50" />
                             </div>
                         )}
 

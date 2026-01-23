@@ -21,7 +21,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
     }, [onDelete, user]);
 
     return (
-        <div className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${user.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+        <div className={`glass-panel rounded-5xl p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${user.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
             {canAdmin && (
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {!user.isPending && (
@@ -29,7 +29,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                             <button
                                 type="button"
                                 onClick={handleEdit}
-                                className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all"
+                                className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 shadow-apple-sm hover:scale-110 transition-all border border-border/50"
                                 aria-label={t('team.actions.edit')}
                             >
                                 <Edit className="h-4 w-4" />
@@ -40,7 +40,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                         <button
                             type="button"
                             onClick={handleDelete}
-                            className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all"
+                            className="p-2.5 bg-white dark:bg-slate-800 rounded-2xl text-slate-500 hover:text-error-text shadow-apple-sm hover:scale-110 transition-all border border-border/50"
                             aria-label={t('team.actions.delete')}
                         >
                             <Trash2 className="h-4 w-4" />
@@ -71,9 +71,9 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
             </div>
 
             {user.isPending ? (
-                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
-                    <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
-                        <Timer className="h-3.5 w-3.5 mr-1.5" />
+                <div className="w-full pt-4 border-t border-dashed border-border flex justify-center items-center text-xs mt-auto">
+                    <div className="flex items-center text-warning-text font-black uppercase tracking-widest bg-warning-bg px-4 py-2 rounded-2xl shadow-sm border border-warning-border/30">
+                        <Timer className="h-3.5 w-3.5 mr-2" />
                         {t('team.invite.success').split(' ')[0]} {t('team.stats.pending')}
                     </div>
                 </div>

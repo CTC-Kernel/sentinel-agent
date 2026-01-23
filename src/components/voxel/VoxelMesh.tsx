@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { Html, Text, Line } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import { Group, Mesh, MeshPhysicalMaterial, DoubleSide, AdditiveBlending } from 'three';
 import { animated, useSpring, config } from '@react-spring/three';
 import { VoxelNode, VoxelNodeType, VoxelNodeStatus, Risk, Project, Incident } from '../../types';
@@ -31,7 +31,6 @@ const getNodeColor = (type: VoxelNodeType, status: VoxelNodeStatus, data?: Recor
     default: return '#6b7280';
   }
 };
-import { VoxelDetailOverlay } from '../VoxelDetailOverlay';
 import { useModelLibrary } from '../../hooks/useModelLibrary';
 import { MODEL_LIBRARY_CONFIG } from '../../contexts/modelLibraryConstants';
 import { GlassMaterial, EdgesWithColor } from './VoxelMaterials';
@@ -81,28 +80,6 @@ const safeRender = (value: unknown): React.ReactNode => {
     }
     if (typeof value === 'string') return value;
     return String(value);
-};
-
-const DynamicConnectorLine: React.FC<{
-    startPos: [number, number, number];
-    baseEndPos: [number, number, number];
-    offset: { x: number; y: number };
-}> = ({ startPos, baseEndPos }) => {
-    return (
-        <>
-            <Line
-                points={[startPos, baseEndPos]}
-                color="white"
-                opacity={0.3}
-                transparent
-                lineWidth={2}
-            />
-            <mesh position={baseEndPos}>
-                <sphereGeometry args={[0.1]} />
-                <meshBasicMaterial color="white" transparent opacity={0.7} />
-            </mesh>
-        </>
-    );
 };
 
 const VoxelModelGeometry: React.FC<{
@@ -301,8 +278,6 @@ export const VoxelMesh: React.FC<{
     highlightCritical?: boolean;
     xRayMode?: boolean;
     opacity?: number;
-    overlayProps?: React.ComponentProps<typeof VoxelDetailOverlay>;
-    overlayOffset?: { x: number; y: number };
     isImpacted?: boolean;
 }> = React.memo(({
     node,
@@ -313,8 +288,6 @@ export const VoxelMesh: React.FC<{
     highlightCritical,
     xRayMode,
     opacity,
-    overlayProps,
-    overlayOffset = { x: 0, y: 0 },
     isImpacted,
 }) => {
     const modelLibrary = useModelLibrary();
@@ -502,29 +475,6 @@ export const VoxelMesh: React.FC<{
                 >
                     {safeLabel}
                 </Text>
-            )}
-
-            {isSelected && overlayProps && (
-                <group>
-                    {(overlayOffset.x === 0 && overlayOffset.y === 0) && (
-                        <DynamicConnectorLine
-                            startPos={[0, 0, 0]}
-                            baseEndPos={[-5 + overlayOffset.x * 0.01, 1 - overlayOffset.y * 0.01, 0]}
-                            offset={overlayOffset}
-                        />
-                    )}
-                    <Html
-                        position={[-5 + overlayOffset.x * 0.01, 1 - overlayOffset.y * 0.01, 0]}
-                        distanceFactor={10}
-                        occlude={false}
-                        transform={false}
-                        style={{ pointerEvents: 'none', zIndex: 10 }}
-                    >
-                        <div className="pointer-events-auto transform-gpu translate-z-0">
-                            <VoxelDetailOverlay {...overlayProps} />
-                        </div>
-                    </Html>
-                </group>
             )}
         </group>
     );

@@ -163,10 +163,9 @@ export const useRiskColumns = ({
                         <div className="flex items-center gap-1" title={`Couverture: ${coverage}%`}>
                             <div className="w-10 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div
-                                    className={`h-full rounded-full ${
-                                        coverage >= 80 ? 'bg-emerald-500' :
-                                        coverage >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                    }`}
+                                    className={`h-full rounded-full transition-all duration-500 ${coverage >= 80 ? 'bg-success-text' :
+                                            coverage >= 50 ? 'bg-warning-text' : 'bg-error-text'
+                                        }`}
                                     style={{ width: `${coverage}%` }}
                                 />
                             </div>

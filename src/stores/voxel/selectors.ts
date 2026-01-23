@@ -4,9 +4,13 @@
  * Optimized selector hooks for accessing voxel store state.
  * These selectors are designed to minimize re-renders by selecting
  * only the specific data needed by each component.
+ *
+ * Uses useShallow for array/object returns to prevent infinite loops.
  */
 
+import { useMemo } from 'react';
 import { useVoxelStore } from './index';
+import { useShallow } from 'zustand/react/shallow';
 import type {
   VoxelNode,
   VoxelEdge,
@@ -33,22 +37,28 @@ export const useVoxelNode = (id: string): VoxelNode | undefined =>
 
 /**
  * Select all nodes as an array.
+ * Uses useShallow to prevent infinite re-render loops.
  *
  * @returns Array of all nodes
  */
-export const useVoxelNodes = (): VoxelNode[] =>
-  useVoxelStore((state) => Array.from(state.nodes.values()));
+export const useVoxelNodes = (): VoxelNode[] => {
+  const nodesMap = useVoxelStore((state) => state.nodes);
+  return useMemo(() => Array.from(nodesMap.values()), [nodesMap]);
+};
 
 /**
  * Select nodes filtered by current filter settings.
  * Applies node type, status, search query, anomaly, and date range filters.
+ * Uses useMemo to prevent infinite re-render loops.
  *
  * @returns Array of filtered nodes
  */
-export const useFilteredNodes = (): VoxelNode[] =>
-  useVoxelStore((state) => {
-    const { nodes, filters } = state;
-    return Array.from(nodes.values()).filter((node) => {
+export const useFilteredNodes = (): VoxelNode[] => {
+  const nodesMap = useVoxelStore((state) => state.nodes);
+  const filters = useVoxelStore(useShallow((state) => state.filters));
+
+  return useMemo(() => {
+    return Array.from(nodesMap.values()).filter((node) => {
       // Filter by node type
       if (!filters.nodeTypes.includes(node.type)) return false;
 
@@ -78,7 +88,8 @@ export const useFilteredNodes = (): VoxelNode[] =>
 
       return true;
     });
-  });
+  }, [nodesMap, filters]);
+};
 
 /**
  * Select the currently selected node.
@@ -102,11 +113,14 @@ export const useHoveredNode = (): VoxelNode | null =>
 
 /**
  * Select node count grouped by type.
+ * Uses useMemo to prevent infinite re-render loops.
  *
  * @returns Record of node counts by type
  */
-export const useNodeCountByType = (): Record<VoxelNodeType, number> =>
-  useVoxelStore((state) => {
+export const useNodeCountByType = (): Record<VoxelNodeType, number> => {
+  const nodesMap = useVoxelStore((state) => state.nodes);
+
+  return useMemo(() => {
     const counts: Record<VoxelNodeType, number> = {
       asset: 0,
       risk: 0,
@@ -116,11 +130,12 @@ export const useNodeCountByType = (): Record<VoxelNodeType, number> =>
       project: 0,
       audit: 0,
     };
-    Array.from(state.nodes.values()).forEach((node) => {
+    Array.from(nodesMap.values()).forEach((node) => {
       counts[node.type]++;
     });
     return counts;
-  });
+  }, [nodesMap]);
+};
 
 // ============================================================================
 // Edge Selectors
@@ -137,30 +152,40 @@ export const useVoxelEdge = (id: string): VoxelEdge | undefined =>
 
 /**
  * Select all edges as an array.
+ * Uses useMemo to prevent infinite re-render loops.
  *
  * @returns Array of all edges
  */
-export const useVoxelEdges = (): VoxelEdge[] =>
-  useVoxelStore((state) => Array.from(state.edges.values()));
+export const useVoxelEdges = (): VoxelEdge[] => {
+  const edgesMap = useVoxelStore((state) => state.edges);
+  return useMemo(() => Array.from(edgesMap.values()), [edgesMap]);
+};
 
 /**
  * Select only edges that connect visible nodes.
  * Also respects the showEdges UI setting.
+ * Uses useMemo to prevent infinite re-render loops.
  *
  * @returns Array of visible edges
  */
-export const useVisibleEdges = (): VoxelEdge[] =>
-  useVoxelStore((state) => {
-    if (!state.ui.showEdges) return [];
+export const useVisibleEdges = (): VoxelEdge[] => {
+  const nodesMap = useVoxelStore((state) => state.nodes);
+  const edgesMap = useVoxelStore((state) => state.edges);
+  const showEdges = useVoxelStore((state) => state.ui.showEdges);
+  const nodeTypes = useVoxelStore(useShallow((state) => state.filters.nodeTypes));
+
+  return useMemo(() => {
+    if (!showEdges) return [];
     const visibleNodeIds = new Set(
-      Array.from(state.nodes.values())
-        .filter((node) => state.filters.nodeTypes.includes(node.type))
+      Array.from(nodesMap.values())
+        .filter((node) => nodeTypes.includes(node.type))
         .map((node) => node.id)
     );
-    return Array.from(state.edges.values()).filter(
+    return Array.from(edgesMap.values()).filter(
       (edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)
     );
-  });
+  }, [nodesMap, edgesMap, showEdges, nodeTypes]);
+};
 
 // ============================================================================
 // Anomaly Selectors
@@ -177,54 +202,69 @@ export const useVoxelAnomaly = (id: string): VoxelAnomaly | undefined =>
 
 /**
  * Select all anomalies as an array.
+ * Uses useMemo to prevent infinite re-render loops.
  *
  * @returns Array of all anomalies
  */
-export const useVoxelAnomalies = (): VoxelAnomaly[] =>
-  useVoxelStore((state) => Array.from(state.anomalies.values()));
+export const useVoxelAnomalies = (): VoxelAnomaly[] => {
+  const anomaliesMap = useVoxelStore((state) => state.anomalies);
+  return useMemo(() => Array.from(anomaliesMap.values()), [anomaliesMap]);
+};
 
 /**
  * Select only active (unresolved) anomalies.
+ * Uses useMemo to prevent infinite re-render loops.
  *
  * @returns Array of active anomalies
  */
-export const useActiveAnomalies = (): VoxelAnomaly[] =>
-  useVoxelStore((state) =>
-    Array.from(state.anomalies.values()).filter((a) => a.status === 'active')
+export const useActiveAnomalies = (): VoxelAnomaly[] => {
+  const anomaliesMap = useVoxelStore((state) => state.anomalies);
+  return useMemo(
+    () => Array.from(anomaliesMap.values()).filter((a) => a.status === 'active'),
+    [anomaliesMap]
   );
+};
 
 /**
  * Select anomalies for a specific node.
+ * Uses useMemo to prevent infinite re-render loops.
  *
  * @param nodeId - Node ID to get anomalies for
  * @returns Array of anomalies for the node
  */
-export const useNodeAnomalies = (nodeId: string): VoxelAnomaly[] =>
-  useVoxelStore((state) =>
-    Array.from(state.anomalies.values()).filter((a) => a.nodeId === nodeId)
+export const useNodeAnomalies = (nodeId: string): VoxelAnomaly[] => {
+  const anomaliesMap = useVoxelStore((state) => state.anomalies);
+  return useMemo(
+    () => Array.from(anomaliesMap.values()).filter((a) => a.nodeId === nodeId),
+    [anomaliesMap, nodeId]
   );
+};
 
 /**
  * Select anomaly count grouped by severity.
  * Only counts active anomalies.
+ * Uses useMemo to prevent infinite re-render loops.
  *
  * @returns Record of anomaly counts by severity
  */
-export const useAnomalyCountBySeverity = (): Record<VoxelAnomaly['severity'], number> =>
-  useVoxelStore((state) => {
+export const useAnomalyCountBySeverity = (): Record<VoxelAnomaly['severity'], number> => {
+  const anomaliesMap = useVoxelStore((state) => state.anomalies);
+
+  return useMemo(() => {
     const counts: Record<VoxelAnomaly['severity'], number> = {
       low: 0,
       medium: 0,
       high: 0,
       critical: 0,
     };
-    Array.from(state.anomalies.values()).forEach((anomaly) => {
+    Array.from(anomaliesMap.values()).forEach((anomaly) => {
       if (anomaly.status === 'active') {
         counts[anomaly.severity]++;
       }
     });
     return counts;
-  });
+  }, [anomaliesMap]);
+};
 
 // ============================================================================
 // Filter Selectors
@@ -232,11 +272,12 @@ export const useAnomalyCountBySeverity = (): Record<VoxelAnomaly['severity'], nu
 
 /**
  * Select current filter configuration.
+ * Uses useShallow to prevent unnecessary re-renders.
  *
  * @returns Current filters
  */
 export const useVoxelFilters = (): VoxelFilters =>
-  useVoxelStore((state) => state.filters);
+  useVoxelStore(useShallow((state) => state.filters));
 
 // ============================================================================
 // UI Selectors
@@ -244,10 +285,12 @@ export const useVoxelFilters = (): VoxelFilters =>
 
 /**
  * Select current UI state.
+ * Uses useShallow to prevent unnecessary re-renders.
  *
  * @returns Current UI state
  */
-export const useVoxelUI = (): VoxelUIState => useVoxelStore((state) => state.ui);
+export const useVoxelUI = (): VoxelUIState =>
+  useVoxelStore(useShallow((state) => state.ui));
 
 // ============================================================================
 // Sync Selectors
@@ -255,10 +298,12 @@ export const useVoxelUI = (): VoxelUIState => useVoxelStore((state) => state.ui)
 
 /**
  * Select current sync state.
+ * Uses useShallow to prevent unnecessary re-renders.
  *
  * @returns Current sync state
  */
-export const useVoxelSync = (): VoxelSyncState => useVoxelStore((state) => state.sync);
+export const useVoxelSync = (): VoxelSyncState =>
+  useVoxelStore(useShallow((state) => state.sync));
 
 // ============================================================================
 // Preset Selectors

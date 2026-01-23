@@ -132,7 +132,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
                 {/* Right Column: Login Form */}
                 <div className="w-full lg:w-1/2 max-w-[440px] p-4 lg:p-8">
-                    <div className="glass-premium rounded-[2rem] p-8 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl overflow-hidden relative">
+                    <div className="glass-premium rounded-5xl p-8 flex flex-col items-center shadow-apple dark:shadow-2xl overflow-hidden relative">
 
                         {/* Logo - Mobile Only or Simplified */}
                         <div className="mb-6 flex flex-col items-center lg:hidden">

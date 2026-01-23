@@ -49,7 +49,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
     const doraScore = calculateScore('DORA');
 
     return (
-        <div className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group hover:shadow-apple transition-all duration-500">
+        <div className="glass-premium p-6 md:p-8 rounded-5xl shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group hover:shadow-apple transition-all duration-500">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
@@ -80,7 +80,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     <h3 className="text-lg font-bold text-foreground">Score {currentFramework}</h3>
                     <p className="text-sm text-muted-foreground mt-0.5">Conformité moyenne</p>
                     {trend !== undefined && (
-                        <div className={`text-xs font-bold mt-2 px-2.5 py-1 rounded-lg w-fit inline-flex items-center gap-1 ${trend >= 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                        <div className={`text-xs font-bold mt-2 px-2.5 py-1 rounded-lg w-fit inline-flex items-center gap-1 ${trend >= 0 ? 'bg-success-bg text-success-text border border-success-border/30' : 'bg-error-bg text-error-text border border-error-border/30'}`}>
                             <TrendingUp className="w-3.5 h-3.5" />
                             {trend > 0 ? '+' : ''}{trend}% vs 30j
                         </div>
@@ -97,7 +97,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                             <span className="text-sm font-black text-blue-600 dark:text-blue-400">{Math.round(isoScore)}%</span>
                         </div>
                         <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${isoScore}%` }}></div>
+                            <div className="h-full bg-brand-600 rounded-full transition-all duration-1000 ease-out" style={{ width: `${isoScore}%` }}></div>
                         </div>
                     </div>
                 )}
@@ -108,7 +108,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                             <span className="text-sm font-black text-purple-600 dark:text-purple-400">{Math.round(rgpdScore)}%</span>
                         </div>
                         <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-purple-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${rgpdScore}%` }}></div>
+                            <div className="h-full bg-info-text rounded-full transition-all duration-1000 ease-out" style={{ width: `${rgpdScore}%` }}></div>
                         </div>
                     </div>
                 )}
@@ -119,7 +119,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                             <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{Math.round(doraScore)}%</span>
                         </div>
                         <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${doraScore}%` }}></div>
+                            <div className="h-full bg-success-text rounded-full transition-all duration-1000 ease-out" style={{ width: `${doraScore}%` }}></div>
                         </div>
                     </div>
                 )}
@@ -132,13 +132,13 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('Non commencé')}
                     role="button"
                     tabIndex={0}
-                    className="flex-1 flex items-center justify-between px-4 py-3 bg-red-50/80 dark:bg-red-900/10 rounded-xl border border-red-100/50 dark:border-red-900/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    className="flex-1 flex items-center justify-between px-4 py-3 bg-error-bg rounded-2xl border border-error-border/50 cursor-pointer hover:shadow-apple-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-error-text"
                 >
                     <div className="flex items-center gap-2">
-                        <ShieldAlert className="h-4 w-4 text-red-600/70" />
-                        <span className="text-xs font-bold text-red-700/70 dark:text-red-400/70">Alertes</span>
+                        <ShieldAlert className="h-4 w-4 text-error-text" />
+                        <span className="text-xs font-bold text-error-text/70">Alertes</span>
                     </div>
-                    <span className="text-lg font-black text-red-700 dark:text-red-400">{notImplementedControls}</span>
+                    <span className="text-lg font-black text-error-text">{notImplementedControls}</span>
                 </div>
 
                 <div
@@ -146,13 +146,13 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('En cours')}
                     role="button"
                     tabIndex={0}
-                    className="flex-1 flex items-center justify-between px-4 py-3 bg-amber-50/80 dark:bg-amber-900/10 rounded-xl border border-amber-100/50 dark:border-amber-900/20 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                    className="flex-1 flex items-center justify-between px-4 py-3 bg-warning-bg rounded-2xl border border-warning-border/50 cursor-pointer hover:shadow-apple-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-warning-text"
                 >
                     <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-amber-600/70" />
-                        <span className="text-xs font-bold text-amber-700/70 dark:text-amber-400/70">En cours</span>
+                        <Clock className="h-4 w-4 text-warning-text" />
+                        <span className="text-xs font-bold text-warning-text/70">En cours</span>
                     </div>
-                    <span className="text-lg font-black text-amber-700 dark:text-amber-400">{inProgressControls}</span>
+                    <span className="text-lg font-black text-warning-text">{inProgressControls}</span>
                 </div>
 
                 <div
@@ -160,13 +160,13 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('Partiel')}
                     role="button"
                     tabIndex={0}
-                    className="flex-1 flex items-center justify-between px-4 py-3 bg-blue-50/80 dark:bg-blue-900/10 rounded-xl border border-blue-100/50 dark:border-blue-900/20 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="flex-1 flex items-center justify-between px-4 py-3 bg-info-bg rounded-2xl border border-info-border/50 cursor-pointer hover:shadow-apple-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-info-text"
                 >
                     <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-600/70" />
-                        <span className="text-xs font-bold text-blue-700/70 dark:text-blue-400/70">Partiel</span>
+                        <Clock className="h-4 w-4 text-info-text" />
+                        <span className="text-xs font-bold text-info-text/70">Partiel</span>
                     </div>
-                    <span className="text-lg font-black text-blue-700 dark:text-blue-400">{partialControls}</span>
+                    <span className="text-lg font-black text-info-text">{partialControls}</span>
                 </div>
             </div>
         </div>

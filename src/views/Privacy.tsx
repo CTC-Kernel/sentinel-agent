@@ -153,7 +153,7 @@ export const Privacy: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -206,8 +206,8 @@ export const Privacy: React.FC = () => {
             />
 
             {/* Insight Card (Summary) */}
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
-                <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+            <motion.div variants={slideUpVariants} className="glass-premium p-8 rounded-5xl border border-white/60 dark:border-white/5 shadow-apple-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
+                <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
                 <div className="space-y-2">

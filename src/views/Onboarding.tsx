@@ -16,6 +16,7 @@ import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchem
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { LegalModal } from '../components/ui/LegalModal';
+import { getSectorTemplate, getMandatoryFrameworks, type IndustryType } from '../data/sectorTemplates';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast, t } = useStore();
@@ -59,6 +60,44 @@ export const Onboarding: React.FC = () => {
     // Step 3: Pilotage
     const [standards, setStandards] = useState<string[]>([]);
     const [scope, setScope] = useState('');
+
+    // Framework ID to display name mapping for sector templates
+    const frameworkDisplayNames: Record<string, string> = {
+        'ISO27001': 'ISO 27001',
+        'ISO27005': 'ISO 27005',
+        'ISO22301': 'ISO 22301',
+        'GDPR': 'RGPD',
+        'NIS2': 'NIS 2',
+        'DORA': 'DORA',
+        'SOC2': 'SOC 2',
+        'HDS': 'HDS',
+        'PCI_DSS': 'PCI-DSS',
+        'NIST_CSF': 'NIST CSF',
+        'EBIOS': 'EBIOS RM'
+    };
+
+    // Get sector-specific frameworks based on selected industry
+    const getIndustryFrameworks = useCallback(() => {
+        const industry = form.getValues('industry') as IndustryType || 'other';
+        const template = getSectorTemplate(industry);
+        const mandatoryFrameworks = getMandatoryFrameworks(industry);
+
+        return template.recommendedFrameworks.map(fw => ({
+            id: fw,
+            name: frameworkDisplayNames[fw] || fw,
+            isMandatory: mandatoryFrameworks.includes(fw)
+        }));
+    }, [form]);
+
+    // Pre-select mandatory frameworks when moving to step 3
+    React.useEffect(() => {
+        if (step === 3 && standards.length === 0) {
+            const industry = form.getValues('industry') as IndustryType || 'other';
+            const mandatoryFrameworks = getMandatoryFrameworks(industry);
+            const mandatoryDisplayNames = mandatoryFrameworks.map(fw => frameworkDisplayNames[fw] || fw);
+            setStandards(mandatoryDisplayNames);
+        }
+    }, [step, form, standards.length]);
 
     // Step 4: Team
     const [inviteEmail, setInviteEmail] = useState('');
@@ -589,6 +628,7 @@ export const Onboarding: React.FC = () => {
                                                         { value: "health", label: t('onboarding.industries.health') },
                                                         { value: "retail", label: t('onboarding.industries.retail') },
                                                         { value: "public", label: t('onboarding.industries.public') },
+                                                        { value: "industrie", label: t('onboarding.industries.industrie') },
                                                         { value: "other", label: t('onboarding.industries.other') }
                                                     ]}
                                                     value={field.value || ''}
@@ -768,21 +808,28 @@ export const Onboarding: React.FC = () => {
                             )}
 
                             {step === 3 && (
-                                // Pilotage
+                                // Pilotage - Sector-specific frameworks
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-4 ml-1 flex items-center gap-2">
                                             <ShieldCheck className="h-4 w-4" /> {t('onboarding.steps.standards')}
                                         </label>
                                         <div className="grid grid-cols-2 gap-3">
-                                            {['ISO 27001', 'ISO 27005', 'RGPD', 'SOC 2', 'HDS', 'PCI-DSS'].map(std => (
+                                            {getIndustryFrameworks().map(fw => (
                                                 <div
-                                                    key={std}
-                                                    onClick={() => handleToggleStandard(std)}
-                                                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${standards.includes(std) ? 'bg-brand-50/50 border-brand-500 ring-1 ring-brand-500' : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300'}`}
+                                                    key={fw.id}
+                                                    onClick={() => handleToggleStandard(fw.name)}
+                                                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${standards.includes(fw.name) ? 'bg-brand-50/50 border-brand-500 ring-1 ring-brand-500' : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300'}`}
                                                 >
-                                                    <span className="font-bold text-slate-700 dark:text-white">{std}</span>
-                                                    {standards.includes(std) && <Check className="h-5 w-5 text-brand-600" strokeWidth={3} />}
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-slate-700 dark:text-white">{fw.name}</span>
+                                                        {fw.isMandatory && (
+                                                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                                                                {t('common.mandatory') || 'Obligatoire'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {standards.includes(fw.name) && <Check className="h-5 w-5 text-brand-600" strokeWidth={3} />}
                                                 </div>
                                             ))}
                                         </div>

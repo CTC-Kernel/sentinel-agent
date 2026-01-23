@@ -75,28 +75,28 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         iconText: string;
     }> = {
         blue: {
-            bg: 'bg-blue-500/10',
-            bgHover: 'group-hover/card:bg-blue-500/20',
-            iconBg: 'bg-blue-50 dark:bg-blue-500/10',
-            iconText: 'text-blue-600 dark:text-blue-400'
+            bg: 'bg-info-bg',
+            bgHover: 'group-hover/card:bg-info-bg/80',
+            iconBg: 'bg-info-bg shadow-sm ring-1 ring-inset ring-info-border/30',
+            iconText: 'text-info-text'
         },
         emerald: {
-            bg: 'bg-emerald-500/10',
-            bgHover: 'group-hover/card:bg-emerald-500/20',
-            iconBg: 'bg-emerald-50 dark:bg-emerald-500/10',
-            iconText: 'text-emerald-600 dark:text-emerald-400'
+            bg: 'bg-success-bg',
+            bgHover: 'group-hover/card:bg-success-bg/80',
+            iconBg: 'bg-success-bg shadow-sm ring-1 ring-inset ring-success-border/30',
+            iconText: 'text-success-text'
         },
         purple: {
-            bg: 'bg-purple-500/10',
-            bgHover: 'group-hover/card:bg-purple-500/20',
-            iconBg: 'bg-purple-50 dark:bg-purple-500/10',
-            iconText: 'text-purple-600 dark:text-purple-400'
+            bg: 'bg-brand-500/10',
+            bgHover: 'group-hover/card:bg-brand-500/20',
+            iconBg: 'bg-brand-500/10 shadow-sm ring-1 ring-inset ring-brand-500/30',
+            iconText: 'text-brand-600 dark:text-brand-400'
         }
     };
 
     if (isEmpty && !loading) {
         return (
-            <GlassCard className="relative overflow-hidden rounded-[2.5rem] p-8 md:p-16 text-center animate-fade-in group" gradientOverlay={true}>
+            <GlassCard className="relative overflow-hidden rounded-5xl p-8 md:p-16 text-center animate-fade-in group shadow-apple" gradientOverlay={true}>
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-500/20 via-background/0 to-background/0 dark:from-brand-500/10 dark:via-background/0 dark:to-background/0 opacity-50 transition-opacity duration-1000 group-hover:opacity-70" />
                 <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto">
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-4 backdrop-blur-md shadow-sm">
@@ -145,12 +145,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="group relative rounded-[2rem] p-[1px] overflow-hidden"
+            className="group relative rounded-5xl p-[1px] overflow-hidden shadow-apple"
         >
             {/* Animated Glow Border */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-500/50 to-transparent animate-shine opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-            <GlassCard className="glass-premium relative rounded-[2rem] overflow-hidden">
+            <GlassCard className="glass-premium relative rounded-5xl overflow-hidden shadow-none border-none">
                 {/* Aurora Dynamic Background */}
                 <div className="absolute inset-0 bg-aurora animate-aurora opacity-40 dark:opacity-20 pointer-events-none" />
                 <div className="absolute inset-0 bg-grid-slate-900/5 dark:bg-grid-white/5 opacity-50 pointer-events-none" />
@@ -164,19 +164,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             {/* Left: Organization & Welcome */}
                             <div className="flex items-center gap-5 min-w-[280px]">
                                 <div className="relative shrink-0 group/orb cursor-default">
-                                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 via-slate-800 dark:to-slate-950 shadow-2xl shadow-slate-300/20 dark:shadow-slate-800/30 relative overflow-hidden transition-all duration-500 group-hover/orb:scale-110 group-hover/orb:rotate-3 group-hover/orb:-translate-y-1 ring-2 ring-slate-200/60 dark:ring-slate-700/40 backdrop-blur-sm">
+                                    <div className="w-20 h-20 rounded-4xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 via-slate-800 dark:to-slate-950 shadow-2xl shadow-slate-300/20 dark:shadow-slate-800/30 relative overflow-hidden transition-all duration-500 group-hover/orb:scale-110 group-hover/orb:rotate-3 group-hover/orb:-translate-y-1 ring-2 ring-slate-200/60 dark:ring-slate-700/40 backdrop-blur-sm">
                                         <div className="absolute inset-0 bg-gradient-to-br from-brand-500/8 via-transparent to-transparent opacity-0 group-hover/orb:opacity-40 transition-opacity duration-500" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-white/15 dark:from-white/8 to-transparent opacity-0 group-hover/orb:opacity-20 transition-opacity duration-500" />
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent opacity-0 group-hover/orb:opacity-15 transition-opacity duration-500" />
-                                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-slate-200/25 via-slate-100/15 to-transparent opacity-0 group-hover/orb:opacity-25 transition-opacity duration-500" />
+                                        <div className="absolute inset-0 rounded-4xl bg-gradient-to-br from-slate-200/25 via-slate-100/15 to-transparent opacity-0 group-hover/orb:opacity-25 transition-opacity duration-500" />
                                         <img
                                             src="/images/pilotage.png"
                                             alt="PILOTAGE"
-                                            className="w-full h-full object-contain relative z-10"
+                                            className="w-full h-full object-contain relative z-10 p-2"
                                         />
                                         {/* Holographic ring */}
-                                        <div className="absolute inset-0 border-2 border-slate-200/40 dark:border-slate-700/40 rounded-3xl animate-spin-slow" />
-                                        <div className="absolute inset-0 border border-white/20 dark:border-white/10 rounded-3xl animate-spin-slow-reverse" />
+                                        <div className="absolute inset-0 border-2 border-slate-200/40 dark:border-slate-700/40 rounded-4xl animate-spin-slow" />
+                                        <div className="absolute inset-0 border border-white/20 dark:border-white/10 rounded-4xl animate-spin-slow-reverse" />
                                     </div>
                                     <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-background/50 backdrop-blur-sm flex items-center justify-center shadow-sm border border-white/10">
                                         <div className="w-3 h-3 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
@@ -202,21 +202,21 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         onClick={() => {
                                             if (insight.link && insight.link.startsWith('/')) navigate(insight.link); // validateUrl check
                                         }}
-                                        className={`flex w-full text-left items-start sm:items-center gap-3 p-3 rounded-xl border ${insight.type === 'danger' ? 'bg-red-500/5 border-red-500/10' : insight.type === 'warning' ? 'bg-orange-500/5 border-orange-500/10' : 'bg-emerald-500/5 border-emerald-500/10'} hover:bg-opacity-80 transition-colors cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                        className={`flex w-full text-left items-start sm:items-center gap-3 p-3 rounded-2xl border ${insight.type === 'danger' ? 'bg-error-bg border-error-border/30 shadow-sm' : insight.type === 'warning' ? 'bg-warning-bg border-warning-border/30 shadow-sm' : 'bg-success-bg border-success-border/30 shadow-sm'} hover:bg-opacity-80 transition-all cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                     >
-                                        <div className={`p-1.5 rounded-lg shrink-0 ${insight.type === 'danger' ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'}`}>
+                                        <div className={`p-2 rounded-xl shrink-0 ${insight.type === 'danger' ? 'bg-error-bg text-error-text shadow-sm' : 'bg-warning-bg text-warning-text shadow-sm'}`}>
                                             {insight.type === 'danger' ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-foreground truncate pr-2">{insight.text}</p>
-                                            <p className="text-xs text-muted-foreground truncate hidden sm:block">{insight.details}</p>
+                                            <p className="text-sm font-black text-foreground truncate pr-2 tracking-tight">{insight.text}</p>
+                                            <p className="text-xs text-muted-foreground/80 truncate hidden sm:block font-medium">{insight.details}</p>
                                         </div>
                                         {insight.link && <ArrowRight className="h-4 w-4 text-muted-foreground group-hover/insight:translate-x-1 transition-transform" />}
                                     </button>
                                 ) : (
-                                    <div className="hidden lg:flex items-center gap-2 p-3 rounded-xl bg-accent/30 border border-border/50 text-muted-foreground text-sm">
+                                    <div className="hidden lg:flex items-center gap-2 p-3 rounded-2xl bg-accent/30 border border-border/50 text-muted-foreground text-sm shadow-sm">
                                         <Activity className="h-4 w-4" />
-                                        <span>{t('dashboard.allSystemsOperational')}</span>
+                                        <span className="font-semibold tracking-tight">{t('dashboard.allSystemsOperational')}</span>
                                     </div>
                                 )}
                             </div>
@@ -262,7 +262,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <Tooltip content={t('dashboard.inviteTooltip')} position="bottom">
                                         <button
                                             onClick={() => navigate('/team')}
-                                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"
+                                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"
                                             aria-label={t('dashboard.inviteMember')}
                                         >
                                             <Users className="h-4 w-4" />

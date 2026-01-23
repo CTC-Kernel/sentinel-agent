@@ -1,7 +1,34 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, RotateCw, Minimize2, CheckCheck, MonitorPlay } from '../components/ui/Icons';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  Maximize2,
+  Minimize2,
+  RefreshCw,
+  Sparkles,
+  Layers,
+  Eye,
+  Flame,
+  RotateCw,
+  AlertTriangle,
+  Clock,
+  Zap,
+  Search,
+  X,
+  Keyboard,
+  HelpCircle,
+  Network,
+  Camera,
+  Command,
+  Shield,
+  Activity,
+  Target,
+  Info,
+} from 'lucide-react';
 
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
@@ -11,32 +38,69 @@ import { ErrorLogger } from '../services/errorLogger';
 import { hasPermission } from '../utils/permissions';
 
 import { VoxelGuide } from '../components/VoxelGuide';
-// Lazy-loaded 3D component (heavy - Three.js ~500KB)
 const VoxelStudio = React.lazy(() => import('../components/VoxelStudio').then(m => ({ default: m.VoxelStudio })));
-import { PageHeader } from '../components/ui/PageHeader';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 import { SEO } from '../components/SEO';
-import { staggerContainerVariants } from '../components/ui/animationVariants';
 
-import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode, LayerType } from '../types';
+import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode, LayerType, VoxelNodeStatus, VoxelEdge } from '../types';
 import { VoxelSidebar } from '../components/voxel/VoxelSidebar';
 import { VoxelSilhouettes } from '../components/voxel/VoxelSilhouettes';
+import { VoxelDetailPanel } from '../components/voxel/overlays/VoxelDetailPanel';
+
+import { useVoxelStore, voxelStoreActions } from '../stores/voxelStore';
+
+import { AnomalyPanel } from '../components/voxel/AnomalyPanel';
+import { BlastRadiusPanel } from '../components/voxel/BlastRadiusPanel';
+import { TimeMachine } from '../components/voxel/TimeMachine';
+import { useBlastRadius } from '../hooks/voxel/useBlastRadius';
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const LAYER_CONFIG: { id: LayerType; label: string; color: string; bgColor: string }[] = [
+  { id: 'asset', label: 'Actifs', color: '#3B82F6', bgColor: 'bg-blue-500' },
+  { id: 'risk', label: 'Risques', color: '#F97316', bgColor: 'bg-orange-500' },
+  { id: 'control', label: 'Contrôles', color: '#8B5CF6', bgColor: 'bg-purple-500' },
+  { id: 'project', label: 'Projets', color: '#10B981', bgColor: 'bg-emerald-500' },
+  { id: 'audit', label: 'Audits', color: '#06B6D4', bgColor: 'bg-cyan-500' },
+  { id: 'incident', label: 'Incidents', color: '#EF4444', bgColor: 'bg-red-500' },
+  { id: 'supplier', label: 'Fournisseurs', color: '#F59E0B', bgColor: 'bg-amber-500' },
+];
+
+const KEYBOARD_SHORTCUTS = [
+  { key: '⌘K', action: 'Recherche rapide' },
+  { key: 'Esc', action: 'Fermer / Quitter' },
+  { key: '←/→', action: 'Navigation nœuds' },
+  { key: 'F', action: 'Plein écran' },
+  { key: 'R', action: 'Réinitialiser vue' },
+  { key: 'L', action: 'Menu calques' },
+  { key: 'S', action: 'Capture écran' },
+];
+
+const DETAIL_ROUTES: Record<LayerType, string> = {
+  asset: '/assets',
+  risk: '/risks',
+  project: '/projects',
+  audit: '/audits',
+  incident: '/incidents',
+  supplier: '/suppliers',
+  control: '/compliance'
+};
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
 
 const formatSafeDate = (date: unknown): string => {
   if (!date) return '—';
   try {
-    // Handle Firestore Timestamp
     if (typeof date === 'object' && date !== null && 'seconds' in date) {
       const ts = date as { seconds: number };
       return new Date(ts.seconds * 1000).toLocaleDateString('fr-FR');
     }
-    // Handle Date object
-    if (date instanceof Date) {
-      return date.toLocaleDateString('fr-FR');
-    }
-    // Handle string
+    if (date instanceof Date) return date.toLocaleDateString('fr-FR');
     if (typeof date === 'string') {
       const d = new Date(date);
       return isNaN(d.getTime()) ? date : d.toLocaleDateString('fr-FR');
@@ -56,15 +120,145 @@ const safeRender = (value: unknown): string => {
   return String(value);
 };
 
-const layerOptions: { id: LayerType; label: string; hint: string; color: string }[] = [
-  { id: 'asset', label: 'Actifs', hint: 'Socle infrastructure', color: 'bg-blue-500' },
-  { id: 'risk', label: 'Risques', hint: 'Menaces ISO 27005', color: 'bg-orange-500' },
-  { id: 'project', label: 'Projets', hint: 'Programmes SSI', color: 'bg-purple-500' },
-  { id: 'audit', label: 'Audits', hint: 'Contrôles et revues', color: 'bg-cyan-500' },
-  { id: 'incident', label: 'Incidents', hint: 'Alertes SOC', color: 'bg-red-500' },
-  { id: 'supplier', label: 'Fournisseurs', hint: 'Partenaires critiques', color: 'bg-green-500' },
-  { id: 'control', label: 'Contrôles', hint: 'Mesures de sécurité', color: 'bg-teal-500' }
-];
+const isValidRoute = (path: string): boolean => {
+  const allowedRoutes = ['/assets', '/risks', '/projects', '/audits', '/incidents', '/suppliers', '/library', '/compliance'];
+  return allowedRoutes.some(allowed => path.startsWith(allowed));
+};
+
+// ============================================================================
+// Sub-Components
+// ============================================================================
+
+interface ToolButtonProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  badge?: number | string;
+  disabled?: boolean;
+}
+
+const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, badge, disabled }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`
+      relative p-2.5 rounded-xl transition-all duration-200
+      ${active
+        ? 'bg-white/15 text-white shadow-lg'
+        : 'text-white/60 hover:text-white hover:bg-white/10'
+      }
+      ${disabled ? 'opacity-40 cursor-not-allowed' : ''}
+    `}
+    title={label}
+    aria-label={label}
+  >
+    {icon}
+    {badge !== undefined && (
+      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white px-1">
+        {badge}
+      </span>
+    )}
+  </button>
+);
+
+interface StatusBarProps {
+  totalNodes: number;
+  activeLayers: number;
+  selectedNode: DataNode | null;
+  isFullscreen: boolean;
+  criticalCount: number;
+  warningCount: number;
+  connectionCount: number;
+}
+
+const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selectedNode, isFullscreen, criticalCount, warningCount, connectionCount }) => (
+  <motion.div
+    initial={{ y: 40 }}
+    animate={{ y: 0 }}
+    className="absolute bottom-0 left-0 right-0 h-12 z-[100000] flex items-center justify-between px-6 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5"
+  >
+    {/* Left - Stats */}
+    <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5">
+          <Network className="w-4 h-4 text-white/60" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs text-white/40">Nœuds</span>
+          <span className="text-sm font-semibold text-white">{totalNodes}</span>
+        </div>
+      </div>
+
+      <div className="w-px h-6 bg-white/10" />
+
+      <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5">
+          <Layers className="w-4 h-4 text-white/60" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xs text-white/40">Calques</span>
+          <span className="text-sm font-semibold text-white">{activeLayers}/7</span>
+        </div>
+      </div>
+
+      <div className="w-px h-6 bg-white/10" />
+
+      <div className="flex items-center gap-3">
+        {criticalCount > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/30">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-xs font-medium text-red-400">{criticalCount} critiques</span>
+          </div>
+        )}
+        {warningCount > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="text-xs font-medium text-amber-400">{warningCount} alertes</span>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Center - Selected Node */}
+    <AnimatePresence mode="wait">
+      {selectedNode && (
+        <motion.div
+          key={selectedNode.id}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30"
+        >
+          <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-lg shadow-indigo-500/50" />
+          <span className="text-sm text-white/90 font-medium max-w-[200px] truncate">
+            {safeRender((selectedNode.data as { name?: string; title?: string; threat?: string }).name || (selectedNode.data as { title?: string }).title || (selectedNode.data as { threat?: string }).threat)}
+          </span>
+          <span className="text-xs text-white/40 capitalize">{selectedNode.type}</span>
+          {connectionCount > 0 && (
+            <span className="text-xs text-indigo-400">{connectionCount} connexions</span>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* Right - Controls hint */}
+    <div className="flex items-center gap-4 text-xs text-white/30">
+      {isFullscreen && (
+        <span className="px-2 py-1 rounded bg-white/5 text-white/50">ESC pour quitter</span>
+      )}
+      <span>Scroll: zoom</span>
+      <span>Drag: orbite</span>
+      <span className="flex items-center gap-1">
+        <Command className="w-3 h-3" />K: recherche
+      </span>
+    </div>
+  </motion.div>
+);
+
+// ============================================================================
+// Main Component
+// ============================================================================
 
 export const VoxelView: React.FC = () => {
   const { user } = useAuth();
@@ -72,535 +266,343 @@ export const VoxelView: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const isValidRoute = (path: string): boolean => {
-    const allowedRoutes = ['/assets', '/risks', '/projects', '/audits', '/incidents', '/suppliers', '/library', '/compliance'];
-    return allowedRoutes.some(allowed => path.startsWith(allowed));
-  };
+  // Data
+  const { loading, assets, risks, projects, audits, incidents, suppliers, controls, refresh } = useVoxels();
 
-  const {
-    loading,
-    assets,
-    risks,
-    projects,
-    audits,
-    incidents,
-    suppliers,
-    controls,
-    refresh
-  } = useVoxels();
-
-  // Restore State Variables
+  // UI State
   const [selectedNode, setSelectedNode] = useState<DataNode | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [releaseToken, setReleaseToken] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [impactMode, setImpactMode] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(() => {
     const saved = localStorage.getItem('voxel_navCollapsed');
     return saved !== null ? JSON.parse(saved) : true;
   });
-  const [heatmapEnabled, setHeatmapEnabled] = useState(() => {
-    const saved = localStorage.getItem('voxel_heatmapEnabled');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const [xRayEnabled, setXRayEnabled] = useState(() => {
-    const saved = localStorage.getItem('voxel_xRayEnabled');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
-  const [autoRotateEnabled, setAutoRotateEnabled] = useState(() => {
-    const saved = localStorage.getItem('voxel_autoRotateEnabled');
-    return saved !== null ? JSON.parse(saved) : true;
+
+  // Visualization Settings
+  const [heatmapEnabled, setHeatmapEnabled] = useState(() => JSON.parse(localStorage.getItem('voxel_heatmapEnabled') || 'true'));
+  const [xRayEnabled, setXRayEnabled] = useState(() => JSON.parse(localStorage.getItem('voxel_xRayEnabled') || 'false'));
+  const [autoRotateEnabled, setAutoRotateEnabled] = useState(() => JSON.parse(localStorage.getItem('voxel_autoRotateEnabled') || 'true'));
+  const [activeLayers, setActiveLayers] = useState<LayerType[]>(() => {
+    try {
+      const saved = localStorage.getItem('voxel_activeLayers');
+      const parsed = saved ? JSON.parse(saved) : null;
+      return Array.isArray(parsed) ? parsed : LAYER_CONFIG.map(l => l.id);
+    } catch {
+      return LAYER_CONFIG.map(l => l.id);
+    }
   });
 
-  // AI State
+  // UI Panels
+  const [showLayerMenu, setShowLayerMenu] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
+  const [isAnomalyPanelOpen, setIsAnomalyPanelOpen] = useState(false);
+  const [isBlastRadiusPanelOpen, setIsBlastRadiusPanelOpen] = useState(false);
+  const [isTimeMachineOpen, setIsTimeMachineOpen] = useState(false);
+
+  // AI
   const [analyzing, setAnalyzing] = useState(false);
   const [suggestedLinks, setSuggestedLinks] = useState<AISuggestedLink[]>([]);
-  const [aiInsights, setAiInsights] = useState<AIInsight[]>([]);
-  const [showInsights, setShowInsights] = useState(false);
-  const [isDetailMinimized, setIsDetailMinimized] = useState(() => {
-    const saved = localStorage.getItem('voxel_detailMinimized');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
 
-  // Persist isDetailMinimized
-  useEffect(() => {
-    localStorage.setItem('voxel_detailMinimized', JSON.stringify(isDetailMinimized));
-  }, [isDetailMinimized]);
-  const [presentationMode, setPresentationMode] = useState(false);
-  const [showGuide, setShowGuide] = useState(() => {
-    const saved = localStorage.getItem('voxel_guide_seen');
-    return saved === null; // Show if not set (first visit)
-  });
+  // Guide
+  const [showGuide, setShowGuide] = useState(() => localStorage.getItem('voxel_guide_seen') === null);
+
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [commandSearch, setCommandSearch] = useState('');
+
+  // Legend
+  const [showLegend, setShowLegend] = useState(false);
+
+  // Screenshot
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  // Blast Radius
+  const blastRadius = useBlastRadius();
+
   const isInitialized = useRef(false);
 
-  const handleCloseGuide = () => {
-    setShowGuide(false);
-    localStorage.setItem('voxel_guide_seen', 'true');
-  };
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showLayerMenu, setShowLayerMenu] = useState(false);
-
-  // Hide main app sidebar in fullscreen mode
-  useEffect(() => {
-    if (isFullscreen) {
-      document.body.classList.add('voxel-fullscreen');
-    } else {
-      document.body.classList.remove('voxel-fullscreen');
-    }
-    return () => document.body.classList.remove('voxel-fullscreen');
-  }, [isFullscreen]);
-
-
-
-  const detailRoutes: Record<LayerType, string> = {
-    asset: '/assets',
-    risk: '/risks',
-    project: '/projects',
-    audit: '/audits',
-    incident: '/incidents',
-    supplier: '/suppliers',
-    control: '/compliance'
-  };
-
-  const [activeLayers, setActiveLayers] = useState<LayerType[]>(() => {
-    const saved = localStorage.getItem('voxel_activeLayers');
-    try {
-      const parsed = saved !== null ? JSON.parse(saved) : null;
-      return Array.isArray(parsed) ? parsed : layerOptions.map(l => l.id);
-    } catch {
-      return layerOptions.map(l => l.id);
-    }
-  });
-
-  // Persistence Effects
+  // Persistence
   useEffect(() => { localStorage.setItem('voxel_navCollapsed', JSON.stringify(navCollapsed)); }, [navCollapsed]);
   useEffect(() => { localStorage.setItem('voxel_heatmapEnabled', JSON.stringify(heatmapEnabled)); }, [heatmapEnabled]);
   useEffect(() => { localStorage.setItem('voxel_xRayEnabled', JSON.stringify(xRayEnabled)); }, [xRayEnabled]);
   useEffect(() => { localStorage.setItem('voxel_autoRotateEnabled', JSON.stringify(autoRotateEnabled)); }, [autoRotateEnabled]);
   useEffect(() => { localStorage.setItem('voxel_activeLayers', JSON.stringify(activeLayers)); }, [activeLayers]);
 
-  // Silhouette Map (Restored)
-  // Silhouettes imported from VoxelSilhouettes.tsx
+  // ============================================================================
+  // Derived Data
+  // ============================================================================
 
   const orderedNodes = useMemo(() => {
-    const getDataLabel = (item: DataNode['data']): string => {
+    const getLabel = (item: DataNode['data']): string => {
       if ('name' in item && item.name) return String(item.name);
       if ('title' in item && item.title) return String(item.title);
       if ('threat' in item && item.threat) return String(item.threat);
       return 'Élément';
     };
-    const mapNode = (collection: DataNode['data'][] | undefined | null, type: LayerType) =>
-      (collection || []).map(item => ({ id: item.id, type, label: getDataLabel(item) }));
+    const mapNodes = (collection: DataNode['data'][] | undefined | null, type: LayerType) =>
+      (collection || []).map(item => ({ id: item.id, type, label: getLabel(item) }));
     return [
-      ...mapNode(assets, 'asset'),
-      ...mapNode(risks, 'risk'),
-      ...mapNode(projects, 'project'),
-      ...mapNode(audits, 'audit'),
-      ...mapNode(incidents, 'incident'),
-      ...mapNode(suppliers, 'supplier'),
-      ...mapNode(controls, 'control')
+      ...mapNodes(assets, 'asset'),
+      ...mapNodes(risks, 'risk'),
+      ...mapNodes(controls, 'control'),
+      ...mapNodes(projects, 'project'),
+      ...mapNodes(audits, 'audit'),
+      ...mapNodes(incidents, 'incident'),
+      ...mapNodes(suppliers, 'supplier'),
     ];
-  }, [assets, risks, projects, audits, incidents, suppliers, controls]);
-
-  const currentIndex = useMemo(() => orderedNodes.findIndex(node => node.id === focusedNodeId), [orderedNodes, focusedNodeId]);
-
-  const ensureLayerActive = useCallback((layer: LayerType) => {
-    setActiveLayers(prev => (prev.includes(layer) ? prev : [...prev, layer]));
-  }, []);
-
-  const findEntityByType = useCallback((type: LayerType, id: string) => {
-    const sourceMap: Record<LayerType, DataNode['data'][]> = {
-      asset: assets,
-      risk: risks,
-      project: projects,
-      audit: audits,
-      incident: incidents,
-      supplier: suppliers,
-      control: controls,
-    };
-    return sourceMap[type].find(item => item.id === id);
-  }, [assets, risks, projects, audits, incidents, suppliers, controls]);
-
-  const applyFocus = useCallback((nodeId: string, type: LayerType) => {
-    ensureLayerActive(type);
-    setFocusedNodeId(nodeId);
-    const entity = findEntityByType(type, nodeId);
-    if (entity) {
-      setSelectedNode({ id: nodeId, type, data: entity } as DataNode);
-    }
-  }, [ensureLayerActive, findEntityByType]);
-
-  const focusByOffset = (offset: number) => {
-    if (!orderedNodes.length) return;
-    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + offset + orderedNodes.length) % orderedNodes.length;
-    const target = orderedNodes[nextIndex];
-    if (target) {
-      applyFocus(target.id, target.type as LayerType);
-      setIsDetailMinimized(false);
-    }
-  };
-
-  const scenarioPresets: { id: string; label: string; description: string; layers: LayerType[] }[] = [
-    { id: 'threat', label: 'Flux Menaces', description: 'Actifs critiques + risques associés + incidents', layers: ['asset', 'risk', 'incident'] },
-    { id: 'program', label: 'Programmes SSI', description: 'Projets, audits et fournisseurs', layers: ['project', 'audit', 'supplier'] },
-    { id: 'full', label: 'Vue complète', description: 'Réinitialiser toutes les couches', layers: layerOptions.map(layer => layer.id) as LayerType[] },
-  ];
-
-  const handleScenarioPreset = (preset: typeof scenarioPresets[number]) => {
-    setActiveLayers(preset.layers);
-    const firstMatch = orderedNodes.find(node => preset.layers.includes(node.type as LayerType));
-    if (firstMatch) {
-      applyFocus(firstMatch.id, firstMatch.type as LayerType);
-    } else {
-      setSelectedNode(null);
-      setFocusedNodeId(null);
-    }
-  };
+  }, [assets, risks, controls, projects, audits, incidents, suppliers]);
 
   const categorizedNodes = useMemo(() => {
     const sourceMap: Record<LayerType, DataNode['data'][]> = {
-      asset: assets,
-      risk: risks,
-      project: projects,
-      audit: audits,
-      incident: incidents,
-      supplier: suppliers,
-      control: controls,
+      asset: assets, risk: risks, project: projects, audit: audits,
+      incident: incidents, supplier: suppliers, control: controls,
     };
-
-    return layerOptions.map(option => ({
+    return LAYER_CONFIG.map(option => ({
       ...option,
+      hint: '',
       items: (sourceMap[option.id] || []).map(item => {
         let label = 'Élément';
         if ('name' in item) label = item.name;
         else if ('title' in item) label = item.title;
         else if ('threat' in item) label = item.threat;
-
         let meta = '';
         if (option.id === 'risk') meta = `Score ${(item as Risk).score}`;
         else if (option.id === 'project') meta = `${(item as Project).progress || 0}%`;
         else if (option.id === 'incident') meta = safeRender((item as Incident).severity);
-        else if ('owner' in item) meta = safeRender(item.owner);
-        else if ('status' in item) meta = safeRender(item.status);
-
-        return {
-          id: item.id,
-          label: safeRender(label),
-          meta,
-        };
+        return { id: item.id, label: safeRender(label), meta };
       }).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())),
     }));
   }, [assets, risks, projects, audits, incidents, suppliers, controls, searchQuery]);
 
-  const selectedNodeDetails = useMemo(() => {
-    if (!selectedNode) return null;
+  const voxelNodesForPanel = useMemo(() => {
+    const nodes: VoxelNode[] = [];
+    const now = new Date();
 
-    // Helper to get the correct "person in charge" based on type
-    const getOwner = (node: DataNode) => {
-      switch (node.type) {
-        case 'project': return node.data.manager;
-        case 'audit': return node.data.auditor;
-        case 'incident': return (node.data as Incident).responseOwner || (node.data as Incident).reporter;
-        case 'supplier': return node.data.owner || '';
-        case 'risk': return node.data.owner;
-        case 'asset': return node.data.owner;
-        default: return '';
-      }
+    const getStatusFromAsset = (asset: Asset): VoxelNodeStatus => {
+      const hasCritical = [asset.confidentiality, asset.integrity, asset.availability].includes('Critique');
+      const hasHigh = [asset.confidentiality, asset.integrity, asset.availability].includes('Élevée');
+      return hasCritical ? 'critical' : hasHigh ? 'warning' : 'normal';
     };
 
-    const getTitle = (node: DataNode) => {
-      switch (node.type) {
-        case 'asset': return node.data.name;
-        case 'risk': return node.data.threat;
-        case 'project': return node.data.name;
-        case 'audit': return node.data.name;
-        case 'incident': return node.data.title;
-        case 'supplier': return node.data.name;
-        default: return 'Élément';
-      }
-    };
-
-    const base = {
-      id: selectedNode.id,
-      title: getTitle(selectedNode),
-      type: selectedNode.type,
-      owner: getOwner(selectedNode),
-    };
-
-    switch (selectedNode.type) {
-      case 'asset':
-        return {
-          ...base,
-          badge: 'Actif stratégique',
-          gradient: 'from-blue-500/80 via-indigo-500/80 to-violet-500/80',
-          stats: [
-            { label: 'Confidentialité', value: (selectedNode.data as Asset).confidentiality },
-            { label: 'Intégrité', value: (selectedNode.data as Asset).integrity },
-            { label: 'Disponibilité', value: (selectedNode.data as Asset).availability },
-          ],
-          meta: [
-            { label: 'Type', value: (selectedNode.data as Asset).type },
-            { label: 'Localisation', value: (selectedNode.data as Asset).location },
-          ],
-        };
-      case 'risk':
-        return {
-          ...base,
-          badge: 'Risque ISO 27005',
-          gradient: 'from-orange-500/90 via-red-500/80 to-pink-500/70',
-          stats: [
-            { label: 'Score', value: String((selectedNode.data as Risk).score) },
-            { label: 'Probabilité', value: String((selectedNode.data as Risk).probability) },
-            { label: 'Impact', value: String((selectedNode.data as Risk).impact) },
-          ],
-          meta: [
-            { label: 'Stratégie', value: (selectedNode.data as Risk).strategy },
-            { label: 'Statut', value: (selectedNode.data as Risk).status },
-          ],
-        };
-      case 'project':
-        return {
-          ...base,
-          badge: 'Programme SSI',
-          gradient: 'from-purple-500/90 via-fuchsia-500/80 to-pink-500/70',
-          stats: [
-            { label: 'Progression', value: `${(selectedNode.data as Project).progress ?? 0}%` },
-            { label: 'Responsable', value: (selectedNode.data as Project).manager || '—' },
-            { label: 'Statut', value: (selectedNode.data as Project).status || '—' },
-          ],
-          meta: [
-            { label: 'Jalons', value: String((selectedNode.data as Project).milestones?.length || 0) },
-            { label: 'Risques liés', value: String(((selectedNode.data as Project).relatedRiskIds || []).length) },
-          ],
-        };
-      case 'audit':
-        return {
-          ...base,
-          badge: 'Audit & conformité',
-          gradient: 'from-cyan-500/90 via-sky-500/80 to-blue-500/70',
-          stats: [
-            { label: 'Type', value: (selectedNode.data as Audit).type },
-            { label: 'Date', value: formatSafeDate((selectedNode.data as Audit).dateScheduled) },
-            { label: 'Statut', value: (selectedNode.data as Audit).status },
-          ],
-          meta: [
-            { label: 'Auditeur', value: (selectedNode.data as Audit).auditor },
-            { label: 'Constats', value: String((selectedNode.data as Audit).findingsCount) },
-          ],
-        };
-      case 'incident':
-        return {
-          ...base,
-          badge: 'Incident SOC',
-          gradient: 'from-rose-500/90 via-orange-500/80 to-amber-500/70',
-          stats: [
-            { label: 'Sévérité', value: (selectedNode.data as Incident).severity },
-            { label: 'Impact', value: (selectedNode.data as Incident).impact || '—' },
-            { label: 'État', value: (selectedNode.data as Incident).status || '—' },
-          ],
-          meta: [
-            { label: 'Détection', value: formatSafeDate((selectedNode.data as Incident).detectedAt) },
-            { label: 'Réponse', value: (selectedNode.data as Incident).responseOwner || 'Non assigné' },
-          ],
-        };
-      case 'supplier':
-        return {
-          ...base,
-          badge: 'Fournisseur critique',
-          gradient: 'from-emerald-500/90 via-lime-500/80 to-yellow-500/70',
-          stats: [
-            { label: 'Criticité', value: (selectedNode.data as Supplier).criticality },
-            { label: 'Services', value: (selectedNode.data as Supplier).serviceCatalog?.length ? `${(selectedNode.data as Supplier).serviceCatalog?.length || 0} services` : '—' },
-            { label: 'SLA', value: (selectedNode.data as Supplier).sla || 'Non défini' },
-          ],
-          meta: [
-            { label: 'Contact', value: (selectedNode.data as Supplier).contactName || '—' },
-            { label: 'Statut', value: (selectedNode.data as Supplier).status || '—' },
-          ],
-        };
-      case 'control':
-        return {
-          ...base,
-          badge: 'Contrôle Sécurité',
-          gradient: 'from-teal-500/90 via-emerald-500/80 to-green-500/70',
-          stats: [
-            { label: 'Type', value: (selectedNode.data as Control).type || '—' },
-            { label: 'Statut', value: (selectedNode.data as Control).status },
-            { label: 'Applicabilité', value: (selectedNode.data as Control).applicability || '—' },
-          ],
-          meta: [
-            { label: 'Dernière MàJ', value: formatSafeDate((selectedNode.data as Control).lastUpdated) },
-            { label: 'Preuves', value: String((selectedNode.data as Control).evidenceIds?.length || 0) },
-          ],
-        };
-      default:
-        return null;
-    }
-  }, [selectedNode]);
-
-  const handleSelectionClear = () => {
-    setSelectedNode(null);
-    setFocusedNodeId(null);
-    setReleaseToken(Date.now());
-  };
-
-  const handleOpenSelected = () => {
-    if (!selectedNode) return;
-    const route = detailRoutes[selectedNode.type];
-    if (route && isValidRoute(route)) {
-      addToast(`Navigation vers ${selectedNodeDetails?.title}`, 'info');
-      isValidRoute(route);
-      navigate(`${route}?id=${selectedNode.id}`, { // validateUrl validation check
-        state: {
-          fromVoxel: true,
-          nodeId: selectedNode.id
-        }
+    assets.forEach(asset => {
+      nodes.push({
+        id: asset.id, type: 'asset', label: asset.name || 'Asset',
+        status: getStatusFromAsset(asset), position: { x: 0, y: 0, z: 0 }, size: 1,
+        data: asset as unknown as Record<string, unknown>, connections: [],
+        createdAt: now, updatedAt: now
       });
-    }
-  };
-
-  const relatedElements = useMemo<{ id: string; type: LayerType; label: string; meta?: string }[]>(() => {
-    if (!selectedNode) return [];
-    const items: { id: string; type: LayerType; label: string; meta?: string }[] = [];
-
-    if (selectedNode.type === 'risk') {
-      const asset = assets.find(a => a.id === (selectedNode.data as Risk).assetId);
-      if (asset) items.push({ id: asset.id, type: 'asset', label: asset.name, meta: 'Actif lié' });
-      const linkedProjects = projects.filter(p => Array.isArray(p.relatedRiskIds) && p.relatedRiskIds.includes(selectedNode.id));
-      linkedProjects.forEach(project => items.push({ id: project.id, type: 'project', label: project.name, meta: 'Projet' }));
-      const linkedIncidents = incidents.filter(incident => incident.affectedAssetId === (selectedNode.data as Risk).assetId);
-      linkedIncidents.forEach(incident => items.push({ id: incident.id, type: 'incident', label: incident.title, meta: 'Incident impacté' }));
-      const linkedControls = controls.filter(c => Array.isArray(c.relatedRiskIds) && c.relatedRiskIds.includes(selectedNode.id));
-      linkedControls.forEach(c => items.push({ id: c.id, type: 'control', label: c.name, meta: c.status }));
-    } else if (selectedNode.type === 'asset') {
-      const linkedRisks = risks.filter(risk => risk.assetId === selectedNode.id);
-      linkedRisks.forEach(risk => items.push({ id: risk.id, type: 'risk', label: risk.threat, meta: `Score ${risk.score}` }));
-      const linkedIncidents = incidents.filter(incident => incident.affectedAssetId === selectedNode.id);
-      linkedIncidents.forEach(incident => items.push({ id: incident.id, type: 'incident', label: incident.title, meta: incident.severity }));
-      controls.forEach(c => {
-        if (Array.isArray(c.relatedAssetIds) && c.relatedAssetIds.includes(selectedNode.id)) {
-          items.push({ id: c.id, type: 'control', label: c.name, meta: c.status });
-        }
-      });
-    } else if (selectedNode.type === 'incident') {
-      const asset = assets.find(a => a.id === (selectedNode.data as Incident).affectedAssetId);
-      if (asset) items.push({ id: asset.id, type: 'asset', label: asset.name, meta: 'Actif impacté' });
-    } else if (selectedNode.type === 'project') {
-      const projectData = selectedNode.data as Project;
-      const relatedRisks = risks.filter(risk => Array.isArray(projectData.relatedRiskIds) && projectData.relatedRiskIds.includes(risk.id));
-      relatedRisks.forEach(risk => items.push({ id: risk.id, type: 'risk', label: risk.threat, meta: 'Risque suivi' }));
-    } else if (selectedNode.type === 'control') {
-      const control = selectedNode.data as Control;
-      if (control.relatedAssetIds) {
-        control.relatedAssetIds.forEach(id => {
-          const asset = assets.find(a => a.id === id);
-          if (asset) items.push({ id: asset.id, type: 'asset', label: asset.name, meta: 'Actif couvert' });
-        });
-      }
-      if (control.relatedRiskIds) {
-        control.relatedRiskIds.forEach(id => {
-          const risk = risks.find(r => r.id === id);
-          if (risk) items.push({ id: risk.id, type: 'risk', label: risk.threat, meta: 'Risque traité' });
-        });
-      }
-    }
-
-    return items;
-  }, [selectedNode, assets, risks, incidents, projects, controls]);
-
-  const handleLayerToggle = (layer: LayerType) => {
-    setActiveLayers(prev => {
-      const isActive = prev.includes(layer);
-      if (isActive && prev.length === 1) return prev; // garder au moins une couche
-      if (isActive) return prev.filter(id => id !== layer);
-      return [...prev, layer];
     });
-  };
 
+    risks.forEach(risk => {
+      const score = Number.isFinite(risk.score) ? risk.score : 0;
+      nodes.push({
+        id: risk.id, type: 'risk', label: risk.threat || 'Risk',
+        status: score >= 15 ? 'critical' : score >= 10 ? 'warning' : 'normal',
+        position: { x: 0, y: 0, z: 0 }, size: 1,
+        data: risk as unknown as Record<string, unknown>,
+        connections: risk.assetId ? [risk.assetId] : [],
+        createdAt: now, updatedAt: now
+      });
+    });
+
+    controls.forEach(c => {
+      nodes.push({
+        id: c.id, type: 'control', label: c.name || 'Control', status: 'normal',
+        position: { x: 0, y: 0, z: 0 }, size: 1,
+        data: c as unknown as Record<string, unknown>,
+        connections: [...(Array.isArray(c.relatedAssetIds) ? c.relatedAssetIds : []), ...(Array.isArray(c.relatedRiskIds) ? c.relatedRiskIds : [])],
+        createdAt: now, updatedAt: now
+      });
+    });
+
+    projects.forEach(p => {
+      nodes.push({
+        id: p.id, type: 'project', label: p.name || 'Project',
+        status: (p.status || '').toLowerCase().includes('retard') ? 'warning' : 'normal',
+        position: { x: 0, y: 0, z: 0 }, size: 1,
+        data: p as unknown as Record<string, unknown>,
+        connections: Array.isArray(p.relatedRiskIds) ? p.relatedRiskIds : [],
+        createdAt: now, updatedAt: now
+      });
+    });
+
+    audits.forEach(a => {
+      nodes.push({
+        id: a.id, type: 'audit', label: a.name || 'Audit', status: 'normal',
+        position: { x: 0, y: 0, z: 0 }, size: 1,
+        data: a as unknown as Record<string, unknown>,
+        connections: [...(Array.isArray(a.relatedAssetIds) ? a.relatedAssetIds : []), ...(Array.isArray(a.relatedRiskIds) ? a.relatedRiskIds : []), ...(Array.isArray(a.relatedProjectIds) ? a.relatedProjectIds : [])],
+        createdAt: now, updatedAt: now
+      });
+    });
+
+    incidents.forEach(i => {
+      nodes.push({
+        id: i.id, type: 'incident', label: i.title || 'Incident',
+        status: i.severity === 'Critique' ? 'critical' : i.severity === 'Élevée' ? 'warning' : 'normal',
+        position: { x: 0, y: 0, z: 0 }, size: i.severity === 'Critique' ? 1.5 : 1,
+        data: i as unknown as Record<string, unknown>,
+        connections: i.affectedAssetId ? [i.affectedAssetId] : [],
+        createdAt: now, updatedAt: now
+      });
+    });
+
+    suppliers.forEach(s => {
+      nodes.push({
+        id: s.id, type: 'supplier', label: s.name || 'Supplier', status: 'normal',
+        position: { x: 0, y: 0, z: 0 }, size: 1,
+        data: s as unknown as Record<string, unknown>,
+        connections: [...(Array.isArray(s.relatedAssetIds) ? s.relatedAssetIds : []), ...(Array.isArray(s.relatedProjectIds) ? s.relatedProjectIds : [])],
+        createdAt: now, updatedAt: now
+      });
+    });
+
+    return nodes;
+  }, [assets, risks, controls, projects, audits, incidents, suppliers]);
+
+  const nodesMap = useMemo(() => new Map(voxelNodesForPanel.map(n => [n.id, n])), [voxelNodesForPanel]);
+
+  const voxelEdgesForStore = useMemo(() => {
+    const edges: VoxelEdge[] = [];
+    let edgeId = 0;
+    voxelNodesForPanel.forEach(node => {
+      node.connections.forEach(targetId => {
+        if (nodesMap.has(targetId)) {
+          edges.push({ id: `edge-${edgeId++}`, source: node.id, target: targetId, type: 'dependency', weight: 1 });
+        }
+      });
+    });
+    return edges;
+  }, [voxelNodesForPanel, nodesMap]);
+
+  // Sync to store
   useEffect(() => {
-    if (loading) return;
-    if (isInitialized.current) return;
-    if (focusedNodeId) {
-      isInitialized.current = true;
-      return;
+    if (voxelNodesForPanel.length > 0) {
+      voxelStoreActions.setNodes(new Map(voxelNodesForPanel.map(n => [n.id, n])));
     }
-    if (!orderedNodes.length) return;
-
-    // Only focus first node on initial load
-    const first = orderedNodes[0];
-    applyFocus(first.id, first.type as LayerType);
-    isInitialized.current = true;
-  }, [loading, orderedNodes, focusedNodeId, applyFocus]);
+  }, [voxelNodesForPanel]);
 
   useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsFullscreen(false);
-      }
+    if (voxelEdgesForStore.length > 0) {
+      voxelStoreActions.setEdges(new Map(voxelEdgesForStore.map(e => [e.id, e])));
+    }
+  }, [voxelEdgesForStore]);
+
+  const selectedVoxelNode = useMemo(() => selectedNode ? nodesMap.get(selectedNode.id) || null : null, [selectedNode, nodesMap]);
+
+  const selectedNodeConnectionCount = useMemo(() => {
+    if (!selectedVoxelNode) return 0;
+    return selectedVoxelNode.connections.length + voxelNodesForPanel.filter(n => n.connections.includes(selectedVoxelNode.id)).length;
+  }, [selectedVoxelNode, voxelNodesForPanel]);
+
+  // Stats for status bar
+  const { criticalCount, warningCount } = useMemo(() => {
+    let critical = 0;
+    let warning = 0;
+    voxelNodesForPanel.forEach(n => {
+      if (n.status === 'critical') critical++;
+      else if (n.status === 'warning') warning++;
+    });
+    return { criticalCount: critical, warningCount: warning };
+  }, [voxelNodesForPanel]);
+
+  // Command palette filtered results
+  const commandPaletteResults = useMemo(() => {
+    if (!commandSearch.trim()) return orderedNodes.slice(0, 8);
+    const query = commandSearch.toLowerCase();
+    return orderedNodes
+      .filter(n => n.label.toLowerCase().includes(query) || n.type.toLowerCase().includes(query))
+      .slice(0, 10);
+  }, [orderedNodes, commandSearch]);
+
+  const blastRadiusSourceNode = useMemo(() => blastRadius.sourceNodeId ? nodesMap.get(blastRadius.sourceNodeId) || null : null, [blastRadius.sourceNodeId, nodesMap]);
+  const blastRadiusAffectedNodes = useMemo(() => blastRadius.blastRadiusResult?.affectedNodes || [], [blastRadius.blastRadiusResult]);
+
+  // ============================================================================
+  // Handlers
+  // ============================================================================
+
+  const findEntityByType = useCallback((type: LayerType, id: string) => {
+    const sourceMap: Record<LayerType, DataNode['data'][]> = {
+      asset: assets, risk: risks, project: projects, audit: audits,
+      incident: incidents, supplier: suppliers, control: controls,
     };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    return sourceMap[type].find(item => item.id === id);
+  }, [assets, risks, projects, audits, incidents, suppliers, controls]);
+
+  const applyFocus = useCallback((nodeId: string, type: LayerType) => {
+    setActiveLayers(prev => prev.includes(type) ? prev : [...prev, type]);
+    setFocusedNodeId(nodeId);
+    const entity = findEntityByType(type, nodeId);
+    if (entity) {
+      setSelectedNode({ id: nodeId, type, data: entity } as DataNode);
+      setIsDetailPanelOpen(true);
+    }
+  }, [findEntityByType]);
+
+  const focusByOffset = useCallback((offset: number) => {
+    if (!orderedNodes.length) return;
+    const currentIndex = orderedNodes.findIndex(n => n.id === focusedNodeId);
+    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + offset + orderedNodes.length) % orderedNodes.length;
+    const target = orderedNodes[nextIndex];
+    if (target) applyFocus(target.id, target.type as LayerType);
+  }, [orderedNodes, focusedNodeId, applyFocus]);
+
+  const handleLayerToggle = useCallback((layer: LayerType) => {
+    setActiveLayers(prev => {
+      if (prev.includes(layer) && prev.length === 1) return prev;
+      return prev.includes(layer) ? prev.filter(id => id !== layer) : [...prev, layer];
+    });
   }, []);
 
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    document.body.classList.toggle('overflow-hidden', isFullscreen);
-    return () => document.body.classList.remove('overflow-hidden');
-  }, [isFullscreen]);
-
-  const handleFullscreenToggle = () => {
-    setIsFullscreen(prev => !prev);
-  };
-
-  const handleResetView = () => {
+  const handleResetView = useCallback(() => {
     setFocusedNodeId(null);
     setSelectedNode(null);
-    setActiveLayers(layerOptions.map(layer => layer.id));
+    setActiveLayers(LAYER_CONFIG.map(l => l.id));
     setIsFullscreen(false);
     setHeatmapEnabled(true);
     setXRayEnabled(false);
     setAutoRotateEnabled(true);
-  };
+    setIsDetailPanelOpen(false);
+  }, []);
 
-  const handleNodeClick = (node: VoxelNode | null) => {
-    if (selectedNode?.id !== node?.id) {
-      setIsDetailMinimized(false);
-    }
+  const handleNodeClick = useCallback((node: VoxelNode | null) => {
     setSelectedNode(node as DataNode | null);
     setFocusedNodeId(node?.id ?? null);
-  };
+    if (node) setIsDetailPanelOpen(true);
+  }, []);
 
+  const handleDetailPanelNavigate = useCallback((node: VoxelNode) => {
+    const route = DETAIL_ROUTES[node.type];
+    if (route && isValidRoute(route)) {
+      addToast(`Navigation vers ${node.label}`, 'info');
+      navigate(`${route}?id=${node.id}`, { state: { fromVoxel: true, nodeId: node.id } });
+    }
+  }, [addToast, navigate]);
 
+  const handleSelectLinkedEntity = useCallback((nodeId: string) => {
+    const node = nodesMap.get(nodeId);
+    if (node) applyFocus(nodeId, node.type as LayerType);
+  }, [nodesMap, applyFocus]);
 
-  const handleRefresh = () => {
-    refresh();
-  };
+  const handleStartBlastRadius = useCallback((nodeId: string) => {
+    blastRadius.startSimulation(nodeId);
+    setIsBlastRadiusPanelOpen(true);
+  }, [blastRadius]);
 
   const handleAIAnalysis = async () => {
     if (!user || !hasPermission(user, 'CTCEngine', 'read')) {
-      addToast("Vous n'avez pas la permission d'effectuer cette action.", "error");
+      addToast("Permission refusée", "error");
       return;
     }
-
     setAnalyzing(true);
-    addToast("Analyse IA en cours...", "info");
     try {
-      const result = await aiService.analyzeGraph({
-        assets,
-        risks,
-        projects,
-        audits,
-        incidents,
-
-        suppliers,
-        controls
-      });
-
+      const result = await aiService.analyzeGraph({ assets, risks, projects, audits, incidents, suppliers, controls });
       setSuggestedLinks(result.suggestions);
-      setAiInsights(result.insights);
-      setShowInsights(true);
-      addToast("Analyse terminée avec succès", "success");
+      addToast("Analyse IA terminée", "success");
     } catch (error) {
       ErrorLogger.handleErrorWithToast(error, 'VoxelView.handleAIAnalysis', 'UNKNOWN_ERROR');
     } finally {
@@ -608,242 +610,120 @@ export const VoxelView: React.FC = () => {
     }
   };
 
+  const handleScreenshot = useCallback(async () => {
+    if (isCapturing || !containerRef.current) return;
+    setIsCapturing(true);
+    try {
+      const canvas = containerRef.current.querySelector('canvas');
+      if (canvas) {
+        const link = document.createElement('a');
+        link.download = `ctc-engine-${new Date().toISOString().split('T')[0]}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        addToast("Capture sauvegardée", "success");
+      }
+    } catch (error) {
+      addToast("Erreur lors de la capture", "error");
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [isCapturing, addToast]);
+
+  const handleCommandSelect = useCallback((node: { id: string; type: string }) => {
+    applyFocus(node.id, node.type as LayerType);
+    setShowCommandPalette(false);
+    setCommandSearch('');
+  }, [applyFocus]);
+
+  // ============================================================================
+  // Effects
+  // ============================================================================
+
+  // Fullscreen body class
+  useEffect(() => {
+    document.body.classList.toggle('voxel-fullscreen', isFullscreen);
+    document.body.classList.toggle('overflow-hidden', isFullscreen);
+    return () => {
+      document.body.classList.remove('voxel-fullscreen', 'overflow-hidden');
+    };
+  }, [isFullscreen]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Command palette shortcut (Cmd+K or Ctrl+K)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(prev => !prev);
+        return;
+      }
+
+      // Close command palette on Escape
+      if (e.key === 'Escape' && showCommandPalette) {
+        setShowCommandPalette(false);
+        setCommandSearch('');
+        return;
+      }
+
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch (e.key) {
+        case 'Escape':
+          if (isFullscreen) setIsFullscreen(false);
+          else if (isDetailPanelOpen) setIsDetailPanelOpen(false);
+          else if (showLegend) setShowLegend(false);
+          break;
+        case 'ArrowLeft':
+          focusByOffset(-1);
+          break;
+        case 'ArrowRight':
+          focusByOffset(1);
+          break;
+        case 'f':
+        case 'F':
+          if (!e.metaKey && !e.ctrlKey) setIsFullscreen(prev => !prev);
+          break;
+        case 'r':
+        case 'R':
+          if (!e.metaKey && !e.ctrlKey) handleResetView();
+          break;
+        case 'l':
+        case 'L':
+          if (!e.metaKey && !e.ctrlKey) setShowLayerMenu(prev => !prev);
+          break;
+        case 's':
+        case 'S':
+          if (!e.metaKey && !e.ctrlKey) handleScreenshot();
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, isDetailPanelOpen, showCommandPalette, showLegend, focusByOffset, handleResetView, handleScreenshot]);
+
+  // Initial focus
+  useEffect(() => {
+    if (loading || isInitialized.current || !orderedNodes.length) return;
+    const first = orderedNodes[0];
+    applyFocus(first.id, first.type as LayerType);
+    isInitialized.current = true;
+  }, [loading, orderedNodes, applyFocus]);
+
+  // ============================================================================
+  // Render
+  // ============================================================================
+
   if (loading) {
-    return <LoadingScreen />;
+    return <LoadingScreen message="Chargement du CTC Engine..." />;
   }
 
   return (
-    <motion.div
-      variants={staggerContainerVariants}
-      initial="initial"
-      animate="visible"
-      className="flex flex-col space-y-6 min-h-screen pb-8"
-    >
-      <MasterpieceBackground />
-      <SEO
-        title="CTC Engine"
-        description="Visualisation interactive de votre écosystème de sécurité."
-        keywords="3D, Cartographie, Cybersécurité, ISO 27005, Risques"
-      />
+    <div className="fixed inset-0 bg-slate-950 overflow-hidden">
+      <SEO title="CTC Engine" description="Visualisation 3D de l'écosystème de sécurité" />
 
-      <PageHeader
-        title="CTC Engine"
-        subtitle="Visualisation interactive de votre écosystème de sécurité."
-        breadcrumbs={[
-          { label: 'Opérations' },
-          { label: 'CTC Engine' }
-        ]}
-        icon={
-          <img
-            src="/images/operations.png"
-            alt="OPÉRATIONS"
-            className="w-full h-full object-contain"
-          />
-        }
-        actions={
-          <div className="flex flex-wrap items-center gap-3 min-w-0">
-            {/* Counters */}
-            <div className="flex items-center gap-4 text-sm mr-0 md:mr-4 px-4 py-2 bg-slate-500/10 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/10 max-w-full overflow-x-auto backdrop-blur-md shadow-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">{assets.length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">{risks.length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 bg-purple-500 rounded-full"></div>
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">{projects.length}</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <button
-              aria-label="Actualiser"
-              onClick={handleRefresh}
-              className="p-2.5 bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 hover:bg-slate-500/10 dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm backdrop-blur-sm"
-              title="Actualiser"
-            >
-              <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-            </button>
-
-            <button
-              aria-label={analyzing ? 'Analyse en cours' : 'Lancer l\'analyse IA'}
-              onClick={handleAIAnalysis}
-              disabled={analyzing}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${analyzing
-                ? 'bg-indigo-100 text-indigo-400 dark:bg-slate-900/30 dark:text-indigo-400 cursor-wait'
-                : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
-                }`}
-            >
-              {analyzing ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4" />
-              )}
-              <span>{analyzing ? 'Analyse...' : 'Analyser IA'}</span>
-            </button>
-          </div>
-        }
-      />
-
-      {/* Main Voxel View */}
-      <div
-        ref={containerRef}
-        className={`${isFullscreen
-          ? 'fixed !inset-0 !z-[99999] bg-slate-900'
-          : 'relative w-full min-h-[70vh] h-[70vh] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto'
-          }`}
-      >
-        {isFullscreen && (
-          <>
-            <div className="absolute top-6 right-96 z-50 flex items-center gap-2">
-              <span className="text-xs text-white/70 uppercase tracking-wide">Plein écran</span>
-            </div>
-          </>
-        )}
-
-        {/* Sidebar Navigation */}
-        <VoxelSidebar
-          navCollapsed={navCollapsed}
-          setNavCollapsed={setNavCollapsed}
-          orderedNodesLength={orderedNodes.length}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          categorizedNodes={categorizedNodes}
-          selectedNodeId={focusedNodeId}
-          onNodeSelect={applyFocus}
-          activeLayers={activeLayers}
-          onLayerToggle={handleLayerToggle}
-        />
-
-        {/* Floating Tool Bar (Right side) */}
-        <div className="absolute top-20 right-6 z-[100000] flex flex-col gap-3 animate-in fade-in slide-in-from-right-4 duration-500 delay-100">
-          {/* Navigation Arrows */}
-          <div className="flex flex-col gap-1 p-1 bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-            <button
-              aria-label="Élément précédent"
-              onClick={() => focusByOffset(-1)}
-              disabled={!orderedNodes.length}
-              className="p-2.5 rounded-xl transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed group relative"
-              title="Élément précédent"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              aria-label="Élément suivant"
-              onClick={() => focusByOffset(1)}
-              disabled={!orderedNodes.length}
-              className="p-2.5 rounded-xl transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed group relative"
-              title="Élément suivant"
-            >
-              <ArrowRight className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Visualization Tools */}
-          <div className="flex flex-col gap-1 p-1 bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-            <button
-              aria-label="Calques"
-              onClick={() => setShowLayerMenu(!showLayerMenu)}
-              className={`p-2.5 rounded-xl transition relative group ${showLayerMenu ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-              title="Calques"
-            >
-              <Layers className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white border border-slate-900">
-                {activeLayers.length}
-              </span>
-            </button>
-
-            <button
-              aria-label="Heatmap"
-              onClick={() => setHeatmapEnabled(!heatmapEnabled)}
-              className={`p-2.5 rounded-xl transition group ${heatmapEnabled ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-              title="Heatmap"
-            >
-              <Flame className="h-5 w-5" />
-            </button>
-
-            <button
-              aria-label="Mode X-Ray"
-              onClick={() => setXRayEnabled(!xRayEnabled)}
-              className={`p-2.5 rounded-xl transition group ${xRayEnabled ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-              title="Mode X-Ray"
-            >
-              <Eye className="h-5 w-5" />
-            </button>
-
-            <button
-              aria-label="Auto-rotate"
-              onClick={() => setAutoRotateEnabled(!autoRotateEnabled)}
-              className={`p-2.5 rounded-xl transition group ${autoRotateEnabled ? 'bg-green-500/20 text-green-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-              title="Auto-rotate"
-            >
-              <RotateCw className={`h-5 w-5 ${autoRotateEnabled ? 'animate-spin-slow' : ''}`} />
-            </button>
-
-            <button
-              aria-label="Mode Présentation"
-              onClick={() => setPresentationMode(!presentationMode)}
-              className={`p-2.5 rounded-xl transition group ${presentationMode ? 'bg-indigo-500/20 text-indigo-400 animate-pulse' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
-              title="Mode Présentation"
-            >
-              <MonitorPlay className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* View Controls */}
-          <div className="flex flex-col gap-1 p-1 bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-            <button
-              aria-label="Réinitialiser la vue"
-              onClick={handleResetView}
-              className="p-2.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition group"
-              title="Réinitialiser la vue"
-            >
-              <RefreshCw className="h-5 w-5" />
-            </button>
-
-            <button
-              aria-label={isFullscreen ? "Quitter plein écran" : "Plein écran"}
-              onClick={handleFullscreenToggle}
-              className="p-2.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition group"
-              title={isFullscreen ? "Quitter plein écran" : "Plein écran"}
-            >
-              {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Layer Menu Popover */}
-        {showLayerMenu && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[100000] w-64 p-2 rounded-2xl bg-slate-900/95 border border-white/10 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-2 fade-in duration-200">
-            <div className="px-3 py-2 border-b border-white/10 mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold text-white">Calques actifs</span>
-              <span className="text-xs text-white/50">{activeLayers.length}/{layerOptions.length}</span>
-            </div>
-            <div className="space-y-1">
-              {layerOptions.map(option => {
-                const isActive = activeLayers.includes(option.id);
-                return (
-                  <button
-                    aria-label={option.label}
-                    key={option.id}
-                    onClick={() => handleLayerToggle(option.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition ${isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${option.color}`}></span>
-                      <span>{option.label}</span>
-                    </div>
-                    {isActive && <CheckCheck className="h-3.5 w-3.5 text-indigo-400" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        <React.Suspense fallback={<LoadingScreen message="Chargement du studio 3D..." />}>
+      {/* Main 3D Container */}
+      <div ref={containerRef} className="absolute inset-0">
+        <React.Suspense fallback={<LoadingScreen message="Chargement 3D..." />}>
           <VoxelStudio
             assets={assets}
             risks={risks}
@@ -859,280 +739,469 @@ export const VoxelView: React.FC = () => {
             highlightCritical={heatmapEnabled}
             xRayMode={xRayEnabled}
             autoRotatePreference={autoRotateEnabled}
-            presentationMode={presentationMode}
-
-
+            presentationMode={false}
             releaseToken={releaseToken}
             suggestedLinks={suggestedLinks}
-
-            // Overlay props
-            selectedNodeDetails={selectedNodeDetails}
-            isDetailMinimized={isDetailMinimized}
-            setIsDetailMinimized={setIsDetailMinimized}
-            handleSelectionClear={handleSelectionClear}
-            relatedElements={relatedElements}
-            applyFocus={applyFocus}
-            handleOpenSelected={handleOpenSelected}
-            impactMode={impactMode}
-            setImpactMode={setImpactMode}
+            impactMode={false}
           />
         </React.Suspense>
+      </div>
 
-        {/* AI Insights Panel */}
-        {showInsights && aiInsights.length > 0 && (
-          <div className="absolute top-24 left-6 z-[100000] w-80 max-h-[calc(100%-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-indigo-400">
-                <BrainCircuit className="h-5 w-5" />
-                <h3 className="font-bold text-white">Insights IA</h3>
+      {/* Top Bar */}
+      <motion.div
+        initial={{ y: -60 }}
+        animate={{ y: 0 }}
+        className="absolute top-0 left-0 right-0 z-[100000] px-4 pt-4"
+      >
+        <div className="flex items-center justify-between h-14 px-4 rounded-2xl bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl">
+          {/* Left - Logo & Title */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 hover:scale-105"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30">
+                <Shield className="w-5 h-5 text-white" />
               </div>
-              <button
-                aria-label="Fermer"
-                onClick={() => setShowInsights(false)}
-                className="p-1 hover:bg-white/10 rounded-full text-white/60 hover:text-white transition"
+              <div>
+                <h1 className="text-base font-bold text-white tracking-tight">CTC Engine</h1>
+                <p className="text-xs text-white/40">Cyber Threat Cartography</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Center - Health Indicators */}
+          <div className="flex items-center gap-4">
+            {criticalCount > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30"
               >
-                <XCircle className="h-4 w-4" />
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                </span>
+                <span className="text-sm font-medium text-red-400">{criticalCount}</span>
+                <span className="text-xs text-red-400/70">critiques</span>
+              </motion.div>
+            )}
+            {warningCount > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                <span className="text-sm font-medium text-amber-400">{warningCount}</span>
+                <span className="text-xs text-amber-400/70">alertes</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm font-medium text-emerald-400">{orderedNodes.length}</span>
+              <span className="text-xs text-emerald-400/70">nœuds</span>
+            </div>
+          </div>
+
+          {/* Right - Actions */}
+          <div className="flex items-center gap-2">
+            {/* Search Button */}
+            <button
+              onClick={() => setShowCommandPalette(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 group"
+            >
+              <Search className="w-4 h-4" />
+              <span className="text-sm hidden lg:inline">Rechercher</span>
+              <kbd className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-medium text-white/40 group-hover:text-white/60">
+                <Command className="w-2.5 h-2.5" />K
+              </kbd>
+            </button>
+
+            {/* Screenshot */}
+            <button
+              onClick={handleScreenshot}
+              disabled={isCapturing}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 disabled:opacity-50"
+              title="Capture d'écran (S)"
+            >
+              <Camera className={`w-5 h-5 ${isCapturing ? 'animate-pulse' : ''}`} />
+            </button>
+
+            {/* AI Analysis */}
+            <button
+              onClick={handleAIAnalysis}
+              disabled={analyzing}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 ${
+                analyzing
+                  ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
+                  : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02]'
+              }`}
+            >
+              {analyzing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              <span>{analyzing ? 'Analyse...' : 'Analyse IA'}</span>
+            </button>
+
+            {/* Refresh */}
+            <button
+              onClick={refresh}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-200 hover:rotate-180"
+              title="Actualiser"
+            >
+              <RefreshCw className="w-5 h-5 transition-transform duration-500" />
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Left Sidebar */}
+      <VoxelSidebar
+        navCollapsed={navCollapsed}
+        setNavCollapsed={setNavCollapsed}
+        orderedNodesLength={orderedNodes.length}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        categorizedNodes={categorizedNodes}
+        selectedNodeId={focusedNodeId}
+        onNodeSelect={applyFocus}
+        activeLayers={activeLayers}
+        onLayerToggle={handleLayerToggle}
+      />
+
+      {/* Right Toolbar */}
+      <motion.div
+        initial={{ x: 60, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="absolute top-24 right-4 z-[100000] flex flex-col gap-2"
+      >
+        {/* Navigation */}
+        <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<ChevronLeft className="w-5 h-5" />} label="Précédent" onClick={() => focusByOffset(-1)} />
+          <ToolButton icon={<ChevronRight className="w-5 h-5" />} label="Suivant" onClick={() => focusByOffset(1)} />
+        </div>
+
+        {/* Layers */}
+        <div className="relative">
+          <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+            <ToolButton
+              icon={<Layers className="w-5 h-5" />}
+              label="Calques"
+              onClick={() => setShowLayerMenu(!showLayerMenu)}
+              active={showLayerMenu}
+              badge={activeLayers.length}
+            />
+          </div>
+
+          {/* Layer Dropdown */}
+          <AnimatePresence>
+            {showLayerMenu && (
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                className="absolute right-14 top-0 w-56 p-2 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+              >
+                <div className="flex items-center justify-between px-2 py-1.5 mb-1">
+                  <span className="text-xs font-medium text-white/60">Calques</span>
+                  <span className="text-xs text-white/40">{activeLayers.length}/7</span>
+                </div>
+                {LAYER_CONFIG.map(layer => {
+                  const isActive = activeLayers.includes(layer.id);
+                  const count = categorizedNodes.find(c => c.id === layer.id)?.items.length || 0;
+                  return (
+                    <button
+                      key={layer.id}
+                      onClick={() => handleLayerToggle(layer.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition ${
+                        isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${layer.bgColor}`} />
+                        <span>{layer.label}</span>
+                      </div>
+                      <span className="text-xs text-white/40">{count}</span>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Visualization */}
+        <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<Flame className="w-5 h-5" />} label="Heatmap" onClick={() => setHeatmapEnabled(!heatmapEnabled)} active={heatmapEnabled} />
+          <ToolButton icon={<Eye className="w-5 h-5" />} label="X-Ray" onClick={() => setXRayEnabled(!xRayEnabled)} active={xRayEnabled} />
+          <ToolButton icon={<RotateCw className="w-5 h-5" />} label="Auto-rotation" onClick={() => setAutoRotateEnabled(!autoRotateEnabled)} active={autoRotateEnabled} />
+        </div>
+
+        {/* Analysis */}
+        <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<AlertTriangle className="w-5 h-5" />} label="Anomalies" onClick={() => setIsAnomalyPanelOpen(!isAnomalyPanelOpen)} active={isAnomalyPanelOpen} />
+          <ToolButton icon={<Zap className="w-5 h-5" />} label="Blast Radius" onClick={() => setIsBlastRadiusPanelOpen(!isBlastRadiusPanelOpen)} active={isBlastRadiusPanelOpen} />
+          <ToolButton icon={<Clock className="w-5 h-5" />} label="Time Machine" onClick={() => setIsTimeMachineOpen(!isTimeMachineOpen)} active={isTimeMachineOpen} />
+        </div>
+
+        {/* View */}
+        <div className="flex flex-col gap-1 p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10">
+          <ToolButton icon={<RefreshCw className="w-5 h-5" />} label="Réinitialiser (R)" onClick={handleResetView} />
+          <ToolButton
+            icon={isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+            label={isFullscreen ? "Quitter plein écran (F)" : "Plein écran (F)"}
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            active={isFullscreen}
+          />
+          <ToolButton icon={<Camera className="w-5 h-5" />} label="Capture (S)" onClick={handleScreenshot} disabled={isCapturing} />
+          <ToolButton icon={<Info className="w-5 h-5" />} label="Légende" onClick={() => setShowLegend(!showLegend)} active={showLegend} />
+          <ToolButton icon={<Keyboard className="w-5 h-5" />} label="Raccourcis" onClick={() => setShowShortcuts(!showShortcuts)} active={showShortcuts} />
+          <ToolButton icon={<HelpCircle className="w-5 h-5" />} label="Guide" onClick={() => setShowGuide(true)} />
+        </div>
+      </motion.div>
+
+      {/* Legend Panel */}
+      <AnimatePresence>
+        {showLegend && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="absolute bottom-16 right-4 z-[100000] w-72 p-4 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold text-white">Légende</span>
+              <button onClick={() => setShowLegend(false)} className="p-1 hover:bg-white/10 rounded-lg transition">
+                <X className="w-4 h-4 text-white/60" />
               </button>
             </div>
 
-            <div className="space-y-3">
-              {aiInsights.map((insight) => (
-                <div key={insight.id} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition group">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <span className={`text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded ${insight.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                      insight.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                        'bg-blue-500/20 text-blue-400'
-                      }`}>
-                      {insight.type}
+            {/* Node Types */}
+            <div className="mb-4">
+              <span className="text-xs font-medium text-white/40 uppercase tracking-wide">Types de nœuds</span>
+              <div className="mt-2 space-y-1.5">
+                {LAYER_CONFIG.map(layer => (
+                  <div key={layer.id} className="flex items-center gap-2 py-1">
+                    <span className={`w-3 h-3 rounded-full ${layer.bgColor}`} />
+                    <span className="text-sm text-white/80">{layer.label}</span>
+                    <span className="ml-auto text-xs text-white/40">
+                      {categorizedNodes.find(c => c.id === layer.id)?.items.length || 0}
                     </span>
                   </div>
-                  <h4 className="text-sm font-semibold text-white mb-1 group-hover:text-indigo-300 transition-colors">{safeRender(insight.title)}</h4>
-                  <p className="text-xs text-white/70 leading-relaxed">{safeRender(insight.description)}</p>
+                ))}
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="mb-4">
+              <span className="text-xs font-medium text-white/40 uppercase tracking-wide">États</span>
+              <div className="mt-2 space-y-1.5">
+                <div className="flex items-center gap-2 py-1">
+                  <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-sm text-white/80">Critique</span>
+                  <span className="ml-auto text-xs text-red-400">{criticalCount}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Loading overlay for refresh */}
-        {loading && (
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center">
-            <div className="text-white text-center">
-              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
-              <p className="text-sm">Actualisation des données...</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-4 border-t border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/95 backdrop-blur-xl p-6">
-        <div className="col-span-2 space-y-6">
-          <div className="grid md:grid-cols-3 gap-3">
-            {scenarioPresets.map(preset => (
-              <button
-                aria-label={preset.label}
-                key={preset.id}
-                onClick={() => handleScenarioPreset(preset)}
-                className="text-left px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-              >
-                <p className="text-xs uppercase tracking-wide text-slate-500">{preset.label}</p>
-                <p className="text-sm text-slate-600 dark:text-slate-200">{preset.description}</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="text-sm text-slate-600 dark:text-slate-300">
-            <p className="font-medium">Légende dynamique</p>
-            <div className="grid sm:grid-cols-3 gap-4 mt-2">
-              {layerOptions.map(layer => (
-                <div key={layer.id} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-white/5">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900/60">
-                    {VoxelSilhouettes[layer.id as LayerType]}
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">{layer.label}</p>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-100">{layer.hint}</p>
-                  </div>
+                <div className="flex items-center gap-2 py-1">
+                  <span className="w-3 h-3 rounded-full bg-amber-500" />
+                  <span className="text-sm text-white/80">Alerte</span>
+                  <span className="ml-auto text-xs text-amber-400">{warningCount}</span>
                 </div>
-              ))}
+                <div className="flex items-center gap-2 py-1">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span className="text-sm text-white/80">Normal</span>
+                  <span className="ml-auto text-xs text-emerald-400">{orderedNodes.length - criticalCount - warningCount}</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-3 text-xs text-slate-600 dark:text-slate-400">
-            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800">Cliquez sur un nœud pour ouvrir ses détails</span>
-            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800">Scroll: zoomer / drag: orbiter</span>
-            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800">Ctrl + drag: panoramique</span>
-          </div>
 
-          <div className="grid sm:grid-cols-3 gap-3 text-sm">
-            {[
-              { title: 'Inventaire actuels', value: `${assets.length} actifs`, route: '/assets' },
-              { title: 'Risques ouverts', value: `${risks.filter(r => r.status !== 'Fermé').length}`, route: '/risks' },
-              { title: 'Incidents actifs', value: `${incidents.length}`, route: '/incidents' }
-            ].map(card => (
-              <button
-                aria-label={card.title}
-                key={card.title}
-                onClick={() => {
-                  if (isValidRoute(card.route)) {
-                    navigate(card.route); // validateUrl check
-                  }
-                }}
-                className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-              >
-                <p className="text-xs uppercase tracking-wide text-slate-500">{card.title}</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">{card.value}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Insight Panel */}
-        <div className="bg-slate-900 text-white rounded-2xl p-5 shadow-2xl space-y-4">
-          <div className="flex items-center justify-between">
+            {/* Connections */}
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Insights</p>
-              <h3 className="text-lg font-semibold">Vue contextuelle</h3>
-            </div>
-            <button
-              aria-label="Ouvrir la fiche"
-              disabled={!selectedNode}
-              onClick={() => {
-                if (!selectedNode) return;
-                const routes: Record<string, string> = {
-                  asset: '/assets',
-                  risk: '/risks',
-                  project: '/projects',
-                  audit: '/audits',
-                  incident: '/incidents',
-
-                  supplier: '/suppliers',
-                  control: '/library'
-                };
-                const route = routes[selectedNode.type];
-                if (route && isValidRoute(route)) {
-                  addToast(`Navigation vers ${selectedNode.type}`, 'info');
-                  navigate(route); // validateUrl check
-                }
-              }}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            >
-              Ouvrir la fiche <ArrowRight className="inline h-3 w-3" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              aria-label="Précédent"
-              onClick={() => focusByOffset(-1)}
-              disabled={!orderedNodes.length}
-              className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40"
-            >
-              ◀ Précédent
-            </button>
-            <button
-              aria-label="Suivant"
-              onClick={() => focusByOffset(1)}
-              disabled={!orderedNodes.length}
-              className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40"
-            >
-              Suivant ▶
-            </button>
-          </div>
-
-          {selectedNode ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-white/10 w-12 h-12 flex items-center justify-center shrink-0">
-                  {VoxelSilhouettes[selectedNode.type as LayerType]}
+              <span className="text-xs font-medium text-white/40 uppercase tracking-wide">Connexions</span>
+              <div className="mt-2 space-y-1.5">
+                <div className="flex items-center gap-2 py-1">
+                  <div className="w-6 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded" />
+                  <span className="text-sm text-white/80">Lien de dépendance</span>
                 </div>
-                <div>
-                  <p className="text-sm text-slate-300 capitalize">{selectedNode.type}</p>
-                  <p className="text-lg font-semibold">{selectedNodeDetails?.title}</p>
+                <div className="flex items-center gap-2 py-1">
+                  <div className="w-6 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded" />
+                  <span className="text-sm text-white/80">Impact critique</span>
                 </div>
               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              {selectedNode.type === 'risk' && (
-                <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-200/20">
-                  <div className="flex items-center gap-2 text-rose-100 text-sm font-medium">
-                    <ShieldAlert className="h-3.5 w-3.5" /> Score {(selectedNode.data as Risk).score}
+      {/* Keyboard Shortcuts Panel */}
+      <AnimatePresence>
+        {showShortcuts && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-16 right-4 z-[100000] w-64 p-4 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-white">Raccourcis clavier</span>
+              <button onClick={() => setShowShortcuts(false)} className="p-1 hover:bg-white/10 rounded-lg">
+                <X className="w-4 h-4 text-white/60" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {KEYBOARD_SHORTCUTS.map(({ key, action }) => (
+                <div key={key} className="flex items-center justify-between text-sm">
+                  <span className="text-white/60">{action}</span>
+                  <kbd className="px-2 py-0.5 rounded bg-white/10 text-white/80 text-xs font-mono">{key}</kbd>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Command Palette (Spotlight Search) */}
+      <AnimatePresence>
+        {showCommandPalette && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { setShowCommandPalette(false); setCommandSearch(''); }}
+              className="fixed inset-0 z-[100002] bg-black/60 backdrop-blur-sm"
+            />
+            {/* Palette */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+              className="fixed top-[20%] left-1/2 -translate-x-1/2 z-[100003] w-full max-w-xl"
+            >
+              <div className="mx-4 overflow-hidden rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50">
+                {/* Search Input */}
+                <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
+                  <Search className="w-5 h-5 text-white/40" />
+                  <input
+                    type="text"
+                    value={commandSearch}
+                    onChange={e => setCommandSearch(e.target.value)}
+                    placeholder="Rechercher un nœud..."
+                    autoFocus
+                    className="flex-1 bg-transparent text-white text-lg placeholder:text-white/30 outline-none"
+                  />
+                  <kbd className="px-2 py-1 rounded bg-white/10 text-xs text-white/40">ESC</kbd>
+                </div>
+
+                {/* Results */}
+                <div className="max-h-80 overflow-y-auto p-2">
+                  {commandPaletteResults.length === 0 ? (
+                    <div className="py-8 text-center text-white/40">
+                      <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>Aucun résultat trouvé</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {commandPaletteResults.map((node, index) => {
+                        const layer = LAYER_CONFIG.find(l => l.id === node.type);
+                        return (
+                          <button
+                            key={node.id}
+                            onClick={() => handleCommandSelect(node)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 ${
+                              index === 0 ? 'bg-indigo-500/20 border border-indigo-500/30' : 'hover:bg-white/5'
+                            }`}
+                          >
+                            <span className={`w-3 h-3 rounded-full ${layer?.bgColor || 'bg-gray-500'}`} />
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm text-white truncate block">{node.label}</span>
+                              <span className="text-xs text-white/40 capitalize">{layer?.label || node.type}</span>
+                            </div>
+                            {index === 0 && (
+                              <kbd className="px-2 py-0.5 rounded bg-white/10 text-[10px] text-white/50">↵</kbd>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between text-xs text-white/40">
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1">
+                      <ChevronUp className="w-3 h-3" />
+                      <ChevronDown className="w-3 h-3" />
+                      naviguer
+                    </span>
+                    <span className="flex items-center gap-1">↵ sélectionner</span>
                   </div>
-                  <p className="text-xs text-rose-200 mt-1">Stratégie: {(selectedNode.data as Risk).strategy}</p>
-                </div>
-              )}
-
-              {selectedNode.type === 'project' && (
-                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-200/20 text-amber-100">
-                  Progression {(selectedNode.data as Project).progress}% - {(selectedNode.data as Project).status}
-                </div>
-              )}
-
-              {selectedNode.type === 'incident' && (
-                <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-200/20 text-rose-100">
-                  Gravité {(selectedNode.data as Incident).severity}
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3 text-xs text-slate-300">
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="uppercase tracking-wide text-[10px] text-slate-500">Référent</p>
-                  <p className="mt-1 text-sm font-semibold">{selectedNodeDetails?.owner || 'Non renseigné'}</p>
-                </div>
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="uppercase tracking-wide text-[10px] text-slate-500">Dernière mise à jour</p>
-                  <p className="mt-1 text-sm font-semibold">
-                    {formatSafeDate((selectedNode.data as { updatedAt?: string }).updatedAt || (selectedNode.data as { createdAt?: string }).createdAt)}
-                  </p>
+                  <span>{commandPaletteResults.length} résultats</span>
                 </div>
               </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-              {relatedElements.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-wide text-white/50">Liens critiques</p>
-                  <div className="flex flex-wrap gap-2">
-                    {relatedElements.map(item => (
-                      <button
-                        aria-label={item.label}
-                        key={item.id}
-                        onClick={() => applyFocus(item.id, item.type)}
-                        className="px-3 py-1.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-xs"
-                      >
-                        {item.label}
-                        {item.meta && <span className="ml-2 text-white/50">• {item.meta}</span>}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+      {/* Status Bar */}
+      <StatusBar
+        totalNodes={orderedNodes.length}
+        activeLayers={activeLayers.length}
+        selectedNode={selectedNode}
+        isFullscreen={isFullscreen}
+        criticalCount={criticalCount}
+        warningCount={warningCount}
+        connectionCount={selectedNodeConnectionCount}
+      />
 
-              <div className="flex gap-2">
-                <button
-                  aria-label="Explorer les dépendances"
-                  onClick={() => selectedNode && navigate('/risks')}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition"
-                >
-                  <Activity className="h-4 w-4" /> Explorer les dépendances
-                </button>
-                <button
-                  aria-label="Voir les actions"
-                  onClick={() => selectedNode && navigate('/projects')}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-white/20 hover:bg-white/10 transition"
-                >
-                  Voir les actions
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-slate-500 space-y-4">
-              <p>Sélectionnez un nœud pour afficher ses insights, alertes liées et raccourcis de navigation.</p>
-              <div className="flex items-center gap-3 text-xs">
-                <ShieldAlert className="h-4 w-4 text-rose-400" />
-                <span>Les niveaux de risque sont recalculés en temps réel selon vos métriques ISO 27005.</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      <VoxelGuide isOpen={showGuide} onClose={handleCloseGuide} />
-    </motion.div >
+      {/* Panels */}
+      <VoxelDetailPanel
+        node={selectedVoxelNode}
+        isOpen={isDetailPanelOpen && !!selectedVoxelNode}
+        onClose={() => setIsDetailPanelOpen(false)}
+        onNavigate={handleDetailPanelNavigate}
+        connectionCount={selectedNodeConnectionCount}
+        onSelectLinkedEntity={handleSelectLinkedEntity}
+        nodesMap={nodesMap}
+      />
+
+      <AnomalyPanel
+        isOpen={isAnomalyPanelOpen}
+        onClose={() => setIsAnomalyPanelOpen(false)}
+        onFocusNode={handleSelectLinkedEntity}
+      />
+
+      <BlastRadiusPanel
+        isOpen={isBlastRadiusPanelOpen}
+        onClose={() => setIsBlastRadiusPanelOpen(false)}
+        sourceNodeId={blastRadius.sourceNodeId}
+        sourceNode={blastRadiusSourceNode}
+        mode={blastRadius.mode}
+        isSimulating={blastRadius.isSimulating}
+        affectedNodes={blastRadiusAffectedNodes}
+        stats={blastRadius.stats}
+        businessImpact={blastRadius.blastRadiusResult?.businessImpact || 'low'}
+        whatIfResult={blastRadius.whatIfResult}
+        whatIfScenario={blastRadius.whatIfScenario}
+        config={blastRadius.config}
+        onStartSimulation={handleStartBlastRadius}
+        onStopSimulation={blastRadius.stopSimulation}
+        onSetConfig={blastRadius.setConfig}
+        onApplyWhatIf={blastRadius.applyWhatIfScenario}
+        onClearWhatIf={blastRadius.clearWhatIfScenario}
+        onFocusNode={handleSelectLinkedEntity}
+        onClearResults={blastRadius.clearResults}
+        onSetMode={blastRadius.setMode}
+      />
+
+      <TimeMachine
+        isOpen={isTimeMachineOpen}
+        onClose={() => setIsTimeMachineOpen(false)}
+      />
+
+      <VoxelGuide isOpen={showGuide} onClose={() => { setShowGuide(false); localStorage.setItem('voxel_guide_seen', 'true'); }} />
+    </div>
   );
 };

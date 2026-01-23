@@ -33,32 +33,32 @@ export const AuditStatsWidget: React.FC<AuditStatsWidgetProps> = ({ audits, find
             value: `${complianceRate}%`,
             subtext: `${completedAudits} audits terminés`,
             icon: ClipboardCheck,
-            color: 'text-brand-500',
-            bg: 'bg-brand-500/10'
+            color: 'text-success-text',
+            bg: 'bg-success-bg'
         },
         {
             label: "Audits Planifiés",
             value: totalAudits,
             subtext: `${inProgressAudits} en cours`,
             icon: Calendar,
-            color: 'text-blue-500',
-            bg: 'bg-blue-500/10'
+            color: 'text-info-text',
+            bg: 'bg-info-bg'
         },
         {
             label: "Prochains (30j)",
             value: upcomingAudits,
             subtext: "À préparer",
             icon: ClockIcon,
-            color: 'text-purple-500',
-            bg: 'bg-purple-500/10'
+            color: 'text-brand-600 dark:text-brand-400',
+            bg: 'bg-brand-500/10'
         },
         {
             label: "Non-conformités",
             value: findingsCount,
             subtext: "Ouvertes",
             icon: AlertOctagon,
-            color: 'text-red-500',
-            bg: 'bg-red-500/10'
+            color: 'text-error-text',
+            bg: 'bg-error-bg'
         }
     ];
 
@@ -79,7 +79,7 @@ export const AuditStatsWidget: React.FC<AuditStatsWidgetProps> = ({ audits, find
                             </p>
                         )}
                     </div>
-                    <div className={cn("p-3 rounded-xl", stat.bg)}>
+                    <div className={cn("p-4 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm", stat.bg)}>
                         <stat.icon className={cn("w-6 h-6", stat.color)} />
                     </div>
                 </GlassCard>

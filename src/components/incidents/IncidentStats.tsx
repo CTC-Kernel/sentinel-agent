@@ -17,7 +17,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
     const { t } = useStore();
 
     return (
-        <GlassCard className="p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
+        <GlassCard className="p-6 md:p-8 rounded-5xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group shadow-apple transition-all duration-500">
 
             {loading ? (
                 /* Skeleton Loader for Summary Card */
@@ -40,8 +40,8 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
             ) : (
                 <>
                     <div className="space-y-2 relative z-10">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                            <span className="inline-flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                        <p className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-500/80 flex items-center gap-2 mb-2">
+                            <span className="inline-flex h-2 w-2 rounded-full bg-error-text animate-pulse shadow-glow shadow-error-text/30" />
                             Vue globale des incidents
                         </p>
                         <div className="flex items-baseline gap-3">
@@ -54,11 +54,10 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
                         {/* Active Incidents Card */}
-                        <GlassCard hoverEffect={true} className="p-5 hover:bg-red-50/50 dark:hover:bg-red-900/20">
-
+                        <GlassCard hoverEffect={true} className="p-5 rounded-3xl hover:bg-error-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Actifs</span>
-                                <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-error-text opacity-70">Actifs</span>
+                                <div className="p-2 rounded-xl bg-error-bg ring-1 ring-inset ring-error-border/30 text-error-text shadow-sm">
                                     <ShieldAlert className="h-4 w-4" />
                                 </div>
                             </div>
@@ -69,11 +68,10 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                         </GlassCard>
 
                         {/* MTTR Card */}
-                        <GlassCard hoverEffect={true} className="p-5 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20">
-
+                        <GlassCard hoverEffect={true} className="p-5 rounded-3xl hover:bg-success-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">MTTR</span>
-                                <div className="p-1.5 rounded-lg bg-emerald-100/50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-success-text opacity-70">MTTR</span>
+                                <div className="p-2 rounded-xl bg-success-bg ring-1 ring-inset ring-success-border/30 text-success-text shadow-sm">
                                     <Clock className="h-4 w-4" />
                                 </div>
                             </div>
@@ -86,11 +84,10 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                         </GlassCard>
 
                         {/* Critical Ratio Card */}
-                        <GlassCard hoverEffect={true} className="p-5 hover:bg-orange-50/50 dark:hover:bg-orange-900/20">
-
+                        <GlassCard hoverEffect={true} className="p-5 rounded-3xl hover:bg-warning-bg border-white/60 dark:border-white/5 shadow-sm transition-all duration-300">
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Critiques</span>
-                                <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-warning-text opacity-70">Critiques</span>
+                                <div className="p-2 rounded-xl bg-warning-bg ring-1 ring-inset ring-warning-border/30 text-warning-text shadow-sm">
                                     <AlertTriangle className="h-4 w-4" />
                                 </div>
                             </div>

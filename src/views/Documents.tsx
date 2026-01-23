@@ -293,7 +293,7 @@ export const Documents: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -338,11 +338,11 @@ export const Documents: React.FC = () => {
 
             {/* Metrics Dashboard */}
             {loading ? (
-                <div className="glass-premium p-6 md:p-8 rounded-[2rem] h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                <div className="glass-premium p-6 md:p-8 rounded-5xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
             ) : (
                 <>
-                    <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
-                        <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+                    <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-5xl border border-border/50 shadow-apple-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
+                        <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                         </div>
 
@@ -365,12 +365,12 @@ export const Documents: React.FC = () => {
                                     />
                                 </svg>
                                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                    <span className="text-xl font-black text-slate-900 dark:text-white">{Math.round(validationRate)}%</span>
+                                    <span className={`text-xl font-black ${validationRate >= 80 ? 'text-success-text' : validationRate >= 50 ? 'text-info-text' : 'text-warning-text'}`}>{Math.round(validationRate)}%</span>
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('documents.validated')}</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">{t('documents.validated')}</h3>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-[200px] leading-relaxed">
                                     {t('documents.validatedDesc')}
                                 </p>
                             </div>
@@ -402,27 +402,27 @@ export const Documents: React.FC = () => {
                         </div>
 
                         {/* Alerts */}
-                        <div className="flex flex-col gap-3 w-full md:min-w-[180px]">
-                            <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                        <div className="flex flex-col gap-3 w-full md:min-w-[220px]">
+                            <div className="flex items-center justify-between p-2.5 bg-warning-bg rounded-2xl border border-warning-border/30 shadow-sm">
                                 <div className="flex items-center gap-2">
-                                    <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                    <span className="text-xs font-bold text-amber-700 dark:text-amber-300">{t('documents.inReview')}</span>
+                                    <Bell className="h-4 w-4 text-warning-text" />
+                                    <span className="text-xs font-black text-warning-text uppercase tracking-widest">{t('documents.inReview')}</span>
                                 </div>
-                                <span className="text-sm font-black text-amber-700 dark:text-amber-400">{inReviewDocs}</span>
+                                <span className="text-sm font-black text-warning-text">{inReviewDocs}</span>
                             </div>
-                            <div className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
+                            <div className="flex items-center justify-between p-2.5 bg-error-bg rounded-2xl border border-error-border/30 shadow-sm">
                                 <div className="flex items-center gap-2">
-                                    <History className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                    <span className="text-xs font-bold text-red-700 dark:text-red-300">{t('documents.expired')}</span>
+                                    <History className="h-4 w-4 text-error-text" />
+                                    <span className="text-xs font-black text-error-text uppercase tracking-widest">{t('documents.expired')}</span>
                                 </div>
-                                <span className="text-sm font-black text-red-700 dark:text-red-400">{expiredDocs}</span>
+                                <span className="text-sm font-black text-error-text">{expiredDocs}</span>
                             </div>
                         </div>
                     </motion.div>
 
                     <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[calc(100vh-200px)] min-h-0">
                         {/* Folder Tree Sidebar */}
-                        <div className="w-full lg:w-64 flex-shrink-0 glass-premium rounded-2xl border border-white/50 dark:border-white/5 shadow-sm overflow-hidden flex flex-col min-w-0">
+                        <div className="w-full lg:w-72 flex-shrink-0 glass-premium rounded-3xl border border-border/50 shadow-apple-sm overflow-hidden flex flex-col min-w-0">
                             <FolderTree
                                 folders={folders}
                                 selectedFolderId={selectedFolderId}
@@ -651,32 +651,32 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect, users }: { d
     return (
         <div
             onClick={handleClick}
-            className={`glass-premium p-4 rounded-xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-3 ${viewMode === 'list' ? 'flex-row items-center' : ''}`}
+            className={`glass-premium p-5 rounded-3xl border border-border/50 hover:border-brand-500/50 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-4 shadow-sm hover:shadow-apple-sm ${viewMode === 'list' ? 'flex-row items-center' : ''}`}
         >
             <div className="flex-1">
-                <h4 className="font-bold text-slate-800 dark:text-white truncate">{doc.title}</h4>
-                <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm text-slate-500 truncate">{doc.type}</span>
+                <h4 className="text-base font-black text-slate-900 dark:text-white truncate tracking-tight">{doc.title}</h4>
+                <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{doc.type}</span>
                     <span className="text-slate-300 dark:text-slate-600">•</span>
-                    <span className="text-sm text-slate-500">v{doc.version}</span>
+                    <span className="text-xs font-bold text-slate-400">v{doc.version}</span>
                     <span className="text-slate-300 dark:text-slate-600">•</span>
-                    <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
                         <img
                             src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
                             alt={doc.owner}
-                            className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800 flex-shrink-0"
+                            className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800 flex-shrink-0 ring-1 ring-border/50"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = getUserAvatarUrl(null, ownerUser?.role);
                             }}
                         />
-                        <span className="text-sm text-slate-500 truncate">{doc.owner}</span>
+                        <span className="text-xs font-bold text-slate-500 truncate">{doc.owner}</span>
                     </div>
                 </div>
             </div>
-            <div>
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${doc.status === 'Publié' || doc.status === 'Approuvé' ? 'bg-emerald-100 text-emerald-800' :
-                    doc.status === 'En revue' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-800'
+            <div className="shrink-0 flex items-center">
+                <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm border ${doc.status === 'Publié' || doc.status === 'Approuvé' ? 'bg-success-bg text-success-text border-success-border/30' :
+                    doc.status === 'En revue' ? 'bg-warning-bg text-warning-text border-warning-border/30' : 'bg-slate-100/80 text-slate-600 border-border/30'
                     }`}>
                     {doc.status}
                 </span>

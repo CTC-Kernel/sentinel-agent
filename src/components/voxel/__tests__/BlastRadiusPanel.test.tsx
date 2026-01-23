@@ -146,7 +146,7 @@ describe('BlastRadiusPanel', () => {
 
     render(<BlastRadiusPanel {...minimalProps} />);
     expect(screen.getByText('Blast Radius')).toBeInTheDocument();
-    // When sourceNodeId is null, it displays "Selectionnez un noeud source"
-    expect(screen.getByText('Selectionnez un noeud source')).toBeInTheDocument();
+    // When sourceNodeId is null, it displays "Sélectionnez un nœud source"
+    expect(screen.getByText('Sélectionnez un nœud source')).toBeInTheDocument();
   });
 });

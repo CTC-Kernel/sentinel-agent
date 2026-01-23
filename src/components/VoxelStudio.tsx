@@ -58,24 +58,6 @@ class VoxelErrorBoundary extends Component<{ children: React.ReactNode, fallback
   }
 }
 
-export interface VoxelDetail {
-  id: string;
-  title: string;
-  type: string;
-  owner: string;
-  badge: string;
-  gradient: string;
-  stats: { label: string; value: string | number }[];
-  meta: { label: string; value: string | number }[];
-}
-
-export interface RelatedElement {
-  id: string;
-  type: string;
-  label: string;
-  meta?: string;
-}
-
 interface VoxelStudioProps {
   assets: Asset[];
   risks: Risk[];
@@ -89,21 +71,12 @@ interface VoxelStudioProps {
   visibleTypes?: VoxelNode['type'][];
   focusNodeId?: string | null;
   highlightCritical?: boolean;
-
   xRayMode?: boolean;
   autoRotatePreference?: boolean | null;
   releaseToken?: number | null;
   suggestedLinks?: AISuggestedLink[];
   presentationMode?: boolean;
-  selectedNodeDetails?: VoxelDetail | null;
-  isDetailMinimized?: boolean;
-  setIsDetailMinimized?: (v: boolean | ((prev: boolean) => boolean)) => void;
-  handleSelectionClear?: () => void;
-  relatedElements?: RelatedElement[];
-  applyFocus?: (id: string, type: VoxelNode['type']) => void;
-  handleOpenSelected?: () => void;
   impactMode?: boolean;
-  setImpactMode?: (v: boolean) => void;
 }
 
 const disableRaycast = () => null;
@@ -196,7 +169,7 @@ const TargetReticle: React.FC<{ position: [number, number, number]; size: number
   );
 };
 
-const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.RefObject<OrbitControlsImpl | null>; setAutoRotate: (value: boolean) => void; userInteractingRef: React.MutableRefObject<boolean>; shouldSnapRef: React.MutableRefObject<boolean>; focusOnCardRef: React.MutableRefObject<boolean>; overlayOffset: { x: number; y: number }; }> = ({ target, controlsRef, setAutoRotate, userInteractingRef, shouldSnapRef, focusOnCardRef, overlayOffset }) => {
+const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.RefObject<OrbitControlsImpl | null>; setAutoRotate: (value: boolean) => void; userInteractingRef: React.MutableRefObject<boolean>; shouldSnapRef: React.MutableRefObject<boolean>; }> = ({ target, controlsRef, setAutoRotate, userInteractingRef, shouldSnapRef }) => {
   const { camera } = useThree();
   const focusVec = useRef(new Vector3(0, 0, 0));
   const desiredPos = useRef(camera.position.clone());
@@ -220,18 +193,8 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
 
     if (target) {
       focusVec.current.set(target.position.x, target.position.y, target.position.z);
-      if (focusOnCardRef.current) {
-        const cardOffsetX = -5 + overlayOffset.x * 0.01;
-        const cardOffsetY = 1 - overlayOffset.y * 0.01;
-        focusVec.current.x += cardOffsetX;
-        focusVec.current.y += cardOffsetY;
-      }
-      let magnitude = Math.max(4, target.size * 5);
-      let verticalFactor = 0.6;
-      if (focusOnCardRef.current) {
-        magnitude = 12;
-        verticalFactor = 0.2;
-      }
+      const magnitude = Math.max(4, target.size * 5);
+      const verticalFactor = 0.6;
       const horizontalDir = focusVec.current.clone().setY(0);
       if (horizontalDir.lengthSq() < 1e-3) horizontalDir.set(0, 0, 1);
 
@@ -485,19 +448,16 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   onNodeClick, className = "", visibleTypes = [],
   focusNodeId, highlightCritical = false, releaseToken,
   suggestedLinks = [], xRayMode, presentationMode,
-  selectedNodeDetails, isDetailMinimized, setIsDetailMinimized, handleSelectionClear, relatedElements = [], applyFocus, handleOpenSelected,
-  impactMode, setImpactMode
+  impactMode
 }) => {
   const defaultLinkColor = useResolvedHslCssVar('--muted-foreground', '215 20% 65%');
   const [selectedNode, setSelectedNode] = useState<VoxelNode | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const isUserInteracting = useRef(false);
-  const focusOnCardRef = useRef(false);
   const shouldSnapToTarget = useRef(false);
   const [impactPosition, setImpactPosition] = useState<[number, number, number] | null>(null);
   const [impactKey, setImpactKey] = useState(0);
-  const [overlayOffset, setOverlayOffset] = useState({ x: 0, y: 0 });
 
   const safeAssets = useMemo(() => assets ?? [], [assets]);
   const safeRisks = useMemo(() => risks ?? [], [risks]);
@@ -668,44 +628,13 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     return nodes;
   }, [safeAssets, safeRisks, safeProjects, safeAudits, safeIncidents, safeSuppliers, safeControls, visibleTypes]);
 
-  const handleOverlayPositionChange = useCallback((x: number, y: number) => {
-    setOverlayOffset({ x, y });
-  }, []);
-
-  const handleOverlayFocusRequest = useCallback(() => {
-    if (selectedNode) {
-      focusOnCardRef.current = true;
-      shouldSnapToTarget.current = true;
-    }
-  }, [selectedNode]);
-
-  const overlayProps = useMemo(() => ({
-    selectedNodeDetails: selectedNodeDetails ?? null,
-    isDetailMinimized: isDetailMinimized ?? false,
-    setIsDetailMinimized: setIsDetailMinimized ?? (() => { }),
-    handleSelectionClear: handleSelectionClear ?? (() => { }),
-    relatedElements: relatedElements ?? [],
-    applyFocus: (id: string, type: string) => applyFocus?.(id, type as VoxelNode['type']),
-    handleOpenSelected: handleOpenSelected ?? (() => { }),
-    onPositionChange: handleOverlayPositionChange,
-    onRequestFocus: handleOverlayFocusRequest,
-    impactMode,
-    setImpactMode,
-  }), [
-    selectedNodeDetails, isDetailMinimized, setIsDetailMinimized,
-    handleSelectionClear, relatedElements, applyFocus, handleOpenSelected,
-    impactMode, setImpactMode,
-    handleOverlayFocusRequest, handleOverlayPositionChange
-  ]);
-
   const handleNodeClick = useCallback((node: VoxelNode) => {
     isUserInteracting.current = false;
     setSelectedNode(node);
-    focusOnCardRef.current = true;
     shouldSnapToTarget.current = true;
     setImpactPosition(positionToArray(node.position));
     setImpactKey(prev => prev + 1);
-    onNodeClick?.(node); // Explicitly call parent, removing the loop
+    onNodeClick?.(node);
   }, [onNodeClick]);
 
   useEffect(() => {
@@ -719,7 +648,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
           setSelectedNode(null);
         });
         shouldSnapToTarget.current = false;
-        focusOnCardRef.current = false;
       }
       return;
     }
@@ -729,7 +657,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
       startTransition(() => {
         setSelectedNode(node);
       });
-      focusOnCardRef.current = true;
       shouldSnapToTarget.current = true;
       isUserInteracting.current = false;
     }
@@ -918,15 +845,13 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                     opacity={xRayMode ? 0.3 : 0.9}
                     highlightCritical={highlightCritical}
                     xRayMode={xRayMode}
-                    overlayProps={overlayProps}
-                    overlayOffset={overlayOffset}
                     isImpacted={isImpacted}
                   />
                 );
               })
               }
 
-              <FocusController target={selectedNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} focusOnCardRef={focusOnCardRef} overlayOffset={overlayOffset} />
+              <FocusController target={selectedNode} controlsRef={controlsRef} setAutoRotate={setAutoRotate} userInteractingRef={isUserInteracting} shouldSnapRef={shouldSnapToTarget} />
               <PresentationManager presentationMode={presentationMode} voxelNodes={voxelNodes} onNodeSelect={handleNodeClick} />
 
               {/* <EffectComposer enableNormalPass={false}>

@@ -246,7 +246,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                         isLoading={isImporting}
                                         className="bg-gradient-to-r from-brand-600 to-indigo-600 text-white"
                                     >
-                                        {t('common.import')}
+                                        {t('common.import.label')}
                                     </Button>
                                 </div>
                             </Dialog.Panel>

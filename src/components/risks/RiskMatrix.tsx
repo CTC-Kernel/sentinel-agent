@@ -55,8 +55,8 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         <button
                             onClick={() => setViewMode('inherent')}
                             className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'inherent'
-                                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                                ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                                 }`}
                         >
                             Risque Inhérent
@@ -64,8 +64,8 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         <button
                             onClick={() => setViewMode('residual')}
                             className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${viewMode === 'residual'
-                                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                                ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                                 }`}
                         >
                             Risque Résiduel
@@ -75,28 +75,28 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
 
                 <div className="flex flex-wrap gap-3 bg-white dark:bg-slate-900/50 p-3 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm backdrop-blur-sm">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-                        <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></span>
+                        <span className="w-3 h-3 rounded-full bg-success-text shadow-glow shadow-success-text/40"></span>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Faible</span>
                             <span className="text-[10px] text-slate-400">Score 1-4</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-                        <span className="w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]"></span>
+                        <span className="w-3 h-3 rounded-full bg-info-text shadow-glow shadow-info-text/40"></span>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Moyen</span>
                             <span className="text-[10px] text-slate-400">Score 5-9</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-                        <span className="w-3 h-3 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.4)]"></span>
+                        <span className="w-3 h-3 rounded-full bg-warning-text shadow-glow shadow-warning-text/40"></span>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Élevé</span>
                             <span className="text-[10px] text-slate-400">Score 10-14</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-                        <span className="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.4)]"></span>
+                        <span className="w-3 h-3 rounded-full bg-error-text shadow-glow shadow-error-text/40"></span>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Critique</span>
                             <span className="text-[10px] text-slate-400">Score 15-25</span>
@@ -106,7 +106,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             </div>
 
             {/* Matrix Container */}
-            <div className="relative p-8 bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/60 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-black/20 overflow-hidden">
+            <div className="relative p-8 bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl rounded-5xl border border-white/60 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-black/20 overflow-hidden">
 
                 {/* Background Decoration */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -150,28 +150,28 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
 
                                     if (score >= 15) {
                                         cellStyle = hasRisks
-                                            ? "bg-gradient-to-br from-rose-500/20 to-rose-600/5 border-rose-200 dark:border-rose-500/20 shadow-[inset_0_0_20px_rgba(244,63,94,0.1)]"
-                                            : "bg-rose-50/50 dark:bg-rose-900/5 border-rose-100 dark:border-rose-500/10";
-                                        textStyle = hasRisks ? "text-rose-600 dark:text-rose-400" : "text-rose-200 dark:text-rose-900/40";
-                                        ringColor = "ring-rose-500";
+                                            ? "bg-gradient-to-br from-error-bg/80 to-error-bg/20 border-error-border/50 shadow-[inset_0_0_20px_rgba(225,29,72,0.05)]"
+                                            : "bg-error-bg/30 dark:bg-error-bg/10 border-error-border/20";
+                                        textStyle = hasRisks ? "text-error-text" : "text-error-text/30";
+                                        ringColor = "ring-error-border";
                                     } else if (score >= 10) {
                                         cellStyle = hasRisks
-                                            ? "bg-gradient-to-br from-orange-500/20 to-orange-600/5 border-orange-200 dark:border-orange-500/20 shadow-[inset_0_0_20px_rgba(249,115,22,0.1)]"
-                                            : "bg-orange-50/50 dark:bg-orange-900/5 border-orange-100 dark:border-orange-500/10";
-                                        textStyle = hasRisks ? "text-orange-600 dark:text-orange-400" : "text-orange-200 dark:text-orange-900/40";
-                                        ringColor = "ring-orange-500";
+                                            ? "bg-gradient-to-br from-warning-bg/80 to-warning-bg/20 border-warning-border/50 shadow-[inset_0_0_20px_rgba(217,119,6,0.05)]"
+                                            : "bg-warning-bg/30 dark:bg-warning-bg/10 border-warning-border/20";
+                                        textStyle = hasRisks ? "text-warning-text" : "text-warning-text/30";
+                                        ringColor = "ring-warning-border";
                                     } else if (score >= 5) {
                                         cellStyle = hasRisks
-                                            ? "bg-gradient-to-br from-amber-400/20 to-amber-500/5 border-amber-200 dark:border-amber-400/20 shadow-[inset_0_0_20px_rgba(251,191,36,0.1)]"
-                                            : "bg-amber-50/50 dark:bg-amber-900/5 border-amber-100 dark:border-amber-400/10";
-                                        textStyle = hasRisks ? "text-amber-600 dark:text-amber-400" : "text-amber-200 dark:text-amber-900/40";
-                                        ringColor = "ring-amber-400";
+                                            ? "bg-gradient-to-br from-info-bg/80 to-info-bg/20 border-info-border/50 shadow-[inset_0_0_20px_rgba(2,132,199,0.05)]"
+                                            : "bg-info-bg/30 dark:bg-info-bg/10 border-info-border/20";
+                                        textStyle = hasRisks ? "text-info-text" : "text-info-text/30";
+                                        ringColor = "ring-info-border";
                                     } else {
                                         cellStyle = hasRisks
-                                            ? "bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border-emerald-200 dark:border-emerald-500/20 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]"
-                                            : "bg-emerald-50/50 dark:bg-emerald-900/5 border-emerald-100 dark:border-emerald-500/10";
-                                        textStyle = hasRisks ? "text-emerald-600 dark:text-emerald-400" : "text-emerald-200 dark:text-emerald-900/40";
-                                        ringColor = "ring-emerald-500";
+                                            ? "bg-gradient-to-br from-success-bg/80 to-success-bg/20 border-success-border/50 shadow-[inset_0_0_20px_rgba(5,150,105,0.05)]"
+                                            : "bg-success-bg/30 dark:bg-success-bg/10 border-success-border/20";
+                                        textStyle = hasRisks ? "text-success-text" : "text-success-text/30";
+                                        ringColor = "ring-success-border";
                                     }
 
                                     return (
@@ -190,7 +190,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                                 whileTap={hasRisks ? { scale: 0.95 } : {}}
                                                 onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: probObj.val, i: impactObj.val })}
                                                 className={`
-                                                    relative aspect-[1.1] rounded-2xl border transition-all duration-300 group
+                                                    relative aspect-[1.1] rounded-4xl border transition-all duration-300 group
                                                     flex flex-col items-center justify-center
                                                     ${cellStyle}
                                                     ${hasRisks ? 'cursor-pointer' : 'cursor-default opacity-80'}

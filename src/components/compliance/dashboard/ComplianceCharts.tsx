@@ -77,8 +77,8 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:p-8">
             {/* Status Distribution */}
-            <div className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+            <div className="glass-premium p-6 md:p-8 rounded-5xl shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
                 <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                     <PieChartIcon className="w-4 h-4 text-brand-500" />
                     Distribution par Statut
@@ -121,8 +121,8 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
             </div>
 
             {/* Domain Progress */}
-            <div className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+            <div className="glass-premium p-6 md:p-8 rounded-5xl shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
                 <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                     <BarChartIcon className="w-4 h-4 text-brand-500" />
                     Conformité par Domaine ({currentFramework})
@@ -167,8 +167,8 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
             </div>
 
             {/* Radar Chart */}
-            <div className="glass-premium p-6 md:p-8 rounded-[2rem] lg:col-span-2 xl:col-span-1 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+            <div className="glass-premium p-6 md:p-8 rounded-5xl lg:col-span-2 xl:col-span-1 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
                 <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                     <Target className="w-4 h-4 text-brand-500" />
                     Vue Radar - Maturité par Domaine

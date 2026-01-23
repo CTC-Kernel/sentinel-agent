@@ -55,7 +55,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                     ref={inputRef}
                     type="text"
                     placeholder={searchPlaceholder}
-                    className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
+                    className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-2xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
                 />
             </div>
 
@@ -64,7 +64,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                 {onRefresh && (
                     <button
                         onClick={onRefresh}
-                        className="p-2 text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all"
+                        className="p-2 text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all"
                         title="Actualiser"
                     >
                         <RefreshCcw className="h-4 w-4" />
@@ -81,7 +81,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                 {onToggleAdvancedSearch && (
                     <button
                         onClick={onToggleAdvancedSearch}
-                        className={`p-2 rounded-xl transition-all duration-300 ${showAdvancedSearch
+                        className={`p-2 rounded-2xl transition-all duration-300 ${showAdvancedSearch
                             ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 shadow-inner'
                             : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
                             }`}
@@ -93,7 +93,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
 
                 {/* Custom View Options (Generic) */}
                 {viewOptions && activeView && onViewChange && (
-                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl">
                         {viewOptions.map((option) => {
                             const Icon = option.icon;
                             return (
@@ -116,7 +116,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
 
                 {/* Legacy View Mode Toggles */}
                 {onViewModeChange && viewMode && !viewOptions && (
-                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl">
                         <button
                             onClick={() => onViewModeChange?.('list')}
                             className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'list'

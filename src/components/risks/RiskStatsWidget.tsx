@@ -25,32 +25,32 @@ export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
             label: "Risques Identifiés",
             value: totalRisks,
             icon: Activity,
-            color: 'text-blue-500',
-            bg: 'bg-blue-500/10'
+            color: 'text-brand-600 dark:text-brand-400',
+            bg: 'bg-brand-500/10'
         },
         {
             label: "Risques Critiques",
             value: criticalRisks,
             subtext: "Score ≥ 10",
             icon: ShieldAlert,
-            color: 'text-red-500',
-            bg: 'bg-red-500/10'
+            color: 'text-error-text',
+            bg: 'bg-error-bg'
         },
         {
             label: "Hors Appétence",
             value: risksAboveAppetite,
             subtext: "> Seuil d'acceptation",
             icon: AlertTriangle,
-            color: 'text-orange-500',
-            bg: 'bg-orange-500/10'
+            color: 'text-warning-text',
+            bg: 'bg-warning-bg'
         },
         {
             label: "Score Moyen",
             value: avgScore.toFixed(1),
             subtext: `-${riskReduction.toFixed(0)}% après traitement`,
             icon: TrendingUp,
-            color: 'text-indigo-500',
-            bg: 'bg-indigo-500/10'
+            color: 'text-info-text',
+            bg: 'bg-info-bg'
         }
     ];
 
@@ -71,7 +71,7 @@ export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
                             </p>
                         )}
                     </div>
-                    <div className={cn("p-3 rounded-xl", stat.bg)}>
+                    <div className={cn("p-4 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm", stat.bg)}>
                         <stat.icon className={cn("w-6 h-6", stat.color)} />
                     </div>
                 </GlassCard>

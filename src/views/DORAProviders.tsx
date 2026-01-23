@@ -147,59 +147,59 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
             <div className={hideHeader ? "" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"}>
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="glass-panel p-4 rounded-2xl border border-white/50 dark:border-white/5">
+                    <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
-                                <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                            <div className="p-3 bg-brand-500/10 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
+                                <Globe className="w-6 h-6 text-brand-600 dark:text-brand-400" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
-                                <p className="text-xs text-slate-500">{t('dora.stats.totalProviders')}</p>
+                                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.total}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t('dora.stats.totalProviders')}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="glass-panel p-4 rounded-2xl border border-white/50 dark:border-white/5">
+                    <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
-                                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                            <div className="p-3 bg-error-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
+                                <AlertTriangle className="w-6 h-6 text-error-text" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.critical}</p>
-                                <p className="text-xs text-slate-500">{t('dora.stats.criticalProviders')}</p>
+                                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.critical}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t('dora.stats.criticalProviders')}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="glass-panel p-4 rounded-2xl border border-white/50 dark:border-white/5">
+                    <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
-                                <FileText className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                            <div className="p-3 bg-warning-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
+                                <FileText className="w-6 h-6 text-warning-text" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.expiringSoon}</p>
-                                <p className="text-xs text-slate-500">{t('dora.stats.expiringContracts')}</p>
+                                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stats.expiringSoon}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t('dora.stats.expiringContracts')}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="glass-panel p-4 rounded-2xl border border-white/50 dark:border-white/5">
+                    <div className="glass-panel p-5 rounded-4xl border border-white/50 dark:border-white/5 shadow-apple-sm transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                                <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                            <div className="p-3 bg-info-bg rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm">
+                                <Shield className="w-6 h-6 text-info-text" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                                     {concentrationAnalysis.nonEuProviders?.length || 0}
                                 </p>
-                                <p className="text-xs text-slate-500">{t('dora.stats.nonEuProviders')}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t('dora.stats.nonEuProviders')}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Filters */}
-                <div className="glass-panel p-4 rounded-2xl border border-white/50 dark:border-white/5 mb-6">
+                <div className="glass-panel p-4 rounded-3xl border border-white/50 dark:border-white/5 mb-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex-1">
                             <SearchInput
@@ -237,7 +237,7 @@ export const DORAProviders: React.FC<DORAProvidersProps> = ({ hideHeader = false
                 </div>
 
                 {/* List */}
-                <div className="glass-panel rounded-2xl border border-white/50 dark:border-white/5 overflow-hidden">
+                <div className="glass-panel rounded-4xl border border-white/50 dark:border-white/5 overflow-hidden shadow-apple-sm">
                     <ICTProviderList
                         providers={providers}
                         loading={loading}

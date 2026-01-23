@@ -8,7 +8,7 @@ import { LandingDashboardMockup } from '../components/landing/LandingDashboardMo
 import { SystemEntrance } from '../components/landing/SystemEntrance';
 
 const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: LucideIcon, title: string, description: string, delay: string }) => (
-    <div className={`glass-premium p-8 rounded-[2rem] bg-white/70 dark:bg-white/5 overflow-hidden transition-all duration-500 group animate-slide-up flex flex-col items-start relative hover:z-20`} style={{ animationDelay: delay }}>
+    <div className={`glass-premium p-8 rounded-3xl bg-white/70 dark:bg-white/5 overflow-hidden transition-all duration-500 group animate-slide-up flex flex-col items-start relative hover:z-20`} style={{ animationDelay: delay }}>
         {/* Hover Highlight Line */}
         <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -43,7 +43,7 @@ export const LandingPage: React.FC = () => {
                 <div className="max-w-6xl mx-auto relative group perspective-1000">
                     <div className="absolute inset-x-0 -top-40 h-[500px] bg-gradient-to-b from-transparent via-slate-200/50 dark:via-brand-500/5 to-transparent pointer-events-none"></div>
 
-                    <div className="relative rounded-[2rem] border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-900 shadow-2xl overflow-hidden transform transition-all duration-1000 group-hover:rotate-x-2 group-hover:scale-[1.01] shadow-slate-200/50 dark:shadow-brand-500/10">
+                    <div className="relative rounded-5xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-900 shadow-2xl overflow-hidden transform transition-all duration-1000 group-hover:rotate-x-2 group-hover:scale-[1.01] shadow-slate-200/50 dark:shadow-brand-500/10">
                         {/* Tech Corners Generic */}
                         <svg className="absolute top-8 left-8 w-6 h-6 text-slate-400/50 dark:text-white/20 z-20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                         <svg className="absolute top-8 right-8 w-6 h-6 text-slate-400/50 dark:text-white/20 rotate-90 z-20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>

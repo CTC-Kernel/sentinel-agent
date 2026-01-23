@@ -145,7 +145,7 @@ export const Integrations: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 min-w-0"
+            className="space-y-10 pb-24 min-w-0"
         >
             <MasterpieceBackground />
             <SEO title="Intégrations" description="Connectez vos outils pour automatiser la collecte de preuves" />

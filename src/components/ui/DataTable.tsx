@@ -72,7 +72,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         onChange={table.getToggleAllPageRowsSelectedHandler()}
                         name="select-all-rows"
                         type="checkbox"
-                        className="rounded border-slate-300/50 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 w-4 h-4 cursor-pointer bg-white/50 dark:bg-white/5 transition-colors"
+                        className="w-4 h-4 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-500/50"
                     />
                 </div>
             ),
@@ -86,7 +86,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         name={`select-row-${row.id}`}
                         type="checkbox"
                         disabled={!row.getCanSelect()}
-                        className="rounded border-slate-300/50 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 w-4 h-4 cursor-pointer bg-white/50 dark:bg-white/5 transition-colors"
+                        className="w-4 h-4 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-500/50"
                     />
                 </div>
             ),
@@ -160,7 +160,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             onChange={(e) => setGlobalFilter(e.target.value)}
                             type="text"
                             placeholder="Rechercher..."
-                            className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
                         />
                     </div>
                 )}
@@ -200,7 +200,7 @@ export function DataTable<TData extends { id: string }, TValue>({
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-4xl glass-premium overflow-hidden">
+            <div className="w-full overflow-x-auto rounded-5xl glass-premium overflow-hidden">
                 <table
                     className="w-full"
                     role="table"
@@ -220,7 +220,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
-                                                "px-3 py-4 sm:px-6 sm:py-5 text-left text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 whitespace-nowrap transition-colors",
+                                                "px-4 py-4 sm:px-6 sm:py-4 text-left text-[11px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap transition-colors",
                                                 header.column.getCanSort() && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 hover:text-brand-600 dark:hover:text-brand-400",
                                                 header.id === 'select' && "w-[50px] px-2 sm:px-4"
                                             )}
@@ -343,7 +343,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                         variant={currentPage === pageNum ? 'default' : 'outline'}
                                         size="icon"
                                         className={cn(
-                                            "w-10 h-10 rounded-xl font-bold transition-colors",
+                                            "w-10 h-10 rounded-lg font-bold transition-colors",
                                             currentPage !== pageNum && "hover:bg-slate-50 dark:hover:bg-slate-700"
                                         )}
                                     >

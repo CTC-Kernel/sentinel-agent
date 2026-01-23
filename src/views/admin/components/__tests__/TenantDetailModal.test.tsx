@@ -46,6 +46,27 @@ vi.mock('../../../../services/errorLogger', () => ({
     },
 }));
 
+// Mock ConfirmModal
+let confirmModalCallback: (() => void) | null = null;
+let confirmModalCancelCallback: (() => void) | null = null;
+vi.mock('../../../../components/ui/ConfirmModal', () => ({
+    ConfirmModal: ({ isOpen, onConfirm, onClose }: { isOpen: boolean; onConfirm: () => void; onClose: () => void }) => {
+        if (isOpen) {
+            confirmModalCallback = onConfirm;
+            confirmModalCancelCallback = onClose;
+            return (
+                <div data-testid="confirm-modal">
+                    <button data-testid="confirm-modal-confirm" onClick={onConfirm}>Confirm</button>
+                    <button data-testid="confirm-modal-cancel" onClick={onClose}>Cancel</button>
+                </div>
+            );
+        }
+        confirmModalCallback = null;
+        confirmModalCancelCallback = null;
+        return null;
+    },
+}));
+
 // Mock Lucide icons with importOriginal to include all exports
 vi.mock('lucide-react', async (importOriginal) => {
     const actual = await importOriginal<typeof import('lucide-react')>();
@@ -146,8 +167,9 @@ describe('TenantDetailModal', () => {
         });
         mockToggleTenantStatus.mockResolvedValue(undefined);
         mockUpdateTenantSubscription.mockResolvedValue(undefined);
-        // Mock window.confirm
-        vi.spyOn(window, 'confirm').mockReturnValue(true);
+        // Reset confirmation modal callbacks
+        confirmModalCallback = null;
+        confirmModalCancelCallback = null;
     });
 
     // Helper to wrap interactions
@@ -255,11 +277,18 @@ describe('TenantDetailModal', () => {
             await screen.findByText('8');
         });
 
-        it('should call toggleTenantStatus when suspend button clicked', async () => {
+        it('should call toggleTenantStatus when suspend button clicked and confirmed', async () => {
             render(<TenantDetailModal {...defaultProps} />);
 
+            // Click Suspend to open the confirmation modal
             await act(async () => {
                 await clickButton('Suspend');
+            });
+
+            // Confirm the modal
+            const confirmButton = screen.getByTestId('confirm-modal-confirm');
+            await act(async () => {
+                fireEvent.click(confirmButton);
             });
 
             await waitFor(() => {
@@ -274,6 +303,11 @@ describe('TenantDetailModal', () => {
                 await clickButton('Suspend');
             });
 
+            const confirmButton = screen.getByTestId('confirm-modal-confirm');
+            await act(async () => {
+                fireEvent.click(confirmButton);
+            });
+
             await waitFor(() => {
                 expect(mockToastSuccess).toHaveBeenCalledWith('Tenant suspended successfully');
             });
@@ -284,6 +318,11 @@ describe('TenantDetailModal', () => {
 
             await act(async () => {
                 await clickButton('Suspend');
+            });
+
+            const confirmButton = screen.getByTestId('confirm-modal-confirm');
+            await act(async () => {
+                fireEvent.click(confirmButton);
             });
 
             await waitFor(() => {
@@ -298,19 +337,30 @@ describe('TenantDetailModal', () => {
                 await clickButton('Suspend');
             });
 
+            const confirmButton = screen.getByTestId('confirm-modal-confirm');
+            await act(async () => {
+                fireEvent.click(confirmButton);
+            });
+
             await waitFor(() => {
                 expect(mockOnClose).toHaveBeenCalled();
             });
         });
 
         it('should not toggle if user cancels confirmation', async () => {
-            vi.spyOn(window, 'confirm').mockReturnValue(false);
-
             render(<TenantDetailModal {...defaultProps} />);
 
+            // Click Suspend to open the confirmation modal
             await act(async () => {
                 await clickButton('Suspend');
             });
+
+            // Cancel the confirmation
+            if (confirmModalCancelCallback) {
+                await act(async () => {
+                    confirmModalCancelCallback!();
+                });
+            }
 
             expect(mockToggleTenantStatus).not.toHaveBeenCalled();
         });
@@ -322,6 +372,11 @@ describe('TenantDetailModal', () => {
 
             await act(async () => {
                 await clickButton('Suspend');
+            });
+
+            const confirmButton = screen.getByTestId('confirm-modal-confirm');
+            await act(async () => {
+                fireEvent.click(confirmButton);
             });
 
             await waitFor(() => {

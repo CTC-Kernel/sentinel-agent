@@ -25,12 +25,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 }} // Reduced delay for snappier feel
-                    className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
+                    transition={{ delay: 0.1 }}
+                    className="glass-panel p-6 rounded-4xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
                     aria-label="Graphique Heatmap des risques"
                 >
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-indigo-500" aria-hidden="true" />
+                        <Activity className="w-5 h-5 text-brand-600 dark:text-brand-400" aria-hidden="true" />
                         Cartographie des Risques (Heatmap)
                     </h3>
                     <RiskHeatmap risks={risks} />
@@ -40,12 +40,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.2 }} // Staggered
-                    className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
+                    transition={{ delay: 0.2 }}
+                    className="glass-panel p-6 rounded-4xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
                     aria-label="Graphique d'avancement des traitements"
                 >
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                        <Layers className="w-5 h-5 text-emerald-500" aria-hidden="true" />
+                        <Layers className="w-5 h-5 text-success-text" aria-hidden="true" />
                         Avancement des Traitements
                     </h3>
                     <RiskTreatmentChart risks={risks} />
@@ -53,7 +53,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
             </div>
 
             {/* Row 2: Inherent vs Residual (Full Width) */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden min-h-[350px] transition-all hover:shadow-apple-lg">
+            <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-5xl relative overflow-hidden min-h-[350px] transition-all hover:shadow-apple-lg">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
 
                 <div className="flex items-center gap-3 mb-6 relative z-10">
@@ -74,10 +74,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
             {/* Top Critical Risks Table */}
             {
                 criticalRisks > 0 && (
-                    <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden transition-all hover:shadow-apple-lg">
+                    <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-5xl relative overflow-hidden transition-all hover:shadow-apple-lg">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-red-500/10 rounded-lg" aria-hidden="true">
-                                <AlertTriangle className="h-5 w-5 text-red-500" />
+                            <div className="p-2 bg-error-bg rounded-lg" aria-hidden="true">
+                                <AlertTriangle className="h-5 w-5 text-error-text" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg text-slate-800 dark:text-white">Top Risques Critiques</h3>
@@ -93,13 +93,13 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                 .map((risk, index) => (
                                     <div
                                         key={`risk-card-${index}`}
-                                        className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-red-200 dark:border-red-500/20 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all cursor-pointer group focus:ring-2 focus:ring-red-500 focus:outline-none"
+                                        className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-error-border/50 hover:bg-error-bg transition-all cursor-pointer group focus:ring-2 focus:ring-error-text focus:outline-none"
                                         role="listitem"
                                         tabIndex={0}
                                         aria-label={`Risque critique: ${risk.threat}, Score ${risk.score}`}
                                     >
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                                            <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-error-bg text-error-text border border-error-border/30">
                                                 Score {risk.score}
                                             </span>
                                             <span className="text-[10px] text-slate-500">{risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString() : 'Pas d\'échéance'}</span>

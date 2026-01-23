@@ -45,18 +45,18 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
             <div className="space-y-6 animate-fade-in">
                 {/* Top Summary Section Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="glass-premium p-6 rounded-[2rem] h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-5xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                     <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="glass-premium p-5 rounded-[2rem] h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                        <div className="glass-premium p-5 rounded-[2rem] h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                        <div className="glass-premium p-5 rounded-[2rem] h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                        <div className="glass-premium p-5 rounded-[2rem] h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                        <div className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                        <div className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                        <div className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                        <div className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                     </div>
                 </div>
                 {/* Charts Section Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
-                    <div className="glass-premium p-6 rounded-[2rem] h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                    <div className="glass-premium p-6 rounded-[2rem] h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-5xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                    <div className="glass-premium p-6 rounded-5xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                 </div>
             </div>
         );
@@ -72,7 +72,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <EmptyChartState
                     message="Aucun fournisseur"
                     description="Commencez par ajouter des fournisseurs pour voir apparaître des métriques et des analyses détaillées."
-                    className="glass-premium rounded-[2.5rem] min-h-[400px]"
+                    className="glass-premium rounded-5xl min-h-[400px]"
                     variant="default"
                     icon={<Building className="h-10 w-10 text-brand-500" />}
                 />
@@ -90,7 +90,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
             {/* Top Summary Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* 1. Main Score Card (Glass + Gradient) */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-[2rem] shadow-lg relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl shadow-apple relative overflow-hidden group transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
 
                     {/* Tech Corners */}
@@ -102,8 +102,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                                 <defs>
                                     <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor={avgScore >= 80 ? '#10b981' : avgScore >= 50 ? '#f59e0b' : '#ef4444'} />
-                                        <stop offset="100%" stopColor={avgScore >= 80 ? '#34d399' : avgScore >= 50 ? '#fbbf24' : '#f87171'} />
+                                        <stop offset="0%" stopColor={avgScore >= 80 ? 'hsl(var(--success-text))' : avgScore >= 50 ? 'hsl(var(--warning-text))' : 'hsl(var(--error-text))'} />
+                                        <stop offset="100%" stopColor={avgScore >= 80 ? 'hsl(var(--success-text) / 0.8)' : avgScore >= 50 ? 'hsl(var(--warning-text) / 0.8)' : 'hsl(var(--error-text) / 0.8)'} />
                                     </linearGradient>
                                 </defs>
                                 <circle
@@ -146,17 +146,17 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 {/* 2. Key Metrics Grid */}
                 <motion.div variants={slideUpVariants} className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Metric 1 */}
-                    <div className="glass-premium p-5 rounded-[2rem] flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
-                        <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
-                            <Building className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="glass-premium p-5 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
+                        <div className="p-3 bg-brand-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform ring-1 ring-inset ring-brand-500/20 shadow-sm">
+                            <Building className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                         </div>
                         <span className="text-2xl font-black text-slate-900 dark:text-white mb-1 font-mono">{totalSuppliers}</span>
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total</span>
                     </div>
 
                     {/* Metric 2 */}
-                    <div className="glass-premium p-5 rounded-[2rem] flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
-                        <div className="p-3 bg-orange-50 dark:bg-orange-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
+                    <div className="glass-premium p-5 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
+                        <div className="p-3 bg-orange-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform ring-1 ring-inset ring-orange-500/20 shadow-sm">
                             <ShieldAlert className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                         </div>
                         <span className={`text-2xl font-black mb-1 font-mono ${criticalSuppliers > 0 ? 'text-orange-500' : 'text-slate-900 dark:text-white'}`}>{criticalSuppliers}</span>
@@ -166,19 +166,19 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                     {/* Metric 3 */}
                     <div
                         onClick={() => onFilterChange?.({ type: 'contract', value: 'expired' })}
-                        className="glass-premium p-5 rounded-[2rem] flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-sm border-l-2 border-red-500/50"
+                        className="glass-premium p-5 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-sm border-l-2 border-error-border"
                     >
-                        <div className="p-3 bg-red-50 dark:bg-red-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
-                            <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
+                        <div className="p-3 bg-error-bg rounded-2xl mb-3 group-hover:scale-110 transition-transform ring-1 ring-inset ring-error-border/30 shadow-sm">
+                            <FileText className="h-5 w-5 text-error-text" />
                         </div>
-                        <span className={`text-2xl font-black mb-1 font-mono ${expiredContracts > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>{expiredContracts}</span>
+                        <span className={`text-2xl font-black mb-1 font-mono ${expiredContracts > 0 ? 'text-error-text' : 'text-slate-900 dark:text-white'}`}>{expiredContracts}</span>
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expirés</span>
                     </div>
 
                     {/* Metric 4 */}
-                    <div className="glass-premium p-5 rounded-[2rem] flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
-                        <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
-                            <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    <div className="glass-premium p-5 rounded-4xl flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
+                        <div className="p-3 bg-success-bg rounded-2xl mb-3 group-hover:scale-110 transition-transform ring-1 ring-inset ring-success-border/30 shadow-sm">
+                            <CheckCircle2 className="h-5 w-5 text-success-text" />
                         </div>
                         <span className="text-2xl font-black text-slate-900 dark:text-white mb-1 font-mono">{compliantSuppliers}</span>
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Conformes</span>
@@ -189,15 +189,9 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
                 {/* Distribution Chart */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
-                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-5xl shadow-apple-sm relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <h4 className="text-xs font-black text-slate-500/80 uppercase tracking-widest mb-6 relative z-10 flex items-center gap-2 px-2">
                         <PieChartIcon className="w-4 h-4 text-brand-500" />
                         Distribution par Criticité
                     </h4>
@@ -252,15 +246,9 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 </motion.div>
 
                 {/* Top Categories Chart */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
-                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-5xl shadow-apple-sm relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-5xl" />
+                    <h4 className="text-xs font-black text-slate-500/80 uppercase tracking-widest mb-6 relative z-10 flex items-center gap-2 px-2">
                         <BarChartIcon className="w-4 h-4 text-brand-500" />
                         Top Catégories
                     </h4>

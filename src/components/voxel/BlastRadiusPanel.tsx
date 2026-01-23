@@ -450,16 +450,32 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
   // Business impact color
   const businessImpactColors = IMPACT_COLORS[businessImpact];
 
-  if (!isOpen) return null;
-
   return (
-    <motion.aside
-      initial={{ x: '100%', opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: '100%', opacity: 0 }}
-      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="fixed inset-y-0 right-0 w-[420px] bg-slate-950/95 border-l border-white/10 backdrop-blur-2xl z-50 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]"
-    >
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
+            onClick={onClose}
+          />
+          <motion.aside
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
+            className="fixed inset-y-0 right-0 w-[420px] z-[100001] flex flex-col"
+            style={{
+              background: 'rgba(15, 23, 42, 0.95)',
+              backdropFilter: 'blur(24px)',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
+            }}
+          >
       {/* Header */}
       <div className="p-5 border-b border-white/10 shrink-0">
         <div className="flex items-center justify-between">
@@ -850,11 +866,11 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
           Effacer les resultats
         </button>
       </div>
-    </motion.aside>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
-
-// Re-export with correct name
-
 
 export default BlastRadiusPanel;

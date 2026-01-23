@@ -36,7 +36,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
                     {/* Mobile: Glass Sticky Nav */}
                     <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 sticky top-[4.5rem] z-50 pb-4 pt-2">
-                        <div className="glass-panel p-1.5 rounded-xl flex overflow-x-auto no-scrollbar gap-1 border border-white/20 dark:border-white/10 shadow-lg backdrop-blur-xl snap-x">
+                        <div className="glass-premium p-1.5 rounded-2xl flex overflow-x-auto no-scrollbar gap-1 border-none shadow-apple backdrop-blur-xl snap-x">
                             {visibleTabs.map(tab => {
                                 const isActive = currentTab === tab.id;
                                 return (
@@ -67,7 +67,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
                     {/* Desktop: Vertical list */}
                     <div className="hidden lg:flex flex-col gap-2">
-                        <div className="glass-panel p-2 rounded-2xl border border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 shadow-sm backdrop-blur-md">
+                        <div className="glass-premium p-2 rounded-3xl border border-border/50 bg-white/40 dark:bg-slate-900/40 shadow-apple-sm backdrop-blur-md">
                             {visibleTabs.map(tab => {
                                 const isActive = currentTab === tab.id;
                                 return (
@@ -75,10 +75,10 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         key={tab.id}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
-                                            "group flex items-center w-full px-4 py-3.5 rounded-xl font-medium text-sm transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset",
+                                            "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset",
                                             isActive
-                                                ? "bg-gradient-to-r from-brand-500/10 to-brand-500/5 dark:from-brand-500/20 dark:to-brand-500/10 text-brand-700 dark:text-brand-300 shadow-sm border border-brand-500/10"
-                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"
+                                                ? "bg-brand-500/10 text-brand-700 dark:text-brand-300 shadow-sm border border-brand-500/10"
+                                                : "text-slate-500 dark:text-slate-400 hover:bg-slate-50/80 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
                                         <tab.icon className={cn(

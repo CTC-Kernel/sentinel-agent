@@ -125,14 +125,15 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
     color: string,
     bgColor: string
   ) => (
-    <Card className="p-4">
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${bgColor}`}>
-          <Icon className={`h-5 w-5 ${color}`} />
+    <Card className="p-5 border-none shadow-apple-sm relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+      <div className={`absolute inset-0 opacity-10 ${bgColor}`} />
+      <div className="flex items-center gap-4 relative z-10">
+        <div className={`p-4 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm ${bgColor}`}>
+          <Icon className={`h-6 w-6 ${color}`} />
         </div>
         <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-sm text-muted-foreground">{label}</p>
+          <p className="text-3xl font-black tracking-tight text-foreground">{value}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mt-0.5">{label}</p>
         </div>
       </div>
     </Card>
@@ -174,44 +175,47 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
           t('homologation.totalDossiers', 'Total dossiers'),
           stats.total,
           FileText,
-          'text-blue-600',
-          'bg-blue-100'
+          'text-info-text',
+          'bg-info-bg'
         )}
         {renderStatsCard(
           t('homologation.homologated', 'Homologués'),
           stats.byStatus.homologated,
           CheckCircle,
-          'text-green-600',
-          'bg-green-100'
+          'text-success-text',
+          'bg-success-bg'
         )}
         {renderStatsCard(
           t('homologation.inProgress', 'En cours'),
           stats.byStatus.in_progress + stats.byStatus.draft,
           Shield,
-          'text-amber-600',
-          'bg-amber-100'
+          'text-warning-text',
+          'bg-warning-bg'
         )}
         {renderStatsCard(
           t('homologation.expiringSoon', 'Expirent bientôt'),
           stats.expiringSoon,
           AlertTriangle,
-          'text-yellow-600',
-          'bg-yellow-100'
+          'text-warning-text',
+          'bg-warning-bg'
         )}
         {renderStatsCard(
           t('homologation.expired', 'Expirés'),
           stats.expired,
           AlertTriangle,
-          'text-red-600',
-          'bg-red-100'
+          'text-error-text',
+          'bg-error-bg'
         )}
       </div>
 
       {/* Level distribution and Validity widget */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Level distribution */}
-        <Card className="p-4 lg:col-span-2">
-          <h3 className="font-medium mb-4">{t('homologation.levelDistribution', 'Répartition par niveau')}</h3>
+        <Card className="p-6 lg:col-span-2 border-none shadow-apple-sm rounded-4xl bg-white/50 dark:bg-white/5 backdrop-blur-xl">
+          <h3 className="text-sm font-black uppercase tracking-wider mb-6 text-foreground/80 flex items-center gap-2">
+            <Star className="h-4 w-4" />
+            {t('homologation.levelDistribution', 'Répartition par niveau')}
+          </h3>
           <div className="grid gap-4 md:grid-cols-4">
             {(['etoile', 'simple', 'standard', 'renforce'] as HomologationLevel[]).map((level) => {
               const info = LEVEL_INFO[level];
@@ -222,10 +226,10 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
               return (
                 <div key={level} className="flex items-center gap-3">
                   <div
-                    className="p-2 rounded-lg"
+                    className="p-3 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm"
                     style={{ backgroundColor: `${info.color}20`, color: info.color }}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">

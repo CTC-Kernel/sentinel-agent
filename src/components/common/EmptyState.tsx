@@ -60,7 +60,7 @@ export const EmptyState = ({
                     className="mb-6 relative"
                 >
                     <div className={cn(
-                        "w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-sm backdrop-blur-sm",
+                        "w-20 h-20 rounded-4xl flex items-center justify-center shadow-sm backdrop-blur-sm",
                         colorStyles[color]
                     )}>
                         <Icon className="w-10 h-10" />

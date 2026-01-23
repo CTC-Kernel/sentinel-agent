@@ -11,6 +11,7 @@ import { ComplianceScoreCard } from './dashboard/ComplianceScoreCard';
 import { ComplianceCharts } from './dashboard/ComplianceCharts';
 import { ComplianceCriticalControls } from './dashboard/ComplianceCriticalControls';
 import { ComplianceDomainDetails } from './dashboard/ComplianceDomainDetails';
+import { PriorityActionsList } from './dashboard/PriorityActionsList';
 
 interface ComplianceDashboardProps {
     controls: Control[];
@@ -49,7 +50,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         return (
             <div className="space-y-6 w-full min-w-0">
                 {/* Summary Card Skeleton */}
-                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 shadow-lg flex flex-col xl:flex-row gap-8">
+                <div className="glass-panel p-6 md:p-8 rounded-5xl border border-white/60 dark:border-white/5 shadow-lg flex flex-col xl:flex-row gap-8">
                     <div className="flex items-center gap-6 min-w-[240px]">
                         <Skeleton className="w-24 h-24 rounded-full" />
                         <div className="space-y-2">
@@ -67,9 +68,9 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 {/* Charts Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="glass-panel p-6 rounded-[2rem] h-[350px]">
+                        <div key={i} className="glass-panel p-6 rounded-5xl h-[350px]">
                             <Skeleton className="h-6 w-48 mb-6" />
-                            <Skeleton className="h-full w-full rounded-xl" />
+                            <Skeleton className="h-full w-full rounded-2xl" />
                         </div>
                     ))}
                 </div>
@@ -89,11 +90,22 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
             {totalControls > 0 ? (
                 <>
-                    {/* Charts */}
-                    <ComplianceCharts
-                        controls={controls}
-                        currentFramework={currentFramework}
-                    />
+                    {/* Charts and Priority Actions */}
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <div className="xl:col-span-2">
+                            <ComplianceCharts
+                                controls={controls}
+                                currentFramework={currentFramework}
+                            />
+                        </div>
+                        <div className="xl:col-span-1">
+                            <PriorityActionsList
+                                controls={controls}
+                                currentFramework={currentFramework}
+                                maxActions={5}
+                            />
+                        </div>
+                    </div>
 
                     {/* Critical Controls Not Implemented */}
                     <ComplianceCriticalControls controls={controls} />
@@ -117,15 +129,15 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             <Button onClick={onSeedData} variant="default" className="gap-2">
                                 <RefreshCw className="w-4 h-4" />
                                 Initialiser {currentFramework === 'ISO27001' ? 'ISO 27001 (Sécurité SI)' :
-                                          currentFramework === 'ISO22301' ? 'ISO 22301 (Continuité)' :
-                                          currentFramework === 'NIS2' ? 'NIS 2 (Cyber UE)' :
-                                          currentFramework === 'DORA' ? 'DORA (Résilience Fin.)' :
-                                          currentFramework === 'GDPR' ? 'RGPD (Données Personnelles)' :
-                                          currentFramework === 'SOC2' ? 'SOC 2 (Trust Services)' :
-                                          currentFramework === 'HDS' ? 'HDS (Données de Santé)' :
-                                          currentFramework === 'PCI_DSS' ? 'PCI DSS (Paiement)' :
-                                          currentFramework === 'NIST_CSF' ? 'NIST CSF' :
-                                          currentFramework} (Standard)
+                                    currentFramework === 'ISO22301' ? 'ISO 22301 (Continuité)' :
+                                        currentFramework === 'NIS2' ? 'NIS 2 (Cyber UE)' :
+                                            currentFramework === 'DORA' ? 'DORA (Résilience Fin.)' :
+                                                currentFramework === 'GDPR' ? 'RGPD (Données Personnelles)' :
+                                                    currentFramework === 'SOC2' ? 'SOC 2 (Trust Services)' :
+                                                        currentFramework === 'HDS' ? 'HDS (Données de Santé)' :
+                                                            currentFramework === 'PCI_DSS' ? 'PCI DSS (Paiement)' :
+                                                                currentFramework === 'NIST_CSF' ? 'NIST CSF' :
+                                                                    currentFramework} (Standard)
                             </Button>
                         </div>
                     )}

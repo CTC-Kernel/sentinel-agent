@@ -16,22 +16,36 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('../../store', () => ({
   useStore: () => ({
-    user: { uid: 'user-123' },
+    user: { uid: 'user-123', organizationId: 'org-123' },
     organization: { id: 'org-123' }
   })
 }));
 
 vi.mock('../../services/VendorConcentrationService', () => ({
   VendorConcentrationService: {
-    getMetrics: vi.fn().mockResolvedValue({
-      herfindahlIndex: 0.5,
-      topVendorShare: 35,
-      categoryCount: 5
+    getCachedMetrics: vi.fn().mockResolvedValue(null),
+    calculateConcentrationMetrics: vi.fn().mockResolvedValue({
+      totalVendors: 10,
+      activeVendors: 8,
+      spofCount: 2,
+      highDependencyCount: 3,
+      overallHHI: 1500,
+      concentrationLevel: 'moderate',
+      categoryConcentration: []
     }),
-    getSPOFSummary: vi.fn().mockResolvedValue({ alerts: [], totalSPOFs: 0 }),
-    getDependencyMatrix: vi.fn().mockResolvedValue({ vendors: [], dependencies: [] }),
-    getRecommendations: vi.fn().mockResolvedValue({ recommendations: [] }),
-    getTrends: vi.fn().mockResolvedValue({ trends: [] })
+    identifySPOFs: vi.fn().mockResolvedValue({ totalSPOFs: 2, criticalSPOFs: 1, alerts: [] }),
+    generateRecommendations: vi.fn().mockResolvedValue({
+      totalRecommendations: 3,
+      highPriority: 1,
+      estimatedTotalRiskReduction: 15,
+      recommendations: []
+    }),
+    getConcentrationTrends: vi.fn().mockResolvedValue({
+      trendDirection: 'stable',
+      changePercentage: 0,
+      overallTrend: []
+    }),
+    buildDependencyMatrix: vi.fn().mockResolvedValue({ vendors: [], dependencies: [] })
   }
 }));
 
@@ -74,14 +88,16 @@ describe('VendorConcentration View', () => {
   it('renders metric cards', async () => {
     renderComponent();
     await waitFor(() => {
-      expect(screen.getByText('vendorConcentration.metrics.herfindahl')).toBeInTheDocument();
+      // First metric card shows totalVendors
+      expect(screen.getByText('vendorConcentration.metrics.totalVendors')).toBeInTheDocument();
     });
   });
 
   it('renders tabs for different views', async () => {
     renderComponent();
     await waitFor(() => {
-      expect(screen.getByRole('tablist')).toBeInTheDocument();
+      // Check for tab buttons (component uses custom tab buttons, not role="tablist")
+      expect(screen.getByText('vendorConcentration.tabs.overview')).toBeInTheDocument();
     });
   });
 

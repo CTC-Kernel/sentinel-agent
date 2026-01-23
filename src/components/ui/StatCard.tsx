@@ -67,8 +67,8 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
             role={isInteractive ? 'button' : undefined}
             aria-label={isInteractive ? (ariaLabel || `Voir les détails: ${title}`) : undefined}
             className={cn(
-                'relative group p-6 rounded-4xl border transition-all duration-500 overflow-hidden',
-                'glass-premium',
+                'relative group p-6 rounded-3xl border transition-all duration-500 overflow-hidden',
+                'glass-premium shadow-apple',
                 'hover:shadow-apple-xl dark:hover:shadow-brand-900/20',
                 'hover:-translate-y-1',
                 isInteractive && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2'
@@ -80,8 +80,11 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
             <div className="flex flex-col h-full justify-between relative z-10">
                 {/* Header with icon and trend */}
                 <div className="flex justify-between items-start mb-6">
-                    <div className={`p-3.5 rounded-2xl ${colorClass} bg-opacity-10 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm group-hover:scale-110 transition-transform duration-500`}>
-                        <Icon className={`h-6 w-6 ${colorClass.replace('bg-', 'text-')}`} strokeWidth={2} />
+                    <div className={cn(
+                        "p-4 rounded-2xl bg-opacity-10 ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm transition-transform duration-500 group-hover:scale-110",
+                        colorClass
+                    )}>
+                        <Icon className={cn("h-6 w-6", colorClass.replace('bg-', 'text-'))} strokeWidth={2} />
                     </div>
 
                     {trend && (
@@ -97,11 +100,11 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                     {loading ? (
                         <div className="h-10 w-24 bg-slate-200/50 dark:bg-white/5 rounded-xl animate-pulse mb-2"></div>
                     ) : (
-                        <h3 className="text-4xl font-bold tracking-tighter text-slate-900 dark:text-white font-display">
+                        <h3 className="text-4xl font-extrabold tracking-tightest text-slate-900 dark:text-white font-display">
                             {value}
                         </h3>
                     )}
-                    <p className="text-[13px] font-semibold text-slate-600 dark:text-slate-300 mt-1 tracking-wide uppercase">
+                    <p className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 mt-1 tracking-widest uppercase font-sans">
                         {title}
                     </p>
                 </div>

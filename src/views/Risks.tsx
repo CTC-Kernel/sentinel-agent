@@ -378,7 +378,7 @@ export const Risks: React.FC = () => {
     ], [t]);
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-10 pb-24 rounded-5xl">
             <MasterpieceBackground />
             <PageHeader
                 title={risksTitle}
@@ -435,7 +435,7 @@ export const Risks: React.FC = () => {
                     aria-labelledby="tab-context"
                     className="focus:outline-none"
                 >
-                    <div className="glass-panel p-6 rounded-[2rem]">
+                    <div className="glass-premium p-8 rounded-5xl border border-white/60 dark:border-white/10 shadow-apple-sm">
                         <RiskContextManager />
                     </div>
                 </motion.div>

@@ -174,7 +174,7 @@ export const ProfileSettings: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up">
-            <div className="glass-panel p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-xl relative overflow-hidden">
+            <div className="glass-premium p-8 rounded-5xl border border-border/50 shadow-apple relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
                     {/* Avatar Section */}
@@ -293,9 +293,10 @@ export const ProfileSettings: React.FC = () => {
                                     options={[
                                         { value: 'fr', label: 'Français' },
                                         { value: 'en', label: 'English' },
+                                        { value: 'de', label: 'Deutsch' },
                                     ]}
                                     value={language}
-                                    onChange={(value) => setLanguage(value as 'fr' | 'en')}
+                                    onChange={(value) => setLanguage(value as 'fr' | 'en' | 'de')}
                                 />
                             </div>
                         </div>
@@ -315,8 +316,8 @@ export const ProfileSettings: React.FC = () => {
                                 </p>
                             </div>
 
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
-                                <div className={`p-3 rounded-full ${user?.mfaEnabled ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                            <div className={`flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 ${user?.mfaEnabled ? 'bg-success-bg border-success-border/30 shadow-sm' : 'bg-slate-50 dark:bg-white/5 border-border/50'}`}>
+                                <div className={`p-3 rounded-2xl shadow-sm ${user?.mfaEnabled ? 'bg-success-bg text-success-text' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                                     <ShieldCheck className="w-6 h-6" />
                                 </div>
                                 <div className="flex-1">
@@ -350,8 +351,8 @@ export const ProfileSettings: React.FC = () => {
                                     { key: 'tasks', label: t('common.tasks') },
                                     { key: 'system', label: t('common.system') }
                                 ] as const).map((category) => (
-                                    <div key={category.key} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
-                                        <h4 className="font-medium text-slate-900 dark:text-white mb-3 capitalize">{category.label}</h4>
+                                    <div key={category.key} className="p-5 rounded-3xl bg-slate-50/50 dark:bg-white/5 border border-border/50 shadow-apple-sm group/notif hover:bg-white dark:hover:bg-slate-900 transition-all">
+                                        <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 group-hover/notif:text-brand-500 transition-colors">{category.label}</h4>
                                         <div className="flex gap-6 flex-wrap">
                                             <Controller
                                                 name={`notificationPreferences.${category.key}.email`}
@@ -489,22 +490,22 @@ export const ProfileSettings: React.FC = () => {
             </div>
 
             {/* Danger Zone */}
-            <div className="glass-panel p-8 rounded-[2.5rem] border border-red-200/50 dark:border-red-900/30 shadow-xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/10 pointer-events-none" />
+            <div className="glass-premium p-8 rounded-5xl border border-error-border/30 shadow-apple-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-error-bg/30 to-transparent dark:from-error-bg/10 pointer-events-none" />
                 <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
                     <div className="space-y-2">
-                        <h3 className="text-xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                        <h3 className="text-xl font-black text-error-text flex items-center gap-2 uppercase tracking-wide">
                             <AlertTriangle className="w-6 h-6" />
                             {t('settings.dangerZone')}
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-lg">
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-lg leading-relaxed">
                             {t('settings.deleteAccountDescription')}
                         </p>
                     </div>
                     <Button
                         variant="destructive"
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-900/30 shadow-none hover:shadow-lg hover:shadow-red-500/10 transition-all duration-300"
+                        className="bg-error-bg text-error-text hover:bg-error-text hover:text-white dark:bg-error-bg/20 dark:text-error-text dark:hover:bg-error-text dark:hover:text-white border border-error-border/40 shadow-none hover:shadow-lg hover:shadow-error-text/20 transition-all duration-500 rounded-2xl font-black uppercase tracking-widest"
                     >
                         <Trash2 className="w-4 h-4 mr-2" />
                         {t('settings.deleteAccount')}

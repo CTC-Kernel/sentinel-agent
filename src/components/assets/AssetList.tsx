@@ -30,10 +30,10 @@ interface AssetListProps {
 
 const getCriticalityColor = (level: Criticality) => {
     switch (level) {
-        case Criticality.CRITICAL: return 'bg-red-100/80 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
-        case Criticality.HIGH: return 'bg-orange-100/80 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
-        case Criticality.MEDIUM: return 'bg-yellow-100/80 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
-        default: return 'bg-emerald-100/80 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
+        case Criticality.CRITICAL: return 'bg-error-bg text-error-text border-error-border/50';
+        case Criticality.HIGH: return 'bg-warning-bg text-warning-text border-warning-border/50';
+        case Criticality.MEDIUM: return 'bg-amber-100/80 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800';
+        default: return 'bg-success-bg text-success-text border-success-border/50';
     }
 };
 
@@ -155,7 +155,7 @@ export const AssetList = React.memo<AssetListProps>(({
 
     if (viewMode === 'list') {
         return (
-            <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+            <div className="glass-panel w-full max-w-full rounded-5xl overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10">
                     <DataTable
@@ -220,7 +220,7 @@ export const AssetList = React.memo<AssetListProps>(({
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onEdit(asset); }}
                             role="button"
                             tabIndex={0}
-                            className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 hover:border-brand-500/30 transition-all relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="glass-panel p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 hover:border-brand-500/30 transition-all relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
@@ -229,7 +229,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                         <Tooltip content={t('assets.printLabel')}>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
-                                                className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                                 disabled={isGeneratingLabels}
                                             >
                                                 <Tag className="h-4 w-4" />
@@ -239,7 +239,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             <Tooltip content={t('assets.editAsset')}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onEdit(asset); }}
-                                                    className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-blue-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                    className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>
@@ -249,7 +249,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             <Tooltip content={t('assets.deleteAssetTooltip')}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onDelete(asset.id, asset.name); }}
-                                                    className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-red-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                    className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 hover:text-error-text shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>

@@ -33,7 +33,9 @@ vi.mock('../../hooks/smsi/useSMSIProgram', () => ({
       name: 'Test SMSI Program',
       description: 'Test Description',
       startDate: new Date(),
-      status: 'active'
+      status: 'active',
+      currentPhase: 'plan',
+      targetCertificationDate: null
     },
     milestones: [
       {
@@ -41,21 +43,28 @@ vi.mock('../../hooks/smsi/useSMSIProgram', () => ({
         name: 'Test Milestone',
         phase: 'plan',
         status: 'pending',
-        dueDate: new Date()
+        dueDate: new Date().toISOString()
       }
     ],
     loading: false,
     createProgram: mockCreateProgram,
     updateProgram: mockUpdateProgram,
+    deleteProgram: vi.fn(),
+    advancePhase: vi.fn(),
     createMilestone: vi.fn(),
     updateMilestone: vi.fn(),
+    getMilestonesByPhase: vi.fn().mockReturnValue([]),
+    getOverdueMilestones: vi.fn().mockReturnValue([]),
+    getUpcomingMilestones: vi.fn().mockReturnValue([]),
+    getPhaseProgress: vi.fn().mockReturnValue(0),
+    updateMilestoneStatus: vi.fn(),
     deleteMilestone: mockDeleteMilestone
   })
 }));
 
 vi.mock('../../hooks/team/useTeamData', () => ({
   useTeamData: () => ({
-    members: [{ id: 'user-1', name: 'Test User' }],
+    users: [{ id: 'user-1', displayName: 'Test User', email: 'test@example.com' }],
     loading: false
   })
 }));
@@ -131,6 +140,26 @@ vi.mock('../../components/ui/ConfirmModal', () => ({
 
 vi.mock('../../components/ui/MasterpieceBackground', () => ({
   MasterpieceBackground: () => <div data-testid="masterpiece-bg" />
+}));
+
+vi.mock('../../components/ui/animationVariants', () => ({
+  slideUpVariants: {},
+  staggerContainerVariants: {}
+}));
+
+vi.mock('../../components/smsi/constants', () => ({
+  PHASE_CONFIG: {
+    plan: { label: 'Plan', description: '', icon: () => null },
+    do: { label: 'Do', description: '', icon: () => null },
+    check: { label: 'Check', description: '', icon: () => null },
+    act: { label: 'Act', description: '', icon: () => null }
+  },
+  PHASE_STYLES: {
+    plan: { borderActive: '', bgActive: '', iconBg: '', iconText: '', textActive: '' },
+    do: { borderActive: '', bgActive: '', iconBg: '', iconText: '', textActive: '' },
+    check: { borderActive: '', bgActive: '', iconBg: '', iconText: '', textActive: '' },
+    act: { borderActive: '', bgActive: '', iconBg: '', iconText: '', textActive: '' }
+  }
 }));
 
 vi.mock('../../services/EbiosReportService', () => ({

@@ -27,36 +27,36 @@ export const Badge: React.FC<BadgeProps> = React.memo(({
 
     // Size styles
     const sizeStyles = {
-        sm: "px-2 py-0.5 text-xs rounded-md gap-1",
-        md: "px-2.5 py-1 text-sm rounded-lg gap-1.5"
+        sm: "px-2.5 py-0.5 text-[10px] rounded-lg gap-1 uppercase tracking-wider",
+        md: "px-3 py-1 text-xs rounded-xl gap-1.5 uppercase tracking-wide"
     };
 
     // Status & Variant styles
     const getStatusStyles = () => {
         switch (status) {
             case 'success':
-                if (variant === 'outline') return "border border-emerald-500 text-emerald-600 dark:text-emerald-400";
-                if (variant === 'glass') return "bg-emerald-500/10 backdrop-blur-md text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shadow-sm";
-                if (variant === 'soft') return "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/30";
-                return "bg-emerald-500 text-white shadow-sm shadow-emerald-500/25";
+                if (variant === 'outline') return "border border-success-border text-success-text";
+                if (variant === 'glass') return "bg-success-bg/10 backdrop-blur-md text-success-text border-success-border/20 shadow-sm";
+                if (variant === 'soft') return "bg-success-bg text-success-text border border-success-border/50";
+                return "bg-success-text text-white shadow-sm shadow-success-text/25";
 
             case 'warning':
-                if (variant === 'outline') return "border border-amber-500 text-amber-600 dark:text-amber-400";
-                if (variant === 'glass') return "bg-amber-500/10 backdrop-blur-md text-amber-700 dark:text-amber-300 border border-amber-500/20 shadow-sm";
-                if (variant === 'soft') return "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-900/30";
-                return "bg-amber-500 text-white shadow-sm shadow-amber-500/25";
+                if (variant === 'outline') return "border border-warning-border text-warning-text";
+                if (variant === 'glass') return "bg-warning-bg/10 backdrop-blur-md text-warning-text border-warning-border/20 shadow-sm";
+                if (variant === 'soft') return "bg-warning-bg text-warning-text border border-warning-border/50";
+                return "bg-warning-text text-white shadow-sm shadow-warning-text/25";
 
             case 'error':
-                if (variant === 'outline') return "border border-red-500 text-red-600 dark:text-red-400";
-                if (variant === 'glass') return "bg-red-500/10 backdrop-blur-md text-red-700 dark:text-red-300 border border-red-500/20 shadow-sm";
-                if (variant === 'soft') return "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-900/30";
-                return "bg-red-500 text-white shadow-sm shadow-red-500/25";
+                if (variant === 'outline') return "border border-error-border text-error-text";
+                if (variant === 'glass') return "bg-error-bg/10 backdrop-blur-md text-error-text border-error-border/20 shadow-sm";
+                if (variant === 'soft') return "bg-error-bg text-error-text border border-error-border/50";
+                return "bg-error-text text-white shadow-sm shadow-error-text/25";
 
             case 'info':
-                if (variant === 'outline') return "border border-sky-500 text-sky-600 dark:text-sky-400";
-                if (variant === 'glass') return "bg-sky-500/10 backdrop-blur-md text-sky-700 dark:text-sky-300 border border-sky-500/20 shadow-sm";
-                if (variant === 'soft') return "bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30";
-                return "bg-sky-500 text-white shadow-sm shadow-sky-500/25";
+                if (variant === 'outline') return "border border-info-border text-info-text";
+                if (variant === 'glass') return "bg-info-bg/10 backdrop-blur-md text-info-text border-info-border/20 shadow-sm";
+                if (variant === 'soft') return "bg-info-bg text-info-text border border-info-border/50";
+                return "bg-info-text text-white shadow-sm shadow-info-text/25";
 
             case 'brand':
                 if (variant === 'outline') return "border border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400";

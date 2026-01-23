@@ -25,8 +25,8 @@ export interface AppState {
   addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
 
-  language: 'fr' | 'en';
-  setLanguage: (lang: 'fr' | 'en') => void;
+  language: 'fr' | 'en' | 'de';
+  setLanguage: (lang: 'fr' | 'en' | 'de') => void;
   t: (key: string, options?: Record<string, unknown>) => string;
 
   demoMode: boolean;
@@ -49,7 +49,7 @@ export const useStore = create<AppState>((set) => ({
   isLoading: true,
   toasts: [],
 
-  language: (safeGetItem('language') as 'fr' | 'en') || 'fr',
+  language: (safeGetItem('language') as 'fr' | 'en' | 'de') || 'fr',
   setUser: (user) => set({ user }),
   setOrganization: (organization) => set({ organization }),
   setCustomRoles: (customRoles) => set({ customRoles }),

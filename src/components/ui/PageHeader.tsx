@@ -32,25 +32,23 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         {/* Title Section with Icon */}
         <div className="flex items-center gap-4 sm:gap-8 min-w-0">
           {icon && (
-            <div className="flex shrink-0 items-center justify-center w-40 h-28 sm:w-52 sm:h-36 lg:w-72 lg:h-48 xl:w-80 xl:h-56 rounded-3xl bg-slate-950 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-950 shadow-2xl shadow-slate-300/20 dark:shadow-slate-800/30 ring-2 ring-slate-200/60 dark:ring-slate-700/40 group-hover:scale-105 group-hover:shadow-3xl group-hover:-translate-y-1 transition-all duration-500 relative overflow-hidden backdrop-blur-sm [&_img]:scale-150">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-white/10 dark:from-white/5 to-transparent opacity-0 group-hover:opacity-15 transition-opacity duration-500"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-slate-200/20 via-slate-100/10 to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/8 to-transparent opacity-0 group-hover:opacity-8 transition-opacity duration-500"></div>
-              <div className="absolute -inset-1 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-sm"></div>
+            <div className="flex shrink-0 items-center justify-center w-48 h-32 sm:w-64 sm:h-40 lg:w-80 lg:h-52 rounded-5xl bg-slate-950 dark:bg-slate-900 shadow-2xl ring-1 ring-white/10 dark:ring-white/5 group-hover:scale-[1.02] group-hover:brightness-110 transition-all duration-500 relative overflow-hidden backdrop-blur-md">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.1),transparent)]" />
               {icon}
             </div>
           )}
-          <div className="min-w-0 flex flex-col gap-2 sm:gap-3 pt-1 sm:pt-2">
+          <div className="min-w-0 flex flex-col gap-1 sm:gap-2 pt-1 sm:pt-2">
             <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold font-display text-slate-900 dark:text-white tracking-tight break-words leading-tight drop-shadow-sm">
-                {title}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold font-display text-slate-900 dark:text-white tracking-tightest break-words leading-[1.1] drop-shadow-sm selection:bg-brand-500/30">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white bg-[length:200%_auto] animate-shine">
+                  {title}
+                </span>
               </h1>
               {trustType && <SecurityBadge feature={trustType} className="translate-y-[2px] scale-110" />}
             </div>
             {subtitle && (
-              <p className="text-sm sm:text-base lg:text-lg font-medium text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl sm:max-w-3xl lg:max-w-4xl drop-shadow-xs">
+              <p className="text-base sm:text-lg lg:text-xl font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl sm:max-w-3xl lg:max-w-5xl tracking-tight">
                 {subtitle}
               </p>
             )}

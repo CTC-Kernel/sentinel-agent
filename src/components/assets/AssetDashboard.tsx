@@ -75,10 +75,10 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
         });
 
         return [
-            { name: 'Critique', value: criticalityCounts['Critique'], color: 'hsl(var(--destructive))' },
-            { name: 'Élevé', value: criticalityCounts['Élevé'], color: 'hsl(var(--orange-500))' },
-            { name: 'Moyen', value: criticalityCounts['Moyen'], color: 'hsl(var(--yellow-500))' },
-            { name: 'Faible', value: criticalityCounts['Faible'], color: 'hsl(var(--success))' }
+            { name: 'Critique', value: criticalityCounts['Critique'], color: 'var(--error-text)' },
+            { name: 'Élevé', value: criticalityCounts['Élevé'], color: 'var(--warning-text)' },
+            { name: 'Moyen', value: criticalityCounts['Moyen'], color: 'var(--info-text)' },
+            { name: 'Faible', value: criticalityCounts['Faible'], color: 'var(--success-text)' }
         ];
     }, [assets]);
 
@@ -145,13 +145,13 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
         return (
             <div className="space-y-6 animate-fade-in">
                 {/* Summary Card Skeleton */}
-                <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                <div className="glass-premium p-6 md:p-8 rounded-5xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
                 {/* Charts Grid Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="glass-premium p-6 rounded-[2.5rem] h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                    <div className="glass-premium p-6 rounded-[2.5rem] h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                    <div className="glass-premium p-6 rounded-[2.5rem] h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                    <div className="glass-premium p-6 rounded-[2.5rem] h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
                 </div>
             </div>
         );
@@ -160,14 +160,14 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Summary Card */}
-            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/5 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+            <div className="glass-premium p-6 md:p-8 rounded-5xl border border-white/60 dark:border-white/5 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                 {/* Tech Corners Generic */}
                 <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute bottom-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute bottom-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
                 </div>
 
@@ -270,7 +270,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Criticality Distribution */}
-                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                <div className="glass-premium text-card-foreground p-6 rounded-5xl border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Criticité</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         {assets.length === 0 ? (
@@ -311,7 +311,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Type Distribution */}
-                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                <div className="glass-premium text-card-foreground p-6 rounded-5xl border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Top Types d'Actifs</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         {typeChartData.length === 0 ? (
@@ -354,7 +354,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Scope Distribution */}
-                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                <div className="glass-premium text-card-foreground p-6 rounded-5xl border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Périmètre</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         {scopeChartData.length === 0 ? (
@@ -395,7 +395,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Acquisition Trend (New) */}
-                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                <div className="glass-premium text-card-foreground p-6 rounded-5xl border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Acquisitions (12 derniers mois)</h4>
                     <ResponsiveContainer width="100%" height={250}>
                         {acquisitionData.every(d => d.count === 0) ? (
@@ -409,8 +409,8 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                             <BarChart data={acquisitionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="acquisitionGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="hsl(var(--cyan-500))" stopOpacity={0.8} />
-                                        <stop offset="100%" stopColor="hsl(var(--cyan-500))" stopOpacity={0.3} />
+                                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} vertical={false} />

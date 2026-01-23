@@ -45,7 +45,9 @@ vi.mock('../../hooks/useHomologation', () => ({
     stats: {
       total: 1,
       byLevel: { etoile: 0, simple: 0, standard: 1, renforce: 0 },
-      byStatus: { draft: 1, 'in-progress': 0, 'pending-validation': 0, approved: 0, expired: 0, rejected: 0 }
+      byStatus: { draft: 1, in_progress: 0, pending_decision: 0, homologated: 0, expired: 0, revoked: 0 },
+      expiringSoon: 0,
+      expired: 0
     },
     createDossier: mockCreateDossier,
     deleteDossier: mockDeleteDossier
@@ -80,6 +82,19 @@ vi.mock('../../lib/toast', () => ({
     error: vi.fn()
   }
 }));
+
+vi.mock('../../types/homologation', async () => {
+  const actual = await vi.importActual<typeof import('../../types/homologation')>('../../types/homologation');
+  return {
+    ...actual,
+    LEVEL_INFO: {
+      etoile: { label: 'Étoile', color: '#FCD34D' },
+      simple: { label: 'Simple', color: '#60A5FA' },
+      standard: { label: 'Standard', color: '#34D399' },
+      renforce: { label: 'Renforcé', color: '#F87171' }
+    }
+  };
+});
 
 vi.mock('../../components/ui/button', () => ({
   Button: ({ children, onClick, ...props }: { children: React.ReactNode; onClick?: () => void }) => (
@@ -137,7 +152,9 @@ describe('Homologation View', () => {
 
   it('renders the main structure', () => {
     renderComponent();
-    expect(screen.getByTestId('dossier-list')).toBeInTheDocument();
+    // Multiple dossier lists are rendered (one per tab)
+    const dossierLists = screen.getAllByTestId('dossier-list');
+    expect(dossierLists.length).toBeGreaterThan(0);
   });
 
   it('renders the validity widget', () => {
@@ -152,18 +169,21 @@ describe('Homologation View', () => {
 
   it('opens delete confirmation when delete is clicked', async () => {
     renderComponent();
-    const deleteButton = screen.getByText('Delete Dossier');
-    fireEvent.click(deleteButton);
+    // Multiple delete buttons exist (one per tab), click the first one
+    const deleteButtons = screen.getAllByText('Delete Dossier');
+    fireEvent.click(deleteButtons[0]);
     await waitFor(() => {
       expect(screen.getByTestId('confirm-modal')).toBeInTheDocument();
     });
   });
 
-  it('navigates to dossier detail on edit', () => {
+  it('navigates to dossier edit page on edit', () => {
     renderComponent();
-    const editButton = screen.getByText('Edit Dossier');
-    fireEvent.click(editButton);
-    expect(mockNavigate).toHaveBeenCalledWith('/homologation/dossier-1');
+    // Multiple edit buttons exist (one per tab), click the first one
+    const editButtons = screen.getAllByText('Edit Dossier');
+    fireEvent.click(editButtons[0]);
+    // Component calls handleEditDossier which navigates to /homologation/{id}/edit
+    expect(mockNavigate).toHaveBeenCalledWith('/homologation/dossier-1/edit');
   });
 
   it('exports as default', async () => {

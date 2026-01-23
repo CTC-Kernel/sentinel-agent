@@ -204,12 +204,10 @@ html,
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
   font-family: theme('fontFamily.sans');
-  background-color: #f8fafc;
-  /* Slate-50 - cleaner than fafafa */
+  background-color: hsl(var(--background));
   font-size: 14px;
-  /* Reduced from default 16px for more compact UI */
 }
 
 /* Compact mode - reduce spacing globally */
@@ -218,43 +216,50 @@ html {
   /* Base font size */
 }
 
-/* Make headings more compact */
-h1 {
-  font-size: 1.75rem;
+/* Make headings move with Apple precision */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: theme('fontFamily.display');
+  letter-spacing: theme('letterSpacing.tight');
+  font-weight: 700;
 }
 
-/* ~24px */
+h1 {
+  font-size: 2.25rem;
+  letter-spacing: theme('letterSpacing.tighter');
+}
+
 h2 {
+  font-size: 1.875rem;
+  letter-spacing: theme('letterSpacing.tighter');
+}
+
+h3 {
   font-size: 1.5rem;
 }
 
-/* ~21px */
-h3 {
+h4 {
   font-size: 1.25rem;
 }
 
-/* ~17.5px */
-h4 {
-  font-size: 1.1rem;
-}
-
-/* ~15.4px */
 h5 {
-  font-size: 1rem;
+  font-size: 1.125rem;
 }
 
-/* ~14px */
 h6 {
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 /* ~12.6px */
 
 .dark html,
 .dark body {
-  background-color: #020617;
-  /* Slate-950 - deeper blacks */
-  /* slate-900 */
+  background-color: hsl(var(--background));
+  /* Standardized dark mode background */
 }
 
 /* Premium Text Utilities */
@@ -1030,6 +1035,7 @@ label,
    WCAG 2.1 - Accessibility: Reduced Motion Support
    ============================================================================ */
 @media (prefers-reduced-motion: reduce) {
+
   /* Disable all continuous/decorative animations */
   .animate-fade-in,
   .animate-slide-up,

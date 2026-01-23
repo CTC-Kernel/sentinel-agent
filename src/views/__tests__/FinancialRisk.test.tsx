@@ -20,25 +20,34 @@ const mockDeleteConfig = vi.fn();
 
 vi.mock('../../hooks/useFAIR', () => ({
   useFAIR: () => ({
-    configs: [
+    configurations: [
       {
         id: 'config-1',
         name: 'Test Config',
-        primaryLoss: { min: 1000, max: 10000 },
-        secondaryLoss: { min: 500, max: 5000 },
-        contactFrequency: { min: 1, max: 10 },
-        probabilityOfAction: { min: 0.1, max: 0.5 },
-        threatCapability: { min: 0.3, max: 0.8 },
-        controlStrength: { min: 0.4, max: 0.9 },
+        lossEventFrequency: { distribution: { mostLikely: 2 } },
+        primaryLossMagnitude: {
+          currency: 'EUR',
+          distribution: { min: 1000, max: 10000 }
+        },
+        vulnerability: {
+          controlStrength: { overall: 70 },
+          vulnerabilityScore: 30
+        },
         createdAt: new Date(),
         updatedAt: new Date()
       }
     ],
+    selectedConfig: null,
+    simulationResults: null,
     loading: false,
+    simulating: false,
+    error: null,
+    selectConfiguration: vi.fn(),
+    createFromSimpleForm: mockCreateConfig,
+    deleteConfiguration: mockDeleteConfig,
+    duplicateConfiguration: vi.fn(),
     runSimulation: mockRunSimulation,
-    createConfig: mockCreateConfig,
-    deleteConfig: mockDeleteConfig,
-    lastSimulation: null
+    clearSelection: vi.fn()
   })
 }));
 
@@ -128,12 +137,12 @@ describe('FinancialRisk View', () => {
 
   it('shows create button', () => {
     renderComponent();
-    expect(screen.getByText('fair.actions.create')).toBeInTheDocument();
+    expect(screen.getByText('fair.actions.newAnalysis')).toBeInTheDocument();
   });
 
   it('opens create dialog when button clicked', async () => {
     renderComponent();
-    const createButton = screen.getByText('fair.actions.create');
+    const createButton = screen.getByText('fair.actions.newAnalysis');
     fireEvent.click(createButton);
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();

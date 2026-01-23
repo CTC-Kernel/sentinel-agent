@@ -120,16 +120,16 @@ export const VoxelToolbar: React.FC<VoxelToolbarProps> = ({
 
   return (
     <div
-      className={`fixed top-16 left-1/2 -translate-x-1/2 z-40 ${className}`}
+      className={`absolute top-4 left-1/2 -translate-x-1/2 z-[100000] ${className}`}
     >
       <div
-        className="flex items-center gap-1 p-1.5 rounded-xl"
+        className="flex items-center gap-1 p-1.5 rounded-2xl"
         style={{
-          background: 'rgba(15, 23, 42, 0.95)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(148, 163, 184, 0.1)',
-          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
+          background: 'rgba(15, 23, 42, 0.9)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
         }}
       >
         {/* Navigation Controls */}

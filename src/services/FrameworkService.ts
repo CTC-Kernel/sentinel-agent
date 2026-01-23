@@ -704,4 +704,39 @@ export class FrameworkService {
       throw error;
     }
   }
+
+  // ============================================================================
+  // Framework Seeding (Admin only)
+  // ============================================================================
+
+  /**
+   * Seed NIS2 framework data via Cloud Function
+   * @returns Promise with seeding result
+   */
+  static async seedNIS2Framework(): Promise<{
+    success: boolean;
+    frameworkId: string;
+    requirementCount: number;
+    message: string;
+  }> {
+    try {
+      const { getFunctions, httpsCallable } = await import('firebase/functions');
+      const functions = getFunctions(undefined, 'europe-west1');
+      const seedFn = httpsCallable<unknown, {
+        success: boolean;
+        frameworkId: string;
+        requirementCount: number;
+        message: string;
+      }>(functions, 'seedNIS2Framework');
+
+      const result = await seedFn();
+      return result.data;
+    } catch (error) {
+      ErrorLogger.error(error, 'FrameworkService.seedNIS2Framework', {
+        component: 'FrameworkService',
+        action: 'seedNIS2Framework',
+      });
+      throw error;
+    }
+  }
 }

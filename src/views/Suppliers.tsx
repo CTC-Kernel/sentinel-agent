@@ -341,7 +341,7 @@ export const Suppliers: React.FC = () => {
             accessorKey: 'criticality',
             header: t('common.columns.criticality'),
             cell: ({ row }) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getCriticalityColor(row.original.criticality)}`}>
+                <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${getCriticalityColor(row.original.criticality)}`}>
                     {row.original.criticality}
                 </span>
             )
@@ -350,7 +350,7 @@ export const Suppliers: React.FC = () => {
             accessorKey: 'status',
             header: t('common.columns.status'),
             cell: ({ row }) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${row.original.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
+                <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${row.original.status === 'Actif' ? 'bg-success-bg text-success-text' : 'bg-slate-100 text-slate-700'
                     }`}>
                     {row.original.status}
                 </span>
@@ -361,7 +361,7 @@ export const Suppliers: React.FC = () => {
             header: 'DORA',
             cell: ({ row }) => (
                 row.original.isICTProvider ? (
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800">
+                    <span className="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-info-bg text-info-text border-info-border">
                         DORA ICT
                     </span>
                 ) : (
@@ -425,7 +425,7 @@ export const Suppliers: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 min-w-0"
+            className="space-y-10 pb-20 min-w-0"
         >
             <MasterpieceBackground />
             <SEO
@@ -604,7 +604,7 @@ export const Suppliers: React.FC = () => {
                                             variant="outline"
                                             size="icon"
                                             onClick={handleTemplateModeOpen}
-                                            className="h-10 w-10 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10"
+                                            className="h-10 w-10 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm"
                                             aria-label="Gérer les modèles d'évaluation"
                                         >
                                             <ClipboardList className="h-5 w-5" />
@@ -616,7 +616,7 @@ export const Suppliers: React.FC = () => {
                                             variant="outline"
                                             size="icon"
                                             onClick={() => window.open('/#/dora/providers', '_blank')}
-                                            className="h-10 w-10 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10"
+                                            className="h-10 w-10 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm"
                                             aria-label="Vue DORA des fournisseurs ICT"
                                         >
                                             <ShieldAlert className="h-5 w-5" />
@@ -627,7 +627,7 @@ export const Suppliers: React.FC = () => {
                                         <Button
                                             variant="default"
                                             onClick={handleCreationDrawerOpen}
-                                            className="rounded-xl shadow-lg shadow-brand-500/20"
+                                            className="rounded-2xl shadow-lg shadow-brand-500/20 font-black uppercase tracking-wider"
                                             data-tour="suppliers-new"
                                         >
                                             <Plus className="h-4 w-4 mr-2" />
@@ -639,7 +639,7 @@ export const Suppliers: React.FC = () => {
                         />
 
                         {viewMode === 'list' ? (
-                            <motion.div variants={slideUpVariants} className="glass-premium rounded-[2.5rem] overflow-hidden shadow-sm">
+                            <motion.div variants={slideUpVariants} className="glass-premium rounded-5xl overflow-hidden shadow-apple-sm border border-white/60 dark:border-white/5">
                                 <DataTable
                                     columns={columns}
                                     data={filteredSuppliers}

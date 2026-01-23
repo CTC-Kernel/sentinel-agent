@@ -244,7 +244,7 @@ export const Continuity: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO

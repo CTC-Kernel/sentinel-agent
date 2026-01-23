@@ -212,7 +212,7 @@ export const Vulnerabilities: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-10 pb-20"
         >
             <MasterpieceBackground />
             <SEO
@@ -261,7 +261,7 @@ export const Vulnerabilities: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden"
+                        className="glass-premium p-6 md:p-8 rounded-5xl border border-white/60 dark:border-white/10 shadow-apple relative overflow-hidden"
                     >
                         <VulnerabilityDashboard vulnerabilities={vulnerabilities} />
                     </motion.div>
@@ -285,7 +285,7 @@ export const Vulnerabilities: React.FC = () => {
                                     <>
                                         <div className="flex items-center">
                                             <Menu as="div" className="relative inline-block text-left mr-2">
-                                                <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
                                                     <MoreVertical className="h-5 w-5" />
                                                 </Menu.Button>
                                                 <Transition
@@ -297,7 +297,7 @@ export const Vulnerabilities: React.FC = () => {
                                                     leaveFrom="transform opacity-100 scale-100"
                                                     leaveTo="transform opacity-0 scale-95"
                                                 >
-                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-2xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                                         <div className="p-1">
                                                             <Menu.Item>
                                                                 {({ active }) => (
@@ -321,7 +321,7 @@ export const Vulnerabilities: React.FC = () => {
                                             <CustomTooltip content="Create new vulnerability">
                                                 <Button
                                                     onClick={handleCreateClick}
-                                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-brand-600/20"
+                                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black uppercase tracking-wider transition-colors shadow-lg shadow-brand-600/20"
                                                     aria-label="Create new vulnerability"
                                                 >
                                                     <Plus className="h-5 w-5 mr-2" />

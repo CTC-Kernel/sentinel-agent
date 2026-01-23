@@ -1,8 +1,8 @@
 /**
- * VoxelDetailPanel - Slide-in detail panel for selected nodes
+ * VoxelDetailPanel - Premium slide-in detail panel for selected nodes
  *
- * Shows full information about a selected entity including
- * type-specific details, connections, and quick actions.
+ * Apple-style design with glassmorphism, smooth animations, and
+ * type-specific details for each entity type.
  *
  * @see Story VOX-4.6: Click Detail Panel
  * @see Story VOX-7.1: Asset Details Display
@@ -10,10 +10,10 @@
  * @see Story VOX-7.3: Control Details Display
  * @see Story VOX-7.4: Linked Entities Display
  * @see Story VOX-7.5: Navigation to Full Page
- * @see Architecture: architecture-voxel-module-2026-01-22.md
  */
 
 import React, { useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   ExternalLink,
@@ -34,6 +34,10 @@ import {
   CheckCircle2,
   XCircle,
   ChevronRight,
+  Zap,
+  Lock,
+  Database,
+  Wifi,
 } from 'lucide-react';
 import type { VoxelNode, VoxelNodeType, VoxelNodeStatus } from '@/types/voxel';
 
@@ -42,19 +46,12 @@ import type { VoxelNode, VoxelNodeType, VoxelNodeStatus } from '@/types/voxel';
 // ============================================================================
 
 export interface VoxelDetailPanelProps {
-  /** Node data to display */
   node: VoxelNode | null;
-  /** Whether the panel is open */
   isOpen: boolean;
-  /** Close handler */
   onClose: () => void;
-  /** Navigate to entity detail page */
   onNavigate?: (node: VoxelNode) => void;
-  /** Number of connected edges */
   connectionCount?: number;
-  /** Callback when a linked entity is clicked */
   onSelectLinkedEntity?: (nodeId: string) => void;
-  /** Map of all nodes for resolving linked entities */
   nodesMap?: Map<string, VoxelNode>;
 }
 
@@ -62,97 +59,148 @@ export interface VoxelDetailPanelProps {
 // Constants
 // ============================================================================
 
-const TYPE_CONFIG: Record<VoxelNodeType, { icon: React.ReactNode; label: string; color: string }> = {
+const TYPE_CONFIG: Record<VoxelNodeType, { icon: React.ReactNode; label: string; color: string; gradient: string }> = {
   asset: {
     icon: <Server className="w-4 h-4" />,
-    label: 'Asset',
+    label: 'Actif',
     color: '#3B82F6',
+    gradient: 'from-blue-500/20 to-blue-600/10',
   },
   risk: {
     icon: <AlertTriangle className="w-4 h-4" />,
-    label: 'Risk',
+    label: 'Risque',
     color: '#EF4444',
+    gradient: 'from-red-500/20 to-red-600/10',
   },
   control: {
     icon: <Shield className="w-4 h-4" />,
-    label: 'Control',
+    label: 'Contrôle',
     color: '#8B5CF6',
+    gradient: 'from-purple-500/20 to-purple-600/10',
   },
   audit: {
     icon: <ClipboardCheck className="w-4 h-4" />,
     label: 'Audit',
     color: '#F59E0B',
+    gradient: 'from-amber-500/20 to-amber-600/10',
   },
   project: {
     icon: <FolderKanban className="w-4 h-4" />,
-    label: 'Project',
+    label: 'Projet',
     color: '#10B981',
+    gradient: 'from-emerald-500/20 to-emerald-600/10',
   },
   incident: {
     icon: <Flame className="w-4 h-4" />,
     label: 'Incident',
     color: '#F97316',
+    gradient: 'from-orange-500/20 to-orange-600/10',
   },
   supplier: {
     icon: <Building2 className="w-4 h-4" />,
-    label: 'Supplier',
+    label: 'Fournisseur',
     color: '#6366F1',
+    gradient: 'from-indigo-500/20 to-indigo-600/10',
   },
 };
 
-const STATUS_CONFIG: Record<VoxelNodeStatus, { label: string; color: string }> = {
-  normal: { label: 'Normal', color: '#22C55E' },
-  warning: { label: 'Warning', color: '#F59E0B' },
-  inactive: { label: 'Inactive', color: '#64748B' },
-  critical: { label: 'Critical', color: '#EF4444' },
+const STATUS_CONFIG: Record<VoxelNodeStatus, { label: string; color: string; bgColor: string }> = {
+  normal: { label: 'Normal', color: '#22C55E', bgColor: 'bg-emerald-500/10' },
+  warning: { label: 'Attention', color: '#F59E0B', bgColor: 'bg-amber-500/10' },
+  critical: { label: 'Critique', color: '#EF4444', bgColor: 'bg-red-500/10' },
+  inactive: { label: 'Inactif', color: '#64748B', bgColor: 'bg-slate-500/10' },
 };
 
 // ============================================================================
-// Helper Components
+// Animation Variants
+// ============================================================================
+
+const panelVariants = {
+  hidden: {
+    x: '100%',
+    opacity: 0,
+  },
+  visible: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      damping: 30,
+      stiffness: 300,
+      mass: 0.8,
+    }
+  },
+  exit: {
+    x: '100%',
+    opacity: 0,
+    transition: {
+      type: 'spring',
+      damping: 30,
+      stiffness: 300,
+    }
+  }
+};
+
+const contentVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: 0.1,
+      duration: 0.3,
+      ease: [0.25, 0.46, 0.45, 0.94]
+    }
+  }
+};
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 }
+};
+
+// ============================================================================
+// Sub-components
 // ============================================================================
 
 interface DetailRowProps {
   label: string;
   value: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
-const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
-  <div className="flex justify-between items-start py-2 border-b border-slate-700/50 last:border-0">
-    <span className="text-slate-400 text-sm">{label}</span>
-    <span className="text-slate-200 text-sm text-right max-w-[60%]">{value}</span>
+const DetailRow: React.FC<DetailRowProps> = ({ label, value, icon }) => (
+  <div className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+    <span className="text-xs text-slate-400 flex items-center gap-1.5">
+      {icon}
+      {label}
+    </span>
+    <span className="text-sm text-slate-200 font-medium">{value}</span>
   </div>
 );
 
-// ============================================================================
-// Criticality Badge Component
-// ============================================================================
-
 interface CriticalityBadgeProps {
   level: string;
+  label?: string;
 }
 
-const CRITICALITY_COLORS: Record<string, string> = {
-  Critique: '#EF4444',
-  Élevée: '#F97316',
-  Moyenne: '#F59E0B',
-  Faible: '#22C55E',
-};
+const CriticalityBadge: React.FC<CriticalityBadgeProps> = ({ level, label }) => {
+  const config: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
+    'Critique': { bg: 'bg-red-500/20', text: 'text-red-400', icon: <Lock className="w-3 h-3" /> },
+    'Élevée': { bg: 'bg-orange-500/20', text: 'text-orange-400', icon: <AlertTriangle className="w-3 h-3" /> },
+    'Modérée': { bg: 'bg-yellow-500/20', text: 'text-yellow-400', icon: <Activity className="w-3 h-3" /> },
+    'Faible': { bg: 'bg-green-500/20', text: 'text-green-400', icon: <CheckCircle2 className="w-3 h-3" /> },
+  };
+  const style = config[level] || config['Faible'];
 
-const CriticalityBadge: React.FC<CriticalityBadgeProps> = ({ level }) => {
-  const color = CRITICALITY_COLORS[level] || '#64748B';
   return (
-    <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
-      style={{ background: `${color}20`, color }}
-    >
-      {level}
+    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${style.bg} ${style.text}`}>
+      {style.icon}
+      {label || level}
     </span>
   );
 };
-
-// ============================================================================
-// Risk Score Indicator
-// ============================================================================
 
 interface RiskScoreIndicatorProps {
   probability: number;
@@ -160,66 +208,64 @@ interface RiskScoreIndicatorProps {
   score: number;
 }
 
-const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({
-  probability,
-  impact,
-  score,
-}) => {
+const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, impact, score }) => {
   const getScoreColor = (s: number) => {
-    if (s >= 20) return '#EF4444';
-    if (s >= 12) return '#F97316';
-    if (s >= 6) return '#F59E0B';
-    return '#22C55E';
+    if (s >= 15) return { color: '#EF4444', label: 'Critique' };
+    if (s >= 10) return { color: '#F59E0B', label: 'Élevé' };
+    if (s >= 5) return { color: '#FBBF24', label: 'Modéré' };
+    return { color: '#22C55E', label: 'Faible' };
   };
 
+  const scoreConfig = getScoreColor(score);
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-slate-400 text-xs">Risk Score</span>
-        <span
-          className="text-lg font-bold"
-          style={{ color: getScoreColor(score) }}
+    <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Score de Risque</span>
+        <div
+          className="px-3 py-1 rounded-full text-sm font-bold"
+          style={{ backgroundColor: `${scoreConfig.color}20`, color: scoreConfig.color }}
         >
           {score}
-        </span>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="bg-slate-700/30 rounded p-2">
-          <div className="text-xs text-slate-500">Probability</div>
-          <div className="flex items-center gap-1 mt-1">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="w-3 h-3 rounded-sm"
-                style={{
-                  background: i <= probability ? '#F59E0B' : '#334155',
-                }}
-              />
-            ))}
-          </div>
         </div>
-        <div className="bg-slate-700/30 rounded p-2">
-          <div className="text-xs text-slate-500">Impact</div>
-          <div className="flex items-center gap-1 mt-1">
+      </div>
+
+      {/* Risk Matrix Mini */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-slate-700/30 rounded-xl p-3">
+          <div className="text-xs text-slate-500 mb-2">Probabilité</div>
+          <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
-                className="w-3 h-3 rounded-sm"
+                className="flex-1 h-2 rounded-full transition-all"
                 style={{
-                  background: i <= impact ? '#EF4444' : '#334155',
+                  backgroundColor: i <= probability ? '#3B82F6' : '#334155',
                 }}
               />
             ))}
           </div>
+          <div className="text-right text-xs text-slate-400 mt-1">{probability}/5</div>
+        </div>
+        <div className="bg-slate-700/30 rounded-xl p-3">
+          <div className="text-xs text-slate-500 mb-2">Impact</div>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="flex-1 h-2 rounded-full transition-all"
+                style={{
+                  backgroundColor: i <= impact ? '#EF4444' : '#334155',
+                }}
+              />
+            ))}
+          </div>
+          <div className="text-right text-xs text-slate-400 mt-1">{impact}/5</div>
         </div>
       </div>
     </div>
   );
 };
-
-// ============================================================================
-// Linked Entity Item
-// ============================================================================
 
 interface LinkedEntityItemProps {
   node: VoxelNode;
@@ -231,26 +277,28 @@ const LinkedEntityItem: React.FC<LinkedEntityItemProps> = ({ node, onClick }) =>
   const statusConfig = STATUS_CONFIG[node.status];
 
   return (
-    <button
+    <motion.button
       onClick={onClick}
-      className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-700/50 transition-colors text-left group"
+      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group"
+      whileHover={{ x: 4 }}
+      whileTap={{ scale: 0.98 }}
     >
       <div
-        className="p-1 rounded"
-        style={{ background: `${typeConfig.color}20`, color: typeConfig.color }}
+        className="p-2 rounded-xl transition-transform group-hover:scale-110"
+        style={{ backgroundColor: `${typeConfig.color}15`, color: typeConfig.color }}
       >
         {typeConfig.icon}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm text-slate-200 truncate">{node.label}</div>
+      <div className="flex-1 min-w-0 text-left">
+        <div className="text-sm text-white font-medium truncate">{node.label}</div>
         <div className="text-xs text-slate-500">{typeConfig.label}</div>
       </div>
       <div
-        className="w-2 h-2 rounded-full"
-        style={{ background: statusConfig.color }}
+        className="w-2 h-2 rounded-full shrink-0"
+        style={{ backgroundColor: statusConfig.color }}
       />
-      <ChevronRight className="w-4 h-4 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-    </button>
+      <ChevronRight className="w-4 h-4 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+    </motion.button>
   );
 };
 
@@ -258,18 +306,12 @@ const LinkedEntityItem: React.FC<LinkedEntityItemProps> = ({ node, onClick }) =>
 // Helper Functions
 // ============================================================================
 
-/**
- * Safely get a string value from node data
- */
 const getDataString = (data: Record<string, unknown>, key: string): string | null => {
   const value = data[key];
   if (value === undefined || value === null) return null;
   return String(value);
 };
 
-/**
- * Safely get a number value from node data
- */
 const getDataNumber = (data: Record<string, unknown>, key: string): number | null => {
   const value = data[key];
   if (value === undefined || value === null) return null;
@@ -296,369 +338,305 @@ const AssetDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const availability = getDataString(data, 'availability');
 
   return (
-    <section className="mb-6">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-        Asset Information
-      </h3>
-      <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
-        {owner && (
-          <DetailRow
-            label="Owner"
-            value={
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3" />
-                {owner}
-              </span>
-            }
-          />
-        )}
-        {type && <DetailRow label="Type" value={type} />}
-        {location && (
-          <DetailRow
-            label="Location"
-            value={
-              <span className="flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                {location}
-              </span>
-            }
-          />
-        )}
-        {lifecycleStatus && (
-          <DetailRow label="Lifecycle" value={lifecycleStatus} />
-        )}
-
-        {/* CIA Triad */}
-        {(confidentiality || integrity || availability) && (
-          <div className="pt-2 border-t border-slate-700/50">
-            <div className="text-xs text-slate-500 mb-2">CIA Classification</div>
-            <div className="flex gap-2">
-              {confidentiality && <CriticalityBadge level={confidentiality} />}
-              {integrity && <CriticalityBadge level={integrity} />}
-              {availability && <CriticalityBadge level={availability} />}
-            </div>
-          </div>
-        )}
+    <div className="space-y-4">
+      {/* Main Info Card */}
+      <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+          <Server className="w-3.5 h-3.5" />
+          Informations
+        </h3>
+        <div className="space-y-1 divide-y divide-slate-700/30">
+          {owner && <DetailRow label="Propriétaire" value={owner} icon={<User className="w-3 h-3" />} />}
+          {type && <DetailRow label="Type" value={type} icon={<Database className="w-3 h-3" />} />}
+          {location && <DetailRow label="Localisation" value={location} icon={<MapPin className="w-3 h-3" />} />}
+          {lifecycleStatus && <DetailRow label="Cycle de vie" value={lifecycleStatus} icon={<Activity className="w-3 h-3" />} />}
+        </div>
       </div>
-    </section>
+
+      {/* CIA Triad */}
+      {(confidentiality || integrity || availability) && (
+        <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+            <Shield className="w-3.5 h-3.5" />
+            Classification CIA
+          </h3>
+          <div className="grid grid-cols-3 gap-2">
+            {confidentiality && (
+              <div className="text-center p-3 rounded-xl bg-slate-700/30">
+                <Lock className="w-4 h-4 mx-auto mb-1 text-blue-400" />
+                <div className="text-[10px] text-slate-500 uppercase">Conf.</div>
+                <div className="text-xs font-medium text-slate-200 mt-0.5">{confidentiality}</div>
+              </div>
+            )}
+            {integrity && (
+              <div className="text-center p-3 rounded-xl bg-slate-700/30">
+                <CheckCircle2 className="w-4 h-4 mx-auto mb-1 text-green-400" />
+                <div className="text-[10px] text-slate-500 uppercase">Intég.</div>
+                <div className="text-xs font-medium text-slate-200 mt-0.5">{integrity}</div>
+              </div>
+            )}
+            {availability && (
+              <div className="text-center p-3 rounded-xl bg-slate-700/30">
+                <Wifi className="w-4 h-4 mx-auto mb-1 text-amber-400" />
+                <div className="text-[10px] text-slate-500 uppercase">Disp.</div>
+                <div className="text-xs font-medium text-slate-200 mt-0.5">{availability}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
 const RiskDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const data = node.data || {};
-  const probability = getDataNumber(data, 'probability');
-  const impact = getDataNumber(data, 'impact');
-  const score = getDataNumber(data, 'score');
+  const probability = getDataNumber(data, 'probability') || 0;
+  const impact = getDataNumber(data, 'impact') || 0;
+  const score = getDataNumber(data, 'score') || 0;
   const threat = getDataString(data, 'threat');
-  const vulnerability = getDataString(data, 'vulnerability');
-  const strategy = getDataString(data, 'strategy');
+  const treatment = getDataString(data, 'treatment');
   const owner = getDataString(data, 'owner');
-  const residualScore = getDataNumber(data, 'residualScore');
 
   return (
-    <section className="mb-6">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-        Risk Assessment
-      </h3>
-      <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
-        {/* Risk Score Matrix */}
-        {probability !== null && impact !== null && score !== null && (
-          <RiskScoreIndicator
-            probability={probability}
-            impact={impact}
-            score={score}
-          />
-        )}
+    <div className="space-y-4">
+      {/* Risk Score */}
+      <RiskScoreIndicator probability={probability} impact={impact} score={score} />
 
-        {threat && <DetailRow label="Threat" value={threat} />}
-        {vulnerability && <DetailRow label="Vulnerability" value={vulnerability} />}
-        {strategy && (
-          <DetailRow
-            label="Strategy"
-            value={
-              <span className="flex items-center gap-1">
-                <Target className="w-3 h-3" />
-                {strategy}
-              </span>
-            }
-          />
-        )}
-        {owner && (
-          <DetailRow
-            label="Risk Owner"
-            value={
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3" />
-                {owner}
-              </span>
-            }
-          />
-        )}
-        {residualScore !== null && (
-          <DetailRow
-            label="Residual Score"
-            value={
-              <span className="flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                {residualScore}
-              </span>
-            }
-          />
-        )}
+      {/* Risk Info */}
+      <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+          <AlertTriangle className="w-3.5 h-3.5" />
+          Détails du Risque
+        </h3>
+        <div className="space-y-1 divide-y divide-slate-700/30">
+          {threat && <DetailRow label="Menace" value={threat} />}
+          {treatment && <DetailRow label="Traitement" value={treatment} />}
+          {owner && <DetailRow label="Propriétaire" value={owner} icon={<User className="w-3 h-3" />} />}
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 const ControlDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const data = node.data || {};
-  const code = getDataString(data, 'code');
   const name = getDataString(data, 'name');
-  const framework = getDataString(data, 'framework');
-  const type = getDataString(data, 'type');
   const status = getDataString(data, 'status');
+  const effectiveness = getDataNumber(data, 'effectiveness');
   const owner = getDataString(data, 'owner');
-  const maturity = getDataNumber(data, 'maturity');
-  const isImplemented = status === 'Implémenté' || status === 'Actif';
+  const framework = getDataString(data, 'framework');
+
+  const getStatusColor = (s: string | null) => {
+    if (!s) return '#64748B';
+    const lower = s.toLowerCase();
+    if (lower.includes('implémenté') || lower.includes('actif')) return '#22C55E';
+    if (lower.includes('partiel') || lower.includes('en cours')) return '#F59E0B';
+    return '#EF4444';
+  };
 
   return (
-    <section className="mb-6">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-        Control Details
-      </h3>
-      <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
-        {code && (
-          <DetailRow
-            label="Code"
-            value={<code className="text-xs bg-slate-700/50 px-1 rounded">{code}</code>}
-          />
-        )}
-        {name && <DetailRow label="Name" value={name} />}
-        {framework && <DetailRow label="Framework" value={framework} />}
-        {type && <DetailRow label="Type" value={type} />}
-        {status && (
-          <DetailRow
-            label="Status"
-            value={
-              <span className="flex items-center gap-1">
-                {isImplemented ? (
-                  <CheckCircle2 className="w-3 h-3 text-green-400" />
-                ) : (
-                  <XCircle className="w-3 h-3 text-amber-400" />
-                )}
+    <div className="space-y-4">
+      {/* Effectiveness Gauge */}
+      {effectiveness !== null && (
+        <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Efficacité</span>
+            <span className="text-lg font-bold text-white">{effectiveness}%</span>
+          </div>
+          <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${effectiveness}%` }}
+              transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{
+                background: effectiveness >= 80 ? '#22C55E' : effectiveness >= 50 ? '#F59E0B' : '#EF4444'
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Control Info */}
+      <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+          <Shield className="w-3.5 h-3.5" />
+          Informations
+        </h3>
+        <div className="space-y-1 divide-y divide-slate-700/30">
+          {status && (
+            <div className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+              <span className="text-xs text-slate-400">Statut</span>
+              <span
+                className="text-sm font-medium px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: `${getStatusColor(status)}20`, color: getStatusColor(status) }}
+              >
                 {status}
               </span>
-            }
-          />
-        )}
-        {owner && (
-          <DetailRow
-            label="Owner"
-            value={
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3" />
-                {owner}
-              </span>
-            }
-          />
-        )}
-        {maturity !== null && (
-          <DetailRow label="Maturity Level" value={`${maturity}/5`} />
-        )}
+            </div>
+          )}
+          {framework && <DetailRow label="Framework" value={framework} />}
+          {owner && <DetailRow label="Propriétaire" value={owner} icon={<User className="w-3 h-3" />} />}
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 const ProjectDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const data = node.data || {};
-  const manager = getDataString(data, 'manager');
   const status = getDataString(data, 'status');
   const progress = getDataNumber(data, 'progress');
-  const startDate = getDataString(data, 'startDate');
-  const dueDate = getDataString(data, 'dueDate');
+  const owner = getDataString(data, 'owner');
+  const budget = getDataNumber(data, 'budget');
+  const deadline = getDataString(data, 'deadline');
 
   return (
-    <section className="mb-6">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-        Project Details
-      </h3>
-      <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
-        {manager && (
-          <DetailRow
-            label="Manager"
-            value={
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3" />
-                {manager}
-              </span>
-            }
-          />
-        )}
-        {status && <DetailRow label="Status" value={status} />}
-        {progress !== null && (
-          <div>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-slate-400">Progress</span>
-              <span className="text-slate-200">{progress}%</span>
-            </div>
-            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 transition-all"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+    <div className="space-y-4">
+      {/* Progress */}
+      {progress !== null && (
+        <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Avancement</span>
+            <span className="text-lg font-bold text-white">{progress}%</span>
           </div>
-        )}
-        {startDate && <DetailRow label="Start Date" value={startDate} />}
-        {dueDate && <DetailRow label="Due Date" value={dueDate} />}
+          <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-emerald-500 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Project Info */}
+      <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+          <FolderKanban className="w-3.5 h-3.5" />
+          Informations
+        </h3>
+        <div className="space-y-1 divide-y divide-slate-700/30">
+          {status && <DetailRow label="Statut" value={status} />}
+          {owner && <DetailRow label="Responsable" value={owner} icon={<User className="w-3 h-3" />} />}
+          {budget && <DetailRow label="Budget" value={`${budget.toLocaleString()} €`} />}
+          {deadline && <DetailRow label="Échéance" value={deadline} icon={<Calendar className="w-3 h-3" />} />}
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 const AuditDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const data = node.data || {};
-  const type = getDataString(data, 'type');
-  const framework = getDataString(data, 'framework');
-  const auditor = getDataString(data, 'auditor');
   const status = getDataString(data, 'status');
+  const auditor = getDataString(data, 'auditor');
+  const scope = getDataString(data, 'scope');
   const findingsCount = getDataNumber(data, 'findingsCount');
-  const dateScheduled = getDataString(data, 'dateScheduled');
 
   return (
-    <section className="mb-6">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-        Audit Details
-      </h3>
-      <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
-        {type && <DetailRow label="Type" value={type} />}
-        {framework && <DetailRow label="Framework" value={framework} />}
-        {auditor && (
-          <DetailRow
-            label="Auditor"
-            value={
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3" />
-                {auditor}
-              </span>
-            }
-          />
-        )}
-        {status && <DetailRow label="Status" value={status} />}
-        {findingsCount !== null && (
-          <DetailRow
-            label="Findings"
-            value={
-              <span className={findingsCount > 5 ? 'text-amber-400' : 'text-slate-200'}>
-                {findingsCount}
-              </span>
-            }
-          />
-        )}
-        {dateScheduled && <DetailRow label="Scheduled" value={dateScheduled} />}
+    <div className="space-y-4">
+      <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+          <ClipboardCheck className="w-3.5 h-3.5" />
+          Informations
+        </h3>
+        <div className="space-y-1 divide-y divide-slate-700/30">
+          {status && <DetailRow label="Statut" value={status} />}
+          {auditor && <DetailRow label="Auditeur" value={auditor} icon={<User className="w-3 h-3" />} />}
+          {scope && <DetailRow label="Périmètre" value={scope} />}
+          {findingsCount !== null && <DetailRow label="Constats" value={findingsCount} />}
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 const IncidentDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const data = node.data || {};
   const severity = getDataString(data, 'severity');
-  const category = getDataString(data, 'category');
   const status = getDataString(data, 'status');
-  const reporter = getDataString(data, 'reporter');
-  const dateReported = getDataString(data, 'dateReported');
+  const assignee = getDataString(data, 'assignee');
+  const source = getDataString(data, 'source');
+
+  const getSeverityColor = (s: string | null) => {
+    if (!s) return '#64748B';
+    const lower = s.toLowerCase();
+    if (lower.includes('critique')) return '#EF4444';
+    if (lower.includes('élevé') || lower.includes('haute')) return '#F97316';
+    if (lower.includes('moyen') || lower.includes('modéré')) return '#F59E0B';
+    return '#22C55E';
+  };
 
   return (
-    <section className="mb-6">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-        Incident Details
-      </h3>
-      <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
-        {severity && (
-          <DetailRow
-            label="Severity"
-            value={<CriticalityBadge level={severity} />}
-          />
-        )}
-        {category && <DetailRow label="Category" value={category} />}
-        {status && (
-          <DetailRow
-            label="Status"
-            value={
-              <span className="flex items-center gap-1">
-                <Activity className="w-3 h-3" />
-                {status}
-              </span>
-            }
-          />
-        )}
-        {reporter && (
-          <DetailRow
-            label="Reporter"
-            value={
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3" />
-                {reporter}
-              </span>
-            }
-          />
-        )}
-        {dateReported && <DetailRow label="Reported" value={dateReported} />}
+    <div className="space-y-4">
+      {/* Severity Badge */}
+      {severity && (
+        <div
+          className="rounded-2xl p-4 border"
+          style={{
+            backgroundColor: `${getSeverityColor(severity)}10`,
+            borderColor: `${getSeverityColor(severity)}30`
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <Zap className="w-6 h-6" style={{ color: getSeverityColor(severity) }} />
+            <div>
+              <div className="text-xs text-slate-400 uppercase">Sévérité</div>
+              <div className="text-lg font-bold" style={{ color: getSeverityColor(severity) }}>{severity}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Incident Info */}
+      <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+          <Flame className="w-3.5 h-3.5" />
+          Informations
+        </h3>
+        <div className="space-y-1 divide-y divide-slate-700/30">
+          {status && <DetailRow label="Statut" value={status} />}
+          {assignee && <DetailRow label="Assigné à" value={assignee} icon={<User className="w-3 h-3" />} />}
+          {source && <DetailRow label="Source" value={source} />}
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 const SupplierDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   const data = node.data || {};
-  const category = getDataString(data, 'category');
-  const criticality = getDataString(data, 'criticality');
-  const riskLevel = getDataString(data, 'riskLevel');
+  const name = getDataString(data, 'name');
   const status = getDataString(data, 'status');
-  const securityScore = getDataNumber(data, 'securityScore');
+  const riskLevel = getDataString(data, 'riskLevel');
+  const contact = getDataString(data, 'contact');
+  const category = getDataString(data, 'category');
 
   return (
-    <section className="mb-6">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-        Supplier Details
-      </h3>
-      <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
-        {category && <DetailRow label="Category" value={category} />}
-        {criticality && (
-          <DetailRow
-            label="Criticality"
-            value={<CriticalityBadge level={criticality} />}
-          />
-        )}
-        {riskLevel && <DetailRow label="Risk Level" value={riskLevel} />}
-        {status && <DetailRow label="Status" value={status} />}
-        {securityScore !== null && (
-          <DetailRow label="Security Score" value={`${securityScore}/100`} />
-        )}
+    <div className="space-y-4">
+      <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+          <Building2 className="w-3.5 h-3.5" />
+          Informations
+        </h3>
+        <div className="space-y-1 divide-y divide-slate-700/30">
+          {status && <DetailRow label="Statut" value={status} />}
+          {category && <DetailRow label="Catégorie" value={category} />}
+          {riskLevel && <DetailRow label="Niveau de risque" value={riskLevel} />}
+          {contact && <DetailRow label="Contact" value={contact} icon={<User className="w-3 h-3" />} />}
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 // ============================================================================
-// Component
+// Main Component
 // ============================================================================
 
-/**
- * VoxelDetailPanel renders a slide-in panel from the right showing
- * detailed information about the selected node.
- *
- * @example
- * ```tsx
- * <VoxelDetailPanel
- *   node={selectedNode}
- *   isOpen={!!selectedNode}
- *   onClose={() => selectNode(null)}
- * />
- * ```
- */
 export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
   node,
   isOpen,
@@ -668,14 +646,13 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
   onSelectLinkedEntity,
   nodesMap,
 }) => {
-  // Handle escape key
+  // Keyboard handler
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
@@ -689,13 +666,29 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
   // Get linked entities
   const linkedEntities = useMemo(() => {
     if (!node || !nodesMap) return [];
-    return node.connections
-      .map((id) => nodesMap.get(id))
-      .filter((n): n is VoxelNode => n !== undefined);
+
+    const linked: VoxelNode[] = [];
+
+    // Direct connections
+    node.connections.forEach(connId => {
+      const connNode = nodesMap.get(connId);
+      if (connNode) linked.push(connNode);
+    });
+
+    // Nodes that connect TO this node
+    nodesMap.forEach((n) => {
+      if (n.id !== node.id && n.connections.includes(node.id)) {
+        if (!linked.find(l => l.id === n.id)) {
+          linked.push(n);
+        }
+      }
+    });
+
+    return linked;
   }, [node, nodesMap]);
 
   // Render type-specific details
-  const renderTypeDetails = useCallback(() => {
+  const renderTypeDetails = useMemo(() => {
     if (!node) return null;
     switch (node.type) {
       case 'asset':
@@ -723,158 +716,179 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
   const statusConfig = STATUS_CONFIG[node.status];
 
   return (
-    <>
-      {/* Backdrop (optional - for click-away) */}
+    <AnimatePresence mode="wait">
       {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={onClose}
-          style={{ background: 'transparent' }}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Panel */}
-      <div
-        className={`fixed right-0 top-12 bottom-0 w-80 z-50 transform transition-transform duration-300 ease-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        style={{
-          background: 'rgba(15, 23, 42, 0.95)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderLeft: '1px solid rgba(148, 163, 184, 0.1)',
-          boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.3)',
-        }}
-        role="dialog"
-        aria-label={`Details for ${node.label}`}
-      >
-        {/* Header */}
-        <div
-          className="flex items-center justify-between p-4 border-b"
-          style={{ borderColor: 'rgba(148, 163, 184, 0.1)' }}
-        >
-          <div className="flex items-center gap-2">
-            <div
-              className="p-1.5 rounded"
-              style={{ background: `${typeConfig.color}20`, color: typeConfig.color }}
-            >
-              {typeConfig.icon}
-            </div>
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-              {typeConfig.label} Details
-            </span>
-          </div>
-          <button
+        <>
+          {/* Backdrop */}
+          <motion.div
+            key="backdrop"
+            className="fixed inset-0 z-[100000] bg-black/40 backdrop-blur-sm"
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             onClick={onClose}
-            className="p-1.5 rounded hover:bg-slate-700/50 transition-colors text-slate-400 hover:text-slate-200"
-            aria-label="Close panel"
+          />
+
+          {/* Panel */}
+          <motion.div
+            key="panel"
+            className="fixed right-0 top-0 bottom-0 w-96 z-[100001] flex flex-col"
+            variants={panelVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            style={{
+              background: 'rgba(15, 23, 42, 0.85)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Détails de ${node.label}`}
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
-          {/* Title */}
-          <h2 className="text-lg font-semibold text-white mb-1">{node.label}</h2>
-
-          {/* Status badge */}
-          <div className="flex items-center gap-2 mb-4">
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-              style={{
-                background: `${statusConfig.color}20`,
-                color: statusConfig.color,
-              }}
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ background: statusConfig.color }}
-              />
-              {statusConfig.label}
-            </span>
-            <span className="text-xs text-slate-500">
-              {connectionCount} connection{connectionCount !== 1 ? 's' : ''}
-            </span>
-          </div>
-
-          {/* Type-specific details */}
-          {renderTypeDetails()}
-
-          {/* Linked Entities */}
-          {linkedEntities.length > 0 && (
-            <section className="mb-6">
-              <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-                <span className="flex items-center gap-1">
-                  <Link2 className="w-3 h-3" />
-                  Linked Entities ({linkedEntities.length})
-                </span>
-              </h3>
-              <div className="bg-slate-800/50 rounded-lg divide-y divide-slate-700/50">
-                {linkedEntities.slice(0, 10).map((linkedNode) => (
-                  <LinkedEntityItem
-                    key={linkedNode.id}
-                    node={linkedNode}
-                    onClick={() => onSelectLinkedEntity?.(linkedNode.id)}
-                  />
-                ))}
-                {linkedEntities.length > 10 && (
-                  <div className="p-2 text-center text-xs text-slate-500">
-                    +{linkedEntities.length - 10} more
+            {/* Header with gradient */}
+            <div className={`relative overflow-hidden`}>
+              <div className={`absolute inset-0 bg-gradient-to-br ${typeConfig.gradient} opacity-50`} />
+              <motion.div
+                className="relative p-5"
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="p-2.5 rounded-xl shrink-0"
+                      style={{ backgroundColor: `${typeConfig.color}20`, color: typeConfig.color }}
+                    >
+                      {typeConfig.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-0.5">
+                        {typeConfig.label}
+                      </div>
+                      <h2 className="text-lg font-semibold text-white truncate">{node.label}</h2>
+                    </div>
                   </div>
-                )}
-              </div>
-            </section>
-          )}
+                  <motion.button
+                    onClick={onClose}
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-slate-400 hover:text-white shrink-0"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    aria-label="Fermer"
+                  >
+                    <X className="w-5 h-5" />
+                  </motion.button>
+                </div>
 
-          {/* Timeline */}
-          <section className="mb-6">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-2">
-              Timeline
-            </h3>
-            <div className="bg-slate-800/50 rounded-lg p-3">
-              <DetailRow
-                label="Created"
-                value={
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {new Date(node.createdAt).toLocaleDateString()}
+                {/* Status & Connections */}
+                <div className="flex items-center gap-3 mt-4">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.bgColor}`}
+                    style={{ color: statusConfig.color }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full animate-pulse"
+                      style={{ backgroundColor: statusConfig.color }}
+                    />
+                    {statusConfig.label}
                   </span>
-                }
-              />
-              <DetailRow
-                label="Updated"
-                value={new Date(node.updatedAt).toLocaleDateString()}
-              />
+                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                    <Link2 className="w-3 h-3" />
+                    {connectionCount} connexion{connectionCount !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </motion.div>
             </div>
-          </section>
-        </div>
 
-        {/* Footer Actions */}
-        <div
-          className="absolute bottom-0 left-0 right-0 p-4 border-t"
-          style={{
-            borderColor: 'rgba(148, 163, 184, 0.1)',
-            background: 'rgba(15, 23, 42, 0.95)',
-          }}
-        >
-          {onNavigate && (
-            <button
-              onClick={handleNavigate}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{
-                background: typeConfig.color,
-                color: '#FFFFFF',
-              }}
+            {/* Scrollable Content */}
+            <motion.div
+              className="flex-1 overflow-y-auto p-5 space-y-5"
+              variants={contentVariants}
+              initial="hidden"
+              animate="visible"
             >
-              <ExternalLink className="w-4 h-4" />
-              View Full Details
-            </button>
-          )}
-        </div>
-      </div>
-    </>
+              {/* Type-specific details */}
+              {renderTypeDetails}
+
+              {/* Linked Entities */}
+              {linkedEntities.length > 0 && (
+                <div className="bg-slate-800/80 rounded-2xl border border-slate-700/50 overflow-hidden">
+                  <div className="p-4 border-b border-slate-700/50">
+                    <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 flex items-center gap-2">
+                      <Link2 className="w-3.5 h-3.5" />
+                      Entités liées ({linkedEntities.length})
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-slate-700/30">
+                    {linkedEntities.slice(0, 8).map((linkedNode) => (
+                      <LinkedEntityItem
+                        key={linkedNode.id}
+                        node={linkedNode}
+                        onClick={() => onSelectLinkedEntity?.(linkedNode.id)}
+                      />
+                    ))}
+                    {linkedEntities.length > 8 && (
+                      <div className="p-3 text-center text-xs text-slate-500">
+                        +{linkedEntities.length - 8} autres
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Timeline */}
+              <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Historique
+                </h3>
+                <div className="space-y-1 divide-y divide-slate-700/30">
+                  <DetailRow
+                    label="Création"
+                    value={new Date(node.createdAt).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  />
+                  <DetailRow
+                    label="Modification"
+                    value={new Date(node.updatedAt).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Footer with CTA */}
+            {onNavigate && (
+              <div className="p-5 border-t border-white/5 bg-slate-900/50">
+                <motion.button
+                  onClick={handleNavigate}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
+                  style={{
+                    background: `linear-gradient(135deg, ${typeConfig.color}, ${typeConfig.color}CC)`,
+                    boxShadow: `0 4px 14px ${typeConfig.color}40`,
+                  }}
+                  whileHover={{ scale: 1.02, boxShadow: `0 6px 20px ${typeConfig.color}50` }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Voir tous les détails
+                </motion.button>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 

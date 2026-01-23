@@ -292,7 +292,7 @@ export const Reports: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -306,12 +306,12 @@ export const Reports: React.FC = () => {
                     title={t('reports.title')}
                     subtitle={t('reports.subtitle')}
                     icon={
-                    <img
-                        src="/images/pilotage.png"
-                        alt="PILOTAGE"
-                        className="w-full h-full object-contain"
-                    />
-                }
+                        <img
+                            src="/images/pilotage.png"
+                            alt="PILOTAGE"
+                            className="w-full h-full object-contain"
+                        />
+                    }
 
                 />
             </motion.div>
@@ -325,7 +325,7 @@ export const Reports: React.FC = () => {
             </motion.div>
 
             {activeTab === 'templates' && (
-                <div className="space-y-8">
+                <div className="space-y-10">
                     {/* Compliance Section */}
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
@@ -333,7 +333,7 @@ export const Reports: React.FC = () => {
                             {t('reports.categories.compliance')}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all group relative overflow-hidden">
+                            <div className="glass-premium p-6 rounded-3xl border border-white/10 hover:border-brand-500 transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -370,7 +370,7 @@ export const Reports: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-blue-500 transition-all group relative overflow-hidden">
+                            <div className="glass-premium p-6 rounded-3xl border border-white/10 hover:border-blue-500 transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -413,7 +413,7 @@ export const Reports: React.FC = () => {
                             {t('reports.categories.executive')}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-purple-500 transition-all group relative overflow-hidden">
+                            <div className="glass-premium p-6 rounded-3xl border border-white/10 hover:border-purple-500 transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -458,7 +458,7 @@ export const Reports: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {documents.filter(d => d.type === 'Rapport').length > 0 ? (
                         documents.filter(d => d.type === 'Rapport').map(doc => (
-                            <div key={doc.id} className="glass-premium p-6 rounded-2xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all group">
+                            <div key={doc.id} className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all group">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400">
                                         <FileText className="h-6 w-6" />
@@ -515,21 +515,19 @@ export const Reports: React.FC = () => {
                             {scheduledReports.map(report => (
                                 <div
                                     key={report.id}
-                                    className={`glass-premium p-6 rounded-2xl border transition-all ${
-                                        report.status === 'active'
+                                    className={`glass-premium p-6 rounded-2xl border transition-all ${report.status === 'active'
                                             ? 'border-emerald-200 dark:border-emerald-800'
                                             : 'border-slate-200 dark:border-slate-700 opacity-60'
-                                    }`}
+                                        }`}
                                 >
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
                                             <Calendar className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                                         </div>
-                                        <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
-                                            report.status === 'active'
+                                        <span className={`px-2 py-1 rounded-lg text-xs font-bold ${report.status === 'active'
                                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                                        }`}>
+                                            }`}>
                                             {report.status === 'active' ? t('reports.status.active') : t('reports.status.paused')}
                                         </span>
                                     </div>

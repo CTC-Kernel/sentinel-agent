@@ -33,30 +33,30 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
             label: `Score ${currentFramework}`,
             value: `${globalScore}%`,
             icon: TrendingUp,
-            color: 'text-blue-500',
-            bg: 'bg-blue-500/10'
+            color: 'text-brand-600 dark:text-brand-400',
+            bg: 'bg-brand-500/10'
         },
         {
             label: "Contrôles Implémentés",
             value: `${implementedControls}/${actionableControls}`,
             subtext: "Sur le périmètre applicable",
             icon: CheckCircle2,
-            color: 'text-emerald-500',
-            bg: 'bg-emerald-500/10'
+            color: 'text-success-text',
+            bg: 'bg-success-bg'
         },
         {
             label: "À traiter",
             value: todoControls,
             icon: AlertTriangle,
-            color: 'text-amber-500',
-            bg: 'bg-amber-500/10'
+            color: 'text-warning-text',
+            bg: 'bg-warning-bg'
         },
         {
             label: "Preuves collectées",
             value: evidenceCount,
             icon: Paperclip,
-            color: 'text-purple-500',
-            bg: 'bg-purple-500/10'
+            color: 'text-info-text',
+            bg: 'bg-info-bg'
         }
     ];
 
@@ -77,7 +77,7 @@ export const ComplianceStatsWidget: React.FC<ComplianceStatsWidgetProps> = ({ co
                             </p>
                         )}
                     </div>
-                    <div className={cn("p-3 rounded-xl", stat.bg)}>
+                    <div className={cn("p-4 rounded-2xl ring-1 ring-inset ring-black/5 dark:ring-white/10 shadow-sm", stat.bg)}>
                         <stat.icon className={cn("w-6 h-6", stat.color)} />
                     </div>
                 </GlassCard>

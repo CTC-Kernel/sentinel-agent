@@ -250,7 +250,7 @@ export const ThreatIntelligence: React.FC = () => {
     const filterOptions = React.useMemo(() => ['All', 'Ransomware', 'Vulnerability', 'Malware'], []);
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-20">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-10 pb-24">
             <MasterpieceBackground />
             <SEO title="Threat Intelligence Collaboratif" description="Carte des menaces en temps réel et flux collaboratif." />
 
@@ -352,7 +352,7 @@ export const ThreatIntelligence: React.FC = () => {
             {/* MAP TAB */}
             {
                 activeTab === 'map' && (
-                    <motion.div variants={slideUpVariants} className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden">
+                    <motion.div variants={slideUpVariants} className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-5xl border border-white/10 shadow-2xl overflow-hidden">
                         <div className="absolute top-6 right-6 z-10 flex gap-3">
                             <button
                                 aria-label="Toggle 2D/3D view"
@@ -419,7 +419,7 @@ export const ThreatIntelligence: React.FC = () => {
             {
                 activeTab === 'community' && (
                     <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-gradient-to-br from-brand-900 to-purple-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
+                        <div className="bg-gradient-to-br from-brand-900 to-purple-900 rounded-5xl p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
                             <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
 
                             <div className="relative z-10">
@@ -448,7 +448,7 @@ export const ThreatIntelligence: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-200 dark:border-white/5 p-8 backdrop-blur-xl shadow-xl">
+                        <div className="bg-white dark:bg-slate-800/50 rounded-5xl border border-slate-200 dark:border-white/5 p-8 backdrop-blur-xl shadow-xl">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
@@ -458,8 +458,8 @@ export const ThreatIntelligence: React.FC = () => {
 
                             <div className="space-y-6">
                                 {topContributors.map((c, i) => (
-                                    <div 
-                                        key={c.name} 
+                                    <div
+                                        key={c.name}
                                         className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer"
                                         onClick={() => handleHunterClick({ ...c, rank: i + 1 })}
                                     >

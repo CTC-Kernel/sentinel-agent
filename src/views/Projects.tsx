@@ -270,7 +270,7 @@ export const Projects: React.FC = () => {
     const handleInspectorUpdateTasks = useCallback(async (p: Project, t: import('../types').ProjectTask[]) => { await updateProjectTasks(p, t); }, [updateProjectTasks]);
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-20">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-10 pb-24">
             <MasterpieceBackground />
             <SEO title={t('sidebar.projects')} description={t('projects.subtitle')} />
 
@@ -458,7 +458,7 @@ export const Projects: React.FC = () => {
                         });
 
                         return (
-                            <div key={statusKey} className="flex flex-col glass-premium rounded-2xl p-4 h-full">
+                            <div key={statusKey} className="flex flex-col glass-premium rounded-3xl p-5 h-full border-slate-200/60 dark:border-white/5">
                                 <h4 className="flex justify-between px-1 mb-4 text-sm font-bold tracking-wider uppercase text-slate-600 dark:text-slate-400">
                                     {statusLabel}
                                     <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs shadow-sm border border-slate-200 dark:border-white/5">

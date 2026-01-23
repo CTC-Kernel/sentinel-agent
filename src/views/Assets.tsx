@@ -338,12 +338,12 @@ const Assets: React.FC = () => {
             variants={staggerContainerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-6"
+            className="space-y-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title={t('assets.title')} description={t('assets.description')} />
 
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-10">
                 {/* Header */}
                 <motion.div variants={slideUpVariants}>
                     <PageHeader
@@ -383,7 +383,7 @@ const Assets: React.FC = () => {
                             transition={{ duration: 0.2 }}
                         >
                             {reachedAssetLimit && (
-                                <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
+                                <div className="mb-4 rounded-3xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
                                     <span>{t('assets.limitReached', { count: assets.length, max: limits.maxAssets })}</span>
                                     <Button
                                         variant="link"

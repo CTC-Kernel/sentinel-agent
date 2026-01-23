@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
   Clock,
@@ -355,22 +356,51 @@ export function TimeMachine({
     setDelta(null);
   }, []);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-background border-l shadow-xl z-50 flex flex-col">
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100000]"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
+            className="fixed inset-y-0 right-0 w-[400px] z-[100001] flex flex-col"
+            style={{
+              background: 'rgba(15, 23, 42, 0.95)',
+              backdropFilter: 'blur(24px)',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.4), -2px 0 8px rgba(0, 0, 0, 0.2)',
+            }}
+          >
       {/* Header */}
-      <div className="p-4 border-b flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold">Time Machine</h2>
-          <Badge variant="soft" className="text-xs">
-            {format(selectedDate, 'dd MMM yyyy', { locale: fr })}
-          </Badge>
+      <div className="p-5 border-b border-white/10 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+            <Clock className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-white">Time Machine</h2>
+            <Badge variant="soft" className="text-xs mt-0.5">
+              {format(selectedDate, 'dd MMM yyyy', { locale: fr })}
+            </Badge>
+          </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Date Navigation */}
@@ -623,13 +653,16 @@ export function TimeMachine({
       </div>
 
       {/* Footer with read-only indicator */}
-      <div className="p-4 border-t bg-muted/50">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="outline">Lecture seule</Badge>
+      <div className="p-4 border-t border-white/10 shrink-0" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <div className="flex items-center gap-2 text-xs text-white/50">
+          <Badge variant="outline" className="border-white/20 text-white/60">Lecture seule</Badge>
           <span>Données historiques - non modifiables</span>
         </div>
       </div>
-    </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 

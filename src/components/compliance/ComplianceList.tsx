@@ -62,8 +62,8 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
         return (
             <div className="space-y-4">
                 {[1, 2, 3, 4].map(i => (
-                    <div key={`skel-${i}`} className="glass-premium p-6 flex items-center gap-4 rounded-xl">
-                        <Skeleton className="w-12 h-12 rounded-xl" />
+                    <div key={`skel-${i}`} className="glass-premium p-6 flex items-center gap-4 rounded-4xl">
+                        <Skeleton className="w-12 h-12 rounded-2xl" />
                         <div className="space-y-2 flex-1">
                             <Skeleton className="h-5 w-48" />
                             <Skeleton className="h-4 w-full max-w-md" />
@@ -96,7 +96,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                 const isExpanded = expandedDomains.includes(domain.id) || (filter && filter.length > 0);
 
                 return (
-                    <div key={domain.id} className="glass-premium rounded-[2rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative">
+                    <div key={domain.id} className="glass-premium rounded-5xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple group relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div
                             data-testid={`domain-header-${domain.id}`}
@@ -104,7 +104,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                             className={`p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
                             <div className="flex items-center gap-5 flex-1 min-w-0">
-                                <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10 shrink-0">
+                                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-200 flex items-center justify-center font-black text-lg border border-slate-200 dark:border-white/10 shrink-0 shadow-sm shadow-black/5">
                                     {domain.id.split('.')[1] || domain.id}
                                 </div>
                                 <div className="min-w-0">
@@ -118,11 +118,11 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                         <span>Progression</span>
                                         <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
                                     </div>
-                                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                                        <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`} style={{ width: `${stats.progress}%` }}></div>
+                                    <div className="w-full bg-slate-100 dark:bg-slate-800/50 rounded-full h-2 overflow-hidden shadow-inner">
+                                        <div className={`h-full rounded-full transition-all duration-700 ease-in-out ${stats.progress === 100 ? 'bg-success-text shadow-glow shadow-success-text/20' : 'bg-brand-600 shadow-glow shadow-brand-600/20'}`} style={{ width: `${stats.progress}%` }}></div>
                                     </div>
                                 </div>
-                                <div className={`p-2 rounded-full transition-all duration-300 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-500'}`}>
+                                <div className={`p-2 rounded-xl transition-all duration-500 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-apple-sm rotate-180 text-slate-900 dark:text-white ring-1 ring-black/5' : 'text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-100 dark:group-hover:bg-white/5'}`}>
                                     <ChevronDown className="h-5 w-5" />
                                 </div>
                             </div>
@@ -151,7 +151,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                             >
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex items-start gap-3 min-w-0">
-                                                        <div className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-xl text-xs font-black transition-colors ${isActive ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300' : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-600'}`}>
+                                                        <div className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl text-xs font-black transition-colors shadow-sm ${isActive ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-600'}`}>
                                                             {control.code.split('.').slice(1).join('.') || control.code}
                                                         </div>
                                                         <div className="min-w-0 pt-0.5">
@@ -161,8 +161,8 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                             <p className="text-[11px] text-slate-500 font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
                                                         </div>
                                                     </div>
-                                                    <div className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' :
-                                                        control.status === 'Partiel' ? 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' :
+                                                    <div className={`shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-success-text bg-success-bg border-success-border/50' :
+                                                        control.status === 'Partiel' ? 'text-warning-text bg-warning-bg border-warning-border/50' :
                                                             control.status === 'Non applicable' ? 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700' :
                                                                 'text-slate-600 bg-white border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                                                         }`}>
@@ -172,13 +172,13 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
 
                                                 <div className="flex items-center gap-2 mt-4 pl-[3.25rem]">
                                                     {control.evidenceIds && control.evidenceIds.length > 0 ? (
-                                                        <span className="flex items-center text-emerald-600 bg-emerald-50/80 dark:bg-emerald-900/20 px-2 py-1 rounded-md text-[10px] font-bold border border-emerald-100 dark:border-emerald-900/30">
+                                                        <span className="flex items-center text-success-text bg-success-bg px-2 py-1 rounded-lg text-[10px] font-bold border border-success-border/30">
                                                             <Paperclip className="h-3 w-3 mr-1.5" />
                                                             {control.evidenceIds.length}
                                                         </span>
                                                     ) : (control.status === 'Implémenté') ? (
                                                         <CustomTooltip content="Preuve obligatoire manquante">
-                                                            <span className="flex items-center text-orange-600 bg-orange-50/80 dark:bg-orange-900/20 px-2 py-1 rounded-md text-[10px] font-bold border border-orange-100 dark:border-orange-900/30">
+                                                            <span className="flex items-center text-warning-text bg-warning-bg px-2 py-1 rounded-lg text-[10px] font-bold border border-warning-border/30">
                                                                 <AlertTriangle className="h-3 w-3 mr-1.5" />
                                                                 Manquante
                                                             </span>
@@ -186,14 +186,14 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                                     ) : null}
 
                                                     {riskCount > 0 && (
-                                                        <span className="flex items-center text-blue-600 bg-blue-50/80 dark:bg-blue-900/20 px-2 py-1 rounded-md text-[10px] font-bold border border-blue-100 dark:border-blue-900/30">
+                                                        <span className="flex items-center text-info-text bg-info-bg px-2 py-1 rounded-lg text-[10px] font-bold border border-info-border/30">
                                                             <ShieldAlert className="h-3 w-3 mr-1.5" />
                                                             {riskCount}
                                                         </span>
                                                     )}
 
                                                     {findingsCount > 0 && (
-                                                        <span className="flex items-center text-red-600 bg-red-50/80 dark:bg-red-900/20 px-2 py-1 rounded-md text-[10px] font-bold border border-red-100 dark:border-red-900/30">
+                                                        <span className="flex items-center text-error-text bg-error-bg px-2 py-1 rounded-lg text-[10px] font-bold border border-error-border/30">
                                                             <AlertOctagon className="h-3 w-3 mr-1.5" />
                                                             {findingsCount}
                                                         </span>

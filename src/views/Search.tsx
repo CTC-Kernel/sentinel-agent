@@ -71,7 +71,7 @@ export const Search: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title="Recherche Avancée" description="Recherchez dans tous vos actifs, risques, documents et projets" />

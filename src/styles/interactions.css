@@ -20,8 +20,8 @@
 }
 
 .hover-secondary:hover {
-  background-color: rgba(59, 130, 246, 0.05);
-  border-color: rgba(59, 130, 246, 0.2);
+  background-color: rgb(var(--color-primary) / 0.05);
+  border-color: rgb(var(--color-primary) / 0.2);
   transform: translateY(-1px);
 }
 
@@ -42,11 +42,11 @@
 /* Focus states - standardized */
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.2);
 }
 
 .focus-ring:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline: 2px solid rgb(var(--color-primary) / 0.5);
   outline-offset: 2px;
 }
 
@@ -80,18 +80,21 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent);
   animation: loading-shimmer 1.5s infinite;
 }
 
 @keyframes loading-shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 100%;
+  }
 }
 
 /* Button-specific states - standardized */
@@ -102,11 +105,11 @@
 }
 
 .btn-interactive:focus {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.2);
 }
 
 .btn-interactive:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline: 2px solid rgb(var(--color-primary) / 0.5);
   outline-offset: 2px;
 }
 
@@ -128,8 +131,8 @@
 }
 
 .btn-secondary:hover {
-  background-color: rgba(59, 130, 246, 0.05);
-  border-color: rgba(59, 130, 246, 0.2);
+  background-color: rgb(var(--color-primary) / 0.05);
+  border-color: rgb(var(--color-primary) / 0.2);
   transform: translateY(-1px);
 }
 
@@ -162,7 +165,7 @@
 }
 
 .card-interactive:hover {
-  border-color: rgba(59, 130, 246, 0.2);
+  border-color: rgb(var(--color-primary) / 0.2);
 }
 
 /* Input field states - standardized */
@@ -172,8 +175,8 @@
 }
 
 .input-interactive:focus {
-  border-color: rgba(59, 130, 246, 0.5);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: rgb(var(--color-primary) / 0.5);
+  box-shadow: 0 0 0 3px rgb(var(--color-primary) / 0.1);
 }
 
 /* Table row states - standardized */
@@ -182,7 +185,7 @@
 }
 
 .table-row-interactive:hover {
-  background-color: rgba(59, 130, 246, 0.02);
+  background-color: rgb(var(--color-primary) / 0.02);
 }
 
 /* Navigation states - standardized */
@@ -192,12 +195,12 @@
 }
 
 .nav-item-interactive:hover {
-  background-color: rgba(59, 130, 246, 0.08);
+  background-color: rgb(var(--color-primary) / 0.08);
 }
 
 .nav-item-interactive.active {
-  background-color: rgba(59, 130, 246, 0.1);
-  border-left: 3px solid rgb(59, 130, 246);
+  background-color: rgb(var(--color-primary) / 0.1);
+  border-left: 3px solid rgb(var(--color-primary));
 }
 
 /* Modal overlay states - standardized */
@@ -223,7 +226,7 @@
 }
 
 .dropdown-item-interactive:hover {
-  background-color: rgba(59, 130, 246, 0.05);
+  background-color: rgb(var(--color-primary) / 0.05);
 }
 
 /* Tab states - standardized */
@@ -233,12 +236,12 @@
 }
 
 .tab-interactive:hover {
-  border-bottom-color: rgba(59, 130, 246, 0.3);
+  border-bottom-color: rgb(var(--color-primary) / 0.3);
 }
 
 .tab-interactive.active {
-  border-bottom-color: rgb(59, 130, 246);
-  color: rgb(59, 130, 246);
+  border-bottom-color: rgb(var(--color-primary));
+  color: rgb(var(--color-primary));
 }
 
 /* Form validation states - standardized */
@@ -275,7 +278,7 @@
 
 /* Focus visible for keyboard navigation - standardized */
 .focus-visible-only:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline: 2px solid rgb(var(--color-primary) / 0.5);
   outline-offset: 2px;
 }
 
@@ -284,7 +287,7 @@
   .hover-primary:hover {
     outline: 2px solid currentColor;
   }
-  
+
   .focus-ring:focus {
     outline: 3px solid currentColor;
   }
@@ -292,23 +295,24 @@
 
 /* Reduced motion support - standardized */
 @media (prefers-reduced-motion: reduce) {
+
   .interactive-element,
   .interactive-element-fast,
   .interactive-element-slow {
     transition: none;
   }
-  
+
   .hover-primary:hover,
   .hover-secondary:hover,
   .hover-danger:hover,
   .hover-success:hover {
     transform: none;
   }
-  
+
   .active-scale:active {
     transform: none;
   }
-  
+
   .loading-state::after {
     animation: none;
   }
