@@ -214,28 +214,83 @@ function getDefaultAgentConfig() {
 }
 
 /**
- * Generate placeholder certificate (in production, use real PKI)
+ * Generate self-signed certificate for agent enrollment
+ *
+ * NOTE: In production, replace this with proper PKI:
+ * - Use Cloud KMS for key generation
+ * - Use a proper CA (internal or external)
+ * - Implement certificate rotation
+ *
+ * This self-signed implementation provides real crypto but no chain of trust.
  */
-function generatePlaceholderCert(type, agentId = '') {
-  const now = new Date().toISOString();
-  return Buffer.from(
-    JSON.stringify({
-      type,
-      agentId,
-      issuedAt: now,
-      placeholder: true,
-    })
-  ).toString('base64');
+function generateSelfSignedCert(type, agentId = '') {
+  const crypto = require('crypto');
+  const { logger } = require('firebase-functions');
+
+  // Log warning in production
+  logger.warn('Using self-signed certificates. For production, implement proper PKI with Cloud KMS.');
+
+  // Generate key pair
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+  });
+
+  // Create a simple self-signed certificate structure
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1 year
+
+  const certData = {
+    version: 3,
+    serialNumber: crypto.randomBytes(16).toString('hex'),
+    issuer: 'CN=Sentinel GRC Agent CA, O=Sentinel GRC',
+    subject: `CN=${agentId || 'agent'}, O=Sentinel GRC, OU=${type}`,
+    notBefore: now.toISOString(),
+    notAfter: expiresAt.toISOString(),
+    publicKey: publicKey,
+    // Sign the certificate data with the private key
+    signature: crypto.sign('sha256',
+      Buffer.from(JSON.stringify({ agentId, type, notBefore: now.toISOString(), notAfter: expiresAt.toISOString() })),
+      privateKey
+    ).toString('base64')
+  };
+
+  return {
+    certificate: Buffer.from(JSON.stringify(certData)).toString('base64'),
+    privateKey: Buffer.from(privateKey).toString('base64'),
+    publicKey: Buffer.from(publicKey).toString('base64'),
+    expiresAt: expiresAt.toISOString()
+  };
 }
 
 /**
- * Generate placeholder private key (in production, use real PKI)
+ * Generate certificates for agent enrollment
+ * Returns server cert, client cert, and client private key
  */
+function generateAgentCertificates(agentId) {
+  const serverCert = generateSelfSignedCert('server', 'sentinel-grc-server');
+  const clientCert = generateSelfSignedCert('client', agentId);
+
+  return {
+    serverCertificate: serverCert.certificate,
+    clientCertificate: clientCert.certificate,
+    clientKey: clientCert.privateKey,
+    certificateExpiresAt: clientCert.expiresAt
+  };
+}
+
+// Legacy functions for backward compatibility - redirect to new implementation
+function generatePlaceholderCert(type, agentId = '') {
+  const cert = generateSelfSignedCert(type, agentId);
+  return cert.certificate;
+}
+
 function generatePlaceholderKey() {
-  return Buffer.from(
-    JSON.stringify({
-      type: 'placeholder_key',
-      generated: new Date().toISOString(),
-    })
-  ).toString('base64');
+  const crypto = require('crypto');
+  const { privateKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+  });
+  return Buffer.from(privateKey).toString('base64');
 }
