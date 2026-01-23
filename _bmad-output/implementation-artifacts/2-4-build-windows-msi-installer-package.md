@@ -1,6 +1,6 @@
 # Story 2.4: Build Windows MSI Installer Package
 
-Status: review
+Status: done
 
 ## Story
 
@@ -119,3 +119,26 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - 2026-01-23: Created WiX MSI installer configuration
 - 2026-01-23: Added Windows CI workflow for MSI building
+
+## Senior Developer Review (AI)
+
+**Reviewer:** Mary (Business Analyst) via Code Review Workflow
+**Date:** 2026-01-23
+**Model:** Claude Opus 4.5
+
+### Issues Found & Fixed
+
+| # | Severity | Issue | Resolution |
+|---|----------|-------|------------|
+| 1 | 🔴 CRITICAL | IniFile used for JSON config (corruption) | Fixed: Removed IniFile, use env vars instead |
+| 2 | 🟡 MEDIUM | Duplicate binary (2 copies of agent-core.exe) | Fixed: Single binary with service in same component |
+| 3 | 🟢 LOW | Recovery delays not differentiated | Noted: WiX limitation, single delay used |
+
+### Verification
+
+- ✅ WiX source file is valid XML
+- ✅ Single binary installation (no duplicate)
+- ✅ Service registration in correct component
+- ✅ Build script unchanged (still works)
+
+### Decision: **APPROVED** ✅
