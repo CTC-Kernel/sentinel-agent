@@ -45,7 +45,7 @@ development_status:
   1-1-initialize-cargo-workspace-structure: review
   1-2-configure-ci-cd-pipeline-with-quality-gates: review
   1-3-implement-agent-common-core-types-and-error-handling: review
-  1-4-configure-security-tooling: in-progress
+  1-4-configure-security-tooling: review
   epic-1-retrospective: optional
 
   # Epic 2: Agent Core & Service Lifecycle
