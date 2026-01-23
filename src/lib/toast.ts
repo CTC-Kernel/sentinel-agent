@@ -32,17 +32,28 @@ export const toast = {
         }
         return '';
     },
-    info: (title: string, message?: string) => {
+    info: (title: string, message?: string, action?: { label: string; onClick: () => void }) => {
         if (notificationContext) {
             const actualTitle = message ? title : 'Information';
             const actualMessage = message ? message : title;
-            return notificationContext.addNotification({ type: 'info', title: actualTitle, message: actualMessage });
+            return notificationContext.addNotification({
+                type: 'info',
+                title: actualTitle,
+                message: actualMessage,
+                action
+            });
         }
         return '';
     },
-    persistent: (type: NotificationType, title: string, message?: string) => {
+    persistent: (type: NotificationType, title: string, message?: string, action?: { label: string; onClick: () => void }) => {
         if (notificationContext) {
-            return notificationContext.addNotification({ type, title, message, persistent: true });
+            return notificationContext.addNotification({
+                type,
+                title,
+                message,
+                persistent: true,
+                action
+            });
         }
         return '';
     },

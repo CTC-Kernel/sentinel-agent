@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { useAuth } from '../../hooks/useAuth';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../firebase';
 import {
     Server,
     Terminal,
@@ -11,7 +13,9 @@ import {
     Clock,
     ShieldCheck,
     Cpu,
-    Monitor
+    Monitor,
+    Copy,
+    Loader2
 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
@@ -20,6 +24,24 @@ import { AgentService } from '../../services/AgentService';
 import { SentinelAgent, AgentStatus } from '../../types/agent';
 import { cn } from '../../lib/utils';
 import { motion } from 'framer-motion';
+
+// Types for release info
+interface PlatformInfo {
+    displayName: string;
+    available: boolean;
+    downloadUrl: string;
+    directUrl: string | null;
+}
+
+interface ReleaseInfo {
+    product: string;
+    currentVersion: string;
+    platforms: Record<string, PlatformInfo>;
+    mobile?: {
+        ios: { available: boolean; appStoreUrl: string; comingSoon: boolean };
+        android: { available: boolean; playStoreUrl: string; comingSoon: boolean };
+    };
+}
 
 // Download API base URL
 const RELEASE_API_URL = 'https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/downloadRelease';
@@ -30,10 +52,12 @@ interface DownloadButtonProps {
     sublabel: string;
     icon: React.ReactNode;
     available?: boolean;
+    loading?: boolean;
 }
 
-const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, available = true }) => {
+const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, available = true, loading = false }) => {
     const handleDownload = () => {
+        if (loading) return;
         if (!available) {
             toast.info("Cette version sera disponible prochainement");
             return;
@@ -45,9 +69,11 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
     return (
         <button
             onClick={handleDownload}
+            disabled={loading}
             className={cn(
                 "flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full",
-                !available && "opacity-60"
+                !available && !loading && "opacity-60",
+                loading && "opacity-50 cursor-wait"
             )}
         >
             <div className="flex items-center gap-3">
@@ -57,7 +83,9 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
                     <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{sublabel}</div>
                 </div>
             </div>
-            {available ? (
+            {loading ? (
+                <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+            ) : available ? (
                 <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
             ) : (
                 <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600">
@@ -75,6 +103,40 @@ export const AgentManagement: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [showEnrollment, setShowEnrollment] = useState(false);
     const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
+    const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
+    const [loadingReleases, setLoadingReleases] = useState(true);
+
+    // Fetch available releases on mount
+    useEffect(() => {
+        const fetchReleases = async () => {
+            try {
+                const getReleaseInfo = httpsCallable<{ product: string }, ReleaseInfo>(functions, 'getReleaseInfo');
+                const result = await getReleaseInfo({ product: 'agent' });
+                setReleaseInfo(result.data);
+            } catch (error) {
+                console.error('Failed to fetch release info:', error);
+                // Set default values if fetch fails
+                setReleaseInfo({
+                    product: 'agent',
+                    currentVersion: '1.0.0',
+                    platforms: {
+                        windows: { displayName: 'Windows (MSI)', available: false, downloadUrl: '', directUrl: null },
+                        macos: { displayName: 'macOS (DMG)', available: false, downloadUrl: '', directUrl: null },
+                        linux_deb: { displayName: 'Linux (DEB)', available: false, downloadUrl: '', directUrl: null },
+                        linux_rpm: { displayName: 'Linux (RPM)', available: false, downloadUrl: '', directUrl: null },
+                    },
+                    mobile: {
+                        ios: { available: true, appStoreUrl: '#', comingSoon: true },
+                        android: { available: true, playStoreUrl: '#', comingSoon: true },
+                    }
+                });
+            } finally {
+                setLoadingReleases(false);
+            }
+        };
+
+        fetchReleases();
+    }, []);
 
     // Subscribe to real-time agent updates
     // IMPORTANT: Wait for claimsSynced to be true before subscribing
@@ -359,25 +421,60 @@ export const AgentManagement: React.FC = () => {
                             <div className="relative z-10">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                                     <ShieldCheck className="w-5 h-5 text-brand-500" />
-                                    Nouveau Token
+                                    Token d'Enrôlement
                                 </h3>
-                                <div className="p-4 bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-brand-500/20 font-mono text-sm text-brand-600 dark:text-brand-400 break-all select-all flex justify-between items-center gap-2">
-                                    {enrollmentToken}
+
+                                {/* Token display */}
+                                <div className="p-4 bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-brand-500/20 font-mono text-xs text-brand-600 dark:text-brand-400 break-all select-all flex justify-between items-center gap-2">
+                                    <span className="truncate">{enrollmentToken}</span>
                                     <button
                                         onClick={() => {
                                             navigator.clipboard.writeText(enrollmentToken || '');
-                                            toast.success("Copié !");
+                                            toast.success("Token copié !");
                                         }}
-                                        className="p-2 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-lg transition-colors"
+                                        className="p-2 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-lg transition-colors flex-shrink-0"
+                                        title="Copier le token"
                                     >
-                                        <Download className="w-4 h-4" />
+                                        <Copy className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <p className="mt-4 text-xs text-slate-500 leading-relaxed">
-                                    Utilisez ce token lors de l'installation de l'agent. Il expirera dans 24 heures.
-                                </p>
+                                {/* Installation instructions */}
+                                <div className="mt-4 space-y-3">
+                                    <p className="text-xs text-slate-500 font-medium">
+                                        Utilisez ce token lors de l'installation. Expire dans 24h.
+                                    </p>
+
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                                            Commande d'enrôlement :
+                                        </p>
+                                        <div className="relative">
+                                            <pre className="p-3 bg-slate-900 dark:bg-black/50 rounded-xl text-[11px] text-emerald-400 overflow-x-auto">
+                                                <code>sentinel-agent enroll --token {enrollmentToken?.substring(0, 8)}...</code>
+                                            </pre>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(`sentinel-agent enroll --token ${enrollmentToken}`);
+                                                    toast.success("Commande copiée !");
+                                                }}
+                                                className="absolute right-2 top-2 p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                                            >
+                                                <Copy className="w-3 h-3 text-slate-400" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-slate-200 dark:border-white/10">
+                                        <p className="text-[10px] text-slate-400 leading-relaxed">
+                                            <strong>macOS :</strong> Ouvrez le Terminal après installation<br />
+                                            <strong>Windows :</strong> Ouvrez PowerShell en admin<br />
+                                            <strong>Linux :</strong> Ouvrez un terminal
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <Button
-                                    className="w-full mt-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
+                                    className="w-full mt-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
                                     onClick={() => setShowEnrollment(false)}
                                 >
                                     Fermer
@@ -435,28 +532,32 @@ export const AgentManagement: React.FC = () => {
                                 label="Windows"
                                 sublabel="Installateur .MSI"
                                 icon={<Monitor className="w-5 h-5 text-blue-500" />}
-                                available={false}
+                                available={releaseInfo?.platforms?.windows?.available ?? false}
+                                loading={loadingReleases}
                             />
                             <DownloadButton
                                 platform="macos"
                                 label="macOS"
                                 sublabel="Apple Silicon & Intel"
                                 icon={<Cpu className="w-5 h-5 text-slate-600" />}
-                                available={true}
+                                available={releaseInfo?.platforms?.macos?.available ?? false}
+                                loading={loadingReleases}
                             />
                             <DownloadButton
                                 platform="linux_deb"
                                 label="Linux DEB"
                                 sublabel="Debian / Ubuntu"
                                 icon={<Terminal className="w-5 h-5 text-orange-500" />}
-                                available={false}
+                                available={releaseInfo?.platforms?.linux_deb?.available ?? false}
+                                loading={loadingReleases}
                             />
                             <DownloadButton
                                 platform="linux_rpm"
                                 label="Linux RPM"
                                 sublabel="RHEL / Fedora"
                                 icon={<Terminal className="w-5 h-5 text-red-500" />}
-                                available={false}
+                                available={releaseInfo?.platforms?.linux_rpm?.available ?? false}
+                                loading={loadingReleases}
                             />
                         </div>
 
@@ -465,7 +566,7 @@ export const AgentManagement: React.FC = () => {
                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Applications Mobiles</h4>
                             <div className="grid grid-cols-2 gap-3">
                                 <a
-                                    href="https://apps.apple.com/app/sentinel-grc/id0000000000"
+                                    href={releaseInfo?.mobile?.ios?.appStoreUrl || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
@@ -473,12 +574,14 @@ export const AgentManagement: React.FC = () => {
                                     <Cpu className="w-6 h-6 text-slate-600 mb-2" />
                                     <div className="text-sm font-bold text-slate-900 dark:text-white">iOS</div>
                                     <div className="text-[10px] text-slate-500">App Store</div>
-                                    <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
-                                        Bientôt
-                                    </Badge>
+                                    {releaseInfo?.mobile?.ios?.comingSoon && (
+                                        <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
+                                            Bientôt
+                                        </Badge>
+                                    )}
                                 </a>
                                 <a
-                                    href="https://play.google.com/store/apps/details?id=com.cyberthreatconsulting.sentinel"
+                                    href={releaseInfo?.mobile?.android?.playStoreUrl || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
@@ -486,9 +589,11 @@ export const AgentManagement: React.FC = () => {
                                     <Server className="w-6 h-6 text-emerald-500 mb-2" />
                                     <div className="text-sm font-bold text-slate-900 dark:text-white">Android</div>
                                     <div className="text-[10px] text-slate-500">Play Store</div>
-                                    <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
-                                        Bientôt
-                                    </Badge>
+                                    {releaseInfo?.mobile?.android?.comingSoon && (
+                                        <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
+                                            Bientôt
+                                        </Badge>
+                                    )}
                                 </a>
                             </div>
                         </div>

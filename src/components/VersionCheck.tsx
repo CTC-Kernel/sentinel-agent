@@ -24,7 +24,44 @@ export const VersionCheck = () => {
                     setCurrentVersion(data.version);
                 } else if (currentVersion !== data.version) {
                     // New version detected
-                    toast.info("Une nouvelle version est disponible", "L'application va se recharger pour appliquer la mise à jour.");
+                    console.info('New version detected:', data.version, 'Current:', currentVersion);
+
+                    const handleUpdate = async () => {
+                        // Clear Service Worker caches
+                        if ('caches' in window) {
+                            try {
+                                const cacheNames = await caches.keys();
+                                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                            } catch (e) {
+                                console.error('Failed to clear caches:', e);
+                            }
+                        }
+
+                        // Unregister all service workers
+                        if ('serviceWorker' in navigator) {
+                            try {
+                                const registrations = await navigator.serviceWorker.getRegistrations();
+                                await Promise.all(registrations.map(reg => reg.unregister()));
+                            } catch (e) {
+                                console.error('Failed to unregister service workers:', e);
+                            }
+                        }
+
+                        // Force reload from server
+                        window.location.reload();
+                    };
+
+                    toast.info(
+                        "Mise à jour disponible",
+                        "Une nouvelle version a été déployée. L'application va redémarrer automatiquement.",
+                        {
+                            label: "Mettre à jour maintenant",
+                            onClick: handleUpdate
+                        }
+                    );
+
+                    // Reload after a short delay (5s) to let the toast be visible
+                    setTimeout(handleUpdate, 5000);
                 }
             } catch (error) {
                 ErrorLogger.warn('Failed to check version', 'VersionCheck', { metadata: { error } });
