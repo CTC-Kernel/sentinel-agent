@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'Sentinel GRC',
@@ -32,6 +33,11 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Force immediate update - no waiting for all tabs to close
+        skipWaiting: true,
+        clientsClaim: true,
+        // Clean up old caches automatically
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

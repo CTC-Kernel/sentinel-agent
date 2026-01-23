@@ -65,17 +65,18 @@ const cleanupLegacyServiceWorkers = () => {
   if (typeof window === 'undefined') return;
   if (!('serviceWorker' in navigator)) return;
 
-  const guardKey = 'sentinel_sw_cleanup_done_v1';
+  const guardKey = 'sentinel_sw_cleanup_done_v2';
   if (sessionStorage.getItem(guardKey) === 'true') return;
 
   window.addEventListener('load', async () => {
     try {
       const regs = await navigator.serviceWorker.getRegistrations();
+      // Only remove the old firebase-messaging-sw.js, keep the Workbox sw.js
       const legacyRegs = regs.filter((reg) => {
         const scriptUrl = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
         const isRootScope = reg.scope === `${window.location.origin}/`;
-        const isLegacy = scriptUrl.includes('/firebase-messaging-sw.js') || scriptUrl.endsWith('/sw.js');
-        return isRootScope && isLegacy;
+        const isFirebaseMessagingSW = scriptUrl.includes('/firebase-messaging-sw.js');
+        return isRootScope && isFirebaseMessagingSW;
       });
 
       if (legacyRegs.length === 0) {
