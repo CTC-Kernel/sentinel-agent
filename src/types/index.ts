@@ -18,3 +18,5 @@ export * from './score.types';
 export * from './privacy';
 export * from './dora';
 export * from './homologation';
+export * from './framework';
+export * from './compliance';
