@@ -50,22 +50,22 @@ development_status:
 
   # Epic 2: Agent Core & Service Lifecycle
   epic-2: in-progress
-  2-1-implement-agent-configuration-loading: review
-  2-2-create-windows-service-with-automatic-startup: review
-  2-3-create-linux-daemon-with-systemd-integration: review
-  2-4-build-windows-msi-installer-package: review
-  2-5-build-linux-deb-and-rpm-packages: review
+  2-1-implement-agent-configuration-loading: done
+  2-2-create-windows-service-with-automatic-startup: done
+  2-3-create-linux-daemon-with-systemd-integration: done
+  2-4-build-windows-msi-installer-package: done
+  2-5-build-linux-deb-and-rpm-packages: done
   2-6-implement-clean-uninstallation: review
   2-7-implement-resource-usage-limits: review
   epic-2-retrospective: optional
 
   # Epic 3: Secure Local Storage
   epic-3: in-progress
-  3-1-initialize-sqlite-database-with-sqlcipher-encryption: in-progress
-  3-2-implement-database-schema-with-migrations: backlog
-  3-3-implement-check-results-repository: backlog
-  3-4-implement-proof-storage-with-integrity-hash: backlog
-  3-5-implement-data-retention-policy: backlog
+  3-1-initialize-sqlite-database-with-sqlcipher-encryption: review
+  3-2-implement-database-schema-with-migrations: review
+  3-3-implement-check-results-repository: review
+  3-4-implement-proof-storage-with-integrity-hash: review
+  3-5-implement-data-retention-policy: review
   epic-3-retrospective: optional
 
   # Epic 4: Agent-SaaS Connectivity

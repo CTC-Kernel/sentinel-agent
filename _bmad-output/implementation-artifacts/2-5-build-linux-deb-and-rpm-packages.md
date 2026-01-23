@@ -1,6 +1,6 @@
 # Story 2.5: Build Linux DEB and RPM Packages
 
-Status: review
+Status: done
 
 ## Story
 
@@ -121,3 +121,26 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - 2026-01-23: Configured cargo-deb and cargo-generate-rpm
 - 2026-01-23: Created Debian maintainer scripts
 - 2026-01-23: Updated CI workflow for package building
+
+## Senior Developer Review (AI)
+
+**Reviewer:** Mary (Business Analyst) via Code Review Workflow
+**Date:** 2026-01-23
+**Model:** Claude Opus 4.5
+
+### Issues Found & Fixed
+
+| # | Severity | Issue | Resolution |
+|---|----------|-------|------------|
+| 1 | 🟡 MEDIUM | Service file uses `/opt/sentinel` | Fixed: Now `/opt/sentinel-grc` |
+| 2 | 🟡 MEDIUM | Cargo.toml DEB assets paths | Fixed: All paths use `/opt/sentinel-grc` |
+| 3 | 🟡 MEDIUM | RPM targets path | Fixed: `/opt/sentinel-grc/bin/sentinel-agent` |
+| 4 | 🟡 MEDIUM | postinst script path | Fixed: `/opt/sentinel-grc/bin/sentinel-agent` |
+
+### Verification
+
+- ✅ 17 unit tests passing
+- ✅ Paths consistent across all files
+- ✅ Maintainer scripts valid shell syntax
+
+### Decision: **APPROVED** ✅
