@@ -126,11 +126,11 @@ export const Risks: React.FC = () => {
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                return parsed.map((v: any) => ({
+                return parsed.map((v: Omit<SavedView, 'icon'>) => ({
                     ...v,
                     icon: v.id === 'all' ? ShieldAlert : v.id === 'critical' ? Zap : v.id === 'my-risks' ? Star : undefined
                 }));
-            } catch (e) { return DEFAULT_VIEWS; }
+            } catch (_e) { return DEFAULT_VIEWS; }
         }
         return DEFAULT_VIEWS;
     });
@@ -155,7 +155,7 @@ export const Risks: React.FC = () => {
         const updated = [...savedViews, newView];
         setSavedViews(updated);
         setActiveViewId(newView.id);
-        localStorage.setItem('sentinel_risk_views', JSON.stringify(updated.map(({ icon, ...v }) => v)));
+        localStorage.setItem('sentinel_risk_views', JSON.stringify(updated.map(({ icon: _icon, ...v }) => v)));
     };
 
     const handleViewSelect = (view: SavedView) => {
@@ -533,7 +533,7 @@ export const Risks: React.FC = () => {
                         processes={processes}
                         canEdit={canEdit}
                         demoMode={demoMode}
-                        onUpdate={async (id, data) => { await updateRisk(id, data as any, selectedRisk); return true; }}
+                        onUpdate={async (id, data) => { await updateRisk(id, data as Partial<Risk>, selectedRisk); return true; }}
                         onDelete={handleDeleteRiskItem}
                         onDuplicate={handleDuplicateRisk}
                     />

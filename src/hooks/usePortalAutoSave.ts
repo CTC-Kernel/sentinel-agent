@@ -37,32 +37,6 @@ export function usePortalAutoSave(
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isSaving = useRef(false);
 
-  // Sync any pending saves from localStorage (from previous session crash/unload)
-  useEffect(() => {
-    if (isReadOnly) return;
-
-    const storageKey = `portal_pending_saves_${accessId}`;
-    try {
-      const savedData = localStorage.getItem(storageKey);
-      if (savedData) {
-        const pendingFromStorage = JSON.parse(savedData) as Array<{ questionId: string; answer: QuestionAnswer }>;
-        if (pendingFromStorage.length > 0) {
-          // Queue these saves
-          pendingFromStorage.forEach(({ questionId, answer }) => {
-            pendingSaves.current.set(questionId, answer);
-          });
-          setPendingCount(pendingSaves.current.size);
-
-          // Clear localStorage and trigger save
-          localStorage.removeItem(storageKey);
-          flushSaves();
-        }
-      }
-    } catch (error) {
-      ErrorLogger.warn('Failed to restore pending saves from localStorage', 'usePortalAutoSave.restorePending', { metadata: { error } });
-    }
-  }, [accessId, isReadOnly, flushSaves]);
-
   // Flush pending saves
   const flushSaves = useCallback(async () => {
     if (isReadOnly || pendingSaves.current.size === 0 || isSaving.current) {
@@ -112,6 +86,32 @@ export function usePortalAutoSave(
       isSaving.current = false;
     }
   }, [accessId, isReadOnly]);
+
+  // Sync any pending saves from localStorage (from previous session crash/unload)
+  useEffect(() => {
+    if (isReadOnly) return;
+
+    const storageKey = `portal_pending_saves_${accessId}`;
+    try {
+      const savedData = localStorage.getItem(storageKey);
+      if (savedData) {
+        const pendingFromStorage = JSON.parse(savedData) as Array<{ questionId: string; answer: QuestionAnswer }>;
+        if (pendingFromStorage.length > 0) {
+          // Queue these saves
+          pendingFromStorage.forEach(({ questionId, answer }) => {
+            pendingSaves.current.set(questionId, answer);
+          });
+          setPendingCount(pendingSaves.current.size);
+
+          // Clear localStorage and trigger save
+          localStorage.removeItem(storageKey);
+          flushSaves();
+        }
+      }
+    } catch (error) {
+      ErrorLogger.warn('Failed to restore pending saves from localStorage', 'usePortalAutoSave.restorePending', { metadata: { error } });
+    }
+  }, [accessId, isReadOnly, flushSaves]);
 
   // Save answer (debounced)
   const saveAnswer = useCallback(
@@ -185,6 +185,7 @@ export function usePortalAutoSave(
   // Cleanup on unmount - attempt async save with timeout
   useEffect(() => {
     const currentDebounceTimer = debounceTimer.current;
+    const currentPendingSaves = pendingSaves.current;
 
     return () => {
       if (currentDebounceTimer) {
@@ -193,7 +194,7 @@ export function usePortalAutoSave(
 
       // Attempt to save pending changes on unmount
       // Note: This is fire-and-forget since cleanup can't be async
-      if (pendingSaves.current.size > 0 && !isReadOnly) {
+      if (currentPendingSaves.size > 0 && !isReadOnly) {
         // Use sendBeacon as fallback since it's synchronous
         syncSaveWithBeacon();
       }

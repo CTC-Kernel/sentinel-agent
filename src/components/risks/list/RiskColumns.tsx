@@ -318,5 +318,5 @@ export const useRiskColumns = ({
                 );
             },
         },
-    ], [canEdit, assets, controls, onEdit, onDelete, onDuplicate, deletingIds, duplicatingIds, getOwnerName, users]);
+    ], [canEdit, assets, controls, onEdit, onDelete, onDuplicate, deletingIds, duplicatingIds, getOwnerName, users, searchQuery]);
 };

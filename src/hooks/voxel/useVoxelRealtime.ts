@@ -457,25 +457,32 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
       setupCollectionListener(collectionName, organizationId);
     }
 
+    // Capture ref values at effect start for cleanup
+    const currentUnsubscribers = unsubscribersRef.current;
+    const currentRetryTimers = retryTimersRef.current;
+    const currentRetryAttempts = retryAttemptsRef.current;
+    const currentConnectedCollections = connectedCollectionsRef.current;
+    const currentDebounceTimer = debounceTimerRef.current;
+
     // Cleanup function
     return () => {
       console.log('[VoxelRealtime] Cleaning up listeners');
 
       // Clear all unsubscribers
-      unsubscribersRef.current.forEach((unsub) => unsub());
-      unsubscribersRef.current.clear();
+      currentUnsubscribers.forEach((unsub) => unsub());
+      currentUnsubscribers.clear();
 
       // Clear all retry timers
-      retryTimersRef.current.forEach((timer) => clearTimeout(timer));
-      retryTimersRef.current.clear();
+      currentRetryTimers.forEach((timer) => clearTimeout(timer));
+      currentRetryTimers.clear();
 
       // Reset state
-      retryAttemptsRef.current.clear();
-      connectedCollectionsRef.current.clear();
+      currentRetryAttempts.clear();
+      currentConnectedCollections.clear();
       isInitializedRef.current = false;
 
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      if (currentDebounceTimer) {
+        clearTimeout(currentDebounceTimer);
         debounceTimerRef.current = null;
       }
     };

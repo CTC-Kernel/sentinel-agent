@@ -1,13 +1,10 @@
 import React from 'react';
-import { Tag, Star, ShieldAlert, Zap, Plus, MoreHorizontal } from './Icons';
+import { Tag, Plus, MoreHorizontal } from './Icons';
 import { motion } from 'framer-motion';
+import { DEFAULT_VIEWS, SavedView } from './savedViewsConstants';
 
-export interface SavedView {
-    id: string;
-    name: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    filters: any; // Using any for flexibility across modules
-}
+export type { SavedView };
+export { DEFAULT_VIEWS };
 
 interface SavedViewsBarProps {
     views: SavedView[];
@@ -16,12 +13,6 @@ interface SavedViewsBarProps {
     onSaveCurrentView: () => void;
     isModified?: boolean;
 }
-
-export const DEFAULT_VIEWS: SavedView[] = [
-    { id: 'all', name: 'Tous les risques', icon: ShieldAlert, filters: { status: null, category: null, criticality: null } },
-    { id: 'critical', name: 'Critiques uniquement', icon: Zap, filters: { status: null, category: null, criticality: ['Critique'] } },
-    { id: 'my-risks', name: 'Mes Risques', icon: Star, filters: { status: ['En cours'], category: null, criticality: null } },
-];
 
 export const SavedViewsBar: React.FC<SavedViewsBarProps> = ({
     views,
