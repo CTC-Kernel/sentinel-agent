@@ -1,38 +1,57 @@
 
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, SafeAreaView, Platform } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebaseConfig'; // db is not used in the current active code
-// collection, query, where, getCountFromServer are not used in the current active code
+import { auth } from '../firebaseConfig';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { isDeviceEnrolled, getEnrolledAgent, sendHeartbeatAndCheck, MobileAgent } from '../services/mobileAgentService';
 
 export default function DashboardScreen() {
     const router = useRouter();
-    const [, setLoading] = useState(true); // keep setter for async flow
+    const [, setLoading] = useState(true);
     const [stats, setStats] = useState({
         risks: 0,
         compliance: 0,
         incidents: 0
     });
+    const [mobileAgent, setMobileAgent] = useState<MobileAgent | null>(null);
+    const [deviceEnrolled, setDeviceEnrolled] = useState(false);
+
+    // Refresh agent data when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            loadAgentData();
+        }, [])
+    );
 
     useEffect(() => {
         fetchStats();
     }, []);
 
+    const loadAgentData = async () => {
+        try {
+            const enrolled = await isDeviceEnrolled();
+            setDeviceEnrolled(enrolled);
+
+            if (enrolled) {
+                const agent = await getEnrolledAgent();
+                setMobileAgent(agent);
+
+                // Send heartbeat when app is opened
+                if (agent) {
+                    sendHeartbeatAndCheck(false).catch(console.error);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading agent data:', error);
+        }
+    };
+
     const fetchStats = async () => {
         setLoading(true);
         try {
-            // In a real app, filter by actual user org. For now, just demo data/counts if possible or mocked
-            // Since we don't have easy context of "current user org" unless we fetch user profile first.
-            // We'll mock for the MVP to ensure UI works, or try to fetch if auth user exists.
-
             if (auth.currentUser) {
-                // Placeholder: Fetch real counts if possible, else mock for "offline/demo" feel
-                // Real fetch example:
-                // const risksCount = await getCountFromServer(query(collection(db, 'risks'), where('ownerId', '==', auth.currentUser.uid)));
-                // setStats({ ...stats, risks: risksCount.data().count });
-
                 // Mocking for immediate visual feedback in MVP
                 setStats({
                     risks: 12,
@@ -123,14 +142,80 @@ export default function DashboardScreen() {
                     />
                 </View>
 
-                <Text style={styles.sectionTitle}>Actions Rapides</Text>
+                {/* Mobile Device Compliance Card */}
+                <Text style={styles.sectionTitle}>Conformité Appareil</Text>
                 <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => router.push('/scanner')}
+                    style={styles.deviceComplianceCard}
+                    onPress={() => router.push('/compliance')}
                 >
-                    <MaterialCommunityIcons name="qrcode-scan" size={24} color="white" />
-                    <Text style={styles.actionButtonText}>Scanner un Actif</Text>
+                    <View style={styles.deviceComplianceLeft}>
+                        <View style={[styles.deviceIconBox, { backgroundColor: '#6366f1' + '20' }]}>
+                            <MaterialCommunityIcons
+                                name={Platform.OS === 'ios' ? 'apple' : 'android'}
+                                size={28}
+                                color="#6366f1"
+                            />
+                        </View>
+                        <View style={styles.deviceComplianceInfo}>
+                            <Text style={styles.deviceComplianceTitle}>
+                                {deviceEnrolled ? 'Cet appareil' : 'Enregistrer cet appareil'}
+                            </Text>
+                            <Text style={styles.deviceComplianceSubtitle}>
+                                {deviceEnrolled
+                                    ? mobileAgent?.status === 'active' ? 'Agent actif' : 'Agent hors ligne'
+                                    : 'Surveillez la conformité de votre mobile'
+                                }
+                            </Text>
+                        </View>
+                    </View>
+                    <View style={styles.deviceComplianceRight}>
+                        {deviceEnrolled && mobileAgent?.complianceScore !== null ? (
+                            <View style={[
+                                styles.scoreCircleSmall,
+                                {
+                                    borderColor: (mobileAgent?.complianceScore ?? 0) >= 80
+                                        ? '#22c55e'
+                                        : (mobileAgent?.complianceScore ?? 0) >= 60
+                                        ? '#f59e0b'
+                                        : '#ef4444'
+                                }
+                            ]}>
+                                <Text style={[
+                                    styles.scoreTextSmall,
+                                    {
+                                        color: (mobileAgent?.complianceScore ?? 0) >= 80
+                                            ? '#22c55e'
+                                            : (mobileAgent?.complianceScore ?? 0) >= 60
+                                            ? '#f59e0b'
+                                            : '#ef4444'
+                                    }
+                                ]}>
+                                    {mobileAgent?.complianceScore}%
+                                </Text>
+                            </View>
+                        ) : (
+                            <MaterialCommunityIcons name="chevron-right" size={24} color="#64748b" />
+                        )}
+                    </View>
                 </TouchableOpacity>
+
+                <Text style={styles.sectionTitle}>Actions Rapides</Text>
+                <View style={styles.actionButtonsRow}>
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.actionButtonHalf]}
+                        onPress={() => router.push('/scanner')}
+                    >
+                        <MaterialCommunityIcons name="qrcode-scan" size={24} color="white" />
+                        <Text style={styles.actionButtonText}>Scanner</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.actionButtonHalf, { backgroundColor: '#6366f1' }]}
+                        onPress={() => router.push('/compliance')}
+                    >
+                        <MaterialCommunityIcons name="shield-check" size={24} color="white" />
+                        <Text style={styles.actionButtonText}>Vérifier</Text>
+                    </TouchableOpacity>
+                </View>
 
             </ScrollView>
         </SafeAreaView>
@@ -230,9 +315,73 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 4,
     },
+    actionButtonHalf: {
+        flex: 1,
+        padding: 16,
+    },
+    actionButtonsRow: {
+        flexDirection: 'row',
+        gap: 12,
+    },
     actionButtonText: {
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    // Device Compliance Card
+    deviceComplianceCard: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 24,
+        shadowColor: '#64748b',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 4,
+    },
+    deviceComplianceLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    deviceIconBox: {
+        width: 56,
+        height: 56,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    deviceComplianceInfo: {
+        marginLeft: 12,
+        flex: 1,
+    },
+    deviceComplianceTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#0f172a',
+    },
+    deviceComplianceSubtitle: {
+        fontSize: 12,
+        color: '#64748b',
+        marginTop: 2,
+    },
+    deviceComplianceRight: {
+        marginLeft: 12,
+    },
+    scoreCircleSmall: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        borderWidth: 3,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scoreTextSmall: {
+        fontSize: 14,
+        fontWeight: '700',
     },
 });
