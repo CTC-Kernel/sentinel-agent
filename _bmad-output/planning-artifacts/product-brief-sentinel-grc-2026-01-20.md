@@ -142,7 +142,7 @@ Besoin identifié → Recherche solutions → Short-list (3-4 vendors)
 |----------|-------------|
 | **Driver principal** | DORA (obligatoire Jan 2025) |
 | **Pain spécifique** | Registre ICT, 88+ fournisseurs |
-| **Deadline** | 30 avril 2025 (reporting ESA) |
+| **Deadline** | URGENT - deadline passee (30 avril 2025) |
 | **Budget** | Élevé mais contrôlé |
 | **Citation** | "Le régulateur va auditer dans 6 mois" |
 

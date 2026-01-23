@@ -69,40 +69,40 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4: Agent-SaaS Connectivity
-  epic-4: backlog
-  4-1-implement-agent-enrollment-with-api-token: backlog
-  4-2-implement-mtls-certificate-management: backlog
-  4-3-implement-heartbeat-mechanism-with-metrics: backlog
-  4-4-implement-certificate-pinning-for-server-validation: backlog
-  4-5-implement-agent-self-integrity-check-at-startup: backlog
+  epic-4: in-progress
+  4-1-implement-agent-enrollment-with-api-token: review
+  4-2-implement-mtls-certificate-management: review
+  4-3-implement-heartbeat-mechanism-with-metrics: review
+  4-4-implement-certificate-pinning-for-server-validation: review
+  4-5-implement-agent-self-integrity-check-at-startup: review
   epic-4-retrospective: optional
 
   # Epic 5: Compliance Check Engine
-  epic-5: backlog
-  5-1-implement-check-runner-framework-and-scheduler: backlog
-  5-2-implement-disk-encryption-check: backlog
-  5-3-implement-antivirus-status-check: backlog
-  5-4-implement-firewall-configuration-check: backlog
-  5-5-implement-password-policy-check: backlog
-  5-6-implement-session-lock-check: backlog
-  5-7-implement-system-updates-check: backlog
-  5-8-implement-obsolete-protocols-check: backlog
-  5-9-implement-backup-configuration-check: backlog
-  5-10-implement-local-admin-accounts-check: backlog
-  5-11-implement-mfa-configuration-check: backlog
-  5-12-implement-remote-access-security-check: backlog
-  5-13-implement-proof-generation-engine: backlog
-  5-14-implement-local-compliance-score-calculator: backlog
+  epic-5: in-progress
+  5-1-implement-check-runner-framework-and-scheduler: review
+  5-2-implement-disk-encryption-check: review
+  5-3-implement-antivirus-status-check: review
+  5-4-implement-firewall-configuration-check: review
+  5-5-implement-password-policy-check: review
+  5-6-implement-session-lock-check: review
+  5-7-implement-system-updates-check: review
+  5-8-implement-obsolete-protocols-check: review
+  5-9-implement-backup-configuration-check: review
+  5-10-implement-local-admin-accounts-check: review
+  5-11-implement-mfa-configuration-check: review
+  5-12-implement-remote-access-security-check: review
+  5-13-implement-proof-generation-engine: review
+  5-14-implement-local-compliance-score-calculator: review
   epic-5-retrospective: optional
 
   # Epic 6: Synchronization & Offline Mode
-  epic-6: backlog
-  6-1-download-and-cache-check-rules-from-saas: backlog
-  6-2-download-agent-configuration-from-saas: backlog
-  6-3-upload-check-results-to-saas: backlog
-  6-4-implement-offline-mode-with-7-day-autonomy: backlog
-  6-5-implement-sync-queue-with-retry-logic: backlog
-  6-6-handle-synchronization-conflicts: backlog
+  epic-6: in-progress
+  6-1-download-and-cache-check-rules-from-saas: review
+  6-2-download-agent-configuration-from-saas: review
+  6-3-upload-check-results-to-saas: review
+  6-4-implement-offline-mode-with-7-day-autonomy: review
+  6-5-implement-sync-queue-with-retry-logic: review
+  6-6-handle-synchronization-conflicts: review
   epic-6-retrospective: optional
 
   # Epic 7: Dashboard & Compliance Visualization (SaaS)
@@ -137,27 +137,27 @@ development_status:
   epic-9-retrospective: optional
 
   # Epic 10: Agent Self-Update System
-  epic-10: backlog
-  10-1-check-for-available-updates: backlog
-  10-2-download-and-apply-update-automatically: backlog
-  10-3-implement-automatic-rollback-on-failure: backlog
-  10-4-implement-staged-rollout-deployment: backlog
-  10-5-configure-update-policy: backlog
-  10-6-trigger-manual-update-on-agent: backlog
-  10-7-block-specific-version: backlog
+  epic-10: done
+  10-1-check-for-available-updates: done
+  10-2-download-and-apply-update-automatically: done
+  10-3-implement-automatic-rollback-on-failure: done
+  10-4-implement-staged-rollout-deployment: done
+  10-5-configure-update-policy: done
+  10-6-trigger-manual-update-on-agent: done
+  10-7-block-specific-version: done
   epic-10-retrospective: optional
 
   # Epic 11: Security Hardening & Integrity
-  epic-11: backlog
-  11-1-sign-logs-with-hmac-sha256: backlog
-  11-2-validate-binary-signature-before-installation: backlog
-  11-3-revoke-compromised-agent-remotely: backlog
+  epic-11: done
+  11-1-sign-logs-with-hmac-sha256: done
+  11-2-validate-binary-signature-before-installation: done
+  11-3-revoke-compromised-agent-remotely: done
   epic-11-retrospective: optional
 
   # Epic 12: Support & Diagnostics
-  epic-12: backlog
-  12-1-view-agent-logs-remotely: backlog
-  12-2-view-detailed-connection-status: backlog
-  12-3-identify-recent-agent-errors: backlog
-  12-4-trigger-remote-diagnostics: backlog
+  epic-12: done
+  12-1-view-agent-logs-remotely: done
+  12-2-view-detailed-connection-status: done
+  12-3-identify-recent-agent-errors: done
+  12-4-trigger-remote-diagnostics: done
   epic-12-retrospective: optional
