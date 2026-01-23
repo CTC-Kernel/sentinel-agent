@@ -1,6 +1,5 @@
 import {
     collection,
-    doc,
     onSnapshot,
     query,
     orderBy,
@@ -139,10 +138,10 @@ export function subscribeToTokens(
                 const status = data.revoked
                     ? 'revoked'
                     : isExpired
-                    ? 'expired'
-                    : isExhausted
-                    ? 'exhausted'
-                    : 'active';
+                        ? 'expired'
+                        : isExhausted
+                            ? 'exhausted'
+                            : 'active';
 
                 return {
                     id: doc.id,

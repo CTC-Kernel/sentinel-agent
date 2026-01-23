@@ -8,7 +8,6 @@ import {
     CheckCircle2,
     XCircle,
     Clock,
-    ExternalLink,
     ShieldCheck,
     Cpu,
     Monitor
@@ -31,8 +30,6 @@ export const AgentManagement: React.FC = () => {
     // Subscribe to real-time agent updates
     useEffect(() => {
         if (!user?.organizationId) return;
-
-        setLoading(true);
 
         const unsubscribe = AgentService.subscribeToAgents(
             user.organizationId,
@@ -65,7 +62,7 @@ export const AgentManagement: React.FC = () => {
         if (!user?.organizationId) return;
         try {
             const result = await AgentService.generateEnrollmentToken(user.organizationId);
-            setEnrollmentToken(result.token);
+            setEnrollmentToken(result.token || null);
             setShowEnrollment(true);
         } catch {
             toast.error("Erreur lors de la génération du token");
