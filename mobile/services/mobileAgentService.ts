@@ -24,7 +24,6 @@ import {
     runAllMobileChecks,
     calculateComplianceScore,
     MobileCheckResult,
-    DeviceInfo,
 } from './mobileComplianceChecks';
 
 const STORAGE_KEYS = {

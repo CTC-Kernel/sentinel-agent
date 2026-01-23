@@ -94,7 +94,7 @@ export default function ComplianceScreen() {
             } else {
                 Alert.alert('Erreur', result.error || 'Impossible d\'enregistrer l\'appareil');
             }
-        } catch (error) {
+        } catch {
             Alert.alert('Erreur', 'Une erreur est survenue');
         } finally {
             setIsLoading(false);
@@ -112,7 +112,7 @@ export default function ComplianceScreen() {
             } else {
                 Alert.alert('Erreur', result.error || 'Impossible d\'exécuter les vérifications');
             }
-        } catch (error) {
+        } catch {
             Alert.alert('Erreur', 'Une erreur est survenue');
         } finally {
             setIsRunningChecks(false);
@@ -289,7 +289,7 @@ export default function ComplianceScreen() {
                         {checkResults.length > 0 && (
                             <View style={styles.resultsContainer}>
                                 <Text style={styles.sectionTitle}>Résultats des vérifications</Text>
-                                {checkResults.map((result, index) => {
+                                {checkResults.map((result, _index) => {
                                     const icon = getStatusIcon(result.status);
                                     return (
                                         <View key={result.checkId} style={styles.resultCard}>
@@ -310,9 +310,9 @@ export default function ComplianceScreen() {
                                                         {
                                                             backgroundColor:
                                                                 result.severity === 'critical' ? COLORS.error + '20' :
-                                                                result.severity === 'high' ? COLORS.warning + '20' :
-                                                                result.severity === 'medium' ? COLORS.primary + '20' :
-                                                                COLORS.textSecondary + '20'
+                                                                    result.severity === 'high' ? COLORS.warning + '20' :
+                                                                        result.severity === 'medium' ? COLORS.primary + '20' :
+                                                                            COLORS.textSecondary + '20'
                                                         }
                                                     ]}>
                                                         <Text style={[
@@ -320,9 +320,9 @@ export default function ComplianceScreen() {
                                                             {
                                                                 color:
                                                                     result.severity === 'critical' ? COLORS.error :
-                                                                    result.severity === 'high' ? COLORS.warning :
-                                                                    result.severity === 'medium' ? COLORS.primary :
-                                                                    COLORS.textSecondary
+                                                                        result.severity === 'high' ? COLORS.warning :
+                                                                            result.severity === 'medium' ? COLORS.primary :
+                                                                                COLORS.textSecondary
                                                             }
                                                         ]}>
                                                             {result.severity.toUpperCase()}
