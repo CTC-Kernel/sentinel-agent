@@ -2,12 +2,13 @@
 story_id: EU-1.5
 epic_id: EU-1
 title: Implémenter le Cross-Framework Mapping
-status: in-progress
+status: done
 priority: P0
 points: 8
 sprint: 1
 assignee: dev
 created: 2026-01-23
+completed: 2026-01-23
 source: epics-european-leader-2026-01-22.md
 ---
 
@@ -59,19 +60,18 @@ source: epics-european-leader-2026-01-22.md
 
 ## Tasks
 
-- [ ] Create `MappingMatrix.tsx` component
-- [ ] Create `MappingCell.tsx` for matrix cells
-- [ ] Create `MappingTooltip.tsx` for hover details
-- [ ] Create `ControlMappingCard.tsx` for control view
-- [ ] Add search and filter functionality
-- [ ] Add translations
-- [ ] Write component tests
+- [x] Create `MappingMatrix.tsx` component
+- [x] Create `MappingCell.tsx` for matrix cells with hover tooltip
+- [x] Create `ControlMappingCard.tsx` for control view
+- [x] Add search and filter functionality
+- [x] Add translations (FR/EN)
+- [x] Write component tests (43 tests)
 
 ## Definition of Done
 
-- [ ] Matrix displays controls vs frameworks
-- [ ] Coverage status shown (full/partial/none)
-- [ ] Hover shows requirement details
-- [ ] Search and filter work correctly
-- [ ] i18n support (FR/EN)
-- [ ] Tests passing
+- [x] Matrix displays controls vs frameworks
+- [x] Coverage status shown (full/partial/none)
+- [x] Hover shows requirement details
+- [x] Search and filter work correctly
+- [x] i18n support (FR/EN)
+- [x] Tests passing (78 framework tests total)

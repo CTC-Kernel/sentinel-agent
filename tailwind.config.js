@@ -31,18 +31,19 @@ export default {
       },
       fontFamily: {
         sans: [
+          'ui-sans-serif',
+          'system-ui',
           '-apple-system',
           'BlinkMacSystemFont',
-          '"SF Pro Display"',
           '"SF Pro Text"',
-          'system-ui',
           '"Helvetica Neue"',
+          'Arial',
           'sans-serif',
         ],
         display: [
+          '"SF Pro Display"',
           '-apple-system',
           'BlinkMacSystemFont',
-          '"SF Pro Display"',
           '"SF Pro Text"',
           '"Helvetica Neue"',
           'sans-serif'
@@ -187,6 +188,16 @@ export default {
         'card': '0 2px 10px rgba(0,0,0,0.02)',
         'float': '0 10px 30px -5px rgba(0,0,0,0.1)',
         'neon': '0 0 5px theme("colors.primary.400"), 0 0 20px theme("colors.primary.600")',
+      },
+      letterSpacing: {
+        'tightest': '-0.05em',
+        'tighter': '-0.03em',
+        'tight': '-0.015em',
+        'snug': '-0.01em',
+        'normal': '0em',
+        'wide': '0.015em',
+        'wider': '0.03em',
+        'widest': '0.08em',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
