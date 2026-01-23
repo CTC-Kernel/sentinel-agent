@@ -16,50 +16,50 @@ const getTypeStyles = (type: string) => {
         case 'Matériel':
             return {
                 icon: HardDrive,
-                color: 'text-slate-600 dark:text-slate-400',
-                bg: 'bg-slate-100 dark:bg-slate-800',
-                border: 'border-slate-200 dark:border-white/10',
-                badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                color: 'text-muted-foreground',
+                bg: 'bg-muted/30',
+                border: 'border-muted',
+                badge: 'bg-muted text-muted-foreground border-muted'
             };
         case 'Logiciel':
             return {
                 icon: Cpu,
-                color: 'text-blue-600 dark:text-blue-400',
-                bg: 'bg-blue-50 dark:bg-blue-900/20',
-                border: 'border-blue-100 dark:border-blue-800/50',
-                badge: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-100 dark:border-blue-800'
+                color: 'text-primary',
+                bg: 'bg-primary/10',
+                border: 'border-primary/20',
+                badge: 'bg-primary/10 text-primary border-primary/20'
             };
         case 'Données':
             return {
                 icon: Database,
                 color: 'text-purple-600 dark:text-purple-400',
-                bg: 'bg-purple-50 dark:bg-purple-900/20',
-                border: 'border-purple-100 dark:border-purple-800/50',
+                bg: 'bg-purple-100/50 dark:bg-purple-900/20',
+                border: 'border-purple-200 dark:border-purple-800/50',
                 badge: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-100 dark:border-purple-800'
             };
         case 'Service':
             return {
                 icon: Activity,
-                color: 'text-emerald-600 dark:text-emerald-400',
-                bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-                border: 'border-emerald-100 dark:border-emerald-800/50',
-                badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800'
+                color: 'text-success',
+                bg: 'bg-success/10',
+                border: 'border-success/20',
+                badge: 'bg-success/10 text-success border-success/20'
             };
         case 'Humain':
             return {
                 icon: Users,
-                color: 'text-amber-600 dark:text-amber-400',
-                bg: 'bg-amber-50 dark:bg-amber-900/20',
-                border: 'border-amber-100 dark:border-amber-800/50',
-                badge: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-100 dark:border-amber-800'
+                color: 'text-warning',
+                bg: 'bg-warning/10',
+                border: 'border-warning/20',
+                badge: 'bg-warning/10 text-warning border-warning/20'
             };
         default:
             return {
                 icon: Server,
-                color: 'text-slate-600 dark:text-slate-400',
-                bg: 'bg-slate-100 dark:bg-slate-800',
-                border: 'border-slate-200 dark:border-white/10',
-                badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                color: 'text-muted-foreground',
+                bg: 'bg-muted/30',
+                border: 'border-muted',
+                badge: 'bg-muted text-muted-foreground border-muted'
             };
     }
 };
@@ -85,7 +85,7 @@ const getCriticalityColor = (level: Criticality) => {
     switch (level) {
         case Criticality.CRITICAL: return 'bg-error-bg text-error-text border-error-border/50';
         case Criticality.HIGH: return 'bg-warning-bg text-warning-text border-warning-border/50';
-        case Criticality.MEDIUM: return 'bg-amber-100/80 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800';
+        case Criticality.MEDIUM: return 'bg-warning/10 text-warning border-warning/20';
         default: return 'bg-success-bg text-success-text border-success-border/50';
     }
 };
@@ -119,7 +119,7 @@ export const AssetList = React.memo<AssetListProps>(({
     }, [assets, activeFiltersQuery]);
 
     const columns = useMemo<ColumnDef<Asset>[]>(() => [
-        { header: t('common.name'), accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
+        { header: t('common.name'), accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-foreground">{row.original.name}</span> },
         {
             header: t('common.type'),
             accessorKey: 'type',
@@ -150,13 +150,13 @@ export const AssetList = React.memo<AssetListProps>(({
                         <img
                             src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
                             alt={ownerName}
-                            className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
+                            className="w-6 h-6 rounded-full border border-muted object-cover bg-muted/30"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = getUserAvatarUrl(null, ownerUser?.role);
                             }}
                         />
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{ownerName}</span>
+                        <span className="font-medium text-foreground">{ownerName}</span>
                     </div>
                 );
             }
@@ -166,7 +166,7 @@ export const AssetList = React.memo<AssetListProps>(({
             accessorKey: 'lifecycleStatus',
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${row.original.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
+                    <span className={`w-2 h-2 rounded-full ${row.original.lifecycleStatus === 'En service' ? 'bg-success' : 'bg-muted'}`}></span>
                     <span>
                         {(() => {
                             const val = row.original.lifecycleStatus || 'Neuf';
@@ -290,7 +290,7 @@ export const AssetList = React.memo<AssetListProps>(({
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onEdit(asset); }}
                             role="button"
                             tabIndex={0}
-                            className="glass-panel p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 hover:border-brand-500/30 transition-all relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="glass-panel p-6 rounded-3xl shadow-sm card-hover cursor-pointer group flex flex-col border border-muted/50 dark:border-white/5 hover:border-primary/30 transition-all relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
@@ -309,7 +309,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             <Tooltip content={t('assets.editAsset')}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onEdit(asset); }}
-                                                    className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 hover:text-brand-600 shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                    className="p-2 bg-background/90 dark:bg-muted/10 rounded-xl text-muted-foreground hover:text-primary shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>
@@ -319,7 +319,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                             <Tooltip content={t('assets.deleteAssetTooltip')}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onDelete(asset.id, asset.name); }}
-                                                    className="p-2 bg-white/90 dark:bg-white/10 rounded-xl text-slate-500 hover:text-error-text shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                    className="p-2 bg-background/90 dark:bg-muted/10 rounded-xl text-muted-foreground hover:text-destructive shadow-sm backdrop-blur-sm transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
@@ -338,7 +338,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
-                                    <span className="text-slate-400">•</span>
+                                    <span className="text-muted-foreground/30">•</span>
                                     <div className="flex items-center gap-1.5">
                                         <img
                                             src={getUserAvatarUrl(users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.photoURL, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role)}
@@ -349,7 +349,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                                 target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role);
                                             }}
                                         />
-                                        <span className="text-xs text-slate-600 font-medium">{asset.owner}</span>
+                                        <span className="text-xs text-muted-foreground font-medium">{asset.owner}</span>
                                     </div>
                                 </div>
 
@@ -372,6 +372,6 @@ export const AssetList = React.memo<AssetListProps>(({
                     );
                 })
             )}
-        </div>
+        </div >
     );
 });

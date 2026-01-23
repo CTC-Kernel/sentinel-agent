@@ -127,12 +127,12 @@ export function ConfigurableDashboard({
   if (!hasLoaded) {
     return (
       <div className={cn('animate-pulse', className)}>
-        <div className="h-10 w-48 bg-gray-200 dark:bg-gray-700 rounded mb-6" />
+        <div className="h-10 w-48 bg-muted rounded mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="h-48 bg-gray-200 dark:bg-gray-700 rounded-2xl"
+              className="h-48 bg-muted rounded-2xl"
             />
           ))}
         </div>
@@ -154,8 +154,8 @@ export function ConfigurableDashboard({
               onClick={() => setShowAddWidgetModal(true)}
               className={cn(
                 'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
-                'text-blue-600 dark:text-blue-400',
-                'bg-blue-50 dark:bg-blue-900/20',
+                'text-primary',
+                'bg-primary/10 dark:bg-blue-900/20',
                 'hover:bg-blue-100 dark:hover:bg-blue-900/30',
                 'transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
               )}

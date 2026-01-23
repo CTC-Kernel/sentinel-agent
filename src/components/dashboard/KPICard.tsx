@@ -31,13 +31,13 @@ function TrendArrow({
   // Determine colors based on trend and inversion
   // Default: UP = green (good), DOWN = red (bad) - for metrics where higher is better
   // Inverted: UP = red (bad), DOWN = green (good) - for metrics where lower is better
-  const upColor = invertColors ? 'text-red-500' : 'text-green-500';
-  const downColor = invertColors ? 'text-green-500' : 'text-red-500';
+  const upColor = invertColors ? 'text-destructive' : 'text-success';
+  const downColor = invertColors ? 'text-success' : 'text-destructive';
 
   if (trend === 'stable') {
     return (
       <svg
-        className={cn('w-5 h-5 text-gray-500', className)}
+        className={cn('w-5 h-5 text-muted-foreground', className)}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -177,7 +177,7 @@ export const KPICard = React.memo(function KPICard({
     return (
       <div
         className={cn(
-          'rounded-lg border bg-card',
+          'rounded-2xl border bg-card',
           sizeConfig.padding,
           sizeConfig.minWidth,
           'animate-pulse',
@@ -185,10 +185,10 @@ export const KPICard = React.memo(function KPICard({
         )}
       >
         <div className="flex flex-col gap-2">
-          <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="h-10 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="h-5 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-4 w-4 bg-muted rounded" />
+          <div className="h-10 w-20 bg-muted rounded" />
+          <div className="h-5 w-24 bg-muted rounded" />
+          <div className="h-4 w-32 bg-muted rounded" />
         </div>
       </div>
     );
@@ -197,7 +197,7 @@ export const KPICard = React.memo(function KPICard({
   return (
     <div
       className={cn(
-        'rounded-lg border bg-card transition-all duration-200',
+        'rounded-2xl border bg-card transition-all duration-200',
         colorClasses.bgLight,
         colorClasses.border,
         sizeConfig.padding,
@@ -211,11 +211,11 @@ export const KPICard = React.memo(function KPICard({
       onKeyDown={
         onClick
           ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onClick();
-              }
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onClick();
             }
+          }
           : undefined
       }
       aria-label={`${title}: ${value}${subtitle ? `, ${subtitle}` : ''}${trendAriaLabel ? `, ${trendAriaLabel}` : ''}`}
@@ -229,9 +229,9 @@ export const KPICard = React.memo(function KPICard({
               <span
                 className={cn(
                   'text-xs font-medium',
-                  trend === 'up' && (invertTrendColors ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'),
-                  trend === 'down' && (invertTrendColors ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'),
-                  trend === 'stable' && 'text-gray-500'
+                  trend === 'up' && (invertTrendColors ? 'text-destructive' : 'text-success'),
+                  trend === 'down' && (invertTrendColors ? 'text-success' : 'text-destructive'),
+                  trend === 'stable' && 'text-muted-foreground'
                 )}
               >
                 {trend !== 'stable' && (trend === 'up' ? '+' : '-')}

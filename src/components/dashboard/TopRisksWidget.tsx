@@ -21,7 +21,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                     <h3 className="text-lg font-bold text-foreground">Risques Critiques</h3>
                     <p className="text-sm text-muted-foreground">Priorité d'action</p>
                 </div>
-                <button className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl hover:bg-red-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                <button className="p-2 bg-destructive/10 text-destructive rounded-xl hover:bg-destructive/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50">
                     <ShieldAlert className="h-5 w-5" />
                 </button>
             </div>
@@ -29,7 +29,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
             <div className="space-y-3">
                 {topRisks.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground text-sm flex flex-col items-center">
-                        <CheckCircle2 className="h-12 w-12 mb-2 text-green-500 opacity-50" />
+                        <CheckCircle2 className="h-12 w-12 mb-2 text-success opacity-50" />
                         <p>Aucun risque critique identifié.</p>
                         <p className="text-xs mt-1">Excellente posture de sécurité !</p>
                     </div>
@@ -38,21 +38,21 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                         <div key={risk.id} className="group p-4 bg-card/40 hover:bg-card border border-border/60 rounded-2xl transition-all cursor-pointer">
                             <div className="flex justify-between items-start mb-2">
                                 <h4 className="text-sm font-bold text-foreground line-clamp-1">{risk.threat}</h4>
-                                <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-red-100 text-red-600 dark:bg-red-900/30' :
-                                        risk.score >= 10 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' :
-                                            'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30'
+                                <span className={`flex items-center justify-center w-6 h-6 rounded-lg text-xs font-bold ${risk.score >= 15 ? 'bg-destructive/10 text-destructive' :
+                                    risk.score >= 10 ? 'bg-warning/10 text-warning' :
+                                        'bg-warning/10 text-warning'
                                     }`}>
                                     {risk.score}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center mt-3">
                                 <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                                    {risk.status === 'Fermé' && <CheckCircle2 className="h-3 w-3 text-green-500" />}
+                                    {risk.status === 'Fermé' && <CheckCircle2 className="h-3 w-3 text-success" />}
                                     {risk.strategy}
                                 </span>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onMitigate(risk); }}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs font-bold text-brand-600 hover:text-brand-700 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs font-bold text-primary hover:text-primary/80 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded px-1"
                                 >
                                     Traiter <ArrowRight className="h-3 w-3 ml-1" />
                                 </button>

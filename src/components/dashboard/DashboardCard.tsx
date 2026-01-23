@@ -46,10 +46,10 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
     const CardContent = (
         <>
             {/* Header */}
-            <div className={`px-4 py-4 md:px-6 md:py-5 border-b border-white/10 flex justify-between items-center backdrop-blur-md transition-colors duration-300 ${isExpanded ? 'bg-background/80' : 'bg-white/5 dark:bg-black/5'}`}>
+            <div className={`px-4 py-4 md:px-6 md:py-5 border-b border-muted/30 flex justify-between items-center backdrop-blur-md transition-colors duration-300 ${isExpanded ? 'bg-background/80' : 'bg-muted/10'}`}>
                 <div className="flex items-center gap-3">
                     {icon && (
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-white/80 to-white/40 dark:from-white/10 dark:to-white/5 shadow-sm ring-1 ring-white/20 text-brand-600 dark:text-brand-400">
+                        <div className="p-2 rounded-xl bg-primary/10 shadow-sm ring-1 ring-primary/20 text-primary">
                             {icon}
                         </div>
                     )}
@@ -76,7 +76,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                                     onToggleExpand();
                                 }
                             }}
-                            className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-foreground transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                            className="p-2 hover:bg-muted/50 rounded-lg text-muted-foreground hover:text-foreground transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
                             aria-label={isExpanded ? "Réduire la carte" : "Agrandir la carte"}
                             aria-expanded={isExpanded}
                             role="button"
@@ -118,7 +118,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
 
                 {/* Modal Container */}
                 <div
-                    className="relative w-full max-w-6xl h-[85vh] glass-panel rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20 dark:border-white/10 ring-1 ring-black/5"
+                    className="relative w-full max-w-6xl h-[85vh] glass-panel rounded-5xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-muted ring-1 ring-black/5"
                     role="dialog"
                     aria-modal="true"
                 >

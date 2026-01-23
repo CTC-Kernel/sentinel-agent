@@ -114,7 +114,7 @@ export const useAssetLogic = () => {
 
         setIsSubmitting(true);
         try {
-            await AssetService.update(id, data, user as UserProfile, oldData as any);
+            await AssetService.update(id, data, user as UserProfile, oldData as Record<string, unknown>);
             refreshAssets();
             return { success: true };
         } catch (e) {

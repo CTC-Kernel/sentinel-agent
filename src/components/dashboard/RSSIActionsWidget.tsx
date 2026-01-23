@@ -118,7 +118,7 @@ function ActionItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-center justify-between rounded-lg border transition-all',
-        'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
+        'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50',
         colors.bg,
         colors.border,
         sizeConfig.itemPadding
@@ -130,7 +130,7 @@ function ActionItem({
           className={cn(
             'font-medium truncate',
             sizeConfig.itemText,
-            action.isOverdue ? 'text-red-700 dark:text-red-300' : 'text-foreground'
+            action.isOverdue ? 'text-destructive' : 'text-foreground'
           )}
         >
           {action.title}
@@ -172,13 +172,13 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
   return (
     <div className={cn('rounded-lg border bg-card', sizeConfig.padding)}>
       <div className="animate-pulse">
-        <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-        <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
+        <div className="h-8 w-16 bg-muted rounded mb-2" />
+        <div className="h-5 w-32 bg-muted rounded mb-4" />
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-14 bg-gray-200 dark:bg-gray-700 rounded"
+              className="h-14 bg-muted rounded"
             />
           ))}
         </div>
@@ -200,7 +200,7 @@ function EmptyState({ size }: { size: 'sm' | 'md' | 'lg' }) {
         'text-muted-foreground'
       )}
     >
-      <CheckCircle className="w-8 h-8 mb-2 text-green-500" aria-hidden="true" />
+      <CheckCircle className="w-8 h-8 mb-2 text-success" aria-hidden="true" />
       <p className={sizeConfig.itemText}>Aucune action en attente</p>
       <p className="text-xs mt-1">Toutes les actions sont completees</p>
     </div>
@@ -225,7 +225,7 @@ function ErrorState({
     <div
       className={cn(
         'flex flex-col items-center justify-center py-8 text-center',
-        'text-red-600 dark:text-red-400'
+        'text-destructive'
       )}
     >
       <AlertCircle className="w-8 h-8 mb-2" aria-hidden="true" />
@@ -235,8 +235,8 @@ function ErrorState({
         onClick={onRetry}
         className={cn(
           'mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-md',
-          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-          'hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors',
+          'bg-destructive/10 text-destructive',
+          'hover:bg-destructive/10 transition-colors',
           'text-sm font-medium'
         )}
       >
@@ -303,14 +303,14 @@ export function RSSIActionsWidget({
           <span
             className={cn(
               'font-bold tabular-nums',
-              overdueCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400',
+              overdueCount > 0 ? 'text-destructive' : 'text-primary',
               sizeConfig.count
             )}
           >
             {count}
           </span>
           {overdueCount > 0 && (
-            <span className="text-sm text-red-600 dark:text-red-400 font-medium">
+            <span className="text-sm text-destructive font-medium">
               ({overdueCount} en retard)
             </span>
           )}
@@ -346,9 +346,9 @@ export function RSSIActionsWidget({
           onClick={onViewAllClick}
           className={cn(
             'mt-4 w-full text-center py-2 rounded-md',
-            'text-sm font-medium text-blue-600 dark:text-blue-400',
-            'hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+            'text-sm font-medium text-primary',
+            'hover:bg-primary/10 transition-colors transition-colors',
+            'focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2'
           )}
         >
           Voir toutes les actions

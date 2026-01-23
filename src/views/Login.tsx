@@ -94,10 +94,8 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
         }
     };
 
-
-
     return (
-        <AuroraBackground className="h-screen py-4 sm:py-0 px-4 flex flex-col bg-slate-50 dark:bg-slate-950 bg-opacity-100 dark:bg-opacity-100 relative font-sans selection:bg-brand-500 selection:text-white overflow-hidden">
+        <AuroraBackground className="h-screen py-4 sm:py-0 px-4 flex flex-col bg-background text-foreground relative font-sans selection:bg-primary/30 selection:text-primary overflow-hidden">
             <div className="absolute top-4 right-4 z-50">
                 <ThemeToggle />
             </div>
@@ -119,8 +117,8 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
             {/* Ambient Background & Sparkles */}
             <div className="absolute inset-0 w-full h-full pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
+                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-primary/10 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-primary/10 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
             </div>
 
             <div className="w-full max-h-full max-w-7xl relative z-10 animate-scale-in flex-1 flex flex-col lg:flex-row items-center justify-center mx-auto px-4 sm:px-6 min-w-0 transition-transform duration-500 ease-out origin-center [@media(max-height:900px)]:scale-90 [@media(max-height:750px)]:scale-75">
@@ -136,21 +134,20 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
                         {/* Logo - Mobile Only or Simplified */}
                         <div className="mb-6 flex flex-col items-center lg:hidden">
-                            <div className="w-16 h-16 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-5 ring-1 ring-black/5 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                            <div className="w-16 h-16 rounded-3xl bg-foreground text-background flex items-center justify-center shadow-xl mb-5 ring-1 ring-background/5 transform rotate-3 hover:rotate-0 transition-transform duration-500">
                                 <Lock className="h-8 w-8" strokeWidth={2.5} />
                             </div>
-                            <h1 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white">Sentinel GRC</h1>
-                            <p className="text-base font-medium text-slate-700 dark:text-slate-400 mt-2">{t('auth.subtitle')}</p>
+                            <h1 className="text-3xl font-bold tracking-tighter text-foreground">Sentinel GRC</h1>
+                            <p className="text-base font-medium text-muted-foreground mt-2">{t('auth.subtitle')}</p>
                         </div>
 
                         {/* Logo - Desktop w/o Assistant Context (if simplified) -> Keep centered for form consistency */}
                         <div className="hidden lg:flex flex-col items-center mb-8">
-                            <div className="w-12 h-12 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg mb-3">
+                            <div className="w-12 h-12 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-lg mb-3">
                                 <Lock className="h-6 w-6" strokeWidth={2.5} />
                             </div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{isLogin ? t('auth.login') : t('auth.signup')}</h2>
+                            <h2 className="text-2xl font-bold text-foreground">{isLogin ? t('auth.login') : t('auth.signup')}</h2>
                         </div>
-
 
                         {errorMsg && (
                             <div className="w-full mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex flex-col gap-2 text-xs font-bold text-destructive shadow-sm animate-slide-up">
@@ -166,10 +163,10 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                 onClick={handleGoogleLogin}
                                 isLoading={loading}
                                 variant="outline"
-                                className="w-full py-6 rounded-2xl border-slate-200 dark:border-white/10 card-hover shadow-sm"
+                                className="w-full py-6 rounded-2xl border-muted card-hover shadow-sm"
                             >
                                 {!loading && <GoogleIcon />}
-                                <span className="ml-3 text-[15px] font-bold text-slate-700 dark:text-white">{t('auth.google')}</span>
+                                <span className="ml-3 text-[15px] font-bold text-foreground">{t('auth.google')}</span>
                             </Button>
 
                             <Button
@@ -189,8 +186,8 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             </Button>
 
                             <div className="relative py-2">
-                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
-                                <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-600 dark:text-slate-400">{t('auth.orEmail')}</span></div>
+                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-muted"></div></div>
+                                <div className="relative flex justify-center"><span className="px-4 bg-background/80 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-muted-foreground">{t('auth.orEmail')}</span></div>
                             </div>
 
                             <form onSubmit={handleSubmit(onEmailAuthSubmit)} className="space-y-5">
@@ -214,7 +211,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                                 variant="link"
                                                 size="sm"
                                                 onClick={() => setShowResetModal(true)}
-                                                className="text-[13px] font-bold text-brand-600 hover:text-brand-700 p-0 h-auto"
+                                                className="text-[13px] font-bold text-primary hover:text-primary/80 p-0 h-auto"
                                             >
                                                 {t('auth.forgotPassword')}
                                             </Button>
@@ -234,7 +231,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
                                 {/* Privacy consent notice for signup (RGPD compliance) */}
                                 {!isLogin && (
-                                    <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/50 dark:border-emerald-800/30">
+                                    <div className="p-4 rounded-2xl bg-success/10 border border-success/20">
                                         <label className="flex items-start gap-3 cursor-pointer group">
                                             <div className="relative mt-0.5">
                                                 <input
@@ -244,9 +241,9 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                                     className="peer sr-only"
                                                     aria-label={t('auth.privacyConsent') || 'Accepter la politique de confidentialité'}
                                                 />
-                                                <div className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                                                <div className="w-5 h-5 rounded-md border-2 border-muted peer-checked:border-success peer-checked:bg-success transition-colors flex items-center justify-center">
                                                     {privacyAccepted && (
-                                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <svg className="w-3 h-3 text-success-foreground" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                         </svg>
                                                     )}
@@ -254,17 +251,17 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                                    <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                                                    <Shield className="w-4 h-4 text-success" />
+                                                    <span className="text-sm font-bold text-success">
                                                         {t('auth.privacyTitle') || 'Protection de vos données'}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                                <p className="text-xs text-muted-foreground leading-relaxed">
                                                     {t('auth.privacyNotice') || 'En créant un compte, j\'accepte la '}
                                                     <button
                                                         type="button"
                                                         onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }}
-                                                        className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                                                        className="text-success font-bold hover:underline"
                                                     >
                                                         {t('auth.footer.privacy') || 'Politique de confidentialité'}
                                                     </button>
@@ -272,7 +269,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}
-                                                        className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                                                        className="text-success font-bold hover:underline"
                                                     >
                                                         {t('auth.footer.terms') || 'CGU'}
                                                     </button>.
@@ -286,7 +283,8 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                     type="submit"
                                     isLoading={loading}
                                     disabled={loading || (!isLogin && !privacyAccepted)}
-                                    className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover shadow-lg shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    variant="premium"
+                                    className="w-full py-6 font-bold rounded-2xl card-hover disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isLogin ? t('auth.login') : t('auth.signup')}
                                     {!loading && <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />}
@@ -298,7 +296,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                             <Button
                                 variant="ghost"
                                 onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); setPrivacyAccepted(false); }}
-                                className="text-[13px] font-bold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                                className="text-[13px] font-bold text-foreground hover:text-foreground/80"
                             >
                                 {isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
                             </Button>
@@ -309,32 +307,32 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
 
 
             <div className="py-6 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     {t('auth.footer.developedBy')}{' '}
                     <a
                         href="https://cyber-threat-consulting.com"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 underline transition-colors"
+                        className="text-primary hover:text-primary/80 underline transition-colors"
                     >
                         cyber-threat-consulting.com
                     </a>
                 </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400 break-words">
+                <p className="text-sm text-muted-foreground break-words">
                     {t('auth.footer.recaptcha')}
-                    <button aria-label={t('auth.footer.privacy')} onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
+                    <button aria-label={t('auth.footer.privacy')} onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-foreground ml-1">
                         {t('auth.footer.privacy')}
                     </button>
                     {' '}{t('common.and')}{' '}
-                    <button aria-label={t('auth.footer.terms')} onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
+                    <button aria-label={t('auth.footer.terms')} onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-foreground">
                         {t('auth.footer.terms')}
                     </button>
                     ,{' '}
-                    <button aria-label={t('auth.footer.cgv')} onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
+                    <button aria-label={t('auth.footer.cgv')} onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="underline hover:text-foreground">
                         {t('auth.footer.cgv')}
                     </button>
                     {' '}{t('common.and')}{' '}
-                    <button aria-label={t('auth.footer.legal')} onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
+                    <button aria-label={t('auth.footer.legal')} onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-foreground">
                         {t('auth.footer.legal')}
                     </button>
                     {' '}{t('auth.footer.apply')}
@@ -344,18 +342,18 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             {/* Reset Password Modal */}
             {
                 showResetModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                            <Button variant="ghost" size="sm" onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white p-2 h-auto rounded-full">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-background rounded-5xl p-8 w-full max-w-md border border-muted shadow-2xl relative">
+                            <Button variant="ghost" size="sm" onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-muted-foreground hover:text-foreground p-2 h-auto rounded-full">
                                 <X className="h-5 w-5" />
                             </Button>
 
                             <div className="text-center mb-6">
-                                <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
+                                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 text-primary">
                                     <Mail className="h-7 w-7" />
                                 </div>
-                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.reset.title')}</h2>
-                                <p className="text-sm text-slate-700 dark:text-slate-400 mt-2">{t('auth.reset.desc')}</p>
+                                <h2 className="text-xl font-bold text-foreground">{t('auth.reset.title')}</h2>
+                                <p className="text-sm text-muted-foreground mt-2">{t('auth.reset.desc')}</p>
                             </div>
 
                             {!resetSent ? (
@@ -370,17 +368,17 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                             placeholder="nom@entreprise.com"
                                         />
                                     </div>
-                                    <Button type="submit" isLoading={loading} disabled={loading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
+                                    <Button type="submit" isLoading={loading} disabled={loading} className="w-full py-6 bg-foreground text-background font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
                                         {loading ? t('auth.reset.sending') : t('auth.reset.submit')}
                                     </Button>
                                 </form>
                             ) : (
                                 <div className="text-center py-4">
-                                    <div className="inline-flex items-center px-4 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-bold mb-4 border border-green-100">
+                                    <div className="inline-flex items-center px-4 py-2 rounded-xl bg-success/10 text-success text-sm font-bold mb-4 border border-success/20">
                                         <CheckCircle2 className="h-4 w-4 mr-2" /> {t('auth.reset.sent')}
                                     </div>
-                                    <p className="text-sm text-slate-600 mb-6">{t('auth.reset.checkEmail')}</p>
-                                    <button aria-label={t('auth.reset.back')} onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">{t('auth.reset.back')}</button>
+                                    <p className="text-sm text-muted-foreground mb-6">{t('auth.reset.checkEmail')}</p>
+                                    <button aria-label={t('auth.reset.back')} onClick={() => setShowResetModal(false)} className="text-sm font-bold text-primary hover:underline">{t('auth.reset.back')}</button>
                                 </div>
                             )}
                         </div>
@@ -390,18 +388,18 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
             {/* MFA Modal */}
             {
                 showMfaModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                            <Button variant="ghost" size="sm" onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white p-2 h-auto rounded-full">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-background rounded-5xl p-8 w-full max-w-md border border-muted shadow-2xl relative">
+                            <Button variant="ghost" size="sm" onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-muted-foreground hover:text-foreground p-2 h-auto rounded-full">
                                 <X className="h-5 w-5" />
                             </Button>
 
                             <div className="text-center mb-6">
-                                <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mx-auto mb-4 text-emerald-600">
+                                <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-4 text-success">
                                     <Lock className="h-7 w-7" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.mfa.title')}</h3>
-                                <p className="text-sm text-slate-700 dark:text-slate-400 mt-2">{t('auth.mfa.desc')}</p>
+                                <h3 className="text-xl font-bold text-foreground">{t('auth.mfa.title')}</h3>
+                                <p className="text-sm text-muted-foreground mt-2">{t('auth.mfa.desc')}</p>
                             </div>
 
                             {mfaError && (
@@ -434,7 +432,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                     type="submit"
                                     isLoading={mfaLoading}
                                     disabled={mfaLoading}
-                                    className="w-full py-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl hover:scale-[1.02] shadow-lg"
+                                    className="w-full py-6 bg-success text-success-foreground font-bold rounded-2xl hover:scale-[1.02] shadow-lg"
                                 >
                                     {mfaLoading ? t('auth.mfa.verifying') : t('auth.mfa.verify')}
                                 </Button>

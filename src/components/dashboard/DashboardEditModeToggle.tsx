@@ -53,25 +53,25 @@ function ResetConfirmDialog({
       onClick={onCancel}
     >
       <div
-        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 max-w-sm mx-4 border border-slate-200 dark:border-slate-700"
+        className="bg-background rounded-xl shadow-2xl p-6 max-w-sm mx-4 border border-muted"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
           if (e.key === 'Escape') onCancel();
         }}
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-            <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+          <div className="p-2 bg-warning/10 rounded-full">
+            <AlertTriangle className="w-5 h-5 text-warning" />
           </div>
           <h3
             id="reset-confirm-title"
-            className="text-lg font-semibold text-slate-900 dark:text-white"
+            className="text-lg font-semibold text-foreground"
           >
             {t('dashboard.resetToDefaults')}
           </h3>
         </div>
 
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+        <p className="text-sm text-muted-foreground mb-6">
           {t('dashboard.resetConfirm')}
         </p>
 
@@ -81,9 +81,9 @@ function ResetConfirmDialog({
             onClick={onCancel}
             className={cn(
               'px-4 py-2 rounded-lg text-sm font-medium',
-              'text-slate-700 dark:text-slate-300',
-              'bg-slate-100 dark:bg-slate-700',
-              'hover:bg-slate-200 dark:hover:bg-slate-600',
+              'text-foreground',
+              'bg-muted',
+              'hover:bg-muted/80',
               'transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2'
             )}
           >
@@ -94,7 +94,7 @@ function ResetConfirmDialog({
             onClick={onConfirm}
             className={cn(
               'px-4 py-2 rounded-lg text-sm font-medium',
-              'text-white bg-orange-500 hover:bg-orange-600',
+              'text-white bg-warning hover:bg-warning/80',
               'transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
             )}
           >
@@ -156,12 +156,12 @@ export function DashboardEditModeToggle({
           <span
             className={cn(
               'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-              'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+              'bg-primary/10 text-primary',
               'animate-pulse'
             )}
             aria-live="polite"
           >
-            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             {t('dashboard.editMode')}
           </span>
         )}
@@ -171,11 +171,11 @@ export function DashboardEditModeToggle({
           <span
             className={cn(
               'flex items-center gap-1 px-2 py-1 rounded-full text-xs',
-              'text-slate-500 dark:text-slate-400'
+              'text-muted-foreground'
             )}
             aria-live="polite"
           >
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
             {t('common.loading')}
           </span>
         )}
@@ -187,9 +187,9 @@ export function DashboardEditModeToggle({
             onClick={() => setShowResetConfirm(true)}
             className={cn(
               'inline-flex items-center rounded-lg font-medium transition-all',
-              'text-orange-600 dark:text-orange-400',
-              'bg-orange-50 dark:bg-orange-900/20',
-              'hover:bg-orange-100 dark:hover:bg-orange-900/30',
+              'text-warning',
+              'bg-warning/10',
+              'hover:bg-warning/20',
               'focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2',
               sizeClasses[size]
             )}
@@ -208,13 +208,13 @@ export function DashboardEditModeToggle({
             'inline-flex items-center rounded-lg font-medium transition-all',
             isEditing
               ? [
-                  'text-white bg-green-500 hover:bg-green-600',
+                  'text-white bg-success hover:bg-success',
                   'focus:ring-green-500',
                 ]
               : [
-                  'text-slate-700 dark:text-slate-200',
-                  'bg-slate-100 dark:bg-slate-700',
-                  'hover:bg-slate-200 dark:hover:bg-slate-600',
+                  'text-foreground',
+                  'bg-muted',
+                  'hover:bg-muted/80',
                   'focus:ring-slate-500',
                 ],
             'focus:outline-none focus:ring-2 focus:ring-offset-2',

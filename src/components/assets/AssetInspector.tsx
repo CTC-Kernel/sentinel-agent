@@ -155,12 +155,12 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                 selectedAsset && ownerInfo ? (
                     <div className="flex items-center gap-2 mt-1">
                         <span>{selectedAsset.type}</span>
-                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                        <span className="text-muted-foreground">•</span>
                         <div className="flex items-center gap-1.5">
                             <img
                                 src={ownerInfo.avatar}
                                 alt={ownerInfo.name}
-                                className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                className="w-4 h-4 rounded-full object-cover bg-muted/30"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = getUserAvatarUrl(null, 'user');
@@ -174,7 +174,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             icon={selectedAsset ? Server : Plus}
             statusBadge={selectedAsset ? (
                 <div className="flex gap-2 items-center">
-                    <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${selectedAsset.lifecycleStatus === 'En service' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'}`}>
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${selectedAsset.lifecycleStatus === 'En service' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
                         {selectedAsset.lifecycleStatus || 'Neuf'}
                     </span>
                     {canDelete && selectedAsset && (

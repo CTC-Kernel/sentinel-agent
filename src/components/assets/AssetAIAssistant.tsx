@@ -170,14 +170,14 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
     }
 
     return (
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-500/30">
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-5 border border-primary/20">
             <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-white dark:bg-slate-900/50 rounded-xl shadow-sm">
-                    <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <div className="p-2 bg-background rounded-xl shadow-sm">
+                    <Sparkles className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">Assistant IA Sentinel</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">Analyse et suggestions intelligentes</p>
+                    <h3 className="font-bold text-foreground text-sm">Assistant IA Sentinel</h3>
+                    <p className="text-xs text-muted-foreground">Analyse et suggestions intelligentes</p>
                 </div>
             </div>
 
@@ -186,7 +186,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                     onClick={() => handleAction('analyze')}
                     disabled={loading}
                     aria-label="Lancer l'analyse de criticité"
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${mode === 'analyze' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'analyze' ? 'bg-primary text-white shadow-md' : 'bg-background text-muted-foreground dark:text-slate-300 hover:bg-primary/10 dark:bg-slate-900 dark:hover:bg-primary/20 border border-transparent hover:border-primary/30'}`}
                 >
                     {loading && mode === 'analyze' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
                     Analyser Criticité
@@ -195,7 +195,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                     onClick={() => handleAction('maintenance')}
                     disabled={loading}
                     aria-label="Générer un plan de maintenance"
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${mode === 'maintenance' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'maintenance' ? 'bg-primary text-white shadow-md' : 'bg-background text-muted-foreground dark:text-slate-300 hover:bg-primary/10 dark:bg-slate-900 dark:hover:bg-primary/20 border border-transparent hover:border-primary/30'}`}
                 >
                     {loading && mode === 'maintenance' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Wrench className="h-3.5 w-3.5 mr-2" />}
                     Plan Maintenance
@@ -204,7 +204,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                     onClick={() => handleAction('optimize')}
                     disabled={loading}
                     aria-label="Obtenir des suggestions d'optimisation"
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${mode === 'optimize' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${mode === 'optimize' ? 'bg-primary text-white shadow-md' : 'bg-background text-muted-foreground dark:text-muted-foreground hover:bg-primary/10 dark:bg-muted/10 dark:hover:bg-primary/20 border border-transparent hover:border-primary/30'}`}
                 >
                     {loading && mode === 'optimize' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
                     Optimiser
@@ -212,20 +212,20 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
             </div>
 
             {error && (
-                <div className="text-xs text-red-500 mb-2">{error}</div>
+                <div className="text-xs text-destructive mb-2">{error}</div>
             )}
 
             {response && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-indigo-100 dark:border-indigo-500/20 shadow-sm animate-fade-in">
+                <div className="bg-background rounded-xl p-4 border border-primary/20 border-primary/20 shadow-sm animate-fade-in">
                     <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center">
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
                             Réponse de l'IA
                         </h4>
-                        <button onClick={handleDismiss} aria-label="Fermer la réponse IA" className="text-slate-500 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"><X className="h-3.5 w-3.5" /></button>
+                        <button onClick={handleDismiss} aria-label="Fermer la réponse IA" className="text-muted-foreground hover:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"><X className="h-3.5 w-3.5" /></button>
                     </div>
 
-                    <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                    <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                         {mode === 'analyze' && typeof response.confidentiality === 'string' && (
                             <div>
                                 <p><strong>Confidentialité :</strong> {String(response.confidentiality)}</p>
@@ -255,7 +255,7 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                             onClick={handleApply}
                             disabled={applying}
                             aria-label="Appliquer les recommandations de criticité"
-                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         >
                             {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
                             {applying ? 'Application...' : 'Appliquer les changements'}

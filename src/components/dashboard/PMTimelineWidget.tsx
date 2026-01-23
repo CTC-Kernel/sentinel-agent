@@ -126,7 +126,7 @@ function TimelineItemRow({
           aria-hidden="true"
         />
         {!isLast && (
-          <div className="w-0.5 flex-1 bg-gray-200 dark:bg-gray-700 mt-1" />
+          <div className="w-0.5 flex-1 bg-muted mt-1" />
         )}
       </div>
 
@@ -154,7 +154,7 @@ function TimelineItemRow({
               {getTimelineItemTypeLabel(item.type)}
             </span>
             {item.isOverdue && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-600 text-white">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-destructive text-white">
                 En retard
               </span>
             )}
@@ -163,7 +163,7 @@ function TimelineItemRow({
             className={cn(
               'font-medium truncate',
               sizeConfig.itemText,
-              item.isOverdue ? 'text-red-700 dark:text-red-300' : 'text-foreground'
+              item.isOverdue ? 'text-destructive' : 'text-foreground'
             )}
           >
             {item.title}
@@ -196,13 +196,13 @@ function LoadingSkeleton({ size }: { size: 'sm' | 'md' | 'lg' }) {
   return (
     <div className={cn('rounded-lg border bg-card', sizeConfig.padding)}>
       <div className="animate-pulse">
-        <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-        <div className="h-5 w-40 bg-gray-200 dark:bg-gray-700 rounded mb-4" />
+        <div className="h-8 w-16 bg-muted rounded mb-2" />
+        <div className="h-5 w-40 bg-muted rounded mb-4" />
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex">
-              <div className="w-3 h-3 bg-gray-200 dark:bg-gray-700 rounded-full mr-3" />
-              <div className="flex-1 h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+              <div className="w-3 h-3 bg-muted rounded-full mr-3" />
+              <div className="flex-1 h-16 bg-muted rounded" />
             </div>
           ))}
         </div>
@@ -263,7 +263,7 @@ function ErrorState({
         onClick={onRetry}
         className={cn(
           'mt-3 inline-flex items-center gap-1 px-3 py-1.5 rounded-md',
-          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+          'bg-red-100 dark:bg-red-900/30 text-destructive',
           'hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors',
           'text-sm font-medium'
         )}

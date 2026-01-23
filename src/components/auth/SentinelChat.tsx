@@ -111,19 +111,19 @@ const SentinelChat: React.FC = () => {
                         key={msg.id}
                         className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                     >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === 'user' ? 'bg-blue-600' : 'bg-brand-500'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === 'user' ? 'bg-primary' : 'bg-primary'}`}>
                             {msg.sender === 'user' ? <User size={16} className="text-white" /> : <Bot size={16} className="text-white" />}
                         </div>
                         <div
                             className={`p-3 rounded-2xl max-w-[85%] text-sm leading-relaxed shadow-sm ${msg.sender === 'user'
-                                ? 'bg-blue-600 text-white rounded-tr-none'
-                                : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200 dark:border-slate-700'
+                                ? 'bg-primary text-white rounded-tr-none'
+                                : 'bg-background/80 backdrop-blur-md text-foreground rounded-tl-none border border-muted'
                                 }`}
                         >
                             <Markdown
                                 components={{
                                     p: ({ ...props }) => <p {...props} className="mb-0" />,
-                                    strong: ({ ...props }) => <span {...props} className="font-bold text-brand-600 dark:text-brand-400" />
+                                    strong: ({ ...props }) => <span {...props} className="font-bold text-primary" />
                                 }}
                             >
                                 {msg.text}
@@ -134,10 +134,10 @@ const SentinelChat: React.FC = () => {
 
                 {isTyping && (
                     <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                             <Bot size={16} className="text-white" />
                         </div>
-                        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl rounded-tl-none border border-slate-200 dark:border-slate-700">
+                        <div className="bg-background/80 backdrop-blur-md p-3 rounded-2xl rounded-tl-none border border-muted">
                             <div className="flex space-x-1">
                                 <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                                 <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -150,11 +150,11 @@ const SentinelChat: React.FC = () => {
                 {/* Limit reached warning */}
                 {messageCount >= MAX_MESSAGES && (
                     <div className="flex justify-center my-4 animate-fade-in">
-                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3 max-w-[90%] text-center">
-                            <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                        <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 max-w-[90%] text-center">
+                            <p className="text-xs font-bold text-warning">
                                 Limite de questions atteinte pour cette session.
                             </p>
-                            <p className="text-[10px] text-amber-600 dark:text-amber-500 mt-1">
+                            <p className="text-[10px] text-warning/80 mt-1">
                                 Connectez-vous ou créez un compte pour continuer à échanger avec Sentinel.
                             </p>
                         </div>
@@ -165,13 +165,13 @@ const SentinelChat: React.FC = () => {
             {/* Suggestions (only if few messages) */}
             {messages.length < 3 && !isTyping && messageCount < MAX_MESSAGES && (
                 <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-                    <button onClick={() => handleSuggestionClick("Parlez-moi de la sécurité")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-brand-100 dark:hover:bg-brand-900/30 border border-brand-200 dark:border-brand-800 text-xs font-medium text-brand-700 dark:text-brand-300 transition-colors flex items-center gap-1">
+                    <button onClick={() => handleSuggestionClick("Parlez-moi de la sécurité")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-muted/30 hover:bg-primary/10 border border-primary/20 text-xs font-medium text-primary transition-colors flex items-center gap-1">
                         <Sparkles size={12} /> Sécurité
                     </button>
-                    <button onClick={() => handleSuggestionClick("Où sont mes données ?")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-xs font-medium text-blue-700 dark:text-blue-300 transition-colors">
+                    <button onClick={() => handleSuggestionClick("Où sont mes données ?")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-muted/30 hover:bg-primary/10 border border-blue-200 dark:border-blue-800 text-xs font-medium text-primary transition-colors">
                         Souveraineté (Cloud)
                     </button>
-                    <button onClick={() => handleSuggestionClick("Quel est le ROI ?")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-xs font-medium text-emerald-700 dark:text-emerald-300 transition-colors">
+                    <button onClick={() => handleSuggestionClick("Quel est le ROI ?")} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-muted/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-xs font-medium text-success transition-colors">
                         ROI & Coûts
                     </button>
                 </div>
@@ -185,12 +185,12 @@ const SentinelChat: React.FC = () => {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={messageCount >= MAX_MESSAGES ? "Limite atteinte" : "Posez votre question..."}
                     disabled={messageCount >= MAX_MESSAGES}
-                    className="w-full bg-white/70 dark:bg-slate-900/50 backdrop-blur-sm dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-brand-500/50 placeholder-slate-500 dark:placeholder-slate-400 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-xl py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder-slate-500 dark:placeholder-slate-400 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                     type="submit"
                     disabled={!input.trim() || isTyping || messageCount >= MAX_MESSAGES}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-primary hover:bg-primary/80 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md"
                 >
                     <Send size={16} />
                 </button>

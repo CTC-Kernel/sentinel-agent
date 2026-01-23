@@ -69,14 +69,14 @@ export const AssetService = {
     /**
      * Update an existing asset
      */
-    async update(id: string, data: Partial<AssetFormData>, user: UserProfile, oldData?: Record<string, any>): Promise<void> {
+    async update(id: string, data: Partial<AssetFormData>, user: UserProfile, oldData?: Record<string, unknown>): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
 
         const validatedData = assetSchema.partial().parse(data);
         const cleanData = sanitizeData(validatedData);
 
         // Calculate changes for Audit Trail using standard utility
-        const changes = oldData ? getDiff(cleanData as any, oldData) : [];
+        const changes = oldData ? getDiff(cleanData as Record<string, unknown>, oldData) : [];
 
         await updateDoc(doc(db, 'assets', id), {
             ...cleanData,

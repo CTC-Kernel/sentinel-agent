@@ -128,7 +128,7 @@ export function useAgentData(options: UseAgentDataOptions = {}): AgentDataSummar
 
         // Wait for custom claims to be synced before subscribing to prevent permission errors
         if (!claimsSynced) {
-            setLoading(true);
+            Promise.resolve().then(() => setLoading(true));
             return;
         }
 

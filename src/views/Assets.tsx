@@ -383,13 +383,13 @@ const Assets: React.FC = () => {
                             transition={{ duration: 0.2 }}
                         >
                             {reachedAssetLimit && (
-                                <div className="mb-4 rounded-3xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
+                                <div className="mb-4 rounded-3xl border border-warning/30 bg-warning/10 text-warning px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-warning/10">
                                     <span>{t('assets.limitReached', { count: assets.length, max: limits.maxAssets })}</span>
                                     <Button
                                         variant="link"
                                         aria-label={t('assets.upgradePlan')}
                                         onClick={() => toast.info(t('assets.contactSupport'))}
-                                        className="text-amber-900 underline font-bold"
+                                        className="text-foreground underline font-bold"
                                     >
                                         {t('assets.upgradePlan')}
                                     </Button>
@@ -435,25 +435,25 @@ const Assets: React.FC = () => {
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={handleStartTour}
-                                                className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                                                className="p-2.5 rounded-xl bg-white text-muted-foreground border border-muted hover:bg-muted/10 dark:bg-white/5 dark:text-muted-foreground dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
                                                 title={t('assets.startTour')}
                                             >
                                                 <HelpCircle className="h-5 w-5" />
                                             </Button>
-                                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+                                            <div className="h-6 w-px bg-muted dark:bg-white/10 mx-1" />
                                             <Button
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={handleToggleSearch}
                                                 className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
-                                                    ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
-                                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
+                                                    ? 'bg-primary/10 text-primary border-primary/20'
+                                                    : 'bg-white text-muted-foreground border-muted hover:bg-muted/10 dark:bg-white/5 dark:text-muted-foreground dark:border-white/10 dark:hover:bg-white/10'
                                                     }`}
                                                 title={t('assets.advancedFilters')}
                                             >
                                                 <Filter className="h-5 w-5" />
                                             </Button>
-                                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+                                            <div className="h-6 w-px bg-muted dark:bg-white/10 mx-1" />
 
                                             {canEdit && (
                                                 <CustomTooltip content={t('assets.createAsset')}>
@@ -462,7 +462,7 @@ const Assets: React.FC = () => {
                                                         onClick={handleAnalyze}
                                                         disabled={isAnalyzing}
                                                         isLoading={isAnalyzing}
-                                                        className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                                        className="hidden lg:flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/80 transition-all shadow-lg shadow-primary/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                                                     >
                                                         {!isAnalyzing && <BrainCircuit className="h-4 w-4 mr-2" />}
                                                         <span className="hidden xl:inline">{isAnalyzing ? t('assets.analyzing') : t('assets.aiAnalysis')}</span>
@@ -477,7 +477,7 @@ const Assets: React.FC = () => {
                                                         data-tour="assets-add"
                                                         onClick={handleCreateNew}
                                                         disabled={reachedAssetLimit}
-                                                        className={`flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
+                                                        className={`flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-primary/20 ${reachedAssetLimit ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-primary text-white hover:bg-primary/80'}`}
                                                     >
                                                         <Plus className="h-4 w-4 mr-2" />
                                                         <span className="hidden sm:inline">{t('assets.newAsset')}</span>
@@ -486,16 +486,16 @@ const Assets: React.FC = () => {
                                                 </CustomTooltip>
                                             )}
 
-                                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+                                            <div className="h-6 w-px bg-muted dark:bg-white/10 mx-1" />
 
                                             <Menu as="div" className="relative inline-block text-left">
-                                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-muted dark:border-white/10 text-foreground rounded-xl hover:bg-muted/10 dark:hover:bg-white/10 transition-colors shadow-sm">
                                                     <MoreVertical className="h-5 w-5" />
                                                 </Menu.Button>
                                                 <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-background shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                                         <div className="p-1">
-                                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('assets.tools')}</div>
+                                                            <div className="px-3 py-2 text-xs font-semibold text-muted-foreground text-muted-foreground uppercase tracking-wider">{t('assets.tools')}</div>
                                                             {canEdit && (
                                                                 <Menu.Item>
                                                                     {({ active }) => (
@@ -503,9 +503,9 @@ const Assets: React.FC = () => {
                                                                             variant="ghost"
                                                                             aria-label={t('assets.importCsv')}
                                                                             onClick={() => setImportModalOpen(true)}
-                                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                            className={`${active ? 'bg-primary text-white' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                         >
-                                                                            <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                                            <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-primary'}`} />
                                                                             {t('assets.importCsv')}
                                                                         </Button>
                                                                     )}
@@ -518,9 +518,9 @@ const Assets: React.FC = () => {
                                                                         aria-label={t('assets.exportCsv')}
                                                                         data-tour="assets-export"
                                                                         onClick={handleExportCSV}
-                                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                        className={`${active ? 'bg-primary text-white' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                     >
-                                                                        <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
+                                                                        <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success'}`} />
                                                                         {t('assets.exportCsv')}
                                                                     </Button>
                                                                 )}
@@ -531,9 +531,9 @@ const Assets: React.FC = () => {
                                                                         variant="ghost"
                                                                         aria-label={t('assets.kioskLink')}
                                                                         onClick={handleGenerateKioskLink}
-                                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                        className={`${active ? 'bg-primary text-white' : 'text-foreground'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                     >
-                                                                        <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                                        <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-primary'}`} />
                                                                         {t('assets.kioskLink')}
                                                                     </Button>
                                                                 )}
