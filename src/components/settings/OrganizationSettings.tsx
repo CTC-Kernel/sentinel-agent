@@ -304,7 +304,7 @@ export const OrganizationSettings: React.FC = () => {
             {hasPermission(user, 'Settings', 'manage') && (
                 <GlassCard className="p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 -mx-6 -mt-6 mb-6 bg-white/40 dark:bg-white/5 backdrop-blur-md">
+                    <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400">
                                 <Building className="w-5 h-5" />
@@ -313,7 +313,7 @@ export const OrganizationSettings: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="relative z-10">
+                    <div className="relative z-10 p-6">
                         <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FloatingLabelInput

@@ -1,6 +1,6 @@
 # Story 2.7: Implement Resource Usage Limits
 
-Status: review
+Status: done
 
 ## Story
 
@@ -122,3 +122,9 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - 2026-01-23: Created resources module with monitoring and throttling
 - 2026-01-23: Added CpuThrottler and BoundedBuffer utilities
 - 2026-01-23: Integrated resource monitoring into AgentRuntime
+
+## Senior Developer Review (AI)
+
+**Date:** 2026-01-23 | **Decision:** **APPROVED** ✅
+
+Fixed during story 2-2 review: Windows `GetProcessMemoryInfo` and `GetProcessTimes` implemented
