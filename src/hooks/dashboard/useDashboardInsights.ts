@@ -65,21 +65,33 @@ export const useDashboardInsights = ({
         const actionable = controls.filter(c => c.status !== 'Exclu' && c.status !== 'Non applicable').length;
 
         if (activeIncidentsCount > 0) {
-            return { text: t('dashboard.insightIncidents').replace('{count}', activeIncidentsCount.toString()), type: 'danger' as const, details: t('dashboard.insightIncidentsDesc'), action: t('common.manage'), link: "/incidents" };
+            return {
+                text: t('dashboard.insightIncidents', { count: activeIncidentsCount }),
+                type: 'danger' as const,
+                details: t('dashboard.insightIncidentsDesc', { count: activeIncidentsCount }),
+                action: t('common.manage'),
+                link: "/incidents"
+            };
         } else if (stats.financialRisk > 100000) {
-            return { text: t('dashboard.insightFinancial'), type: 'danger' as const, details: t('dashboard.insightFinancialDesc').replace('{amount}', new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)), action: t('common.view') + ' ' + t('dashboard.risks'), link: "/risks" };
+            return {
+                text: t('dashboard.insightFinancial'),
+                type: 'danger' as const,
+                details: t('dashboard.insightFinancialDesc', { amount: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk) }),
+                action: t('common.view') + ' ' + t('dashboard.risks'),
+                link: "/risks"
+            };
         } else if (allRisks.filter(r => r.score >= 15).length > 0) {
             return { text: t('dashboard.insightRisks'), type: 'warning' as const, details: t('dashboard.insightRisksDesc'), action: t('common.view') + ' ' + t('dashboard.risks'), link: "/risks" };
         } else if (complianceScore < 50 && actionable > 0) {
             return { text: t('dashboard.insightCompliance'), type: 'warning' as const, details: t('dashboard.insightComplianceDesc'), action: t('dashboard.plan'), link: "/compliance" };
         } else if (expiredDocs > 0) {
-            return { text: t('dashboard.insightDocs').replace('{count}', expiredDocs.toString()), type: 'warning' as const, details: t('dashboard.insightDocsDesc'), action: t('dashboard.review'), link: "/documents" };
+            return { text: t('dashboard.insightDocs', { count: expiredDocs }), type: 'warning' as const, details: t('dashboard.insightDocsDesc', { count: expiredDocs }), action: t('dashboard.review'), link: "/documents" };
         } else if (expiredContracts > 0) {
-            return { text: t('dashboard.insightContracts').replace('{count}', expiredContracts.toString()), type: 'warning' as const, details: t('dashboard.insightContractsDesc'), action: t('sidebar.suppliers'), link: "/suppliers" };
+            return { text: t('dashboard.insightContracts', { count: expiredContracts }), type: 'warning' as const, details: t('dashboard.insightContractsDesc', { count: expiredContracts }), action: t('sidebar.suppliers'), link: "/suppliers" };
         } else if (criticalSuppliersNoScore > 0) {
-            return { text: t('dashboard.insightSuppliers').replace('{count}', criticalSuppliersNoScore.toString()), type: 'warning' as const, details: t('dashboard.insightSuppliersDesc'), action: t('dashboard.assess'), link: "/suppliers" };
+            return { text: t('dashboard.insightSuppliers', { count: criticalSuppliersNoScore }), type: 'warning' as const, details: t('dashboard.insightSuppliersDesc', { count: criticalSuppliersNoScore }), action: t('dashboard.assess'), link: "/suppliers" };
         } else if (overdueAudits > 0) {
-            return { text: t('dashboard.insightAudits').replace('{count}', overdueAudits.toString()), type: 'warning' as const, details: t('dashboard.insightAuditsDesc'), action: t('sidebar.audits'), link: "/audits" };
+            return { text: t('dashboard.insightAudits', { count: overdueAudits }), type: 'warning' as const, details: t('dashboard.insightAuditsDesc', { count: overdueAudits }), action: t('sidebar.audits'), link: "/audits" };
         }
         return { text: t('dashboard.insightStable'), type: 'success' as const, details: "", action: "", link: "" };
     }, [activeIncidentsCount, stats.financialRisk, allRisks, complianceScore, controls, myDocs, myAudits, allSuppliers, t]);

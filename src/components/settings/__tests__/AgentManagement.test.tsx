@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AgentManagement } from '../AgentManagement';
 import { AgentService } from '../../../services/AgentService';
 import { useStore } from '../../../store';
+import { SentinelAgent, AgentEnrollmentToken } from '../../../types/agent';
 import { vi, expect, it, describe, beforeEach } from 'vitest';
 
 vi.mock('../../../services/AgentService');
@@ -29,11 +30,11 @@ const mockAgents = [
 describe('AgentManagement', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (useStore as any).mockReturnValue({
+        vi.mocked(useStore).mockReturnValue({
             user: mockUser,
             t: (key: string) => key
-        });
-        (AgentService.getAgents as any).mockResolvedValue(mockAgents);
+        } as unknown as ReturnType<typeof useStore>);
+        vi.mocked(AgentService.getAgents).mockResolvedValue(mockAgents as unknown as SentinelAgent[]);
     });
 
     it('renders agent list', async () => {
@@ -46,11 +47,11 @@ describe('AgentManagement', () => {
     });
 
     it('handles token generation', async () => {
-        (AgentService.generateEnrollmentToken as any).mockResolvedValue({
+        vi.mocked(AgentService.generateEnrollmentToken).mockResolvedValue({
             token: 'test-token-123',
             expiresAt: new Date().toISOString(),
             organizationId: 'test-org'
-        });
+        } as unknown as AgentEnrollmentToken);
 
         render(<AgentManagement />);
 

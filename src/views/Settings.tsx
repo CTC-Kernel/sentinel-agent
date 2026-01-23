@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
@@ -21,9 +22,24 @@ import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
 
+// Valid tab identifiers
+const VALID_TABS = ['profile', 'activity', 'security', 'organization', 'system', 'frameworks', 'partners', 'integrations', 'agents'];
+
 const Settings: React.FC = () => {
     const { t, user } = useStore();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [activeTab, setActiveTab] = usePersistedState('settings_active_tab', 'profile');
+
+    // Handle URL tab parameter (e.g., ?tab=agents from agent dashboard link)
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam && VALID_TABS.includes(tabParam) && tabParam !== activeTab) {
+            setActiveTab(tabParam);
+            // Clear the URL parameter after applying
+            searchParams.delete('tab');
+            setSearchParams(searchParams, { replace: true });
+        }
+    }, [searchParams, activeTab, setActiveTab, setSearchParams]);
 
     const renderContent = () => {
         switch (activeTab) {

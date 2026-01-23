@@ -36,7 +36,7 @@ export const AgentManagement: React.FC = () => {
         try {
             const data = await AgentService.getAgents(user.organizationId);
             setAgents(data);
-        } catch (error) {
+        } catch {
             toast.error("Échec du chargement des agents");
         } finally {
             setLoading(false);
@@ -60,7 +60,7 @@ export const AgentManagement: React.FC = () => {
             await AgentService.deleteAgent(user.organizationId, agentId);
             setAgents(prev => prev.filter(a => a.id !== agentId));
             toast.success("Agent supprimé");
-        } catch (error) {
+        } catch {
             toast.error("Erreur lors de la suppression");
         }
     };
@@ -71,7 +71,7 @@ export const AgentManagement: React.FC = () => {
             const result = await AgentService.generateEnrollmentToken(user.organizationId);
             setEnrollmentToken(result.token);
             setShowEnrollment(true);
-        } catch (error) {
+        } catch {
             toast.error("Erreur lors de la génération du token");
         }
     };
