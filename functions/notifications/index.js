@@ -12,6 +12,9 @@ const { defineString, defineSecret } = require("firebase-functions/params");
 
 const sgMail = require('@sendgrid/mail');
 
+// Import centralized risk threshold from calculateComplianceScore
+const { CRITICAL_RISK_THRESHOLD } = require('../callable/calculateComplianceScore');
+
 // Secrets
 const sendGridApiKey = defineSecret("SENDGRID_API_KEY");
 const mailFrom = defineString("MAIL_FROM", { default: '"Sentinel GRC" <no-reply@sentinel-grc.com>' });
@@ -820,7 +823,7 @@ async function checkCriticalRisks(db, organizationId) {
     const criticalRisksWithoutMitigation = [];
     risksSnap.forEach(doc => {
         const risk = doc.data();
-        if (risk.score >= 15 && (!risk.mitigationControlIds || risk.mitigationControlIds.length === 0)) {
+        if (risk.score >= CRITICAL_RISK_THRESHOLD && (!risk.mitigationControlIds || risk.mitigationControlIds.length === 0)) {
             criticalRisksWithoutMitigation.push(risk);
         }
     });

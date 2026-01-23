@@ -20,6 +20,9 @@ import {
   ISO27001_CONTROL_TEMPLATES,
   getNIS2RequirementCount,
 } from './nis2-seed-data';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 // ============================================================================
 // Firestore Data Structures
@@ -27,15 +30,12 @@ import {
 
 interface FirestoreFramework {
   code: string;
-  name: Record<string, string>;
-  fullName: Record<string, string>;
-  description: Record<string, string>;
+  name: string;
+  localizedNames?: Record<string, string>;
+  description?: string;
+  localizedDescriptions?: Record<string, string>;
   version: string;
-  effectiveDate: Date;
-  complianceDeadline: Date;
-  jurisdiction: string[];
-  sectors: string[];
-  officialUrl: string;
+  effectiveDate: any;
   isActive: boolean;
   requirementCount: number;
   createdAt: Date;
@@ -75,8 +75,14 @@ interface FirestoreControlTemplate {
  */
 function prepareFrameworkDocument(): FirestoreFramework {
   const now = new Date();
+  const { name, localizedNames, version, effectiveDate, isActive } = NIS2_FRAMEWORK;
   return {
-    ...NIS2_FRAMEWORK,
+    code: 'NIS2',
+    name,
+    localizedNames,
+    version,
+    effectiveDate,
+    isActive,
     requirementCount: getNIS2RequirementCount(),
     createdAt: now,
     updatedAt: now,
@@ -155,10 +161,9 @@ function main() {
 
   const seedData = generateSeedJSON();
 
-  console.log(`📋 Framework: ${seedData.framework.name.en}`);
+  console.log(`📋 Framework: ${seedData.framework.name}`);
   console.log(`   Version: ${seedData.framework.version}`);
-  console.log(`   Compliance Deadline: ${seedData.framework.complianceDeadline.toISOString().split('T')[0]}`);
-  console.log(`   Sectors: ${seedData.framework.sectors.length}`);
+  console.log(`   Effective Date: ${seedData.framework.effectiveDate}`);
   console.log('');
 
   console.log(`📝 Requirements: ${seedData.requirements.length}`);
@@ -195,8 +200,8 @@ function main() {
   console.log('');
 
   // Write to file
-  const fs = require('fs');
-  const path = require('path');
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
   const outputPath = path.join(__dirname, 'nis2-seed-output.json');
   fs.writeFileSync(outputPath, JSON.stringify(seedData, null, 2));
 
@@ -209,7 +214,8 @@ function main() {
 }
 
 // Run if executed directly
-if (require.main === module) {
+const isMain = process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
+if (isMain) {
   main();
 }
 
