@@ -470,7 +470,6 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
     const currentRetryTimers = retryTimersRef.current;
     const currentRetryAttempts = retryAttemptsRef.current;
     const currentConnectedCollections = connectedCollectionsRef.current;
-    const currentDebounceTimer = debounceTimerRef.current;
 
     // Cleanup function
     return () => {
@@ -489,8 +488,9 @@ export function useVoxelRealtime(config: Partial<RealtimeConfig> = {}) {
       currentConnectedCollections.clear();
       isInitializedRef.current = false;
 
-      if (currentDebounceTimer) {
-        clearTimeout(currentDebounceTimer);
+      // Clear debounce timer - use ref directly since timer may be set after effect start
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = null;
       }
     };
