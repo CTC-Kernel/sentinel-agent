@@ -453,7 +453,7 @@ interface Notification {
 
 ### ADR-008: Registre ICT Automatisé (DORA Art. 28)
 
-**Contexte:** DORA exige un registre ICT complet avec reporting ESA avant le 30 avril 2025.
+**Contexte:** DORA exige un registre ICT complet avec reporting ESA. Deadline originale : 30 avril 2025 (PASSEE - IMPLEMENTATION CRITIQUE).
 
 **Décision:** Module dédié de gestion des fournisseurs ICT avec génération automatique du registre DORA.
 
@@ -1464,7 +1464,7 @@ User Action → Component → Hook → Service → Firestore
 
 | Priorité | ADR | Feature | Vertical | Deadline |
 |----------|-----|---------|----------|----------|
-| P0 | ADR-008 | Registre ICT DORA | Finance | 30 avril 2025 |
+| P0 | ADR-008 | Registre ICT DORA | Finance | URGENT (deadline passee) |
 | P0 | ADR-011 | Templates Homologation | Public | Q1 2026 |
 | P1 | ADR-009 | Connecteur SCADA/ICS | Industrie | Q2 2026 |
 | P1 | ADR-010 | Third-Party Risk | Tous | Q2 2026 |

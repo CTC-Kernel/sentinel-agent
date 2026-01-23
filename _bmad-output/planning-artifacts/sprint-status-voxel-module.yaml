@@ -1,0 +1,511 @@
+# generated: 2026-01-23
+# project: Sentinel GRC - Module Voxel 3D
+# project_key: voxel-module
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+# source_document: epics-voxel-module-2026-01-22.md
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Not started
+#   - in-progress: Currently being implemented
+#   - review: Implementation complete, awaiting review
+#   - done: Completed and verified
+
+generated: 2026-01-23
+updated: 2026-01-23
+project: Sentinel GRC - Module Voxel 3D
+project_key: voxel-module
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+# IMPLEMENTATION TIMELINE:
+# ========================
+# Sprint 1: Epic 1 (Foundation) - 2 semaines
+# Sprint 2: Epic 2 (Nodes) - 2 semaines
+# Sprint 3: Epic 3 (Edges) - 1.5 semaines
+# Sprint 4: Epic 4 (Navigation) - 1.5 semaines
+# Sprint 5: Epic 5 (Filtering) - 2 semaines
+# Sprint 6: Epic 6 (Data Integration) - 2 semaines
+# Sprint 7: Epic 7 (Detail Panel) - 1.5 semaines
+# Sprint 7+: Epic 8 (Security/RBAC) - 1 semaine
+# Post-MVP: Epic 9 (Advanced Features)
+
+development_status:
+  # ============================================
+  # EPIC 1: Foundation & Architecture
+  # Sprint 1 - Priority: P0
+  # ============================================
+  epic-1:
+    title: "Foundation et Architecture 3D"
+    status: backlog
+    priority: P0
+    sprint: 1
+    estimated_days: 10
+    dependencies: []
+
+  1-1-react-three-fiber-setup:
+    title: "Configuration React Three Fiber"
+    status: backlog
+    points: 5
+    description: "Setup R3F, drei, postprocessing dans le projet existant"
+
+  1-2-zustand-voxel-store:
+    title: "Store Zustand pour etat Voxel"
+    status: backlog
+    points: 3
+    description: "Store global pour noeuds, aretes, camera, selection"
+
+  1-3-canvas-container-component:
+    title: "Composant VoxelCanvas container"
+    status: backlog
+    points: 3
+    description: "Container principal avec gestion resize et WebGL context"
+
+  1-4-performance-monitoring:
+    title: "Monitoring performance WebGL"
+    status: backlog
+    points: 2
+    description: "Stats.js integration, FPS monitoring, memory tracking"
+
+  1-5-error-boundary-webgl:
+    title: "Error boundary WebGL graceful"
+    status: backlog
+    points: 2
+    description: "Fallback UI si WebGL non supporte"
+
+  1-6-responsive-canvas:
+    title: "Canvas responsive multi-device"
+    status: backlog
+    points: 3
+    description: "Adaptation desktop/tablet, LOD automatique"
+
+  # ============================================
+  # EPIC 2: Node Visualization System
+  # Sprint 2 - Priority: P0
+  # ============================================
+  epic-2:
+    title: "Systeme de Visualisation des Noeuds"
+    status: backlog
+    priority: P0
+    sprint: 2
+    estimated_days: 10
+    dependencies: [epic-1]
+
+  2-1-node-base-component:
+    title: "Composant Node3D de base"
+    status: backlog
+    points: 5
+    description: "Mesh instancie avec geometrie configurable"
+
+  2-2-node-type-geometries:
+    title: "Geometries par type d'entite"
+    status: backlog
+    points: 5
+    description: "Cube (Asset), Sphere (Risk), Octaedre (Control), Cylindre (Document)"
+
+  2-3-node-color-coding:
+    title: "Code couleur dynamique"
+    status: backlog
+    points: 3
+    description: "Criticite, status, type avec legende"
+
+  2-4-node-labels:
+    title: "Labels HTML overlay"
+    status: backlog
+    points: 3
+    description: "Html component drei avec culling distance"
+
+  2-5-node-hover-effects:
+    title: "Effets hover sur noeuds"
+    status: backlog
+    points: 2
+    description: "Glow, scale, outline au survol"
+
+  2-6-node-selection:
+    title: "Selection noeuds click/multi"
+    status: backlog
+    points: 3
+    description: "Selection simple et multi avec Shift"
+
+  2-7-node-instancing:
+    title: "Instancing pour performance"
+    status: backlog
+    points: 5
+    description: "InstancedMesh pour >1000 noeuds"
+
+  # ============================================
+  # EPIC 3: Edge Connection System
+  # Sprint 3 - Priority: P1
+  # ============================================
+  epic-3:
+    title: "Systeme de Connexions (Aretes)"
+    status: backlog
+    priority: P1
+    sprint: 3
+    estimated_days: 7
+    dependencies: [epic-2]
+
+  3-1-edge-base-component:
+    title: "Composant Edge3D de base"
+    status: backlog
+    points: 3
+    description: "Line ou TubeGeometry entre noeuds"
+
+  3-2-edge-type-styling:
+    title: "Styles par type de relation"
+    status: backlog
+    points: 3
+    description: "Solid, dashed, animated pour differents liens"
+
+  3-3-edge-direction-arrows:
+    title: "Fleches directionnelles"
+    status: backlog
+    points: 2
+    description: "Cone geometry pour direction du lien"
+
+  3-4-edge-hover-highlight:
+    title: "Highlight arete au hover"
+    status: backlog
+    points: 2
+    description: "Mise en evidence noeuds connectes"
+
+  3-5-edge-bundling:
+    title: "Edge bundling optionnel"
+    status: backlog
+    points: 5
+    description: "Regroupement courbes pour lisibilite"
+
+  # ============================================
+  # EPIC 4: Camera & Navigation
+  # Sprint 4 - Priority: P0
+  # ============================================
+  epic-4:
+    title: "Camera et Navigation 3D"
+    status: backlog
+    priority: P0
+    sprint: 4
+    estimated_days: 7
+    dependencies: [epic-1]
+
+  4-1-orbit-controls:
+    title: "OrbitControls configuration"
+    status: backlog
+    points: 3
+    description: "Rotation, pan, zoom avec limites"
+
+  4-2-fly-to-node:
+    title: "Animation fly-to vers noeud"
+    status: backlog
+    points: 3
+    description: "Transition camera smooth vers selection"
+
+  4-3-preset-views:
+    title: "Vues predefines (top, front, iso)"
+    status: backlog
+    points: 2
+    description: "Boutons quick view avec transitions"
+
+  4-4-minimap:
+    title: "Minimap 2D orientation"
+    status: backlog
+    points: 5
+    description: "Vue orthographique secondaire pour reperage"
+
+  4-5-keyboard-navigation:
+    title: "Navigation clavier"
+    status: backlog
+    points: 2
+    description: "WASD, fleches, espace pour reset"
+
+  4-6-touch-gestures:
+    title: "Gestures tactiles mobile"
+    status: backlog
+    points: 3
+    description: "Pinch zoom, two-finger rotate"
+
+  # ============================================
+  # EPIC 5: Filtering & Search
+  # Sprint 5 - Priority: P1
+  # ============================================
+  epic-5:
+    title: "Filtrage et Recherche 3D"
+    status: backlog
+    priority: P1
+    sprint: 5
+    estimated_days: 10
+    dependencies: [epic-2, epic-3]
+
+  5-1-filter-panel:
+    title: "Panel filtres lateral"
+    status: backlog
+    points: 3
+    description: "UI filtres par type, status, criticite"
+
+  5-2-filter-animation:
+    title: "Animation filtrage noeuds"
+    status: backlog
+    points: 3
+    description: "Fade out/in smooth des noeuds filtres"
+
+  5-3-search-bar:
+    title: "Recherche textuelle"
+    status: backlog
+    points: 3
+    description: "Autocomplete avec highlight resultats"
+
+  5-4-search-highlight:
+    title: "Highlight resultats recherche"
+    status: backlog
+    points: 2
+    description: "Pulsation noeuds matches"
+
+  5-5-filter-presets:
+    title: "Presets de filtres sauvegardes"
+    status: backlog
+    points: 3
+    description: "Sauvegarder/charger configurations filtres"
+
+  5-6-timeline-filter:
+    title: "Filtre temporel slider"
+    status: backlog
+    points: 5
+    description: "Animation evolution dans le temps"
+
+  # ============================================
+  # EPIC 6: Data Integration
+  # Sprint 6 - Priority: P0
+  # ============================================
+  epic-6:
+    title: "Integration Donnees Firestore"
+    status: backlog
+    priority: P0
+    sprint: 6
+    estimated_days: 10
+    dependencies: [epic-2]
+
+  6-1-firestore-realtime-sync:
+    title: "Sync realtime Firestore"
+    status: backlog
+    points: 5
+    description: "onSnapshot pour assets, risks, controls"
+
+  6-2-data-transformer:
+    title: "Transformer donnees vers graph"
+    status: backlog
+    points: 5
+    description: "Conversion entites Firestore en noeuds/aretes"
+
+  6-3-layout-algorithm:
+    title: "Algorithme layout force-directed"
+    status: backlog
+    points: 8
+    description: "Positionnement automatique des noeuds"
+
+  6-4-layout-presets:
+    title: "Presets layout (cluster, hierarchy)"
+    status: backlog
+    points: 5
+    description: "Differentes organisations visuelles"
+
+  6-5-incremental-updates:
+    title: "Mises a jour incrementales"
+    status: backlog
+    points: 5
+    description: "Ajout/suppression noeuds sans full reload"
+
+  6-6-offline-cache:
+    title: "Cache offline des positions"
+    status: backlog
+    points: 3
+    description: "Persistence positions noeuds IndexedDB"
+
+  # ============================================
+  # EPIC 7: Detail Panel
+  # Sprint 7 - Priority: P1
+  # ============================================
+  epic-7:
+    title: "Panel Detail Contextuel"
+    status: backlog
+    priority: P1
+    sprint: 7
+    estimated_days: 7
+    dependencies: [epic-2, epic-6]
+
+  7-1-detail-panel-component:
+    title: "Composant panel detail"
+    status: backlog
+    points: 3
+    description: "Slide-in panel avec infos entite"
+
+  7-2-entity-quick-view:
+    title: "Quick view entite"
+    status: backlog
+    points: 3
+    description: "Resume rapide avec liens"
+
+  7-3-inline-edit:
+    title: "Edition inline rapide"
+    status: backlog
+    points: 5
+    description: "Modifier champs sans quitter vue 3D"
+
+  7-4-related-entities:
+    title: "Entites liees navigation"
+    status: backlog
+    points: 3
+    description: "Liste cliquable des connexions"
+
+  7-5-action-buttons:
+    title: "Actions rapides contextuelles"
+    status: backlog
+    points: 2
+    description: "Boutons edit, delete, link depuis panel"
+
+  # ============================================
+  # EPIC 8: Security & RBAC
+  # Sprint 7+ - Priority: P1
+  # ============================================
+  epic-8:
+    title: "Securite et Controle d'Acces"
+    status: backlog
+    priority: P1
+    sprint: 7
+    estimated_days: 5
+    dependencies: [epic-6]
+
+  8-1-visibility-rules:
+    title: "Regles visibilite par role"
+    status: backlog
+    points: 5
+    description: "Filtrer noeuds selon permissions user"
+
+  8-2-action-permissions:
+    title: "Permissions actions contextuelles"
+    status: backlog
+    points: 3
+    description: "Activer/desactiver actions selon role"
+
+  8-3-audit-log-visualization:
+    title: "Visualisation audit trail"
+    status: backlog
+    points: 3
+    description: "Historique modifications sur noeuds"
+
+  # ============================================
+  # EPIC 9: MVP+ Advanced Features
+  # Post-MVP - Priority: P2
+  # ============================================
+  epic-9:
+    title: "Fonctionnalites Avancees (Post-MVP)"
+    status: backlog
+    priority: P2
+    sprint: 8
+    estimated_days: 15
+    dependencies: [epic-1, epic-2, epic-3, epic-4, epic-5, epic-6, epic-7, epic-8]
+
+  9-1-export-image:
+    title: "Export image/PDF vue 3D"
+    status: backlog
+    points: 3
+    description: "Screenshot haute resolution"
+
+  9-2-vr-mode:
+    title: "Mode VR experimental"
+    status: backlog
+    points: 8
+    description: "WebXR support pour casques VR"
+
+  9-3-collaborative-cursors:
+    title: "Curseurs collaboratifs"
+    status: backlog
+    points: 5
+    description: "Voir autres utilisateurs en temps reel"
+
+  9-4-annotation-3d:
+    title: "Annotations 3D"
+    status: backlog
+    points: 5
+    description: "Notes attachees aux noeuds"
+
+  9-5-comparison-mode:
+    title: "Mode comparaison versions"
+    status: backlog
+    points: 8
+    description: "Diff visuel entre deux etats"
+
+# ============================================
+# SUMMARY STATISTICS
+# ============================================
+summary:
+  total_epics: 9
+  total_stories: 52
+  epics_done: 0
+  epics_in_progress: 0
+  epics_backlog: 9
+  stories_done: 0
+  stories_in_progress: 0
+  stories_review: 0
+  stories_backlog: 52
+  coverage_percentage: 0%
+  estimated_total_days: 81
+  estimated_sprints: 8
+  last_updated: 2026-01-23
+
+  tech_stack:
+    framework: "React Three Fiber (R3F)"
+    3d_engine: "Three.js"
+    state: "Zustand"
+    helpers: "drei, postprocessing"
+    performance: "InstancedMesh, LOD"
+
+  dependencies:
+    required:
+      - "Plateforme SaaS (donnees Assets, Risks, Controls)"
+      - "Firebase Firestore (realtime sync)"
+    optional:
+      - "Agent GRC (endpoints pour assets OT)"
+
+# ============================================
+# MILESTONES
+# ============================================
+milestones:
+  mvp:
+    target: "Sprint 7"
+    epics: [1, 2, 3, 4, 5, 6, 7, 8]
+    stories: 47
+    description: "Module Voxel fonctionnel avec toutes features core"
+
+  mvp_plus:
+    target: "Sprint 8+"
+    epics: [9]
+    stories: 5
+    description: "Features avancees (VR, collaboration, export)"
+
+# ============================================
+# RISKS
+# ============================================
+risks:
+  - id: R1
+    description: "Performance WebGL avec >5000 noeuds"
+    mitigation: "InstancedMesh, LOD, frustum culling"
+    probability: medium
+    impact: high
+
+  - id: R2
+    description: "Compatibilite navigateurs anciens"
+    mitigation: "Fallback gracieux, detection WebGL"
+    probability: low
+    impact: medium
+
+  - id: R3
+    description: "UX mobile tactile complexe"
+    mitigation: "Gestures simplifiees, mode 2D fallback"
+    probability: medium
+    impact: medium
