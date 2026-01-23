@@ -1412,3 +1412,216 @@ So that **I can assess data protection compliance specifically**.
 **And** encryption and access control checks are prioritized
 **And** I can generate RGPD-specific compliance report
 **And** view is read-only (no configuration changes)
+
+---
+
+## Epic 8: Agent Fleet Administration (SaaS) - Stories
+
+### Story 8.1: Display Agent Fleet List with Status
+
+As an **IT Administrator**,
+I want **to see all deployed agents with their connection status and version**,
+So that **I can monitor the health of my agent fleet**.
+
+**Acceptance Criteria:**
+
+**Given** I am logged in as IT Administrator
+**When** I navigate to the Agent Management page
+**Then** I see a list of all registered agents
+**And** each agent shows: hostname, OS, agent_version, connection_status, last_seen
+**And** connection status shows: Online (green), Offline (red), Unknown (gray)
+**And** I can search and filter by hostname, OS, status, or version
+**And** list supports pagination for 10,000+ agents (NFR-SC1)
+
+---
+
+### Story 8.2: Download Agent Installation Packages
+
+As an **IT Administrator**,
+I want **to download installation packages for all supported platforms**,
+So that **I can deploy agents to new endpoints**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Agent Management page
+**When** I click "Download Agent"
+**Then** I see download options: Windows MSI, Linux DEB, Linux RPM
+**And** each package shows version number and file size
+**And** download includes SHA-256 checksum for verification
+**And** packages are the latest stable version
+**And** previous versions are available for rollback scenarios
+
+---
+
+### Story 8.3: Generate Agent Registration Tokens
+
+As an **IT Administrator**,
+I want **to generate time-limited registration tokens**,
+So that **I can securely enroll new agents**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Agent Management page
+**When** I click "Generate Token"
+**Then** a new registration token is generated
+**And** I can set token expiry (1h, 24h, 7d, 30d)
+**And** I can set max usage count (1, 10, 100, unlimited)
+**And** token is displayed once and can be copied to clipboard
+**And** I can revoke active tokens
+**And** token usage history is logged
+
+---
+
+### Story 8.4: Configure Check Frequency
+
+As an **IT Administrator**,
+I want **to configure how often compliance checks run**,
+So that **I can balance thoroughness with resource usage**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Agent Configuration page
+**When** I set the check frequency
+**Then** I can choose: Every 15 min, Hourly, Every 4 hours, Daily
+**And** configuration can apply to: All agents, Agent group, Individual agent
+**And** change is pushed to agents on next heartbeat
+**And** agents confirm configuration receipt
+**And** different frequencies can be set per check category
+
+---
+
+### Story 8.5: Enable or Disable Specific Checks
+
+As an **IT Administrator**,
+I want **to enable or disable specific compliance checks**,
+So that **I can customize checks for different endpoint types**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Agent Configuration page
+**When** I view the checks list
+**Then** I see all available checks with enable/disable toggle
+**And** disabled checks are excluded from agent execution and scoring
+**And** I can bulk enable/disable checks
+**And** check profiles can be saved and applied to agent groups
+**And** default profile enables all checks
+**And** change is pushed to agents on next sync
+
+---
+
+### Story 8.6: Force Agent Synchronization
+
+As an **IT Administrator**,
+I want **to force an immediate sync on a specific agent**,
+So that **I can push configuration changes or retrieve results urgently**.
+
+**Acceptance Criteria:**
+
+**Given** I select an agent from the fleet list
+**When** I click "Force Sync"
+**Then** a sync command is sent to the agent
+**And** agent responds within 60 seconds if online
+**And** sync status shows: Pending, In Progress, Completed, Failed
+**And** I can force sync multiple agents at once
+**And** force sync is logged in audit trail
+
+---
+
+### Story 8.7: Unregister Agent from Fleet
+
+As an **IT Administrator**,
+I want **to remove an agent from the managed fleet**,
+So that **decommissioned endpoints no longer appear in reports**.
+
+**Acceptance Criteria:**
+
+**Given** I select an agent from the fleet list
+**When** I click "Unregister"
+**Then** a confirmation dialog appears with agent details
+**And** unregistered agent certificate is revoked
+**And** agent is removed from fleet list
+**And** historical compliance data is retained for audit (12 months)
+**And** agent receives revocation notice and stops communicating
+**And** unregistration is logged in audit trail
+
+---
+
+## Epic 9: Audit & Compliance Reporting - Stories
+
+### Story 9.1: Provide Auditor Read-Only Access
+
+As an **Auditor**,
+I want **read-only access to compliance data**,
+So that **I can review evidence without risk of modification**.
+
+**Acceptance Criteria:**
+
+**Given** I am logged in with Auditor role
+**When** I access the compliance dashboard
+**Then** I can view all compliance scores, checks, and proofs
+**And** all modification controls are hidden or disabled
+**And** I cannot change agent configuration or settings
+**And** I cannot force sync or unregister agents
+**And** audit access is logged with timestamp and user ID
+**And** session timeout is enforced (30 min inactivity)
+
+---
+
+### Story 9.2: View Technical Proofs with Timestamps
+
+As an **Auditor**,
+I want **to view timestamped technical proofs for each check**,
+So that **I can verify compliance evidence is authentic**.
+
+**Acceptance Criteria:**
+
+**Given** I select a check result for an endpoint
+**When** I view the proof details
+**Then** I see: raw_output, timestamp (ISO 8601 UTC), agent_id, check_version
+**And** SHA-256 integrity hash is displayed
+**And** I can verify hash by recomputing (verification button)
+**And** proof chain of custody is shown (agent → upload → storage)
+**And** proofs are displayed in a secure, non-editable format
+
+---
+
+### Story 9.3: Export Compliance Report by Framework (PDF)
+
+As an **Auditor**,
+I want **to export a formal compliance report in PDF format**,
+So that **I have official documentation for audit purposes**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the compliance dashboard
+**When** I click "Export Report"
+**Then** I can select framework: NIS2, DORA, RGPD, or All
+**And** I can select scope: All endpoints, Specific group, Single endpoint
+**And** I can select date range for report
+**Then** PDF is generated with:
+  - Executive summary with global score
+  - Per-endpoint compliance breakdown
+  - Failed checks with details
+  - Proof references (hash, timestamp)
+  - Report generation metadata (date, user, filters)
+**And** PDF includes Sentinel branding and page numbers
+**And** export completes within 30 seconds for 1000 endpoints
+
+---
+
+### Story 9.4: View 12-Month Compliance History
+
+As an **Auditor**,
+I want **to view compliance history spanning 12 months**,
+So that **I can assess compliance trends and demonstrate continuous improvement**.
+
+**Acceptance Criteria:**
+
+**Given** I am viewing the compliance dashboard
+**When** I access historical data
+**Then** I can view compliance scores for any date in the past 12 months
+**And** I can compare current state vs any historical point
+**And** timeline shows major compliance events (score changes >10%)
+**And** I can drill down into historical check results
+**And** historical proofs are accessible and verifiable
+**And** data older than 12 months is marked as archived (NFR-C2)
