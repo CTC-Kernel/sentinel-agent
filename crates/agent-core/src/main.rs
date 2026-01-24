@@ -725,23 +725,21 @@ mod ctrlc {
                 }
             });
 
-            // Set up console control handler
-            // SAFETY: This is the standard way to handle console events on Windows
-            unsafe {
-                extern "system" fn console_handler(ctrl_type: u32) -> i32 {
-                    // CTRL_C_EVENT = 0, CTRL_BREAK_EVENT = 1, CTRL_CLOSE_EVENT = 2
-                    if ctrl_type <= 2 {
-                        SHUTDOWN_FLAG.store(true, Ordering::SeqCst);
-                        return 1; // TRUE - we handled it
-                    }
-                    0 // FALSE - pass to next handler
+            // Set up console control handler (defined but not currently used)
+            #[allow(dead_code)]
+            extern "system" fn console_handler(ctrl_type: u32) -> i32 {
+                // CTRL_C_EVENT = 0, CTRL_BREAK_EVENT = 1, CTRL_CLOSE_EVENT = 2
+                if ctrl_type <= 2 {
+                    SHUTDOWN_FLAG.store(true, Ordering::SeqCst);
+                    return 1; // TRUE - we handled it
                 }
-
-                // SetConsoleCtrlHandler via windows crate would be ideal,
-                // but for simplicity we use the signal-hook approach on Windows too
-                // if available, or fall back to a polling approach
-                let _ = console_handler; // Suppress unused warning
+                0 // FALSE - pass to next handler
             }
+
+            // SetConsoleCtrlHandler via windows crate would be ideal,
+            // but for simplicity we use the signal-hook approach on Windows too
+            // if available, or fall back to a polling approach
+            let _ = console_handler; // Suppress unused warning
         }
 
         Ok(())
