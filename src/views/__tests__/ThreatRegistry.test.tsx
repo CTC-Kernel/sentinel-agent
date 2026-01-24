@@ -50,6 +50,17 @@ vi.mock('../../services/logger', () => ({
     logAction: vi.fn().mockResolvedValue(undefined),
 }));
 
+// Mock EmptyState
+vi.mock('../../components/ui/EmptyState', () => ({
+    EmptyState: ({ title, description, action }: { title?: string; description?: string; action?: React.ReactNode }) => (
+        <div data-testid="empty-state">
+            {title && <h2>{title}</h2>}
+            {description && <p>{description}</p>}
+            {action}
+        </div>
+    )
+}));
+
 // Helper to render component with router
 const renderWithRouter = (ui: React.ReactElement, { route = '/' } = {}) => {
     return render(
