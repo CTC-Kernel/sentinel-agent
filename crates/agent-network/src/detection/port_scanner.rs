@@ -191,10 +191,7 @@ impl PortScanner {
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::SuspiciousPort,
             severity: AlertSeverity::High,
-            title: format!(
-                "Suspicious listening port detected: {}",
-                conn.local_port
-            ),
+            title: format!("Suspicious listening port detected: {}", conn.local_port),
             description: format!(
                 "Process '{}' is listening on port {} which is commonly associated with backdoors or RATs. \
                 Verify this is a legitimate service.",

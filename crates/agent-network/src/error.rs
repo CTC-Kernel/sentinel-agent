@@ -58,9 +58,7 @@ impl NetworkError {
     pub fn is_recoverable(&self) -> bool {
         matches!(
             self,
-            NetworkError::CommandFailed(_)
-                | NetworkError::Io(_)
-                | NetworkError::Sync(_)
+            NetworkError::CommandFailed(_) | NetworkError::Io(_) | NetworkError::Sync(_)
         )
     }
 }
