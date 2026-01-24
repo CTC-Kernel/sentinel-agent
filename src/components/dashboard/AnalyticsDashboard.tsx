@@ -504,7 +504,7 @@ export const AnalyticsDashboard: React.FC = () => {
                         </div>
                         <button
                             onClick={() => navigate('/risks')}
-                            className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-bold text-sm hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 rounded-xl bg-brand-500 text-white font-bold text-sm hover:bg-brand-600 transition-colors flex items-center gap-2 shadow-sm"
                         >
                             Voir tous les risques
                             <TrendingUp className="h-4 w-4" />

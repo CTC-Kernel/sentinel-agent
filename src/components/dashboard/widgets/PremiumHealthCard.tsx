@@ -9,11 +9,7 @@ import { motion } from 'framer-motion';
 import {
     RadialBarChart,
     RadialBar,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    Sector
+    ResponsiveContainer
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { SENTINEL_PALETTE } from '../../../theme/chartTheme';
@@ -42,42 +38,6 @@ interface PremiumHealthCardProps {
     loading?: boolean;
 }
 
-// Active shape for interactive pie
-const renderActiveShape = (props: {
-    cx: number;
-    cy: number;
-    innerRadius: number;
-    outerRadius: number;
-    startAngle: number;
-    endAngle: number;
-    fill: string;
-    payload: { name: string; value: number };
-    percent: number;
-}) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
-
-    return (
-        <g>
-            <Sector
-                cx={cx}
-                cy={cy}
-                innerRadius={innerRadius - 4}
-                outerRadius={outerRadius + 6}
-                startAngle={startAngle}
-                endAngle={endAngle}
-                fill={fill}
-                style={{ filter: 'url(#healthGlow)', transition: 'all 0.3s ease' }}
-            />
-            <text x={cx} y={cy - 8} textAnchor="middle" className="text-xl font-black fill-slate-900 dark:fill-white">
-                {payload.value}
-            </text>
-            <text x={cx} y={cy + 10} textAnchor="middle" className="text-[9px] uppercase tracking-wider fill-slate-500">
-                {payload.name}
-            </text>
-        </g>
-    );
-};
-
 // Tech corner decoration
 const TechCorners: React.FC<{ className?: string }> = ({ className }) => (
     <div className={cn("pointer-events-none", className)}>
@@ -96,8 +56,6 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
 }) => {
     const navigate = useNavigate();
     const effectiveCompliance = complianceScore ?? stats.compliance ?? 0;
-
-    const [activeRiskIndex, setActiveRiskIndex] = React.useState(0);
 
     // Compliance gauge data
     const complianceGaugeData = useMemo(() => [{
@@ -369,7 +327,7 @@ export const PremiumHealthCard: React.FC<PremiumHealthCardProps> = ({
                                     Distribution des risques
                                 </span>
                                 <div className="flex items-center gap-3">
-                                    {riskDistribution.map((item, index) => (
+                                    {riskDistribution.map((item) => (
                                         <div key={item.name} className="flex items-center gap-1.5 text-[10px]">
                                             <div
                                                 className="w-2 h-2 rounded-full"

@@ -264,7 +264,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                 <div className="flex-shrink-0">
                     <div className={cn(
                         "h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
-                        isMe ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                        isMe ? "bg-brand-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                     )}>
                         {comment.userName.charAt(0).toUpperCase()}
                     </div>
@@ -281,7 +281,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                     {comment.userName}
                                 </span>
                                 {isMe && (
-                                    <span className="text-[10px] bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded-full font-medium">
+                                    <span className="text-[10px] bg-brand-500 text-white px-2 py-0.5 rounded-full font-medium">
                                         Vous
                                     </span>
                                 )}
@@ -326,7 +326,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                 className={cn(
                                     "text-xs font-medium flex items-center gap-1 transition-all px-2 py-1 rounded",
                                     replyTo === comment.id
-                                        ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300"
+                                        ? "bg-brand-500 text-white"
                                         : "text-slate-500 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 )}
                             >
@@ -362,7 +362,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                     className={cn(
                                         "p-2 rounded-lg transition-colors",
                                         notificationsEnabled
-                                            ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300"
+                                            ? "bg-brand-500 text-white"
                                             : "bg-slate-100 dark:bg-slate-800 text-muted-foreground hover:text-foreground"
                                     )}
                                     title={notificationsEnabled ? "Désactiver les notifications" : "Activer les notifications"}
@@ -416,7 +416,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                             className={cn(
                                                 "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
                                                 showFilters || filterBy !== 'all'
-                                                    ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300"
+                                                    ? "bg-brand-500 text-white"
                                                     : "bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
                                             )}
                                         >

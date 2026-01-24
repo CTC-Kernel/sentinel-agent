@@ -3,16 +3,12 @@
  * Premium compliance progress widget with Recharts visualization
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
     RadialBarChart,
     RadialBar,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    Sector
+    ResponsiveContainer
 } from 'recharts';
 import { useFirestoreCollection } from '../../../hooks/useFirestore';
 import { Control } from '../../../types';
@@ -28,44 +24,8 @@ interface ComplianceProgressWidgetProps {
     t?: (key: string) => string;
 }
 
-// Active shape renderer for interactive pie
-const renderActiveShape = (props: {
-    cx: number;
-    cy: number;
-    innerRadius: number;
-    outerRadius: number;
-    startAngle: number;
-    endAngle: number;
-    fill: string;
-    payload: { name: string; value: number };
-}) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
-
-    return (
-        <g>
-            <Sector
-                cx={cx}
-                cy={cy}
-                innerRadius={innerRadius - 2}
-                outerRadius={outerRadius + 4}
-                startAngle={startAngle}
-                endAngle={endAngle}
-                fill={fill}
-                style={{ filter: 'url(#complianceGlow)', transition: 'all 0.3s ease' }}
-            />
-            <text x={cx} y={cy - 6} textAnchor="middle" className="text-lg font-black fill-slate-900 dark:fill-white">
-                {payload.value}
-            </text>
-            <text x={cx} y={cy + 8} textAnchor="middle" className="text-[8px] uppercase tracking-wider fill-slate-500">
-                {payload.name}
-            </text>
-        </g>
-    );
-};
-
 export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> = ({ navigate }) => {
     const { user } = useStore();
-    const [activeIndex, setActiveIndex] = useState(0);
 
     const { data: controls, loading } = useFirestoreCollection<Control>(
         'controls',
@@ -96,17 +56,6 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
         fill: stats.complianceRate >= 80 ? SENTINEL_PALETTE.success :
               stats.complianceRate >= 50 ? SENTINEL_PALETTE.warning : SENTINEL_PALETTE.danger
     }], [stats.complianceRate]);
-
-    // Distribution data for pie chart
-    const distributionData = useMemo(() => [
-        { name: 'Implémentés', value: stats.implementedControls, fill: SENTINEL_PALETTE.success },
-        { name: 'Partiels', value: stats.inProgressControls, fill: SENTINEL_PALETTE.warning },
-        { name: 'Non impl.', value: stats.notImplementedControls, fill: SENTINEL_PALETTE.muted }
-    ].filter(d => d.value > 0), [stats]);
-
-    const onPieEnter = (_: unknown, index: number) => {
-        setActiveIndex(index);
-    };
 
     if (loading) {
         return (

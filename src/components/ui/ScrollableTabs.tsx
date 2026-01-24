@@ -106,7 +106,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
 
                             {tab.count !== undefined && (
                                 <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${isActive
-                                    ? 'bg-brand-50 bg-opacity-50 text-brand-600 dark:bg-brand-500/20 dark:text-brand-300'
+                                    ? 'bg-brand-500 text-white'
                                     : 'bg-slate-200/50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400'
                                     }`}>
                                     {tab.count}

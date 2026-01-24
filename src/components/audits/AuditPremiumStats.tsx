@@ -11,7 +11,6 @@ import {
     ClipboardCheck,
     Calendar,
     AlertOctagon,
-    Clock,
     TrendingUp,
     Target,
     Activity

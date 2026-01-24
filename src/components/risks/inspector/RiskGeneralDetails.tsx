@@ -132,7 +132,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                             aria-label="Valider la revue du risque"
                             onClick={onReview}
                             disabled={updating}
-                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${updating ? 'opacity-70 cursor-wait' : ''}`}
+                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-500 text-white rounded-xl hover:bg-brand-600 transition-colors w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 shadow-sm ${updating ? 'opacity-70 cursor-wait' : ''}`}
                         >
                             {updating ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CalendarDays className="h-3.5 w-3.5 mr-2" />}
                             Valider la revue

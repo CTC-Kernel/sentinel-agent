@@ -4,6 +4,7 @@
  * Includes progress bar, current item, ETA, and cancel option
  */
 
+/* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { X, Loader2, CheckCircle2, AlertCircle, Clock } from './Icons';

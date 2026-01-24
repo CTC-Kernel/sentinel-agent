@@ -83,11 +83,11 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
   };
 
   const levelColors: Record<string, string> = {
-    red: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800',
-    orange: 'text-orange-500 bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800',
-    yellow: 'text-yellow-500 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800',
-    blue: 'text-blue-500 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800',
-    green: 'text-green-500 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800',
+    red: 'text-error-text bg-error-bg border-error-text/20 dark:bg-error-bg dark:border-error-text/30',
+    orange: 'text-warning-text bg-warning-bg border-warning-text/20 dark:bg-warning-bg dark:border-warning-text/30',
+    yellow: 'text-warning-text bg-warning-bg border-warning-text/20 dark:bg-warning-bg dark:border-warning-text/30',
+    blue: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-700',
+    green: 'text-success-text bg-success-bg border-success-text/20 dark:bg-success-bg dark:border-success-text/30',
   };
 
   return (
@@ -96,7 +96,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
       <GlassCard className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+            <div className="p-2.5 rounded-xl bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
               <BarChart3 className="w-6 h-6" />
             </div>
             <div>
@@ -145,11 +145,11 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                   strokeLinecap="round"
                   strokeDasharray={`${(maturity.overall.score / 100) * 351.86} 351.86`}
                   className={cn(
-                    maturity.overall.level.color === 'green' ? 'text-green-500' :
-                    maturity.overall.level.color === 'blue' ? 'text-blue-500' :
-                    maturity.overall.level.color === 'yellow' ? 'text-yellow-500' :
-                    maturity.overall.level.color === 'orange' ? 'text-orange-500' :
-                    'text-red-500'
+                    maturity.overall.level.color === 'green' ? 'text-success-500' :
+                    maturity.overall.level.color === 'blue' ? 'text-brand-500' :
+                    maturity.overall.level.color === 'yellow' ? 'text-warning-500' :
+                    maturity.overall.level.color === 'orange' ? 'text-warning-500' :
+                    'text-error-500'
                   )}
                 />
               </svg>
@@ -188,10 +188,10 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                   act: 'Act - Améliorer',
                 };
                 const phaseColors: Record<PDCAPhase, string> = {
-                  plan: 'bg-blue-500',
-                  do: 'bg-green-500',
-                  check: 'bg-purple-500',
-                  act: 'bg-orange-500',
+                  plan: 'bg-brand-500',
+                  do: 'bg-success-500',
+                  check: 'bg-info-500',
+                  act: 'bg-warning-500',
                 };
 
                 return (
@@ -357,7 +357,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
             className="flex items-center justify-between w-full group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+              <div className="p-2.5 rounded-xl bg-info-100 dark:bg-info-900/30 text-info-600 dark:text-info-400">
                 <Lightbulb className="w-6 h-6" />
               </div>
               <div className="text-left">
@@ -393,7 +393,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
       {/* Dimension Scores */}
       <GlassCard className="p-6">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-indigo-500" />
+          <Shield className="w-5 h-5 text-brand-500" />
           {t('smsi.dimensions.title', 'Dimensions de la sécurité')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -460,17 +460,17 @@ interface DimensionCardProps {
 
 const DimensionCard: React.FC<DimensionCardProps> = ({ title, score, icon, color }) => {
   const colorClasses = {
-    blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-    orange: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800',
-    green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800',
-    purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+    blue: 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-700',
+    orange: 'bg-warning-bg text-warning-text border-warning-text/20 dark:border-warning-text/30',
+    green: 'bg-success-bg text-success-text border-success-text/20 dark:border-success-text/30',
+    purple: 'bg-info-bg text-info-text border-info-text/20 dark:border-info-text/30',
   };
 
   const barColors = {
-    blue: 'bg-blue-500',
-    orange: 'bg-orange-500',
-    green: 'bg-green-500',
-    purple: 'bg-purple-500',
+    blue: 'bg-brand-500',
+    orange: 'bg-warning-500',
+    green: 'bg-success-500',
+    purple: 'bg-info-500',
   };
 
   return (

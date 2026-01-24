@@ -827,7 +827,7 @@ export const Help: React.FC = () => {
                                 variant="outline"
                                 aria-label="Donner mon avis"
                                 onClick={() => setIsFeedbackOpen(true)}
-                                className="w-full py-3 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-500/20 hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-brand-50 dark:bg-brand-500/20 text-brand-700 dark:text-white rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-500/30 hover:bg-brand-100 dark:hover:bg-brand-500/30 transition-all flex items-center justify-center gap-2"
                             >
                                 <MessageSquare className="w-4 h-4 mr-2" />
                                 Donner mon avis
@@ -896,8 +896,8 @@ export const Help: React.FC = () => {
                                                 }}
                                             >
                                                 <div className={`p-2 rounded-xl shrink-0 transition-colors ${selectedArticle === article.id
-                                                    ? 'bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-50 dark:group-hover:bg-brand-500/10 group-hover:text-brand-600 dark:group-hover:text-brand-400'
+                                                    ? 'bg-brand-500 text-white'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-500/30 group-hover:text-brand-600 dark:group-hover:text-white'
                                                     }`}>
                                                     {article.icon ? <article.icon className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                                                 </div>

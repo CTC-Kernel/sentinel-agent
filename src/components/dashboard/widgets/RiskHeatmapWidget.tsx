@@ -11,7 +11,6 @@ import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
 import { Loader2, AlertTriangle, ArrowRight, Target, ShieldCheck } from '../../ui/Icons';
 import { cn } from '../../../lib/utils';
-import { SENTINEL_PALETTE } from '../../../theme/chartTheme';
 import { EmptyState } from '../../ui/EmptyState';
 
 interface RiskHeatmapWidgetProps {
