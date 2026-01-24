@@ -6,12 +6,14 @@
 
 A lightweight, secure compliance agent for endpoint monitoring and GRC (Governance, Risk, Compliance) enforcement.
 
+**Developed by [Cyber Threat Consulting](https://cyber-threat-consulting.com)**
+
 ## Overview
 
 Sentinel GRC Agent is a cross-platform agent that:
 - Monitors endpoint compliance with security policies
 - Executes configurable compliance checks
-- Reports results to the Sentinel GRC SaaS platform
+- Reports results to the [Sentinel GRC platform](https://app.cyber-threat-consulting.com)
 - Works offline with local caching and sync
 
 ## Architecture
@@ -93,6 +95,12 @@ Minimum coverage threshold: **70%**
 - Binary signing (Authenticode/GPG)
 - Regular security audits via cargo-audit
 
+## Support
+
+- **Website**: [cyber-threat-consulting.com](https://cyber-threat-consulting.com)
+- **Platform**: [app.cyber-threat-consulting.com](https://app.cyber-threat-consulting.com)
+- **Support**: support@cyber-threat-consulting.com
+
 ## License
 
-Proprietary - All rights reserved.
+Proprietary - Copyright © 2024-2026 Cyber Threat Consulting. All rights reserved.

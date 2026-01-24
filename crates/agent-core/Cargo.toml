@@ -27,6 +27,7 @@ muda.workspace = true
 image.workspace = true
 open.workspace = true
 tao.workspace = true
+directories.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true
@@ -39,8 +40,8 @@ signal-hook.workspace = true
 # DEB package metadata (cargo-deb)
 [package.metadata.deb]
 name = "sentinel-agent"
-maintainer = "Sentinel GRC <support@sentinel-grc.com>"
-copyright = "2024-2026 Sentinel GRC"
+maintainer = "Cyber Threat Consulting <support@cyber-threat-consulting.com>"
+copyright = "2024-2026 Cyber Threat Consulting"
 license-file = ["../../LICENSE", "0"]
 extended-description = """\
 Endpoint compliance monitoring agent for Sentinel GRC platform. \
