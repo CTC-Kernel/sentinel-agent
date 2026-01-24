@@ -285,27 +285,32 @@ export const VendorConcentration: React.FC = () => {
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
+                flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium transition-all
                 ${showFilters
                   ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                 }
               `}
+              title={t('common.filters')}
             >
               <Filter className="h-4 w-4" />
-              {t('common.filters')}
+              <span className="hidden sm:inline">{t('common.filters')}</span>
             </button>
             <button
               onClick={() => loadData(true)}
               disabled={isRefreshing}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
+              title={t('common.refresh')}
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {t('common.refresh')}
+              <span className="hidden sm:inline">{t('common.refresh')}</span>
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 transition-all">
+            <button
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 transition-all"
+              title={t('common.export')}
+            >
               <Download className="h-4 w-4" />
-              {t('common.export')}
+              <span className="hidden sm:inline">{t('common.export')}</span>
             </button>
           </div>
         }
@@ -354,7 +359,7 @@ export const VendorConcentration: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <TabButton
           active={activeTab === 'overview'}
           onClick={() => setActiveTab('overview')}
@@ -417,7 +422,7 @@ export const VendorConcentration: React.FC = () => {
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 {t('vendorConcentration.trends.title')}
               </h2>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 {trendIndicator && (
                   <div className={`flex items-center gap-2 ${trendIndicator.color}`}>
                     {trendIndicator.icon === 'up' && <TrendingUp className="h-5 w-5" />}

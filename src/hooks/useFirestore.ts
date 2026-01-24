@@ -382,6 +382,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
 
         if (realtime && !demoMode) {
             // Set loading immediately. safe inside useEffect.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setRealtimeLoading(true);
 
             try {

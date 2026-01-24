@@ -318,7 +318,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         <form onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="flex flex-col h-full bg-transparent">
             {/* Header Tabs */}
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 bg-white dark:bg-transparent px-6 pt-4">
-                <div className="flex">
+                <div className="flex overflow-x-auto scrollbar-hide pb-1 -mb-1">
                     {TABS.map((tab) => {
                         const Icon = tab.icon;
                         return (
