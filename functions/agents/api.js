@@ -683,6 +683,265 @@ app.post('/v1/agents/:agentId/incidents', async (req, res) => {
 });
 
 // ============================================================================
+// Agent Network Snapshot Upload
+// POST /v1/agents/:agentId/network
+// ============================================================================
+app.post('/v1/agents/:agentId/network', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        const {
+            timestamp,
+            interfaces,
+            connections,
+            routes,
+            dns,
+            primary_ip,
+            primary_mac,
+            hash,
+        } = req.body;
+
+        // Validate required fields
+        if (!interfaces || !Array.isArray(interfaces)) {
+            return res.status(400).json({ error: 'interfaces array is required' });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentDoc = agentQuery.docs[0];
+        const agentData = agentDoc.data();
+        const organizationId = agentData.organizationId;
+
+        // Store network snapshot
+        const snapshotData = {
+            agentId,
+            timestamp: timestamp || new Date().toISOString(),
+            interfaces: interfaces || [],
+            connections: connections || [],
+            routes: routes || [],
+            dns: dns || { servers: [], search_domains: [] },
+            primaryIp: primary_ip,
+            primaryMac: primary_mac,
+            hash: hash || '',
+            receivedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        // Store in networkSnapshots subcollection
+        const snapshotRef = await db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('agents')
+            .doc(agentId)
+            .collection('networkSnapshots')
+            .add(snapshotData);
+
+        // Update agent document with network info for quick access
+        const agentUpdate = {
+            lastNetworkSyncAt: admin.firestore.FieldValue.serverTimestamp(),
+            networkHash: hash,
+        };
+
+        // Update primary IP/MAC if available
+        if (primary_ip) {
+            agentUpdate.ipAddress = primary_ip;
+        }
+        if (primary_mac) {
+            agentUpdate.macAddress = primary_mac;
+        }
+
+        // Extract interface count and connection count for stats
+        agentUpdate.networkStats = {
+            interfaceCount: interfaces.length,
+            connectionCount: connections?.length || 0,
+            routeCount: routes?.length || 0,
+            dnsServerCount: dns?.servers?.length || 0,
+        };
+
+        await agentDoc.ref.update(agentUpdate);
+
+        // Also update corresponding Asset if exists (for voxel cartography)
+        try {
+            const assetsQuery = await db
+                .collection('organizations')
+                .doc(organizationId)
+                .collection('assets')
+                .where('agentId', '==', agentId)
+                .limit(1)
+                .get();
+
+            if (!assetsQuery.empty) {
+                const assetDoc = assetsQuery.docs[0];
+                const assetUpdate = {
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                };
+                if (primary_ip) assetUpdate.ipAddress = primary_ip;
+                if (primary_mac) assetUpdate.macAddress = primary_mac;
+                if (interfaces.length > 0) {
+                    assetUpdate.networkInterfaces = interfaces.map(iface => ({
+                        name: iface.name,
+                        macAddress: iface.mac_address || iface.macAddress,
+                        ipv4Addresses: iface.ipv4_addresses || iface.ipv4Addresses || [],
+                        ipv6Addresses: iface.ipv6_addresses || iface.ipv6Addresses || [],
+                        status: iface.status,
+                        type: iface.interface_type || iface.interfaceType,
+                    }));
+                }
+                await assetDoc.ref.update(assetUpdate);
+            }
+        } catch (assetError) {
+            logger.warn('Failed to update asset with network info:', assetError);
+            // Don't fail the whole request if asset update fails
+        }
+
+        logger.info(`Received network snapshot from agent ${agentId}: ${interfaces.length} interfaces, ${connections?.length || 0} connections`);
+
+        return res.status(200).json({
+            acknowledged: true,
+            snapshot_id: snapshotRef.id,
+        });
+    } catch (error) {
+        logger.error('Network snapshot upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
+// Agent Network Security Alert
+// POST /v1/agents/:agentId/network/alerts
+// ============================================================================
+app.post('/v1/agents/:agentId/network/alerts', async (req, res) => {
+    try {
+        const { agentId } = req.params;
+
+        if (!agentId) {
+            return res.status(400).json({ error: 'Agent ID is required' });
+        }
+
+        const {
+            alert_type,
+            severity,
+            title,
+            description,
+            connection,
+            evidence,
+            confidence,
+            detected_at,
+            iocs_matched,
+        } = req.body;
+
+        // Validate required fields
+        if (!alert_type || !severity || !title) {
+            return res.status(400).json({
+                error: 'alert_type, severity, and title are required',
+            });
+        }
+
+        // Find agent across all organizations
+        const agentQuery = await db
+            .collectionGroup('agents')
+            .where('id', '==', agentId)
+            .limit(1)
+            .get();
+
+        if (agentQuery.empty) {
+            return res.status(404).json({ error: 'Agent not found' });
+        }
+
+        const agentDoc = agentQuery.docs[0];
+        const agentData = agentDoc.data();
+        const organizationId = agentData.organizationId;
+
+        // Map network alert severity to incident severity
+        const severityMap = {
+            'Low': 'low',
+            'Medium': 'medium',
+            'High': 'high',
+            'Critical': 'critical',
+        };
+
+        // Create network alert document
+        const alertData = {
+            agentId,
+            organizationId,
+            alertType: alert_type,
+            severity: severityMap[severity] || severity.toLowerCase(),
+            title,
+            description: description || '',
+            connection: connection || null,
+            evidence: evidence || {},
+            confidence: confidence || 0,
+            detectedAt: detected_at || new Date().toISOString(),
+            iocsMatched: iocs_matched || [],
+            hostname: agentData.hostname,
+            ipAddress: agentData.ipAddress,
+            status: 'open',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        // Store in networkAlerts collection (organization level for SOC visibility)
+        const alertRef = await db
+            .collection('organizations')
+            .doc(organizationId)
+            .collection('networkAlerts')
+            .add(alertData);
+
+        // Also create an incident for high/critical alerts
+        if (['high', 'critical'].includes(alertData.severity)) {
+            const incidentData = {
+                type: 'network_security',
+                subType: alert_type,
+                severity: alertData.severity,
+                title: `[Network] ${title}`,
+                description: description,
+                agentId,
+                hostname: agentData.hostname,
+                ipAddress: agentData.ipAddress,
+                evidence: {
+                    ...evidence,
+                    networkAlertId: alertRef.id,
+                    connection,
+                    iocsMatched: iocs_matched,
+                },
+                status: 'open',
+                detectedAt: detected_at || new Date().toISOString(),
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            };
+
+            await db
+                .collection('organizations')
+                .doc(organizationId)
+                .collection('incidents')
+                .add(incidentData);
+
+            logger.warn(`High severity network alert from agent ${agentId}: ${title}`);
+        }
+
+        logger.info(`Received network alert from agent ${agentId}: ${title} (${severity})`);
+
+        return res.status(201).json({
+            alert_id: alertRef.id,
+            acknowledged: true,
+        });
+    } catch (error) {
+        logger.error('Network alert upload error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================================================
 // Health Check
 // GET /v1/health
 // ============================================================================
