@@ -57,19 +57,18 @@ impl PortScanner {
             }
 
             // Check for suspicious outbound connections
-            if conn.state == ConnectionState::Established {
-                if let Some(remote_port) = conn.remote_port {
-                    if self.suspicious_ports.contains(&remote_port) {
-                        alerts.push(self.create_suspicious_outbound_alert(conn, remote_port));
-                    }
-                }
+            if conn.state == ConnectionState::Established
+                && let Some(remote_port) = conn.remote_port
+                && self.suspicious_ports.contains(&remote_port)
+            {
+                alerts.push(self.create_suspicious_outbound_alert(conn, remote_port));
             }
 
             // Check for suspicious listening ports (backdoors)
-            if conn.state == ConnectionState::Listen {
-                if self.is_suspicious_listening_port(conn.local_port) {
-                    alerts.push(self.create_suspicious_listening_alert(conn));
-                }
+            if conn.state == ConnectionState::Listen
+                && self.is_suspicious_listening_port(conn.local_port)
+            {
+                alerts.push(self.create_suspicious_listening_alert(conn));
             }
         }
 
@@ -156,7 +155,7 @@ impl PortScanner {
             22 => "SSH - unusual outbound from workstation",
             23 => "Telnet - insecure protocol",
             3389 => "RDP - potential lateral movement",
-            5900 | 5901 | 5902 => "VNC - remote desktop",
+            5900..=5902 => "VNC - remote desktop",
             _ => "suspicious port",
         };
 

@@ -38,17 +38,17 @@ impl C2Detector {
             }
 
             // Check for outbound connections to C2 ports
-            if let Some(remote_port) = conn.remote_port {
-                if self.c2_ports.contains(&remote_port) {
-                    alerts.push(self.create_c2_port_alert(conn, remote_port));
-                }
+            if let Some(remote_port) = conn.remote_port
+                && self.c2_ports.contains(&remote_port)
+            {
+                alerts.push(self.create_c2_port_alert(conn, remote_port));
             }
 
             // Check for connections to known malicious IPs
-            if let Some(ref remote_addr) = conn.remote_address {
-                if self.malicious_ips.contains(remote_addr) {
-                    alerts.push(self.create_malicious_ip_alert(conn, remote_addr));
-                }
+            if let Some(ref remote_addr) = conn.remote_address
+                && self.malicious_ips.contains(remote_addr)
+            {
+                alerts.push(self.create_malicious_ip_alert(conn, remote_addr));
             }
         }
 
