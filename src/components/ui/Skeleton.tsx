@@ -94,7 +94,7 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ r
 export const SkeletonCard: React.FC<{ className?: string; delay?: number }> = ({ className = '', delay = 0 }) => {
   return (
     <motion.div
-      className={`glass-premium p-6 rounded-[2rem] space-y-4 ${className}`}
+      className={`glass-premium p-6 rounded-4xl space-y-4 ${className}`}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, duration: 0.4, ease: appleEasing }}

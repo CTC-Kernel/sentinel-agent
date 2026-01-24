@@ -139,17 +139,17 @@ const PlatformCard: React.FC<PlatformCardProps> = ({ platform, isSelected, onSel
       )}
 
       {/* Icon */}
-      <div className={`mb-3 ${isSelected ? 'text-blue-400' : 'text-gray-400'}`}>
+      <div className={`mb-3 ${isSelected ? 'text-blue-400' : 'text-slate-400'}`}>
         <Icon />
       </div>
 
       {/* Name */}
-      <h3 className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-gray-200'}`}>
+      <h3 className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-slate-200'}`}>
         {settings.name}
       </h3>
 
       {/* Description */}
-      <p className="text-xs text-gray-500 mt-1">{settings.description}</p>
+      <p className="text-xs text-slate-500 mt-1">{settings.description}</p>
     </button>
   );
 };
@@ -173,7 +173,7 @@ const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, pl
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-300">Quality Preset</label>
+      <label className="text-sm font-medium text-slate-300">Quality Preset</label>
       <div className="grid grid-cols-3 gap-2">
         {qualities.map((q) => (
           <button
@@ -183,7 +183,7 @@ const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, pl
               p-3 rounded-lg border transition-all text-center
               ${quality === q.value
                 ? 'border-blue-500 bg-blue-500/20 text-white'
-                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'
+                : 'border-white/10 bg-white/5 text-slate-400 hover:border-white/20'
               }
             `}
           >
@@ -217,8 +217,8 @@ const OptionsToggle: React.FC<OptionsToggleProps> = ({
 }) => (
   <label className={`flex items-center justify-between py-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
     <div>
-      <div className="text-sm text-gray-300">{label}</div>
-      {description && <div className="text-xs text-gray-500">{description}</div>}
+      <div className="text-sm text-slate-300">{label}</div>
+      {description && <div className="text-xs text-slate-500">{description}</div>}
     </div>
     <button
       type="button"
@@ -228,7 +228,7 @@ const OptionsToggle: React.FC<OptionsToggleProps> = ({
       onClick={() => !disabled && onChange(!checked)}
       className={`
         relative w-11 h-6 rounded-full transition-colors
-        ${checked ? 'bg-blue-500' : 'bg-gray-600'}
+        ${checked ? 'bg-blue-500' : 'bg-slate-600'}
         ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
@@ -255,10 +255,10 @@ const InstructionsPanel: React.FC<InstructionsPanelProps> = ({ platform }) => {
 
   return (
     <div className="bg-slate-800/50 rounded-lg p-4">
-      <h4 className="text-sm font-medium text-gray-300 mb-3">How to use on {VR_PLATFORM_SETTINGS[platform].name}</h4>
+      <h4 className="text-sm font-medium text-slate-300 mb-3">How to use on {VR_PLATFORM_SETTINGS[platform].name}</h4>
       <ol className="space-y-2">
         {instructions.map((instruction, index) => (
-          <li key={index} className="flex gap-3 text-xs text-gray-400">
+          <li key={index} className="flex gap-3 text-xs text-slate-400">
             <span className="flex-shrink-0 w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-xs font-medium">
               {index + 1}
             </span>
@@ -368,11 +368,11 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div>
             <h2 className="text-lg font-semibold text-white">Export for VR</h2>
-            <p className="text-sm text-gray-400">Download optimized GLTF for VR headsets</p>
+            <p className="text-sm text-slate-400">Download optimized GLTF for VR headsets</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
           >
             <CloseIcon />
           </button>
@@ -382,7 +382,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {/* Platform Selection */}
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-3 block">Target Platform</label>
+            <label className="text-sm font-medium text-slate-300 mb-3 block">Target Platform</label>
             <div className="grid grid-cols-3 gap-3">
               {(['quest', 'visionPro', 'generic'] as VRTargetPlatform[]).map((p) => (
                 <PlatformCard
@@ -400,7 +400,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
 
           {/* Export Options */}
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-2 block">Include Options</label>
+            <label className="text-sm font-medium text-slate-300 mb-2 block">Include Options</label>
             <div className="bg-slate-800/50 rounded-lg px-4 divide-y divide-white/5">
               <OptionsToggle
                 label="Node Labels"
@@ -425,15 +425,15 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
 
           {/* Filename */}
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-2 block">Filename</label>
+            <label className="text-sm font-medium text-slate-300 mb-2 block">Filename</label>
             <input
               type="text"
               value={filename}
               onChange={(e) => setFilename(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               placeholder="voxel-vr-export"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               File will be saved as {filename}.{VR_PLATFORM_SETTINGS[platform].recommendedFormat}
             </p>
           </div>
@@ -455,25 +455,25 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
 
           {/* Export Summary */}
           <div className="bg-slate-800/50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-300 mb-3">Export Summary</h4>
+            <h4 className="text-sm font-medium text-slate-300 mb-3">Export Summary</h4>
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div>
-                <span className="text-gray-500">Nodes</span>
-                <span className="float-right text-gray-300">{nodes.length}</span>
+                <span className="text-slate-500">Nodes</span>
+                <span className="float-right text-slate-300">{nodes.length}</span>
               </div>
               <div>
-                <span className="text-gray-500">Edges</span>
-                <span className="float-right text-gray-300">{includeEdges ? edges.length : 0}</span>
+                <span className="text-slate-500">Edges</span>
+                <span className="float-right text-slate-300">{includeEdges ? edges.length : 0}</span>
               </div>
               <div>
-                <span className="text-gray-500">Format</span>
-                <span className="float-right text-gray-300 uppercase">
+                <span className="text-slate-500">Format</span>
+                <span className="float-right text-slate-300 uppercase">
                   {VR_PLATFORM_SETTINGS[platform].recommendedFormat}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500">Est. Size</span>
-                <span className="float-right text-gray-300">{sizeEstimate.formatted}</span>
+                <span className="text-slate-500">Est. Size</span>
+                <span className="float-right text-slate-300">{sizeEstimate.formatted}</span>
               </div>
             </div>
           </div>
@@ -500,7 +500,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
 
         {/* Footer */}
         <div className="flex items-center justify-between p-4 border-t border-white/10 bg-slate-900/50">
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-slate-500">
             {isExporting && `Exporting... ${exportProgress}%`}
             {!isExporting && !exportResult && 'Ready to export'}
             {exportResult && 'Download started'}
@@ -508,7 +508,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+              className="px-4 py-2 text-sm text-slate-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
             >
               {exportResult ? 'Done' : 'Cancel'}
             </button>
@@ -519,7 +519,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
                 flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium
                 transition-all duration-200
                 ${isExporting || !scene || !validation.valid
-                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
                   : 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25'
                 }
               `}

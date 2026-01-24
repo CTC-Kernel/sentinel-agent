@@ -91,8 +91,8 @@ export const SecureFormExample: React.FC = () => {
   });
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+    <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">
         Exemple de Formulaire Sécurisé BMAD
       </h2>
 
@@ -112,7 +112,7 @@ export const SecureFormExample: React.FC = () => {
       <form onSubmit={form.handleSubmit} className="space-y-4">
         {/* Nom */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Nom *
           </label>
           <input
@@ -120,10 +120,10 @@ export const SecureFormExample: React.FC = () => {
             value={form.values.name}
             onChange={(e) => form.handleChange('name')(e.target.value)}
             onBlur={form.handleBlur('name')}
-            className={`w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white ${
+            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${
               form.errors.name && form.touched.name
                 ? 'border-red-500'
-                : 'border-gray-300 dark:border-gray-600'
+                : 'border-slate-300 dark:border-slate-600'
             }`}
             placeholder="Entrez un nom"
           />
@@ -132,7 +132,7 @@ export const SecureFormExample: React.FC = () => {
               {form.errors.name}
             </p>
           )}
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Essayez d'entrer: <code>&lt;script&gt;alert('xss')&lt;/script&gt;</code>
             <br />
             → Sera automatiquement sanitizé
@@ -141,7 +141,7 @@ export const SecureFormExample: React.FC = () => {
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Email *
           </label>
           <input
@@ -149,10 +149,10 @@ export const SecureFormExample: React.FC = () => {
             value={form.values.email}
             onChange={(e) => form.handleChange('email')(e.target.value)}
             onBlur={form.handleBlur('email')}
-            className={`w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white ${
+            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${
               form.errors.email && form.touched.email
                 ? 'border-red-500'
-                : 'border-gray-300 dark:border-gray-600'
+                : 'border-slate-300 dark:border-slate-600'
             }`}
             placeholder="email@example.com"
           />
@@ -165,7 +165,7 @@ export const SecureFormExample: React.FC = () => {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Description *
           </label>
           <textarea
@@ -173,10 +173,10 @@ export const SecureFormExample: React.FC = () => {
             onChange={(e) => form.handleChange('description')(e.target.value)}
             onBlur={form.handleBlur('description')}
             rows={4}
-            className={`w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white ${
+            className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white ${
               form.errors.description && form.touched.description
                 ? 'border-red-500'
-                : 'border-gray-300 dark:border-gray-600'
+                : 'border-slate-300 dark:border-slate-600'
             }`}
             placeholder="Entrez une description..."
           />
@@ -189,17 +189,17 @@ export const SecureFormExample: React.FC = () => {
 
         {/* URL (optionnel) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             URL (optionnel)
           </label>
           <input
             type="url"
             value={form.values.url || ''}
             onChange={(e) => form.handleChange('url')(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             placeholder="https://example.com"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Essayez d'entrer: <code>http://localhost/admin</code>
             <br />
             → Sera bloqué (Protection SSRF)
@@ -208,21 +208,21 @@ export const SecureFormExample: React.FC = () => {
 
         {/* Téléphone (optionnel) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Téléphone (optionnel)
           </label>
           <input
             type="tel"
             value={form.values.phone || ''}
             onChange={(e) => form.handleChange('phone')(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             placeholder="+33 6 12 34 56 78"
           />
         </div>
 
         {/* Upload de fichier */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Fichier (optionnel)
           </label>
           <input
@@ -233,7 +233,7 @@ export const SecureFormExample: React.FC = () => {
                 fileUpload.handleUpload(file);
               }
             }}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             accept=".png,.jpg,.jpeg,.pdf"
           />
           {fileUpload.error && (
@@ -246,7 +246,7 @@ export const SecureFormExample: React.FC = () => {
               Upload en cours...
             </p>
           )}
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Max 5MB. Types acceptés: PNG, JPG, PDF
           </p>
         </div>
@@ -258,7 +258,7 @@ export const SecureFormExample: React.FC = () => {
             disabled={form.isSubmitting || !form.isValid}
             className={`flex-1 px-4 py-2 rounded-md font-medium ${
               form.isSubmitting || !form.isValid
-                ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                ? 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
@@ -268,7 +268,7 @@ export const SecureFormExample: React.FC = () => {
           <button
             type="button"
             onClick={form.resetForm}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
           >
             Réinitialiser
           </button>
@@ -276,11 +276,11 @@ export const SecureFormExample: React.FC = () => {
       </form>
 
       {/* Informations de debug */}
-      <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+      <div className="mt-8 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
+        <h3 className="font-semibold text-slate-900 dark:text-white mb-2">
           Debug Info:
         </h3>
-        <pre className="text-xs text-gray-700 dark:text-gray-300 overflow-auto">
+        <pre className="text-xs text-slate-700 dark:text-slate-300 overflow-auto">
           {JSON.stringify(
             {
               values: form.values,

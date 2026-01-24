@@ -270,7 +270,7 @@ export const Projects: React.FC = () => {
     const handleInspectorUpdateTasks = useCallback(async (p: Project, t: import('../types').ProjectTask[]) => { await updateProjectTasks(p, t); }, [updateProjectTasks]);
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-10 pb-24">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10 pb-24">
             <MasterpieceBackground />
             <SEO title={t('sidebar.projects')} description={t('projects.subtitle')} />
 
@@ -284,7 +284,6 @@ export const Projects: React.FC = () => {
                         className="w-full h-full object-contain"
                     />
                 }
-                breadcrumbs={[{ label: t('common.pilotage') }, { label: t('sidebar.projects') }]}
                 trustType="integrity"
             />
 

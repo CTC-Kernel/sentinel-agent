@@ -128,7 +128,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
 
           {/* Phase Selection - Story 20.2 */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
               Phase PDCA *
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -148,7 +148,7 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
                       'flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left',
                       isSelected
                         ? `${style.borderActive} ${style.bgActive}`
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                     )}
                   >
                     <div
@@ -165,12 +165,12 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
                           'font-medium',
                           isSelected
                             ? style.textActive
-                            : 'text-gray-700 dark:text-gray-300'
+                            : 'text-slate-700 dark:text-slate-300'
                         )}
                       >
                         {config.label}
                       </p>
-                      <p className="text-xs text-gray-500 line-clamp-1">
+                      <p className="text-xs text-slate-500 line-clamp-1">
                         {config.description.substring(0, 30)}...
                       </p>
                     </div>
@@ -195,13 +195,13 @@ export const MilestoneFormDrawer: React.FC<MilestoneFormDrawerProps> = ({
 
           {/* Responsible Person - Story 20.4 */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
               <Users className="w-4 h-4" />
               Responsable
             </label>
             <select
               {...register('responsibleId')}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-brand-500/50 focus:border-blue-500"
             >
               <option value="">Non assigné</option>
               {teamMembers.map((member) => (

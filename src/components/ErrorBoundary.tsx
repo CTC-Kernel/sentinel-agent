@@ -37,7 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
                     <MasterpieceBackground />
 
-                    <div className="glass-panel p-12 md:p-16 rounded-[2.5rem] max-w-lg w-full mx-6 text-center shadow-2xl border border-white/40 dark:border-white/5 relative z-10 transition-all duration-500">
+                    <div className="glass-panel p-12 md:p-16 rounded-5xl max-w-lg w-full mx-6 text-center shadow-2xl border border-white/40 dark:border-white/5 relative z-10 transition-all duration-500">
                         <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner ring-1 ring-white/10 ${isPermissionError
                             ? 'bg-amber-500/10 text-amber-500'
                             : 'bg-red-500/10 text-red-500'

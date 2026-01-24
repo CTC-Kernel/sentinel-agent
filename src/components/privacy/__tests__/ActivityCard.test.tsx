@@ -180,7 +180,7 @@ describe('ActivityCard', () => {
             render(<ActivityCard activity={{ ...mockActivity, status: 'Archivé' }} onClick={mockOnClick} onDelete={mockOnDelete} canEdit={true} />);
 
             const statusBadge = screen.getByText('Archivé');
-            expect(statusBadge).toHaveClass('bg-gray-50');
+            expect(statusBadge).toHaveClass('bg-slate-50');
         });
     });
 });

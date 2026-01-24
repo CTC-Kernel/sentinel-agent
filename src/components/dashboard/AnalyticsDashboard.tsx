@@ -319,7 +319,7 @@ export const AnalyticsDashboard: React.FC = () => {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Trend Chart */}
-                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group" data-tour="analytics-trends">
+                <div className="glass-panel p-6 md:p-8 rounded-4xl border border-white/60 dark:border-white/5 relative overflow-hidden group" data-tour="analytics-trends">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
                     <div className="relative z-decorator">
                         {/* Heading hierarchy: h2 for card title (follows h1 page title) */}
@@ -405,7 +405,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 </div>
 
                 {/* Compliance Progress */}
-                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
+                <div className="glass-panel p-6 md:p-8 rounded-4xl border border-white/60 dark:border-white/5 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
                     <div className="relative z-decorator">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
@@ -439,7 +439,7 @@ export const AnalyticsDashboard: React.FC = () => {
             </div>
 
             {/* Risk Distribution */}
-            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
+            <div className="glass-panel p-6 md:p-8 rounded-4xl border border-white/60 dark:border-white/5 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
                 <div className="relative z-decorator">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
@@ -492,7 +492,7 @@ export const AnalyticsDashboard: React.FC = () => {
             </div>
 
             {/* Top Risks Table */}
-            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
+            <div className="glass-panel p-6 md:p-8 rounded-4xl border border-white/60 dark:border-white/5 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
                 <div className="relative z-decorator">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

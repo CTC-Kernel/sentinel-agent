@@ -38,7 +38,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data }) => {
 
     return (
         <div
-            className="w-full h-full bg-slate-950 rounded-[2.5rem] overflow-hidden relative isolate group"
+            className="w-full h-full bg-slate-950 rounded-5xl overflow-hidden relative isolate group"
             onMouseLeave={() => setTooltip(null)}
         >
             {/* Cyber Grid Background Effect */}

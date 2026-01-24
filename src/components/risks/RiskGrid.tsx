@@ -167,7 +167,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     <TextHighlight text={risk.vulnerability || ''} query={searchQuery || ''} isHtml className="line-clamp-3" />
                                 </div>
                             </div>
-                            <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
+                            <div className="space-y-3 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
                                 <div className="flex items-center justify-between">
                                     <div className="flex flex-col gap-1.5 items-start">
                                         <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>

@@ -18,13 +18,13 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
         <motion.div
             variants={slideUpVariants}
             onClick={() => onClick(activity)}
-            className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5 hover:border-purple-500/30 transition-all"
+            className="glass-panel rounded-5xl p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5 hover:border-purple-500/30 transition-all"
         >
             <div className="flex justify-between items-start mb-5">
                 <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
                     <Fingerprint className="h-6 w-6" />
                 </div>
-                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-gray-50 text-slate-600 border-gray-100 dark:bg-white/5 dark:border-white/10 dark:text-slate-400'}`}>
+                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-white/5 dark:border-white/10 dark:text-slate-400'}`}>
                     {activity.status}
                 </span>
             </div>
@@ -32,7 +32,7 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{activity.name}</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{activity.purpose}</p>
 
-            <div className="space-y-3 pt-5 border-t border-dashed border-gray-200 dark:border-white/10">
+            <div className="space-y-3 pt-5 border-t border-dashed border-slate-200 dark:border-white/10">
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center"><Scale className="h-3 w-3 mr-1.5" />Base Légale</span>
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-lg">{activity.legalBasis}</span>

@@ -384,13 +384,12 @@ export const Risks: React.FC = () => {
 
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-10 pb-24 rounded-5xl">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10 pb-24 rounded-5xl">
             <MasterpieceBackground />
             <PageHeader
                 title={risksTitle}
                 subtitle={risksSubtitle}
                 icon={<img src="/images/gouvernance.png" alt="GOUVERNANCE" className="w-full h-full object-contain" />}
-                breadcrumbs={[{ label: t('commandPalette.nav.risks') }]}
                 trustType="integrity"
             />
 

@@ -16,7 +16,7 @@ export const CalendarView: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="flex flex-col gap-8"
         >
             <MasterpieceBackground />
             <SEO
@@ -27,7 +27,6 @@ export const CalendarView: React.FC = () => {
             <PageHeader
                 title={t('calendar.title')}
                 subtitle={t('calendar.subtitle')}
-                breadcrumbs={[{ label: t('calendar.title') }]}
                 icon={
                     <img
                         src="/images/pilotage.png"

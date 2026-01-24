@@ -49,7 +49,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                         placeholder="Rechercher une demande (Nom, ID)..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
                         aria-label="Rechercher une demande"
                     />
                 </div>
@@ -57,7 +57,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-brand-500"
+                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-medium outline-none focus:ring-2 focus-visible:ring-brand-500"
                     >
                         <option value="All">Tous les statuts</option>
                         <option value="New">Nouveaux</option>

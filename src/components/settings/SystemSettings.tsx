@@ -165,7 +165,7 @@ export const SystemSettings: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 animate-slide-in-left">{t('settings.system')}</h2>
 
             {hasPermission(user, 'Settings', 'read') && (
-                <GlassCard className="p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+                <GlassCard className="p-0 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
@@ -187,7 +187,7 @@ export const SystemSettings: React.FC = () => {
             )}
 
             {/* Data Export */}
-            <GlassCard className="p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group">
+            <GlassCard className="p-8 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
@@ -225,7 +225,7 @@ export const SystemSettings: React.FC = () => {
             </GlassCard>
 
             {/* GDPR Personal Data Export - Always Available */}
-            <GlassCard className="p-8 rounded-[2.5rem] border border-emerald-500/30 dark:border-emerald-500/20 shadow-sm relative overflow-hidden group">
+            <GlassCard className="p-8 rounded-5xl border border-emerald-500/30 dark:border-emerald-500/20 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
@@ -267,7 +267,7 @@ export const SystemSettings: React.FC = () => {
 
             {/* Demo Zone - Visible only to demo user or in dev */}
             {(user?.email === 'demo@sentinel-grc.com' || import.meta.env.DEV) && (
-                <GlassCard className="p-8 rounded-[2.5rem] border border-indigo-500/30 dark:border-indigo-500/20 shadow-sm relative overflow-hidden group">
+                <GlassCard className="p-8 rounded-5xl border border-indigo-500/30 dark:border-indigo-500/20 shadow-sm relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
                     <div className="relative z-10">
                         <div className="flex items-start gap-4">
@@ -318,7 +318,7 @@ export const SystemSettings: React.FC = () => {
             )}
 
             {/* Danger Zone */}
-            <GlassCard className="p-8 rounded-[2.5rem] border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">
+            <GlassCard className="p-8 rounded-5xl border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">

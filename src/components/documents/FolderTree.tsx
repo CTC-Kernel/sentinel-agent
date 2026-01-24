@@ -145,7 +145,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
     return (
         <div className="h-full flex flex-col">
-            <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
+            <div className="p-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600">Dossiers</h3>
                 <Button
                     aria-label="Créer un nouveau dossier racine"
@@ -198,7 +198,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     className="fixed inset-0 z-modal flex items-center justify-center bg-black/20 backdrop-blur-sm cursor-default"
                     onClick={handleBackdropClick}
                 >
-                    <div className="glass-premium p-6 rounded-[2rem] shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()} role="presentation">
+                    <div className="glass-premium p-6 rounded-4xl shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()} role="presentation">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                         <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">Nouveau Dossier</h3>
                         <form onSubmit={handleSubmit(onSubmitFolder)}>
@@ -209,7 +209,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                     type="text"
                                     placeholder="Nom du dossier"
                                     className={`w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
-                                        } mb-1 focus:ring-2 focus:ring-brand-500 outline-none`}
+                                        } mb-1 focus:ring-2 focus-visible:ring-brand-500 outline-none`}
                                     autoFocus
                                 />
                                 {errors.name && (
@@ -270,7 +270,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                         >
                             <Edit2 className="h-4 w-4 mr-2" /> Renommer
                         </Button>
-                        <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
+                        <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
                         <Button
                             aria-label="Supprimer le dossier"
                             onClick={handleContextMenuDelete}
@@ -380,7 +380,7 @@ const FolderNode = React.memo(({
                         aria-label="Renommer le dossier"
                         type="text"
                         autoFocus
-                        className="flex-1 bg-white dark:bg-slate-800 border border-brand-500 rounded px-2 py-0.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        className="flex-1 bg-white dark:bg-slate-800 border border-brand-500 rounded px-2 py-0.5 text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                         onClick={(e) => e.stopPropagation()}
                     />
                 ) : (

@@ -50,7 +50,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
 
     return (
         <div className="flex flex-col h-full">
-            <div className="px-4 sm:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+            <div className="px-4 sm:px-8 border-b border-slate-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
                 <ScrollableTabs
                     tabs={[
                         { id: 'details', label: 'Fiche Registre', icon: LayoutDashboard },
@@ -115,7 +115,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                 </div>
                             </>
                         ) : (
-                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
                                 <PrivacyDetails
                                     activity={selectedActivity}
                                     isEditing={isEditing}
@@ -128,7 +128,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'data' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
                         <PrivacyData
                             activity={selectedActivity}
                             isEditing={isEditing}
@@ -140,7 +140,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'links' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
                         <PrivacyLinks
                             activity={selectedActivity}
                             isEditing={isEditing}
@@ -152,7 +152,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'history' && (
-                    <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
+                    <div className="relative border-l-2 border-slate-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
                         {activityHistory.map((log, i) => (
                             <div key={`${log.timestamp}-${i}`} className="relative">
                                 <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">

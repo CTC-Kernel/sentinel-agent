@@ -10,7 +10,7 @@ interface IncidentTimelineProps {
 export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedIncident, getTimeToResolve }) => {
     if (!selectedIncident) {
         return (
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm h-full flex flex-col justify-center items-center text-center">
+            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm h-full flex flex-col justify-center items-center text-center">
                 <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
                     <Clock className="h-8 w-8 text-slate-500" />
                 </div>

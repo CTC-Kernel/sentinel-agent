@@ -100,7 +100,7 @@ const statusConfig: Record<
     label: 'Statut inconnu',
     description: 'Aucune information d\'intégrité disponible',
     badgeStatus: 'neutral',
-    color: 'text-gray-500 dark:text-gray-400',
+    color: 'text-slate-500 dark:text-slate-400',
   },
 };
 
@@ -400,11 +400,11 @@ export function IntegrityCertificate({
     return (
       <Card className={cn('animate-pulse', className)}>
         <CardHeader className="pb-2">
-          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/3" />
         </CardHeader>
         <CardContent>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-2" />
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mb-2" />
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
         </CardContent>
       </Card>
     );
@@ -619,7 +619,7 @@ export function IntegrityCertificate({
                             ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
                             : event.status === 'compromised'
                               ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                              : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                         )}
                       >
                         {event.status === 'verified' ? (

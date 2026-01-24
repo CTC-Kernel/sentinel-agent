@@ -195,7 +195,7 @@ const Team: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-24"
+            className="flex flex-col gap-10 pb-24"
         >
             <MasterpieceBackground />
             <ConfirmModal
@@ -209,9 +209,6 @@ const Team: React.FC = () => {
             <PageHeader
                 title={t('team.title')}
                 subtitle={t('team.subtitle', { org: user?.organizationName || t('common.settings.organization') })}
-                breadcrumbs={[
-                    { label: t('team.title') }
-                ]}
                 icon={
                     <img
                         src="/images/administration.png"
@@ -482,7 +479,7 @@ const Team: React.FC = () => {
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
+                    <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-slate-100 dark:border-white/5">
                         <Button type="button" variant="ghost" onClick={handleCloseInvite}>{t('team.actions.cancel')}</Button>
                         <Button type="submit" disabled={loading || inviteForm.formState.isSubmitting} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading || inviteForm.formState.isSubmitting}>{t('team.invite.send')}</Button>
                     </div>
@@ -540,7 +537,7 @@ const Team: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
+                        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-slate-100 dark:border-white/5">
                             <Button type="button" variant="ghost" onClick={handleCloseEdit}>{t('team.actions.cancel')}</Button>
                             <Button type="submit" disabled={loading || editForm.formState.isSubmitting} className="bg-brand-600 text-white hover:scale-105 transition-transform" isLoading={loading || editForm.formState.isSubmitting}>{t('team.edit.save')}</Button>
                         </div>

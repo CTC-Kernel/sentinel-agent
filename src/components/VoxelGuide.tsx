@@ -98,7 +98,7 @@ const GUIDE_SECTIONS = [
                             <span className={`w-3 h-3 rounded-full ${item.color}`} />
                             <div>
                                 <span className="text-xs font-medium text-white">{item.label}</span>
-                                <p className="text-[10px] text-slate-500">{item.desc}</p>
+                                <p className="text-[11px] text-slate-500">{item.desc}</p>
                             </div>
                         </div>
                     ))}
@@ -392,7 +392,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
 
                         {/* Keyboard hint */}
                         <div className="px-4 pb-3 text-center">
-                            <span className="text-[10px] text-slate-500">
+                            <span className="text-[11px] text-slate-500">
                                 Utilisez ← → pour naviguer, Échap pour fermer
                             </span>
                         </div>

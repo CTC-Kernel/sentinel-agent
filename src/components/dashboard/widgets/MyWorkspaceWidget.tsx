@@ -91,7 +91,7 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = React.memo(({
                                     <h4 className="text-sm font-bold text-foreground group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors truncate">{item.title}</h4>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.status}</p>
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover/item:text-foreground -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all" />
+                                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover/item:text-foreground -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all" />
                             </div>
                         ))}
                     </div>

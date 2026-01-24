@@ -129,7 +129,7 @@ export const CertifierDashboard: React.FC = () => {
                                 <input
                                     type="text"
                                     placeholder={t('certifier.dashboard.searchPlaceholder')}
-                                    className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                                    className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
                                 />
                             </div>
                         </div>

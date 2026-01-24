@@ -432,31 +432,31 @@ export const InteractiveTimeline: React.FC = () => {
                 </div>
             </div>
 
-            {/* Custom CSS for timeline */}
+            {/* Custom CSS for timeline - using harmonized palette colors */}
             <style>{`
         .timeline-incident .vis-item {
-          background-color: #ef4444;
-          border-color: #dc2626;
+          background-color: #d64545;
+          border-color: #c03030;
           color: white;
         }
         .timeline-audit .vis-item {
-          background-color: #3b82f6;
-          border-color: #2563eb;
+          background-color: #4a7fc7;
+          border-color: #3a6fb7;
           color: white;
         }
         .timeline-project .vis-item {
-          background-color: #a855f7;
-          border-color: #9333ea;
+          background-color: #9b6dd7;
+          border-color: #8b5dc7;
           color: white;
         }
         .timeline-risk .vis-item {
-          background-color: #f97316;
-          border-color: #ea580c;
+          background-color: #c87f1a;
+          border-color: #b86f0a;
           color: white;
         }
         .timeline-document .vis-item {
-          background-color: #10b981;
-          border-color: #059669;
+          background-color: #2d9d6a;
+          border-color: #1d8d5a;
           color: white;
         }
         .vis-item {
@@ -465,7 +465,7 @@ export const InteractiveTimeline: React.FC = () => {
           font-size: 12px;
         }
         .vis-item.vis-selected {
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+          box-shadow: 0 0 0 3px rgba(74, 127, 199, 0.3);
         }
       `}</style>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { LandingMap } from '../components/landing/LandingMap';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
@@ -129,8 +130,23 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                 </div>
 
                 {/* Right Column: Login Form */}
-                <div className="w-full lg:w-1/2 max-w-[440px] p-4 lg:p-8">
-                    <div className="glass-premium rounded-5xl p-8 flex flex-col items-center shadow-apple dark:shadow-2xl overflow-hidden relative">
+                <div className="w-full lg:w-1/2 max-w-[480px] p-4 lg:p-8 perspective-1000">
+                    <motion.div
+                        initial={{ opacity: 0, rotateY: 15, x: 50 }}
+                        animate={{ opacity: 1, rotateY: 0, x: 0 }}
+                        transition={{
+                            duration: 0.8,
+                            type: "spring",
+                            stiffness: 100,
+                            damping: 20
+                        }}
+                        className="glass-premium glass-noise rounded-[3rem] p-10 flex flex-col items-center shadow-2xl relative overflow-hidden group"
+                    >
+                        {/* Dynamic Border Gradient */}
+                        <div className="absolute inset-0 rounded-[3rem] p-[1px] bg-gradient-to-br from-white/20 via-white/5 to-transparent pointer-events-none mask-image-blob"></div>
+
+                        {/* Shimmer overlay on load */}
+                        <div className="absolute inset-0 z-0 animate-shimmer pointer-events-none opacity-20"></div>
 
                         {/* Logo - Mobile Only or Simplified */}
                         <div className="mb-6 flex flex-col items-center lg:hidden">
@@ -142,11 +158,25 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                         </div>
 
                         {/* Logo - Desktop w/o Assistant Context (if simplified) -> Keep centered for form consistency */}
-                        <div className="hidden lg:flex flex-col items-center mb-8">
-                            <div className="w-12 h-12 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-lg mb-3">
-                                <Lock className="h-6 w-6" strokeWidth={2.5} />
-                            </div>
-                            <h2 className="text-2xl font-bold text-foreground">{isLogin ? t('auth.login') : t('auth.signup')}</h2>
+                        <div className="hidden lg:flex flex-col items-center mb-8 relative z-10">
+                            <motion.div
+                                whileHover={{ scale: 1.1, rotate: 5 }}
+                                className="w-16 h-16 rounded-3xl bg-foreground text-background flex items-center justify-center shadow-2xl mb-4 ring-1 ring-white/10 relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50"></div>
+                                <Lock className="h-8 w-8 relative z-10" strokeWidth={2.5} />
+                            </motion.div>
+                            <h2 className="text-3xl font-display font-bold text-foreground tracking-tight">
+                                {isLogin ? (
+                                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+                                        {t('auth.login')}
+                                    </span>
+                                ) : (
+                                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+                                        {t('auth.signup')}
+                                    </span>
+                                )}
+                            </h2>
                         </div>
 
                         {errorMsg && (
@@ -190,118 +220,137 @@ export const Login: React.FC<{ skipBoot?: boolean }> = () => {
                                 <div className="relative flex justify-center"><span className="px-4 bg-background/80 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-muted-foreground">{t('auth.orEmail')}</span></div>
                             </div>
 
-                            <form onSubmit={handleSubmit(onEmailAuthSubmit)} className="space-y-5">
-                                <div className="space-y-1.5">
-                                    <FloatingLabelInput
-                                        id="email"
-                                        label={t('auth.email')}
-                                        type="email"
-                                        autoComplete="email"
-                                        icon={Mail}
-                                        {...register('email')}
-                                        error={errors.email?.message}
-                                        placeholder="nom@entreprise.com"
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <div className="flex justify-between items-center ml-1 mb-1">
-                                        {isLogin && (
-                                            <Button
-                                                variant="link"
-                                                size="sm"
-                                                onClick={() => setShowResetModal(true)}
-                                                className="text-[13px] font-bold text-primary hover:text-primary/80 p-0 h-auto"
-                                            >
-                                                {t('auth.forgotPassword')}
-                                            </Button>
-                                        )}
-                                    </div>
-                                    <FloatingLabelInput
-                                        id="password"
-                                        label={t('auth.password')}
-                                        type="password"
-                                        autoComplete={isLogin ? 'current-password' : 'new-password'}
-                                        icon={Lock}
-                                        {...register('password')}
-                                        error={errors.password?.message}
-                                        placeholder="••••••••"
-                                    />
-                                </div>
-
-                                {/* Privacy consent notice for signup (RGPD compliance) */}
-                                {!isLogin && (
-                                    <div className="p-4 rounded-2xl bg-success/10 border border-success/20">
-                                        <label className="flex items-start gap-3 cursor-pointer group">
-                                            <div className="relative mt-0.5">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={privacyAccepted}
-                                                    onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                                                    className="peer sr-only"
-                                                    aria-label={t('auth.privacyConsent') || 'Accepter la politique de confidentialité'}
-                                                />
-                                                <div className="w-5 h-5 rounded-md border-2 border-muted peer-checked:border-success peer-checked:bg-success transition-colors flex items-center justify-center">
-                                                    {privacyAccepted && (
-                                                        <svg className="w-3 h-3 text-success-foreground" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                        </svg>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <Shield className="w-4 h-4 text-success" />
-                                                    <span className="text-sm font-bold text-success">
-                                                        {t('auth.privacyTitle') || 'Protection de vos données'}
-                                                    </span>
-                                                </div>
-                                                <p className="text-xs text-muted-foreground leading-relaxed">
-                                                    {t('auth.privacyNotice') || 'En créant un compte, j\'accepte la '}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }}
-                                                        className="text-success font-bold hover:underline"
-                                                    >
-                                                        {t('auth.footer.privacy') || 'Politique de confidentialité'}
-                                                    </button>
-                                                    {' '}et les{' '}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}
-                                                        className="text-success font-bold hover:underline"
-                                                    >
-                                                        {t('auth.footer.terms') || 'CGU'}
-                                                    </button>.
-                                                </p>
-                                            </div>
-                                        </label>
-                                    </div>
-                                )}
-
-                                <Button
-                                    type="submit"
-                                    isLoading={loading}
-                                    disabled={loading || (!isLogin && !privacyAccepted)}
-                                    variant="premium"
-                                    className="w-full py-6 font-bold rounded-2xl card-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                            <AnimatePresence mode="wait">
+                                <motion.form
+                                    key={isLogin ? 'login' : 'register'}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    onSubmit={handleSubmit(onEmailAuthSubmit)}
+                                    className="space-y-5"
                                 >
-                                    {isLogin ? t('auth.login') : t('auth.signup')}
-                                    {!loading && <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />}
-                                </Button>
-                            </form>
+                                    <div className="space-y-1.5">
+                                        <FloatingLabelInput
+                                            id="email"
+                                            label={t('auth.email')}
+                                            type="email"
+                                            autoComplete="email"
+                                            icon={Mail}
+                                            {...register('email')}
+                                            error={errors.email?.message}
+                                            placeholder="nom@entreprise.com"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <div className="flex justify-between items-center ml-1 mb-1">
+                                            {isLogin && (
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
+                                                    onClick={() => setShowResetModal(true)}
+                                                    className="text-[13px] font-bold text-primary hover:text-primary/80 p-0 h-auto"
+                                                >
+                                                    {t('auth.forgotPassword')}
+                                                </Button>
+                                            )}
+                                        </div>
+                                        <FloatingLabelInput
+                                            id="password"
+                                            label={t('auth.password')}
+                                            type="password"
+                                            autoComplete={isLogin ? 'current-password' : 'new-password'}
+                                            icon={Lock}
+                                            {...register('password')}
+                                            error={errors.password?.message}
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+
+                                    {/* Privacy consent notice for signup (RGPD compliance) */}
+                                    {!isLogin && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="p-4 rounded-2xl bg-success/10 border border-success/20 overflow-hidden"
+                                        >
+                                            <label className="flex items-start gap-3 cursor-pointer group">
+                                                <div className="relative mt-0.5">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={privacyAccepted}
+                                                        onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                                                        className="peer sr-only"
+                                                        aria-label={t('auth.privacyConsent') || 'Accepter la politique de confidentialité'}
+                                                    />
+                                                    <div className="w-5 h-5 rounded-md border-2 border-muted peer-checked:border-success peer-checked:bg-success transition-colors flex items-center justify-center">
+                                                        {privacyAccepted && (
+                                                            <svg className="w-3 h-3 text-success-foreground" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                            </svg>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Shield className="w-4 h-4 text-success" />
+                                                        <span className="text-sm font-bold text-success">
+                                                            {t('auth.privacyTitle') || 'Protection de vos données'}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                                        {t('auth.privacyNotice') || 'En créant un compte, j\'accepte la '}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }}
+                                                            className="text-success font-bold hover:underline"
+                                                        >
+                                                            {t('auth.footer.privacy') || 'Politique de confidentialité'}
+                                                        </button>
+                                                        {' '}et les{' '}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }}
+                                                            className="text-success font-bold hover:underline"
+                                                        >
+                                                            {t('auth.footer.terms') || 'CGU'}
+                                                        </button>.
+                                                    </p>
+                                                </div>
+                                            </label>
+                                        </motion.div>
+                                    )}
+
+                                    <Button
+                                        type="submit"
+                                        isLoading={loading}
+                                        disabled={loading || (!isLogin && !privacyAccepted)}
+                                        variant="premium"
+                                        className="w-full py-6 font-bold rounded-2xl card-hover disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group/btn"
+                                    >
+                                        <span className="relative z-10 flex items-center justify-center">
+                                            {isLogin ? t('auth.login') : t('auth.signup')}
+                                            {!loading && <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" strokeWidth={2.5} />}
+                                        </span>
+                                        {/* Button Shimmer */}
+                                        <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent w-[50%] animate-shimmer pointer-events-none group-hover/btn:animate-none" style={{ animationDuration: '2.5s' }} />
+                                    </Button>
+                                </motion.form>
+                            </AnimatePresence>
                         </div>
 
-                        <div className="mt-8 text-center">
+                        <div className="mt-8 text-center relative z-10">
                             <Button
                                 variant="ghost"
                                 onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); setPrivacyAccepted(false); }}
-                                className="text-[13px] font-bold text-foreground hover:text-foreground/80"
+                                className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
                             >
                                 {isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
                             </Button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
 

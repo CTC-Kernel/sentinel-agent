@@ -353,7 +353,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('requirements.searchPlaceholder')}
-            className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
           />
         </div>
 
@@ -363,7 +363,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
           <select
             value={selectedCriticality}
             onChange={(e) => setSelectedCriticality(e.target.value as CriticalityLevel | 'all')}
-            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
           >
             <option value="all">{t('requirements.allCriticalities')}</option>
             <option value="high">{t('requirements.criticality.high')}</option>
@@ -375,7 +375,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value as RequirementCategory | 'all')}
-            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
           >
             <option value="all">{t('requirements.allCategories')}</option>
             {availableCategories.map((cat) => (
@@ -389,7 +389,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all"
           >
             <option value="all">{t('requirements.filterAll')}</option>
             <option value="linked">{t('requirements.filterLinked')}</option>

@@ -436,7 +436,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               disabled={isReadOnly}
               placeholder={t('vendorPortal.enterAnswer', 'Enter your answer...')}
               rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
             />
           )}
 
@@ -460,7 +460,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   disabled={isReadOnly}
                   placeholder={t('vendorPortal.commentPlaceholder', 'Add any additional context or link to evidence...')}
                   rows={2}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500 disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
             )}

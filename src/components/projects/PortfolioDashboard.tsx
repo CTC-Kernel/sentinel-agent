@@ -3,6 +3,7 @@ import { Project } from '../../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
+import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../theme/chartTheme';
 
 import { Skeleton } from '../ui/Skeleton';
 
@@ -26,12 +27,12 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
         return { total, active, delayed, globalProgress };
     }, [projects]);
 
-    // Status Distribution Data
+    // Status Distribution Data (using harmonized palette)
     const statusData = useMemo(() => [
-        { name: 'En cours', value: projects.filter(p => p.status === 'En cours').length, color: '#3b82f6' },
-        { name: 'Terminé', value: projects.filter(p => p.status === 'Terminé').length, color: '#10b981' },
-        { name: 'Planifié', value: projects.filter(p => p.status === 'Planifié').length, color: '#f59e0b' },
-        { name: 'Suspendu', value: projects.filter(p => p.status === 'Suspendu').length, color: '#64748b' }
+        { name: 'En cours', value: projects.filter(p => p.status === 'En cours').length, color: SENTINEL_PALETTE.primary },
+        { name: 'Terminé', value: projects.filter(p => p.status === 'Terminé').length, color: SENTINEL_PALETTE.success },
+        { name: 'Planifié', value: projects.filter(p => p.status === 'Planifié').length, color: SENTINEL_PALETTE.warning },
+        { name: 'Suspendu', value: projects.filter(p => p.status === 'Suspendu').length, color: SENTINEL_PALETTE.tertiary }
     ].filter(d => d.value > 0), [projects]);
 
     // Progress Distribution (Grouped by ranges)
@@ -81,7 +82,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
             <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Global Health Loading State */}
-                    <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row gap-6 border border-transparent dark:border-white/5 animate-pulse">
+                    <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-4xl shadow-sm flex flex-col md:flex-row gap-6 border border-transparent dark:border-white/5 animate-pulse">
                         <div className="flex items-center gap-6">
                             <Skeleton className="h-24 w-24 rounded-full" />
                             <div className="space-y-2">
@@ -100,7 +101,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                     </div>
 
                     {/* Status Distribution Loading State */}
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 animate-pulse">
+                    <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/5 animate-pulse">
                         <Skeleton className="h-4 w-32 rounded mb-4" />
                         <Skeleton className="h-[140px] w-full rounded-full" />
                     </div>
@@ -109,7 +110,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Secondary Charts Loading State */}
                     {[1, 2].map(i => (
-                        <div key={i} className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 animate-pulse">
+                        <div key={i} className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/5 animate-pulse">
                             <Skeleton className="h-4 w-48 rounded mb-4" />
                             <Skeleton className="h-[250px] w-full rounded" />
                         </div>
@@ -121,7 +122,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
 
     if (projects.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
+            <div className="flex flex-col items-center justify-center p-12 bg-slate-50 dark:bg-slate-900/50 rounded-5xl border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
                 <EmptyChartState
                     message="Aucun projet en cours"
                     description="Créez votre premier projet pour suivre son avancement et piloter votre portefeuille."
@@ -135,7 +136,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
         <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Global Health - Radial Premium Card */}
-                <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
+                <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-4xl shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
                     <div className="flex items-center gap-6 relative z-10">
                         <div className="relative">
@@ -178,7 +179,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 </div>
 
                 {/* Status Distribution */}
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
+                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/5 relative overflow-hidden">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Statut des Projets</h3>
                     <div className="h-[140px] w-full">
                         {statusData.length === 0 ? (
@@ -217,7 +218,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
             {/* Secondary Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Progress Distribution */}
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5">
+                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/5">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Distribution de l'Avancement</h3>
                     <div className="h-[250px] w-full">
                         {progressData.every(d => d.value === 0) ? (
@@ -232,8 +233,8 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                 <BarChart data={progressData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                                            <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                                            <stop offset="0%" stopColor={SENTINEL_PALETTE.secondary} stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor={SENTINEL_PALETTE.secondary} stopOpacity={0.3} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.3} />
@@ -248,7 +249,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 </div>
 
                 {/* Deadlines Chart (Replaces Placeholder) */}
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5">
+                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/5">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Échéances à Venir (6 mois)</h3>
                     <div className="h-[250px] w-full">
                         {deadlineData.every(d => d.value === 0) ? (
@@ -263,8 +264,8 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                 <BarChart data={deadlineData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="deadlineGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8} />
-                                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3} />
+                                            <stop offset="0%" stopColor={SEVERITY_COLORS.critical} stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor={SEVERITY_COLORS.critical} stopOpacity={0.3} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.3} />

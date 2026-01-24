@@ -435,7 +435,7 @@ export const Onboarding: React.FC = () => {
             />
 
             <div className="w-full max-w-xl p-6 relative z-10 animate-scale-in">
-                <div className="glass-premium rounded-[2.5rem] p-10 md:p-12 shadow-2xl">
+                <div className="glass-premium rounded-5xl p-10 md:p-12 shadow-2xl">
                     {/* ... (Header and UI structure) ... */}
                     <div className="text-center mb-10">
                         <div className="w-16 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-6 ring-1 ring-black/5 mx-auto">
@@ -507,7 +507,7 @@ export const Onboarding: React.FC = () => {
                                         <input value={searchQuery}
                                             aria-label={t('onboarding.actions.search')}
                                             type="text"
-                                            className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500"
+                                            className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus-visible:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500"
                                             placeholder={t('onboarding.actions.search') + "..."}
                                             onChange={e => setSearchQuery(e.target.value)}
                                         />
@@ -687,7 +687,7 @@ export const Onboarding: React.FC = () => {
                                                 type="checkbox"
                                                 checked={termsAccepted}
                                                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                                                className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 bg-white dark:bg-black/20 dark:border-white/10"
+                                                className="w-4 h-4 text-brand-600 border-slate-300 rounded focus-visible:ring-brand-500 bg-white dark:bg-black/20 dark:border-white/10"
                                             />
                                         </div>
                                     </div>

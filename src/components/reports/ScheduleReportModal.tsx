@@ -207,7 +207,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="Ex: Rapport mensuel ISO 27001"
-                                            className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                                            className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                         />
                                     </div>
 
@@ -269,7 +269,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                             <select
                                                 value={dayOfWeek}
                                                 onChange={(e) => setDayOfWeek(Number(e.target.value))}
-                                                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-brand-500"
+                                                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 {Object.entries(dayOfWeekLabels).map(([value, label]) => (
                                                     <option key={value} value={value}>{label}</option>
@@ -285,7 +285,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                             <select
                                                 value={dayOfMonth}
                                                 onChange={(e) => setDayOfMonth(Number(e.target.value))}
-                                                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-brand-500"
+                                                className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
                                                     <option key={day} value={day}>
@@ -323,7 +323,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                                         value={email}
                                                         onChange={(e) => handleRecipientChange(index, e.target.value)}
                                                         placeholder="email@example.com"
-                                                        className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                                                        className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                                     />
                                                     {recipients.length > 1 && (
                                                         <button
@@ -364,7 +364,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                                             type="checkbox"
                                                             checked={value}
                                                             onChange={(e) => setter(e.target.checked)}
-                                                            className="rounded text-brand-600 focus:ring-brand-500"
+                                                            className="rounded text-brand-600 focus-visible:ring-brand-500"
                                                         />
                                                         <span className="text-sm text-slate-600 dark:text-slate-400">{label}</span>
                                                     </label>

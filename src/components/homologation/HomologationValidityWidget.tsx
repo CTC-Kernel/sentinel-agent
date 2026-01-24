@@ -98,9 +98,9 @@ const STATE_CONFIG: Record<ValidityState, {
     labelEn: 'Expired'
   },
   not_set: {
-    color: 'text-gray-500',
-    bgColor: 'bg-gray-100',
-    borderColor: 'border-gray-300',
+    color: 'text-slate-500',
+    bgColor: 'bg-slate-100',
+    borderColor: 'border-slate-300',
     icon: Clock,
     label: 'Non défini',
     labelEn: 'Not set'
@@ -279,8 +279,8 @@ export const HomologationValidityWidget: React.FC<HomologationValidityWidgetProp
                 {t('homologation.validity.critical', 'Critiques')}
               </p>
             </div>
-            <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-              <p className="text-lg font-bold text-gray-600 dark:text-gray-400">{stats.expired}</p>
+            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
+              <p className="text-lg font-bold text-slate-600 dark:text-slate-400">{stats.expired}</p>
               <p className="text-xs text-muted-foreground">
                 {t('homologation.validity.expired', 'Expirés')}
               </p>

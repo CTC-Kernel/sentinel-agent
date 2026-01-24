@@ -62,10 +62,10 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="glass-premium px-4 py-6 rounded-[2rem] flex flex-col items-center gap-4 relative"
+                        className="glass-premium px-4 py-6 rounded-4xl flex flex-col items-center gap-4 relative"
                     >
                         {/* Dock Background Glow */}
-                        <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-[2rem] blur-xl opacity-50 -z-10" />
+                        <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-4xl blur-xl opacity-50 -z-10" />
 
                         <DockItem
                             icon={Settings3D}

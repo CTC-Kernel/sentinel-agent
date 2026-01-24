@@ -19,9 +19,9 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
     onFilterChange
 }) => {
     return (
-        <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8 overflow-hidden hover:shadow-apple transition-all duration-300">
+        <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-4xl shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8 overflow-hidden hover:shadow-apple transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-            <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+            <div className="absolute inset-0 overflow-hidden rounded-4xl pointer-events-none">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
             </div>
 

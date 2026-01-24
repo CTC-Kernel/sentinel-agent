@@ -38,6 +38,7 @@ import type {
   DependencyMatrix as DependencyMatrixType,
 } from '../types/vendorConcentration';
 import { getTrendIndicator } from '../types/vendorConcentration';
+import { PageHeader } from '../components/ui/PageHeader';
 
 // ============================================================================
 // Types
@@ -267,45 +268,48 @@ export const VendorConcentration: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
-            {t('vendorConcentration.title')}
-          </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-            {t('vendorConcentration.subtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`
-              flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
-              ${showFilters
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
-              }
-            `}
-          >
-            <Filter className="h-4 w-4" />
-            {t('common.filters')}
-          </button>
-          <button
-            onClick={() => loadData(true)}
-            disabled={isRefreshing}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {t('common.refresh')}
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all">
-            <Download className="h-4 w-4" />
-            {t('common.export')}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t('vendorConcentration.title')}
+        subtitle={t('vendorConcentration.subtitle')}
+        icon={
+          <img
+            src="/images/operations.png"
+            alt="Concentration"
+            className="w-full h-full object-contain"
+          />
+        }
+        actions={
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`
+                flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
+                ${showFilters
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                }
+              `}
+            >
+              <Filter className="h-4 w-4" />
+              {t('common.filters')}
+            </button>
+            <button
+              onClick={() => loadData(true)}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {t('common.refresh')}
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all">
+              <Download className="h-4 w-4" />
+              {t('common.export')}
+            </button>
+          </div>
+        }
+      />
 
       {/* Metrics Cards */}
       {metrics && (

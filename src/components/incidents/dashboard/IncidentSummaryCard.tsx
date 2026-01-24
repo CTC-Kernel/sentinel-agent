@@ -15,14 +15,14 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
     criticalIncidents
 }) => {
     return (
-        <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/5 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+        <div className="glass-premium p-6 md:p-8 rounded-5xl border border-white/60 dark:border-white/5 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
             {/* Tech Corners Generic */}
             <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
             <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
             <svg className="absolute bottom-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
             <svg className="absolute bottom-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-            <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+            <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
             </div>
 

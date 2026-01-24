@@ -115,27 +115,27 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/30">
               <Flag className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {isEditing
                   ? t('ebios.workshop2.editObjective', 'Modifier l\'objectif visé')
                   : t('ebios.workshop2.addCustomObjective', 'Ajouter un objectif personnalisé')}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">
                 {t('ebios.workshop2.customObjectiveHelp', 'Objectif visé spécifique à votre contexte')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
@@ -143,7 +143,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           {/* Code */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop2.objectiveCode', 'Code')} *
             </label>
             <input
@@ -151,10 +151,10 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
               type="text"
               placeholder="OV-XX"
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800",
+                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                 errors.code
                   ? "border-red-500"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-slate-200 dark:border-slate-700"
               )}
             />
             {errors.code && (
@@ -164,7 +164,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
 
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop2.objectiveName', 'Nom')} *
             </label>
             <input
@@ -172,10 +172,10 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
               type="text"
               placeholder={t('ebios.workshop2.objectiveNamePlaceholder', 'Ex: Atteinte à la réputation locale')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800",
+                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                 errors.name
                   ? "border-red-500"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-slate-200 dark:border-slate-700"
               )}
             />
             {errors.name && (
@@ -185,7 +185,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
 
           {/* Impact Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop2.objectiveImpactType', 'Type d\'impact')} *
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -196,7 +196,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
                     key={type}
                     className={cn(
                       "flex flex-col items-center p-3 rounded-xl border cursor-pointer transition-all",
-                      "hover:border-gray-300 dark:hover:border-gray-600"
+                      "hover:border-slate-300 dark:hover:border-slate-600"
                     )}
                   >
                     <input
@@ -209,7 +209,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
                       "w-3 h-3 rounded-full mb-2",
                       `bg-${info.color}-500`
                     )} />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 text-center">
                       {info[locale]}
                     </span>
                   </label>
@@ -223,7 +223,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop2.objectiveDescription', 'Description')} *
             </label>
             <textarea
@@ -231,10 +231,10 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
               rows={3}
               placeholder={t('ebios.workshop2.objectiveDescriptionPlaceholder', 'Décrivez cet objectif visé...')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800 resize-none",
+                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 resize-none",
                 errors.description
                   ? "border-red-500"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-slate-200 dark:border-slate-700"
               )}
             />
             {errors.description && (
@@ -253,7 +253,7 @@ export const CustomTargetedObjectiveForm: React.FC<CustomTargetedObjectiveFormPr
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
             <div>
               {isEditing && onDelete && (
                 <Button

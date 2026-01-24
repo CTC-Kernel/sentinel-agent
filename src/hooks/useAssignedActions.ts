@@ -116,10 +116,10 @@ export const DUE_STATUS_COLOR_CLASSES = {
     badge: 'bg-orange-500 text-white',
   },
   neutral: {
-    bg: 'bg-gray-100 dark:bg-gray-800',
-    text: 'text-gray-600 dark:text-gray-400',
-    border: 'border-gray-200 dark:border-gray-700',
-    badge: 'bg-gray-500 text-white',
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    text: 'text-slate-600 dark:text-slate-400',
+    border: 'border-slate-200 dark:border-slate-700',
+    badge: 'bg-slate-500 text-white',
   },
 } as const;
 

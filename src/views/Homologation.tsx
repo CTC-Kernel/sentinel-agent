@@ -17,6 +17,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { toast } from '../lib/toast';
 import { useHomologation } from '../hooks/useHomologation';
 import { useAuth } from '../hooks/useAuth';
+import { PageHeader } from '../components/ui/PageHeader';
 import {
   LevelDeterminationWizard,
   HomologationDossierList,
@@ -152,21 +153,26 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 flex flex-col gap-6">
       {/* Header */}
       {!hideHeader && (
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{t('homologation.title', 'Homologation ANSSI')}</h1>
-            <p className="text-muted-foreground">
-              {t('homologation.subtitle', 'Gérez vos dossiers d\'homologation RGS')}
-            </p>
-          </div>
-          <Button onClick={() => setShowWizard(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            {t('homologation.newDossier', 'Nouveau dossier')}
-          </Button>
-        </div>
+        <PageHeader
+          title={t('homologation.title', 'Homologation ANSSI')}
+          subtitle={t('homologation.subtitle', 'Gérez vos dossiers d\'homologation RGS')}
+          icon={
+            <img
+              src="/images/gouvernance.png"
+              alt="Homologation"
+              className="w-full h-full object-contain"
+            />
+          }
+          actions={
+            <Button onClick={() => setShowWizard(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('homologation.newDossier', 'Nouveau dossier')}
+            </Button>
+          }
+        />
       )}
 
       {/* Action Bar when embedded */}

@@ -118,7 +118,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
               'p-1 rounded',
               trend === 'up' && 'text-red-500 bg-red-100',
               trend === 'down' && 'text-green-500 bg-green-100',
-              trend === 'neutral' && 'text-gray-500 bg-gray-100'
+              trend === 'neutral' && 'text-slate-500 bg-slate-100'
             )}
           >
             {trend === 'up' ? (

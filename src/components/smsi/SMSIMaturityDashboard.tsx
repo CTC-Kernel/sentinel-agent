@@ -78,7 +78,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
       case 'down':
         return <TrendingDown className="w-4 h-4 text-red-500" />;
       default:
-        return <Minus className="w-4 h-4 text-gray-400" />;
+        return <Minus className="w-4 h-4 text-slate-400" />;
     }
   };
 

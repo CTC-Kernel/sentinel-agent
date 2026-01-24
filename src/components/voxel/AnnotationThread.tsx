@@ -238,7 +238,7 @@ const ReplyForm: React.FC<{
             onKeyDown={handleKeyDown}
             placeholder="Écrivez une réponse... (Cmd+Enter pour envoyer)"
             rows={2}
-            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
           />
         </div>
         <button

@@ -172,7 +172,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                     variants={staggerContainerVariants}
                     initial="initial"
                     animate="visible"
-                    className="space-y-10"
+                    className="flex flex-col gap-10"
                     data-tour="dashboard"
                 >
                     <MasterpieceBackground />

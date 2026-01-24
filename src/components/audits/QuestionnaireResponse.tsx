@@ -209,7 +209,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
             case 'text':
                 return (
                     <textarea
-                        className="w-full px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none transition-all min-h-[100px]"
+                        className="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all min-h-[100px]"
                         value={value as string || ''}
                         onChange={(e) => handleAnswerChange(question.id, e.target.value)}
                         placeholder="Votre réponse..."
@@ -220,7 +220,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 return (
                     <div className="flex gap-4">
                         {['Oui', 'Non'].map((opt) => (
-                            <label key={opt} className={`flex - 1 cursor - pointer p - 4 rounded - xl border transition - all ${value === opt ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-white/10 hover:border-brand-300'} `}>
+                            <label key={opt} className={`flex - 1 cursor - pointer p - 4 rounded - xl border transition - all ${value === opt ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 hover:border-brand-300'} `}>
                                 <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
@@ -240,7 +240,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
-                                    className="text-brand-600 focus:ring-brand-500"
+                                    className="text-brand-600 focus-visible:ring-brand-500"
                                     disabled={readOnly || status === 'Submitted'}
                                 />
                                 <span className="text-slate-700 dark:text-slate-200">{opt}</span>
@@ -263,7 +263,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                         handleAnswerChange(question.id, newValues);
                                     }}
                                         type="checkbox"
-                                        className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                                        className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500"
                                         disabled={readOnly || status === 'Submitted'}
                                     />
                                     <span className="text-slate-700 dark:text-slate-200">{opt}</span>
@@ -300,7 +300,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200 dark:border-white/10 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">{questionnaire.title}</h2>
                         {questionnaire.description && (
@@ -345,7 +345,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+                <div className="p-6 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
                     <button
                         aria-label="Fermer la vue questionnaire"
                         onClick={onClose}

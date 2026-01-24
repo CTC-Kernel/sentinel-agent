@@ -78,7 +78,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                     </div>
                 </div>
             ) : (
-                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
+                <div className="w-full pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
                     <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
                         <Building className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
                         {user.department || 'Général'}

@@ -185,7 +185,7 @@ const SentinelChat: React.FC = () => {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={messageCount >= MAX_MESSAGES ? "Limite atteinte" : "Posez votre question..."}
                     disabled={messageCount >= MAX_MESSAGES}
-                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-xl py-3 pl-4 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder-slate-500 dark:placeholder-slate-400 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-background/70 backdrop-blur-sm dark:text-white border border-muted rounded-xl py-3 pl-4 pr-12 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 placeholder-slate-500 dark:placeholder-slate-400 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                     type="submit"

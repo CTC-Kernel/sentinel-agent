@@ -99,7 +99,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                         placeholder="Rechercher un partenaire..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
                     />
                 </div>
 

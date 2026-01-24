@@ -37,7 +37,7 @@ export const SystemHealth: React.FC = () => {
     };
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10">
             <MasterpieceBackground />
             <PageHeader
                 title={t('systemHealth.title')}
@@ -49,7 +49,6 @@ export const SystemHealth: React.FC = () => {
                         className="w-full h-full object-contain"
                     />
                 }
-                breadcrumbs={[{ label: t('common.administration') }, { label: t('systemHealth.title') }]}
                 trustType="admin"
             />
 

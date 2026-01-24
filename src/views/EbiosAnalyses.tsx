@@ -153,7 +153,7 @@ export const EbiosAnalyses: React.FC = () => {
       case 'in_progress':
         return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
       case 'archived':
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400';
       default:
         return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
     }
@@ -204,22 +204,22 @@ export const EbiosAnalyses: React.FC = () => {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('ebios.searchPlaceholder')}
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white"
+              className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-slate-900 dark:text-white"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-gray-400" />
+            <Filter className="w-5 h-5 text-slate-400" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as EbiosAnalysisStatus | 'all')}
-              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white"
+              className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-slate-900 dark:text-white"
             >
               <option value="all">{t('ebios.allStatuses')}</option>
               <option value="draft">{t('ebios.status.draft')}</option>
@@ -269,20 +269,20 @@ export const EbiosAnalyses: React.FC = () => {
                           e.stopPropagation();
                           setActionMenuOpen(actionMenuOpen === analysis.id ? null : analysis.id);
                         }}
-                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                       >
-                        <MoreVertical className="w-5 h-5 text-gray-400" />
+                        <MoreVertical className="w-5 h-5 text-slate-400" />
                       </button>
 
                       {actionMenuOpen === analysis.id && (
-                        <div className="absolute right-0 top-full mt-1 w-48 py-1 rounded-xl bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 z-10">
+                        <div className="absolute right-0 top-full mt-1 w-48 py-1 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 z-10">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDuplicateAnalysis(analysis);
                               setActionMenuOpen(null);
                             }}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                           >
                             <Copy className="w-4 h-4" />
                             {t('common.duplicate')}
@@ -294,7 +294,7 @@ export const EbiosAnalyses: React.FC = () => {
                                 handleArchiveAnalysis(analysis);
                                 setActionMenuOpen(null);
                               }}
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
                               <Archive className="w-4 h-4" />
                               {t('common.archive')}
@@ -324,11 +324,11 @@ export const EbiosAnalyses: React.FC = () => {
                         strokeWidth={5}
                       />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 dark:text-white truncate pr-8">
+                        <h3 className="font-semibold text-slate-900 dark:text-white truncate pr-8">
                           {analysis.name}
                         </h3>
                         {analysis.description && (
-                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          <p className="text-sm text-slate-500 mt-1 line-clamp-2">
                             {analysis.description}
                           </p>
                         )}
@@ -343,7 +343,7 @@ export const EbiosAnalyses: React.FC = () => {
                       )}>
                         {getStatusLabel(analysis.status)}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-slate-500">
                         {t('ebios.workshop')} {analysis.currentWorkshop}/5
                       </span>
                     </div>
@@ -360,7 +360,7 @@ export const EbiosAnalyses: React.FC = () => {
                               workshop.status === 'validated' ? "bg-purple-500" :
                                 workshop.status === 'completed' ? "bg-green-500" :
                                   workshop.status === 'in_progress' ? "bg-blue-500" :
-                                    "bg-gray-200 dark:bg-gray-700"
+                                    "bg-slate-200 dark:bg-slate-700"
                             )}
                           />
                         );
@@ -368,10 +368,10 @@ export const EbiosAnalyses: React.FC = () => {
                     </div>
 
                     {/* Metadata */}
-                    <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between text-xs text-gray-400">
+                    <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between text-xs text-slate-400">
                       <span>{t('ebios.updatedAt', { date: new Date(analysis.updatedAt).toLocaleDateString() })}</span>
                       {analysis.sector && (
-                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                           {analysis.sector}
                         </span>
                       )}

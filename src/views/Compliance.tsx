@@ -352,8 +352,8 @@ export const Compliance: React.FC = () => {
             <MasterpieceBackground />
             <SEO title={`${t('compliance.title')} ${currentFramework} - Sentinel GRC`} description={t('compliance.subtitle')} />
 
-            <div className="relative z-10 p-4 md:p-6 space-y-10 w-full max-w-full overflow-x-hidden pb-24">
-                <div className="max-w-[1920px] mx-auto space-y-10">
+            <div className="relative z-10 p-4 md:p-6 flex flex-col gap-10 w-full max-w-full overflow-x-hidden pb-24">
+                <div className="max-w-[1920px] mx-auto flex flex-col gap-10">
 
 
                     <PageHeader

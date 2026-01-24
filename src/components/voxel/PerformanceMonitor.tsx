@@ -156,14 +156,14 @@ const MetricRow: React.FC<{
   warning?: boolean;
   critical?: boolean;
 }> = ({ label, value, unit, warning, critical }) => {
-  const color = critical ? 'text-red-400' : warning ? 'text-amber-400' : 'text-gray-300';
+  const color = critical ? 'text-red-400' : warning ? 'text-amber-400' : 'text-slate-300';
 
   return (
     <div className="flex justify-between items-center py-0.5">
-      <span className="text-gray-400 text-xs">{label}</span>
+      <span className="text-slate-400 text-xs">{label}</span>
       <span className={`font-mono text-xs ${color}`}>
         {value}
-        {unit && <span className="text-gray-500 ml-1">{unit}</span>}
+        {unit && <span className="text-slate-500 ml-1">{unit}</span>}
       </span>
     </div>
   );
@@ -176,7 +176,7 @@ const MetricRow: React.FC<{
 const SectionHeader: React.FC<{ title: string; icon: string }> = ({ title, icon }) => (
   <div className="flex items-center gap-1.5 mb-1.5 pb-1 border-b border-white/10">
     <span className="text-xs">{icon}</span>
-    <span className="text-xs font-medium text-gray-200">{title}</span>
+    <span className="text-xs font-medium text-slate-200">{title}</span>
   </div>
 );
 
@@ -282,8 +282,8 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             <span className="text-sm font-medium">Performance</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-sm text-gray-300">{fpsData.current.toFixed(0)} fps</span>
-            <span className="text-gray-500 text-xs">{collapsed ? '+' : '-'}</span>
+            <span className="font-mono text-sm text-slate-300">{fpsData.current.toFixed(0)} fps</span>
+            <span className="text-slate-500 text-xs">{collapsed ? '+' : '-'}</span>
           </div>
         </div>
 
@@ -296,15 +296,15 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               <FPSGraph history={fpsData.history} width={230} height={40} />
               <div className="grid grid-cols-3 gap-2 mt-1">
                 <div className="text-center">
-                  <div className="text-xs text-gray-500">Min</div>
+                  <div className="text-xs text-slate-500">Min</div>
                   <div className="font-mono text-xs">{fpsData.min.toFixed(0)}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-500">Avg</div>
+                  <div className="text-xs text-slate-500">Avg</div>
                   <div className="font-mono text-xs">{fpsData.average.toFixed(0)}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-500">Max</div>
+                  <div className="text-xs text-slate-500">Max</div>
                   <div className="font-mono text-xs">{fpsData.max.toFixed(0)}</div>
                 </div>
               </div>
@@ -439,8 +439,8 @@ export const PerformanceBadge: React.FC<PerformanceBadgeProps> = ({ nodeCount = 
       >
         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
         <span className="font-mono">{fpsData.current.toFixed(0)} fps</span>
-        <span className="text-gray-400">|</span>
-        <span className="text-gray-300">{nodeCount} nodes</span>
+        <span className="text-slate-400">|</span>
+        <span className="text-slate-300">{nodeCount} nodes</span>
       </button>
     </Html>
   );

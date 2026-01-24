@@ -69,7 +69,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             }}
             role="button"
             tabIndex={0}
-            className={`glass-panel rounded-[2.5rem] ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+            className={`glass-panel rounded-5xl ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
         >
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
@@ -118,7 +118,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                     <span className="text-slate-600 dark:text-slate-300">Avancement</span>
                     <span className={getProjectCategoryStyles(project.category || '').color}>{project.progress}%</span>
                 </div>
-                <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5">
                     <div className={`${getProjectCategoryStyles(project.category || '').progress} h-1.5 rounded-full transition-all duration-500 shadow-sm shadow-black/5`} style={{ width: `${project.progress}%` }}></div>
                 </div>
             </div>

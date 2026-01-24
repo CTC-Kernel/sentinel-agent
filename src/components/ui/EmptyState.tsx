@@ -84,7 +84,7 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({ icon: Icon, t
             }}
         >
             <motion.div
-                className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-elevation-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
+                className={`w-20 h-20 rounded-4xl flex items-center justify-center mb-6 shadow-elevation-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyle}`}
                 variants={{
                     hidden: { scale: 0, rotate: -180 },
                     visible: { scale: 1, rotate: 0, transition: { type: 'spring', stiffness: 200, damping: 15 } }

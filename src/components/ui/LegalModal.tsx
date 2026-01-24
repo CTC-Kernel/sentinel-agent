@@ -27,7 +27,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-w-4xl glass-panel rounded-[2.5rem] overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
+            <div className="relative w-full max-w-4xl glass-panel rounded-5xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
                     <div>

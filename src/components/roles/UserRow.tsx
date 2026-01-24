@@ -54,7 +54,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                     <select
                         value={selectedRole}
                         onChange={(e) => onRoleChange(e.target.value as Role)}
-                        className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                     >
                         <option value="admin">Administrateur</option>
                         <option value="rssi">RSSI</option>

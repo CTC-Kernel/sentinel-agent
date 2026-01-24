@@ -157,7 +157,7 @@ export function ConfigurableDashboard({
                 'text-primary',
                 'bg-primary/10 dark:bg-blue-900/20',
                 'hover:bg-blue-100 dark:hover:bg-blue-900/30',
-                'transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                'transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2'
               )}
             >
               <Plus className="w-4 h-4" />

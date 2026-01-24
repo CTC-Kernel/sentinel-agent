@@ -408,13 +408,13 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 
             {
                 !hideActions && (
-                    <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
+                    <div className="flex justify-end space-x-4 pt-6 border-t border-slate-100 dark:border-white/5">
                         <Button
                             type="button"
                             onClick={onCancel}
                             variant="ghost"
                             disabled={isLoading}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                         >
                             Annuler
                         </Button>

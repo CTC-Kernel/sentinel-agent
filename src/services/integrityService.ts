@@ -292,9 +292,9 @@ export const IntegrityService = {
         };
       default:
         return {
-          text: 'text-gray-500 dark:text-gray-400',
-          bg: 'bg-gray-50 dark:bg-gray-900',
-          border: 'border-gray-200 dark:border-gray-700',
+          text: 'text-slate-500 dark:text-slate-400',
+          bg: 'bg-slate-50 dark:bg-slate-900',
+          border: 'border-slate-200 dark:border-slate-700',
         };
     }
   },

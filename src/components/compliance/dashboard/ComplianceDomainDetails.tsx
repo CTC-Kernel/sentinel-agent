@@ -23,8 +23,8 @@ export const ComplianceDomainDetails: React.FC<ComplianceDomainDetailsProps> = (
     }, {} as Record<string, { total: number; implemented: number }>);
 
     return (
-        <div className="glass-premium p-6 md:p-8 rounded-[2rem] relative group hover:shadow-apple transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+        <div className="glass-premium p-6 md:p-8 rounded-4xl relative group hover:shadow-apple transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
             <h4 className="text-sm font-bold text-foreground mb-4 relative z-10 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-brand-500" />
                 Détail par Domaine {currentFramework}

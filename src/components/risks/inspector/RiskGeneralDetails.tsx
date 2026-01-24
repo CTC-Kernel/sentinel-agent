@@ -32,7 +32,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/20 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4 flex items-center gap-2">
@@ -44,7 +44,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                         <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.probability || 0} × Impact: {risk.impact || 0}</div>
                     </div>
                 </div>
-                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-900/20 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4 flex items-center gap-2">
@@ -58,7 +58,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                 </div>
             </div>
 
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Identification du Risque</h4>
                 <div>
                     <span className="text-[10px] uppercase text-slate-400 font-bold">Menace</span>
@@ -83,15 +83,15 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                 onUpdate={onAIAssistantUpdate}
             />
 
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stratégie de Traitement</h4>
-                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.strategy}</div>
+                <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.strategy}</div>
             </div>
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Propriétaire</h4>
-                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{getOwnerName(risk.owner)}</div>
+                <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{getOwnerName(risk.owner)}</div>
             </div>
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Statut Actuel</h4>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     {canEdit ? (
@@ -102,7 +102,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                                     key={s}
                                     onClick={() => onStatusChangeRequest(s as Risk['status'])}
                                     disabled={updating}
-                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
                                 >
                                     {s}
                                 </button>

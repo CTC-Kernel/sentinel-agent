@@ -109,36 +109,36 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                     <h3 className="text-lg font-semibold mb-4">Informations</h3>
                     <div className="space-y-4">
                         <div>
-                            <label className="text-sm font-medium text-gray-500 block mb-1">Description</label>
-                            <p className="text-gray-900 dark:text-white">{milestone.description || 'Aucune description'}</p>
+                            <label className="text-sm font-medium text-slate-500 block mb-1">Description</label>
+                            <p className="text-slate-900 dark:text-white">{milestone.description || 'Aucune description'}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="text-sm font-medium text-gray-500 block mb-1">Échéance</label>
-                                <div className="flex items-center gap-2 text-gray-900 dark:text-white">
-                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                <label className="text-sm font-medium text-slate-500 block mb-1">Échéance</label>
+                                <div className="flex items-center gap-2 text-slate-900 dark:text-white">
+                                    <Calendar className="w-4 h-4 text-slate-400" />
                                     {new Date(milestone.dueDate).toLocaleDateString()}
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-gray-500 block mb-1">Responsable</label>
-                                <div className="flex items-center gap-2 text-gray-900 dark:text-white">
-                                    <Users className="w-4 h-4 text-gray-400" />
+                                <label className="text-sm font-medium text-slate-500 block mb-1">Responsable</label>
+                                <div className="flex items-center gap-2 text-slate-900 dark:text-white">
+                                    <Users className="w-4 h-4 text-slate-400" />
                                     {responsibleName}
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium text-gray-500 block mb-1">Phase PDCA</label>
+                            <label className="text-sm font-medium text-slate-500 block mb-1">Phase PDCA</label>
                             <div className="flex items-center gap-2">
                                 {(() => {
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     const PhaseIcon = phaseConfig.icon as any;
                                     return <PhaseIcon className={cn("w-4 h-4", phaseStyle.text)} />;
                                 })()}
-                                <span className="text-gray-900 dark:text-white">{phaseConfig.label} - {phaseConfig.description}</span>
+                                <span className="text-slate-900 dark:text-white">{phaseConfig.label} - {phaseConfig.description}</span>
                             </div>
                         </div>
                     </div>
@@ -168,9 +168,9 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                         </h3>
                         <div className="space-y-2">
                             {linkedItems.map(item => (
-                                <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                                    <FileText className="w-4 h-4 text-gray-400" />
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">{item.title}</span>
+                                <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                                    <FileText className="w-4 h-4 text-slate-400" />
+                                    <span className="text-sm text-slate-700 dark:text-slate-300">{item.title}</span>
                                     <Badge variant="outline" size="sm" className="ml-auto capitalize">{item.type}</Badge>
                                 </div>
                             ))}
@@ -208,7 +208,7 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
 
                             {onStatusChange && (
                                 <div>
-                                    <label className="text-sm font-medium text-gray-500 block mb-2">Changer le statut</label>
+                                    <label className="text-sm font-medium text-slate-500 block mb-2">Changer le statut</label>
                                     <div className="flex flex-wrap gap-2">
                                         {Object.entries(MILESTONE_STATUS_CONFIG).map(([status, config]) => {
                                             if (status === 'overdue') return null; // Don't allow manual setting to 'overdue'

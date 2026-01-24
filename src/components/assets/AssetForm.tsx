@@ -563,7 +563,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     <input {...control.register('dataDetails.isEncrypted')}
                                         type="checkbox"
                                         id="isEncrypted"
-                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
+                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-slate-300 focus-visible:ring-brand-500 transition-all duration-200"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
                                 </label>
@@ -571,7 +571,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     <input {...register('dataDetails.isEncrypted')}
                                         type="checkbox"
                                         id="isEncrypted"
-                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
+                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-slate-300 focus-visible:ring-brand-500 transition-all duration-200"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
                                 </label>
@@ -579,7 +579,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     <input {...register('dataDetails.hasWorm')}
                                         type="checkbox"
                                         id="hasWorm"
-                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
+                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-slate-300 focus-visible:ring-brand-500 transition-all duration-200"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Stockage Immuable (WORM)</span>
                                 </label>

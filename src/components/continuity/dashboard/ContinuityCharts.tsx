@@ -82,7 +82,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* 3. Distribution by Criticality (Pie) */}
-            <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+            <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-5xl border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                 {/* Tech Corners Generic */}
                 <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
@@ -131,7 +131,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
             </motion.div>
 
             {/* 4. Drills Results (Donut/Bar) */}
-            <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+            <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-5xl border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                 {/* Tech Corners Generic */}
                 <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
@@ -165,7 +165,7 @@ export const ContinuityCharts: React.FC<ContinuityChartsProps> = ({ processes, d
             </motion.div>
 
             {/* 5. Drills Timeline (New) */}
-            <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+            <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-5xl border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                 <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Historique (12 Mois)</h3>
                 <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">

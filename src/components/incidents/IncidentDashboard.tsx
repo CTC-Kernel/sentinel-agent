@@ -276,7 +276,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 role="button"
                                 tabIndex={0}
                                 hoverEffect={true}
-                                className="p-7 flex flex-col relative overflow-hidden group border border-white/60 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                                className="p-7 flex flex-col relative overflow-hidden group border border-white/60 dark:border-white/10 focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
                             >
                                 {inc.severity === Criticality.CRITICAL && (
                                     <div className="absolute top-6 right-6 z-10">
@@ -327,7 +327,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed">
                                     {inc.description}
                                 </p>
-                                <div className="flex items-center justify-between pt-5 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
+                                <div className="flex items-center justify-between pt-5 border-t border-dashed border-slate-200 dark:border-white/10 mt-auto">
                                     <div className="flex items-center text-xs font-medium text-slate-500">
                                         <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                                         <span>{new Date(inc.dateReported).toLocaleDateString()}</span>

@@ -338,7 +338,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${getTypeStyles(asset.type).badge}`}>{asset.type}</span>
-                                    <span className="text-muted-foreground/30">•</span>
+                                    <span className="text-muted-foreground/50">•</span>
                                     <div className="flex items-center gap-1.5">
                                         <img
                                             src={getUserAvatarUrl(users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.photoURL, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role)}

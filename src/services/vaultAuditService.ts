@@ -525,9 +525,9 @@ export const VaultAuditService = {
 
     return (
       colors[action] || {
-        text: 'text-gray-600 dark:text-gray-400',
-        bg: 'bg-gray-50 dark:bg-gray-950',
-        border: 'border-gray-200 dark:border-gray-800',
+        text: 'text-slate-600 dark:text-slate-400',
+        bg: 'bg-slate-50 dark:bg-slate-950',
+        border: 'border-slate-200 dark:border-slate-800',
       }
     );
   },

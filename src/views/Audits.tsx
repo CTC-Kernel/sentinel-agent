@@ -190,7 +190,7 @@ export const Audits: React.FC = () => {
     else if (role === 'direction') { auditsTitle = t('audits.title_exec'); auditsSubtitle = t('audits.subtitle_exec'); }
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-10 pb-24">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10 pb-24">
             <MasterpieceBackground />
             <SEO title={t('audits.title')} description={t('audits.subtitle')} />
 

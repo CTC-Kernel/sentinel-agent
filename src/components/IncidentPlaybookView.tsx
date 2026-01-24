@@ -169,7 +169,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
       case 'High': return 'text-orange-600 bg-orange-50';
       case 'Medium': return 'text-yellow-600 bg-yellow-50';
       case 'Low': return 'text-green-600 bg-green-50';
-      default: return 'text-slate-600 bg-gray-50';
+      default: return 'text-slate-600 bg-slate-50';
     }
   };
 
@@ -188,10 +188,10 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     return (
       <div className="p-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-8 bg-slate-200 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <div key={`skeleton-${i}`} className="h-20 bg-gray-200 rounded"></div>
+              <div key={`skeleton-${i}`} className="h-20 bg-slate-200 rounded"></div>
             ))}
           </div>
         </div>
@@ -203,7 +203,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b bg-gray-50">
+        <div className="p-6 border-b bg-slate-50">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-slate-900">Playbook de Response</h2>
@@ -237,7 +237,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       key={playbook.id}
                       className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPlaybook?.id === playbook.id
                         ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-slate-200 hover:border-slate-300'
                         }`}
                       onClick={() => setSelectedPlaybook(playbook)}
                       role="button"
@@ -300,7 +300,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                     <span className="text-sm text-slate-600">
                       Étape {currentStep + 1} sur {selectedPlaybook?.steps.length}
                     </span>
-                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div className="w-32 bg-slate-200 rounded-full h-2">
                       <div
                         className="bg-blue-600 h-2 rounded-full transition-all"
                         style={{
@@ -376,7 +376,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                               Evidence
                             </label>
                             <textarea
-                              className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                              className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Décrire l'evidence collectée..."
                               value={evidence[step.id] || ''}
@@ -393,7 +393,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                               Notes
                             </label>
                             <textarea
-                              className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                              className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none bg-white"
                               rows={2}
                               placeholder="Notes sur cette étape..."
                               value={notes}
@@ -418,7 +418,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
               ))}
 
               {/* Timeline */}
-              <div className="mt-8 pt-6 border-t border-gray-100">
+              <div className="mt-8 pt-6 border-t border-slate-100">
                 <h4 className="font-bold text-sm uppercase tracking-wide text-slate-500 mb-4">Timeline de réponse</h4>
                 <div className="relative pl-4 border-l-2 border-slate-100 space-y-4">
                   {response.timeline.map((event) => (

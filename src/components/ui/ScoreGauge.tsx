@@ -208,7 +208,7 @@ export function ScoreGauge({
             fill="none"
             stroke="currentColor"
             strokeWidth={strokeWidth}
-            className="text-gray-200 dark:text-gray-700"
+            className="text-slate-200 dark:text-slate-700"
           />
 
           {/* Score arc with gradient */}

@@ -39,9 +39,9 @@ function WidgetSkeleton({ size = 'md' }: { size?: ScoreGaugeSize }) {
 
   return (
     <div className="flex flex-col items-center gap-3 animate-pulse">
-      <div className={cn('rounded-full bg-gray-200 dark:bg-gray-700', dimensions[size])} />
-      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
-      <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
+      <div className={cn('rounded-full bg-slate-200 dark:bg-slate-700', dimensions[size])} />
+      <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
+      <div className="h-8 w-32 bg-slate-200 dark:bg-slate-700 rounded" />
     </div>
   );
 }
@@ -64,7 +64,7 @@ function WidgetError({ error, onRetry }: { error: Error; onRetry?: () => void })
           <path d="M12 8v4M12 16h.01" />
         </svg>
       </div>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
+      <p className="text-sm text-slate-600 dark:text-slate-400">
         Impossible de charger le score: {error.message}
       </p>
       {onRetry && (
@@ -85,9 +85,9 @@ function WidgetError({ error, onRetry }: { error: Error; onRetry?: () => void })
 function WidgetEmpty() {
   return (
     <div className="flex flex-col items-center gap-3 text-center p-4">
-      <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
         <svg
-          className="w-6 h-6 text-gray-400"
+          className="w-6 h-6 text-slate-400"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -96,10 +96,10 @@ function WidgetEmpty() {
           <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
         </svg>
       </div>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
+      <p className="text-sm text-slate-600 dark:text-slate-400">
         Aucun score calculé
       </p>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-slate-500">
         Le score sera calculé automatiquement
       </p>
     </div>
@@ -182,7 +182,7 @@ export function ComplianceScoreWidget({
   return (
     <div className={cn('flex flex-col items-center gap-3', className)}>
       {/* Title */}
-      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+      <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
         {title}
       </h3>
 
@@ -195,7 +195,7 @@ export function ComplianceScoreWidget({
       />
 
       {/* Status label */}
-      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
         {statusLabel}
       </span>
 

@@ -147,27 +147,27 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <GlassCard className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/30">
               <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {isEditing
                   ? t('ebios.workshop3.editPath', 'Modifier le chemin d\'attaque')
                   : t('ebios.workshop3.addAttackPath', 'Créer un chemin d\'attaque')}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">
                 {t('ebios.workshop3.pathFormHelp', 'Définir le parcours depuis la source vers la cible')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
@@ -175,7 +175,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop3.pathName', 'Nom du chemin')} *
             </label>
             <input
@@ -183,10 +183,10 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
               type="text"
               placeholder={t('ebios.workshop3.pathNamePlaceholder', 'Ex: Compromission via fournisseur cloud')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800",
+                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                 errors.name
                   ? "border-red-500"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-slate-200 dark:border-slate-700"
               )}
             />
             {errors.name && (
@@ -197,16 +197,16 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           {/* Source & Target */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 {t('ebios.workshop3.sourceParty', 'Partie source')} *
               </label>
               <select
                 {...register('sourcePartyId')}
                 className={cn(
-                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800",
+                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                   errors.sourcePartyId
                     ? "border-red-500"
-                    : "border-gray-200 dark:border-gray-700"
+                    : "border-slate-200 dark:border-slate-700"
                 )}
               >
                 <option value="">{t('ebios.workshop3.selectSource', 'Sélectionner...')}</option>
@@ -222,16 +222,16 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 {t('ebios.workshop3.targetAsset', 'Actif cible')} *
               </label>
               <select
                 {...register('targetAssetId')}
                 className={cn(
-                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800",
+                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                   errors.targetAssetId
                     ? "border-red-500"
-                    : "border-gray-200 dark:border-gray-700"
+                    : "border-slate-200 dark:border-slate-700"
                 )}
               >
                 <option value="">{t('ebios.workshop3.selectTarget', 'Sélectionner...')}</option>
@@ -249,21 +249,21 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
 
           {/* Path Preview */}
           {watchedSourceId && watchedTargetAssetId && (
-            <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
-              <p className="text-sm text-gray-500 mb-2">{t('ebios.workshop3.pathPreview', 'Aperçu du chemin')}:</p>
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+              <p className="text-sm text-slate-500 mb-2">{t('ebios.workshop3.pathPreview', 'Aperçu du chemin')}:</p>
               <div className="flex items-center flex-wrap gap-2">
                 <span className="px-2 py-1 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-sm font-medium">
                   {getPartyName(watchedSourceId)}
                 </span>
                 {watchedIntermediates?.map((id) => (
                   <React.Fragment key={id}>
-                    <ArrowRight className="w-4 h-4 text-gray-400" />
-                    <span className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm">
+                    <ArrowRight className="w-4 h-4 text-slate-400" />
+                    <span className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm">
                       {getPartyName(id)}
                     </span>
                   </React.Fragment>
                 ))}
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-slate-400" />
                 <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-medium">
                   {getAssetName(watchedTargetAssetId)}
                 </span>
@@ -274,10 +274,10 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           {/* Intermediate Parties */}
           {availableIntermediates.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 {t('ebios.workshop3.intermediateParties', 'Parties intermédiaires')}
               </label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className="text-xs text-slate-500 mb-2">
                 {t('ebios.workshop3.intermediateHelp', 'Sélectionnez les parties traversées par l\'attaque')}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -292,7 +292,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                         "px-3 py-1.5 rounded-lg border text-sm transition-all",
                         isSelected
                           ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
-                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                       )}
                     >
                       {party.name}
@@ -305,14 +305,14 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop3.pathDescription', 'Description')}
             </label>
             <textarea
               {...register('description')}
               rows={2}
               placeholder={t('ebios.workshop3.pathDescriptionPlaceholder', 'Décrivez ce chemin d\'attaque...')}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
             />
           </div>
 
@@ -320,7 +320,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           <div className="grid grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   {t('ebios.workshop3.likelihood', 'Vraisemblance')}
                 </label>
                 <span className={cn(
@@ -338,9 +338,9 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                 step={1}
                 value={watchedLikelihood}
                 onChange={(e) => setValue('likelihood', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
               />
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <div className="flex justify-between text-xs text-slate-400 mt-1">
                 <span>{t('ebios.workshop3.unlikely', 'Peu probable')}</span>
                 <span>{t('ebios.workshop3.veryLikely', 'Très probable')}</span>
               </div>
@@ -348,7 +348,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                   {t('ebios.workshop3.complexity', 'Complexité')}
                 </label>
                 <span className={cn(
@@ -366,9 +366,9 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                 step={1}
                 value={watchedComplexity}
                 onChange={(e) => setValue('complexity', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
               />
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <div className="flex justify-between text-xs text-slate-400 mt-1">
                 <span>{t('ebios.workshop3.veryComplex', 'Très complexe')}</span>
                 <span>{t('ebios.workshop3.simple', 'Simple')}</span>
               </div>
@@ -376,7 +376,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
             <div>
               {isEditing && onDelete && (
                 <Button

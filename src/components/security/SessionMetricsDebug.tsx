@@ -16,11 +16,11 @@ export const SessionMetricsDebug: React.FC = () => {
     };
 
     return (
-        <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 text-sm max-w-xs">
-            <h3 className="font-semibold mb-2 text-gray-900 dark:text-white">
+        <div className="fixed bottom-4 right-4 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-4 text-sm max-w-xs">
+            <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">
                 Session Metrics
             </h3>
-            <dl className="space-y-1 text-gray-700 dark:text-gray-300">
+            <dl className="space-y-1 text-slate-700 dark:text-slate-300">
                 <div className="flex justify-between">
                     <dt>Durée de session:</dt>
                     <dd className="font-mono">{formatDuration(metrics.sessionDuration)}</dd>

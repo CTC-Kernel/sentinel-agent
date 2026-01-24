@@ -221,13 +221,13 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
   if (!loading && connectors.length === 0) {
     return (
       <Card className="p-12 text-center">
-        <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <Server className="h-8 w-8 text-gray-400" />
+        <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+          <Server className="h-8 w-8 text-slate-400" />
         </div>
         <h3 className="text-lg font-semibold mb-2">
           {t('otConnector.empty.title', 'No connectors configured')}
         </h3>
-        <p className="text-gray-500 mb-6">
+        <p className="text-slate-500 mb-6">
           {t('otConnector.empty.description', 'Create a connector to automatically sync OT assets')}
         </p>
         <Button onClick={onCreateNew}>
@@ -246,7 +246,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
           <h2 className="text-lg font-semibold">
             {t('otConnector.title', 'OT Connectors')}
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             {t('otConnector.subtitle', 'Configure automated asset synchronization')}
           </p>
         </div>
@@ -265,7 +265,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
       {/* Loading state */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
         </div>
       )}
 
@@ -284,13 +284,13 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                     'p-3 rounded-xl',
                     connector.status === 'error' ? 'bg-red-100' :
                       connector.status === 'active' ? 'bg-green-100' :
-                        'bg-gray-100'
+                        'bg-slate-100'
                   )}>
                     <TypeIcon className={cn(
                       'h-6 w-6',
                       connector.status === 'error' ? 'text-red-600' :
                         connector.status === 'active' ? 'text-green-600' :
-                          'text-gray-600'
+                          'text-slate-600'
                     )} />
                   </div>
 
@@ -301,18 +301,18 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                       {renderStatusBadge(connector.status)}
                     </div>
 
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 text-sm text-slate-500">
                       <span>{getTypeLabel(connector.type)}</span>
 
                       {connector.lastSync && (
                         <>
-                          <span className="text-gray-300">|</span>
+                          <span className="text-slate-300">|</span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {t('otConnector.lastSync', 'Last sync')}: {getRelativeTime(connector.lastSync.completedAt)}
                           </span>
                           {connector.lastSync.stats && (
-                            <span className="text-gray-400">
+                            <span className="text-slate-400">
                               ({formatSyncStats(connector.lastSync.stats)})
                             </span>
                           )}
@@ -321,7 +321,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
 
                       {connector.schedule.type !== 'manual' && connector.schedule.nextRun && (
                         <>
-                          <span className="text-gray-300">|</span>
+                          <span className="text-slate-300">|</span>
                           <span>
                             {t('otConnector.nextSync', 'Next')}: {getRelativeTime(connector.schedule.nextRun)}
                           </span>
@@ -402,7 +402,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                     </Button>
 
                     {/* Chevron */}
-                    <ChevronRight className="h-4 w-4 text-gray-300 ml-2" />
+                    <ChevronRight className="h-4 w-4 text-slate-300 ml-2" />
                   </div>
                 </div>
               </Card>

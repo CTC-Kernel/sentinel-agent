@@ -94,7 +94,7 @@ const CheckboxFilter: React.FC<CheckboxFilterProps> = ({
       type="checkbox"
       checked={checked}
       onChange={onChange}
-      className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+      className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-blue-500 focus-visible:ring-brand-500 focus:ring-offset-0"
     />
     {icon && (
       <span style={{ color: color || '#94A3B8' }}>{icon}</span>

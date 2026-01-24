@@ -123,13 +123,13 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
 
                 {/* Target Marker */}
                 <div className="absolute top-[22px] right-0 flex flex-col items-center transform translate-x-1/2">
-                    <div className="w-0.5 h-4 bg-muted-foreground/30 mb-0.5"></div>
-                    <span className="text-[10px] font-medium text-muted-foreground/50">100%</span>
+                    <div className="w-0.5 h-4 bg-muted-foreground/50 mb-0.5"></div>
+                    <span className="text-[11px] font-medium text-muted-foreground">100%</span>
                 </div>
 
                 {/* Motivation Text based on score */}
                 <div className="mt-2 text-center h-4">
-                    <span className="text-[10px] sm:text-[11px] font-medium text-brand-500/80 animate-pulse tracking-wide">
+                    <span className="text-[11px] font-medium text-brand-500 animate-pulse tracking-wide">
                         {totalScore < 100 ? "Atteignez l'excellence opérationnelle" : "Conformité maximale atteinte !"}
                     </span>
                 </div>

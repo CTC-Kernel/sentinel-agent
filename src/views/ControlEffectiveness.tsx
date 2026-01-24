@@ -52,7 +52,7 @@ export const ControlEffectivenessView: React.FC = () => {
       variants={staggerContainerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="flex flex-col gap-6"
     >
       <MasterpieceBackground />
       <SEO title="Efficacité des Contrôles" description="Évaluation de la maturité des contrôles de sécurité (ISO 27002)" />
@@ -69,10 +69,6 @@ export const ControlEffectivenessView: React.FC = () => {
                 className="w-full h-full object-contain"
               />
             }
-            breadcrumbs={[
-              { label: 'Tableau de bord', path: '/' },
-              { label: 'Efficacité des Contrôles' }
-            ]}
             trustType="integrity"
           />
         </motion.div>

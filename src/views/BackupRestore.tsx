@@ -235,7 +235,7 @@ export const BackupRestore: React.FC = () => {
       variants={staggerContainerVariants}
       initial="initial"
       animate="visible"
-      className="space-y-8 min-w-0"
+      className="flex flex-col gap-10 min-w-0"
     >
       <MasterpieceBackground />
       <SEO title="Sauvegardes & Restauration" description="Gérez vos points de restauration et la sécurité de vos données" />
@@ -244,7 +244,6 @@ export const BackupRestore: React.FC = () => {
       <PageHeader
         title="Sauvegardes & Restauration"
         subtitle="Gérez vos points de restauration et la sécurité de vos données."
-        breadcrumbs={[{ label: 'Sauvegardes' }]}
         icon={
           <img
             src="/images/administration.png"

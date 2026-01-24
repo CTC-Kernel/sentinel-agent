@@ -322,7 +322,7 @@ export const AgentManagement: React.FC = () => {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 {/* Agent List */}
                 <div className="xl:col-span-2 space-y-4">
-                    <div className="bg-white/50 dark:bg-slate-900/50 rounded-[2.5rem] border border-white/60 dark:border-white/10 overflow-hidden backdrop-blur-sm">
+                    <div className="bg-white/50 dark:bg-slate-900/50 rounded-5xl border border-white/60 dark:border-white/10 overflow-hidden backdrop-blur-sm">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
@@ -416,7 +416,7 @@ export const AgentManagement: React.FC = () => {
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="glass-panel p-6 rounded-[2.5rem] border border-brand-500/30 bg-brand-500/5 relative overflow-hidden"
+                            className="glass-panel p-6 rounded-5xl border border-brand-500/30 bg-brand-500/5 relative overflow-hidden"
                         >
                             <div className="relative z-10">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
@@ -465,7 +465,7 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     <div className="pt-2 border-t border-slate-200 dark:border-white/10">
-                                        <p className="text-[10px] text-slate-400 leading-relaxed">
+                                        <p className="text-[11px] text-slate-400 leading-relaxed">
                                             <strong>macOS :</strong> Ouvrez le Terminal après installation<br />
                                             <strong>Windows :</strong> Ouvrez PowerShell en admin<br />
                                             <strong>Linux :</strong> Ouvrez un terminal
@@ -484,7 +484,7 @@ export const AgentManagement: React.FC = () => {
                     )}
 
                     {/* What is the Agent? */}
-                    <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 space-y-4">
+                    <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-600">
                                 <ShieldCheck className="w-5 h-5" />
@@ -517,7 +517,7 @@ export const AgentManagement: React.FC = () => {
                     </div>
 
                     {/* Documentation / Downloads */}
-                    <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 space-y-6">
+                    <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 space-y-6">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-brand-500/10 rounded-xl text-brand-600">
                                 <Download className="w-5 h-5" />
@@ -573,7 +573,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <Cpu className="w-6 h-6 text-slate-600 mb-2" />
                                     <div className="text-sm font-bold text-slate-900 dark:text-white">iOS</div>
-                                    <div className="text-[10px] text-slate-500">App Store</div>
+                                    <div className="text-[11px] text-slate-500">App Store</div>
                                     {releaseInfo?.mobile?.ios?.comingSoon && (
                                         <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
                                             Bientôt
@@ -588,7 +588,7 @@ export const AgentManagement: React.FC = () => {
                                 >
                                     <Server className="w-6 h-6 text-emerald-500 mb-2" />
                                     <div className="text-sm font-bold text-slate-900 dark:text-white">Android</div>
-                                    <div className="text-[10px] text-slate-500">Play Store</div>
+                                    <div className="text-[11px] text-slate-500">Play Store</div>
                                     {releaseInfo?.mobile?.android?.comingSoon && (
                                         <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
                                             Bientôt

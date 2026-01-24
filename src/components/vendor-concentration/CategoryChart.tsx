@@ -350,7 +350,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
                 <Cell
                   key={`cell-${entry.category}`}
                   fill={CHART_COLORS[index % CHART_COLORS.length]}
-                  stroke={entry.hasSPOF ? '#EF4444' : 'transparent'}
+                  stroke={entry.hasSPOF ? SEVERITY_COLORS.critical : 'transparent'}
                   strokeWidth={entry.hasSPOF ? 3 : 0}
                   className="cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => {

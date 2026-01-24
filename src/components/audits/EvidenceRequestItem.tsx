@@ -48,7 +48,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
     };
 
     return (
-        <div key={req.id} className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-white/5 rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-brand-200 dark:hover:border-brand-800/30 group">
+        <div key={req.id} className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/5 rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-brand-200 dark:hover:border-brand-800/30 group">
             <div
                 className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl"
                 onClick={() => onExpand(isExpanded ? null : req.id)}
@@ -90,10 +90,10 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
             </div>
 
             {isExpanded && (
-                <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
+                <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
                     <div className="mb-6">
                         <h5 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Description</h5>
-                        <p className="text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-white/5">
                             {req.description}
                         </p>
                     </div>
@@ -107,7 +107,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                     const docObj = documents.find(d => d.id === docId);
                                     if (!docObj) return null;
                                     return (
-                                        <div key={docId} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-white/10 text-sm hover:border-brand-300 transition-colors group">
+                                        <div key={docId} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10 text-sm hover:border-brand-300 transition-colors group">
                                             <div className="flex items-center overflow-hidden">
                                                 <FileText className="w-4 h-4 text-brand-500 mr-2 flex-shrink-0" />
                                                 <span className="truncate font-medium text-slate-700 dark:text-slate-200">{docObj.title}</span>
@@ -120,14 +120,14 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                 })}
                             </div>
                         ) : (
-                            <div className="text-center py-6 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-gray-200 dark:border-white/10">
+                            <div className="text-center py-6 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
                                 <p className="text-xs text-slate-500 italic">Aucun document fourni pour le moment.</p>
                             </div>
                         )}
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-gray-200 dark:border-white/10">
+                    <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-slate-200 dark:border-white/10">
                         <div className="flex-1">
                             <h5 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Ajouter une preuve</h5>
                             <FileUploader

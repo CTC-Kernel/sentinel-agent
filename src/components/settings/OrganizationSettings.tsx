@@ -262,7 +262,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Subscription */}
             {user?.organizationId && (
-                <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 rounded-[2rem] p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden group border border-white/10">
+                <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 rounded-4xl p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden group border border-white/10">
                     <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/15 transition-colors duration-500"></div>
 
                     <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -302,7 +302,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Admin Details */}
             {hasPermission(user, 'Settings', 'manage') && (
-                <GlassCard className="p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <GlassCard className="p-0 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
@@ -339,10 +339,10 @@ export const OrganizationSettings: React.FC = () => {
 
                             {/* DORA Compliance Section */}
                             <div className="pt-6 border-t border-white/10">
-                                <h4 className="text-md font-semibold text-slate-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                                <h4 className="text-md font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                                     <span className="text-blue-500">🏛️</span> {t('settings.doraCompliance', { defaultValue: 'Conformité DORA' })}
                                 </h4>
-                                <p className="text-xs text-slate-500 dark:text-gray-400 mb-4">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
                                     {t('settings.doraComplianceDesc', { defaultValue: 'Informations requises pour la conformité au règlement DORA (Digital Operational Resilience Act) - Article 3.' })}
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -353,13 +353,13 @@ export const OrganizationSettings: React.FC = () => {
                                         placeholder="Ex: 549300EXAMPLE00LEI90"
                                     />
                                     <div className="space-y-1">
-                                        <label htmlFor="country-select" className="block text-sm font-medium text-slate-700 dark:text-gray-300">
+                                        <label htmlFor="country-select" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                             {t('settings.country', { defaultValue: 'Pays (UE)' })}
                                         </label>
                                         <select
                                             id="country-select"
                                             {...orgForm.register('country')}
-                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                            className="w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-500/20 transition-all"
                                         >
                                             <option value="">{t('settings.selectCountry', { defaultValue: 'Sélectionner un pays' })}</option>
                                             <option value="AT">Autriche</option>
@@ -399,16 +399,16 @@ export const OrganizationSettings: React.FC = () => {
 
                             {/* AI & Privacy Section */}
                             <div className="pt-6 border-t border-white/10">
-                                <h4 className="text-md font-semibold text-slate-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                                <h4 className="text-md font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                                     <span className="text-brand-500">✨</span> {t('settings.aiPrivacyTitle', { defaultValue: 'Sentinel AI & Confidentialité' })}
                                 </h4>
                                 <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                                 {t('settings.enableAI', { defaultValue: 'Activer Sentinel AI' })}
                                             </label>
-                                            <p className="text-xs text-slate-500 dark:text-gray-400 max-w-md">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
                                                 {t('settings.enableAIDesc', { defaultValue: 'Permet l\'utilisation des fonctionnalités d\'intelligence artificielle pour l\'analyse de risques et la génération de contenu.' })}
                                             </p>
                                         </div>
@@ -422,10 +422,10 @@ export const OrganizationSettings: React.FC = () => {
                                         <>
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                                         {t('settings.dataSanitization', { defaultValue: 'Anonymisation des Données' })}
                                                     </label>
-                                                    <p className="text-xs text-slate-500 dark:text-gray-400 max-w-md">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
                                                         {t('settings.dataSanitizationDesc', { defaultValue: 'Supprime automatiquement les noms, emails et numéros de téléphone avant l\'envoi aux modèles IA.' })}
                                                     </p>
                                                 </div>
@@ -437,10 +437,10 @@ export const OrganizationSettings: React.FC = () => {
 
                                             <div className="flex items-center justify-between opacity-80">
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                                         {t('settings.aiConsent', { defaultValue: 'Consentement d\'analyse' })}
                                                     </label>
-                                                    <p className="text-xs text-slate-500 dark:text-gray-400 max-w-md">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
                                                         {t('settings.aiConsentDesc', { defaultValue: 'J\'autorise Sentinel à traiter les données (anonymisées si activé) pour fournir des analyses.' })}
                                                     </p>
                                                 </div>
@@ -466,7 +466,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* User Management */}
             {user && hasPermission(user, 'User', 'manage') && (
-                <GlassCard className="p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <GlassCard className="p-0 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -487,7 +487,7 @@ export const OrganizationSettings: React.FC = () => {
                                 placeholder={t('settings.searchMembers')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-2 bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 w-48 transition-all focus:w-64"
+                                className="pl-9 pr-4 py-2 bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-500/20 w-48 transition-all focus:w-64"
                             />
                         </div>
                     </div>

@@ -172,7 +172,7 @@ export const CalendarDashboard: React.FC = () => {
     }, [organizationId]);
 
     const eventStyleGetter = (event: CalendarEvent) => {
-        let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-500 ';
+        let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus-visible:ring-brand-500 ';
 
         if (event.type === 'audit') className += 'bg-purple-600 text-white';
         else if (event.type === 'drill') className += 'bg-orange-500 text-white';

@@ -282,7 +282,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                                     <input
                                                         {...register(`steps.${index}.title` as const)}
                                                         placeholder="Titre de l'action (ex: Redémarrer le service)"
-                                                        className="w-full bg-transparent border-none p-0 text-sm font-medium placeholder:text-slate-400 focus:ring-0 text-slate-900 dark:text-white"
+                                                        className="w-full bg-transparent border-none p-0 text-sm font-medium placeholder:text-muted-foreground focus:ring-0 text-slate-900 dark:text-white"
                                                     />
                                                 </div>
                                                 <div className="md:col-span-4 flex items-center gap-2">
@@ -291,7 +291,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                                         type="number"
                                                         {...register(`steps.${index}.estimatedDuration` as const, { valueAsNumber: true })}
                                                         placeholder="Min"
-                                                        className="w-full bg-transparent border-none p-0 text-sm text-right placeholder:text-slate-400 focus:ring-0 text-slate-600 dark:text-slate-300"
+                                                        className="w-full bg-transparent border-none p-0 text-sm text-right placeholder:text-muted-foreground focus:ring-0 text-slate-600 dark:text-slate-300"
                                                     />
                                                     <span className="text-xs text-slate-400">min</span>
                                                 </div>
@@ -307,7 +307,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                                     <input
                                                         type="checkbox"
                                                         {...register(`steps.${index}.isCritical` as const)}
-                                                        className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-3 h-3"
+                                                        className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500 w-3 h-3"
                                                     />
                                                     <span className="text-xs text-slate-500">Étape Critique (Bloquante)</span>
                                                 </label>

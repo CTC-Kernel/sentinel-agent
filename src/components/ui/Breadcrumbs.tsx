@@ -51,7 +51,7 @@ export const Breadcrumbs: React.FC = () => {
 
                 return (
                     <div key={to} className="flex items-center">
-                        <ChevronRight className="w-4 h-4 mx-2 text-muted-foreground/50" />
+                        <ChevronRight className="w-4 h-4 mx-2 text-muted-foreground/70" />
                         {isLast ? (
                             <span className="font-medium text-foreground" aria-current="page">
                                 {name}

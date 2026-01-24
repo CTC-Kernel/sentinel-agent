@@ -59,7 +59,7 @@ function PresetThumbnail({ config }: { config: ExtendedViewPresetConfig }) {
       {config.layers.slice(0, 5).map((layer, i) => (
         <div
           key={`${layer}-${i}`}
-          className={cn('w-1.5 h-1.5 rounded-full', layerColors[layer] || 'bg-gray-400')}
+          className={cn('w-1.5 h-1.5 rounded-full', layerColors[layer] || 'bg-slate-400')}
           title={layer}
         />
       ))}

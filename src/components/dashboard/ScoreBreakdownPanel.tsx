@@ -40,8 +40,8 @@ function CategoryRow({ label, score, weight, details }: CategoryRowProps) {
     <div className={cn('p-3 rounded-lg', bgClass)}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-gray-900 dark:text-gray-100">{label}</span>
-          <span className="text-xs text-gray-500">({weightPercent}%)</span>
+          <span className="font-medium text-slate-900 dark:text-slate-100">{label}</span>
+          <span className="text-xs text-slate-500">({weightPercent}%)</span>
         </div>
         <span className={cn('font-bold text-lg', colorClass)}>
           {formatScore(score)}
@@ -49,7 +49,7 @@ function CategoryRow({ label, score, weight, details }: CategoryRowProps) {
       </div>
 
       {/* Mini progress bar */}
-      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
         <div
           className={cn(
             'h-full rounded-full transition-all duration-500',
@@ -60,7 +60,7 @@ function CategoryRow({ label, score, weight, details }: CategoryRowProps) {
       </div>
 
       {details && (
-        <p className="mt-1 text-xs text-gray-500">{details}</p>
+        <p className="mt-1 text-xs text-slate-500">{details}</p>
       )}
     </div>
   );
@@ -108,23 +108,23 @@ export function ScoreBreakdownPanel({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4',
+        'bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4',
         className
       )}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           Détail du Score
         </h3>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
             aria-label="Fermer"
           >
             <svg
-              className="w-5 h-5 text-gray-500"
+              className="w-5 h-5 text-slate-500"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -170,7 +170,7 @@ export function ScoreBreakdownPanel({
       </div>
 
       {/* Weight explanation */}
-      <p className="mt-4 text-xs text-gray-500 text-center">
+      <p className="mt-4 text-xs text-slate-500 text-center">
         Score global = Somme pondérée des catégories
       </p>
     </div>

@@ -72,7 +72,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                         "w-36 min-h-[140px]",
                                         isCurrentPhase
                                             ? `${styles.borderActive} ${styles.bgActive}`
-                                            : "border-gray-200 dark:border-gray-700 hover:border-gray-300",
+                                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300",
                                         selectedPhase === phase && "ring-2 ring-offset-2 ring-blue-500"
                                     )}
                                     whileHover={{ scale: 1.02 }}
@@ -100,17 +100,17 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                         {config.label}
                                     </span>
 
-                                    <span className="text-xs text-gray-500 mt-1">
+                                    <span className="text-xs text-slate-500 mt-1">
                                         {phaseData.progress}%
                                     </span>
 
-                                    <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+                                    <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-400">
                                         <span>{phaseMilestones.length} jalons</span>
                                     </div>
                                 </motion.button>
 
                                 {index < 3 && (
-                                    <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 hidden md:block" />
+                                    <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 hidden md:block" />
                                 )}
                             </React.Fragment>
                         );
@@ -167,7 +167,7 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
 
                 <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Phase {config.label}</h3>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Phase {config.label}</h3>
                         <Badge
                             status={
                                 phaseData.status === 'completed' ? 'success' :
@@ -179,19 +179,19 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
                         </Badge>
                     </div>
 
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">{config.description}</p>
+                    <p className="text-slate-600 dark:text-slate-400 mb-4">{config.description}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-2xl font-bold text-gray-900 dark:text-white">{phaseData.progress}%</div>
+                            <div className="text-2xl font-bold text-slate-900 dark:text-white">{phaseData.progress}%</div>
                             <div className="text-sm text-muted-foreground">Progression</div>
                         </div>
                         <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-2xl font-bold text-gray-900 dark:text-white">{completedMilestones}/{milestones.length}</div>
+                            <div className="text-2xl font-bold text-slate-900 dark:text-white">{completedMilestones}/{milestones.length}</div>
                             <div className="text-sm text-muted-foreground">Jalons</div>
                         </div>
                         <div className="glass-panel p-4 rounded-xl">
-                            <div className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                            <div className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                                 {phaseData.responsibleId ? (
                                     <Users className="w-5 h-5 text-brand-500" />
                                 ) : (

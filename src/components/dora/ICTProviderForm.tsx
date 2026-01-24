@@ -489,7 +489,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300"
                                                     />
                                                 )}
                                             />
@@ -524,7 +524,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300"
                                                     />
                                                 )}
                                             />
@@ -543,7 +543,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                         checked={field.value || false}
                                                         onChange={field.onChange}
                                                         disabled={readOnly}
-                                                        className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                                                        className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300"
                                                     />
                                                 )}
                                             />
@@ -788,7 +788,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                             className={`w-full px-4 py-3 rounded-xl border ${isHighRisk && !field.value
                                                                 ? 'border-red-300 dark:border-red-700'
                                                                 : 'border-slate-200 dark:border-slate-700'
-                                                                } bg-white/50 dark:bg-black/20 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                                                                } bg-white/50 dark:bg-black/20 focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent transition-all`}
                                                         />
                                                     </div>
                                                 );

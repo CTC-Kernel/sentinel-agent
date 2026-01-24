@@ -425,7 +425,7 @@ export const Suppliers: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-20 min-w-0"
+            className="flex flex-col gap-10 pb-20 min-w-0"
         >
             <MasterpieceBackground />
             <SEO
@@ -447,9 +447,6 @@ export const Suppliers: React.FC = () => {
                 <PageHeader
                     title={suppliersTitle}
                     subtitle={suppliersSubtitle}
-                    breadcrumbs={[
-                        { label: t('suppliers.title') }
-                    ]}
                     icon={
                         <img
                             src="/images/referentiel.png"

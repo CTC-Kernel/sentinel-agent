@@ -70,7 +70,7 @@ export const CertifierLogin: React.FC = () => {
                                 <input
                                     {...register('email')}
                                     type="email"
-                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent sm:text-sm"
+                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                     placeholder="nom@organisme-certif.com"
                                 />
                             </div>
@@ -86,7 +86,7 @@ export const CertifierLogin: React.FC = () => {
                                 <input
                                     {...register('password')}
                                     type="password"
-                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent sm:text-sm"
+                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                     placeholder="••••••••"
                                 />
                             </div>

@@ -228,7 +228,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                     <select
                                                         value={plan}
                                                         onChange={(e) => setPlan(e.target.value as PlanType)}
-                                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
                                                     >
                                                         <option value="discovery">Discovery (Free)</option>
                                                         <option value="professional">Professional</option>
@@ -243,7 +243,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                             type="number"
                                                             value={maxUsers}
                                                             onChange={(e) => setMaxUsers(parseInt(e.target.value))}
-                                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
                                                         />
                                                     </div>
                                                     <div>
@@ -252,7 +252,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                             type="number"
                                                             value={maxProjects}
                                                             onChange={(e) => setMaxProjects(parseInt(e.target.value))}
-                                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus-visible:ring-brand-500 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>

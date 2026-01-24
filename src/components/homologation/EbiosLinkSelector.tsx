@@ -230,7 +230,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
   const renderLinkedStatus = () => {
     if (!dossier.linkedEbiosAnalysisId || !dossier.ebiosSnapshot) {
       return (
-        <div className="flex items-center gap-2 text-gray-500">
+        <div className="flex items-center gap-2 text-slate-500">
           <Unlink className="h-4 w-4" />
           <span className="text-sm">{t('homologation.ebios.notLinked', 'Aucune analyse EBIOS liée')}</span>
         </div>
@@ -270,7 +270,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                 variant="outline"
                 className={cn(
                   'text-xs',
-                  isComplete ? 'bg-green-50 text-green-700 border-green-300' : 'bg-gray-50 text-gray-600'
+                  isComplete ? 'bg-green-50 text-green-700 border-green-300' : 'bg-slate-50 text-slate-600'
                 )}
               >
                 {t(`homologation.ebios.workshop${ws}`, `Atelier ${ws}`)}
@@ -311,7 +311,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
 
         {/* Last synced info */}
         {dossier.ebiosLastSyncedAt && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             {t('homologation.ebios.lastSynced', 'Dernière synchronisation')}:{' '}
             {new Date(dossier.ebiosLastSyncedAt).toLocaleDateString(isEnglish ? 'en-US' : 'fr-FR', {
               day: 'numeric',
@@ -344,7 +344,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
             )}
           </>
         ) : (
-          <Badge variant="outline" className="text-gray-500">
+          <Badge variant="outline" className="text-slate-500">
             <Unlink className="h-3 w-3 mr-1" />
             {t('homologation.ebios.noLink', 'Pas de lien EBIOS')}
           </Badge>
@@ -362,7 +362,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
   return (
     <Card className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900">
+        <h3 className="text-sm font-semibold text-slate-900">
           {t('homologation.ebios.title', 'Lien EBIOS RM')}
         </h3>
         {!disabled && !dossier.linkedEbiosAnalysisId && (
@@ -384,13 +384,13 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
               placeholder={t('homologation.ebios.searchPlaceholder', 'Rechercher une analyse...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
             />
           </div>
 
@@ -398,10 +398,10 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
           <div className="max-h-80 overflow-y-auto border rounded-lg divide-y">
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
               </div>
             ) : filteredAnalyses.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
+              <div className="py-8 text-center text-slate-500">
                 <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">
                   {searchTerm
@@ -420,8 +420,8 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                     eligible
                       ? selectedAnalysisId === analysis.id
                         ? 'bg-blue-50 border-l-4 border-blue-500'
-                        : 'hover:bg-gray-50'
-                      : 'opacity-50 cursor-not-allowed bg-gray-50'
+                        : 'hover:bg-slate-50'
+                      : 'opacity-50 cursor-not-allowed bg-slate-50'
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -447,7 +447,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                     </Badge>
                   </div>
                   {analysis.description && (
-                    <p className="mt-1 text-xs text-gray-500 line-clamp-1">{analysis.description}</p>
+                    <p className="mt-1 text-xs text-slate-500 line-clamp-1">{analysis.description}</p>
                   )}
                   {!eligible && reason && (
                     <p className="mt-1 text-xs text-red-500">{getEligibilityReason(reason)}</p>
@@ -460,7 +460,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
           {/* Link note */}
           {selectedAnalysisId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 {t('homologation.ebios.linkNote', 'Note (optionnel)')}
               </label>
               <input
@@ -468,7 +468,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                 value={linkNote}
                 onChange={(e) => setLinkNote(e.target.value)}
                 placeholder={t('homologation.ebios.linkNotePlaceholder', 'Raison de la liaison...')}
-                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
               />
             </div>
           )}
@@ -494,7 +494,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
           <DialogHeader>
             <DialogTitle>{t('homologation.ebios.unlinkTitle', 'Délier l\'analyse EBIOS ?')}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             {t(
               'homologation.ebios.unlinkWarning',
               'Cette action supprimera le lien avec l\'analyse EBIOS. Les documents générés ne seront plus synchronisés avec les données EBIOS.'

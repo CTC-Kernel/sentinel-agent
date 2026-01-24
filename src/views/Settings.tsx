@@ -73,7 +73,7 @@ const Settings: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-24"
+            className="flex flex-col gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title={t('settings.title')} />
@@ -81,7 +81,6 @@ const Settings: React.FC = () => {
             <PageHeader
                 title={t('settings.title')}
                 subtitle="Gérez vos préférences et configuration"
-                breadcrumbs={[{ label: 'Support' }, { label: 'Paramètres' }]}
                 icon={
                     <img
                         src="/images/support.png"

@@ -163,15 +163,15 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
                 ${node.status === 'critical' ? 'bg-red-500' : ''}
                 ${node.status === 'warning' ? 'bg-amber-500' : ''}
                 ${node.status === 'normal' ? 'bg-green-500' : ''}
-                ${node.status === 'inactive' ? 'bg-gray-500' : ''}
+                ${node.status === 'inactive' ? 'bg-slate-500' : ''}
               `}
             />
-            <span className="text-xs text-gray-400 uppercase">{node.type}</span>
+            <span className="text-xs text-slate-400 uppercase">{node.type}</span>
           </div>
           {onClose && (
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-slate-400 hover:text-white transition-colors"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -185,19 +185,19 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
 
         {/* Description */}
         {description && (
-          <p className="text-gray-400 text-sm mb-3 line-clamp-2">{description}</p>
+          <p className="text-slate-400 text-sm mb-3 line-clamp-2">{description}</p>
         )}
 
         {/* Status */}
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">Status</span>
+          <span className="text-slate-500">Status</span>
           <span
             className={`
               px-2 py-0.5 rounded-full text-xs font-medium
               ${node.status === 'critical' ? 'bg-red-500/20 text-red-400' : ''}
               ${node.status === 'warning' ? 'bg-amber-500/20 text-amber-400' : ''}
               ${node.status === 'normal' ? 'bg-green-500/20 text-green-400' : ''}
-              ${node.status === 'inactive' ? 'bg-gray-500/20 text-gray-400' : ''}
+              ${node.status === 'inactive' ? 'bg-slate-500/20 text-slate-400' : ''}
             `}
           >
             {node.status}
@@ -206,8 +206,8 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
 
         {/* Connections */}
         <div className="flex items-center justify-between text-sm mt-2">
-          <span className="text-gray-500">Connections</span>
-          <span className="text-gray-300">{node.connections?.length || 0}</span>
+          <span className="text-slate-500">Connections</span>
+          <span className="text-slate-300">{node.connections?.length || 0}</span>
         </div>
       </div>
     </Html>

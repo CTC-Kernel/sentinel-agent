@@ -153,7 +153,7 @@ export const Privacy: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-24"
+            className="flex flex-col gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -172,9 +172,6 @@ export const Privacy: React.FC = () => {
             <PageHeader
                 title={t('privacy.title')}
                 subtitle={t('privacy.subtitle')}
-                breadcrumbs={[
-                    { label: t('privacy.breadcrumb') }
-                ]}
                 icon={
                     <img
                         src="/images/gouvernance.png"
@@ -266,7 +263,7 @@ export const Privacy: React.FC = () => {
                 onSearchChange={setFilter}
                 searchPlaceholder={t('privacy.searchPlaceholder')}
                 actions={
-                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" title={t('privacy.exportRegistry')}>
+                    <button onClick={handleExportCSV} className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" title={t('privacy.exportRegistry')}>
                         <FileSpreadsheet className="h-4 w-4" />
                     </button>
                 }

@@ -70,7 +70,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
 
             {/* Status & Assignment */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Statut d'implémentation</h3>
                     {canEdit ? (
                         <div className="grid grid-cols-2 gap-2">
@@ -94,7 +94,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                     )}
                 </div>
 
-                <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Responsable</h3>
                     {canEdit ? (
                         <CustomSelect
@@ -119,7 +119,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             </div>
 
             {/* Framework Mapping Section */}
-            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Layers className="h-4 w-4 text-slate-500" />
@@ -186,12 +186,12 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
             </div>
 
             {/* Justification Area */}
-            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Justification / Politique</h3>
                 {canEdit ? (
                     <>
                         <textarea
-                            className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-y disabled:opacity-50"
+                            className="w-full min-h-[120px] bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-y disabled:opacity-50"
                             placeholder="Décrivez comment ce contrôle est implémenté..."
                             value={justification}
                             onChange={(e) => setJustification(e.target.value)}

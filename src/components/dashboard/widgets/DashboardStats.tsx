@@ -81,7 +81,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
         <div className="flex flex-col gap-6 mb-8">
             {/* AI Summary Card */}
             <GlassCard
-                className="w-full group rounded-[2rem] p-0"
+                className="w-full group rounded-4xl p-0"
                 hoverEffect={true}
                 gradientOverlay={true}
             >
@@ -154,7 +154,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
             {/* Consolidated Health Overview Card */}
             <GlassCard
-                className="w-full group rounded-[2rem] p-0"
+                className="w-full group rounded-4xl p-0"
                 hoverEffect={true}
                 gradientOverlay={true}
             >

@@ -146,7 +146,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                         <button
                             data-tour="theme-toggle"
                             onClick={handleThemeToggle}
-                            className="p-2 rounded-full text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                            className="p-2 rounded-full text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus-visible:ring-brand-500/50"
                             aria-label="Toggle Theme"
                         >
                             {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
@@ -157,7 +157,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                         <button
                             aria-label="Menu utilisateur"
                             data-tour="header-profile"
-                            className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 dark:hover:bg-white/5 transition-all group focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                            className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 dark:hover:bg-white/5 transition-all group focus:outline-none focus:ring-2 focus-visible:ring-brand-500/50"
                             onClick={() => setShowUserMenu(!showUserMenu)}
                         >
                             <div className="hidden sm:flex flex-col items-end mr-1">

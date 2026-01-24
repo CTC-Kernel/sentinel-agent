@@ -611,7 +611,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                       s.strategy === 'mitigate' ? 'bg-blue-100 text-blue-700' :
                       s.strategy === 'transfer' ? 'bg-purple-100 text-purple-700' :
                       s.strategy === 'avoid' ? 'bg-red-100 text-red-700' :
-                      'bg-gray-100 text-gray-700'
+                      'bg-slate-100 text-slate-700'
                     }`}>
                       {s.strategy}
                     </span>

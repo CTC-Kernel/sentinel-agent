@@ -72,7 +72,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         onChange={table.getToggleAllPageRowsSelectedHandler()}
                         name="select-all-rows"
                         type="checkbox"
-                        className="w-4 h-4 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-500/50"
+                        className="w-4 h-4 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus-visible:ring-brand-500/20 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-500/50"
                     />
                 </div>
             ),
@@ -86,7 +86,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         name={`select-row-${row.id}`}
                         type="checkbox"
                         disabled={!row.getCanSelect()}
-                        className="w-4 h-4 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-500/50"
+                        className="w-4 h-4 rounded-md border-slate-300 dark:border-white/20 text-brand-600 focus-visible:ring-brand-500/20 cursor-pointer bg-white/50 dark:bg-white/5 transition-all hover:border-brand-500/50"
                     />
                 </div>
             ),
@@ -160,7 +160,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             onChange={(e) => setGlobalFilter(e.target.value)}
                             type="text"
                             placeholder="Rechercher..."
-                            className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/10 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/10 rounded-2xl text-sm focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
                         />
                     </div>
                 )}

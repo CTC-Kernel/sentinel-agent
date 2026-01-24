@@ -565,7 +565,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                           )}>
                                             {strategy.label[locale]}
                                           </p>
-                                          <p className="text-[10px] leading-tight text-slate-500 line-clamp-2">
+                                          <p className="text-[11px] leading-tight text-slate-500 line-clamp-2">
                                             {strategy.description[locale]}
                                           </p>
                                         </button>
@@ -586,7 +586,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                           onChange={(e) => handleUpdateTreatment(opScenario.id, { strategyJustification: e.target.value })}
                                           placeholder={t('ebios.workshop5.justificationPlaceholder')}
                                           rows={2}
-                                          className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm resize-none"
+                                          className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-500/20 focus:border-blue-500 transition-all text-sm resize-none"
                                         />
                                       ) : (
                                         <p className="text-sm text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700 italic">
@@ -609,7 +609,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                               value={treatment.responsibleId || ''}
                                               onChange={(e) => handleUpdateTreatment(opScenario.id, { responsibleId: e.target.value })}
                                               placeholder={t('ebios.workshop5.responsiblePlaceholder')}
-                                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-500/20 focus:border-blue-500 transition-all text-sm"
                                             />
                                           ) : (
                                             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -627,7 +627,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                               type="date"
                                               value={treatment.deadline || ''}
                                               onChange={(e) => handleUpdateTreatment(opScenario.id, { deadline: e.target.value })}
-                                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-500/20 focus:border-blue-500 transition-all text-sm"
                                             />
                                           ) : (
                                             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -937,25 +937,25 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
           {t('ebios.workshop5.acceptRiskTitle')}
         </h3>
 
         <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             {t('ebios.workshop5.acceptRiskDescription')}
           </p>
 
-          <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{scenarioName}</p>
-            <p className="text-sm text-gray-500 mt-1">
+          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+            <p className="text-sm font-medium text-slate-900 dark:text-white">{scenarioName}</p>
+            <p className="text-sm text-slate-500 mt-1">
               {t('ebios.workshop5.residualRisk')}: <span className="font-bold">R{residualRisk}</span>
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.workshop5.acceptanceJustification')} *
             </label>
             <textarea
@@ -963,7 +963,7 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
               onChange={(e) => setJustification(e.target.value)}
               placeholder={t('ebios.workshop5.acceptanceJustificationPlaceholder')}
               rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm resize-none"
             />
           </div>
         </div>
@@ -971,14 +971,14 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             {t('common.cancel')}
           </button>
           <button
             onClick={() => onAccept(justification)}
             disabled={!justification.trim()}
-            className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+            className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
           >
             {t('ebios.workshop5.confirmAcceptance')}
           </button>

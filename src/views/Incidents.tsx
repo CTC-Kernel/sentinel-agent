@@ -345,7 +345,7 @@ export const Incidents: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-24"
+            className="flex flex-col gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -367,7 +367,6 @@ export const Incidents: React.FC = () => {
                         />
                     }
                     trustType="confidentiality"
-                    breadcrumbs={[{ label: t('common.operations') }, { label: t('sidebar.incidents') }]}
                 />
             </motion.div>
 

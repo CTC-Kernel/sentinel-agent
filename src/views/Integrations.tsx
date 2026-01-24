@@ -145,7 +145,7 @@ export const Integrations: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-24 min-w-0"
+            className="flex flex-col gap-10 pb-24 min-w-0"
         >
             <MasterpieceBackground />
             <SEO title="Intégrations" description="Connectez vos outils pour automatiser la collecte de preuves" />
@@ -153,7 +153,6 @@ export const Integrations: React.FC = () => {
             <PageHeader
                 title="Intégrations"
                 subtitle="Connectez vos outils pour automatiser la collecte de preuves."
-                breadcrumbs={[{ label: 'Intégrations' }]}
             />
 
             {/* Tabs - Premium Segmented Control */}

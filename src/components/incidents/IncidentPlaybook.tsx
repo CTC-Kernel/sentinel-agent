@@ -116,7 +116,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     // CASE 1: No active response -> Selection Mode
     if (!response) {
         return (
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
+            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 text-amber-500">
                     <AlertTriangle className="h-6 w-6" />
                     <h3 className="font-bold text-lg">Aucune réponse initiée</h3>
@@ -134,7 +134,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                             <select
                                 value={selectedPlaybookId}
                                 onChange={(e) => setSelectedPlaybookId(e.target.value)}
-                                className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                             >
                                 {availablePlaybooks.map(pb => (
                                     <option key={pb.id} value={pb.id}>{pb.title} ({pb.severity})</option>
@@ -189,7 +189,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
     return (
         <div className="space-y-6">
             {/* Header / Progress */}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <div>
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Playbook Actif</h3>
@@ -198,7 +198,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                     <Badge status={progress === 100 ? 'success' : 'info'} size="md">{progress}%</Badge>
                 </div>
 
-                <div className="w-full bg-gray-100 dark:bg-white/10 rounded-full h-2 mb-4">
+                <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2 mb-4">
                     <div className="bg-brand-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
                 </div>
 
@@ -215,7 +215,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
             </div>
 
             {/* Steps List */}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Étapes de résolution</h3>
                 <div className="space-y-4">
                     {playbook.steps.sort((a, b) => a.order - b.order).map((step) => {

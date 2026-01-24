@@ -63,7 +63,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
     return (
         <div className="space-y-6">
             {/* KPI Cards Consolidated (Threat Intel Style) */}
-            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
+            <div className="glass-premium p-6 md:p-8 rounded-5xl flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
                 <div className="space-y-2 relative z-10">
@@ -140,7 +140,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Top Threat Types */}
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/10">
+                <div className="glass-panel p-6 rounded-4xl border border-white/10">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Top Types de Menaces</h3>
                     <div className="h-[250px] w-full">
                         {typeData.length === 0 ? (
@@ -171,7 +171,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                 </div>
 
                 {/* Activity Trend */}
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/10">
+                <div className="glass-panel p-6 rounded-4xl border border-white/10">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Volume d'Activité (24h)</h3>
                     <div className="h-[250px] w-full">
                         {activityData.every(d => d.value === 0) ? (

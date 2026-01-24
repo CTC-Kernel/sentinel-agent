@@ -24,11 +24,11 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 }) => {
   const [isPressed, setIsPressed] = useState(false);
 
-  const baseClasses = 'font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'font-bold rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
   const variantClasses = {
-    primary: 'bg-brand-600 hover:bg-brand-700 text-white focus:ring-brand-500 shadow-lg shadow-brand-500/20',
-    secondary: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-brand-500',
+    primary: 'bg-brand-600 hover:bg-brand-700 text-white focus-visible:ring-brand-500 shadow-lg shadow-brand-500/20',
+    secondary: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg shadow-red-500/20',
     success: 'bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500 shadow-lg shadow-emerald-500/20'
   };
@@ -124,7 +124,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
     <div
       onClick={onClick}
       className={`
-        glass-panel rounded-[2rem] border border-white/50 dark:border-white/5
+        glass-panel rounded-4xl border border-white/50 dark:border-white/5
         transition-all duration-300
         ${interactive ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''}
         ${interactive ? 'hover:-translate-y-1' : ''}

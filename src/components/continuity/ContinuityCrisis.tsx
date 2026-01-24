@@ -57,7 +57,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
     return (
         <div className="space-y-8">
             {/* Status Header */}
-            <div className={`p-8 rounded-[2rem] border-2 transition-all duration-500 overflow-hidden relative ${crisisActive ? 'bg-red-950/30 border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.2)]' : 'glass-panel border-white/10'}`}>
+            <div className={`p-8 rounded-4xl border-2 transition-all duration-500 overflow-hidden relative ${crisisActive ? 'bg-red-950/30 border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.2)]' : 'glass-panel border-white/10'}`}>
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
                         <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg ${crisisActive ? 'bg-red-600 text-white animate-pulse' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20'}`}>
@@ -82,7 +82,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                                     <select
                                         value={selectedScenario}
                                         onChange={(e) => setSelectedScenario(e.target.value as 'cyber' | 'fire' | 'supply' | 'staff')}
-                                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 focus:ring-2 focus:ring-red-500"
+                                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 focus-visible:ring-2 focus-visible:ring-red-500"
                                     >
                                         <option value="cyber">Cyberattaque (Ransomware/DDoS)</option>
                                         <option value="fire">Incendie / Sinistre Physique</option>

@@ -19,6 +19,7 @@ import {
   Loader2,
   AlertTriangle
 } from '../components/ui/Icons';
+import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/Badge';
@@ -37,48 +38,7 @@ import { FAIRSimpleForm } from '../components/fair/FAIRSimpleForm';
 import { SimulationResults } from '../components/fair/SimulationResults';
 import type { FAIRModelConfig, FAIRSimpleFormValues, SimulationResults as SimulationResultsType } from '../types/fair';
 
-// ============================================================================
-// Page Header Component
-// ============================================================================
-
-interface PageHeaderProps {
-  onCreateNew: () => void;
-  configCount: number;
-}
-
-const PageHeader: React.FC<PageHeaderProps> = ({ onCreateNew, configCount }) => {
-  const { t } = useTranslation();
-
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-      <div>
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
-            <Calculator className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {t('fair.title', 'Quantification des risques')}
-            </h1>
-            <p className="text-muted-foreground">
-              {t('fair.subtitle', 'Analyse FAIR et simulation Monte Carlo')}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Badge variant="outline" className="text-sm">
-          {configCount} {t('fair.analyses', 'analyses')}
-        </Badge>
-        <Button onClick={onCreateNew}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t('fair.actions.newAnalysis', 'Nouvelle analyse')}
-        </Button>
-      </div>
-    </div>
-  );
-};
+// Internal PageHeader removed in favor of shared component
 
 // ============================================================================
 // Detail View Component
@@ -358,10 +318,28 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
   return (
     <div className={hideHeader ? "" : "container mx-auto py-6 px-4"}>
       {!hideHeader && (
-        <PageHeader
-          onCreateNew={handleCreateNew}
-          configCount={configurations.length}
-        />
+        <div className="mb-6">
+          <PageHeader
+            title={t('fair.title', 'Quantification des risques')}
+            subtitle={t('fair.subtitle', 'Analyse FAIR et simulation Monte Carlo')}
+            icon={
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                <Calculator className="h-6 w-6" />
+              </div>
+            }
+            actions={
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="text-sm">
+                  {configurations.length} {t('fair.analyses', 'analyses')}
+                </Badge>
+                <Button onClick={handleCreateNew}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('fair.actions.newAnalysis', 'Nouvelle analyse')}
+                </Button>
+              </div>
+            }
+          />
+        </div>
       )}
 
       {/* Action Bar when embedded */}

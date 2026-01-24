@@ -748,7 +748,7 @@ export const Help: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="flex flex-col gap-10"
         >
             <MasterpieceBackground />
             <SEO title="Centre d'Aide" description="Documentation et support Sentinel GRC" />
@@ -756,17 +756,16 @@ export const Help: React.FC = () => {
             <PageHeader
                 title="Centre d'Aide"
                 subtitle="Documentation, guides et support pour Sentinel GRC"
-                breadcrumbs={[{ label: 'Aide' }]}
                 icon={
-                    <img 
-                        src="/images/support.png" 
-                        alt="SUPPORT" 
+                    <img
+                        src="/images/support.png"
+                        alt="SUPPORT"
                         className="w-full h-full object-contain"
                     />
                 }
             />
 
-            <div className="flex h-[calc(100vh-16rem)] animate-fade-in overflow-hidden rounded-[2.5rem] glass-premium border border-slate-200 dark:border-slate-800 shadow-2xl relative">
+            <div className="flex h-[calc(100vh-16rem)] animate-fade-in overflow-hidden rounded-5xl glass-premium border border-slate-200 dark:border-slate-800 shadow-2xl relative">
 
                 {/* Mobile Menu Overlay */}
                 {mobileMenuOpen && (
@@ -789,7 +788,7 @@ export const Help: React.FC = () => {
                                 aria-label="Rechercher dans l'aide"
                                 type="text"
                                 placeholder="Rechercher..."
-                                className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400"
+                                className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all placeholder:text-muted-foreground"
                             />
                         </div>
 

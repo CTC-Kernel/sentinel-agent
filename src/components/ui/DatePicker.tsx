@@ -75,7 +75,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                         ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
                         : isOpen
                             ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-slate-800'
-                            : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 hover:border-gray-300 dark:hover:border-white/20'
+                            : 'border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 hover:border-slate-300 dark:hover:border-white/20'
                     }
                 `}
             >
@@ -101,7 +101,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             </div>
 
             {isOpen && !disabled && (
-                <div className="absolute z-tooltip mt-2 p-2 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 w-auto min-w-[300px] animate-fade-in">
+                <div className="absolute z-tooltip mt-2 p-2 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-white/10 w-auto min-w-[300px] animate-fade-in">
                     <Calendar
                         mode="single"
                         selected={selectedDate}
@@ -109,7 +109,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                         initialFocus
                     />
                     {value && (
-                        <div className="p-2 border-t border-gray-100 dark:border-white/5 mt-2">
+                        <div className="p-2 border-t border-slate-100 dark:border-white/5 mt-2">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onChange(undefined); setIsOpen(false); }}
                                 className="w-full py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"

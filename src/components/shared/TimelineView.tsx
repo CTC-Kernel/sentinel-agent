@@ -187,7 +187,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 ${selectedLog?.id === log.id
                                     ? 'bg-brand-50 dark:bg-brand-900/10 border-brand-200 dark:border-brand-800 shadow-md ring-1 ring-brand-500/20'
                                     : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-sm'}
-                                group-focus:ring-2 group-focus:ring-brand-500 group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-xl
+                                group-focus:ring-2 group-focus-visible:ring-brand-500 group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-xl
                                 `}>
 
                                 <div className="flex items-center justify-between mb-2">

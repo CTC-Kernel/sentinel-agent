@@ -250,7 +250,7 @@ export const ThreatIntelligence: React.FC = () => {
     const filterOptions = React.useMemo(() => ['All', 'Ransomware', 'Vulnerability', 'Malware'], []);
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-10 pb-24">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10 pb-24">
             <MasterpieceBackground />
             <SEO title="Threat Intelligence Collaboratif" description="Carte des menaces en temps réel et flux collaboratif." />
 
@@ -264,7 +264,6 @@ export const ThreatIntelligence: React.FC = () => {
                         className="w-full h-full object-contain"
                     />
                 }
-                breadcrumbs={[{ label: 'Opérations' }, { label: 'Threat Intel' }]}
                 actions={
                     <div className="flex gap-2">
                         <button

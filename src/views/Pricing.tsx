@@ -196,7 +196,7 @@ const Pricing = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.3 }}
-                className={`relative group p-8 rounded-[2rem] border transition-all duration-500 ${isPopular
+                className={`relative group p-8 rounded-4xl border transition-all duration-500 ${isPopular
                   ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white border-transparent shadow-2xl scale-105 z-10'
                   : 'bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
                   }`}
@@ -258,7 +258,7 @@ const Pricing = () => {
             <p className="text-slate-500">Tout ce inclus dans chaque plan.</p>
           </div>
 
-          <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
+          <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-5xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
             {/* Table Header - Sticky */}
             <div className="grid grid-cols-4 p-6 border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
               <div className="col-span-1 p-2 font-bold text-slate-500 uppercase text-xs tracking-wider">Fonctionnalités</div>
@@ -317,7 +317,7 @@ const Pricing = () => {
         </div>
 
         {/* FAQ Section */}
-        <div className="glass-premium p-0 rounded-[2.5rem] overflow-hidden mb-24 max-w-4xl mx-auto">
+        <div className="glass-premium p-0 rounded-5xl overflow-hidden mb-24 max-w-4xl mx-auto">
           <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
             <div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.faq', 'FAQ')}</h3>

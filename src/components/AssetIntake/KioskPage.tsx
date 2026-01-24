@@ -30,7 +30,7 @@ export const KioskPage: React.FC = () => {
                     <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-emerald-500/10 dark:bg-emerald-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-50 animate-float"></div>
                 </div>
 
-                <div className="glass-panel p-12 rounded-[2.5rem] max-w-md w-full text-center shadow-2xl animate-scale-in">
+                <div className="glass-panel p-12 rounded-5xl max-w-md w-full text-center shadow-2xl animate-scale-in">
                     <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600 dark:text-emerald-400 shadow-inner">
                         <CheckCircle2 className="h-10 w-10" />
                     </div>

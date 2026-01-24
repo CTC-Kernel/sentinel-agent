@@ -353,7 +353,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Écrivez votre annotation... (Utilisez @nom pour mentionner quelqu'un)"
                 rows={4}
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent resize-none text-sm"
               />
               <p className="text-xs text-slate-500">
                 Supporte Markdown. Utilisez @username pour mentionner des collègues.
@@ -405,7 +405,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value)}
                   placeholder="ID de l'équipe"
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent text-sm"
                 />
               </div>
             )}

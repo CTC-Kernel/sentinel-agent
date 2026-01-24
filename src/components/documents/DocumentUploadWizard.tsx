@@ -193,7 +193,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="relative w-full max-w-4xl glass-panel rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/20"
+                className="relative w-full max-w-4xl glass-panel rounded-5xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/20"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 {/* Header */}
@@ -278,7 +278,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                                     <label className="flex items-center gap-2 cursor-pointer select-none">
                                                         <input checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)}
                                                             type="checkbox"
-                                                            className="rounded text-brand-600 focus:ring-brand-500"
+                                                            className="rounded text-brand-600 focus-visible:ring-brand-500"
                                                         />
                                                         <span className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
                                                             <Shield className="w-3 h-3" /> Sécurisé

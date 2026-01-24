@@ -71,7 +71,7 @@ export const Search: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-24"
+            className="flex flex-col gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title="Recherche Avancée" description="Recherchez dans tous vos actifs, risques, documents et projets" />
@@ -85,9 +85,6 @@ export const Search: React.FC = () => {
             <PageHeader
                 title="Recherche Avancée"
                 subtitle="Recherchez dans tous vos actifs, risques, documents et projets."
-                breadcrumbs={[
-                    { label: 'Recherche' }
-                ]}
                 icon={<SearchIcon className="h-6 w-6 text-white" strokeWidth={2.5} />}
             />
 

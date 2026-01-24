@@ -263,14 +263,14 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             {index > 0 && (
               <div className={cn(
                 'w-12 h-0.5 mx-2',
-                isPast ? 'bg-green-500' : 'bg-gray-200'
+                isPast ? 'bg-green-500' : 'bg-slate-200'
               )} />
             )}
             <div className={cn(
               'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
               isActive && 'bg-blue-100 text-blue-700',
               isPast && 'bg-green-100 text-green-700',
-              !isActive && !isPast && 'bg-gray-100 text-gray-500'
+              !isActive && !isPast && 'bg-slate-100 text-slate-500'
             )}>
               {isPast ? (
                 <Check className="h-4 w-4" />
@@ -300,7 +300,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           value={formData.name}
           onChange={e => updateField('name', e.target.value)}
           placeholder={t('otConnector.placeholders.name', 'e.g., Production SCADA Sync')}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         />
       </div>
 
@@ -314,7 +314,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           onChange={e => updateField('description', e.target.value)}
           placeholder={t('otConnector.placeholders.description', 'Optional description...')}
           rows={2}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         />
       </div>
 
@@ -344,18 +344,18 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                 className={cn(
                   'p-4 rounded-xl border-2 text-left transition-all',
                   isSelected && 'border-blue-500 bg-blue-50',
-                  !isSelected && !isDisabled && 'border-gray-200 hover:border-gray-300',
-                  isDisabled && 'opacity-50 cursor-not-allowed border-gray-200'
+                  !isSelected && !isDisabled && 'border-slate-200 hover:border-slate-300',
+                  isDisabled && 'opacity-50 cursor-not-allowed border-slate-200'
                 )}
               >
                 <div className="flex items-center gap-3 mb-2">
                   <div className={cn(
                     'p-2 rounded-lg',
-                    isSelected ? 'bg-blue-100' : 'bg-gray-100'
+                    isSelected ? 'bg-blue-100' : 'bg-slate-100'
                   )}>
                     <Icon className={cn(
                       'h-5 w-5',
-                      isSelected ? 'text-blue-600' : 'text-gray-500'
+                      isSelected ? 'text-blue-600' : 'text-slate-500'
                     )} />
                   </div>
                   <span className="font-medium">{label}</span>
@@ -365,7 +365,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-gray-500">{desc}</p>
+                <p className="text-sm text-slate-500">{desc}</p>
               </button>
             );
           })}
@@ -380,7 +380,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
       return renderCSVConfig();
     }
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-slate-500">
         {t('otConnector.configNotImplemented', 'Configuration for this connector type is not yet available')}
       </div>
     );
@@ -401,9 +401,9 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             value={config.filePattern || ''}
             onChange={e => updateConfig('filePattern', e.target.value)}
             placeholder=".*\.csv$"
-            className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             {t('otConnector.csv.filePatternHelp', 'Regular expression to match CSV files')}
           </p>
         </div>
@@ -416,7 +416,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <select
             value={config.encoding || 'utf-8'}
             onChange={e => updateConfig('encoding', e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <option value="utf-8">UTF-8</option>
             <option value="iso-8859-1">ISO-8859-1 (Latin-1)</option>
@@ -431,7 +431,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             id="archiveProcessed"
             checked={config.archiveProcessed ?? true}
             onChange={e => updateConfig('archiveProcessed', e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus-visible:ring-brand-500"
           />
           <label htmlFor="archiveProcessed" className="text-sm">
             {t('otConnector.csv.archiveProcessed', 'Archive processed files')}
@@ -446,7 +446,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <select
             value={config.defaultNetworkSegment || 'OT'}
             onChange={e => updateConfig('defaultNetworkSegment', e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <option value="IT">IT</option>
             <option value="OT">OT</option>
@@ -462,7 +462,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <select
             value={config.defaultOTCriticality || 'monitoring'}
             onChange={e => updateConfig('defaultOTCriticality', e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <option value="safety">{t('otCriticality.safety', 'Safety')}</option>
             <option value="production">{t('otCriticality.production', 'Production')}</option>
@@ -490,7 +490,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                 'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors',
                 formData.schedule.type === type
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-slate-200 hover:border-slate-300'
               )}
             >
               <input
@@ -507,7 +507,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                   {type === 'interval' && t('otConnector.schedule.interval', 'Fixed interval')}
                   {type === 'cron' && t('otConnector.schedule.cron', 'Custom schedule (Cron)')}
                 </span>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-500">
                   {type === 'manual' && t('otConnector.schedule.manualDesc', 'Trigger syncs manually')}
                   {type === 'interval' && t('otConnector.schedule.intervalDesc', 'Run at regular intervals')}
                   {type === 'cron' && t('otConnector.schedule.cronDesc', 'Advanced scheduling with cron expression')}
@@ -527,7 +527,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           <select
             value={formData.schedule.interval || 1440}
             onChange={e => updateSchedule('interval', parseInt(e.target.value))}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             {SYNC_INTERVALS.map(opt => (
               <option key={opt.value} value={opt.value}>
@@ -549,9 +549,9 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             value={formData.schedule.cronExpression || ''}
             onChange={e => updateSchedule('cronExpression', e.target.value)}
             placeholder="0 2 * * *"
-            className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             {t('otConnector.schedule.cronHelp', 'Format: minute hour day month weekday (e.g., "0 2 * * *" for 2 AM daily)')}
           </p>
         </div>
@@ -564,7 +564,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
           id="enabled"
           checked={formData.enabled}
           onChange={e => updateField('enabled', e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus-visible:ring-brand-500"
         />
         <label htmlFor="enabled" className="text-sm">
           {t('otConnector.enabled', 'Enable connector immediately after creation')}
@@ -581,11 +581,11 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
         <h4 className="font-medium mb-3">{t('otConnector.review.summary', 'Configuration Summary')}</h4>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-gray-500">{t('otConnector.fields.name', 'Name')}:</dt>
+            <dt className="text-slate-500">{t('otConnector.fields.name', 'Name')}:</dt>
             <dd className="font-medium">{formData.name}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-gray-500">{t('otConnector.fields.type', 'Type')}:</dt>
+            <dt className="text-slate-500">{t('otConnector.fields.type', 'Type')}:</dt>
             <dd className="font-medium">
               {isEnglish
                 ? CONNECTOR_TYPE_LABELS[formData.type].en
@@ -593,11 +593,11 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             </dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-gray-500">{t('otConnector.schedule.type', 'Schedule')}:</dt>
+            <dt className="text-slate-500">{t('otConnector.schedule.type', 'Schedule')}:</dt>
             <dd className="font-medium capitalize">{formData.schedule.type}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-gray-500">{t('otConnector.enabled', 'Enabled')}:</dt>
+            <dt className="text-slate-500">{t('otConnector.enabled', 'Enabled')}:</dt>
             <dd>
               <Badge variant={formData.enabled ? 'default' : 'outline'} status={formData.enabled ? 'success' : 'neutral'}>
                 {formData.enabled ? t('common.yes', 'Yes') : t('common.no', 'No')}

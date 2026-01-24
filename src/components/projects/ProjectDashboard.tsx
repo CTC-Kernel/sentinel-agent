@@ -82,7 +82,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-lg border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group overflow-hidden">
+            <div className="glass-panel p-6 md:p-7 rounded-4xl shadow-lg border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
                 {/* Global Health Score */}
@@ -167,7 +167,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Task Distribution */}
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Distribution des Tâches</h4>
                     <div className="h-[250px] w-full">
@@ -209,7 +209,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                 </div>
 
                 {/* Tasks by Priority Chart */}
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Tâches par Priorité</h4>
                     <div className="h-[250px] w-full">
@@ -259,7 +259,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
 
             {/* Milestones Timeline */}
             {milestones.length > 0 && (
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 relative overflow-hidden">
+                <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                         <Calendar className="h-4 w-4" />

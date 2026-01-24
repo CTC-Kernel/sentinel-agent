@@ -110,16 +110,16 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <GlassCard className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/30">
               <Cpu className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {isEdit ? t('ebios.workshop4.editScenario') : t('ebios.workshop4.newScenario')}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">
                 {!isEdit && `Code: ${generateCode()}`}
                 {isEdit && `Code: ${scenario?.code || 'SO-XXX'}`}
               </p>
@@ -127,9 +127,9 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
@@ -137,16 +137,16 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-6">
           {/* Strategic Scenario Selection */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
               {t('ebios.workshop4.parentStrategicScenario')} *
             </label>
             <select
               {...register('strategicScenarioId')}
               className={cn(
-                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
+                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.strategicScenarioId
                   ? 'border-red-300 dark:border-red-700'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-slate-200 dark:border-slate-700'
               )}
             >
               <option value="">{t('ebios.workshop4.selectStrategicScenario')}</option>
@@ -195,7 +195,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Name */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
               {t('ebios.workshop4.scenarioName')} *
             </label>
             <input
@@ -203,10 +203,10 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
               type="text"
               placeholder="Ex: Phishing ciblé via messagerie"
               className={cn(
-                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
+                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? 'border-red-300 dark:border-red-700'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-slate-200 dark:border-slate-700'
               )}
             />
             {errors.name && (
@@ -219,7 +219,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
               {t('ebios.workshop4.scenarioDescription')} *
             </label>
             <textarea
@@ -227,10 +227,10 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
               rows={4}
               placeholder="Décrivez le mode opératoire détaillé de ce scénario..."
               className={cn(
-                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none",
+                "w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none",
                 errors.description
                   ? 'border-red-300 dark:border-red-700'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-slate-200 dark:border-slate-700'
               )}
             />
             {errors.description && (
@@ -239,17 +239,17 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
                 {errors.description.message}
               </p>
             )}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-500">
               {t('ebios.workshop4.descriptionHelp')}
             </p>
           </div>
 
           {/* Info about next steps */}
-          <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.workshop4.nextSteps')}
             </h4>
-            <ul className="text-sm text-gray-500 space-y-1 list-disc list-inside">
+            <ul className="text-sm text-slate-500 space-y-1 list-disc list-inside">
               <li>{t('ebios.workshop4.nextStep1')}</li>
               <li>{t('ebios.workshop4.nextStep2')}</li>
               <li>{t('ebios.workshop4.nextStep3')}</li>
@@ -257,11 +257,11 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               {t('common.cancel')}
             </button>

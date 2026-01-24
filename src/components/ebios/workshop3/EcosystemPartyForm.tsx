@@ -168,14 +168,14 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     return (
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
             {label}
           </label>
           <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
             {value}/5
           </span>
         </div>
-        <p className="text-xs text-gray-500 mb-2">{description}</p>
+        <p className="text-xs text-slate-500 mb-2">{description}</p>
         <input
           type="range"
           min={1}
@@ -183,9 +183,9 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
           step={1}
           value={value}
           onChange={(e) => setValue(name, parseInt(e.target.value))}
-          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+          className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
         />
-        <div className="flex justify-between text-xs text-gray-400 mt-1">
+        <div className="flex justify-between text-xs text-slate-400 mt-1">
           <span>{lowLabel}</span>
           <span>{highLabel}</span>
         </div>
@@ -197,27 +197,27 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
               <Icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {isEditing
                   ? t('ebios.workshop3.editParty', 'Modifier la partie prenante')
                   : t('ebios.workshop3.addParty', 'Ajouter une partie prenante')}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">
                 {t('ebios.workshop3.partyFormHelp', 'Définir les caractéristiques de cette partie')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
@@ -225,7 +225,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop3.partyName', 'Nom')} *
             </label>
             <input
@@ -233,10 +233,10 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
               type="text"
               placeholder={t('ebios.workshop3.partyNamePlaceholder', 'Ex: AWS, Salesforce, ANSSI...')}
               className={cn(
-                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800",
+                "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                 errors.name
                   ? "border-red-500"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-slate-200 dark:border-slate-700"
               )}
             />
             {errors.name && (
@@ -247,16 +247,16 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
           {/* Type & Category */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 {t('ebios.workshop3.partyType', 'Type')} *
               </label>
               <select
                 {...register('type')}
                 className={cn(
-                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800",
+                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                   errors.type
                     ? "border-red-500"
-                    : "border-gray-200 dark:border-gray-700"
+                    : "border-slate-200 dark:border-slate-700"
                 )}
               >
                 {PARTY_TYPES.map((type) => (
@@ -271,16 +271,16 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 {t('ebios.workshop3.partyCategory', 'Catégorie')} *
               </label>
               <select
                 {...register('category')}
                 className={cn(
-                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800",
+                  "w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800",
                   errors.category
                     ? "border-red-500"
-                    : "border-gray-200 dark:border-gray-700"
+                    : "border-slate-200 dark:border-slate-700"
                 )}
               >
                 <option value="external">{t('ebios.workshop3.external', 'Externe')}</option>
@@ -294,20 +294,20 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('ebios.workshop3.partyDescription', 'Description')}
             </label>
             <textarea
               {...register('description')}
               rows={2}
               placeholder={t('ebios.workshop3.partyDescriptionPlaceholder', 'Description de cette partie prenante...')}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
             />
           </div>
 
           {/* Evaluation Sliders */}
           <div className="space-y-5 pt-2">
-            <h4 className="font-medium text-gray-900 dark:text-white">
+            <h4 className="font-medium text-slate-900 dark:text-white">
               {t('ebios.workshop3.evaluation', 'Évaluation')}
             </h4>
 
@@ -349,7 +349,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
             <div>
               {isEditing && onDelete && (
                 <Button

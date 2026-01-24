@@ -307,7 +307,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                     'bg-slate-50 dark:bg-slate-800',
                     'border border-slate-200 dark:border-slate-700',
                     'text-slate-900 dark:text-white placeholder-slate-400',
-                    'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent'
+                    'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent'
                   )}
                 />
               </div>

@@ -29,7 +29,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 flex items-center gap-2 p-1 rounded-2xl border transition-all duration-200
                 ${error
                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
-                    : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20'
+                    : 'border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20'
                 }
             `}>
                 <input aria-label="Date de début" value={startDate}

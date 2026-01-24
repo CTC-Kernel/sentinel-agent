@@ -107,7 +107,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                         placeholder="Rechercher un contrôle..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all"
                     />
                 </div>
 
@@ -133,7 +133,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                                     <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''} ${isSuggested ? 'bg-purple-50/50 dark:bg-purple-900/10' : ' '}`}>
                                         <input checked={mitigationControlIds?.includes(ctrl.id) || false} onChange={() => toggleControlSelection(ctrl.id)}
                                             type="checkbox"
-                                            className="mt-1 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                            className="mt-1 rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500"
                                         />
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between">

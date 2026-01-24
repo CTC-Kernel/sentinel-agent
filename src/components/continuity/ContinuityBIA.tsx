@@ -61,10 +61,10 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
 
     if (viewMode === 'list') {
         return (
-            <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-white/50 dark:border-white/5 animate-in fade-in duration-500">
+            <div className="glass-panel rounded-5xl overflow-hidden shadow-sm border border-white/50 dark:border-white/5 animate-in fade-in duration-500">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-gray-100 dark:border-white/5 text-slate-500 font-bold uppercase text-[10px] tracking-widest backdrop-blur-sm">
+                        <thead className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5 text-slate-500 font-bold uppercase text-[10px] tracking-widest backdrop-blur-sm">
                             <tr>
                                 <th className="px-8 py-5">Processus</th>
                                 <th className="px-6 py-5">Priorité</th>
@@ -175,7 +175,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                         role="button"
                         tabIndex={0}
                         aria-label={`Ouvrir le processus ${proc.name}`}
-                        className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5"
+                        className="glass-panel rounded-5xl p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5"
                     >
                         <div className="flex justify-between items-start mb-5">
                             <div className="p-3 bg-rose-50 dark:bg-slate-800 rounded-2xl text-rose-600 shadow-inner">
@@ -190,17 +190,17 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{proc.description}</p>
 
                         <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-gray-100 dark:border-white/5 text-center">
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-white/5 text-center">
                                 <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1">RTO (Temps)</span>
                                 <span className="text-3xl font-black text-slate-800 dark:text-white">{proc.rto}</span>
                             </div>
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-gray-100 dark:border-white/5 text-center">
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-white/5 text-center">
                                 <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1">RPO (Données)</span>
                                 <span className="text-3xl font-black text-slate-800 dark:text-white">{proc.rpo}</span>
                             </div>
                         </div>
 
-                        <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10">
+                        <div className="space-y-3 pt-4 border-t border-dashed border-slate-200 dark:border-white/10">
                             <div className="flex items-center justify-between text-xs">
                                 <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><LayoutDashboard className="h-3 w-3 mr-1.5" /> Responsable</span>
                                 <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px] flex items-center gap-2">

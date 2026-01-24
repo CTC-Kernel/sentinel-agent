@@ -163,7 +163,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             <input {...register('title')}
                                 type="text"
                                 placeholder="Ex: Ajout d'un filtre par date..."
-                                className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-slate-400"
+                                className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-muted-foreground"
                             />
                         </div>
                         <FormError message={errors.title?.message} />
@@ -178,7 +178,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             <textarea {...register('description')}
                                 placeholder="Dites-nous en plus..."
                                 rows={5}
-                                className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-none shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-slate-400"
+                                className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all resize-none shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-muted-foreground"
                             />
                         </div>
                         <FormError message={errors.description?.message} />

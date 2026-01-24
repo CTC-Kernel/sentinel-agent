@@ -86,7 +86,7 @@ function LayerPreview({ layers }: { layers: string[] }) {
           key={layer}
           className={cn(
             'px-1.5 py-0.5 text-[10px] font-medium rounded text-white',
-            layerColors[layer] || 'bg-gray-500'
+            layerColors[layer] || 'bg-slate-500'
           )}
         >
           {layerLabels[layer] || layer}

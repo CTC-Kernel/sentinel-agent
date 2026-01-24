@@ -35,7 +35,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
     };
 
     return (
-        <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl overflow-hidden min-h-[600px] flex flex-col">
+        <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-4xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl overflow-hidden min-h-[600px] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">

@@ -155,14 +155,14 @@ export const SecurityDashboard: React.FC = () => {
       case 'high': return 'text-orange-600 bg-orange-100';
       case 'medium': return 'text-yellow-600 bg-yellow-100';
       case 'low': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
+      default: return 'text-slate-600 bg-slate-100';
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Chargement des métriques de sécurité...</div>
+        <div className="text-slate-500">Chargement des métriques de sécurité...</div>
       </div>
     );
   }
@@ -170,7 +170,7 @@ export const SecurityDashboard: React.FC = () => {
   if (!metrics) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Impossible de charger les métriques</div>
+        <div className="text-slate-500">Impossible de charger les métriques</div>
       </div>
     );
   }
@@ -180,11 +180,11 @@ export const SecurityDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Shield className="w-6 h-6" />
             Tableau de Bord Sécurité BMAD
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             Monitoring en temps réel des métriques de sécurité
           </p>
         </div>
@@ -239,14 +239,14 @@ export const SecurityDashboard: React.FC = () => {
       </div>
 
       {/* Anomalies Details */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <AlertTriangle className="w-5 h-5" />
           Anomalies Détectées (24h)
         </h3>
 
         {metrics.anomalies.recent.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-slate-500">
             ✅ Aucune anomalie détectée
           </div>
         ) : (
@@ -254,19 +254,19 @@ export const SecurityDashboard: React.FC = () => {
             {metrics.anomalies.recent.map((anomaly, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                className="flex items-start gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg"
               >
                 <span className={`px-2 py-1 rounded text-xs font-medium ${getSeverityColor(anomaly.severity)}`}>
                   {anomaly.severity}
                 </span>
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900 dark:text-white">
+                  <div className="font-medium text-slate-900 dark:text-white">
                     {anomaly.type.replace(/_/g, ' ')}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-slate-600 dark:text-slate-400">
                     {anomaly.message}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-slate-500 mt-1">
                     {new Date(anomaly.timestamp).toLocaleString()}
                   </div>
                 </div>
@@ -278,7 +278,7 @@ export const SecurityDashboard: React.FC = () => {
 
       {/* Session Info */}
       {metrics.sessionMetrics && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5" />
             Informations de Session
@@ -286,22 +286,22 @@ export const SecurityDashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Durée totale</div>
-              <div className="text-lg font-medium text-gray-900 dark:text-white">
+              <div className="text-sm text-slate-600 dark:text-slate-400">Durée totale</div>
+              <div className="text-lg font-medium text-slate-900 dark:text-white">
                 {formatDuration(metrics.sessionMetrics.duration)}
               </div>
             </div>
 
             <div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Dernière activité</div>
-              <div className="text-lg font-medium text-gray-900 dark:text-white">
+              <div className="text-sm text-slate-600 dark:text-slate-400">Dernière activité</div>
+              <div className="text-lg font-medium text-slate-900 dark:text-white">
                 {new Date(metrics.sessionMetrics.lastActivity).toLocaleTimeString()}
               </div>
             </div>
 
             <div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Nombre d'actions</div>
-              <div className="text-lg font-medium text-gray-900 dark:text-white">
+              <div className="text-sm text-slate-600 dark:text-slate-400">Nombre d'actions</div>
+              <div className="text-lg font-medium text-slate-900 dark:text-white">
                 {metrics.sessionMetrics.activityCount}
               </div>
             </div>
@@ -350,20 +350,20 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color, subt
     green: 'text-green-600 bg-green-100',
     red: 'text-red-600 bg-red-100',
     orange: 'text-orange-600 bg-orange-100',
-    gray: 'text-gray-600 bg-gray-100'
+    gray: 'text-slate-600 bg-slate-100'
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
       <div className="flex items-center gap-2 mb-2">
         <div className={`p-2 rounded ${colorClasses[color]}`}>
           {icon}
         </div>
-        <div className="text-sm text-gray-600 dark:text-gray-400">{label}</div>
+        <div className="text-sm text-slate-600 dark:text-slate-400">{label}</div>
       </div>
-      <div className="text-2xl font-bold text-gray-900 dark:text-white">{value}</div>
+      <div className="text-2xl font-bold text-slate-900 dark:text-white">{value}</div>
       {subtitle && (
-        <div className="text-xs text-gray-500 mt-1">{subtitle}</div>
+        <div className="text-xs text-slate-500 mt-1">{subtitle}</div>
       )}
     </div>
   );

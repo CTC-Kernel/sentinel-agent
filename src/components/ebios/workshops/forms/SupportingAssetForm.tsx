@@ -89,7 +89,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
       <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
             {isEditing ? t('ebios.workshop1.editSupportingAsset') : t('ebios.workshop1.addSupportingAsset')}
           </h3>
           <Button
@@ -105,17 +105,17 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
         <form onSubmit={handleSubmit(handleSave)} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.assetName')} *
             </label>
             <input
               {...register('name')}
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors",
-                "bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
+                "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? "border-red-300 dark:border-red-700"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-slate-200 dark:border-slate-700"
               )}
               placeholder={t('ebios.workshop1.supportingAssetNamePlaceholder')}
             />
@@ -126,7 +126,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
 
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.workshop1.assetType')} *
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -139,14 +139,14 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
                     "p-2.5 rounded-xl border-2 transition-all text-center",
                     selectedType === type
                       ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                   )}
                 >
                   <span className={cn(
                     "block text-xs font-medium",
                     selectedType === type
                       ? "text-cyan-600 dark:text-cyan-400"
-                      : "text-gray-600 dark:text-gray-400"
+                      : "text-slate-600 dark:text-slate-400"
                   )}>
                     {t(`ebios.supportingAssetTypes.${type}`)}
                   </span>
@@ -157,24 +157,24 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.assetDescription')}
             </label>
             <textarea
               {...register('description')}
               rows={3}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
               placeholder={t('ebios.workshop1.supportingAssetDescriptionPlaceholder')}
             />
           </div>
 
           {/* Linked Essential Assets */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.workshop1.linkedEssentialAssets')} *
             </label>
             {essentialAssets.length === 0 ? (
-              <p className="text-sm text-gray-500 italic">
+              <p className="text-sm text-slate-500 italic">
                 {t('ebios.workshop1.noEssentialAssetsYet')}
               </p>
             ) : (
@@ -186,20 +186,20 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
                       "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
                       linkedEssentialAssetIds?.includes(essentialAsset.id)
                         ? "border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                        : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                     )}
                   >
                     <input
                       type="checkbox"
                       checked={linkedEssentialAssetIds?.includes(essentialAsset.id) || false}
                       onChange={() => toggleEssentialAsset(essentialAsset.id)}
-                      className="w-4 h-4 rounded border-gray-300 text-cyan-500 focus:ring-cyan-500"
+                      className="w-4 h-4 rounded border-slate-300 text-cyan-500 focus:ring-cyan-500"
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm text-gray-700 dark:text-gray-300 block truncate">
+                      <span className="text-sm text-slate-700 dark:text-slate-300 block truncate">
                         {essentialAsset.name}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-slate-500">
                         {t(`ebios.assetTypes.${essentialAsset.type}`)}
                       </span>
                     </div>
@@ -213,7 +213,7 @@ export const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
             {isEditing && onDelete ? (
               showDeleteConfirm ? (
                 <div className="flex items-center gap-2">

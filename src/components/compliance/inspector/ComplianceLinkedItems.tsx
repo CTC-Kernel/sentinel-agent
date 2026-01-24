@@ -50,7 +50,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
             {/* Use 2 columns grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Assets */}
-                <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                     <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {(Array.isArray(control.relatedAssetIds) ? control.relatedAssetIds : []).map(assetId => {
@@ -77,7 +77,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                 </div>
 
                 {/* Suppliers */}
-                <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                     <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
                     <div className="space-y-2 mb-4">
                         {(Array.isArray(control.relatedSupplierIds) ? control.relatedSupplierIds : []).map(supplierId => {
@@ -105,7 +105,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
             </div>
 
             {/* Projects (Full Width) */}
-            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Projets Liés</h3>
                 <div className="space-y-2 mb-4">
                     {(Array.isArray(control.relatedProjectIds) ? control.relatedProjectIds : []).map(pid => {
@@ -141,7 +141,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
 
             {/* Risks & Findings Display (Read Only) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 bg-red-50/30 dark:bg-red-900/10">
+                <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 bg-red-50/30 dark:bg-red-900/10">
                     <div className="flex items-center gap-3 mb-4">
                         <ShieldAlert className="h-5 w-5 text-red-500" />
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Risques ({riskCount})</h3>
@@ -156,7 +156,7 @@ export const ComplianceLinkedItems: React.FC<ComplianceLinkedItemsProps> = ({
                         {riskCount === 0 && <p className="text-xs text-slate-500">Aucun risque atténué par ce contrôle.</p>}
                     </div>
                 </div>
-                <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 bg-orange-50/30 dark:bg-orange-900/10">
+                <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 bg-orange-50/30 dark:bg-orange-900/10">
                     <div className="flex items-center gap-3 mb-4">
                         <AlertOctagon className="h-5 w-5 text-orange-500" />
                         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Non-conformités ({findingsCount})</h3>

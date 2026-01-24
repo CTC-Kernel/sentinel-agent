@@ -395,7 +395,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                         onChange={handleSearch}
                                         type="text"
                                         placeholder="Rechercher dans les commentaires..."
-                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm"
+                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 transition-all text-sm"
                                     />
                                     {searchQuery && (
                                         <button
@@ -432,7 +432,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value as SortOption)}
-                                            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                                            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500"
                                         >
                                             <option value="newest">Plus récents</option>
                                             <option value="oldest">Plus anciens</option>
@@ -541,7 +541,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                             type="text"
                             placeholder={replyTo ? "Votre réponse..." : "Ajouter un commentaire... @mentionner quelqu'un"}
                             className={cn(
-                                "flex-1 pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm resize-none",
+                                "flex-1 pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border rounded-xl focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 transition-all text-sm resize-none",
                                 errors.content
                                     ? "border-red-500 focus:border-red-500"
                                     : "border-slate-200 dark:border-slate-700"

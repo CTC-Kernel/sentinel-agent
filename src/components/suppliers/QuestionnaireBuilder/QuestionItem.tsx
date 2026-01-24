@@ -24,7 +24,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
                     id={`question-text-${sIndex}-${qIndex}`}
                     aria-label="Question"
                     {...register(`sections.${sIndex}.questions.${qIndex}.text`, { required: true })}
-                    className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-shadow"
+                    className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow"
                     placeholder="Question..."
                 />
                 <div className="flex gap-3">
@@ -34,7 +34,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
                             id={`question-type-${sIndex}-${qIndex}`}
                             aria-label="Type de question"
                             {...register(`sections.${sIndex}.questions.${qIndex}.type`)}
-                            className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg text-slate-600 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-shadow"
+                            className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg text-slate-600 focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow"
                         >
                             <option value="yes_no">Oui / Non</option>
                             <option value="text">Texte Libre</option>
@@ -49,7 +49,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
                             aria-label="Poids de la question"
                             type="number"
                             {...register(`sections.${sIndex}.questions.${qIndex}.weight`)}
-                            className="w-16 px-2 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-shadow"
+                            className="w-16 px-2 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg focus:border-brand-500 focus:ring-1 focus-visible:ring-brand-500 transition-shadow"
                             defaultValue={1}
                         />
                     </div>

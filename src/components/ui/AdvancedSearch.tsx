@@ -68,7 +68,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             onChange={(e) => updateFilter('query', e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                             placeholder="Rechercher dans tous les modules..."
-                            className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 text-lg"
+                            className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus-visible:ring-brand-500 text-lg"
                             autoFocus
                         />
                     </div>
@@ -100,7 +100,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 aria-label="Filtrer par type de ressource"
                                 value={filters.type}
                                 onChange={(e) => updateFilter('type', e.target.value as SearchFilters['type'])}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                             >
                                 <option value="all">Tous les types</option>
                                 <option value="asset">Actifs</option>
@@ -122,7 +122,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 type="text"
                                 onChange={(e) => updateFilter('status', e.target.value)}
                                 placeholder="Ex: Actif, En cours, Fermé..."
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                             />
                         </div>
 
@@ -137,7 +137,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 type="text"
                                 onChange={(e) => updateFilter('owner', e.target.value)}
                                 placeholder="Nom du propriétaire..."
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                             />
                         </div>
 
@@ -152,7 +152,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                     aria-label="Date de début"
                                     type="date"
                                     onChange={(e) => updateFilter('dateFrom', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                                 />
                             </div>
                             <div>
@@ -163,7 +163,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                     aria-label="Date de fin"
                                     type="date"
                                     onChange={(e) => updateFilter('dateTo', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                                 />
                             </div>
                         </div>
@@ -177,7 +177,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 aria-label="Filtrer par criticité"
                                 value={filters.criticality || ''}
                                 onChange={(e) => updateFilter('criticality', e.target.value as SearchFilters['criticality'])}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus-visible:ring-brand-500"
                             >
                                 <option value="">Toutes les criticités</option>
                                 <option value="Faible">Faible</option>

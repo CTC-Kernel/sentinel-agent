@@ -88,7 +88,7 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50">
+      <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
         <Skeleton className="h-4 w-20 mb-2" />
         <Skeleton className="h-8 w-16 mb-1" />
         <Skeleton className="h-3 w-24" />
@@ -101,16 +101,16 @@ const StatCard: React.FC<StatCardProps> = ({
       onClick={onClick}
       disabled={!onClick}
       className={cn(
-        'p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 text-left w-full',
+        'p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 text-left w-full',
         'transition-all duration-200',
-        onClick && 'hover:bg-gray-800 hover:border-gray-600 cursor-pointer'
+        onClick && 'hover:bg-slate-800 hover:border-slate-600 cursor-pointer'
       )}
     >
       <div className="flex items-center gap-2 mb-2">
         <span style={{ color }} className="opacity-80">
           {icon}
         </span>
-        <span className="text-xs text-gray-400">{label}</span>
+        <span className="text-xs text-slate-400">{label}</span>
       </div>
       <div className="flex items-end gap-2">
         <span className="text-2xl font-semibold text-white">{value}</span>
@@ -148,7 +148,7 @@ const MiniTrendChart: React.FC<MiniTrendChartProps> = ({ data, loading }) => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-24 flex items-center justify-center text-gray-500 text-sm">
+      <div className="h-24 flex items-center justify-center text-slate-500 text-sm">
         Aucune donnée
       </div>
     );
@@ -242,7 +242,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
 
   if (total === 0) {
     return (
-      <div className="h-20 flex items-center justify-center text-gray-500 text-sm">
+      <div className="h-20 flex items-center justify-center text-slate-500 text-sm">
         Aucune donnée
       </div>
     );
@@ -276,7 +276,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-gray-400">{entry.name}</span>
+            <span className="text-slate-400">{entry.name}</span>
             <span className="text-white font-medium">{entry.value}</span>
           </div>
         ))}
@@ -313,7 +313,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
 
   if (!assets || assets.length === 0) {
     return (
-      <div className="text-center text-gray-500 text-sm py-4">
+      <div className="text-center text-slate-500 text-sm py-4">
         Aucun actif OT affecté
       </div>
     );
@@ -327,12 +327,12 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
           onClick={() => onAssetClick?.(asset.assetId)}
           className={cn(
             'flex items-center justify-between w-full p-2 rounded-lg',
-            'bg-gray-800/30 hover:bg-gray-800/50 transition-colors',
+            'bg-slate-800/30 hover:bg-slate-800/50 transition-colors',
             'text-left'
           )}
         >
           <div className="flex items-center gap-3">
-            <span className="text-gray-500 text-xs w-4">{index + 1}.</span>
+            <span className="text-slate-500 text-xs w-4">{index + 1}.</span>
             <Server className="h-4 w-4 text-orange-400" />
             <span className="text-sm text-white truncate max-w-[150px]">
               {asset.assetName}
@@ -348,7 +348,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
             >
               {asset.highestSeverity}
             </span>
-            <span className="text-gray-400 text-xs">{asset.vulnerabilityCount} CVE</span>
+            <span className="text-slate-400 text-xs">{asset.vulnerabilityCount} CVE</span>
           </div>
         </button>
       ))}
@@ -418,7 +418,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
   if (error) {
     return (
-      <div className={cn('p-6 rounded-2xl bg-gray-900/50 border border-gray-800', className)}>
+      <div className={cn('p-6 rounded-2xl bg-slate-900/50 border border-slate-800', className)}>
         <div className="text-center text-red-400">
           <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
           <p>{error}</p>
@@ -430,7 +430,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
   // Compact version
   if (size === 'compact') {
     return (
-      <div className={cn('p-4 rounded-xl bg-gray-900/50 border border-gray-800', className)}>
+      <div className={cn('p-4 rounded-xl bg-slate-900/50 border border-slate-800', className)}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Server className="h-5 w-5 text-orange-400" />
@@ -470,7 +470,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
   // Full version
   return (
-    <div className={cn('p-6 rounded-2xl bg-gray-900/50 border border-gray-800', className)}>
+    <div className={cn('p-6 rounded-2xl bg-slate-900/50 border border-slate-800', className)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -481,7 +481,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
             <h3 className="text-lg font-semibold text-white">
               {t('otVulnerability.widget.title', 'OT Vulnerability Exposure')}
             </h3>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-slate-400">
               {t('otVulnerability.widget.subtitle', 'Industrial asset vulnerability status')}
             </p>
           </div>
@@ -532,7 +532,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
       <div className="grid grid-cols-3 gap-6 mb-6">
         {/* Trend Chart */}
         <div className="col-span-2">
-          <h4 className="text-sm font-medium text-gray-400 mb-3">
+          <h4 className="text-sm font-medium text-slate-400 mb-3">
             {t('otVulnerability.widget.trend', '7-Day Trend')}
           </h4>
           <MiniTrendChart data={trendData} loading={loading} />
@@ -540,7 +540,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
         {/* Segment Distribution */}
         <div>
-          <h4 className="text-sm font-medium text-gray-400 mb-3">
+          <h4 className="text-sm font-medium text-slate-400 mb-3">
             {t('otVulnerability.widget.bySegment', 'By Segment')}
           </h4>
           <SegmentChart
@@ -552,7 +552,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
       {/* Top Affected Assets */}
       <div>
-        <h4 className="text-sm font-medium text-gray-400 mb-3">
+        <h4 className="text-sm font-medium text-slate-400 mb-3">
           {t('otVulnerability.widget.topAffected', 'Most Vulnerable OT Assets')}
         </h4>
         <TopAssetsList
@@ -564,8 +564,8 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
       {/* Average Score Footer */}
       {!loading && metrics && (
-        <div className="mt-4 pt-4 border-t border-gray-800 flex items-center justify-between">
-          <span className="text-xs text-gray-500">
+        <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between">
+          <span className="text-xs text-slate-500">
             {t('otVulnerability.widget.avgScore', 'Average OT-Adjusted Score')}
           </span>
           <span

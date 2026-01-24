@@ -30,11 +30,11 @@ export const EmptyChartState: React.FC<EmptyChartStateProps> = ({
     const getIcon = () => {
         if (icon) return icon;
         switch (variant) {
-            case 'bar': return <BarChart3 className="w-12 h-12 text-muted-foreground/50" />;
-            case 'pie': return <PieChart className="w-12 h-12 text-muted-foreground/50" />;
-            case 'line': return <LineChart className="w-12 h-12 text-muted-foreground/50" />;
-            case 'radar': return <Activity className="w-12 h-12 text-muted-foreground/50" />;
-            default: return <BarChart3 className="w-12 h-12 text-muted-foreground/50" />;
+            case 'bar': return <BarChart3 className="w-12 h-12 text-muted-foreground/70" />;
+            case 'pie': return <PieChart className="w-12 h-12 text-muted-foreground/70" />;
+            case 'line': return <LineChart className="w-12 h-12 text-muted-foreground/70" />;
+            case 'radar': return <Activity className="w-12 h-12 text-muted-foreground/70" />;
+            default: return <BarChart3 className="w-12 h-12 text-muted-foreground/70" />;
         }
     };
 

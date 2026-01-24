@@ -219,7 +219,7 @@ export const GeminiAssistant: React.FC = () => {
             // Mobile: Full screen, white background for readability
             "inset-0 w-full h-full rounded-none bg-white dark:bg-slate-900",
             // Desktop: Floating glassmorphism card
-            "md:inset-auto md:bottom-6 md:right-6 md:rounded-[2rem] md:bg-white/95 md:dark:bg-slate-900/95 md:backdrop-blur-xl md:border md:border-white/20 md:dark:border-white/10",
+            "md:inset-auto md:bottom-6 md:right-6 md:rounded-4xl md:bg-white/95 md:dark:bg-slate-900/95 md:backdrop-blur-xl md:border md:border-white/20 md:dark:border-white/10",
             // Desktop Sizing based on expansion
             isExpanded ? "md:w-[800px] md:h-[800px]" : "md:w-[420px] md:h-[600px]"
         )}>

@@ -16,14 +16,14 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
             {/* Status Distribution */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-4xl shadow-sm relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                 {/* Tech Corners Generic */}
                 <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                 <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                     <PieChartIcon className="w-4 h-4 text-brand-500" />
                     Statut des Audits
@@ -65,14 +65,14 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
             </motion.div>
 
             {/* Findings by Type */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-4xl shadow-sm relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                 {/* Tech Corners Generic */}
                 <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
                 <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                     <BarChartIcon className="w-4 h-4 text-brand-500" />
                     Constats par Type

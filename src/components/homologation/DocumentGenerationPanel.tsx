@@ -46,7 +46,7 @@ interface DocumentGenerationPanelProps {
 }
 
 const STATUS_CONFIG = {
-  not_started: { icon: FileText, color: 'text-gray-500', bgColor: 'bg-gray-100', label: 'À générer' },
+  not_started: { icon: FileText, color: 'text-slate-500', bgColor: 'bg-slate-100', label: 'À générer' },
   draft: { icon: Clock, color: 'text-blue-500', bgColor: 'bg-blue-100', label: 'Brouillon' },
   completed: { icon: Check, color: 'text-green-500', bgColor: 'bg-green-100', label: 'Terminé' },
   validated: { icon: FileCheck, color: 'text-purple-500', bgColor: 'bg-purple-100', label: 'Validé' }

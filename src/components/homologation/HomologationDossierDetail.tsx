@@ -63,7 +63,7 @@ const STATUS_CONFIG: Record<
   HomologationStatus,
   { color: string; bgColor: string; borderColor: string; icon: LucideIcon }
 > = {
-  draft: { color: 'text-gray-600', bgColor: 'bg-gray-100', borderColor: 'border-gray-300', icon: FileText },
+  draft: { color: 'text-slate-600', bgColor: 'bg-slate-100', borderColor: 'border-slate-300', icon: FileText },
   in_progress: { color: 'text-blue-600', bgColor: 'bg-blue-100', borderColor: 'border-blue-300', icon: Clock },
   pending_decision: {
     color: 'text-amber-600',

@@ -76,7 +76,7 @@ export const UserManagement: React.FC = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Enter user email..."
-                        className="w-full pl-12 pr-4 py-3 bg-slate-950/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder:text-slate-600"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-950/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-500 text-white placeholder:text-slate-600"
                     />
                     <button
                         type="submit"

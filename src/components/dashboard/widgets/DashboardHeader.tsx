@@ -270,10 +270,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                             {activeIncidentsCount}
                                         </span>
                                         <div className="flex flex-col -mb-1">
-                                            <span className="text-[10px] font-extrabold text-muted-foreground leading-tight uppercase">
+                                            <span className="text-[11px] font-extrabold text-muted-foreground leading-tight uppercase">
                                                 {t('dashboard.incidents')}
                                             </span>
-                                            <span className="text-[10px] font-medium text-muted-foreground/60 leading-tight">
+                                            <span className="text-[11px] font-medium text-muted-foreground leading-tight">
                                                 En cours de traitement
                                             </span>
                                         </div>
@@ -302,7 +302,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-black text-foreground truncate pr-2 tracking-tight mb-0.5">{insight.text}</p>
-                                            <p className="text-xs text-muted-foreground/80 truncate font-medium">{insight.details}</p>
+                                            <p className="text-xs text-muted-foreground truncate font-medium">{insight.details}</p>
                                         </div>
                                         <div className="p-2 rounded-xl bg-background/50 opacity-0 group-hover/insight:opacity-100 transition-all duration-500 translate-x-4 group-hover/insight:translate-x-0">
                                             <ArrowRight className="h-4 w-4 text-brand-500" />
@@ -320,7 +320,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         </div>
                                         <div>
                                             <p className="font-extrabold text-foreground tracking-tight leading-none mb-1">{t('dashboard.allSystemsOperational')}</p>
-                                            <p className="text-[10px] text-muted-foreground/60 font-medium">Surveillance en temps réel active</p>
+                                            <p className="text-[11px] text-muted-foreground font-medium">Surveillance en temps réel active</p>
                                         </div>
                                     </motion.div>
                                 )}

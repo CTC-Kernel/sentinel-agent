@@ -98,7 +98,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                     </div>
                 )}
                 {questionnaires.map(q => (
-                    <div key={q.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
+                    <div key={q.id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
                         <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-xl">
                                 <FileText className="w-6 h-6" />
@@ -115,7 +115,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                             {q.description || "Pas de description"}
                         </p>
 
-                        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/5">
+                        <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
                             <div className="text-xs font-bold text-slate-500">
                                 {q.questions.length} questions
                             </div>

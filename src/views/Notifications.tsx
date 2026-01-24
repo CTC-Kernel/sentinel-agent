@@ -87,7 +87,7 @@ export const Notifications: React.FC = () => {
                         placeholder={t('common.search', { defaultValue: 'Rechercher...' })}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
+                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-500/20 transition-all"
                     />
                 </div>
             </div>
@@ -108,7 +108,7 @@ export const Notifications: React.FC = () => {
                                     className={`p-5 flex gap-4 group items-start relative overflow-hidden transition-all ${!notif.read ? 'border-l-4 border-l-brand-500' : ''}`}
                                     hoverEffect={true}
                                 >
-                                    <div className={`p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-white/5 h-fit shrink-0`}>
+                                    <div className={`p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-white/5 h-fit shrink-0`}>
                                         {getIcon(notif.type)}
                                     </div>
                                     <div className="flex-1 min-w-0">

@@ -136,7 +136,7 @@ function TimelineItemRow({
         onClick={onClick}
         className={cn(
           'flex-1 flex items-center justify-between rounded-lg border transition-all mb-2',
-          'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
+          'hover:shadow-sm hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-brand-500',
           colors.bg,
           colors.border,
           sizeConfig.itemPadding
@@ -378,7 +378,7 @@ export function PMTimelineWidget({
             'mt-4 w-full text-center py-2 rounded-md',
             'text-sm font-medium text-blue-600 dark:text-blue-400',
             'hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+            'focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2'
           )}
         >
           Voir toutes les echeances ({count})

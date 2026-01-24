@@ -93,7 +93,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                 .map((risk, index) => (
                                     <div
                                         key={`risk-card-${index}`}
-                                        className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-error-border/50 hover:bg-error-bg transition-all cursor-pointer group focus:ring-2 focus:ring-error-text focus:outline-none"
+                                        className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-error-border/50 hover:bg-error-bg transition-all cursor-pointer group focus-visible:ring-2 focus-visible:ring-error-text focus:outline-none"
                                         role="listitem"
                                         tabIndex={0}
                                         aria-label={`Risque critique: ${risk.threat}, Score ${risk.score}`}

@@ -77,7 +77,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                             <select
                                 value={itemsPerPage}
                                 onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                                className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 pr-8 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+                                className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 pr-8 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus-visible:ring-brand-500 outline-none cursor-pointer"
                             >
                                 {itemsPerPageOptions.map(option => (
                                     <option key={option} value={option}>{option}</option>

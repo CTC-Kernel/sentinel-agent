@@ -143,38 +143,38 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <GlassCard className="w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/30">
               <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {t('ebios.workshop5.selectControls')}
               </h2>
               {scenarioName && (
-                <p className="text-sm text-gray-500">{scenarioName}</p>
+                <p className="text-sm text-slate-500">{scenarioName}</p>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
         {/* Search & Filters */}
-        <div className="py-4 space-y-3 border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="py-4 space-y-3 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('ebios.workshop5.searchControls')}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
             />
           </div>
 
@@ -187,7 +187,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                     "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                     showOnlySuggested
                       ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
                   )}
                 >
                   <Sparkles className="w-4 h-4" />
@@ -206,7 +206,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
               )}
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-slate-500">
               <Filter className="w-4 h-4" />
               {filteredControls.length} {t('ebios.workshop5.controlsAvailable')}
             </div>
@@ -226,23 +226,23 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
             const suggestedInDomain = domainControls.filter((c) => c.isSuggested).length;
 
             return (
-              <div key={domain.id} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+              <div key={domain.id} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                 {/* Domain Header */}
                 <button
                   onClick={() => toggleDomain(domain.id)}
-                  className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="w-full flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                      <ChevronDown className="w-5 h-5 text-slate-400" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-slate-400" />
                     )}
                     <div className="text-left">
-                      <span className="font-medium text-gray-900 dark:text-white">
+                      <span className="font-medium text-slate-900 dark:text-white">
                         {domain.id} - {domain.title}
                       </span>
-                      <span className="ml-2 text-sm text-gray-500">
+                      <span className="ml-2 text-sm text-slate-500">
                         ({domainControls.length} {locale === 'fr' ? 'contrôles' : 'controls'})
                       </span>
                     </div>
@@ -274,7 +274,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                             "w-full flex items-center justify-between p-3 rounded-lg transition-colors text-left",
                             isSelected
                               ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
-                              : "hover:bg-gray-50 dark:hover:bg-gray-800/50 border border-transparent"
+                              : "hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-transparent"
                           )}
                         >
                           <div className="flex items-center gap-3">
@@ -283,7 +283,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                                 "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors",
                                 isSelected
                                   ? "bg-blue-500 border-blue-500"
-                                  : "border-gray-300 dark:border-gray-600"
+                                  : "border-slate-300 dark:border-slate-600"
                               )}
                             >
                               {isSelected && (
@@ -291,10 +291,10 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                               )}
                             </div>
                             <div>
-                              <span className="font-mono text-sm text-gray-500 dark:text-gray-400">
+                              <span className="font-mono text-sm text-slate-500 dark:text-slate-400">
                                 {ctrl.code}
                               </span>
-                              <span className="ml-2 text-sm text-gray-900 dark:text-white">
+                              <span className="ml-2 text-sm text-slate-900 dark:text-white">
                                 {ctrl.name}
                               </span>
                             </div>
@@ -316,21 +316,21 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
 
           {filteredControls.length === 0 && (
             <div className="text-center py-12">
-              <Shield className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500">{t('ebios.workshop5.noControlsFound')}</p>
+              <Shield className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-500">{t('ebios.workshop5.noControlsFound')}</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50 flex items-center justify-between">
-          <div className="text-sm text-gray-500">
+        <div className="pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
+          <div className="text-sm text-slate-500">
             {localSelection.length} {locale === 'fr' ? 'contrôles sélectionnés' : 'controls selected'}
           </div>
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               {t('common.cancel')}
             </button>

@@ -87,7 +87,7 @@ export const CertifierRegister: React.FC = () => {
                                 <input
                                     {...register('orgName')}
                                     type="text"
-                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent sm:text-sm"
+                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                     placeholder="Bureau Veritas..."
                                 />
                             </div>
@@ -103,7 +103,7 @@ export const CertifierRegister: React.FC = () => {
                                 <input
                                     {...register('siret')}
                                     type="text"
-                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent sm:text-sm"
+                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                     placeholder="Optionnel"
                                 />
                             </div>
@@ -118,7 +118,7 @@ export const CertifierRegister: React.FC = () => {
                                 <input
                                     {...register('email')}
                                     type="email"
-                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent sm:text-sm"
+                                    className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                     placeholder="contact@organisme.com"
                                 />
                             </div>
@@ -135,7 +135,7 @@ export const CertifierRegister: React.FC = () => {
                                     <input
                                         {...register('password')}
                                         type="password"
-                                        className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent sm:text-sm"
+                                        className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                         placeholder="Min 8 car."
                                     />
                                 </div>
@@ -150,7 +150,7 @@ export const CertifierRegister: React.FC = () => {
                                     <input
                                         {...register('confirmPassword')}
                                         type="password"
-                                        className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent sm:text-sm"
+                                        className="block w-full pl-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 py-2.5 text-slate-900 dark:text-white placeholder:text-muted-foreground focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent sm:text-sm"
                                     />
                                 </div>
                                 {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>}

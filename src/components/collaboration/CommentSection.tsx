@@ -168,7 +168,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         aria-label={replyTo ? "Votre réponse" : "Ajouter un commentaire"}
                         type="text"
                         placeholder={replyTo ? "Votre réponse..." : "Ajouter un commentaire..."}
-                        className={cn("w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm", errors.content && "border-red-500 focus:border-red-500")}
+                        className={cn("w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 transition-all text-sm", errors.content && "border-red-500 focus:border-red-500")}
                     />
                     <button
                         type="submit"

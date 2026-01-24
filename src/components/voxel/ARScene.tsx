@@ -235,11 +235,11 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: STATUS_COLORS[node.status] }}
             />
-            <span className="text-xs text-gray-400 uppercase font-medium">{node.type}</span>
+            <span className="text-xs text-slate-400 uppercase font-medium">{node.type}</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+            className="p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6L6 18M6 6l12 12" />
@@ -252,13 +252,13 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
 
         {/* Description */}
         {description && (
-          <p className="text-gray-400 text-xs mb-2 line-clamp-2">{description}</p>
+          <p className="text-slate-400 text-xs mb-2 line-clamp-2">{description}</p>
         )}
 
         {/* Details */}
         <div className="space-y-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-gray-500">Status</span>
+            <span className="text-slate-500">Status</span>
             <span
               className="font-medium"
               style={{ color: STATUS_COLORS[node.status] }}
@@ -267,8 +267,8 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Connections</span>
-            <span className="text-gray-300">{node.connections?.length || 0}</span>
+            <span className="text-slate-500">Connections</span>
+            <span className="text-slate-300">{node.connections?.length || 0}</span>
           </div>
         </div>
       </div>
@@ -490,7 +490,7 @@ const ARInstructions: React.FC<{ visible: boolean }> = ({ visible }) => {
     <div className="fixed top-4 left-4 right-4 z-50 pointer-events-none">
       <div className="bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-xl p-4 max-w-md mx-auto">
         <h3 className="text-white font-semibold text-sm mb-2">AR Mode Instructions</h3>
-        <ul className="text-gray-300 text-xs space-y-1.5">
+        <ul className="text-slate-300 text-xs space-y-1.5">
           <li className="flex items-center gap-2">
             <span className="w-5 h-5 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-xs">1</span>
             Point camera at a flat surface
@@ -572,7 +572,7 @@ export const ARScene: React.FC<ARSceneProps> = ({
           </svg>
           <span className="text-white text-sm font-medium">AR Preview</span>
         </div>
-        <p className="text-gray-400 text-xs mt-1">
+        <p className="text-slate-400 text-xs mt-1">
           Tap the button below to place in your environment
         </p>
       </div>

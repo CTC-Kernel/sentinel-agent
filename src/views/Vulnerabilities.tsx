@@ -212,7 +212,7 @@ export const Vulnerabilities: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-20"
+            className="flex flex-col gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -240,7 +240,6 @@ export const Vulnerabilities: React.FC = () => {
                         />
                     }
                     trustType="integrity"
-                    breadcrumbs={[{ label: t('common.operations') }, { label: t('sidebar.vulnerabilities') }]}
                 />
             </motion.div>
 

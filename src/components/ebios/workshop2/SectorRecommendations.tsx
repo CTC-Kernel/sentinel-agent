@@ -98,22 +98,22 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
-            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               {t('ebios.workshop2.sectorRecommendations', 'Recommandations pour votre secteur')}
               <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300">
                 {sectorProfile.name[locale]}
               </span>
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               {pendingSourceRecommendations.length + pendingObjectiveRecommendations.length}{' '}
               {t('ebios.workshop2.pendingRecommendations', 'recommandations en attente')}
             </p>
           </div>
         </div>
         {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-gray-400" />
+          <ChevronUp className="w-5 h-5 text-slate-400" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-gray-400" />
+          <ChevronDown className="w-5 h-5 text-slate-400" />
         )}
       </button>
 
@@ -123,10 +123,10 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
           {pendingSourceRecommendations.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Lightbulb className="w-4 h-4 text-amber-500" />
                   {t('ebios.workshop2.recommendedSources', 'Sources de risque recommandées')}
-                  <span className="text-gray-400">({pendingSourceRecommendations.length})</span>
+                  <span className="text-slate-400">({pendingSourceRecommendations.length})</span>
                 </h4>
                 {!readOnly && pendingSourceRecommendations.length > 1 && (
                   <button
@@ -141,11 +141,11 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                 {pendingSourceRecommendations.map((source) => (
                   <div
                     key={source.code}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-red-600 dark:text-red-400">{source.code}</span>
-                    <span className="text-gray-500 dark:text-gray-400">-</span>
-                    <span className="text-gray-700 dark:text-gray-300 truncate max-w-[150px]">{source.name}</span>
+                    <span className="text-slate-500 dark:text-slate-400">-</span>
+                    <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{source.name}</span>
                     {!readOnly && (
                       <div className="flex items-center gap-1 ml-2">
                         <button
@@ -158,7 +158,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                         {onDismissSource && (
                           <button
                             onClick={() => onDismissSource(source.code)}
-                            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400"
+                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400"
                             title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
                           >
                             <X className="w-3.5 h-3.5" />
@@ -176,10 +176,10 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
           {pendingObjectiveRecommendations.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Lightbulb className="w-4 h-4 text-amber-500" />
                   {t('ebios.workshop2.recommendedObjectives', 'Objectifs visés recommandés')}
-                  <span className="text-gray-400">({pendingObjectiveRecommendations.length})</span>
+                  <span className="text-slate-400">({pendingObjectiveRecommendations.length})</span>
                 </h4>
                 {!readOnly && pendingObjectiveRecommendations.length > 1 && (
                   <button
@@ -194,11 +194,11 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                 {pendingObjectiveRecommendations.map((obj) => (
                   <div
                     key={obj.code}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-amber-600 dark:text-amber-400">{obj.code}</span>
-                    <span className="text-gray-500 dark:text-gray-400">-</span>
-                    <span className="text-gray-700 dark:text-gray-300 truncate max-w-[150px]">{obj.name}</span>
+                    <span className="text-slate-500 dark:text-slate-400">-</span>
+                    <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{obj.name}</span>
                     {!readOnly && (
                       <div className="flex items-center gap-1 ml-2">
                         <button
@@ -211,7 +211,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                         {onDismissObjective && (
                           <button
                             onClick={() => onDismissObjective(obj.code)}
-                            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400"
+                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400"
                             title={t('ebios.workshop2.dismissRecommendation', 'Ignorer')}
                           >
                             <X className="w-3.5 h-3.5" />
@@ -226,7 +226,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
           )}
 
           {/* Info note */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5 pt-2">
+          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-2">
             <Building2 className="w-3.5 h-3.5" />
             {t('ebios.workshop2.sectorBasedOnProfile', 'Basé sur le profil ANSSI pour le secteur')}{' '}
             <strong>{sectorProfile.name[locale]}</strong>

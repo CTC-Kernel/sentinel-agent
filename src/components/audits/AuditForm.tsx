@@ -211,7 +211,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         {...register('description')}
                         rows={3}
                         disabled={readOnly}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:opacity-70 disabled:cursor-not-allowed"
                         placeholder={t('audits.form.descriptionPlaceholder')}
                     />
                     {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
@@ -377,13 +377,13 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             </div>
 
             {!readOnly && (
-                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
+                <div className="flex justify-end space-x-4 pt-6 border-t border-slate-100 dark:border-white/5">
                     <Button
                         type="button"
                         onClick={onCancel}
                         variant="ghost"
                         disabled={isLoading}
-                        className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                        className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                     >
                         {t('audits.form.cancel')}
                     </Button>

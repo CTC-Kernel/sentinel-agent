@@ -110,12 +110,12 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({ supported, label }) =
     <div
       className={`
         w-4 h-4 rounded-full flex items-center justify-center
-        ${supported ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-500'}
+        ${supported ? 'bg-green-500/20 text-green-400' : 'bg-slate-500/20 text-slate-500'}
       `}
     >
       {supported ? <CheckIcon className="w-2.5 h-2.5" /> : <XIcon className="w-2.5 h-2.5" />}
     </div>
-    <span className={`text-xs ${supported ? 'text-gray-300' : 'text-gray-500'}`}>{label}</span>
+    <span className={`text-xs ${supported ? 'text-slate-300' : 'text-slate-500'}`}>{label}</span>
   </div>
 );
 
@@ -219,7 +219,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
     if (status.isDetecting) return 'bg-amber-500/20 text-amber-400';
     if (status.error) return 'bg-red-500/20 text-red-400';
     if (status.vrSupported || status.arSupported) return 'bg-green-500/20 text-green-400';
-    return 'bg-gray-500/20 text-gray-400';
+    return 'bg-slate-500/20 text-slate-400';
   }, [status]);
 
   // If not available, show minimal indicator
@@ -231,7 +231,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
         className={`
           inline-flex items-center gap-2 px-3 py-1.5
           bg-slate-800/80 backdrop-blur-sm border border-white/5 rounded-lg
-          text-gray-400 text-xs
+          text-slate-400 text-xs
           ${positionClasses} ${className}
         `}
       >
@@ -258,7 +258,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
               p-2 rounded-lg transition-all
               ${isVRActive
                 ? 'bg-blue-500 text-white'
-                : 'bg-slate-800/80 backdrop-blur-sm border border-white/10 text-gray-300 hover:bg-slate-700/80'
+                : 'bg-slate-800/80 backdrop-blur-sm border border-white/10 text-slate-300 hover:bg-slate-700/80'
               }
               disabled:opacity-50 disabled:cursor-not-allowed
             `}
@@ -275,7 +275,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
               p-2 rounded-lg transition-all
               ${isARActive
                 ? 'bg-purple-500 text-white'
-                : 'bg-slate-800/80 backdrop-blur-sm border border-white/10 text-gray-300 hover:bg-slate-700/80'
+                : 'bg-slate-800/80 backdrop-blur-sm border border-white/10 text-slate-300 hover:bg-slate-700/80'
               }
               disabled:opacity-50 disabled:cursor-not-allowed
             `}
@@ -311,7 +311,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
             w-2 h-2 rounded-full
             ${status.isDetecting ? 'animate-pulse bg-amber-400' : ''}
             ${status.vrSupported || status.arSupported ? 'bg-green-400' : ''}
-            ${!status.vrSupported && !status.arSupported && !status.isDetecting ? 'bg-gray-500' : ''}
+            ${!status.vrSupported && !status.arSupported && !status.isDetecting ? 'bg-slate-500' : ''}
           `}
         />
         <span className="text-xs font-medium">
@@ -331,7 +331,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
               transition-all duration-200
               ${isVRActive
                 ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white'
+                : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
               }
               disabled:opacity-50 disabled:cursor-not-allowed
             `}
@@ -360,7 +360,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
               transition-all duration-200
               ${isARActive
                 ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white'
+                : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
               }
               disabled:opacity-50 disabled:cursor-not-allowed
             `}
@@ -390,8 +390,8 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
           </div>
           {(status.vrSupported || status.arSupported) && (
             <div className="pt-2 mt-2 border-t border-white/10">
-              <div className="text-xs text-gray-400 mb-1">Features:</div>
-              <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
+              <div className="text-xs text-slate-400 mb-1">Features:</div>
+              <div className="grid grid-cols-2 gap-1 text-xs text-slate-500">
                 {status.capabilities.handTracking && <span>Hand Tracking</span>}
                 {status.capabilities.hitTest && <span>Surface Detection</span>}
                 {status.capabilities.planeDetection && <span>Plane Detection</span>}
@@ -399,7 +399,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
               </div>
             </div>
           )}
-          <div className="text-xs text-gray-500 pt-1">{deviceInfo}</div>
+          <div className="text-xs text-slate-500 pt-1">{deviceInfo}</div>
         </div>
       </Tooltip>
     </div>
@@ -422,7 +422,7 @@ export const XRMiniStatus: React.FC<XRMiniStatusProps> = ({ onClick, className =
   const dotColor = useMemo(() => {
     if (isVRActive || isARActive) return 'bg-blue-400';
     if (status.vrSupported || status.arSupported) return 'bg-green-400';
-    return 'bg-gray-500';
+    return 'bg-slate-500';
   }, [status.vrSupported, status.arSupported, isVRActive, isARActive]);
 
   const label = useMemo(() => {
@@ -440,7 +440,7 @@ export const XRMiniStatus: React.FC<XRMiniStatusProps> = ({ onClick, className =
       className={`
         flex items-center gap-1.5 px-2 py-1
         bg-slate-800/60 backdrop-blur-sm rounded-md
-        text-xs text-gray-400 hover:text-gray-200
+        text-xs text-slate-400 hover:text-slate-200
         transition-colors
         ${className}
       `}

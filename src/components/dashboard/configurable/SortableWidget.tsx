@@ -39,11 +39,11 @@ export const SortableWidget = ({ widget, isEditing, children, onRemove }: Sortab
         >
             {/* Widget Content or Placeholder */}
             {isDragging ? (
-                <div className="h-full w-full rounded-[2rem] border-2 border-dashed border-brand-300 dark:border-brand-700/50 bg-brand-50/50 dark:bg-brand-900/10 backdrop-blur-sm flex items-center justify-center animate-pulse">
+                <div className="h-full w-full rounded-4xl border-2 border-dashed border-brand-300 dark:border-brand-700/50 bg-brand-50/50 dark:bg-brand-900/10 backdrop-blur-sm flex items-center justify-center animate-pulse">
                     <span className="text-sm font-semibold text-brand-500/70">Déplacer ici</span>
                 </div>
             ) : (
-                <div className={`h-full ring-offset-2 ring-offset-background transition-all duration-200 ${isEditing ? 'ring-2 ring-slate-200 dark:ring-slate-700 rounded-[2rem] hover:ring-brand-400 cursor-grab active:cursor-grabbing' : ''}`}>
+                <div className={`h-full ring-offset-2 ring-offset-background transition-all duration-200 ${isEditing ? 'ring-2 ring-slate-200 dark:ring-slate-700 rounded-4xl hover:ring-brand-400 cursor-grab active:cursor-grabbing' : ''}`}>
                     {children}
                 </div>
             )}

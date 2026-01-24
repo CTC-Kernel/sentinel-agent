@@ -68,7 +68,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
       <GlassCard className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
             {isEditing ? t('ebios.workshop1.editMission') : t('ebios.workshop1.addMission')}
           </h3>
           <Button
@@ -84,17 +84,17 @@ export const MissionForm: React.FC<MissionFormProps> = ({
         <form onSubmit={handleSubmit(onSave)} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.missionName')} *
             </label>
             <input
               {...register('name')}
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors",
-                "bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
+                "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? "border-red-300 dark:border-red-700 focus:ring-red-500"
-                  : "border-gray-200 dark:border-gray-700 focus:ring-blue-500"
+                  : "border-slate-200 dark:border-slate-700 focus-visible:ring-brand-500"
               )}
               placeholder={t('ebios.workshop1.missionNamePlaceholder')}
             />
@@ -105,7 +105,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.missionDescription')}
             </label>
             <textarea
@@ -113,8 +113,8 @@ export const MissionForm: React.FC<MissionFormProps> = ({
               rows={3}
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors resize-none",
-                "bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
-                "border-gray-200 dark:border-gray-700 focus:ring-blue-500"
+                "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
+                "border-slate-200 dark:border-slate-700 focus-visible:ring-brand-500"
               )}
               placeholder={t('ebios.workshop1.missionDescriptionPlaceholder')}
             />
@@ -122,7 +122,7 @@ export const MissionForm: React.FC<MissionFormProps> = ({
 
           {/* Criticality */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
               {t('ebios.workshop1.criticality')} *
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -135,14 +135,14 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                     "p-3 rounded-xl border-2 transition-all text-center",
                     criticality === level.level
                       ? `border-${level.color}-500 bg-${level.color}-50 dark:bg-${level.color}-900/20`
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                   )}
                 >
                   <span className={cn(
                     "block text-lg font-bold",
                     criticality === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-gray-500 dark:text-gray-400"
+                      : "text-slate-500 dark:text-slate-400"
                   )}>
                     {level.level}
                   </span>
@@ -150,20 +150,20 @@ export const MissionForm: React.FC<MissionFormProps> = ({
                     "block text-xs mt-1",
                     criticality === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-gray-400 dark:text-gray-500"
+                      : "text-slate-400 dark:text-slate-500"
                   )}>
                     {level[locale]}
                   </span>
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-slate-500">
               {GRAVITY_SCALE.find((l) => l.level === criticality)?.description[locale]}
             </p>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
             {isEditing && onDelete ? (
               showDeleteConfirm ? (
                 <div className="flex items-center gap-2">

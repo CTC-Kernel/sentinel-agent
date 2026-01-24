@@ -224,7 +224,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                         {!isExpanded && agents.length > 4 && (
                             <div className="text-center">
                                 <button
-                                    className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 rounded"
+                                    className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus-visible:ring-brand-500 rounded"
                                     onClick={() => setIsExpanded(true)}
                                 >
                                     +{agents.length - 4} {t('common.more').toLowerCase()}

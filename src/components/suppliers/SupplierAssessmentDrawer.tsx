@@ -341,7 +341,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
                 max="730"
                 value={customReviewDays}
                 onChange={(e) => setCustomReviewDays(parseInt(e.target.value) || 180)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500"
               />
             </div>
           )}
@@ -356,7 +356,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
               value={respondentEmail}
               onChange={(e) => setRespondentEmail(e.target.value)}
               placeholder={t('vendorAssessment.enterEmail', 'vendor@example.com')}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus-visible:ring-brand-500 focus:border-brand-500"
             />
             <p className="text-xs text-slate-500">
               {t(

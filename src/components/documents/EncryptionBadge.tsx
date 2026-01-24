@@ -49,8 +49,8 @@ const stateConfig: Record<EncryptionState, {
   },
   unencrypted: {
     icon: LockOpen,
-    color: 'text-gray-500 dark:text-gray-400',
-    bgColor: 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700',
+    color: 'text-slate-500 dark:text-slate-400',
+    bgColor: 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700',
     labelKey: 'unencrypted',
   },
   error: {

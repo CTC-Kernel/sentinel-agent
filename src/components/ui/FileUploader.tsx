@@ -214,7 +214,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-emerald-500' : 'text-slate-500'}`} />
                                 <div>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">Document Stratégique</p>
-                                    <p className="text-[10px] text-slate-600">Active le filigrane et la vérification d'intégrité</p>
+                                    <p className="text-[11px] text-slate-600">Active le filigrane et la vérification d'intégrité</p>
                                 </div>
                             </div>
                             <Switch

@@ -78,7 +78,7 @@ describe('TrendSparkline', () => {
     const { container } = render(<TrendSparkline history={mockHistory} trend="stable" />);
 
     // Look for gray arrow
-    const graySvg = container.querySelector('.text-gray-500');
+    const graySvg = container.querySelector('.text-slate-500');
     expect(graySvg).toBeInTheDocument();
   });
 

@@ -696,7 +696,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   type="checkbox"
                   checked={searchIsPublic}
                   onChange={(e) => setSearchIsPublic(e.target.checked)}
-                  className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                  className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500"
                 />
                 Partager avec l'équipe
               </label>

@@ -84,7 +84,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
 
     if (linkedControls.length === 0) {
         return (
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                     <Shield className="h-4 w-4 text-brand-500" />
                     Contrôles Liés
@@ -101,7 +101,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
     }
 
     return (
-        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-6">
+        <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">

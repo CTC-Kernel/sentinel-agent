@@ -59,10 +59,10 @@ export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
             {stats.map((stat, index) => (
                 <GlassCard key={index} className="p-4 flex items-center justify-between" hoverEffect>
                     <div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                             {stat.label}
                         </p>
-                        <p className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
+                        <p className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
                             {stat.value}
                         </p>
                         {stat.subtext && (

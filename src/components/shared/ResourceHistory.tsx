@@ -67,7 +67,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                                 <div className="space-y-1">
-                                    <p className="text-sm font-medium text-slate-900 dark:text-gray-100">
+                                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                         {isValidDate(date) ? format(date, "d MMMM yyyy à HH:mm", { locale: fr }) : '-'}
                                     </p>
                                     <p className="text-sm text-slate-600 dark:text-slate-400">

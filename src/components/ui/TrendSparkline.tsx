@@ -32,7 +32,7 @@ function TrendArrow({ trend, className }: { trend: TrendType; className?: string
   if (trend === 'stable') {
     return (
       <svg
-        className={cn('w-4 h-4 text-gray-500', className)}
+        className={cn('w-4 h-4 text-slate-500', className)}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -139,7 +139,7 @@ export function TrendSparkline({
   if (!history || history.length === 0) {
     return (
       <div className={cn('flex items-center gap-1', className)}>
-        <span className="text-xs text-gray-400">{t('common.noHistory')}</span>
+        <span className="text-xs text-slate-400">{t('common.noHistory')}</span>
       </div>
     );
   }
@@ -160,7 +160,7 @@ export function TrendSparkline({
           y2={height / 2}
           stroke="currentColor"
           strokeWidth={0.5}
-          className="text-gray-200 dark:text-gray-700"
+          className="text-slate-200 dark:text-slate-700"
         />
 
         {/* Sparkline path */}

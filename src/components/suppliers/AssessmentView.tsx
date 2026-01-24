@@ -209,7 +209,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                             {/* Input Types */}
                                             {question.type === 'text' ? (
                                                 <textarea
-                                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all min-h-[120px]"
+                                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all min-h-[120px]"
                                                     placeholder="Votre réponse..."
                                                     value={(localAnswers[question.id]?.value as string) || ''}
                                                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
@@ -240,7 +240,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                             ) : (
                                                 <input
                                                     type={question.type === 'rating' ? 'number' : 'text'}
-                                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
+                                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all"
                                                     placeholder="Votre réponse..."
                                                     value={(localAnswers[question.id]?.value as string) || ''}
                                                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}

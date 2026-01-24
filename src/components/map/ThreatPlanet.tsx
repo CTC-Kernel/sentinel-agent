@@ -235,7 +235,7 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
 
 export const ThreatPlanet: React.FC<ThreatPlanetProps> = ({ data }) => {
     return (
-        <div className="w-full h-full bg-slate-950 rounded-[2.5rem] overflow-hidden relative isolate">
+        <div className="w-full h-full bg-slate-950 rounded-5xl overflow-hidden relative isolate">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950/80 to-slate-950 z-0 pointer-events-none" />
 
             {/* HUD Overlay */}

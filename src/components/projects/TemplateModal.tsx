@@ -56,7 +56,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
 
     return createPortal(
         <div className="fixed inset-0 z-max flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="glass-panel rounded-[2rem] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-white/20 animate-scale-in relative">
+            <div className="glass-panel rounded-4xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-white/20 animate-scale-in relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-white/10 relative z-10 glass-panel backdrop-blur-md">
@@ -150,7 +150,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 <input {...register('projectName')}
                                     type="text"
                                     placeholder="Ex: Certification ISO 27001 2025"
-                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                 />
                                 {errors.projectName && <p className="text-red-500 text-xs mt-1">{errors.projectName.message}</p>}
                             </div>
@@ -161,7 +161,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 </label>
                                 <input {...register('startDate')}
                                     type="date"
-                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                                 />
                                 {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate.message}</p>}
                             </div>

@@ -211,7 +211,7 @@ export const ThreatRegistry: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="flex flex-col gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title="Bibliothèque de Menaces" description="Référentiel des menaces et vulnérabilités (ISO 27005)" />
@@ -220,7 +220,6 @@ export const ThreatRegistry: React.FC = () => {
                 title="Bibliothèque de Menaces"
                 subtitle="Référentiel des menaces et vulnérabilités (ISO 27005)."
                 icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                breadcrumbs={[{ label: 'Menaces' }]}
                 actions={
                     <div className="flex gap-3">
                         {threats.length === 0 && canEdit && (
@@ -262,7 +261,7 @@ export const ThreatRegistry: React.FC = () => {
                         aria-label="Rechercher une menace"
                         type="text"
                         placeholder="Rechercher une menace, un scénario..."
-                        className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-500"
+                        className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus-visible:ring-brand-500 outline-none transition-all placeholder:text-slate-500"
                         onChange={handleSearchChange}
                     />
                 </div>

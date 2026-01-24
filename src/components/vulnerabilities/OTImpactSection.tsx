@@ -513,7 +513,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('otVulnerability.searchAssets', 'Search OT assets...')}
-              className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-muted-foreground dark:placeholder:text-white/30 focus:outline-none focus:border-indigo-500"
             />
           </div>
 

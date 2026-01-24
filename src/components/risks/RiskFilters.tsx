@@ -125,7 +125,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                 <div className="flex flex-wrap gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
                     {/* Framework Filter */}
                     <select
-                        className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+                        className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                         value={frameworkFilter}
                         onChange={(e) => onFrameworkFilterChange(e.target.value)}
                         aria-label="Filtrer par référentiel"
@@ -140,7 +140,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     {/* Status Filter */}
                     {onStatusFilterChange && (
                         <select
-                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={statusFilter || ''}
                             onChange={(e) => onStatusFilterChange(e.target.value)}
                             aria-label="Filtrer par statut"
@@ -157,7 +157,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     {/* Criticality Filter */}
                     {onCriticalityFilterChange && (
                         <select
-                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={criticalityFilter || ''}
                             onChange={(e) => onCriticalityFilterChange(e.target.value)}
                             aria-label="Filtrer par criticité"
@@ -173,7 +173,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     {/* Category Filter */}
                     {onCategoryFilterChange && availableCategories.length > 0 && (
                         <select
-                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+                            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                             value={categoryFilter || ''}
                             onChange={(e) => onCategoryFilterChange(e.target.value)}
                             aria-label="Filtrer par catégorie"

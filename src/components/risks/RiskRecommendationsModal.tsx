@@ -28,7 +28,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[2rem] shadow-2xl border border-white/10 flex flex-col max-h-[90vh] animate-scale-in overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-4xl shadow-2xl border border-white/10 flex flex-col max-h-[90vh] animate-scale-in overflow-hidden">
 
                 {/* Header */}
                 <div className="p-8 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">

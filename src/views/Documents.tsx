@@ -293,7 +293,7 @@ export const Documents: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-10 pb-24"
+            className="flex flex-col gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -322,9 +322,6 @@ export const Documents: React.FC = () => {
             <PageHeader
                 title={t('documents.title')}
                 subtitle={t('documents.subtitle')}
-                breadcrumbs={[
-                    { label: t('sidebar.documents') }
-                ]}
                 icon={
                     <img
                         src="/images/referentiel.png"
@@ -516,7 +513,7 @@ export const Documents: React.FC = () => {
                                             <input checked={isDigitalSafeMode} onChange={handleDigitalSafeToggle}
                                                 aria-label={t('documents.digitalSafe')}
                                                 type="checkbox"
-                                                className="rounded text-brand-600 focus:ring-brand-500"
+                                                className="rounded text-brand-600 focus-visible:ring-brand-500"
                                             />
                                             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('documents.digitalSafe')}</span>
                                         </label>
@@ -524,7 +521,7 @@ export const Documents: React.FC = () => {
                                         <select
                                             value={categoryFilter}
                                             onChange={handleCategoryChange}
-                                            className="bg-slate-100 dark:bg-white/5 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus:ring-brand-500"
+                                            className="bg-slate-100 dark:bg-white/5 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus-visible:ring-brand-500"
                                         >
                                             <option value="all">{t('documents.allCategories')}</option>
                                             <option value="Politique">{t('documents.category.policy')}</option>

@@ -281,7 +281,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 p-0 text-left align-middle shadow-2xl transition-all">
+                            <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-5xl bg-white dark:bg-slate-900 p-0 text-left align-middle shadow-2xl transition-all">
                                 <div className="relative">
                                     {/* Header */}
                                     <div className="relative h-32 bg-gradient-to-br from-brand-600 to-purple-700">

@@ -95,7 +95,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
       <GlassCard className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
             {isEditing ? t('ebios.workshop1.editFearedEvent') : t('ebios.workshop1.addFearedEvent')}
           </h3>
           <Button
@@ -111,17 +111,17 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
         <form onSubmit={handleSubmit(onSave)} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.eventName')} *
             </label>
             <input
               {...register('name')}
               className={cn(
                 "w-full px-4 py-2.5 rounded-xl border transition-colors",
-                "bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
+                "bg-white dark:bg-slate-800 text-slate-900 dark:text-white",
                 errors.name
                   ? "border-red-300 dark:border-red-700"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-slate-200 dark:border-slate-700"
               )}
               placeholder={t('ebios.workshop1.eventNamePlaceholder')}
             />
@@ -132,7 +132,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
 
           {/* Impact Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.workshop1.impactType')} *
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -147,14 +147,14 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                       "p-4 rounded-xl border-2 transition-all text-center",
                       impactType === type
                         ? `border-${typeInfo.color}-500 bg-${typeInfo.color}-50 dark:bg-${typeInfo.color}-900/20`
-                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                        : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                     )}
                   >
                     <span className={cn(
                       "block text-sm font-semibold",
                       impactType === type
                         ? `text-${typeInfo.color}-600 dark:text-${typeInfo.color}-400`
-                        : "text-gray-600 dark:text-gray-400"
+                        : "text-slate-600 dark:text-slate-400"
                     )}>
                       {typeInfo[locale]}
                     </span>
@@ -166,20 +166,20 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               {t('ebios.workshop1.eventDescription')}
             </label>
             <textarea
               {...register('description')}
               rows={3}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white resize-none"
               placeholder={t('ebios.workshop1.eventDescriptionPlaceholder')}
             />
           </div>
 
           {/* Gravity */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
               {t('ebios.workshop1.gravity')} *
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -192,14 +192,14 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                     "p-3 rounded-xl border-2 transition-all text-center",
                     gravity === level.level
                       ? `border-${level.color}-500 bg-${level.color}-50 dark:bg-${level.color}-900/20`
-                      : "border-gray-200 dark:border-gray-700"
+                      : "border-slate-200 dark:border-slate-700"
                   )}
                 >
                   <span className={cn(
                     "block text-xl font-bold",
                     gravity === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-gray-500"
+                      : "text-slate-500"
                   )}>
                     G{level.level}
                   </span>
@@ -207,14 +207,14 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                     "block text-xs mt-1",
                     gravity === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-gray-400"
+                      : "text-slate-400"
                   )}>
                     {level[locale]}
                   </span>
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-slate-500">
               {GRAVITY_SCALE.find((l) => l.level === gravity)?.description[locale]}
             </p>
           </div>
@@ -223,11 +223,11 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Linked Missions */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 {t('ebios.workshop1.linkedMissions')} *
               </label>
               {missions.length === 0 ? (
-                <p className="text-sm text-gray-500 italic p-3 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                <p className="text-sm text-slate-500 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
                   {t('ebios.workshop1.noMissionsYet')}
                 </p>
               ) : (
@@ -239,16 +239,16 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                         "flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-colors text-sm",
                         linkedMissionIds?.includes(mission.id)
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                       )}
                     >
                       <input
                         type="checkbox"
                         checked={linkedMissionIds?.includes(mission.id) || false}
                         onChange={() => toggleMission(mission.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-info"
+                        className="w-4 h-4 rounded border-slate-300 text-info"
                       />
-                      <span className="text-gray-700 dark:text-gray-300 truncate">
+                      <span className="text-slate-700 dark:text-slate-300 truncate">
                         {mission.name}
                       </span>
                     </label>
@@ -259,11 +259,11 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
 
             {/* Linked Essential Assets */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 {t('ebios.workshop1.linkedEssentialAssets')} *
               </label>
               {essentialAssets.length === 0 ? (
-                <p className="text-sm text-gray-500 italic p-3 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                <p className="text-sm text-slate-500 italic p-3 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
                   {t('ebios.workshop1.noEssentialAssetsYet')}
                 </p>
               ) : (
@@ -275,16 +275,16 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                         "flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-colors text-sm",
                         linkedEssentialAssetIds?.includes(asset.id)
                           ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                          : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                       )}
                     >
                       <input
                         type="checkbox"
                         checked={linkedEssentialAssetIds?.includes(asset.id) || false}
                         onChange={() => toggleEssentialAsset(asset.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-purple-500"
+                        className="w-4 h-4 rounded border-slate-300 text-purple-500"
                       />
-                      <span className="text-gray-700 dark:text-gray-300 truncate">
+                      <span className="text-slate-700 dark:text-slate-300 truncate">
                         {asset.name}
                       </span>
                     </label>
@@ -295,7 +295,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
             {isEditing && onDelete ? (
               showDeleteConfirm ? (
                 <div className="flex items-center gap-2">

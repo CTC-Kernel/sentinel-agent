@@ -217,7 +217,7 @@ const ScaleIndicator: React.FC<ScaleIndicatorProps> = ({
         </div>
 
         {/* Min/Max labels */}
-        <div className="flex justify-between text-gray-400 text-[8px] mt-0.5">
+        <div className="flex justify-between text-slate-400 text-[8px] mt-0.5">
           <span>{(minScale * 100).toFixed(0)}%</span>
           <span>{(maxScale * 100).toFixed(0)}%</span>
         </div>
@@ -259,7 +259,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
           <div className="bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-white text-sm font-medium">Scale</span>
-              <span className="text-gray-400 text-xs font-mono">
+              <span className="text-slate-400 text-xs font-mono">
                 {(scale * 100).toFixed(0)}%
               </span>
             </div>
@@ -292,7 +292,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
                 transition-all duration-200
                 ${isValidSurface
                   ? 'bg-green-500 text-white shadow-lg shadow-green-500/25 hover:bg-green-600 active:scale-95'
-                  : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                  : 'bg-slate-600 text-slate-300 cursor-not-allowed'
                 }
               `}
             >

@@ -309,7 +309,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     />
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Stockage du Document</label>
                     <div className="mb-6">
                         <CustomSelect
@@ -348,7 +348,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                         <label className="flex items-center gap-1 cursor-pointer">
                                             <input checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)}
                                                 type="checkbox"
-                                                className="rounded text-blue-600 focus:ring-blue-500"
+                                                className="rounded text-blue-600 focus-visible:ring-brand-500"
                                             />
                                             <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">Sécurisé</span>
                                         </label>
@@ -383,7 +383,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-slate-100 dark:border-white/5">
                 <Button type="button" variant="ghost" onClick={onCancel}>
                     Annuler
                 </Button>

@@ -209,7 +209,7 @@ export const CommandPalette: React.FC = () => {
                 onClick={() => setIsOpen(false)}
             />
 
-            <div className="relative w-full max-w-2xl glass-panel rounded-[2rem] shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-white/20 dark:border-white/10 ring-1 ring-black/5">
+            <div className="relative w-full max-w-2xl glass-panel rounded-4xl shadow-2xl overflow-hidden animate-scale-in flex flex-col border border-white/20 dark:border-white/10 ring-1 ring-black/5">
                 <div className="flex items-center px-6 py-5 border-b border-white/10 relative z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                     <Search className="h-5 w-5 text-brand-500 mr-4 font-bold" />

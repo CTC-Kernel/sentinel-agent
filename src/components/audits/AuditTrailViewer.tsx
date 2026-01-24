@@ -160,7 +160,7 @@ export const AuditTrailViewer: React.FC = () => {
                             aria-label="Rechercher dans l'audit trail"
                             onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
                             placeholder="Rechercher (Utilisateur, Action, Ressource...)"
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 outline-none"
                         />
                     </div>
 
@@ -168,7 +168,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.action}
                         onChange={(e) => setFilters({ ...filters, action: e.target.value as 'all' | 'create' | 'update' | 'delete' })}
-                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                         aria-label="Filtrer par action"
                     >
                         <option value="all">Toutes les actions</option>
@@ -181,7 +181,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.entityType}
                         onChange={(e) => setFilters({ ...filters, entityType: e.target.value })}
-                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                         aria-label="Filtrer par type d'entité"
                     >
                         <option value="all">Tous les types</option>
@@ -194,7 +194,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <select
                         value={filters.userId}
                         onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
-                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                         aria-label="Filtrer par utilisateur"
                     >
                         <option value="all">Tous les utilisateurs</option>
@@ -213,7 +213,7 @@ export const AuditTrailViewer: React.FC = () => {
                             value={dateRange.start.toISOString().split('T')[0]}
                             onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
                             type="date"
-                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                         />
                     </div>
                     <div className="relative">
@@ -223,7 +223,7 @@ export const AuditTrailViewer: React.FC = () => {
                             value={dateRange.end.toISOString().split('T')[0]}
                             onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
                             type="date"
-                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                         />
                     </div>
                 </div>

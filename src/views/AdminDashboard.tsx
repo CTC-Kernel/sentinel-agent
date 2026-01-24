@@ -109,7 +109,7 @@ export const AdminDashboard: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="flex flex-col gap-10"
         >
             <MasterpieceBackground />
             <SEO title="Super Admin Dashboard" description="Vue globale de l'instance Sentinel GRC" />
@@ -117,11 +117,10 @@ export const AdminDashboard: React.FC = () => {
             <PageHeader
                 title={t('admin.dashboard')}
                 subtitle={t('admin.subtitle')}
-                breadcrumbs={[{ label: 'Admin', path: '/admin' }]}
                 icon={
-                    <img 
-                        src="/images/administration.png" 
-                        alt="ADMINISTRATION" 
+                    <img
+                        src="/images/administration.png"
+                        alt="ADMINISTRATION"
                         className="w-full h-full object-contain"
                     />
                 }

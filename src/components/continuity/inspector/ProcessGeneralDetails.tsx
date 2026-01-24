@@ -15,7 +15,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
         <div className="space-y-8">
             {/* Metrics Cards */}
             <div className="grid grid-cols-2 gap-4">
-                <div className="p-6 bg-white dark:bg-white/5 rounded-[2rem] border border-slate-100 dark:border-white/10 shadow-sm relative overflow-hidden group">
+                <div className="p-6 bg-white dark:bg-white/5 rounded-4xl border border-slate-100 dark:border-white/10 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Clock className="w-16 h-16" />
                     </div>
@@ -25,7 +25,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
                     </div>
                     <span className="text-3xl font-black text-slate-900 dark:text-white">{process.rto}</span>
                 </div>
-                <div className="p-6 bg-white dark:bg-white/5 rounded-[2rem] border border-slate-100 dark:border-white/10 shadow-sm relative overflow-hidden group">
+                <div className="p-6 bg-white dark:bg-white/5 rounded-4xl border border-slate-100 dark:border-white/10 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Activity className="w-16 h-16" />
                     </div>
@@ -38,13 +38,13 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
             </div>
 
             {/* Description */}
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">{t('common.description')}</h3>
                 <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{process.description}</p>
             </div>
 
             {/* Recovery Tasks */}
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">{t('continuity.recoveryPlan')}</h3>
                 <div className="space-y-3">
                     {process.recoveryTasks?.length ? process.recoveryTasks.map((task, i) => (

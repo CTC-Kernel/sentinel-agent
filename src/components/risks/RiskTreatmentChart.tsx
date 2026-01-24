@@ -3,6 +3,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recha
 import { Risk } from '../../types';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
+import { SENTINEL_PALETTE } from '../../theme/chartTheme';
 
 interface RiskTreatmentChartProps {
     risks: Risk[];
@@ -22,13 +23,13 @@ export const RiskTreatmentChart: React.FC<RiskTreatmentChartProps> = ({ risks })
             }
         });
 
-        // Colors for statuses (harmonized palette)
+        // Colors for statuses (using centralized chartTheme)
         const COLORS: Record<string, string> = {
-            'Planifié': '#6b8fa3', // Slate-blue (neutral)
-            'En cours': '#4a7fc7', // Primary blue
-            'Terminé': '#2d9d6a', // Teal-green (success)
-            'Retard': '#d64545',  // Red (error)
-            'Non Traité': '#c87f1a' // Amber (warning)
+            'Planifié': SENTINEL_PALETTE.tertiary,
+            'En cours': SENTINEL_PALETTE.primary,
+            'Terminé': SENTINEL_PALETTE.success,
+            'Retard': SENTINEL_PALETTE.danger,
+            'Non Traité': SENTINEL_PALETTE.warning
         };
 
         return Object.entries(map)
@@ -36,7 +37,7 @@ export const RiskTreatmentChart: React.FC<RiskTreatmentChartProps> = ({ risks })
             .map(([name, value]) => ({
                 name,
                 value,
-                color: COLORS[name] || '#cbd5e1'
+                color: COLORS[name] || SENTINEL_PALETTE.tertiary
             }));
     }, [risks]);
 

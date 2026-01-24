@@ -64,12 +64,12 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
         name: 'Unknown',
         shortName: '?',
         icon: Star,
-        gradient: 'from-gray-400 to-gray-500',
-        bgGradient: 'from-gray-50 to-gray-100/80 dark:from-gray-800/40 dark:to-gray-900/40',
-        borderColor: 'border-gray-200/60 dark:border-gray-700/60',
-        textColor: 'text-gray-600 dark:text-gray-400',
-        glowColor: 'shadow-gray-200/50 dark:shadow-gray-800/50',
-        accentColor: 'bg-gray-500',
+        gradient: 'from-slate-400 to-slate-500',
+        bgGradient: 'from-slate-50 to-slate-100/80 dark:from-slate-800/40 dark:to-slate-900/40',
+        borderColor: 'border-slate-200/60 dark:border-slate-700/60',
+        textColor: 'text-slate-600 dark:text-slate-400',
+        glowColor: 'shadow-slate-200/50 dark:shadow-slate-800/50',
+        accentColor: 'bg-slate-500',
     },
 };
 
@@ -77,7 +77,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; pulse?: bool
     active: { label: 'Actif', color: 'text-emerald-600 dark:text-emerald-400', pulse: false },
     trialing: { label: 'Essai', color: 'text-amber-600 dark:text-amber-400', pulse: true },
     past_due: { label: 'Impayé', color: 'text-red-600 dark:text-red-400', pulse: true },
-    canceled: { label: 'Annulé', color: 'text-gray-500 dark:text-gray-500', pulse: false },
+    canceled: { label: 'Annulé', color: 'text-slate-500 dark:text-slate-500', pulse: false },
     incomplete: { label: 'Incomplet', color: 'text-orange-600 dark:text-orange-400', pulse: false },
 };
 
@@ -111,7 +111,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
     const plan = subscription.planId || 'discovery';
     const status = subscription.status || 'active';
     const config = PLAN_CONFIG[plan] || PLAN_CONFIG.unknown;
-    const statusConfig = STATUS_CONFIG[status] || { label: status, color: 'text-gray-500' };
+    const statusConfig = STATUS_CONFIG[status] || { label: status, color: 'text-slate-500' };
     const Icon = config.icon || Star;
 
     // Calculate days until renewal
@@ -266,7 +266,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                             )}
 
                             {/* Footer */}
-                            <p className="text-[10px] text-center text-slate-500 mt-2">
+                            <p className="text-[11px] text-center text-slate-500 mt-2">
                                 Cliquer pour gérer l'abonnement
                             </p>
                         </div>

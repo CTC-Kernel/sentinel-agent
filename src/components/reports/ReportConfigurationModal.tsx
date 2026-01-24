@@ -73,7 +73,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className="relative transform overflow-hidden rounded-[2rem] bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
+                            <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
                                 <div className="p-6">
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
                                         <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600">
@@ -92,7 +92,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                                                 type="text"
                                                 value={title}
                                                 onChange={(e) => setTitle(e.target.value)}
-                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50"
                                                 placeholder="Ex: Rapport Trimestriel Q1 2024"
                                             />
                                         </div>

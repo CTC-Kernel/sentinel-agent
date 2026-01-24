@@ -194,7 +194,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
       case 'running':
         return <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />;
       default:
-        return <Clock className="h-5 w-5 text-gray-400" />;
+        return <Clock className="h-5 w-5 text-slate-400" />;
     }
   };
 
@@ -250,19 +250,19 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
           <div className="grid grid-cols-4 gap-3 mb-4">
             <Card className="p-3 text-center">
               <p className="text-2xl font-bold text-blue-600">{summaryStats.total}</p>
-              <p className="text-xs text-gray-500">{t('otConnector.history.totalSyncs', 'Total Syncs')}</p>
+              <p className="text-xs text-slate-500">{t('otConnector.history.totalSyncs', 'Total Syncs')}</p>
             </Card>
             <Card className="p-3 text-center">
               <p className="text-2xl font-bold text-green-600">{summaryStats.successCount}</p>
-              <p className="text-xs text-gray-500">{t('otConnector.history.successful', 'Successful')}</p>
+              <p className="text-xs text-slate-500">{t('otConnector.history.successful', 'Successful')}</p>
             </Card>
             <Card className="p-3 text-center">
               <p className="text-2xl font-bold text-green-600">+{summaryStats.totalCreated}</p>
-              <p className="text-xs text-gray-500">{t('otConnector.history.assetsCreated', 'Assets Created')}</p>
+              <p className="text-xs text-slate-500">{t('otConnector.history.assetsCreated', 'Assets Created')}</p>
             </Card>
             <Card className="p-3 text-center">
-              <p className="text-2xl font-bold text-gray-600">{formatDuration(summaryStats.avgDuration)}</p>
-              <p className="text-xs text-gray-500">{t('otConnector.history.avgDuration', 'Avg Duration')}</p>
+              <p className="text-2xl font-bold text-slate-600">{formatDuration(summaryStats.avgDuration)}</p>
+              <p className="text-xs text-slate-500">{t('otConnector.history.avgDuration', 'Avg Duration')}</p>
             </Card>
           </div>
         )}
@@ -283,11 +283,11 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
             </div>
           ) : history.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Clock className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center py-12 text-slate-500">
+              <Clock className="h-12 w-12 mx-auto mb-4 text-slate-300" />
               <p>{t('otConnector.history.empty', 'No sync history yet')}</p>
             </div>
           ) : (
@@ -302,7 +302,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                     <button
                       type="button"
                       onClick={() => toggleExpanded(sync.id)}
-                      className="w-full p-4 flex items-center gap-4 hover:bg-gray-50 transition-colors"
+                      className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
                     >
                       {/* Status icon */}
                       {getStatusIcon(sync.status)}
@@ -315,7 +315,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                           </span>
                           {getStatusBadge(sync.status)}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                        <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
                           <span className="flex items-center gap-1">
                             <Timer className="h-3 w-3" />
                             {formatDuration(sync.durationMs)}
@@ -346,8 +346,8 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                       {/* Expand icon */}
                       {hasErrors && (
                         isExpanded
-                          ? <ChevronUp className="h-5 w-5 text-gray-400" />
-                          : <ChevronDown className="h-5 w-5 text-gray-400" />
+                          ? <ChevronUp className="h-5 w-5 text-slate-400" />
+                          : <ChevronDown className="h-5 w-5 text-slate-400" />
                       )}
                     </button>
 
@@ -370,13 +370,13 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                                   {error.severity === 'error' ? 'ERROR' : 'WARN'}
                                 </span>
                                 {error.rowNumber && (
-                                  <span className="text-gray-500">
+                                  <span className="text-slate-500">
                                     Row {error.rowNumber}:{' '}
                                   </span>
                                 )}
-                                <span className="text-gray-700">{error.message}</span>
+                                <span className="text-slate-700">{error.message}</span>
                                 {error.field && (
-                                  <span className="text-gray-400"> ({error.field})</span>
+                                  <span className="text-slate-400"> ({error.field})</span>
                                 )}
                               </li>
                             ))}

@@ -103,9 +103,9 @@ const PARTY_TYPE_CONFIG: Record<
   },
   other: {
     icon: Globe,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100 dark:bg-gray-900/30',
-    borderColor: 'border-gray-300 dark:border-gray-700',
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100 dark:bg-slate-900/30',
+    borderColor: 'border-slate-300 dark:border-slate-700',
   },
 };
 
@@ -284,7 +284,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
             stroke="white"
             strokeWidth={isSelected ? 6 : 4}
             strokeLinecap="round"
-            className="dark:stroke-gray-900"
+            className="dark:stroke-slate-900"
           />
           {/* Main path */}
           <motion.path
@@ -402,12 +402,12 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                   'p-1.5 rounded-lg mb-1',
                   party.category === 'internal'
                     ? 'bg-blue-200 dark:bg-blue-800'
-                    : 'bg-white dark:bg-gray-800'
+                    : 'bg-white dark:bg-slate-800'
                 )}
               >
                 <Icon className={cn('w-5 h-5', config.color)} />
               </div>
-              <p className="text-xs font-medium text-gray-900 dark:text-white text-center truncate w-full px-1">
+              <p className="text-xs font-medium text-slate-900 dark:text-white text-center truncate w-full px-1">
                 {party.name}
               </p>
               {/* Risk indicator */}
@@ -471,42 +471,42 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
   );
 
   return (
-    <div className="relative w-full h-[500px] rounded-2xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 overflow-hidden">
+    <div className="relative w-full h-[500px] rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden">
       {/* Controls */}
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         <button
           onClick={handleZoomIn}
-          className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.zoomIn')}
         >
-          <ZoomIn className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <ZoomIn className="w-4 h-4 text-slate-600 dark:text-slate-400" />
         </button>
         <button
           onClick={handleZoomOut}
-          className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.zoomOut')}
         >
-          <ZoomOut className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <ZoomOut className="w-4 h-4 text-slate-600 dark:text-slate-400" />
         </button>
         <button
           onClick={handleFitToView}
-          className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           title={t('ebios.ecosystem.fitToView')}
         >
-          <Maximize2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <Maximize2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
         </button>
-        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-auto" />
+        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-auto" />
         <button
           onClick={() => setShowLegend(!showLegend)}
           className={cn(
             'p-2 rounded-lg border shadow-sm transition-colors',
             showLegend
               ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700'
-              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
           )}
           title={t('ebios.ecosystem.toggleLegend')}
         >
-          <Info className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <Info className="w-4 h-4 text-slate-600 dark:text-slate-400" />
         </button>
       </div>
 
@@ -517,9 +517,9 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="absolute top-4 left-4 z-10 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-w-[200px]"
+            className="absolute top-4 left-4 z-10 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg max-w-[200px]"
           >
-            <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
               {t('ebios.ecosystem.legend')}
             </h4>
 
@@ -540,20 +540,20 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                       className={cn(
                         'flex items-center gap-2 w-full px-2 py-1 rounded text-left transition-colors',
                         isVisible
-                          ? 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                          ? 'hover:bg-slate-100 dark:hover:bg-slate-700'
                           : 'opacity-50'
                       )}
                     >
                       {isVisible ? (
-                        <Eye className="w-3 h-3 text-gray-400" />
+                        <Eye className="w-3 h-3 text-slate-400" />
                       ) : (
-                        <EyeOff className="w-3 h-3 text-gray-400" />
+                        <EyeOff className="w-3 h-3 text-slate-400" />
                       )}
                       <Icon className={cn('w-3 h-3', config.color)} />
-                      <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">
+                      <span className="text-xs text-slate-700 dark:text-slate-300 truncate flex-1">
                         {t(`ebios.partyTypes.${type}`)}
                       </span>
-                      <span className="text-xs text-gray-400">{count}</span>
+                      <span className="text-xs text-slate-400">{count}</span>
                     </button>
                   );
                 }
@@ -561,7 +561,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
             </div>
 
             {/* Likelihood legend */}
-            <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 pt-2 border-t border-gray-200 dark:border-gray-700">
+            <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 pt-2 border-t border-slate-200 dark:border-slate-700">
               {t('ebios.ecosystem.likelihood')}
             </h4>
             <div className="space-y-1">
@@ -574,7 +574,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                       opacity: level >= 3 ? 1 : 0.7,
                     }}
                   />
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-slate-500">
                     V{level} - {locale === 'fr'
                       ? ['Faible', 'Modérée', 'Élevée', 'Très élevée'][level - 1]
                       : ['Low', 'Moderate', 'High', 'Very High'][level - 1]
@@ -594,16 +594,16 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="absolute bottom-4 left-4 right-4 z-10 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg"
+            className="absolute bottom-4 left-4 right-4 z-10 p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg"
           >
             <button
               onClick={() => {
                 setSelectedParty(null);
                 setSelectedPath(null);
               }}
-              className="absolute top-2 right-2 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="absolute top-2 right-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
             >
-              <X className="w-4 h-4 text-gray-400" />
+              <X className="w-4 h-4 text-slate-400" />
             </button>
 
             {selectedParty && (
@@ -619,10 +619,10 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                     );
                   })()}
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                    <h4 className="font-semibold text-slate-900 dark:text-white">
                       {selectedParty.name}
                     </h4>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-500">
                       {t(`ebios.partyTypes.${selectedParty.type}`)} ·{' '}
                       {selectedParty.category === 'internal'
                         ? t('ebios.ecosystem.internal')
@@ -631,29 +631,29 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                   </div>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
-                  <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                    <p className="text-lg font-bold text-slate-900 dark:text-white">
                       {selectedParty.trustLevel}
                     </p>
-                    <p className="text-xs text-gray-500">{t('ebios.ecosystem.trust')}</p>
+                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.trust')}</p>
                   </div>
-                  <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                    <p className="text-lg font-bold text-slate-900 dark:text-white">
                       {selectedParty.exposure}
                     </p>
-                    <p className="text-xs text-gray-500">{t('ebios.ecosystem.exposure')}</p>
+                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.exposure')}</p>
                   </div>
-                  <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                    <p className="text-lg font-bold text-slate-900 dark:text-white">
                       {selectedParty.cyberDependency}
                     </p>
-                    <p className="text-xs text-gray-500">{t('ebios.ecosystem.dependency')}</p>
+                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.dependency')}</p>
                   </div>
-                  <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                    <p className="text-lg font-bold text-slate-900 dark:text-white">
                       {selectedParty.penetration}
                     </p>
-                    <p className="text-xs text-gray-500">{t('ebios.ecosystem.penetration')}</p>
+                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.penetration')}</p>
                   </div>
                 </div>
               </div>
@@ -666,17 +666,17 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                     <ArrowRight className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                    <h4 className="font-semibold text-slate-900 dark:text-white">
                       {selectedPath.name || t('ebios.ecosystem.attackPath')}
                     </h4>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-500">
                       {getPartyById(selectedPath.sourcePartyId)?.name} →{' '}
                       {getAssetById(selectedPath.targetAssetId)?.name}
                     </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                  <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
                     <p
                       className={cn(
                         'text-lg font-bold',
@@ -685,17 +685,17 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                     >
                       V{selectedPath.likelihood}
                     </p>
-                    <p className="text-xs text-gray-500">{t('ebios.ecosystem.likelihood')}</p>
+                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.likelihood')}</p>
                   </div>
-                  <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                    <p className="text-lg font-bold text-slate-900 dark:text-white">
                       C{selectedPath.complexity}
                     </p>
-                    <p className="text-xs text-gray-500">{t('ebios.ecosystem.complexity')}</p>
+                    <p className="text-xs text-slate-500">{t('ebios.ecosystem.complexity')}</p>
                   </div>
                 </div>
                 {selectedPath.description && (
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                     {selectedPath.description}
                   </p>
                 )}
@@ -739,9 +739,9 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
       {parties.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <Globe className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500">{t('ebios.ecosystem.noParties')}</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <Globe className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+            <p className="text-slate-500">{t('ebios.ecosystem.noParties')}</p>
+            <p className="text-sm text-slate-400 mt-1">
               {t('ebios.ecosystem.addPartiesHelp')}
             </p>
           </div>

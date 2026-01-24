@@ -98,13 +98,13 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                 {/* Value and title */}
                 <div>
                     {loading ? (
-                        <div className="h-8 w-20 bg-slate-200/50 dark:bg-white/5 rounded-lg animate-pulse mb-2"></div>
+                        <div className="h-10 w-24 bg-slate-200/50 dark:bg-white/5 rounded-xl animate-pulse mb-2"></div>
                     ) : (
-                        <h3 className="text-2xl font-bold tracking-tight text-foreground font-display">
+                        <h3 className="text-3xl font-bold tracking-tight text-foreground font-display">
                             {value}
                         </h3>
                     )}
-                    <p className="text-[10px] font-semibold text-muted-foreground mt-1 tracking-wider uppercase">
+                    <p className="text-xs font-semibold text-muted-foreground mt-1 tracking-wide uppercase">
                         {title}
                     </p>
                 </div>

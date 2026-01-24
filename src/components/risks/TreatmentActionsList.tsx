@@ -88,7 +88,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
     const progressPercentage = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
 
     return (
-        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+        <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <ListChecks className="h-4 w-4 text-brand-500" />

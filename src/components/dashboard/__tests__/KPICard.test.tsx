@@ -36,7 +36,7 @@ describe('KPICard', () => {
     render(<KPICard title="Test KPI" value={42} trend="stable" />);
 
     // Check for gray color class in the trend arrow
-    const arrow = document.querySelector('svg.text-gray-500');
+    const arrow = document.querySelector('svg.text-slate-500');
     expect(arrow).toBeInTheDocument();
   });
 
@@ -81,7 +81,7 @@ describe('KPICard', () => {
       <KPICard title="Test KPI" value={42} colorScheme="neutral" />
     );
 
-    expect(container.firstChild).toHaveClass('bg-gray-50');
+    expect(container.firstChild).toHaveClass('bg-slate-50');
   });
 
   it('should render small size variant', () => {

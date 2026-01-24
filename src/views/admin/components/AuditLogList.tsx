@@ -74,7 +74,7 @@ export const AuditLogList: React.FC = () => {
                         placeholder="Search logs (Actor, Action, ID)..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-sm focus:bg-slate-900 transition-colors text-white"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus-visible:ring-brand-500/50 text-sm focus:bg-slate-900 transition-colors text-white"
                     />
                 </div>
                 <div className="flex gap-2">

@@ -93,7 +93,7 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
       case 'asset': return 'text-purple-500';
       case 'user': return 'text-orange-500';
       case 'document': return 'text-indigo-500';
-      default: return 'text-gray-500';
+      default: return 'text-slate-500';
     }
   };
 
@@ -134,7 +134,7 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Rechercher des pages, projets, risques..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:border-transparent"
                   autoFocus
                 />
               </div>

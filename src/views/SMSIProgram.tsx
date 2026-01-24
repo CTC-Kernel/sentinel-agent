@@ -261,7 +261,7 @@ export const SMSIProgramView: React.FC = () => {
       variants={staggerContainerVariants}
       initial="initial"
       animate="visible"
-      className="p-6 space-y-6"
+      className="p-6 flex flex-col gap-6"
     >
       <MasterpieceBackground />
       <PageHeader
@@ -524,14 +524,14 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
               {/* Phase Header */}
               <div className={cn(
                 "flex items-center gap-4 p-4 rounded-xl border-2 mb-4",
-                isCurrentPhase ? `${style.borderActive} ${style.bgActive}` : "border-gray-200 dark:border-gray-700"
+                isCurrentPhase ? `${style.borderActive} ${style.bgActive}` : "border-slate-200 dark:border-slate-700"
               )}>
                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", style.iconBg)}>
                   <PhaseIcon className={cn("w-6 h-6", style.iconText)} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
-                    <h4 className={cn("font-bold", isCurrentPhase ? style.textActive : "text-gray-700 dark:text-gray-300")}>
+                    <h4 className={cn("font-bold", isCurrentPhase ? style.textActive : "text-slate-700 dark:text-slate-300")}>
                       {config.label}
                     </h4>
                     {isCurrentPhase && (
@@ -541,14 +541,14 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                   <p className="text-sm text-muted-foreground">{config.description}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{progress}%</div>
+                  <div className="text-2xl font-bold text-slate-900 dark:text-white">{progress}%</div>
                   <div className="text-xs text-muted-foreground">Progression</div>
                 </div>
               </div>
 
               {/* Milestones */}
               {phaseMilestones.length > 0 ? (
-                <div className="ml-6 border-l-2 border-gray-200 dark:border-gray-700 pl-6 space-y-3">
+                <div className="ml-6 border-l-2 border-slate-200 dark:border-slate-700 pl-6 space-y-3">
                   {phaseMilestones.map((milestone) => {
                     const isOverdue = milestone.status !== 'completed' && new Date(milestone.dueDate) < new Date();
                     const isCompleted = milestone.status === 'completed';
@@ -559,8 +559,8 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                         className={cn(
                           "relative flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.02]",
                           isOverdue ? "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-900/10" :
-                          isCompleted ? "border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-900/10" :
-                          "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                            isCompleted ? "border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-900/10" :
+                              "border-slate-200 dark:border-slate-700 hover:border-slate-300"
                         )}
                         onClick={() => onSelect(milestone)}
                         whileHover={{ x: 4 }}
@@ -569,8 +569,8 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                         <div className={cn(
                           "absolute -left-[30px] w-4 h-4 rounded-full border-2",
                           isCompleted ? "bg-green-500 border-green-500" :
-                          isOverdue ? "bg-red-500 border-red-500" :
-                          "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                            isOverdue ? "bg-red-500 border-red-500" :
+                              "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
                         )} />
 
                         <div className="flex-1">
@@ -578,8 +578,8 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                             <span className={cn(
                               "font-medium",
                               isOverdue ? "text-red-700 dark:text-red-400" :
-                              isCompleted ? "text-green-700 dark:text-green-400" :
-                              "text-gray-900 dark:text-white"
+                                isCompleted ? "text-green-700 dark:text-green-400" :
+                                  "text-slate-900 dark:text-white"
                             )}>
                               {milestone.name}
                             </span>
@@ -608,7 +608,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
                   })}
                 </div>
               ) : (
-                <div className="ml-6 border-l-2 border-gray-200 dark:border-gray-700 pl-6 py-4">
+                <div className="ml-6 border-l-2 border-slate-200 dark:border-slate-700 pl-6 py-4">
                   <p className="text-sm text-muted-foreground italic">Aucun jalon pour cette phase</p>
                 </div>
               )}
@@ -616,7 +616,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
               {/* Connector to next phase */}
               {phaseIndex < phases.length - 1 && (
                 <div className="flex justify-center my-4">
-                  <ChevronRight className="w-6 h-6 text-gray-300 dark:text-gray-600 rotate-90" />
+                  <ChevronRight className="w-6 h-6 text-slate-300 dark:text-slate-600 rotate-90" />
                 </div>
               )}
             </div>
