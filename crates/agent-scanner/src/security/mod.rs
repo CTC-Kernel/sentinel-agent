@@ -76,18 +76,13 @@ impl std::fmt::Display for IncidentType {
 }
 
 /// Severity levels for incidents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum IncidentSeverity {
     Critical,
     High,
+    #[default]
     Medium,
     Low,
-}
-
-impl Default for IncidentSeverity {
-    fn default() -> Self {
-        Self::Medium
-    }
 }
 
 impl std::fmt::Display for IncidentSeverity {

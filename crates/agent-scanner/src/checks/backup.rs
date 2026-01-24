@@ -627,7 +627,7 @@ impl BackupCheck {
                 for line in result.lines() {
                     if line.contains("Name") {
                         status.backup_destination =
-                            line.split(':').last().map(|s| s.trim().to_string());
+                            line.split(':').next_back().map(|s| s.trim().to_string());
                     }
                 }
             }

@@ -312,10 +312,10 @@ impl AuthenticatedClient {
             let state = self.state.read().await;
             if let Some(ref client) = state.client {
                 // Check if credentials are still valid
-                if let Some(ref creds) = state.credentials {
-                    if !creds.is_certificate_expired() {
-                        return Ok(client.clone());
-                    }
+                if let Some(ref creds) = state.credentials
+                    && !creds.is_certificate_expired()
+                {
+                    return Ok(client.clone());
                 }
             }
         }

@@ -90,7 +90,7 @@ pub struct PolicyConfig {
 impl PolicyConfig {
     /// Convert to UpdatePolicy enum.
     pub fn to_update_policy(&self) -> UpdatePolicy {
-        UpdatePolicy::from_str(&self.policy).unwrap_or_default()
+        UpdatePolicy::parse_str(&self.policy).unwrap_or_default()
     }
 
     /// Check if current time is within maintenance window.
@@ -215,7 +215,7 @@ impl RolloutService {
             .read()
             .await
             .as_ref()
-            .and_then(|a| RolloutGroup::from_str(&a.group))
+            .and_then(|a| RolloutGroup::parse_str(&a.group))
             .unwrap_or_default()
     }
 
@@ -480,14 +480,14 @@ impl RolloutService {
 
     /// Check if emergency rollback applies to current version.
     pub async fn should_emergency_rollback(&self, current_version: &str) -> bool {
-        if let Some(ref cmd) = *self.emergency_rollback.read().await {
-            if cmd.affected_version == current_version {
-                warn!(
-                    "Current version {} is affected by emergency rollback: {}",
-                    current_version, cmd.reason
-                );
-                return true;
-            }
+        if let Some(ref cmd) = *self.emergency_rollback.read().await
+            && cmd.affected_version == current_version
+        {
+            warn!(
+                "Current version {} is affected by emergency rollback: {}",
+                current_version, cmd.reason
+            );
+            return true;
         }
         false
     }
