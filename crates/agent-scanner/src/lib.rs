@@ -60,9 +60,13 @@ pub mod vulnerability;
 // Re-export commonly used types
 pub use check::{Check, CheckDefinitionBuilder, CheckOutput, CheckRegistry};
 pub use error::{ScannerError, ScannerResult};
-pub use proof::{compute_sha256, verify_sha256, ProofGenerator};
+pub use proof::{ProofGenerator, compute_sha256, verify_sha256};
 pub use runner::{CheckExecutionResult, CheckRunner, RunnerConfig, ScanSummary};
 pub use scheduler::{Scheduler, SchedulerConfig, SchedulerEvent, SchedulerState, SchedulerStatus};
 pub use score::{CheckScoreInput, ComplianceScore, ScoreCalculator, ScoringConfig};
-pub use security::{SecurityIncident, SecurityMonitor, SecurityScanResult, IncidentType, IncidentSeverity};
-pub use vulnerability::{VulnerabilityFinding, VulnerabilityScanner, VulnerabilityScanResult, Severity, ScanType};
+pub use security::{
+    IncidentSeverity, IncidentType, SecurityIncident, SecurityMonitor, SecurityScanResult,
+};
+pub use vulnerability::{
+    ScanType, Severity, VulnerabilityFinding, VulnerabilityScanResult, VulnerabilityScanner,
+};

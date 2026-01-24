@@ -6,8 +6,8 @@
 //! - Query by date range and check type
 //! - Concurrent write safety via WAL mode
 
-use crate::error::{StorageError, StorageResult};
 use crate::Database;
+use crate::error::{StorageError, StorageResult};
 use chrono::{DateTime, Utc};
 use rusqlite::OptionalExtension;
 use serde::{Deserialize, Serialize};
@@ -255,11 +255,11 @@ impl<'a> CheckResultsRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let result = stmt
-                    .query_row([id], |row| {
-                        Ok(Self::row_to_check_result(row)?)
-                    })
+                    .query_row([id], |row| Ok(Self::row_to_check_result(row)?))
                     .optional()
-                    .map_err(|e| StorageError::Query(format!("Failed to query check result: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to query check result: {}", e))
+                    })?;
 
                 Ok(result)
             })
@@ -329,7 +329,9 @@ impl<'a> CheckResultsRepository<'a> {
                     })
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -353,17 +355,19 @@ impl<'a> CheckResultsRepository<'a> {
                     LIMIT ?
                 "#;
 
-                let mut stmt = conn
-                    .prepare(sql)
-                    .map_err(|e| StorageError::Query(format!("Failed to prepare unsynced query: {}", e)))?;
+                let mut stmt = conn.prepare(sql).map_err(|e| {
+                    StorageError::Query(format!("Failed to prepare unsynced query: {}", e))
+                })?;
 
                 let results = stmt
-                    .query_map([limit], |row| {
-                        Ok(Self::row_to_check_result(row)?)
-                    })
-                    .map_err(|e| StorageError::Query(format!("Failed to execute unsynced query: {}", e)))?
+                    .query_map([limit], |row| Ok(Self::row_to_check_result(row)?))
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to execute unsynced query: {}", e))
+                    })?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect unsynced results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect unsynced results: {}", e))
+                    })?;
 
                 debug!("Found {} unsynced check results", results.len());
                 Ok(results)
@@ -409,7 +413,9 @@ impl<'a> CheckResultsRepository<'a> {
                         "DELETE FROM check_results WHERE executed_at < ?",
                         [&before_str],
                     )
-                    .map_err(|e| StorageError::Query(format!("Failed to delete old results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete old results: {}", e))
+                    })?;
 
                 info!("Deleted {} check results older than {}", count, before_str);
                 Ok(count)
@@ -454,7 +460,9 @@ impl<'a> CheckResultsRepository<'a> {
                     .query_map([], |row| Ok(Self::row_to_check_result(row)?))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -611,9 +619,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(results.len(), 2);
-        assert!(results
-            .iter()
-            .all(|r| r.check_rule_id == "disk_encryption"));
+        assert!(results.iter().all(|r| r.check_rule_id == "disk_encryption"));
     }
 
     #[tokio::test]

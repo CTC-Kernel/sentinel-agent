@@ -33,18 +33,15 @@ pub mod retention;
 pub use database::{Database, DatabaseConfig};
 pub use error::{StorageError, StorageResult};
 pub use key::KeyManager;
-pub use migrations::{run_migrations, CURRENT_SCHEMA_VERSION};
+pub use migrations::{CURRENT_SCHEMA_VERSION, run_migrations};
 pub use repositories::{
-    CheckResultsRepository,
-    CheckRulesRepository,
-    ConfigRepository,
-    ProofsRepository,
+    CheckResultsRepository, CheckRulesRepository, ConfigRepository, ProofsRepository,
     check_results::{CheckResult, CheckResultQuery, CheckStatus},
     check_rules::{CheckRule, RuleCacheMetadata, Severity},
     config::{ConfigEntry, ConfigSource, MergeResult},
-    proofs::{Proof, ProofStats, IntegrityStatus},
+    proofs::{IntegrityStatus, Proof, ProofStats},
 };
-pub use retention::{RetentionPolicy, RetentionConfig, RetentionResult, StorageStats};
+pub use retention::{RetentionConfig, RetentionPolicy, RetentionResult, StorageStats};
 
 #[cfg(test)]
 mod tests {
@@ -64,27 +61,28 @@ mod tests {
 
         // Create a table and insert data
         let runtime = tokio::runtime::Runtime::new().unwrap();
-        runtime.block_on(async {
-            db.with_connection(|conn| {
-                conn.execute_batch(
-                    "CREATE TABLE IF NOT EXISTS config (
+        runtime
+            .block_on(async {
+                db.with_connection(|conn| {
+                    conn.execute_batch(
+                        "CREATE TABLE IF NOT EXISTS config (
                         key TEXT PRIMARY KEY,
                         value TEXT NOT NULL
                     )",
-                )
-                .map_err(|e| StorageError::Query(e.to_string()))?;
+                    )
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
 
-                conn.execute(
-                    "INSERT INTO config (key, value) VALUES (?, ?)",
-                    ["server_url", "https://app.cyber-threat-consulting.com"],
-                )
-                .map_err(|e| StorageError::Query(e.to_string()))?;
+                    conn.execute(
+                        "INSERT INTO config (key, value) VALUES (?, ?)",
+                        ["server_url", "https://app.cyber-threat-consulting.com"],
+                    )
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
 
-                Ok(())
+                    Ok(())
+                })
+                .await
             })
-            .await
-        })
-        .unwrap();
+            .unwrap();
 
         // Query the data back
         let value: String = runtime

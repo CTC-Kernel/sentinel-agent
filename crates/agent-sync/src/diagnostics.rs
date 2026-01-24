@@ -11,7 +11,7 @@ use crate::error::SyncResult;
 use crate::security::LogSigner;
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::Arc;
 use sysinfo::System;
@@ -100,7 +100,13 @@ impl LogBuffer {
     }
 
     /// Add a log entry with optional integrity signature.
-    pub async fn add(&self, level: &str, component: &str, message: &str, context: HashMap<String, String>) {
+    pub async fn add(
+        &self,
+        level: &str,
+        component: &str,
+        message: &str,
+        context: HashMap<String, String>,
+    ) {
         let mut entries = self.entries.write().await;
         let mut id = self.next_id.write().await;
         let mut prev_hash = self.previous_hash.write().await;
@@ -243,7 +249,10 @@ pub async fn upload_logs(
     };
 
     let response: LogUploadResponse = client.post_json(&path, &request).await?;
-    info!("Uploaded {} log entries (ack: {})", response.received_count, response.ack_id);
+    info!(
+        "Uploaded {} log entries (ack: {})",
+        response.received_count, response.ack_id
+    );
 
     Ok(response)
 }
@@ -479,7 +488,9 @@ impl ConnectionTracker {
         let failure_rate = self.calculate_failure_rate().await;
 
         // Determine connection state
-        let state = self.determine_state(last_heartbeat, latency_p95, failure_rate).await;
+        let state = self
+            .determine_state(last_heartbeat, latency_p95, failure_rate)
+            .await;
 
         let sync_queue_size = *self.sync_queue_size.read().await;
 
@@ -573,7 +584,8 @@ impl ErrorTracker {
         component: &str,
         stack_trace: Option<&str>,
     ) {
-        self.record_error_with_context(code, message, component, stack_trace, HashMap::new()).await;
+        self.record_error_with_context(code, message, component, stack_trace, HashMap::new())
+            .await;
     }
 
     /// Record an error with additional context (Story 12.3 AC1).
@@ -822,7 +834,9 @@ impl DiagnosticService {
         let agent_id = self.client.agent_id().await?;
         let path = format!("/v1/agents/{}/diagnostics", agent_id);
 
-        self.client.post_json::<_, serde_json::Value>(&path, result).await?;
+        self.client
+            .post_json::<_, serde_json::Value>(&path, result)
+            .await?;
 
         info!("Uploaded diagnostic results (id: {})", result.id);
 
@@ -871,7 +885,8 @@ impl DiagnosticService {
             ConnectionState::Connected => "healthy",
             ConnectionState::Degraded => "degraded",
             ConnectionState::Disconnected => "unhealthy",
-        }.to_string();
+        }
+        .to_string();
 
         AgentHealth {
             status,
@@ -879,10 +894,10 @@ impl DiagnosticService {
             cpu_percent,
             memory_bytes,
             last_check_at: None, // Would be tracked by check runner
-            checks_last_hour: 0,  // Would be tracked by check runner
+            checks_last_hour: 0, // Would be tracked by check runner
             connection: format!("{:?}", connection_status.state).to_lowercase(),
             database: "ok".to_string(),
-            database_size_bytes: 0,      // Would be queried from actual database
+            database_size_bytes: 0, // Would be queried from actual database
             database_integrity_ok: true, // Would run integrity check
             last_sync: connection_status.last_heartbeat,
             pending_uploads: connection_status.sync_queue_size,
@@ -901,21 +916,25 @@ impl DiagnosticService {
 
         // High CPU usage
         if health.cpu_percent > 5.0 {
-            recommendations.push("Agent CPU usage is high. Consider reviewing check frequency.".to_string());
+            recommendations
+                .push("Agent CPU usage is high. Consider reviewing check frequency.".to_string());
         }
 
         // High memory usage
         if health.memory_bytes > 100 * 1024 * 1024 {
-            recommendations.push("Agent memory usage exceeds 100MB limit. Consider restarting.".to_string());
+            recommendations
+                .push("Agent memory usage exceeds 100MB limit. Consider restarting.".to_string());
         }
 
         // Recurring errors
         let error_codes: Vec<_> = errors.iter().map(|e| e.code.as_str()).collect();
         if error_codes.contains(&"SYNC_FAILED") {
-            recommendations.push("Sync failures detected. Check network and server status.".to_string());
+            recommendations
+                .push("Sync failures detected. Check network and server status.".to_string());
         }
         if error_codes.contains(&"DB_ERROR") {
-            recommendations.push("Database errors detected. Check disk space and permissions.".to_string());
+            recommendations
+                .push("Database errors detected. Check disk space and permissions.".to_string());
         }
 
         if recommendations.is_empty() {
@@ -934,9 +953,15 @@ mod tests {
     async fn test_log_buffer_add_and_get() {
         let buffer = LogBuffer::new(100);
 
-        buffer.add("INFO", "test", "Message 1", HashMap::new()).await;
-        buffer.add("DEBUG", "test", "Message 2", HashMap::new()).await;
-        buffer.add("ERROR", "test", "Message 3", HashMap::new()).await;
+        buffer
+            .add("INFO", "test", "Message 1", HashMap::new())
+            .await;
+        buffer
+            .add("DEBUG", "test", "Message 2", HashMap::new())
+            .await;
+        buffer
+            .add("ERROR", "test", "Message 3", HashMap::new())
+            .await;
 
         let entries = buffer.get_recent(10).await;
         assert_eq!(entries.len(), 3);
@@ -949,7 +974,9 @@ mod tests {
         let buffer = LogBuffer::new(5);
 
         for i in 0..10 {
-            buffer.add("INFO", "test", &format!("Message {}", i), HashMap::new()).await;
+            buffer
+                .add("INFO", "test", &format!("Message {}", i), HashMap::new())
+                .await;
         }
 
         assert_eq!(buffer.len().await, 5);
@@ -961,9 +988,15 @@ mod tests {
     async fn test_log_buffer_by_level() {
         let buffer = LogBuffer::new(100);
 
-        buffer.add("INFO", "test", "Info message", HashMap::new()).await;
-        buffer.add("ERROR", "test", "Error message", HashMap::new()).await;
-        buffer.add("INFO", "test", "Another info", HashMap::new()).await;
+        buffer
+            .add("INFO", "test", "Info message", HashMap::new())
+            .await;
+        buffer
+            .add("ERROR", "test", "Error message", HashMap::new())
+            .await;
+        buffer
+            .add("INFO", "test", "Another info", HashMap::new())
+            .await;
 
         let errors = buffer.get_by_level("ERROR").await;
         assert_eq!(errors.len(), 1);
@@ -974,9 +1007,15 @@ mod tests {
     async fn test_log_buffer_search() {
         let buffer = LogBuffer::new(100);
 
-        buffer.add("INFO", "sync", "Sync started", HashMap::new()).await;
-        buffer.add("INFO", "check", "Check completed", HashMap::new()).await;
-        buffer.add("ERROR", "sync", "Sync failed", HashMap::new()).await;
+        buffer
+            .add("INFO", "sync", "Sync started", HashMap::new())
+            .await;
+        buffer
+            .add("INFO", "check", "Check completed", HashMap::new())
+            .await;
+        buffer
+            .add("ERROR", "sync", "Sync failed", HashMap::new())
+            .await;
 
         let results = buffer.search("sync").await;
         assert_eq!(results.len(), 2);
@@ -1012,9 +1051,15 @@ mod tests {
     async fn test_error_tracker() {
         let tracker = ErrorTracker::new();
 
-        tracker.record_error("SYNC_001", "Sync failed", "sync", None).await;
-        tracker.record_error("SYNC_001", "Sync failed again", "sync", None).await;
-        tracker.record_error("DB_001", "Database error", "storage", Some("stack trace")).await;
+        tracker
+            .record_error("SYNC_001", "Sync failed", "sync", None)
+            .await;
+        tracker
+            .record_error("SYNC_001", "Sync failed again", "sync", None)
+            .await;
+        tracker
+            .record_error("DB_001", "Database error", "storage", Some("stack trace"))
+            .await;
 
         let errors = tracker.get_recent_errors().await;
         assert_eq!(errors.len(), 3);
@@ -1029,7 +1074,9 @@ mod tests {
         let tracker = ErrorTracker::new();
 
         tracker.record_error("ERR_A", "Error A", "comp", None).await;
-        tracker.record_error("ERR_A", "Error A again", "comp", None).await;
+        tracker
+            .record_error("ERR_A", "Error A again", "comp", None)
+            .await;
         tracker.record_error("ERR_B", "Error B", "comp", None).await;
 
         let grouped = tracker.get_errors_by_code().await;
@@ -1184,7 +1231,9 @@ mod tests {
 
         // Add more errors than capacity
         for i in 0..10 {
-            tracker.record_error(&format!("ERR_{}", i), "Error", "test", None).await;
+            tracker
+                .record_error(&format!("ERR_{}", i), "Error", "test", None)
+                .await;
         }
 
         let errors = tracker.get_recent_errors().await;
@@ -1198,13 +1247,9 @@ mod tests {
         let mut context = HashMap::new();
         context.insert("request_id".to_string(), "abc123".to_string());
 
-        tracker.record_error_with_context(
-            "SYNC_001",
-            "Sync failed",
-            "sync",
-            None,
-            context,
-        ).await;
+        tracker
+            .record_error_with_context("SYNC_001", "Sync failed", "sync", None, context)
+            .await;
 
         let errors = tracker.get_recent_errors().await;
         assert_eq!(errors.len(), 1);
@@ -1235,8 +1280,12 @@ mod tests {
     async fn test_log_buffer_clear() {
         let buffer = LogBuffer::new(100);
 
-        buffer.add("INFO", "test", "Message 1", HashMap::new()).await;
-        buffer.add("INFO", "test", "Message 2", HashMap::new()).await;
+        buffer
+            .add("INFO", "test", "Message 1", HashMap::new())
+            .await;
+        buffer
+            .add("INFO", "test", "Message 2", HashMap::new())
+            .await;
 
         assert_eq!(buffer.len().await, 2);
 
@@ -1258,14 +1307,19 @@ mod tests {
         use crate::security::LogSigner;
 
         // Create a signer with a test key
-        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef").unwrap();
+        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+            .unwrap();
         let signer = Arc::new(LogSigner::new(&key));
 
         let buffer = LogBuffer::with_signer(100, signer.clone());
 
         // Add entries - they should be signed
-        buffer.add("INFO", "test", "Signed message 1", HashMap::new()).await;
-        buffer.add("ERROR", "test", "Signed message 2", HashMap::new()).await;
+        buffer
+            .add("INFO", "test", "Signed message 1", HashMap::new())
+            .await;
+        buffer
+            .add("ERROR", "test", "Signed message 2", HashMap::new())
+            .await;
 
         let entries = buffer.get_recent(10).await;
         assert_eq!(entries.len(), 2);
@@ -1284,14 +1338,21 @@ mod tests {
     async fn test_log_buffer_verify_chain_valid() {
         use crate::security::LogSigner;
 
-        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef").unwrap();
+        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+            .unwrap();
         let signer = Arc::new(LogSigner::new(&key));
 
         let buffer = LogBuffer::with_signer(100, signer);
 
-        buffer.add("INFO", "test", "Message 1", HashMap::new()).await;
-        buffer.add("DEBUG", "test", "Message 2", HashMap::new()).await;
-        buffer.add("WARN", "test", "Message 3", HashMap::new()).await;
+        buffer
+            .add("INFO", "test", "Message 1", HashMap::new())
+            .await;
+        buffer
+            .add("DEBUG", "test", "Message 2", HashMap::new())
+            .await;
+        buffer
+            .add("WARN", "test", "Message 3", HashMap::new())
+            .await;
 
         // Verify chain should pass
         assert!(buffer.verify_chain().await);
@@ -1301,7 +1362,9 @@ mod tests {
     async fn test_log_buffer_verify_chain_no_signer() {
         let buffer = LogBuffer::new(100);
 
-        buffer.add("INFO", "test", "Unsigned message", HashMap::new()).await;
+        buffer
+            .add("INFO", "test", "Unsigned message", HashMap::new())
+            .await;
 
         // Without signer, verify_chain should return true (no verification needed)
         assert!(buffer.verify_chain().await);
@@ -1311,14 +1374,18 @@ mod tests {
     async fn test_log_entry_verify_signature() {
         use crate::security::LogSigner;
 
-        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef").unwrap();
+        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+            .unwrap();
         let signer = LogSigner::new(&key);
 
         // Use a fixed timestamp so signing and verification use the same value
         let timestamp = Utc::now();
 
         // Create a properly signed entry - must use same timestamp for both
-        let data = format!("{}:{}:{}:{}:{}", 1, timestamp, "INFO", "test", "Test message");
+        let data = format!(
+            "{}:{}:{}:{}:{}",
+            1, timestamp, "INFO", "test", "Test message"
+        );
         let signature = signer.sign_data(&data);
 
         let entry = LogEntry {
@@ -1344,7 +1411,8 @@ mod tests {
     async fn test_log_entry_verify_signature_invalid() {
         use crate::security::LogSigner;
 
-        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef").unwrap();
+        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+            .unwrap();
         let signer = LogSigner::new(&key);
 
         let entry = LogEntry {
@@ -1366,7 +1434,8 @@ mod tests {
     async fn test_log_entry_verify_signature_none() {
         use crate::security::LogSigner;
 
-        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef").unwrap();
+        let key = hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+            .unwrap();
         let signer = LogSigner::new(&key);
 
         let entry = LogEntry {

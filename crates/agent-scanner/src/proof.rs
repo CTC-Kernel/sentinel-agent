@@ -85,8 +85,7 @@ impl ProofGenerator {
         type HmacSha256 = Hmac<Sha256>;
 
         let data_json = serde_json::to_string(&proof.data).unwrap_or_default();
-        let mut mac = HmacSha256::new_from_slice(key)
-            .expect("HMAC can accept any key length");
+        let mut mac = HmacSha256::new_from_slice(key).expect("HMAC can accept any key length");
         mac.update(data_json.as_bytes());
 
         let signature = hex::encode(mac.finalize().into_bytes());
@@ -104,8 +103,7 @@ impl ProofGenerator {
         };
 
         let data_json = serde_json::to_string(&proof.data).unwrap_or_default();
-        let mut mac = HmacSha256::new_from_slice(key)
-            .expect("HMAC can accept any key length");
+        let mut mac = HmacSha256::new_from_slice(key).expect("HMAC can accept any key length");
         mac.update(data_json.as_bytes());
 
         let expected = hex::encode(mac.finalize().into_bytes());
@@ -210,7 +208,13 @@ mod tests {
         generator.sign(&mut proof, key);
 
         assert!(proof.signature.is_some());
-        assert!(proof.signature.as_ref().unwrap().starts_with("hmac-sha256:"));
+        assert!(
+            proof
+                .signature
+                .as_ref()
+                .unwrap()
+                .starts_with("hmac-sha256:")
+        );
     }
 
     #[test]

@@ -72,9 +72,7 @@ pub fn cleanup_data(options: &CleanupOptions) -> CleanupResult {
     if !options.purge {
         // Default uninstall: only remove service, preserve all data
         info!("Preserving configuration, logs, and database (use --purge to remove)");
-        result
-            .preserved_dirs
-            .push(paths::CONFIG_DIR.to_string());
+        result.preserved_dirs.push(paths::CONFIG_DIR.to_string());
         result.preserved_dirs.push(paths::LOG_DIR.to_string());
         result.preserved_dirs.push(paths::DATA_DIR.to_string());
         return result;
@@ -85,14 +83,18 @@ pub fn cleanup_data(options: &CleanupOptions) -> CleanupResult {
 
     // Remove database directory
     if let Err(e) = remove_directory(paths::DATA_DIR) {
-        result.errors.push(format!("Failed to remove data dir: {}", e));
+        result
+            .errors
+            .push(format!("Failed to remove data dir: {}", e));
     } else {
         result.removed_dirs.push(paths::DATA_DIR.to_string());
     }
 
     // Remove config directory
     if let Err(e) = remove_directory(paths::CONFIG_DIR) {
-        result.errors.push(format!("Failed to remove config dir: {}", e));
+        result
+            .errors
+            .push(format!("Failed to remove config dir: {}", e));
     } else {
         result.removed_dirs.push(paths::CONFIG_DIR.to_string());
     }
@@ -102,7 +104,9 @@ pub fn cleanup_data(options: &CleanupOptions) -> CleanupResult {
         info!("Preserving log files at {}", paths::LOG_DIR);
         result.preserved_dirs.push(paths::LOG_DIR.to_string());
     } else if let Err(e) = remove_directory(paths::LOG_DIR) {
-        result.errors.push(format!("Failed to remove log dir: {}", e));
+        result
+            .errors
+            .push(format!("Failed to remove log dir: {}", e));
     } else {
         result.removed_dirs.push(paths::LOG_DIR.to_string());
     }
@@ -110,7 +114,9 @@ pub fn cleanup_data(options: &CleanupOptions) -> CleanupResult {
     // Try to remove installation directory if empty
     if let Err(e) = remove_directory_if_empty(paths::INSTALL_DIR) {
         if !e.contains("not empty") {
-            result.errors.push(format!("Failed to remove install dir: {}", e));
+            result
+                .errors
+                .push(format!("Failed to remove install dir: {}", e));
         } else {
             result.preserved_dirs.push(paths::INSTALL_DIR.to_string());
         }

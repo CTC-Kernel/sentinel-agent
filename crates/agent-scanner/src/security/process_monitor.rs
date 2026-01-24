@@ -21,25 +21,73 @@ const SUSPICIOUS_PROCESSES: &[(&str, &str, IncidentType)] = &[
     ("lolminer", "lolMiner", IncidentType::CryptoMiner),
     ("gminer", "GMiner", IncidentType::CryptoMiner),
     // Reverse shells / network tools (in suspicious context)
-    ("nc", "netcat - potential reverse shell", IncidentType::ReverseShell),
-    ("ncat", "ncat - potential reverse shell", IncidentType::ReverseShell),
-    ("netcat", "netcat - potential reverse shell", IncidentType::ReverseShell),
-    ("socat", "socat - potential tunnel", IncidentType::ReverseShell),
+    (
+        "nc",
+        "netcat - potential reverse shell",
+        IncidentType::ReverseShell,
+    ),
+    (
+        "ncat",
+        "ncat - potential reverse shell",
+        IncidentType::ReverseShell,
+    ),
+    (
+        "netcat",
+        "netcat - potential reverse shell",
+        IncidentType::ReverseShell,
+    ),
+    (
+        "socat",
+        "socat - potential tunnel",
+        IncidentType::ReverseShell,
+    ),
     // Credential theft tools
-    ("mimikatz", "Mimikatz credential stealer", IncidentType::CredentialTheft),
-    ("lazagne", "LaZagne credential stealer", IncidentType::CredentialTheft),
-    ("secretsdump", "Impacket secretsdump", IncidentType::CredentialTheft),
-    ("procdump", "ProcDump (may dump credentials)", IncidentType::CredentialTheft),
-    ("gsecdump", "Credential dump tool", IncidentType::CredentialTheft),
-    ("wce", "Windows Credential Editor", IncidentType::CredentialTheft),
+    (
+        "mimikatz",
+        "Mimikatz credential stealer",
+        IncidentType::CredentialTheft,
+    ),
+    (
+        "lazagne",
+        "LaZagne credential stealer",
+        IncidentType::CredentialTheft,
+    ),
+    (
+        "secretsdump",
+        "Impacket secretsdump",
+        IncidentType::CredentialTheft,
+    ),
+    (
+        "procdump",
+        "ProcDump (may dump credentials)",
+        IncidentType::CredentialTheft,
+    ),
+    (
+        "gsecdump",
+        "Credential dump tool",
+        IncidentType::CredentialTheft,
+    ),
+    (
+        "wce",
+        "Windows Credential Editor",
+        IncidentType::CredentialTheft,
+    ),
     // Post-exploitation
     ("meterpreter", "Metasploit payload", IncidentType::Malware),
     ("beacon", "Cobalt Strike beacon", IncidentType::Malware),
     ("empire", "PowerShell Empire", IncidentType::Malware),
     ("covenant", "Covenant C2", IncidentType::Malware),
     // Privilege escalation
-    ("getsystem", "Privilege escalation", IncidentType::PrivilegeEscalation),
-    ("pspy", "Process spy - enumeration tool", IncidentType::PrivilegeEscalation),
+    (
+        "getsystem",
+        "Privilege escalation",
+        IncidentType::PrivilegeEscalation,
+    ),
+    (
+        "pspy",
+        "Process spy - enumeration tool",
+        IncidentType::PrivilegeEscalation,
+    ),
 ];
 
 /// Process information for analysis.
@@ -115,7 +163,9 @@ impl ProcessMonitor {
 
         // Read exe (executable path)
         let exe_path = proc_path.join("exe");
-        let path = fs::read_link(exe_path).ok().map(|p| p.to_string_lossy().to_string());
+        let path = fs::read_link(exe_path)
+            .ok()
+            .map(|p| p.to_string_lossy().to_string());
 
         // Read cmdline
         let cmdline_path = proc_path.join("cmdline");
@@ -126,14 +176,12 @@ impl ProcessMonitor {
 
         // Read status for ppid
         let status_path = proc_path.join("status");
-        let ppid = fs::read_to_string(status_path)
-            .ok()
-            .and_then(|s| {
-                s.lines()
-                    .find(|l| l.starts_with("PPid:"))
-                    .and_then(|l| l.split_whitespace().nth(1))
-                    .and_then(|v| v.parse().ok())
-            });
+        let ppid = fs::read_to_string(status_path).ok().and_then(|s| {
+            s.lines()
+                .find(|l| l.starts_with("PPid:"))
+                .and_then(|l| l.split_whitespace().nth(1))
+                .and_then(|v| v.parse().ok())
+        });
 
         Ok(ProcessInfo {
             pid,

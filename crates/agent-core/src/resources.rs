@@ -385,9 +385,17 @@ fn get_disk_iops() -> u32 {
 
         for line in content.lines() {
             if line.starts_with("syscr:") {
-                read_ops = line.split_whitespace().nth(1).and_then(|s| s.parse().ok()).unwrap_or(0);
+                read_ops = line
+                    .split_whitespace()
+                    .nth(1)
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(0);
             } else if line.starts_with("syscw:") {
-                write_ops = line.split_whitespace().nth(1).and_then(|s| s.parse().ok()).unwrap_or(0);
+                write_ops = line
+                    .split_whitespace()
+                    .nth(1)
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(0);
             }
         }
 
@@ -397,7 +405,8 @@ fn get_disk_iops() -> u32 {
             .map(|d| d.as_millis() as u64)
             .unwrap_or(0);
 
-        let last_ops = LAST_READ_OPS.load(Ordering::Relaxed) + LAST_WRITE_OPS.load(Ordering::Relaxed);
+        let last_ops =
+            LAST_READ_OPS.load(Ordering::Relaxed) + LAST_WRITE_OPS.load(Ordering::Relaxed);
         let last_time = LAST_IO_TIME.load(Ordering::Relaxed);
 
         LAST_READ_OPS.store(read_ops, Ordering::Relaxed);
@@ -444,8 +453,10 @@ fn get_cpu_usage() -> f64 {
         let mut rusage: libc::rusage = std::mem::zeroed();
         if libc::getrusage(libc::RUSAGE_SELF, &mut rusage) == 0 {
             // Convert timeval to microseconds
-            let utime_us = (rusage.ru_utime.tv_sec as u64) * 1_000_000 + (rusage.ru_utime.tv_usec as u64);
-            let stime_us = (rusage.ru_stime.tv_sec as u64) * 1_000_000 + (rusage.ru_stime.tv_usec as u64);
+            let utime_us =
+                (rusage.ru_utime.tv_sec as u64) * 1_000_000 + (rusage.ru_utime.tv_usec as u64);
+            let stime_us =
+                (rusage.ru_stime.tv_sec as u64) * 1_000_000 + (rusage.ru_stime.tv_usec as u64);
             let cpu_time_us = utime_us + stime_us;
 
             // Get current wall clock time in microseconds
@@ -553,7 +564,8 @@ fn get_cpu_usage() -> f64 {
         .is_ok()
         {
             // Convert FILETIME to u64 (100-nanosecond intervals)
-            let kernel = ((kernel_time.dwHighDateTime as u64) << 32) | kernel_time.dwLowDateTime as u64;
+            let kernel =
+                ((kernel_time.dwHighDateTime as u64) << 32) | kernel_time.dwLowDateTime as u64;
             let user = ((user_time.dwHighDateTime as u64) << 32) | user_time.dwLowDateTime as u64;
             let current_time = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)

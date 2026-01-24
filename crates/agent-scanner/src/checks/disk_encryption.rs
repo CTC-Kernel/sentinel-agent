@@ -252,7 +252,11 @@ impl DiskEncryptionCheck {
     }
 
     #[cfg(target_os = "linux")]
-    fn check_linux_device(&self, device: &serde_json::Value, volumes: &mut Vec<VolumeEncryptionInfo>) {
+    fn check_linux_device(
+        &self,
+        device: &serde_json::Value,
+        volumes: &mut Vec<VolumeEncryptionInfo>,
+    ) {
         let fstype = device["fstype"].as_str().unwrap_or("");
         let name = device["name"].as_str().unwrap_or("");
         let mount = device["mountpoint"].as_str().unwrap_or("");

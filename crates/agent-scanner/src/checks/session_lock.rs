@@ -6,9 +6,9 @@
 //! - macOS: Screen saver and screen lock settings
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -144,7 +144,8 @@ impl SessionLockCheck {
             }
 
             // Timeout in seconds -> convert to minutes
-            if let Some(timeout) = json.get("GPO_ScreenSaveTimeOut")
+            if let Some(timeout) = json
+                .get("GPO_ScreenSaveTimeOut")
                 .or_else(|| json.get("ScreenSaveTimeOut"))
                 .and_then(|v| v.as_str())
                 .and_then(|s| s.parse::<u32>().ok())
@@ -153,7 +154,8 @@ impl SessionLockCheck {
             }
 
             // Password required
-            if let Some(secure) = json.get("GPO_ScreenSaverIsSecure")
+            if let Some(secure) = json
+                .get("GPO_ScreenSaverIsSecure")
                 .or_else(|| json.get("ScreenSaverIsSecure"))
                 .and_then(|v| v.as_str())
             {
@@ -162,8 +164,8 @@ impl SessionLockCheck {
 
             // Lock on suspend (from power settings)
             if let Some(power) = json.get("PowerSettings").and_then(|v| v.as_str()) {
-                status.lock_on_suspend = power.to_lowercase().contains("yes")
-                    || power.contains("0x001");
+                status.lock_on_suspend =
+                    power.to_lowercase().contains("yes") || power.contains("0x001");
             }
         }
 
@@ -195,7 +197,11 @@ impl SessionLockCheck {
             .or_else(|_| std::env::var("DESKTOP_SESSION"))
             .unwrap_or_default();
 
-        status.desktop_environment = if de.is_empty() { None } else { Some(de.clone()) };
+        status.desktop_environment = if de.is_empty() {
+            None
+        } else {
+            Some(de.clone())
+        };
         status.raw_output.push_str(&format!("Desktop: {}\n\n", de));
 
         // Try GNOME settings
@@ -234,10 +240,16 @@ impl SessionLockCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("GNOME idle-delay: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("GNOME idle-delay: {}\n", result.trim()));
 
             // Parse "uint32 N" format
-            if let Some(seconds) = result.split_whitespace().last().and_then(|s| s.parse::<u32>().ok()) {
+            if let Some(seconds) = result
+                .split_whitespace()
+                .last()
+                .and_then(|s| s.parse::<u32>().ok())
+            {
                 if seconds > 0 {
                     status.timeout_minutes = Some(seconds / 60);
                 }
@@ -250,7 +262,9 @@ impl SessionLockCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("GNOME lock-enabled: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("GNOME lock-enabled: {}\n", result.trim()));
             status.lock_enabled = result.trim() == "true";
         }
 
@@ -260,7 +274,9 @@ impl SessionLockCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("GNOME lock-delay: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("GNOME lock-delay: {}\n", result.trim()));
         }
     }
 
@@ -272,7 +288,9 @@ impl SessionLockCheck {
             .unwrap_or_default();
 
         if let Ok(content) = std::fs::read_to_string(&kde_config) {
-            status.raw_output.push_str(&format!("KDE config:\n{}\n", content));
+            status
+                .raw_output
+                .push_str(&format!("KDE config:\n{}\n", content));
 
             for line in content.lines() {
                 if line.starts_with("idleTime=") {
@@ -292,7 +310,9 @@ impl SessionLockCheck {
             .unwrap_or_default();
 
         if let Ok(content) = std::fs::read_to_string(&screenlocker_config) {
-            status.raw_output.push_str(&format!("KDE screenlocker config:\n{}\n", content));
+            status
+                .raw_output
+                .push_str(&format!("KDE screenlocker config:\n{}\n", content));
 
             for line in content.lines() {
                 if line.starts_with("Timeout=") {
@@ -315,16 +335,25 @@ impl SessionLockCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("XFCE lock enabled: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("XFCE lock enabled: {}\n", result.trim()));
             status.lock_enabled = result.trim() == "true";
         }
 
         if let Ok(output) = Command::new("xfconf-query")
-            .args(["-c", "xfce4-screensaver", "-p", "/lock/saver-activation/delay"])
+            .args([
+                "-c",
+                "xfce4-screensaver",
+                "-p",
+                "/lock/saver-activation/delay",
+            ])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("XFCE lock delay: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("XFCE lock delay: {}\n", result.trim()));
             if let Ok(mins) = result.trim().parse::<u32>() {
                 status.timeout_minutes = Some(mins);
             }
@@ -335,7 +364,9 @@ impl SessionLockCheck {
     fn check_logind_settings(&self, status: &mut SessionLockStatus) {
         // Check systemd-logind settings for lock on suspend
         if let Ok(content) = std::fs::read_to_string("/etc/systemd/logind.conf") {
-            status.raw_output.push_str(&format!("=== /etc/systemd/logind.conf ===\n{}\n", content));
+            status
+                .raw_output
+                .push_str(&format!("=== /etc/systemd/logind.conf ===\n{}\n", content));
 
             for line in content.lines() {
                 let line = line.trim();
@@ -359,7 +390,9 @@ impl SessionLockCheck {
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             if !result.is_empty() {
-                status.raw_output.push_str(&format!("Lock daemon: {}\n", result.trim()));
+                status
+                    .raw_output
+                    .push_str(&format!("Lock daemon: {}\n", result.trim()));
                 status.lock_enabled = true;
             }
         }
@@ -387,7 +420,9 @@ impl SessionLockCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("Screen saver idleTime: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("Screen saver idleTime: {}\n", result.trim()));
 
             if let Ok(seconds) = result.trim().parse::<u32>() {
                 status.timeout_minutes = Some(seconds / 60);
@@ -403,7 +438,9 @@ impl SessionLockCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("askForPassword: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("askForPassword: {}\n", result.trim()));
             status.require_password = result.trim() == "1";
         }
 
@@ -413,20 +450,25 @@ impl SessionLockCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("askForPasswordDelay: {}s\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("askForPasswordDelay: {}s\n", result.trim()));
         }
 
         // Check system preferences for display sleep
-        if let Ok(output) = Command::new("pmset")
-            .args(["-g", "custom"])
-            .output()
-        {
+        if let Ok(output) = Command::new("pmset").args(["-g", "custom"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== pmset ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== pmset ===\n{}\n", result));
 
             for line in result.lines() {
                 if line.contains("displaysleep") {
-                    if let Some(mins) = line.split_whitespace().last().and_then(|s| s.parse::<u32>().ok()) {
+                    if let Some(mins) = line
+                        .split_whitespace()
+                        .last()
+                        .and_then(|s| s.parse::<u32>().ok())
+                    {
                         if status.timeout_minutes.is_none() || mins > 0 {
                             status.timeout_minutes = Some(mins);
                         }
@@ -531,7 +573,10 @@ impl Check for SessionLockCheck {
             }
 
             Ok(CheckOutput::pass(
-                format!("Session lock is properly configured: {}", details.join(", ")),
+                format!(
+                    "Session lock is properly configured: {}",
+                    details.join(", ")
+                ),
                 raw_data,
             ))
         } else {

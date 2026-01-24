@@ -75,9 +75,8 @@ impl LogSigner {
 
     /// Create a new log signer from hex-encoded key.
     pub fn from_hex_key(hex_key: &str) -> SyncResult<Self> {
-        let key = hex::decode(hex_key).map_err(|e| {
-            SyncError::Config(format!("Invalid HMAC key: {}", e))
-        })?;
+        let key = hex::decode(hex_key)
+            .map_err(|e| SyncError::Config(format!("Invalid HMAC key: {}", e)))?;
         Ok(Self::new(&key))
     }
 
@@ -165,10 +164,7 @@ impl LogSigner {
 
             // Verify signature
             if !self.verify(entry)? {
-                errors.push(format!(
-                    "Invalid signature at sequence {}",
-                    entry.sequence
-                ));
+                errors.push(format!("Invalid signature at sequence {}", entry.sequence));
             }
 
             expected_prev = entry.signature.clone();
@@ -288,7 +284,10 @@ impl SignatureValidator {
     /// On Windows, uses Authenticode verification.
     /// On Linux, uses GPG verification.
     #[cfg(windows)]
-    pub async fn verify_binary(&self, path: &std::path::Path) -> SyncResult<SignatureVerificationResult> {
+    pub async fn verify_binary(
+        &self,
+        path: &std::path::Path,
+    ) -> SyncResult<SignatureVerificationResult> {
         // Check if verification is skipped (dev mode)
         if self.skip_verification {
             warn!("Signature verification SKIPPED for {:?} - INSECURE", path);
@@ -324,7 +323,10 @@ impl SignatureValidator {
 
     /// Verify a binary's signature (Linux).
     #[cfg(not(windows))]
-    pub async fn verify_binary(&self, path: &std::path::Path) -> SyncResult<SignatureVerificationResult> {
+    pub async fn verify_binary(
+        &self,
+        path: &std::path::Path,
+    ) -> SyncResult<SignatureVerificationResult> {
         // Check if verification is skipped (dev mode)
         if self.skip_verification {
             warn!("Signature verification SKIPPED for {:?} - INSECURE", path);
@@ -419,9 +421,9 @@ impl SignatureValidator {
 
     /// Check if a signer is trusted.
     pub fn is_trusted_signer(&self, signer: &str) -> bool {
-        self.trusted_signers.iter().any(|s| {
-            s.eq_ignore_ascii_case(signer) || signer.contains(s)
-        })
+        self.trusted_signers
+            .iter()
+            .any(|s| s.eq_ignore_ascii_case(signer) || signer.contains(s))
     }
 }
 
@@ -479,13 +481,10 @@ impl RevocationService {
                 *self.status.write().await = Some(status.clone());
 
                 if status.revoked {
-                    warn!(
-                        "Agent {} is revoked: {:?}",
-                        agent_id,
-                        status.reason
-                    );
+                    warn!("Agent {} is revoked: {:?}", agent_id, status.reason);
                     // Set the stop flag
-                    self.should_stop.store(true, std::sync::atomic::Ordering::SeqCst);
+                    self.should_stop
+                        .store(true, std::sync::atomic::Ordering::SeqCst);
                 }
 
                 Ok(status)
@@ -545,7 +544,8 @@ impl RevocationService {
         );
 
         // Set the stop flag for other threads to check
-        self.should_stop.store(true, std::sync::atomic::Ordering::SeqCst);
+        self.should_stop
+            .store(true, std::sync::atomic::Ordering::SeqCst);
 
         // Return action for caller to execute
         Ok(RevocationAction::StopAndExit)
@@ -575,8 +575,7 @@ mod tests {
 
     fn test_key() -> Vec<u8> {
         // 32-byte key for HMAC-SHA256
-        hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
-            .unwrap()
+        hex::decode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef").unwrap()
     }
 
     #[tokio::test]
@@ -811,13 +810,20 @@ mod tests {
         // Sign 100 entries and measure time
         let start = std::time::Instant::now();
         for i in 0..100 {
-            let _ = signer.sign("INFO", "perf_test", &format!("Message {}", i)).await.unwrap();
+            let _ = signer
+                .sign("INFO", "perf_test", &format!("Message {}", i))
+                .await
+                .unwrap();
         }
         let elapsed = start.elapsed();
 
         // Average should be < 1ms per entry (AC4)
         let avg_ms = elapsed.as_millis() as f64 / 100.0;
-        assert!(avg_ms < 1.0, "Average signing time {}ms exceeds 1ms limit", avg_ms);
+        assert!(
+            avg_ms < 1.0,
+            "Average signing time {}ms exceeds 1ms limit",
+            avg_ms
+        );
     }
 
     #[tokio::test]

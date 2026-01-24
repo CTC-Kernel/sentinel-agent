@@ -377,9 +377,7 @@ mod tests {
     #[tokio::test]
     async fn test_normalize_fingerprint() {
         // With prefix
-        let normalized = CertificatePinning::normalize_fingerprint(
-            "sha256:AB:CD:EF:12",
-        );
+        let normalized = CertificatePinning::normalize_fingerprint("sha256:AB:CD:EF:12");
         assert_eq!(normalized, "abcdef12");
 
         // Without prefix
@@ -476,10 +474,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_case_insensitive_verification() {
-        let fp_lower =
-            "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        let fp_upper =
-            "sha256:E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855";
+        let fp_lower = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        let fp_upper = "sha256:E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855";
 
         let pinning = CertificatePinning::new(vec![fp_lower.to_string()]);
 

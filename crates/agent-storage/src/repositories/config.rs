@@ -5,8 +5,8 @@
 //! - Merge strategy (local overrides preserved)
 //! - Hot reload without restart
 
-use crate::error::{StorageError, StorageResult};
 use crate::Database;
+use crate::error::{StorageError, StorageResult};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -141,7 +141,10 @@ impl<'a> ConfigRepository<'a> {
     }
 
     /// Get a configuration value as a specific type.
-    pub async fn get_typed<T: for<'de> Deserialize<'de>>(&self, key: &str) -> StorageResult<Option<T>> {
+    pub async fn get_typed<T: for<'de> Deserialize<'de>>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<T>> {
         if let Some(entry) = self.get(key).await? {
             Ok(entry.parse())
         } else {
@@ -150,7 +153,10 @@ impl<'a> ConfigRepository<'a> {
     }
 
     /// Get a configuration value with a default.
-    pub async fn get_or_default<T: for<'de> Deserialize<'de> + Default>(&self, key: &str) -> StorageResult<T> {
+    pub async fn get_or_default<T: for<'de> Deserialize<'de> + Default>(
+        &self,
+        key: &str,
+    ) -> StorageResult<T> {
         Ok(self.get_typed(key).await?.unwrap_or_default())
     }
 
@@ -160,7 +166,12 @@ impl<'a> ConfigRepository<'a> {
     }
 
     /// Set a configuration value with specific source.
-    pub async fn set_with_source(&self, key: &str, value: &str, source: ConfigSource) -> StorageResult<()> {
+    pub async fn set_with_source(
+        &self,
+        key: &str,
+        value: &str,
+        source: ConfigSource,
+    ) -> StorageResult<()> {
         let key = key.to_string();
         let value = value.to_string();
         let source_str = source.as_str().to_string();
@@ -206,7 +217,9 @@ impl<'a> ConfigRepository<'a> {
                     .query_map([], |row| Self::row_to_config_entry(row))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -238,7 +251,9 @@ impl<'a> ConfigRepository<'a> {
                     .query_map([], |row| Self::row_to_config_entry(row))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -248,7 +263,10 @@ impl<'a> ConfigRepository<'a> {
     /// Merge remote configuration with local.
     ///
     /// Local overrides are preserved (not overwritten by remote values).
-    pub async fn merge_remote_config(&self, remote_config: HashMap<String, String>) -> StorageResult<MergeResult> {
+    pub async fn merge_remote_config(
+        &self,
+        remote_config: HashMap<String, String>,
+    ) -> StorageResult<MergeResult> {
         // First, get all local overrides
         let local_overrides = self.get_local_overrides().await?;
         let local_keys: std::collections::HashSet<String> =
@@ -273,11 +291,13 @@ impl<'a> ConfigRepository<'a> {
 
             if existing.is_some() {
                 // Update existing remote config
-                self.set_with_source(&key, &value, ConfigSource::Remote).await?;
+                self.set_with_source(&key, &value, ConfigSource::Remote)
+                    .await?;
                 updated += 1;
             } else {
                 // Add new config
-                self.set_with_source(&key, &value, ConfigSource::Remote).await?;
+                self.set_with_source(&key, &value, ConfigSource::Remote)
+                    .await?;
                 added += 1;
             }
         }
@@ -318,7 +338,9 @@ impl<'a> ConfigRepository<'a> {
             .with_connection(|conn| {
                 let count = conn
                     .execute("DELETE FROM agent_config WHERE source = 'remote'", [])
-                    .map_err(|e| StorageError::Query(format!("Failed to delete remote config: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete remote config: {}", e))
+                    })?;
 
                 info!("Deleted {} remote config entries", count);
                 Ok(count)
@@ -329,7 +351,9 @@ impl<'a> ConfigRepository<'a> {
     /// Check if a key has a local override.
     pub async fn has_local_override(&self, key: &str) -> StorageResult<bool> {
         let entry = self.get(key).await?;
-        Ok(entry.map(|e| e.source == ConfigSource::Local).unwrap_or(false))
+        Ok(entry
+            .map(|e| e.source == ConfigSource::Local)
+            .unwrap_or(false))
     }
 
     /// Count configuration entries.
@@ -440,7 +464,10 @@ mod tests {
         assert_eq!(bool_val, Some(true));
 
         let vec_val: Option<Vec<String>> = repo.get_typed("json_key").await.unwrap();
-        assert_eq!(vec_val, Some(vec!["a".to_string(), "b".to_string(), "c".to_string()]));
+        assert_eq!(
+            vec_val,
+            Some(vec!["a".to_string(), "b".to_string(), "c".to_string()])
+        );
     }
 
     #[tokio::test]
@@ -511,7 +538,10 @@ mod tests {
 
         // Merge remote config
         let mut remote = HashMap::new();
-        remote.insert("local_override".to_string(), "should_be_skipped".to_string());
+        remote.insert(
+            "local_override".to_string(),
+            "should_be_skipped".to_string(),
+        );
         remote.insert("existing_remote".to_string(), "new_value".to_string());
         remote.insert("new_key".to_string(), "new_value".to_string());
 
