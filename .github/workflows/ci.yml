@@ -198,12 +198,14 @@ jobs:
           OPENSSL_STATIC: "1"
 
       - name: Install WiX Toolset
-        run: dotnet tool install --global wix
+        run: |
+          dotnet tool install --global wix
+          wix extension add -g WixToolset.Util.wixext
 
       - name: Build MSI
         run: |
           $version = "0.1.0"
-          wix build -d "TargetDir=.\target\release" -d "Version=$version" -d "AssetsDir=.\assets" -o "sentinel-agent-$version.msi" wix/main.wxs
+          wix build -ext WixToolset.Util.wixext -d "TargetDir=.\target\release" -d "Version=$version" -d "AssetsDir=.\assets" -o "sentinel-agent-$version.msi" wix/main.wxs
         shell: pwsh
 
       - name: Generate checksum

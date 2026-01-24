@@ -43,8 +43,8 @@
 
     <!-- Custom properties for configuration -->
     <Property Id="SERVERURL" Value="https://app.cyber-threat-consulting.com" />
-    <Property Id="ENROLLMENTTOKEN" Value="" />
-    <Property Id="INSTALLDIR" Value="[ProgramFiles64Folder]Sentinel\" />
+    <Property Id="ENROLLMENTTOKEN" Secure="yes" />
+    <SetProperty Id="INSTALLDIR" Value="[ProgramFiles64Folder]Sentinel\" Sequence="first" />
 
     <!-- Media definition -->
     <Media Id="1" Cabinet="sentinel.cab" EmbedCab="yes" />
@@ -97,22 +97,16 @@
           Type="ownProcess"
           Start="auto"
           ErrorControl="normal"
-          Arguments="--service">
+          Arguments="--service" />
 
-          <!-- Service recovery settings -->
-          <ServiceConfig
-            DelayedAutoStart="no"
-            OnInstall="yes"
-            OnReinstall="yes" />
-
-          <!-- Failure actions: restart on failure -->
-          <util:ServiceConfig
-            FirstFailureActionType="restart"
-            SecondFailureActionType="restart"
-            ThirdFailureActionType="restart"
-            RestartServiceDelayInSeconds="60"
-            ResetPeriodInDays="1" />
-        </ServiceInstall>
+        <!-- Service recovery settings using util extension -->
+        <util:ServiceConfig
+          ServiceName="SentinelGRCAgent"
+          FirstFailureActionType="restart"
+          SecondFailureActionType="restart"
+          ThirdFailureActionType="restart"
+          RestartServiceDelayInSeconds="60"
+          ResetPeriodInDays="1" />
 
         <ServiceControl
           Id="SentinelServiceControl"
@@ -197,7 +191,7 @@
       <Component Id="LogDirComponent" Guid="E5F6A7B8-C9D0-1234-EF01-567890123456" Directory="LogDir">
         <CreateFolder>
           <Permission User="SYSTEM" GenericAll="yes" />
-          <Permission User="Administrators" GenericRead="yes" />
+          <Permission User="Administrators" GenericAll="yes" />
         </CreateFolder>
       </Component>
     </ComponentGroup>
@@ -209,7 +203,7 @@
 
     <!-- Installation sequence -->
     <InstallExecuteSequence>
-      <Custom Action="SetServerUrl" After="InstallInitialize">NOT Installed</Custom>
+      <Custom Action="SetServerUrl" After="InstallInitialize" Condition="NOT Installed" />
     </InstallExecuteSequence>
 
   </Package>
