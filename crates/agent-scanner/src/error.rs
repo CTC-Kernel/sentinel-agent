@@ -66,9 +66,7 @@ impl ScannerError {
     pub fn is_recoverable(&self) -> bool {
         matches!(
             self,
-            ScannerError::Timeout(_)
-                | ScannerError::CheckExecution(_)
-                | ScannerError::Storage(_)
+            ScannerError::Timeout(_) | ScannerError::CheckExecution(_) | ScannerError::Storage(_)
         )
     }
 }

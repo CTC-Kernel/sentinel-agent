@@ -114,7 +114,10 @@ impl AuthenticatedClient {
         };
 
         let response: CertificateRenewalResponse = client
-            .post_json(&format!("/v1/agents/{}/certificate/renew", agent_id), &request)
+            .post_json(
+                &format!("/v1/agents/{}/certificate/renew", agent_id),
+                &request,
+            )
             .await?;
 
         // Update stored credentials
@@ -155,10 +158,7 @@ impl AuthenticatedClient {
     pub async fn check_and_renew_if_needed(&self) -> SyncResult<()> {
         if self.needs_renewal().await? {
             let expires_at = self.certificate_expires_at().await?;
-            warn!(
-                "Certificate expires at {}, initiating renewal",
-                expires_at
-            );
+            warn!("Certificate expires at {}, initiating renewal", expires_at);
             self.renew_certificate().await?;
         }
         Ok(())
@@ -242,7 +242,10 @@ impl AuthenticatedClient {
         };
 
         let response: VulnerabilityUploadResponse = self
-            .post_json(&format!("/v1/agents/{}/vulnerabilities", agent_id), &request)
+            .post_json(
+                &format!("/v1/agents/{}/vulnerabilities", agent_id),
+                &request,
+            )
             .await?;
 
         info!(
@@ -363,9 +366,7 @@ impl AuthenticatedClient {
     /// Load credentials from the database.
     async fn load_credentials(&self) -> SyncResult<StoredCredentials> {
         let repo = CredentialsRepository::new(&self.db);
-        repo.load()
-            .await?
-            .ok_or(SyncError::NotEnrolled)
+        repo.load().await?.ok_or(SyncError::NotEnrolled)
     }
 
     /// Ensure credentials are loaded and return them.

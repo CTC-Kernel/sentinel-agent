@@ -6,9 +6,9 @@
 //! - macOS: Touch ID / Smart Card status
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -237,7 +237,9 @@ impl MfaCheck {
 
                     for (module, name) in &mfa_modules {
                         if line_trimmed.contains(*module) {
-                            status.raw_output.push_str(&format!("Found active: {} in {}\n", name, line_trimmed));
+                            status
+                                .raw_output
+                                .push_str(&format!("Found active: {} in {}\n", name, line_trimmed));
 
                             // Parse PAM line format: type control module-path [module-arguments]
                             // Examples:
@@ -281,8 +283,13 @@ impl MfaCheck {
         let home = std::env::var("HOME").unwrap_or_default();
         if std::path::Path::new(&format!("{}/.google_authenticator", home)).exists() {
             status.enrollment_status = Some("Enrolled".to_string());
-            if !status.available_methods.contains(&"Google Authenticator".to_string()) {
-                status.available_methods.push("Google Authenticator".to_string());
+            if !status
+                .available_methods
+                .contains(&"Google Authenticator".to_string())
+            {
+                status
+                    .available_methods
+                    .push("Google Authenticator".to_string());
             }
         }
 
@@ -323,14 +330,15 @@ impl MfaCheck {
         };
 
         // Check Touch ID status
-        if let Ok(output) = Command::new("bioutil")
-            .args(["--status"])
-            .output()
-        {
+        if let Ok(output) = Command::new("bioutil").args(["--status"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== bioutil status ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== bioutil status ===\n{}\n", result));
 
-            if result.contains("Touch ID functionality: 1") || result.contains("User fingerprint enrolled") {
+            if result.contains("Touch ID functionality: 1")
+                || result.contains("User fingerprint enrolled")
+            {
                 status.mfa_configured = true;
                 status.available_methods.push("Touch ID".to_string());
                 status.mfa_provider = Some("Touch ID".to_string());
@@ -345,7 +353,10 @@ impl MfaCheck {
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-            status.raw_output.push_str(&format!("=== security smartcards ===\n{}\n{}\n", result, stderr));
+            status.raw_output.push_str(&format!(
+                "=== security smartcards ===\n{}\n{}\n",
+                result, stderr
+            ));
 
             if !result.contains("No smartcards") && !stderr.contains("No smartcards") {
                 status.mfa_configured = true;
@@ -358,7 +369,9 @@ impl MfaCheck {
 
         // Check PAM for MFA modules (macOS)
         if let Ok(content) = std::fs::read_to_string("/etc/pam.d/authorization") {
-            status.raw_output.push_str(&format!("=== /etc/pam.d/authorization ===\n{}\n", content));
+            status
+                .raw_output
+                .push_str(&format!("=== /etc/pam.d/authorization ===\n{}\n", content));
 
             if content.contains("pam_tid.so") {
                 status.mfa_configured = true;

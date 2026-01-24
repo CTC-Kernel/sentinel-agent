@@ -78,7 +78,10 @@ impl SystemMonitor {
         if let Ok(output) = iptables_output {
             let stdout = String::from_utf8_lossy(&output.stdout);
             // If there are very few rules, firewall might be effectively disabled
-            let rule_count = stdout.lines().filter(|l| !l.is_empty() && !l.starts_with("Chain")).count();
+            let rule_count = stdout
+                .lines()
+                .filter(|l| !l.is_empty() && !l.starts_with("Chain"))
+                .count();
             if rule_count < 3 {
                 debug!("iptables has very few rules ({})", rule_count);
                 // Don't alert on this as it might be intentional
@@ -93,11 +96,7 @@ impl SystemMonitor {
         use std::process::Command;
 
         let output = Command::new("defaults")
-            .args([
-                "read",
-                "/Library/Preferences/com.apple.alf",
-                "globalstate",
-            ])
+            .args(["read", "/Library/Preferences/com.apple.alf", "globalstate"])
             .output();
 
         if let Ok(result) = output {
@@ -142,13 +141,15 @@ impl SystemMonitor {
                 }
 
                 let stdout = String::from_utf8_lossy(&result.stdout);
-                let profiles: Vec<FirewallProfile> = serde_json::from_str(&stdout).unwrap_or_default();
+                let profiles: Vec<FirewallProfile> =
+                    serde_json::from_str(&stdout).unwrap_or_default();
 
                 let disabled: Vec<&FirewallProfile> =
                     profiles.iter().filter(|p| !p.enabled).collect();
 
                 if !disabled.is_empty() {
-                    let disabled_names: Vec<&str> = disabled.iter().map(|p| p.name.as_str()).collect();
+                    let disabled_names: Vec<&str> =
+                        disabled.iter().map(|p| p.name.as_str()).collect();
                     return Some(SecurityIncident::firewall_disabled(serde_json::json!({
                         "firewall": "windows_firewall",
                         "disabled_profiles": disabled_names,
@@ -254,15 +255,18 @@ impl SystemMonitor {
         if let Ok(result) = output {
             let stdout = String::from_utf8_lossy(&result.stdout).to_lowercase();
             if stdout.contains("disabled") {
-                return Some(SecurityIncident::new(
-                    IncidentType::AntivirusDisabled,
-                    IncidentSeverity::Medium,
-                    "Gatekeeper disabled",
-                    "macOS Gatekeeper (application verification) is disabled",
-                ).with_evidence(serde_json::json!({
-                    "component": "gatekeeper",
-                    "status": "disabled",
-                })));
+                return Some(
+                    SecurityIncident::new(
+                        IncidentType::AntivirusDisabled,
+                        IncidentSeverity::Medium,
+                        "Gatekeeper disabled",
+                        "macOS Gatekeeper (application verification) is disabled",
+                    )
+                    .with_evidence(serde_json::json!({
+                        "component": "gatekeeper",
+                        "status": "disabled",
+                    })),
+                );
             }
         }
 

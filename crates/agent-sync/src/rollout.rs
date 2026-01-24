@@ -322,7 +322,12 @@ impl RolloutService {
     }
 
     /// Acknowledge a manual update command.
-    pub async fn acknowledge_command(&self, command_id: &str, success: bool, error: Option<&str>) -> SyncResult<()> {
+    pub async fn acknowledge_command(
+        &self,
+        command_id: &str,
+        success: bool,
+        error: Option<&str>,
+    ) -> SyncResult<()> {
         let agent_id = self.client.agent_id().await?;
 
         #[derive(Serialize)]
@@ -341,7 +346,9 @@ impl RolloutService {
         };
 
         let path = format!("/v1/agents/{}/update-command/ack", agent_id);
-        self.client.post_json::<_, serde_json::Value>(&path, &request).await?;
+        self.client
+            .post_json::<_, serde_json::Value>(&path, &request)
+            .await?;
 
         // Clear pending command
         *self.pending_command.write().await = None;
@@ -456,7 +463,9 @@ impl RolloutService {
         };
 
         let path = format!("/v1/agents/{}/emergency-rollback/ack", agent_id);
-        self.client.post_json::<_, serde_json::Value>(&path, &request).await?;
+        self.client
+            .post_json::<_, serde_json::Value>(&path, &request)
+            .await?;
 
         // Clear pending command
         *self.emergency_rollback.write().await = None;

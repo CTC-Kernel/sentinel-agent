@@ -421,28 +421,20 @@ impl UpdateService {
 
         match self.policy {
             UpdatePolicy::Automatic => (true, None),
-            UpdatePolicy::ManualApproval => (
-                false,
-                Some("Manual approval required".to_string()),
-            ),
+            UpdatePolicy::ManualApproval => (false, Some("Manual approval required".to_string())),
             UpdatePolicy::Deferred => {
-                let defer_until = update.released_at + chrono::Duration::days(self.deferred_days as i64);
+                let defer_until =
+                    update.released_at + chrono::Duration::days(self.deferred_days as i64);
                 if Utc::now() >= defer_until {
                     (true, None)
                 } else {
                     (
                         false,
-                        Some(format!(
-                            "Deferred until {}",
-                            defer_until.format("%Y-%m-%d")
-                        )),
+                        Some(format!("Deferred until {}", defer_until.format("%Y-%m-%d"))),
                     )
                 }
             }
-            UpdatePolicy::Disabled => (
-                false,
-                Some("Updates are disabled".to_string()),
-            ),
+            UpdatePolicy::Disabled => (false, Some("Updates are disabled".to_string())),
         }
     }
 
@@ -458,9 +450,9 @@ impl UpdateService {
         );
 
         // Ensure staging directory exists
-        fs::create_dir_all(&self.staging_dir).await.map_err(|e| {
-            SyncError::Config(format!("Failed to create staging directory: {}", e))
-        })?;
+        fs::create_dir_all(&self.staging_dir)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to create staging directory: {}", e)))?;
 
         // Download file
         let filename = format!(
@@ -473,17 +465,17 @@ impl UpdateService {
 
         let response = self.client.download(&update.download_url).await?;
 
-        let mut file = fs::File::create(&staging_path).await.map_err(|e| {
-            SyncError::Config(format!("Failed to create staging file: {}", e))
-        })?;
+        let mut file = fs::File::create(&staging_path)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to create staging file: {}", e)))?;
 
-        file.write_all(&response).await.map_err(|e| {
-            SyncError::Config(format!("Failed to write staging file: {}", e))
-        })?;
+        file.write_all(&response)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to write staging file: {}", e)))?;
 
-        file.flush().await.map_err(|e| {
-            SyncError::Config(format!("Failed to flush staging file: {}", e))
-        })?;
+        file.flush()
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to flush staging file: {}", e)))?;
 
         info!("Downloaded update to {:?}", staging_path);
 
@@ -499,9 +491,9 @@ impl UpdateService {
 
         info!("Verifying package integrity: {:?}", path);
 
-        let data = fs::read(path).await.map_err(|e| {
-            SyncError::Config(format!("Failed to read package: {}", e))
-        })?;
+        let data = fs::read(path)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to read package: {}", e)))?;
 
         let mut hasher = Sha256::new();
         hasher.update(&data);
@@ -551,7 +543,9 @@ impl UpdateService {
         };
 
         let path = format!("/v1/agents/{}/updates/result", agent_id);
-        self.client.post_json::<_, serde_json::Value>(&path, &report).await?;
+        self.client
+            .post_json::<_, serde_json::Value>(&path, &report)
+            .await?;
 
         info!(
             "Reported update result: {} -> {} (state: {})",
@@ -578,11 +572,26 @@ mod tests {
 
     #[test]
     fn test_update_policy_from_str() {
-        assert_eq!(UpdatePolicy::from_str("automatic"), Some(UpdatePolicy::Automatic));
-        assert_eq!(UpdatePolicy::from_str("auto"), Some(UpdatePolicy::Automatic));
-        assert_eq!(UpdatePolicy::from_str("manual"), Some(UpdatePolicy::ManualApproval));
-        assert_eq!(UpdatePolicy::from_str("deferred"), Some(UpdatePolicy::Deferred));
-        assert_eq!(UpdatePolicy::from_str("disabled"), Some(UpdatePolicy::Disabled));
+        assert_eq!(
+            UpdatePolicy::from_str("automatic"),
+            Some(UpdatePolicy::Automatic)
+        );
+        assert_eq!(
+            UpdatePolicy::from_str("auto"),
+            Some(UpdatePolicy::Automatic)
+        );
+        assert_eq!(
+            UpdatePolicy::from_str("manual"),
+            Some(UpdatePolicy::ManualApproval)
+        );
+        assert_eq!(
+            UpdatePolicy::from_str("deferred"),
+            Some(UpdatePolicy::Deferred)
+        );
+        assert_eq!(
+            UpdatePolicy::from_str("disabled"),
+            Some(UpdatePolicy::Disabled)
+        );
         assert_eq!(UpdatePolicy::from_str("invalid"), None);
     }
 
@@ -605,11 +614,26 @@ mod tests {
     #[test]
     fn test_rollout_group_from_str() {
         assert_eq!(RolloutGroup::from_str("canary"), Some(RolloutGroup::Canary));
-        assert_eq!(RolloutGroup::from_str("early_adopter"), Some(RolloutGroup::EarlyAdopter));
-        assert_eq!(RolloutGroup::from_str("early"), Some(RolloutGroup::EarlyAdopter));
-        assert_eq!(RolloutGroup::from_str("majority"), Some(RolloutGroup::Majority));
-        assert_eq!(RolloutGroup::from_str("ga"), Some(RolloutGroup::GeneralAvailability));
-        assert_eq!(RolloutGroup::from_str("all"), Some(RolloutGroup::GeneralAvailability));
+        assert_eq!(
+            RolloutGroup::from_str("early_adopter"),
+            Some(RolloutGroup::EarlyAdopter)
+        );
+        assert_eq!(
+            RolloutGroup::from_str("early"),
+            Some(RolloutGroup::EarlyAdopter)
+        );
+        assert_eq!(
+            RolloutGroup::from_str("majority"),
+            Some(RolloutGroup::Majority)
+        );
+        assert_eq!(
+            RolloutGroup::from_str("ga"),
+            Some(RolloutGroup::GeneralAvailability)
+        );
+        assert_eq!(
+            RolloutGroup::from_str("all"),
+            Some(RolloutGroup::GeneralAvailability)
+        );
         assert_eq!(RolloutGroup::from_str("invalid"), None);
     }
 

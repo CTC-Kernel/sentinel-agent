@@ -88,7 +88,10 @@ impl<'a> CredentialsRepository<'a> {
             })
             .await?;
 
-        info!("Credentials stored successfully for agent {}", credentials.agent_id);
+        info!(
+            "Credentials stored successfully for agent {}",
+            credentials.agent_id
+        );
         Ok(())
     }
 
@@ -98,7 +101,8 @@ impl<'a> CredentialsRepository<'a> {
     pub async fn load(&self) -> SyncResult<Option<StoredCredentials>> {
         debug!("Loading credentials from database");
 
-        Ok(self.db
+        Ok(self
+            .db
             .with_connection(|conn| {
                 // Check if agent_id exists (indicates enrollment)
                 let agent_id_str: Option<String> = conn
@@ -135,7 +139,10 @@ impl<'a> CredentialsRepository<'a> {
 
                 let organization_id =
                     Uuid::parse_str(&get_value(keys::ORGANIZATION_ID)?).map_err(|e| {
-                        agent_storage::StorageError::Query(format!("Invalid organization_id: {}", e))
+                        agent_storage::StorageError::Query(format!(
+                            "Invalid organization_id: {}",
+                            e
+                        ))
                     })?;
 
                 let certificate_expires_at =
@@ -326,7 +333,10 @@ impl<'a> CredentialsRepository<'a> {
                     [],
                 )
                 .map_err(|e| {
-                    agent_storage::StorageError::Query(format!("Failed to clear credentials: {}", e))
+                    agent_storage::StorageError::Query(format!(
+                        "Failed to clear credentials: {}",
+                        e
+                    ))
                 })?;
 
                 Ok(())

@@ -6,8 +6,8 @@
 //! - Framework filtering (NIS2, DORA, RGPD)
 //! - Enabled/disabled rule management
 
-use crate::error::{StorageError, StorageResult};
 use crate::Database;
+use crate::error::{StorageError, StorageResult};
 use chrono::{DateTime, Utc};
 use rusqlite::OptionalExtension;
 use serde::{Deserialize, Serialize};
@@ -178,7 +178,8 @@ impl<'a> CheckRulesRepository<'a> {
             .parameters
             .as_ref()
             .map(|p| serde_json::to_string(p).unwrap_or_default());
-        let frameworks = serde_json::to_string(&rule.frameworks).unwrap_or_else(|_| "[]".to_string());
+        let frameworks =
+            serde_json::to_string(&rule.frameworks).unwrap_or_else(|_| "[]".to_string());
         let version = rule.version.clone();
         let created_at = rule.created_at.to_rfc3339();
         let updated_at = rule.updated_at.to_rfc3339();
@@ -224,17 +225,17 @@ impl<'a> CheckRulesRepository<'a> {
         let rules = rules.to_vec();
         self.db
             .with_connection_mut(move |conn| {
-                let tx = conn
-                    .transaction()
-                    .map_err(|e| StorageError::Query(format!("Failed to start transaction: {}", e)))?;
+                let tx = conn.transaction().map_err(|e| {
+                    StorageError::Query(format!("Failed to start transaction: {}", e))
+                })?;
 
                 for rule in &rules {
                     let parameters = rule
                         .parameters
                         .as_ref()
                         .map(|p| serde_json::to_string(p).unwrap_or_default());
-                    let frameworks =
-                        serde_json::to_string(&rule.frameworks).unwrap_or_else(|_| "[]".to_string());
+                    let frameworks = serde_json::to_string(&rule.frameworks)
+                        .unwrap_or_else(|_| "[]".to_string());
 
                     tx.execute(
                         r#"
@@ -263,8 +264,9 @@ impl<'a> CheckRulesRepository<'a> {
                     })?;
                 }
 
-                tx.commit()
-                    .map_err(|e| StorageError::Query(format!("Failed to commit transaction: {}", e)))?;
+                tx.commit().map_err(|e| {
+                    StorageError::Query(format!("Failed to commit transaction: {}", e))
+                })?;
 
                 let count = rules.len();
                 info!("Upserted {} check rules in batch", count);
@@ -292,7 +294,9 @@ impl<'a> CheckRulesRepository<'a> {
                 let result = stmt
                     .query_row([&id], |row| Self::row_to_check_rule(row))
                     .optional()
-                    .map_err(|e| StorageError::Query(format!("Failed to query check rule: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to query check rule: {}", e))
+                    })?;
 
                 Ok(result)
             })
@@ -318,7 +322,9 @@ impl<'a> CheckRulesRepository<'a> {
                     .query_map([], |row| Self::row_to_check_rule(row))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -345,7 +351,9 @@ impl<'a> CheckRulesRepository<'a> {
                     .query_map([], |row| Self::row_to_check_rule(row))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -375,7 +383,9 @@ impl<'a> CheckRulesRepository<'a> {
                     .query_map([&pattern], |row| Self::row_to_check_rule(row))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -403,7 +413,9 @@ impl<'a> CheckRulesRepository<'a> {
                     .query_map([&category], |row| Self::row_to_check_rule(row))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -483,7 +495,9 @@ impl<'a> CheckRulesRepository<'a> {
                         [],
                         |row| row.get(0),
                     )
-                    .map_err(|e| StorageError::Query(format!("Failed to count enabled rules: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to count enabled rules: {}", e))
+                    })?;
                 Ok(count)
             })
             .await
@@ -589,8 +603,7 @@ impl<'a> CheckRulesRepository<'a> {
         let enabled_int: i32 = row.get(5)?;
 
         let parameters_str: Option<String> = row.get(7)?;
-        let parameters = parameters_str
-            .and_then(|s| serde_json::from_str(&s).ok());
+        let parameters = parameters_str.and_then(|s| serde_json::from_str(&s).ok());
 
         let frameworks_str: Option<String> = row.get(8)?;
         let frameworks: Vec<String> = frameworks_str
@@ -709,8 +722,22 @@ mod tests {
 
         let rules = vec![
             CheckRule::new("rule1", "Rule 1", "security", Severity::High, "test", "1.0"),
-            CheckRule::new("rule2", "Rule 2", "security", Severity::Medium, "test", "1.0"),
-            CheckRule::new("rule3", "Rule 3", "compliance", Severity::Low, "test", "1.0"),
+            CheckRule::new(
+                "rule2",
+                "Rule 2",
+                "security",
+                Severity::Medium,
+                "test",
+                "1.0",
+            ),
+            CheckRule::new(
+                "rule3",
+                "Rule 3",
+                "compliance",
+                Severity::Low,
+                "test",
+                "1.0",
+            ),
         ];
 
         let count = repo.upsert_batch(&rules).await.unwrap();
@@ -788,20 +815,41 @@ mod tests {
         let repo = CheckRulesRepository::new(&db);
 
         repo.upsert(
-            &CheckRule::new("nis2_rule", "NIS2 Rule", "security", Severity::High, "test", "1.0")
-                .with_frameworks(vec!["NIS2".to_string()]),
+            &CheckRule::new(
+                "nis2_rule",
+                "NIS2 Rule",
+                "security",
+                Severity::High,
+                "test",
+                "1.0",
+            )
+            .with_frameworks(vec!["NIS2".to_string()]),
         )
         .await
         .unwrap();
         repo.upsert(
-            &CheckRule::new("dora_rule", "DORA Rule", "security", Severity::High, "test", "1.0")
-                .with_frameworks(vec!["DORA".to_string()]),
+            &CheckRule::new(
+                "dora_rule",
+                "DORA Rule",
+                "security",
+                Severity::High,
+                "test",
+                "1.0",
+            )
+            .with_frameworks(vec!["DORA".to_string()]),
         )
         .await
         .unwrap();
         repo.upsert(
-            &CheckRule::new("both_rule", "Both Rule", "security", Severity::High, "test", "1.0")
-                .with_frameworks(vec!["NIS2".to_string(), "DORA".to_string()]),
+            &CheckRule::new(
+                "both_rule",
+                "Both Rule",
+                "security",
+                Severity::High,
+                "test",
+                "1.0",
+            )
+            .with_frameworks(vec!["NIS2".to_string(), "DORA".to_string()]),
         )
         .await
         .unwrap();

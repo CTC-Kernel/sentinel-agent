@@ -6,9 +6,9 @@
 //! - macOS: Time Machine
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -185,7 +185,11 @@ impl BackupCheck {
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // Windows Backup
-            if json.get("WindowsBackup_Configured").and_then(|v| v.as_bool()) == Some(true) {
+            if json
+                .get("WindowsBackup_Configured")
+                .and_then(|v| v.as_bool())
+                == Some(true)
+            {
                 status.backup_configured = true;
                 status.backup_enabled = true;
                 status.backup_type = Some("Windows Backup".to_string());
@@ -253,13 +257,13 @@ impl BackupCheck {
     fn parse_windows_date(date_str: &str) -> Option<DateTime<Utc>> {
         // Try common Windows date formats (varies by locale)
         let formats = [
-            "%m/%d/%Y %I:%M %p",      // US format: 01/15/2024 10:00 AM
-            "%m/%d/%Y %H:%M:%S",      // US format 24h
-            "%d/%m/%Y %H:%M:%S",      // EU format: 15/01/2024 10:00:00
-            "%Y-%m-%d %H:%M:%S",      // ISO format
-            "%Y-%m-%dT%H:%M:%S",      // ISO with T
-            "%d.%m.%Y %H:%M:%S",      // German format
-            "%m/%d/%Y, %I:%M:%S %p",  // US with comma
+            "%m/%d/%Y %I:%M %p",     // US format: 01/15/2024 10:00 AM
+            "%m/%d/%Y %H:%M:%S",     // US format 24h
+            "%d/%m/%Y %H:%M:%S",     // EU format: 15/01/2024 10:00:00
+            "%Y-%m-%d %H:%M:%S",     // ISO format
+            "%Y-%m-%dT%H:%M:%S",     // ISO with T
+            "%d.%m.%Y %H:%M:%S",     // German format
+            "%m/%d/%Y, %I:%M:%S %p", // US with comma
         ];
 
         let trimmed = date_str.trim();
@@ -270,7 +274,11 @@ impl BackupCheck {
         }
 
         // Log parsing failure for debugging
-        debug!("Failed to parse Windows backup date: '{}' - tried {} formats", trimmed, formats.len());
+        debug!(
+            "Failed to parse Windows backup date: '{}' - tried {} formats",
+            trimmed,
+            formats.len()
+        );
         None
     }
 
@@ -331,10 +339,7 @@ impl BackupCheck {
     #[cfg(target_os = "linux")]
     fn check_timeshift(&self, status: &mut BackupStatus) -> bool {
         // Check if timeshift is installed
-        if let Ok(output) = Command::new("which")
-            .args(["timeshift"])
-            .output()
-        {
+        if let Ok(output) = Command::new("which").args(["timeshift"]).output() {
             if !output.status.success() {
                 return false;
             }
@@ -346,12 +351,11 @@ impl BackupCheck {
         status.includes_system = Some(true);
 
         // Get timeshift snapshots
-        if let Ok(output) = Command::new("timeshift")
-            .args(["--list"])
-            .output()
-        {
+        if let Ok(output) = Command::new("timeshift").args(["--list"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== timeshift --list ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== timeshift --list ===\n{}\n", result));
 
             if result.contains("No snapshots") {
                 status.backup_configured = true;
@@ -399,10 +403,7 @@ impl BackupCheck {
     #[cfg(target_os = "linux")]
     fn check_borg(&self, status: &mut BackupStatus) -> bool {
         // Check for borgbackup
-        if let Ok(output) = Command::new("which")
-            .args(["borg"])
-            .output()
-        {
+        if let Ok(output) = Command::new("which").args(["borg"]).output() {
             if !output.status.success() {
                 return false;
             }
@@ -433,17 +434,16 @@ impl BackupCheck {
     #[cfg(target_os = "linux")]
     fn check_rsync_cron(&self, status: &mut BackupStatus) -> bool {
         // Check user crontab for rsync
-        if let Ok(output) = Command::new("crontab")
-            .args(["-l"])
-            .output()
-        {
+        if let Ok(output) = Command::new("crontab").args(["-l"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
 
             if result.contains("rsync") && !result.contains("no crontab") {
                 status.backup_configured = true;
                 status.backup_enabled = true;
                 status.backup_type = Some("rsync (cron)".to_string());
-                status.raw_output.push_str(&format!("rsync found in crontab:\n{}\n", result));
+                status
+                    .raw_output
+                    .push_str(&format!("rsync found in crontab:\n{}\n", result));
                 return true;
             }
         }
@@ -463,7 +463,15 @@ impl BackupCheck {
         ];
 
         // Keywords to search for (case-insensitive)
-        let backup_keywords = ["backup", "rsync", "borg", "restic", "duplicity", "rclone", "tar"];
+        let backup_keywords = [
+            "backup",
+            "rsync",
+            "borg",
+            "restic",
+            "duplicity",
+            "rclone",
+            "tar",
+        ];
 
         for dir in cron_dirs {
             if let Ok(entries) = std::fs::read_dir(dir) {
@@ -475,17 +483,16 @@ impl BackupCheck {
                         status.backup_configured = true;
                         status.backup_enabled = true;
                         status.backup_type = Some("cron backup".to_string());
-                        status.raw_output.push_str(&format!("Backup cron job: {}\n", entry.path().display()));
+                        status
+                            .raw_output
+                            .push_str(&format!("Backup cron job: {}\n", entry.path().display()));
                     }
                 }
             }
         }
 
         // Also check systemd timer units for backup services
-        let systemd_dirs = [
-            "/etc/systemd/system",
-            "/usr/lib/systemd/system",
-        ];
+        let systemd_dirs = ["/etc/systemd/system", "/usr/lib/systemd/system"];
 
         for dir in systemd_dirs {
             if let Ok(entries) = std::fs::read_dir(dir) {
@@ -493,10 +500,14 @@ impl BackupCheck {
                     let name = entry.file_name().to_string_lossy().to_lowercase();
 
                     // Check for backup-related timer units
-                    if name.ends_with(".timer") && backup_keywords.iter().any(|kw| name.contains(kw)) {
+                    if name.ends_with(".timer")
+                        && backup_keywords.iter().any(|kw| name.contains(kw))
+                    {
                         status.backup_configured = true;
                         status.backup_type = Some("systemd timer".to_string());
-                        status.raw_output.push_str(&format!("Backup timer unit: {}\n", entry.path().display()));
+                        status
+                            .raw_output
+                            .push_str(&format!("Backup timer unit: {}\n", entry.path().display()));
 
                         // Check if timer is enabled
                         if let Ok(output) = std::process::Command::new("systemctl")
@@ -521,15 +532,15 @@ impl BackupCheck {
         // - RSYNC: "2024-01-15_10-00-00" or just date part extracted from path
         // - General: "2024-01-15", "20240115", etc.
         let datetime_formats = [
-            "%Y-%m-%d_%H-%M-%S",     // Standard Timeshift format
-            "%Y-%m-%d-%H%M%S",       // Alternative format
-            "%Y-%m-%dT%H:%M:%S",     // ISO format
-            "%Y%m%d_%H%M%S",         // Compact format
+            "%Y-%m-%d_%H-%M-%S", // Standard Timeshift format
+            "%Y-%m-%d-%H%M%S",   // Alternative format
+            "%Y-%m-%dT%H:%M:%S", // ISO format
+            "%Y%m%d_%H%M%S",     // Compact format
         ];
 
         let date_formats = [
-            "%Y-%m-%d",              // ISO date
-            "%Y%m%d",                // Compact date
+            "%Y-%m-%d", // ISO date
+            "%Y%m%d",   // Compact date
         ];
 
         let trimmed = date_str.trim();
@@ -555,7 +566,7 @@ impl BackupCheck {
         if trimmed.len() >= 10 {
             // Look for YYYY-MM-DD pattern anywhere in the string
             for i in 0..=(trimmed.len() - 10) {
-                let slice = &trimmed[i..i+10];
+                let slice = &trimmed[i..i + 10];
                 if let Ok(d) = chrono::NaiveDate::parse_from_str(slice, "%Y-%m-%d") {
                     return Some(DateTime::from_naive_utc_and_offset(
                         d.and_hms_opt(0, 0, 0).unwrap(),
@@ -590,12 +601,11 @@ impl BackupCheck {
         };
 
         // Check Time Machine status
-        if let Ok(output) = Command::new("tmutil")
-            .args(["status"])
-            .output()
-        {
+        if let Ok(output) = Command::new("tmutil").args(["status"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== tmutil status ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== tmutil status ===\n{}\n", result));
 
             // If tmutil runs successfully, Time Machine is configured
             if output.status.success() && !result.contains("Backup session not running") {
@@ -604,12 +614,11 @@ impl BackupCheck {
         }
 
         // Check Time Machine destination
-        if let Ok(output) = Command::new("tmutil")
-            .args(["destinationinfo"])
-            .output()
-        {
+        if let Ok(output) = Command::new("tmutil").args(["destinationinfo"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== tmutil destinationinfo ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== tmutil destinationinfo ===\n{}\n", result));
 
             if !result.contains("No destinations") && output.status.success() {
                 status.backup_configured = true;
@@ -617,19 +626,19 @@ impl BackupCheck {
                 // Parse destination name
                 for line in result.lines() {
                     if line.contains("Name") {
-                        status.backup_destination = line.split(':').last().map(|s| s.trim().to_string());
+                        status.backup_destination =
+                            line.split(':').last().map(|s| s.trim().to_string());
                     }
                 }
             }
         }
 
         // Get latest backup info
-        if let Ok(output) = Command::new("tmutil")
-            .args(["latestbackup"])
-            .output()
-        {
+        if let Ok(output) = Command::new("tmutil").args(["latestbackup"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("Latest backup: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("Latest backup: {}\n", result.trim()));
 
             if output.status.success() && !result.is_empty() {
                 status.backup_enabled = true;
@@ -642,7 +651,11 @@ impl BackupCheck {
 
         // Check if auto-backup is enabled
         if let Ok(output) = Command::new("defaults")
-            .args(["read", "/Library/Preferences/com.apple.TimeMachine", "AutoBackup"])
+            .args([
+                "read",
+                "/Library/Preferences/com.apple.TimeMachine",
+                "AutoBackup",
+            ])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
@@ -672,10 +685,16 @@ impl BackupCheck {
             // Format: 2024-01-15-120000
             if last.len() >= 10 {
                 let date_part = &last[..10];
-                let time_part = if last.len() > 10 { &last[11..] } else { "000000" };
+                let time_part = if last.len() > 10 {
+                    &last[11..]
+                } else {
+                    "000000"
+                };
 
                 let datetime_str = format!("{} {}", date_part, time_part);
-                if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(&datetime_str, "%Y-%m-%d %H%M%S") {
+                if let Ok(dt) =
+                    chrono::NaiveDateTime::parse_from_str(&datetime_str, "%Y-%m-%d %H%M%S")
+                {
                     return Some(DateTime::from_naive_utc_and_offset(dt, Utc));
                 }
                 if let Ok(d) = chrono::NaiveDate::parse_from_str(date_part, "%Y-%m-%d") {
@@ -738,12 +757,15 @@ impl BackupCheck {
                 // Check raw output to determine severity
                 if status.raw_output.contains("No snapshots")
                     || status.raw_output.contains("No backups")
-                    || status.raw_output.is_empty() {
+                    || status.raw_output.is_empty()
+                {
                     issues.push("No backup history found - backup may never have run".to_string());
                 } else {
                     // Backup exists but date couldn't be parsed
                     debug!("Backup detected but date could not be parsed");
-                    issues.push("Backup exists but last backup date could not be determined".to_string());
+                    issues.push(
+                        "Backup exists but last backup date could not be determined".to_string(),
+                    );
                 }
             }
             _ => {}

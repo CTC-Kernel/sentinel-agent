@@ -6,9 +6,9 @@
 //! - macOS: admin group members
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -169,9 +169,9 @@ impl AdminAccountsCheck {
                         status.admin_count += 1;
 
                         // Check if non-standard
-                        let is_standard = standard_admins.iter().any(|s| {
-                            name.to_uppercase().contains(&s.to_uppercase())
-                        });
+                        let is_standard = standard_admins
+                            .iter()
+                            .any(|s| name.to_uppercase().contains(&s.to_uppercase()));
                         if !is_standard {
                             status.non_standard_admins.push(name.to_string());
                         }
@@ -193,9 +193,9 @@ impl AdminAccountsCheck {
                             status.admin_accounts.push(line.to_string());
                             status.admin_count += 1;
 
-                            let is_standard = standard_admins.iter().any(|s| {
-                                line.to_uppercase().contains(&s.to_uppercase())
-                            });
+                            let is_standard = standard_admins
+                                .iter()
+                                .any(|s| line.to_uppercase().contains(&s.to_uppercase()));
                             if !is_standard {
                                 status.non_standard_admins.push(line.to_string());
                             }
@@ -238,9 +238,8 @@ impl AdminAccountsCheck {
                     if parts.len() > 1 {
                         let passwd_field = parts[1];
                         // Root is disabled if password starts with ! or *
-                        status.root_enabled = Some(
-                            !passwd_field.starts_with('!') && !passwd_field.starts_with('*')
-                        );
+                        status.root_enabled =
+                            Some(!passwd_field.starts_with('!') && !passwd_field.starts_with('*'));
                     }
                     break;
                 }
@@ -249,7 +248,9 @@ impl AdminAccountsCheck {
 
         // Check wheel/sudo group members
         if let Ok(group) = std::fs::read_to_string("/etc/group") {
-            status.raw_output.push_str(&format!("=== /etc/group (filtered) ===\n"));
+            status
+                .raw_output
+                .push_str(&format!("=== /etc/group (filtered) ===\n"));
 
             for line in group.lines() {
                 if line.starts_with("wheel:") || line.starts_with("sudo:") {
@@ -294,7 +295,9 @@ impl AdminAccountsCheck {
                 let parts: Vec<&str> = line.split(':').collect();
                 if parts.len() >= 3 && parts[2] == "0" && parts[0] != "root" {
                     let username = parts[0].to_string();
-                    status.raw_output.push_str(&format!("UID 0 account: {}\n", username));
+                    status
+                        .raw_output
+                        .push_str(&format!("UID 0 account: {}\n", username));
                     if !status.admin_accounts.contains(&username) {
                         status.admin_accounts.push(username.clone());
                         status.admin_count += 1;
@@ -305,7 +308,8 @@ impl AdminAccountsCheck {
         }
 
         // Add root to admin count if enabled
-        if status.root_enabled == Some(true) && !status.admin_accounts.contains(&"root".to_string()) {
+        if status.root_enabled == Some(true) && !status.admin_accounts.contains(&"root".to_string())
+        {
             status.admin_accounts.insert(0, "root".to_string());
             status.admin_count += 1;
         }
@@ -411,11 +415,16 @@ impl AdminAccountsCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== dscl admin group ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== dscl admin group ===\n{}\n", result));
 
             // Parse "GroupMembership: user1 user2 user3"
             if let Some(members_line) = result.lines().find(|l| l.contains("GroupMembership:")) {
-                let members_str = members_line.replace("GroupMembership:", "").trim().to_string();
+                let members_str = members_line
+                    .replace("GroupMembership:", "")
+                    .trim()
+                    .to_string();
                 for member in members_str.split_whitespace() {
                     status.admin_accounts.push(member.to_string());
                     status.admin_count += 1;
@@ -434,7 +443,9 @@ impl AdminAccountsCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("Root status: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("Root status: {}\n", result.trim()));
 
             // Root is disabled if AuthenticationAuthority contains "DisabledUser"
             status.root_enabled = Some(!result.contains("DisabledUser"));
@@ -446,7 +457,9 @@ impl AdminAccountsCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== wheel group ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== wheel group ===\n{}\n", result));
 
             for line in result.lines() {
                 if line.starts_with("users:") {

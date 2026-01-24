@@ -175,10 +175,7 @@ impl RuleSyncService {
             Err(e) => {
                 // Download failed, check if we can use cache
                 if repo.is_cache_valid().await? {
-                    warn!(
-                        "Rule download failed, using cached rules: {}",
-                        e
-                    );
+                    warn!("Rule download failed, using cached rules: {}", e);
 
                     Ok(RuleSyncResult {
                         rules_synced: 0,
@@ -208,10 +205,17 @@ impl RuleSyncService {
         path: &str,
         etag: Option<&str>,
     ) -> SyncResult<Option<(RulesResponse, Option<String>)>> {
-        debug!("Downloading rules from {} (If-None-Match: {:?})", path, etag);
+        debug!(
+            "Downloading rules from {} (If-None-Match: {:?})",
+            path, etag
+        );
 
         // Use the new get_with_etag method that properly sends If-None-Match header
-        match self.client.get_with_etag::<RulesResponse>(path, etag).await? {
+        match self
+            .client
+            .get_with_etag::<RulesResponse>(path, etag)
+            .await?
+        {
             Some((response, response_etag)) => {
                 // Server returned new data
                 // Use the ETag from the response header, or fall back to the one in the body
@@ -232,9 +236,7 @@ impl RuleSyncService {
 
                 if cached_count == 0 {
                     // Cache is empty but server says not modified - force refresh
-                    warn!(
-                        "Server returned 304 but rule cache is empty. Forcing full refresh."
-                    );
+                    warn!("Server returned 304 but rule cache is empty. Forcing full refresh.");
                     // Fetch without If-None-Match by calling client directly (avoid recursion)
                     let response: RulesResponse = self.client.get(path).await?;
                     let new_etag = response.etag.clone();
@@ -269,10 +271,7 @@ impl RuleSyncService {
         let count = repo.upsert_batch(&rules).await?;
         repo.update_cache_metadata(response.etag.as_deref()).await?;
 
-        info!(
-            "Force synced {} rules (etag: {:?})",
-            count, response.etag
-        );
+        info!("Force synced {} rules (etag: {:?})", count, response.etag);
 
         Ok(RuleSyncResult {
             rules_synced: count,
