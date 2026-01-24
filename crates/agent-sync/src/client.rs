@@ -5,8 +5,10 @@
 
 use crate::error::{SyncError, SyncResult};
 use agent_common::config::AgentConfig;
-use agent_common::constants::{AGENT_NAME, AGENT_VERSION, HTTP_CONNECT_TIMEOUT_SECS, HTTP_TIMEOUT_SECS};
-use reqwest::{header, tls, Client, ClientBuilder};
+use agent_common::constants::{
+    AGENT_NAME, AGENT_VERSION, HTTP_CONNECT_TIMEOUT_SECS, HTTP_TIMEOUT_SECS,
+};
+use reqwest::{Client, ClientBuilder, header, tls};
 use std::time::Duration;
 use tracing::debug;
 
@@ -48,18 +50,16 @@ impl HttpClient {
             let ca_cert = std::fs::read(ca_path).map_err(|e| {
                 SyncError::Certificate(format!("Failed to read CA certificate: {}", e))
             })?;
-            let cert = reqwest::Certificate::from_pem(&ca_cert).map_err(|e| {
-                SyncError::Certificate(format!("Invalid CA certificate: {}", e))
-            })?;
+            let cert = reqwest::Certificate::from_pem(&ca_cert)
+                .map_err(|e| SyncError::Certificate(format!("Invalid CA certificate: {}", e)))?;
             builder = builder.add_root_certificate(cert);
         }
 
         // Configure proxy if provided
         if let Some(ref proxy_config) = config.proxy {
             debug!("Configuring proxy: {}", proxy_config.url);
-            let mut proxy = reqwest::Proxy::all(&proxy_config.url).map_err(|e| {
-                SyncError::Config(format!("Invalid proxy URL: {}", e))
-            })?;
+            let mut proxy = reqwest::Proxy::all(&proxy_config.url)
+                .map_err(|e| SyncError::Config(format!("Invalid proxy URL: {}", e)))?;
 
             if let (Some(user), Some(pass)) = (&proxy_config.username, &proxy_config.password) {
                 proxy = proxy.basic_auth(user, pass);
@@ -68,9 +68,9 @@ impl HttpClient {
             builder = builder.proxy(proxy);
         }
 
-        let client = builder.build().map_err(|e| {
-            SyncError::Config(format!("Failed to build HTTP client: {}", e))
-        })?;
+        let client = builder
+            .build()
+            .map_err(|e| SyncError::Config(format!("Failed to build HTTP client: {}", e)))?;
 
         Ok(Self {
             client,
@@ -114,18 +114,16 @@ impl HttpClient {
             let ca_cert = std::fs::read(ca_path).map_err(|e| {
                 SyncError::Certificate(format!("Failed to read CA certificate: {}", e))
             })?;
-            let cert = reqwest::Certificate::from_pem(&ca_cert).map_err(|e| {
-                SyncError::Certificate(format!("Invalid CA certificate: {}", e))
-            })?;
+            let cert = reqwest::Certificate::from_pem(&ca_cert)
+                .map_err(|e| SyncError::Certificate(format!("Invalid CA certificate: {}", e)))?;
             builder = builder.add_root_certificate(cert);
         }
 
         // Configure proxy if provided
         if let Some(ref proxy_config) = config.proxy {
             debug!("Configuring proxy: {}", proxy_config.url);
-            let mut proxy = reqwest::Proxy::all(&proxy_config.url).map_err(|e| {
-                SyncError::Config(format!("Invalid proxy URL: {}", e))
-            })?;
+            let mut proxy = reqwest::Proxy::all(&proxy_config.url)
+                .map_err(|e| SyncError::Config(format!("Invalid proxy URL: {}", e)))?;
 
             if let (Some(user), Some(pass)) = (&proxy_config.username, &proxy_config.password) {
                 proxy = proxy.basic_auth(user, pass);
@@ -134,9 +132,9 @@ impl HttpClient {
             builder = builder.proxy(proxy);
         }
 
-        let client = builder.build().map_err(|e| {
-            SyncError::Config(format!("Failed to build mTLS HTTP client: {}", e))
-        })?;
+        let client = builder
+            .build()
+            .map_err(|e| SyncError::Config(format!("Failed to build mTLS HTTP client: {}", e)))?;
 
         Ok(Self {
             client,
@@ -341,20 +339,15 @@ impl HttpClient {
 
         debug!("Downloading from {}", full_url);
 
-        let response = self
-            .client
-            .get(&full_url)
-            .send()
-            .await
-            .map_err(|e| {
-                if e.is_timeout() {
-                    SyncError::Timeout
-                } else if e.is_connect() {
-                    SyncError::connection(e.to_string())
-                } else {
-                    SyncError::Http(e)
-                }
-            })?;
+        let response = self.client.get(&full_url).send().await.map_err(|e| {
+            if e.is_timeout() {
+                SyncError::Timeout
+            } else if e.is_connect() {
+                SyncError::connection(e.to_string())
+            } else {
+                SyncError::Http(e)
+            }
+        })?;
 
         let status = response.status();
         if !status.is_success() {
@@ -364,9 +357,10 @@ impl HttpClient {
             ));
         }
 
-        let bytes = response.bytes().await.map_err(|e| {
-            SyncError::Config(format!("Failed to read download response: {}", e))
-        })?;
+        let bytes = response
+            .bytes()
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to read download response: {}", e)))?;
 
         debug!("Downloaded {} bytes", bytes.len());
 
@@ -444,7 +438,10 @@ mod tests {
         let config = test_config();
         let client = HttpClient::for_enrollment(&config).unwrap();
 
-        assert_eq!(client.url("/v1/agents/enroll"), "https://api.test.com/v1/agents/enroll");
+        assert_eq!(
+            client.url("/v1/agents/enroll"),
+            "https://api.test.com/v1/agents/enroll"
+        );
     }
 
     #[test]
@@ -457,7 +454,10 @@ mod tests {
         let client = HttpClient::for_enrollment(&config).unwrap();
 
         // Trailing slash should be trimmed
-        assert_eq!(client.url("/v1/agents/enroll"), "https://api.test.com/v1/agents/enroll");
+        assert_eq!(
+            client.url("/v1/agents/enroll"),
+            "https://api.test.com/v1/agents/enroll"
+        );
     }
 
     #[test]

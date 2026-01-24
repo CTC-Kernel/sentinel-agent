@@ -6,9 +6,9 @@
 //! - macOS: pwpolicy
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -71,7 +71,9 @@ impl PasswordPolicyCheck {
     pub fn new() -> Self {
         let definition = CheckDefinitionBuilder::new(CHECK_ID)
             .name("Password Policy")
-            .description("Verify password policy meets security standards (min length 12, complexity)")
+            .description(
+                "Verify password policy meets security standards (min length 12, complexity)",
+            )
             .category(CheckCategory::Authentication)
             .severity(CheckSeverity::High)
             .framework("NIS2")
@@ -95,7 +97,9 @@ impl PasswordPolicyCheck {
         let output = Command::new("net")
             .args(["accounts"])
             .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run net accounts: {}", e)))?;
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!("Failed to run net accounts: {}", e))
+            })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
@@ -129,7 +133,9 @@ impl PasswordPolicyCheck {
                 if let Some(val) = Self::parse_days_value(line) {
                     status.min_age_days = Some(val);
                 }
-            } else if line.starts_with("Length of password history") || line.starts_with("Password history") {
+            } else if line.starts_with("Length of password history")
+                || line.starts_with("Password history")
+            {
                 if let Some(val) = Self::parse_numeric_value(line) {
                     status.history_count = Some(val);
                 }
@@ -235,7 +241,9 @@ impl PasswordPolicyCheck {
 
         // Check pwquality.conf if exists
         if let Ok(pwquality) = std::fs::read_to_string("/etc/security/pwquality.conf") {
-            status.raw_output.push_str("=== /etc/security/pwquality.conf ===\n");
+            status
+                .raw_output
+                .push_str("=== /etc/security/pwquality.conf ===\n");
             status.raw_output.push_str(&pwquality);
             status.raw_output.push_str("\n\n");
 
@@ -297,7 +305,10 @@ impl PasswordPolicyCheck {
 
                     // Detect complexity modules
                     if line.contains("pam_pwquality.so") {
-                        if !status.complexity_modules.contains(&"pam_pwquality".to_string()) {
+                        if !status
+                            .complexity_modules
+                            .contains(&"pam_pwquality".to_string())
+                        {
                             status.complexity_modules.push("pam_pwquality".to_string());
                         }
                         status.complexity_required = Some(true);
@@ -312,7 +323,10 @@ impl PasswordPolicyCheck {
                             }
                         }
                     } else if line.contains("pam_cracklib.so") {
-                        if !status.complexity_modules.contains(&"pam_cracklib".to_string()) {
+                        if !status
+                            .complexity_modules
+                            .contains(&"pam_cracklib".to_string())
+                        {
                             status.complexity_modules.push("pam_cracklib".to_string());
                         }
                         status.complexity_required = Some(true);
@@ -369,7 +383,9 @@ impl PasswordPolicyCheck {
 
         if let Ok(output) = output {
             let raw = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str("=== pwpolicy getaccountpolicies ===\n");
+            status
+                .raw_output
+                .push_str("=== pwpolicy getaccountpolicies ===\n");
             status.raw_output.push_str(&raw);
             status.raw_output.push_str("\n\n");
 
@@ -390,7 +406,10 @@ impl PasswordPolicyCheck {
                     }
                 }
 
-                if line.contains("requiresMixedCase") || line.contains("requiresSymbol") || line.contains("requiresNumeric") {
+                if line.contains("requiresMixedCase")
+                    || line.contains("requiresSymbol")
+                    || line.contains("requiresNumeric")
+                {
                     status.complexity_required = Some(true);
                 }
 
@@ -409,13 +428,13 @@ impl PasswordPolicyCheck {
         }
 
         // Also check pwpolicy -getglobalpolicy (older method)
-        let output = Command::new("pwpolicy")
-            .args(["-getglobalpolicy"])
-            .output();
+        let output = Command::new("pwpolicy").args(["-getglobalpolicy"]).output();
 
         if let Ok(output) = output {
             let raw = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str("=== pwpolicy -getglobalpolicy ===\n");
+            status
+                .raw_output
+                .push_str("=== pwpolicy -getglobalpolicy ===\n");
             status.raw_output.push_str(&raw);
             status.raw_output.push_str("\n\n");
 
@@ -504,9 +523,7 @@ impl PasswordPolicyCheck {
     /// Parse a numeric value from a line like "Minimum password length: 8"
     #[allow(dead_code)]
     fn parse_numeric_value(line: &str) -> Option<u32> {
-        line.split(':')
-            .last()
-            .and_then(|s| s.trim().parse().ok())
+        line.split(':').last().and_then(|s| s.trim().parse().ok())
     }
 
     /// Parse days value, handling "unlimited" and "(days)" suffix
@@ -514,7 +531,9 @@ impl PasswordPolicyCheck {
     fn parse_days_value(line: &str) -> Option<u32> {
         let value_part = line.split(':').last()?.trim();
 
-        if value_part.to_lowercase().contains("unlimited") || value_part.to_lowercase().contains("never") {
+        if value_part.to_lowercase().contains("unlimited")
+            || value_part.to_lowercase().contains("never")
+        {
             return Some(99999);
         }
 
@@ -531,9 +550,7 @@ impl PasswordPolicyCheck {
     /// Parse config file value like "minlen = 14"
     #[allow(dead_code)]
     fn parse_config_value(line: &str) -> Option<u32> {
-        line.split('=')
-            .last()
-            .and_then(|s| s.trim().parse().ok())
+        line.split('=').last().and_then(|s| s.trim().parse().ok())
     }
 
     /// Extract integer from macOS plist line

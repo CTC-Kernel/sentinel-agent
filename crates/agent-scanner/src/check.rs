@@ -79,7 +79,9 @@ pub trait Check: Send + Sync {
         }
 
         let current_platform = current_platform();
-        def.platforms.iter().any(|p| p.eq_ignore_ascii_case(&current_platform))
+        def.platforms
+            .iter()
+            .any(|p| p.eq_ignore_ascii_case(&current_platform))
     }
 
     /// Get the check ID.

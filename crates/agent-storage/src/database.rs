@@ -80,10 +80,7 @@ impl Database {
         let connection = if config.create_if_missing {
             Connection::open(&config.path)
         } else {
-            Connection::open_with_flags(
-                &config.path,
-                rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE,
-            )
+            Connection::open_with_flags(&config.path, rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE)
         }
         .map_err(|e| StorageError::Connection(e.to_string()))?;
 
@@ -115,7 +112,9 @@ impl Database {
 
         // Set the key using PRAGMA key
         conn.execute_batch(&format!("PRAGMA key = \"x'{}'\"", key_hex))
-            .map_err(|e| StorageError::Encryption(format!("Failed to set encryption key: {}", e)))?;
+            .map_err(|e| {
+                StorageError::Encryption(format!("Failed to set encryption key: {}", e))
+            })?;
 
         // Configure SQLCipher settings for AES-256-CBC
         conn.execute_batch(
@@ -265,19 +264,21 @@ mod tests {
             let key_manager = KeyManager::new_with_test_key();
             let db = Database::open(config, &key_manager).unwrap();
 
-            tokio::runtime::Runtime::new().unwrap().block_on(async {
-                db.with_connection(|conn| {
-                    conn.execute_batch(
-                        "CREATE TABLE secrets (id INTEGER PRIMARY KEY, data TEXT)",
-                    )
-                    .map_err(|e| StorageError::Query(e.to_string()))?;
-                    conn.execute("INSERT INTO secrets (data) VALUES (?)", ["secret_value"])
+            tokio::runtime::Runtime::new()
+                .unwrap()
+                .block_on(async {
+                    db.with_connection(|conn| {
+                        conn.execute_batch(
+                            "CREATE TABLE secrets (id INTEGER PRIMARY KEY, data TEXT)",
+                        )
                         .map_err(|e| StorageError::Query(e.to_string()))?;
-                    Ok(())
+                        conn.execute("INSERT INTO secrets (data) VALUES (?)", ["secret_value"])
+                            .map_err(|e| StorageError::Query(e.to_string()))?;
+                        Ok(())
+                    })
+                    .await
                 })
-                .await
-            })
-            .unwrap();
+                .unwrap();
         }
 
         // Try to open with wrong key - should fail
@@ -304,15 +305,17 @@ mod tests {
         let (_temp_dir, db) = create_test_db();
 
         // Force database write by creating a table
-        tokio::runtime::Runtime::new().unwrap().block_on(async {
-            db.with_connection(|conn| {
-                conn.execute_batch("CREATE TABLE size_test (id INTEGER PRIMARY KEY)")
-                    .map_err(|e| StorageError::Query(e.to_string()))?;
-                Ok(())
+        tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(async {
+                db.with_connection(|conn| {
+                    conn.execute_batch("CREATE TABLE size_test (id INTEGER PRIMARY KEY)")
+                        .map_err(|e| StorageError::Query(e.to_string()))?;
+                    Ok(())
+                })
+                .await
             })
-            .await
-        })
-        .unwrap();
+            .unwrap();
 
         let size = db.file_size().unwrap();
         assert!(size > 0);

@@ -65,21 +65,25 @@ jobs:
   build-windows:
     name: Build Windows MSI
     runs-on: windows-latest
+    env:
+      VCPKG_ROOT: C:\vcpkg
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - name: Install OpenSSL
+      - name: Install OpenSSL via vcpkg
         run: |
-          choco install openssl -y
-          echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >> $env:GITHUB_ENV
+          vcpkg install openssl:x64-windows-static
+          echo "OPENSSL_DIR=C:\vcpkg\installed\x64-windows-static" >> $env:GITHUB_ENV
+          echo "OPENSSL_STATIC=1" >> $env:GITHUB_ENV
         shell: pwsh
 
       - name: Build release binary
         run: cargo build --release --package agent-core
         env:
-          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64
+          OPENSSL_DIR: C:\vcpkg\installed\x64-windows-static
+          OPENSSL_STATIC: "1"
 
       - name: Install WiX Toolset
         run: dotnet tool install --global wix
@@ -116,6 +120,10 @@ jobs:
   build-deb:
     name: Build Linux DEB
     runs-on: ubuntu-latest
+    env:
+      OPENSSL_DIR: /usr
+      OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
+      OPENSSL_INCLUDE_DIR: /usr/include/openssl
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -159,6 +167,10 @@ jobs:
   build-rpm:
     name: Build Linux RPM
     runs-on: ubuntu-latest
+    env:
+      OPENSSL_DIR: /usr
+      OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
+      OPENSSL_INCLUDE_DIR: /usr/include/openssl
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable

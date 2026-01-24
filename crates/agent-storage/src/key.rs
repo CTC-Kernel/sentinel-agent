@@ -117,14 +117,12 @@ impl KeyManager {
         #[cfg(windows)]
         {
             // Use BCryptGenRandom for cryptographically secure random bytes
-            use windows::Win32::Security::Cryptography::{BCryptGenRandom, BCRYPT_USE_SYSTEM_PREFERRED_RNG};
+            use windows::Win32::Security::Cryptography::{
+                BCRYPT_USE_SYSTEM_PREFERRED_RNG, BCryptGenRandom,
+            };
 
             unsafe {
-                let result = BCryptGenRandom(
-                    None,
-                    &mut key,
-                    BCRYPT_USE_SYSTEM_PREFERRED_RNG,
-                );
+                let result = BCryptGenRandom(None, &mut key, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
                 if result.is_ok() {
                     debug!("Generated key using BCryptGenRandom");
                     return key;
@@ -161,7 +159,11 @@ impl KeyManager {
     #[cfg(unix)]
     fn load_key(path: &Path) -> StorageResult<[u8; KEY_LENGTH]> {
         let data = fs::read(path).map_err(|e| {
-            StorageError::KeyManagement(format!("Failed to read key file {}: {}", path.display(), e))
+            StorageError::KeyManagement(format!(
+                "Failed to read key file {}: {}",
+                path.display(),
+                e
+            ))
         })?;
 
         if data.len() != KEY_LENGTH {
@@ -182,10 +184,14 @@ impl KeyManager {
     /// Load a key from file (Windows - DPAPI protected).
     #[cfg(windows)]
     fn load_key(path: &Path) -> StorageResult<[u8; KEY_LENGTH]> {
-        use windows::Win32::Security::Cryptography::{CryptUnprotectData, CRYPT_INTEGER_BLOB};
+        use windows::Win32::Security::Cryptography::{CRYPT_INTEGER_BLOB, CryptUnprotectData};
 
         let encrypted_data = fs::read(path).map_err(|e| {
-            StorageError::KeyManagement(format!("Failed to read key file {}: {}", path.display(), e))
+            StorageError::KeyManagement(format!(
+                "Failed to read key file {}: {}",
+                path.display(),
+                e
+            ))
         })?;
 
         let mut data_in = CRYPT_INTEGER_BLOB {
@@ -198,20 +204,20 @@ impl KeyManager {
         unsafe {
             CryptUnprotectData(
                 &mut data_in,
-                None,           // description (optional)
-                None,           // entropy (optional)
-                None,           // reserved
-                None,           // prompt struct
-                0,              // flags
+                None, // description (optional)
+                None, // entropy (optional)
+                None, // reserved
+                None, // prompt struct
+                0,    // flags
                 &mut data_out,
             )
             .map_err(|e| StorageError::KeyManagement(format!("DPAPI decryption failed: {}", e)))?;
 
             if data_out.cbData as usize != KEY_LENGTH {
                 // Free the allocated memory
-                windows::Win32::System::Memory::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
-                    data_out.pbData as *mut _,
-                )));
+                windows::Win32::System::Memory::LocalFree(Some(
+                    windows::Win32::Foundation::HLOCAL(data_out.pbData as *mut _),
+                ));
                 return Err(StorageError::KeyManagement(format!(
                     "Invalid decrypted key size: expected {} bytes, got {}",
                     KEY_LENGTH, data_out.cbData
@@ -226,7 +232,10 @@ impl KeyManager {
                 data_out.pbData as *mut _,
             )));
 
-            debug!("Loaded and decrypted key using DPAPI from: {}", path.display());
+            debug!(
+                "Loaded and decrypted key using DPAPI from: {}",
+                path.display()
+            );
             Ok(key)
         }
     }
@@ -249,17 +258,18 @@ impl KeyManager {
 
         // Write the key
         fs::write(path, key).map_err(|e| {
-            StorageError::KeyManagement(format!("Failed to write key file {}: {}", path.display(), e))
+            StorageError::KeyManagement(format!(
+                "Failed to write key file {}: {}",
+                path.display(),
+                e
+            ))
         })?;
 
         // Set restrictive permissions (0600 = owner read/write only)
         use std::os::unix::fs::PermissionsExt;
         let permissions = fs::Permissions::from_mode(0o600);
         fs::set_permissions(path, permissions).map_err(|e| {
-            StorageError::KeyManagement(format!(
-                "Failed to set key file permissions: {}",
-                e
-            ))
+            StorageError::KeyManagement(format!("Failed to set key file permissions: {}", e))
         })?;
 
         info!("Stored encryption key to: {} (mode 0600)", path.display());
@@ -269,7 +279,7 @@ impl KeyManager {
     /// Store a key to file using DPAPI protection (Windows).
     #[cfg(windows)]
     fn store_key(path: &Path, key: &[u8; KEY_LENGTH]) -> StorageResult<()> {
-        use windows::Win32::Security::Cryptography::{CryptProtectData, CRYPT_INTEGER_BLOB};
+        use windows::Win32::Security::Cryptography::{CRYPT_INTEGER_BLOB, CryptProtectData};
 
         // Ensure parent directory exists
         if let Some(parent) = path.parent() {
@@ -295,17 +305,18 @@ impl KeyManager {
         unsafe {
             CryptProtectData(
                 &mut data_in,
-                None,           // description (optional)
-                None,           // entropy (optional)
-                None,           // reserved
-                None,           // prompt struct
-                0,              // flags
+                None, // description (optional)
+                None, // entropy (optional)
+                None, // reserved
+                None, // prompt struct
+                0,    // flags
                 &mut data_out,
             )
             .map_err(|e| StorageError::KeyManagement(format!("DPAPI encryption failed: {}", e)))?;
 
             // Copy encrypted data to a Vec before freeing
-            let encrypted = std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec();
+            let encrypted =
+                std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec();
 
             // Free the allocated memory
             windows::Win32::System::Memory::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
@@ -314,11 +325,18 @@ impl KeyManager {
 
             // Write encrypted data to file
             fs::write(path, &encrypted).map_err(|e| {
-                StorageError::KeyManagement(format!("Failed to write key file {}: {}", path.display(), e))
+                StorageError::KeyManagement(format!(
+                    "Failed to write key file {}: {}",
+                    path.display(),
+                    e
+                ))
             })?;
         }
 
-        info!("Stored DPAPI-protected encryption key to: {}", path.display());
+        info!(
+            "Stored DPAPI-protected encryption key to: {}",
+            path.display()
+        );
         Ok(())
     }
 }

@@ -178,7 +178,10 @@ impl SecurityIncident {
             IncidentType::SuspiciousProcess,
             severity,
             format!("Suspicious process detected: {}", process_name),
-            format!("Process {} (PID: {}) flagged: {}", process_name, pid, reason),
+            format!(
+                "Process {} (PID: {}) flagged: {}",
+                process_name, pid, reason
+            ),
         )
         .with_evidence(serde_json::json!({
             "process_name": process_name,
@@ -306,7 +309,11 @@ impl SecurityMonitor {
         match self.process_monitor.scan_processes().await {
             Ok((incidents, count)) => {
                 processes_scanned = count;
-                debug!("Found {} suspicious processes out of {} scanned", incidents.len(), count);
+                debug!(
+                    "Found {} suspicious processes out of {} scanned",
+                    incidents.len(),
+                    count
+                );
                 all_incidents.extend(incidents);
             }
             Err(e) => {
@@ -321,7 +328,11 @@ impl SecurityMonitor {
         match self.system_monitor.check_system().await {
             Ok((incidents, count)) => {
                 system_checks = count;
-                debug!("Found {} system issues from {} checks", incidents.len(), count);
+                debug!(
+                    "Found {} system issues from {} checks",
+                    incidents.len(),
+                    count
+                );
                 all_incidents.extend(incidents);
             }
             Err(e) => {
@@ -354,19 +365,21 @@ impl SecurityMonitor {
 
         // Only check for high-priority threats
         if let Ok((proc_incidents, _)) = self.process_monitor.scan_processes().await {
-            incidents.extend(
-                proc_incidents
-                    .into_iter()
-                    .filter(|i| matches!(i.severity, IncidentSeverity::Critical | IncidentSeverity::High)),
-            );
+            incidents.extend(proc_incidents.into_iter().filter(|i| {
+                matches!(
+                    i.severity,
+                    IncidentSeverity::Critical | IncidentSeverity::High
+                )
+            }));
         }
 
         if let Ok((sys_incidents, _)) = self.system_monitor.check_system().await {
-            incidents.extend(
-                sys_incidents
-                    .into_iter()
-                    .filter(|i| matches!(i.severity, IncidentSeverity::Critical | IncidentSeverity::High)),
-            );
+            incidents.extend(sys_incidents.into_iter().filter(|i| {
+                matches!(
+                    i.severity,
+                    IncidentSeverity::Critical | IncidentSeverity::High
+                )
+            }));
         }
 
         Ok(incidents)
@@ -387,7 +400,10 @@ mod tests {
     fn test_incident_type_display() {
         assert_eq!(IncidentType::Malware.to_string(), "malware");
         assert_eq!(IncidentType::CryptoMiner.to_string(), "crypto_miner");
-        assert_eq!(IncidentType::FirewallDisabled.to_string(), "firewall_disabled");
+        assert_eq!(
+            IncidentType::FirewallDisabled.to_string(),
+            "firewall_disabled"
+        );
     }
 
     #[test]

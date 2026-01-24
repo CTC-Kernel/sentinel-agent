@@ -3,18 +3,20 @@
 //! This module provides Windows Service Control Manager (SCM) integration,
 //! allowing the agent to run as a Windows service with automatic startup.
 
-use super::{ServiceError, ServiceResult, ServiceState, SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME};
+use super::{
+    SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME, ServiceError, ServiceResult,
+    ServiceState,
+};
 use std::ffi::OsString;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tracing::{error, info, warn};
 use windows_service::{
     define_windows_service,
     service::{
-        ServiceAccess, ServiceControl, ServiceControlAccept, ServiceErrorControl,
-        ServiceExitCode, ServiceInfo, ServiceStartType, ServiceState as WinServiceState,
-        ServiceStatus, ServiceType,
+        ServiceAccess, ServiceControl, ServiceControlAccept, ServiceErrorControl, ServiceExitCode,
+        ServiceInfo, ServiceStartType, ServiceState as WinServiceState, ServiceStatus, ServiceType,
     },
     service_control_handler::{self, ServiceControlHandlerResult},
     service_dispatcher,
@@ -135,8 +137,10 @@ pub fn run_as_service() -> ServiceResult<()> {
 /// Requires administrator privileges.
 pub fn install_service(executable_path: &str) -> ServiceResult<()> {
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)
-        .map_err(|e| ServiceError::System(format!("Failed to connect to service manager: {}", e)))?;
+    let service_manager =
+        ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {
+            ServiceError::System(format!("Failed to connect to service manager: {}", e))
+        })?;
 
     // Check if service already exists
     if service_manager
@@ -160,7 +164,10 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
     };
 
     let service = service_manager
-        .create_service(&service_info, ServiceAccess::CHANGE_CONFIG | ServiceAccess::START)
+        .create_service(
+            &service_info,
+            ServiceAccess::CHANGE_CONFIG | ServiceAccess::START,
+        )
         .map_err(|e| ServiceError::System(format!("Failed to create service: {}", e)))?;
 
     // Set service description
@@ -173,7 +180,10 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
     // Second failure: Restart after 300 seconds (5 minutes)
     // Subsequent failures: Restart after 600 seconds (10 minutes)
     if let Err(e) = configure_service_recovery() {
-        warn!("Failed to configure service recovery: {}. Service will still work but won't auto-restart on failure.", e);
+        warn!(
+            "Failed to configure service recovery: {}. Service will still work but won't auto-restart on failure.",
+            e
+        );
     }
 
     info!("Service '{}' installed successfully", SERVICE_NAME);
@@ -185,8 +195,10 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
 /// Requires administrator privileges.
 pub fn uninstall_service() -> ServiceResult<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)
-        .map_err(|e| ServiceError::System(format!("Failed to connect to service manager: {}", e)))?;
+    let service_manager =
+        ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {
+            ServiceError::System(format!("Failed to connect to service manager: {}", e))
+        })?;
 
     let service_access = ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE;
     let service = service_manager
@@ -236,8 +248,10 @@ pub fn uninstall_service() -> ServiceResult<()> {
 /// Get the current service state.
 pub fn get_service_state() -> ServiceResult<ServiceState> {
     let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)
-        .map_err(|e| ServiceError::System(format!("Failed to connect to service manager: {}", e)))?;
+    let service_manager =
+        ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {
+            ServiceError::System(format!("Failed to connect to service manager: {}", e))
+        })?;
 
     let service = service_manager
         .open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
@@ -252,20 +266,25 @@ pub fn get_service_state() -> ServiceResult<ServiceState> {
         WinServiceState::StartPending => ServiceState::Starting,
         WinServiceState::Running => ServiceState::Running,
         WinServiceState::StopPending => ServiceState::Stopping,
-        WinServiceState::Paused | WinServiceState::PausePending | WinServiceState::ContinuePending => {
-            ServiceState::Paused
-        }
+        WinServiceState::Paused
+        | WinServiceState::PausePending
+        | WinServiceState::ContinuePending => ServiceState::Paused,
     })
 }
 
 /// Start the service.
 pub fn start_service() -> ServiceResult<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)
-        .map_err(|e| ServiceError::System(format!("Failed to connect to service manager: {}", e)))?;
+    let service_manager =
+        ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {
+            ServiceError::System(format!("Failed to connect to service manager: {}", e))
+        })?;
 
     let service = service_manager
-        .open_service(SERVICE_NAME, ServiceAccess::START | ServiceAccess::QUERY_STATUS)
+        .open_service(
+            SERVICE_NAME,
+            ServiceAccess::START | ServiceAccess::QUERY_STATUS,
+        )
         .map_err(|_| ServiceError::NotInstalled)?;
 
     let status = service
@@ -287,11 +306,16 @@ pub fn start_service() -> ServiceResult<()> {
 /// Stop the service.
 pub fn stop_service() -> ServiceResult<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)
-        .map_err(|e| ServiceError::System(format!("Failed to connect to service manager: {}", e)))?;
+    let service_manager =
+        ServiceManager::local_computer(None::<&str>, manager_access).map_err(|e| {
+            ServiceError::System(format!("Failed to connect to service manager: {}", e))
+        })?;
 
     let service = service_manager
-        .open_service(SERVICE_NAME, ServiceAccess::STOP | ServiceAccess::QUERY_STATUS)
+        .open_service(
+            SERVICE_NAME,
+            ServiceAccess::STOP | ServiceAccess::QUERY_STATUS,
+        )
         .map_err(|_| ServiceError::NotInstalled)?;
 
     let status = service
@@ -319,9 +343,9 @@ pub fn stop_service() -> ServiceResult<()> {
 fn configure_service_recovery() -> ServiceResult<()> {
     use std::ptr;
     use windows::Win32::System::Services::{
-        ChangeServiceConfig2W, OpenSCManagerW, OpenServiceW, CloseServiceHandle,
-        SC_MANAGER_CONNECT, SERVICE_CHANGE_CONFIG, SERVICE_CONFIG_FAILURE_ACTIONS,
-        SERVICE_FAILURE_ACTIONSW, SC_ACTION, SC_ACTION_TYPE,
+        ChangeServiceConfig2W, CloseServiceHandle, OpenSCManagerW, OpenServiceW, SC_ACTION,
+        SC_ACTION_TYPE, SC_MANAGER_CONNECT, SERVICE_CHANGE_CONFIG, SERVICE_CONFIG_FAILURE_ACTIONS,
+        SERVICE_FAILURE_ACTIONSW,
     };
     use windows::core::PCWSTR;
 
@@ -331,14 +355,21 @@ fn configure_service_recovery() -> ServiceResult<()> {
             .map_err(|e| ServiceError::System(format!("Failed to open SCM: {}", e)))?;
 
         // Convert service name to wide string
-        let service_name_wide: Vec<u16> = SERVICE_NAME.encode_utf16().chain(std::iter::once(0)).collect();
+        let service_name_wide: Vec<u16> = SERVICE_NAME
+            .encode_utf16()
+            .chain(std::iter::once(0))
+            .collect();
 
         // Open the service
-        let service = OpenServiceW(scm, PCWSTR(service_name_wide.as_ptr()), SERVICE_CHANGE_CONFIG)
-            .map_err(|e| {
-                let _ = CloseServiceHandle(scm);
-                ServiceError::System(format!("Failed to open service: {}", e))
-            })?;
+        let service = OpenServiceW(
+            scm,
+            PCWSTR(service_name_wide.as_ptr()),
+            SERVICE_CHANGE_CONFIG,
+        )
+        .map_err(|e| {
+            let _ = CloseServiceHandle(scm);
+            ServiceError::System(format!("Failed to open service: {}", e))
+        })?;
 
         // Configure failure actions
         // SC_ACTION_RESTART = 1
@@ -358,7 +389,7 @@ fn configure_service_recovery() -> ServiceResult<()> {
         ];
 
         let failure_actions = SERVICE_FAILURE_ACTIONSW {
-            dwResetPeriod: 86400,  // Reset failure count after 1 day (in seconds)
+            dwResetPeriod: 86400, // Reset failure count after 1 day (in seconds)
             lpRebootMsg: PCWSTR::null(),
             lpCommand: PCWSTR::null(),
             cActions: actions.len() as u32,
@@ -387,7 +418,7 @@ fn configure_service_recovery() -> ServiceResult<()> {
 pub fn is_elevated() -> bool {
     use windows::Win32::Foundation::HANDLE;
     use windows::Win32::Security::{
-        GetTokenInformation, TokenElevation, TOKEN_ELEVATION, TOKEN_QUERY,
+        GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation,
     };
     use windows::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 

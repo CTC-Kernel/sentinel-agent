@@ -6,9 +6,9 @@
 //! - macOS: softwareupdate
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -256,9 +256,7 @@ impl SystemUpdatesCheck {
     #[cfg(target_os = "linux")]
     fn check_apt(&self, status: &mut SystemUpdatesStatus) -> bool {
         // Check if apt is available
-        let apt_check = Command::new("which")
-            .args(["apt"])
-            .output();
+        let apt_check = Command::new("which").args(["apt"]).output();
 
         if apt_check.is_err() || !apt_check.unwrap().status.success() {
             return false;
@@ -276,7 +274,8 @@ impl SystemUpdatesCheck {
             }
         } else if let Ok(metadata) = std::fs::metadata("/var/cache/apt/pkgcache.bin") {
             if let Ok(modified) = metadata.modified() {
-                status.last_check_date = modified.duration_since(std::time::UNIX_EPOCH)
+                status.last_check_date = modified
+                    .duration_since(std::time::UNIX_EPOCH)
                     .ok()
                     .map(|d| DateTime::from_timestamp(d.as_secs() as i64, 0))
                     .flatten();
@@ -289,22 +288,21 @@ impl SystemUpdatesCheck {
         }
 
         // Check upgradable packages (doesn't require sudo)
-        if let Ok(output) = Command::new("apt")
-            .args(["list", "--upgradable"])
-            .output()
-        {
+        if let Ok(output) = Command::new("apt").args(["list", "--upgradable"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== apt list --upgradable ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== apt list --upgradable ===\n{}\n", result));
 
             // Count upgradable packages (exclude header line)
-            let upgradable: u32 = result.lines()
-                .filter(|l| l.contains("upgradable"))
-                .count() as u32;
+            let upgradable: u32 =
+                result.lines().filter(|l| l.contains("upgradable")).count() as u32;
             status.upgradable_packages = upgradable;
             status.pending_updates_count = upgradable;
 
             // Count security updates
-            let security: u32 = result.lines()
+            let security: u32 = result
+                .lines()
                 .filter(|l| l.to_lowercase().contains("security"))
                 .count() as u32;
             status.pending_security_updates = security;
@@ -312,11 +310,13 @@ impl SystemUpdatesCheck {
 
         // Check unattended-upgrades status
         if let Ok(content) = std::fs::read_to_string("/etc/apt/apt.conf.d/20auto-upgrades") {
-            status.raw_output.push_str(&format!("=== 20auto-upgrades ===\n{}\n", content));
+            status
+                .raw_output
+                .push_str(&format!("=== 20auto-upgrades ===\n{}\n", content));
 
             status.auto_updates_enabled = Some(
                 content.contains("APT::Periodic::Unattended-Upgrade \"1\"")
-                    || content.contains("Unattended-Upgrade \"1\"")
+                    || content.contains("Unattended-Upgrade \"1\""),
             );
         }
 
@@ -325,9 +325,7 @@ impl SystemUpdatesCheck {
 
     #[cfg(target_os = "linux")]
     fn check_dnf(&self, status: &mut SystemUpdatesStatus) -> bool {
-        let dnf_check = Command::new("which")
-            .args(["dnf"])
-            .output();
+        let dnf_check = Command::new("which").args(["dnf"]).output();
 
         if dnf_check.is_err() || !dnf_check.unwrap().status.success() {
             return false;
@@ -336,17 +334,14 @@ impl SystemUpdatesCheck {
         status.package_manager = Some("dnf".to_string());
 
         // Check for available updates
-        if let Ok(output) = Command::new("dnf")
-            .args(["check-update", "-q"])
-            .output()
-        {
+        if let Ok(output) = Command::new("dnf").args(["check-update", "-q"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== dnf check-update ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== dnf check-update ===\n{}\n", result));
 
             // Count lines (each non-empty line is an update)
-            let updates: u32 = result.lines()
-                .filter(|l| !l.trim().is_empty())
-                .count() as u32;
+            let updates: u32 = result.lines().filter(|l| !l.trim().is_empty()).count() as u32;
             status.pending_updates_count = updates;
             status.upgradable_packages = updates;
         }
@@ -357,11 +352,11 @@ impl SystemUpdatesCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== dnf security updates ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== dnf security updates ===\n{}\n", result));
 
-            let security: u32 = result.lines()
-                .filter(|l| !l.trim().is_empty())
-                .count() as u32;
+            let security: u32 = result.lines().filter(|l| !l.trim().is_empty()).count() as u32;
             status.pending_security_updates = security;
         }
 
@@ -379,9 +374,7 @@ impl SystemUpdatesCheck {
 
     #[cfg(target_os = "linux")]
     fn check_yum(&self, status: &mut SystemUpdatesStatus) -> bool {
-        let yum_check = Command::new("which")
-            .args(["yum"])
-            .output();
+        let yum_check = Command::new("which").args(["yum"]).output();
 
         if yum_check.is_err() || !yum_check.unwrap().status.success() {
             return false;
@@ -390,14 +383,14 @@ impl SystemUpdatesCheck {
         status.package_manager = Some("yum".to_string());
 
         // Check for available updates
-        if let Ok(output) = Command::new("yum")
-            .args(["check-update", "-q"])
-            .output()
-        {
+        if let Ok(output) = Command::new("yum").args(["check-update", "-q"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== yum check-update ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== yum check-update ===\n{}\n", result));
 
-            let updates: u32 = result.lines()
+            let updates: u32 = result
+                .lines()
                 .filter(|l| !l.trim().is_empty() && !l.starts_with("Obsoleting"))
                 .count() as u32;
             status.pending_updates_count = updates;
@@ -410,11 +403,11 @@ impl SystemUpdatesCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("=== yum security updates ===\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("=== yum security updates ===\n{}\n", result));
 
-            let security: u32 = result.lines()
-                .filter(|l| !l.trim().is_empty())
-                .count() as u32;
+            let security: u32 = result.lines().filter(|l| !l.trim().is_empty()).count() as u32;
             status.pending_security_updates = security;
         }
 
@@ -442,24 +435,26 @@ impl SystemUpdatesCheck {
         };
 
         // List available updates
-        if let Ok(output) = Command::new("softwareupdate")
-            .args(["--list"])
-            .output()
-        {
+        if let Ok(output) = Command::new("softwareupdate").args(["--list"]).output() {
             let stdout = String::from_utf8_lossy(&output.stdout).to_string();
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-            status.raw_output.push_str(&format!("=== softwareupdate --list ===\n{}\n{}\n", stdout, stderr));
+            status.raw_output.push_str(&format!(
+                "=== softwareupdate --list ===\n{}\n{}\n",
+                stdout, stderr
+            ));
 
             // Count updates (lines starting with * or containing "Label:")
             let combined = format!("{}{}", stdout, stderr);
-            let updates: u32 = combined.lines()
+            let updates: u32 = combined
+                .lines()
                 .filter(|l| l.trim().starts_with('*') || l.contains("Label:"))
                 .count() as u32;
             status.pending_updates_count = updates;
             status.upgradable_packages = updates;
 
             // Check for security updates
-            let security: u32 = combined.lines()
+            let security: u32 = combined
+                .lines()
                 .filter(|l| l.to_lowercase().contains("security"))
                 .count() as u32;
             status.pending_security_updates = security;
@@ -473,21 +468,33 @@ impl SystemUpdatesCheck {
 
         // Check auto-update settings
         if let Ok(output) = Command::new("defaults")
-            .args(["read", "/Library/Preferences/com.apple.SoftwareUpdate", "AutomaticCheckEnabled"])
+            .args([
+                "read",
+                "/Library/Preferences/com.apple.SoftwareUpdate",
+                "AutomaticCheckEnabled",
+            ])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("AutomaticCheckEnabled: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("AutomaticCheckEnabled: {}\n", result.trim()));
             status.auto_updates_enabled = Some(result.trim() == "1");
         }
 
         // Get last check date
         if let Ok(output) = Command::new("defaults")
-            .args(["read", "/Library/Preferences/com.apple.SoftwareUpdate", "LastSuccessfulDate"])
+            .args([
+                "read",
+                "/Library/Preferences/com.apple.SoftwareUpdate",
+                "LastSuccessfulDate",
+            ])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("LastSuccessfulDate: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("LastSuccessfulDate: {}\n", result.trim()));
             // Parse date if possible
         }
 

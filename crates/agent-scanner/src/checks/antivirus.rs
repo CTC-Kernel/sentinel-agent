@@ -122,8 +122,7 @@ impl AntivirusCheck {
 
     #[cfg(target_os = "windows")]
     fn parse_defender_output(&self, output: &str) -> ScannerResult<AntivirusStatus> {
-        let json: serde_json::Value =
-            serde_json::from_str(output).unwrap_or(serde_json::json!({}));
+        let json: serde_json::Value = serde_json::from_str(output).unwrap_or(serde_json::json!({}));
 
         let enabled = json["AntivirusEnabled"].as_bool().unwrap_or(false);
         let rtp = json["RealTimeProtectionEnabled"].as_bool().unwrap_or(false);
@@ -209,11 +208,18 @@ impl AntivirusCheck {
             .filter_map(|p| p["displayName"].as_str().map(|s| s.to_string()))
             .collect();
 
-        let primary = av_names.first().cloned().unwrap_or_else(|| "Unknown".to_string());
+        let primary = av_names
+            .first()
+            .cloned()
+            .unwrap_or_else(|| "Unknown".to_string());
         av_names.remove(0);
 
         // productState bit flags: bit 12 = enabled, bit 4 = up to date
-        let enabled = products.first().and_then(|p| p["productState"].as_u64()).map(|s| (s & 0x1000) != 0).unwrap_or(false);
+        let enabled = products
+            .first()
+            .and_then(|p| p["productState"].as_u64())
+            .map(|s| (s & 0x1000) != 0)
+            .unwrap_or(false);
 
         Ok(AntivirusStatus {
             enabled,
@@ -304,19 +310,14 @@ impl AntivirusCheck {
         }
 
         // Get ClamAV version and signature info
-        let version_output = Command::new("clamscan")
-            .args(["--version"])
-            .output();
+        let version_output = Command::new("clamscan").args(["--version"]).output();
 
         let version_str = version_output
             .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
             .unwrap_or_default();
 
         // Parse version string: "ClamAV 0.103.6/26123/Wed Jan 12 09:24:09 2024"
-        let definition_version = version_str
-            .split('/')
-            .nth(1)
-            .map(|s| s.to_string());
+        let definition_version = version_str.split('/').nth(1).map(|s| s.to_string());
 
         Ok(AntivirusStatus {
             enabled: true,
@@ -334,8 +335,7 @@ impl AntivirusCheck {
 
     #[cfg(target_os = "linux")]
     async fn check_sophos(&self) -> ScannerResult<AntivirusStatus> {
-        let output = Command::new("/opt/sophos-av/bin/savdstatus")
-            .output();
+        let output = Command::new("/opt/sophos-av/bin/savdstatus").output();
 
         match output {
             Ok(o) if o.status.success() => {
@@ -418,7 +418,9 @@ impl AntivirusCheck {
         let output = Command::new("system_profiler")
             .args(["SPInstallHistoryDataType", "-json"])
             .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run system_profiler: {}", e)))?;
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!("Failed to run system_profiler: {}", e))
+            })?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
@@ -494,9 +496,7 @@ impl Check for AntivirusCheck {
         let raw_data = serde_json::to_value(&status).unwrap_or_default();
 
         // Check passes if AV is enabled with real-time protection and current definitions
-        let passed = status.enabled
-            && status.real_time_protection
-            && status.definitions_current;
+        let passed = status.enabled && status.real_time_protection && status.definitions_current;
 
         if passed {
             Ok(CheckOutput::pass(
@@ -520,11 +520,7 @@ impl Check for AntivirusCheck {
             }
 
             Ok(CheckOutput::fail(
-                format!(
-                    "{} issues: {}",
-                    status.av_name,
-                    issues.join(", ")
-                ),
+                format!("{} issues: {}", status.av_name, issues.join(", ")),
                 raw_data,
             ))
         }

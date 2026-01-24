@@ -193,23 +193,25 @@ impl CheckRunner {
             CheckResult::fail(&check_id, &output.message)
         };
 
-        result = result.with_duration(duration_ms).with_details(output.raw_data.clone());
+        result = result
+            .with_duration(duration_ms)
+            .with_details(output.raw_data.clone());
 
         // Generate proof if enabled
         let proof = if self.config.generate_proofs {
-            let proof = self.proof_generator.generate(
-                result.id,
-                &check_id,
-                &output,
-                check.definition(),
-            );
+            let proof =
+                self.proof_generator
+                    .generate(result.id, &check_id, &output, check.definition());
             result = result.with_proof(proof.id);
             Some(proof)
         } else {
             None
         };
 
-        debug!("Check {} completed: {:?} in {}ms", check_id, result.status, duration_ms);
+        debug!(
+            "Check {} completed: {:?} in {}ms",
+            check_id, result.status, duration_ms
+        );
 
         Ok(CheckExecutionResult {
             result,
@@ -238,8 +240,9 @@ impl CheckRunner {
     /// Create a timeout result.
     fn create_timeout_result(&self, check_id: &str, start: Instant) -> CheckExecutionResult {
         let duration_ms = start.elapsed().as_millis() as u64;
-        let result = CheckResult::error(check_id, format!("Check timed out after {}ms", duration_ms))
-            .with_duration(duration_ms);
+        let result =
+            CheckResult::error(check_id, format!("Check timed out after {}ms", duration_ms))
+                .with_duration(duration_ms);
 
         CheckExecutionResult {
             result,
@@ -334,7 +337,10 @@ mod tests {
         }
 
         async fn execute(&self) -> ScannerResult<CheckOutput> {
-            Ok(CheckOutput::pass("Check passed", serde_json::json!({"status": "ok"})))
+            Ok(CheckOutput::pass(
+                "Check passed",
+                serde_json::json!({"status": "ok"}),
+            ))
         }
     }
 
@@ -349,7 +355,10 @@ mod tests {
         }
 
         async fn execute(&self) -> ScannerResult<CheckOutput> {
-            Ok(CheckOutput::fail("Check failed", serde_json::json!({"error": "non-compliant"})))
+            Ok(CheckOutput::fail(
+                "Check failed",
+                serde_json::json!({"error": "non-compliant"}),
+            ))
         }
     }
 
@@ -366,7 +375,10 @@ mod tests {
 
         async fn execute(&self) -> ScannerResult<CheckOutput> {
             tokio::time::sleep(Duration::from_millis(self.delay_ms)).await;
-            Ok(CheckOutput::pass("Slow check passed", serde_json::json!({})))
+            Ok(CheckOutput::pass(
+                "Slow check passed",
+                serde_json::json!({}),
+            ))
         }
     }
 

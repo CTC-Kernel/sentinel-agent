@@ -6,8 +6,8 @@
 //! - Sync queue entries for deleted data are removed
 //! - Storage statistics are reported after cleanup
 
-use crate::error::{StorageError, StorageResult};
 use crate::Database;
+use crate::error::{StorageError, StorageResult};
 use agent_common::constants::PROOF_RETENTION_DAYS;
 use chrono::{DateTime, Duration, Utc};
 use tracing::info;
@@ -459,7 +459,9 @@ impl<'a> RetentionPolicy<'a> {
 
                 let sync_queue_count: i64 = conn
                     .query_row("SELECT COUNT(*) FROM sync_queue", [], |row| row.get(0))
-                    .map_err(|e| StorageError::Query(format!("Failed to count sync queue: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to count sync queue: {}", e))
+                    })?;
 
                 let oldest_proof: Option<String> = conn
                     .query_row("SELECT MIN(created_at) FROM proofs", [], |row| row.get(0))
@@ -529,9 +531,7 @@ impl StorageStats {
     /// Calculate data span in days.
     pub fn data_span_days(&self) -> Option<i64> {
         match (self.oldest_proof, self.newest_proof) {
-            (Some(oldest), Some(newest)) => {
-                Some((newest - oldest).num_days())
-            }
+            (Some(oldest), Some(newest)) => Some((newest - oldest).num_days()),
             _ => None,
         }
     }
@@ -576,8 +576,7 @@ mod tests {
 
         let timestamp = Utc::now() - Duration::days(days_ago);
 
-        let result = CheckResult::new("test_rule", CheckStatus::Pass)
-            .with_executed_at(timestamp);
+        let result = CheckResult::new("test_rule", CheckStatus::Pass).with_executed_at(timestamp);
         let result_id = results_repo.insert(&result).await.unwrap();
 
         let proof = Proof::with_timestamp(result_id, r#"{"test": true}"#, timestamp);

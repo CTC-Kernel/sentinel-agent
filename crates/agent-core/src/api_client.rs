@@ -249,15 +249,19 @@ impl ApiClient {
             info!("Enrollment message: {}", msg);
         }
 
-        info!("Agent enrolled successfully with ID: {}", enrollment.agent_id);
+        info!(
+            "Agent enrolled successfully with ID: {}",
+            enrollment.agent_id
+        );
         Ok(enrollment)
     }
 
     /// Send a heartbeat to the server.
     pub async fn send_heartbeat(&self, request: HeartbeatRequest) -> Result<HeartbeatResponse> {
-        let agent_id = self.agent_id.as_ref().ok_or_else(|| {
-            CommonError::validation("Agent ID not set. Must enroll first.")
-        })?;
+        let agent_id = self
+            .agent_id
+            .as_ref()
+            .ok_or_else(|| CommonError::validation("Agent ID not set. Must enroll first."))?;
 
         let url = format!("{}/v1/agents/{}/heartbeat", self.base_url, agent_id);
         debug!("Sending heartbeat to {}", url);
@@ -298,9 +302,10 @@ impl ApiClient {
 
     /// Get agent configuration from the server.
     pub async fn get_config(&self) -> Result<ConfigResponse> {
-        let agent_id = self.agent_id.as_ref().ok_or_else(|| {
-            CommonError::validation("Agent ID not set. Must enroll first.")
-        })?;
+        let agent_id = self
+            .agent_id
+            .as_ref()
+            .ok_or_else(|| CommonError::validation("Agent ID not set. Must enroll first."))?;
 
         let url = format!("{}/v1/agents/{}/config", self.base_url, agent_id);
         debug!("Fetching config from {}", url);
@@ -324,9 +329,10 @@ impl ApiClient {
             )));
         }
 
-        let config: ConfigResponse = response.json().await.map_err(|e| {
-            CommonError::network(format!("Failed to parse config response: {}", e))
-        })?;
+        let config: ConfigResponse = response
+            .json()
+            .await
+            .map_err(|e| CommonError::network(format!("Failed to parse config response: {}", e)))?;
 
         info!(
             "Received config version {} with {} rules",
@@ -339,9 +345,10 @@ impl ApiClient {
 
     /// Upload a check result to the server.
     pub async fn upload_result(&self, request: ResultRequest) -> Result<ResultResponse> {
-        let agent_id = self.agent_id.as_ref().ok_or_else(|| {
-            CommonError::validation("Agent ID not set. Must enroll first.")
-        })?;
+        let agent_id = self
+            .agent_id
+            .as_ref()
+            .ok_or_else(|| CommonError::validation("Agent ID not set. Must enroll first."))?;
 
         let url = format!("{}/v1/agents/{}/results", self.base_url, agent_id);
         debug!("Uploading result to {}", url);
@@ -366,9 +373,10 @@ impl ApiClient {
             )));
         }
 
-        let result: ResultResponse = response.json().await.map_err(|e| {
-            CommonError::network(format!("Failed to parse result response: {}", e))
-        })?;
+        let result: ResultResponse = response
+            .json()
+            .await
+            .map_err(|e| CommonError::network(format!("Failed to parse result response: {}", e)))?;
 
         debug!("Result uploaded with ID: {}", result.result_id);
 
@@ -419,9 +427,10 @@ impl ApiClient {
             )));
         }
 
-        let result: R = response.json().await.map_err(|e| {
-            CommonError::network(format!("Failed to parse response: {}", e))
-        })?;
+        let result: R = response
+            .json()
+            .await
+            .map_err(|e| CommonError::network(format!("Failed to parse response: {}", e)))?;
 
         Ok(result)
     }

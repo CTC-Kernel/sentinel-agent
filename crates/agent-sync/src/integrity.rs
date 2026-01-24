@@ -159,9 +159,9 @@ impl IntegrityChecker {
         let mut buffer = [0u8; 8192];
 
         loop {
-            let bytes_read = reader.read(&mut buffer).map_err(|e| {
-                SyncError::Config(format!("Failed to read executable: {}", e))
-            })?;
+            let bytes_read = reader
+                .read(&mut buffer)
+                .map_err(|e| SyncError::Config(format!("Failed to read executable: {}", e)))?;
 
             if bytes_read == 0 {
                 break;
@@ -403,7 +403,10 @@ mod tests {
 
         // Store a different expected hash to simulate tampering
         checker
-            .update_expected_hash(&db, "sha256:0000000000000000000000000000000000000000000000000000000000000000")
+            .update_expected_hash(
+                &db,
+                "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            )
             .await
             .unwrap();
 
@@ -422,7 +425,10 @@ mod tests {
 
         // Store initial hash
         let initial_hash = "sha256:initial";
-        checker.update_expected_hash(&db, initial_hash).await.unwrap();
+        checker
+            .update_expected_hash(&db, initial_hash)
+            .await
+            .unwrap();
 
         // Verify stored
         let stored = checker.get_stored_hash(&db).await.unwrap().unwrap();

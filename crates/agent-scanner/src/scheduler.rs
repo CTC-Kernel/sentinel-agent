@@ -3,11 +3,11 @@
 use crate::check::CheckRegistry;
 use crate::runner::{CheckExecutionResult, CheckRunner, RunnerConfig, ScanSummary};
 use chrono::{DateTime, Utc};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use tokio::sync::{mpsc, RwLock};
-use tokio::time::{interval, Instant};
+use tokio::sync::{RwLock, mpsc};
+use tokio::time::{Instant, interval};
 use tracing::{info, warn};
 
 /// Default scan interval (4 hours).
@@ -152,7 +152,10 @@ impl Scheduler {
             return rx;
         }
 
-        info!("Starting scheduler with interval {}s", self.config.interval_secs);
+        info!(
+            "Starting scheduler with interval {}s",
+            self.config.interval_secs
+        );
 
         // Update status
         {
@@ -233,7 +236,8 @@ impl Scheduler {
             // Update next scan time
             {
                 let mut s = status.write().await;
-                s.next_scan_at = Some(Utc::now() + chrono::Duration::seconds(config.interval_secs as i64));
+                s.next_scan_at =
+                    Some(Utc::now() + chrono::Duration::seconds(config.interval_secs as i64));
             }
 
             ticker.tick().await;

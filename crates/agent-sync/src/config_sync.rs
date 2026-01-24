@@ -175,7 +175,10 @@ impl ConfigSyncService {
     }
 
     /// Get a specific configuration value.
-    pub async fn get_config<T: for<'de> Deserialize<'de>>(&self, key: &str) -> SyncResult<Option<T>> {
+    pub async fn get_config<T: for<'de> Deserialize<'de>>(
+        &self,
+        key: &str,
+    ) -> SyncResult<Option<T>> {
         let repo = ConfigRepository::new(&self.db);
         Ok(repo.get_typed(key).await?)
     }
@@ -313,7 +316,10 @@ mod tests {
     #[test]
     fn test_config_keys_constants() {
         assert_eq!(config_keys::CHECK_INTERVAL_SECS, "check_interval_secs");
-        assert_eq!(config_keys::HEARTBEAT_INTERVAL_SECS, "heartbeat_interval_secs");
+        assert_eq!(
+            config_keys::HEARTBEAT_INTERVAL_SECS,
+            "heartbeat_interval_secs"
+        );
         assert_eq!(config_keys::ENABLED_CHECKS, "enabled_checks");
         assert_eq!(config_keys::LOG_LEVEL, "log_level");
     }
