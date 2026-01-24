@@ -62,7 +62,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
             title={
                 <div className="flex items-center gap-3 relative z-10">
                     {Icon && (
-                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 shadow-sm border border-slate-200 dark:border-white/5">
+                        <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400 shadow-sm border border-brand-500/20 dark:border-brand-500/30">
                             <Icon className="h-5 w-5" />
                         </div>
                     )}
@@ -77,14 +77,14 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
             subtitle={<div className="relative z-10">{subtitle}</div>}
             actions={<div className="relative z-10">{actions}</div>}
         >
-            <div className="flex flex-col h-full bg-slate-50/50 dark:bg-slate-900/50 relative overflow-hidden">
+            <div className="flex flex-col h-full bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm relative overflow-hidden">
                 {/* Header Background Pattern */}
                 <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-brand-500/5 to-transparent pointer-events-none z-0" />
 
 
                 {/* Sticky Tabs Header */}
                 {tabs.length > 0 && onTabChange && (
-                    <div className="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-white/5 px-6 pt-2">
+                    <div className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/60 dark:border-white/10 px-6 pt-2">
                         <ScrollableTabs
                             tabs={tabs}
                             activeTab={activeTab || tabs[0].id}

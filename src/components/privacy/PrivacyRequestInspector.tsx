@@ -59,11 +59,11 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                         <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Détails de la demande</h4>
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
+                                <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10">
                                     <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Type</span>
                                     <span className="font-bold text-brand-600 dark:text-brand-400">{request.requestType}</span>
                                 </div>
-                                <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
+                                <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-200/60 dark:border-white/10">
                                     <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Priorité</span>
                                     <Badge status={request.priority === 'High' ? 'error' : 'warning'} size="sm">{request.priority}</Badge>
                                 </div>
@@ -105,7 +105,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
 
                             return (
                                 <div key={step} className="relative">
-                                    <div className={`absolute -left-[41px] top-0 h-5 w-5 rounded-full border-2 flex items-center justify-center bg-white dark:bg-slate-900 ${isCompleted ? 'border-brand-500 text-brand-500' : 'border-slate-300 text-transparent'
+                                    <div className={`absolute -left-[41px] top-0 h-5 w-5 rounded-full border-2 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm ${isCompleted ? 'border-brand-500 text-brand-500' : 'border-slate-300 dark:border-slate-600 text-transparent'
                                         }`}>
                                         <div className={`h-2.5 w-2.5 rounded-full ${isCompleted ? 'bg-brand-500' : 'bg-slate-300'}`}></div>
                                     </div>

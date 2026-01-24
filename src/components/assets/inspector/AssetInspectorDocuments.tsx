@@ -21,10 +21,10 @@ export const AssetInspectorDocuments: React.FC<AssetInspectorDocumentsProps> = (
             ) : (
                 <div className="grid gap-4">
                     {linkedDocuments.map(doc => (
-                        <div key={doc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                        <div key={doc.id} className="p-5 glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white truncate pr-4">{doc.title}</span>
-                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${doc.status === 'Publié' ? 'bg-green-100 text-green-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
+                                <span className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-lg ${doc.status === 'Publié' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-500/20'}`}>
                                     {doc.status}
                                 </span>
                             </div>

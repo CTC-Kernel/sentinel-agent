@@ -26,6 +26,8 @@ const IncidentForm = React.lazy(() => import('../components/incidents/IncidentFo
 const IncidentInspector = React.lazy(() => import('../components/incidents/IncidentInspector').then(m => ({ default: m.IncidentInspector })));
 
 import { IncidentStats } from '../components/incidents/IncidentStats';
+import { IncidentOverview } from '../components/incidents/dashboard/IncidentOverview';
+import { useAgentData } from '../hooks/useAgentData';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { IncidentFormData } from '../schemas/incidentSchema';
 
@@ -122,6 +124,9 @@ export const Incidents: React.FC = () => {
     }, [sortedIncidents, statusFilter, severityFilter]);
 
     const loading = loadingData || (shouldLoadDeps && loadingDeps);
+
+    // Agent data for overview dashboard
+    const { agents } = useAgentData(user?.organizationId);
 
     const handleImportFromEvents = useCallback(async (events: SecurityEvent[]) => {
         setIsSubmitting(true);
@@ -403,7 +408,7 @@ export const Incidents: React.FC = () => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <IncidentStats stats={incidentStats} loading={loading} />
+                        <IncidentOverview incidents={sortedIncidents} agents={agents} />
                     </motion.div>
                 ) : (
                     <motion.div

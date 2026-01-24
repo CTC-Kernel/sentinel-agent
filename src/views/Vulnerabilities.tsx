@@ -4,7 +4,7 @@ import { Menu, Transition } from '@headlessui/react';
 // Form validation: schema-based validation via VulnerabilityForm component
 import { useStore } from '../store';
 import { Vulnerability, UserProfile } from '../types';
-import { VulnerabilityDashboard } from '../components/vulnerabilities/VulnerabilityDashboard';
+import { VulnerabilityOverview } from '../components/vulnerabilities/VulnerabilityOverview';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useVulnerabilities } from '../hooks/useVulnerabilities';
 import { useVulnerabilitiesData } from '../hooks/vulnerabilities/useVulnerabilitiesData';
@@ -260,9 +260,8 @@ export const Vulnerabilities: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="glass-premium p-6 md:p-8 rounded-5xl border border-white/60 dark:border-white/10 shadow-apple relative overflow-hidden"
                     >
-                        <VulnerabilityDashboard vulnerabilities={vulnerabilities} />
+                        <VulnerabilityOverview vulnerabilities={vulnerabilities} />
                     </motion.div>
                 ) : (
                     <motion.div

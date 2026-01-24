@@ -52,12 +52,12 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
     return (
         <div className={`relative ${className}`}>
             <div className={`
-                relative flex items-center w-full rounded-xl border transition-all duration-200
+                relative flex items-center w-full rounded-xl border transition-all duration-200 backdrop-blur-sm
                 ${error
-                    ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
+                    ? 'border-red-500/60 bg-red-500/5 dark:bg-red-500/10'
                     : isFocused
-                        ? 'border-brand-500 bg-background shadow-glow'
-                        : 'border-input bg-background/50 hover:bg-accent/50 dark:hover:bg-white/5 hover:border-brand-500/50'
+                        ? 'border-brand-500 bg-white/80 dark:bg-white/5 shadow-glow ring-2 ring-brand-500/20'
+                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500/30 dark:hover:border-white/20'
                 }
             `}>
                 {Icon && (
@@ -100,14 +100,14 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
                         ${(isFocused || hasValue)
-                            ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded'
+                            ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md'
                             : 'top-3.5 text-sm font-medium'
                         }
                         ${error
                             ? 'text-red-500'
                             : isFocused
-                                ? 'text-brand-600'
-                                : 'text-slate-600'
+                                ? 'text-brand-600 dark:text-brand-400'
+                                : 'text-slate-500 dark:text-slate-400'
                         }
                         ${Icon && !(isFocused || hasValue) ? 'ml-7' : ''}
                     `}

@@ -49,7 +49,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         {label && (
                             <ListboxLabel className={`
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10
-                                -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-950 px-1 rounded text-brand-600 dark:text-brand-400
+                                -top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-1.5 rounded-md text-brand-600 dark:text-brand-400
                                 ${error ? '!text-red-500' : ''}
                             `}>
                                 {label} {required && <span className="text-red-500">*</span>}
@@ -58,13 +58,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
                         <div className="relative mt-1">
                             <ListboxButton className={`
-                                relative w-full cursor-pointer rounded-2xl py-3.5 pl-4 pr-10 text-left 
-                                transition-all duration-300 outline-none min-h-[50px]
+                                relative w-full cursor-pointer rounded-2xl py-3.5 pl-4 pr-10 text-left
+                                transition-all duration-300 outline-none min-h-[50px] backdrop-blur-sm
                                 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
                                 ${error
-                                    ? 'border border-red-500 bg-red-50/50 dark:bg-red-900/10 text-destructive'
+                                    ? 'border border-red-500/60 bg-red-500/5 dark:bg-red-500/10 text-destructive'
                                     : open
-                                        ? 'border border-brand-500 bg-white/90 dark:bg-slate-900/90 shadow-lg shadow-brand-500/10'
+                                        ? 'border border-brand-500 bg-white/80 dark:bg-white/5 shadow-lg shadow-brand-500/10 ring-2 ring-brand-500/20'
                                         : 'glass-input'
                                 }
                             `}>
@@ -89,7 +89,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                     <ListboxOption
                                         key={optionIdx}
                                         className={({ focus }) =>
-                                            `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                                            `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-brand-500/10 dark:bg-brand-500/10 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
                                             }`
                                         }
                                         value={option.value}

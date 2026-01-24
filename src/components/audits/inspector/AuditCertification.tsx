@@ -18,33 +18,32 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-brand-500" />
                     Accès Auditeur Externe
                 </h3>
-                <p className="text-slate-600 dark:text-muted-foreground mb-6">
+                <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                     Créez un lien sécurisé pour permettre à un auditeur externe ou un organisme de certification d'accéder à cet audit, consulter les preuves et valider la conformité.
                 </p>
 
                 {canEdit && (
                     <button
                         onClick={onOpenShareModal}
-                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-lg shadow-brand-500/20 flex items-center gap-2 transition-all"
+                        className="px-5 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 flex items-center gap-2 transition-all hover:-translate-y-0.5"
                     >
                         <LinkIcon className="w-4 h-4" />
                         Générer un lien d'accès
                     </button>
                 )}
 
-                {/* Assuming we might fetch active shares in the future, simpler placeholder for now */}
-                <div className="mt-8 border-t border-slate-100 dark:border-white/5 pt-6">
+                <div className="mt-8 border-t border-slate-200/50 dark:border-white/5 pt-6">
                     <div className="flex justify-between items-center mb-4">
                         <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Partenaires Assignés</h4>
                         {canEdit && (
                             <button
                                 onClick={onOpenAssignModal}
-                                className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1"
+                                className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 flex items-center gap-1 transition-colors"
                             >
                                 <Plus className="w-4 h-4" />
                                 {t('audits.actions.assignPartner') || "Assigner un partenaire"}

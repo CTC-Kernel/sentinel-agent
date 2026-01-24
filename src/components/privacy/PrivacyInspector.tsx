@@ -115,7 +115,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                 </div>
                             </>
                         ) : (
-                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
+                            <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
                                 <PrivacyDetails
                                     activity={selectedActivity}
                                     isEditing={isEditing}
@@ -128,7 +128,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'data' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
+                    <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
                         <PrivacyData
                             activity={selectedActivity}
                             isEditing={isEditing}
@@ -140,7 +140,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'links' && (
-                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
+                    <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
                         <PrivacyLinks
                             activity={selectedActivity}
                             isEditing={isEditing}
@@ -155,7 +155,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                     <div className="relative border-l-2 border-slate-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
                         {activityHistory.map((log, i) => (
                             <div key={`${log.timestamp}-${i}`} className="relative">
-                                <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
+                                <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-2 border-brand-200 dark:border-brand-800">
                                     <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                 </span>
                                 <div>

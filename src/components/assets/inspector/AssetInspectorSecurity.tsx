@@ -93,16 +93,16 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </h3>
                     <div className="space-y-3">
                         {vulnerabilities.map(vuln => (
-                            <div key={vuln.cveId} className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-red-100 dark:border-red-900/20 shadow-sm">
-                                <div className="flex justify-between items-start mb-1">
+                            <div key={vuln.cveId} className="p-4 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm rounded-xl border border-red-200/60 dark:border-red-900/30 shadow-sm hover:shadow-md transition-all">
+                                <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-800 rounded">{vuln.severity} ({vuln.score})</span>
+                                        <span className="text-[10px] font-bold px-2.5 py-1 bg-red-500/15 text-red-700 dark:text-red-400 rounded-lg ring-1 ring-red-500/20">{vuln.severity} ({vuln.score})</span>
                                         <CustomTooltip content="Créer un risque">
                                             <button
                                                 onClick={() => createRiskFromVuln(vuln)}
                                                 aria-label={`Créer un risque pour ${vuln.cveId}`}
-                                                className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-red-600 dark:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                className="p-1.5 hover:bg-red-500/10 rounded-lg text-red-600 dark:text-red-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 <Plus className="h-4 w-4" />
                                             </button>
@@ -135,7 +135,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                 ) : (
                     <div className="grid gap-4">
                         {linkedRisks.map(risk => (
-                            <div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                            <div key={risk.id} className="p-5 glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
                                     <span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
@@ -167,7 +167,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                 ) : (
                     <div className="grid gap-4">
                         {linkedIncidents.map(inc => (
-                            <div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                            <div key={inc.id} className="p-5 glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span>
                                     <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>

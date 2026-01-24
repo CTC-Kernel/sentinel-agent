@@ -12,7 +12,7 @@ export const AssetInspectorHistory: React.FC<AssetInspectorHistoryProps> = ({
 }) => {
     return (
         <div className="space-y-6 sm:space-y-8">
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+            <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6 flex items-center">
                     <History className="h-4 w-4 mr-2" /> Historique DICP
                 </h3>

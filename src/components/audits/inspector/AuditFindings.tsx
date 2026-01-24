@@ -61,9 +61,9 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
     return (
         <div className="space-y-6">
             {canEdit && (
-                <form onSubmit={findingForm.handleSubmit(onSubmit)} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <h3 className="text-sm font-bold uppercase text-slate-500 mb-4 flex items-center gap-2">
-                        <Plus className="h-4 w-4" /> {t('audits.findingsSection.newFinding')}
+                <form onSubmit={findingForm.handleSubmit(onSubmit)} className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-4 flex items-center gap-2">
+                        <Plus className="h-4 w-4 text-brand-500" /> {t('audits.findingsSection.newFinding')}
                     </h3>
                     <div className="space-y-4">
                         <div className="flex flex-col gap-2">
@@ -83,26 +83,26 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <select {...findingForm.register('type')} className="input-field">
+                            <select {...findingForm.register('type')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 transition-all outline-none">
                                 <option value="Mineure">{t('audits.findingsSection.form.type.minor')}</option>
                                 <option value="Majeure">{t('audits.findingsSection.form.type.major')}</option>
                                 <option value="Observation">{t('audits.findingsSection.form.type.observation')}</option>
                                 <option value="Opportunité">{t('audits.findingsSection.form.type.opportunity')}</option>
                             </select>
-                            <select {...findingForm.register('severity')} className="input-field">
+                            <select {...findingForm.register('severity')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 transition-all outline-none">
                                 <option value="Critique">{t('audits.findingsSection.form.severity.critical')}</option>
                                 <option value="Haute">{t('audits.findingsSection.form.severity.high')}</option>
                                 <option value="Moyenne">{t('audits.findingsSection.form.severity.medium')}</option>
                                 <option value="Faible">{t('audits.findingsSection.form.severity.low')}</option>
                                 <option value="Info">{t('audits.findingsSection.form.severity.info')}</option>
                             </select>
-                            <select {...findingForm.register('relatedControlId')} className="input-field">
+                            <select {...findingForm.register('relatedControlId')} className="w-full px-4 py-3 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 transition-all outline-none">
                                 <option value="">{t('audits.findingsSection.form.linkControl')}</option>
                                 {controls.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name.substring(0, 30)}...</option>)}
                             </select>
                         </div>
                         <div className="flex justify-end">
-                            <button type="submit" aria-label={t('audits.findingsSection.add')} className="btn-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            <button type="submit" aria-label={t('audits.findingsSection.add')} className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 {t('audits.findingsSection.add')}
                             </button>
                         </div>
@@ -111,7 +111,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
             )}
 
             <div className="space-y-4 pt-4">
-                <h3 className="text-lg font-bold">{t('audits.findingsSection.listTitle', { count: findings.length })}</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('audits.findingsSection.listTitle', { count: findings.length })}</h3>
                 {findings.length === 0 ? (
                     <EmptyState
                         icon={AlertOctagon}
@@ -121,32 +121,32 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                     />
                 ) : (
                     findings.map(f => (
-                        <div key={f.id} className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex justify-between items-start">
+                        <div key={f.id} className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all flex justify-between items-start group">
                             <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-red-100 text-red-700' : f.type === 'Opportunité' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${f.type === 'Majeure' ? 'bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/20' : f.type === 'Opportunité' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20'}`}>
                                         {f.type}
                                     </span>
                                     {f.severity && (
-                                        <span className={`px-2 py-0.5 text-xs font-bold rounded ${
-                                            f.severity === 'Critique' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' :
-                                            f.severity === 'Haute' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
-                                            f.severity === 'Moyenne' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
-                                            f.severity === 'Faible' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
-                                            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                        <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
+                                            f.severity === 'Critique' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/20' :
+                                            f.severity === 'Haute' ? 'bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/20' :
+                                            f.severity === 'Moyenne' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20' :
+                                            f.severity === 'Faible' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20' :
+                                            'bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-500/20'
                                         }`}>
                                             {f.severity}
                                         </span>
                                     )}
-                                    <span className="text-xs text-muted-foreground">{new Date(f.createdAt || '').toLocaleDateString()}</span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-400">{new Date(f.createdAt || '').toLocaleDateString()}</span>
                                 </div>
                                 <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{f.description}</p>
                             </div>
                             <div className="flex flex-col gap-2">
                                 {canEdit && (
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <CustomTooltip content={t('audits.findingsSection.uploadEvidence')}>
-                                            <label htmlFor={`file-upload-${f.id}`} className={`cursor-pointer p-1 transition-colors focus-within:ring-2 focus-within:ring-brand-500 rounded ${uploadingFindingId === f.id ? 'text-indigo-500 animate-pulse' : 'text-muted-foreground hover:text-indigo-500'}`}>
+                                            <label htmlFor={`file-upload-${f.id}`} className={`cursor-pointer p-2 transition-all rounded-xl hover:bg-indigo-500/10 ${uploadingFindingId === f.id ? 'text-indigo-500 animate-pulse' : 'text-slate-400 hover:text-indigo-500'}`}>
                                                 {uploadingFindingId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                                                 <input type="file"
                                                     id={`file-upload-${f.id}`}
@@ -158,7 +158,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                             </label>
                                         </CustomTooltip>
                                         <CustomTooltip content={t('audits.findingsSection.delete')}>
-                                            <button onClick={() => onDeleteFinding(f.id)} aria-label={t('audits.findingsSection.delete')} className="text-muted-foreground hover:text-red-500 p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
+                                            <button onClick={() => onDeleteFinding(f.id)} aria-label={t('audits.findingsSection.delete')} className="text-slate-400 hover:text-red-500 p-2 rounded-xl hover:bg-red-500/10 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </CustomTooltip>

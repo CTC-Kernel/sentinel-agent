@@ -260,12 +260,12 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
 
                         <div className="space-y-3">
                             {fields.map((field, index) => (
-                                <div key={field.id} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-500/30">
+                                <div key={field.id} className="group relative bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-xl p-3 transition-all hover:shadow-sm hover:border-brand-200 dark:hover:border-brand-500/30">
                                     <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
                                             type="button"
                                             onClick={() => remove(index)}
-                                            className="text-muted-foreground hover:text-red-500 transition-colors bg-white dark:bg-slate-800 rounded-full p-1 shadow-sm border border-slate-100 dark:border-white/5"
+                                            className="text-muted-foreground hover:text-red-500 transition-colors bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full p-1 shadow-sm border border-slate-100 dark:border-white/5"
                                         >
                                             <Trash2 className="w-3 h-3" />
                                         </button>
