@@ -403,10 +403,7 @@ impl AgentRuntime {
     }
 
     /// Upload network snapshot to the server.
-    async fn upload_network_snapshot(
-        &self,
-        snapshot: &NetworkSnapshot,
-    ) -> Result<(), CommonError> {
+    async fn upload_network_snapshot(&self, snapshot: &NetworkSnapshot) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
@@ -435,10 +432,7 @@ impl AgentRuntime {
     }
 
     /// Upload network security alert to the server.
-    async fn upload_network_alert(
-        &self,
-        alert: &NetworkSecurityAlert,
-    ) -> Result<(), CommonError> {
+    async fn upload_network_alert(&self, alert: &NetworkSecurityAlert) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
@@ -674,18 +668,16 @@ impl AgentRuntime {
             if last_network_security.elapsed() >= current_network_security_interval {
                 is_active = true;
                 match self.run_network_collection().await {
-                    Ok(snapshot) => {
-                        match self.run_network_security_detection(&snapshot).await {
-                            Ok(alerts) => {
-                                for alert in alerts {
-                                    if let Err(e) = self.upload_network_alert(&alert).await {
-                                        warn!("Failed to upload network alert: {}", e);
-                                    }
+                    Ok(snapshot) => match self.run_network_security_detection(&snapshot).await {
+                        Ok(alerts) => {
+                            for alert in alerts {
+                                if let Err(e) = self.upload_network_alert(&alert).await {
+                                    warn!("Failed to upload network alert: {}", e);
                                 }
                             }
-                            Err(e) => warn!("Network security detection failed: {}", e),
                         }
-                    }
+                        Err(e) => warn!("Network security detection failed: {}", e),
+                    },
                     Err(e) => {
                         warn!("Network collection for security scan failed: {}", e);
                     }

@@ -39,9 +39,7 @@ impl SyncManager {
     ) -> NetworkResult<Option<NetworkDelta>> {
         let delta = if let Some(ref last) = self.last_snapshot {
             // Calculate delta
-            let delta = self
-                .delta_calculator
-                .calculate(last, &snapshot)?;
+            let delta = self.delta_calculator.calculate(last, &snapshot)?;
 
             // Only return delta if there are actual changes
             if self.delta_has_changes(&delta) {

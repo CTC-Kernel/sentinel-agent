@@ -89,10 +89,9 @@ impl RouteCollector {
             for line in stdout.lines() {
                 if let Some(route) = self.parse_ip_route_line(line) {
                     // Add if not already present (avoid duplicates)
-                    if !routes
-                        .iter()
-                        .any(|r| r.destination == route.destination && r.interface == route.interface)
-                    {
+                    if !routes.iter().any(|r| {
+                        r.destination == route.destination && r.interface == route.interface
+                    }) {
                         routes.push(route);
                     }
                 }
@@ -148,7 +147,10 @@ impl RouteCollector {
         } else {
             let dest_parts: Vec<&str> = parts[0].split('/').collect();
             let dest = dest_parts[0].to_string();
-            let prefix_len = dest_parts.get(1).and_then(|s| s.parse::<u8>().ok()).unwrap_or(32);
+            let prefix_len = dest_parts
+                .get(1)
+                .and_then(|s| s.parse::<u8>().ok())
+                .unwrap_or(32);
             let mask = Self::prefix_to_netmask(prefix_len);
             (dest, mask, false)
         };
