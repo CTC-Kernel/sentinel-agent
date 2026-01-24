@@ -1,0 +1,30 @@
+[package]
+name = "agent-network"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Network information collection and malicious activity detection for Sentinel GRC Agent"
+
+[dependencies]
+agent-common = { path = "../agent-common" }
+tokio.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+sha2.workspace = true
+hex.workspace = true
+rand.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
