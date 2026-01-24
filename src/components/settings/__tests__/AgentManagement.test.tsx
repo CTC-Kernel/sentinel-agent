@@ -108,7 +108,7 @@ describe('AgentManagement', () => {
 
         await waitFor(() => {
             expect(screen.getByText('test-token-123')).toBeDefined();
-            expect(screen.getByText("Token d'Enrôlement")).toBeDefined();
+            expect(screen.getByText("Token d'Installation")).toBeDefined();
         });
     });
 
