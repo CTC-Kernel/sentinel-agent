@@ -286,3 +286,81 @@ jobs:
         with:
           name: sentinel-agent-rpm
           path: target/generate-rpm/*.rpm
+
+  # Build macOS universal binary
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build ARM64
+        run: cargo build --release --package agent-core --target aarch64-apple-darwin
+
+      - name: Build x86_64
+        run: cargo build --release --package agent-core --target x86_64-apple-darwin
+
+      - name: Create universal binary
+        run: |
+          mkdir -p target/release
+          lipo -create \
+            target/aarch64-apple-darwin/release/agent-core \
+            target/x86_64-apple-darwin/release/agent-core \
+            -output target/release/agent-core
+
+      - name: Upload macOS binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-macos
+          path: target/release/agent-core
+
+  # Build macOS DMG
+  build-dmg:
+    name: Build macOS DMG
+    runs-on: macos-latest
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build ARM64
+        run: cargo build --release --package agent-core --target aarch64-apple-darwin
+
+      - name: Build x86_64
+        run: cargo build --release --package agent-core --target x86_64-apple-darwin
+
+      - name: Create universal binary
+        run: |
+          mkdir -p target/release
+          lipo -create \
+            target/aarch64-apple-darwin/release/agent-core \
+            target/x86_64-apple-darwin/release/agent-core \
+            -output target/release/agent-core
+
+      - name: Build DMG
+        run: |
+          chmod +x scripts/build-macos.sh
+          ./scripts/build-macos.sh
+
+      - name: Generate checksum
+        run: |
+          cd target/release
+          for f in *.dmg; do
+            shasum -a 256 "$f" > "$f.sha256"
+          done
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel-agent-dmg
+          path: |
+            target/release/*.dmg
+            target/release/*.sha256
