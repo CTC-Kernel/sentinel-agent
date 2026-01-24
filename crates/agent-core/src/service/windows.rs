@@ -347,7 +347,7 @@ fn configure_service_recovery() -> ServiceResult<()> {
         SC_ACTION_TYPE, SC_MANAGER_CONNECT, SERVICE_CHANGE_CONFIG, SERVICE_CONFIG_FAILURE_ACTIONS,
         SERVICE_FAILURE_ACTIONSW,
     };
-    use windows::core::PCWSTR;
+    use windows::core::{PCWSTR, PWSTR};
 
     unsafe {
         // Open Service Control Manager
@@ -390,8 +390,8 @@ fn configure_service_recovery() -> ServiceResult<()> {
 
         let failure_actions = SERVICE_FAILURE_ACTIONSW {
             dwResetPeriod: 86400, // Reset failure count after 1 day (in seconds)
-            lpRebootMsg: PCWSTR::null(),
-            lpCommand: PCWSTR::null(),
+            lpRebootMsg: PWSTR::null(),
+            lpCommand: PWSTR::null(),
             cActions: actions.len() as u32,
             lpsaActions: actions.as_ptr() as *mut SC_ACTION,
         };
