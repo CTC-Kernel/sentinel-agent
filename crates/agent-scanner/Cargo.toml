@@ -10,6 +10,7 @@ agent-common = { path = "../agent-common" }
 agent-system = { path = "../agent-system" }
 async-trait.workspace = true
 chrono.workspace = true
+dirs = "5"
 hex.workspace = true
 hmac = "0.12"
 regex = "1"
