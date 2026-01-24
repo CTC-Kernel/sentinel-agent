@@ -23,16 +23,18 @@ yanked = "deny"
 ignore = [
     # GTK3 bindings are unmaintained but still needed for tray-icon on Linux
     # The tray-icon crate depends on gtk for Linux support
-    "RUSTSEC-2024-0417", # gdk
-    "RUSTSEC-2024-0418", # gdk-pixbuf
-    "RUSTSEC-2024-0419", # gdk-sys
-    "RUSTSEC-2024-0420", # gdk-pixbuf-sys
-    "RUSTSEC-2024-0421", # gtk
-    "RUSTSEC-2024-0422", # gtk-sys
-    "RUSTSEC-2024-0423", # glib
-    "RUSTSEC-2024-0424", # glib-sys
-    "RUSTSEC-2024-0425", # gio
-    "RUSTSEC-2024-0426", # gio-sys
+    "RUSTSEC-2024-0371", # gdk - unmaintained
+    "RUSTSEC-2024-0370", # gdk-pixbuf - unmaintained
+    "RUSTSEC-2024-0369", # gtk - unmaintained
+    "RUSTSEC-2024-0372", # glib - unmaintained
+    "RUSTSEC-2024-0373", # gio - unmaintained
+    "RUSTSEC-2024-0374", # pango - unmaintained
+    "RUSTSEC-2024-0375", # cairo-rs - unmaintained
+    "RUSTSEC-2024-0376", # atk - unmaintained
+    # proc-macro-error is unmaintained but still used by transitive deps
+    "RUSTSEC-2024-0370", # proc-macro-error
+    # instant is unmaintained, used by transitive deps
+    "RUSTSEC-2024-0384", # instant
 ]
 
 # ============================================================================
