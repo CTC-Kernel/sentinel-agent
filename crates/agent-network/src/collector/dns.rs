@@ -87,36 +87,36 @@ impl DnsCollector {
                         if let Some(server) = line.strip_prefix("DNS Servers:") {
                             config.servers.push(server.trim().to_string());
                         }
-                    } else if line.starts_with("DNS Domain:") {
-                        if let Some(domain) = line.strip_prefix("DNS Domain:") {
-                            config.suffix = Some(domain.trim().to_string());
-                        }
+                    } else if line.starts_with("DNS Domain:")
+                        && let Some(domain) = line.strip_prefix("DNS Domain:")
+                    {
+                        config.suffix = Some(domain.trim().to_string());
                     }
                 }
             }
 
             // Alternative: resolvectl status
-            if config.servers.is_empty() {
-                if let Ok(output) = Command::new("resolvectl").arg("status").output() {
-                    let stdout = String::from_utf8_lossy(&output.stdout);
-                    let mut in_global = false;
-                    for line in stdout.lines() {
-                        if line.contains("Global") {
-                            in_global = true;
-                            continue;
-                        }
-                        if in_global {
-                            let line = line.trim();
-                            if line.starts_with("DNS Servers:") {
-                                if let Some(servers) = line.strip_prefix("DNS Servers:") {
-                                    for server in servers.split_whitespace() {
-                                        config.servers.push(server.to_string());
-                                    }
-                                }
-                            } else if line.starts_with("Link ") {
-                                // End of global section
-                                break;
+            if config.servers.is_empty()
+                && let Ok(output) = Command::new("resolvectl").arg("status").output()
+            {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let mut in_global = false;
+                for line in stdout.lines() {
+                    if line.contains("Global") {
+                        in_global = true;
+                        continue;
+                    }
+                    if in_global {
+                        let line = line.trim();
+                        if line.starts_with("DNS Servers:")
+                            && let Some(servers) = line.strip_prefix("DNS Servers:")
+                        {
+                            for server in servers.split_whitespace() {
+                                config.servers.push(server.to_string());
                             }
+                        } else if line.starts_with("Link ") {
+                            // End of global section
+                            break;
                         }
                     }
                 }
