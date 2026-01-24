@@ -317,14 +317,14 @@ impl AgentTray {
 
     /// Set the current status and update the tray icon.
     pub fn set_status(&self, new_status: AgentTrayStatus) {
-        if let Ok(mut status) = self.status.write() {
-            if *status != new_status {
-                *status = new_status;
-                self.menu_items
-                    .status_item
-                    .set_text(new_status.display_text());
-                debug!("Tray status updated: {:?}", new_status);
-            }
+        if let Ok(mut status) = self.status.write()
+            && *status != new_status
+        {
+            *status = new_status;
+            self.menu_items
+                .status_item
+                .set_text(new_status.display_text());
+            debug!("Tray status updated: {:?}", new_status);
         }
     }
 

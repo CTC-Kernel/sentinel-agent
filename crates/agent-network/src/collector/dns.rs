@@ -7,6 +7,7 @@
 
 use crate::error::{NetworkError, NetworkResult};
 use crate::types::DnsConfiguration;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::process::Command;
 use tracing::debug;
 
@@ -162,12 +163,12 @@ impl DnsCollector {
                     if let Some(domain) = line.split(':').nth(1) {
                         config.suffix = Some(domain.trim().to_string());
                     }
-                } else if line.starts_with("search domain[") {
-                    if let Some(domain) = line.split(':').nth(1) {
-                        let domain = domain.trim().to_string();
-                        if !config.search_domains.contains(&domain) {
-                            config.search_domains.push(domain);
-                        }
+                } else if line.starts_with("search domain[")
+                    && let Some(domain) = line.split(':').nth(1)
+                {
+                    let domain = domain.trim().to_string();
+                    if !config.search_domains.contains(&domain) {
+                        config.search_domains.push(domain);
                     }
                 }
             }
