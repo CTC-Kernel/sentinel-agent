@@ -90,11 +90,11 @@ impl AgentTrayStatus {
     /// Get the status icon character.
     pub fn icon(&self) -> &'static str {
         match self {
-            Self::Active => "●",    // Green dot
-            Self::Paused => "◐",    // Half circle
-            Self::Error => "◉",     // Error dot
-            Self::Syncing => "◌",   // Sync circle
-            Self::Checking => "◎",  // Checking
+            Self::Active => "●",   // Green dot
+            Self::Paused => "◐",   // Half circle
+            Self::Error => "◉",    // Error dot
+            Self::Syncing => "◌",  // Sync circle
+            Self::Checking => "◎", // Checking
         }
     }
 
@@ -162,9 +162,7 @@ struct TrayMenuItems {
 
 impl AgentTray {
     /// Create a new system tray icon with menu.
-    pub fn new(
-        shutdown: ShutdownSignal,
-    ) -> Result<(Self, mpsc::Receiver<TrayCommand>), TrayError> {
+    pub fn new(shutdown: ShutdownSignal) -> Result<(Self, mpsc::Receiver<TrayCommand>), TrayError> {
         let (command_tx, command_rx) = mpsc::channel(32);
 
         // === Header Section ===
@@ -322,7 +320,9 @@ impl AgentTray {
         if let Ok(mut status) = self.status.write() {
             if *status != new_status {
                 *status = new_status;
-                self.menu_items.status_item.set_text(new_status.display_text());
+                self.menu_items
+                    .status_item
+                    .set_text(new_status.display_text());
                 debug!("Tray status updated: {:?}", new_status);
             }
         }
@@ -564,7 +564,11 @@ mod tests {
         assert!(AgentTrayStatus::Active.tooltip().contains("Actif"));
         assert!(AgentTrayStatus::Paused.tooltip().contains("pause"));
         assert!(AgentTrayStatus::Error.tooltip().contains("Erreur"));
-        assert!(AgentTrayStatus::Syncing.tooltip().contains("Synchronisation"));
+        assert!(
+            AgentTrayStatus::Syncing
+                .tooltip()
+                .contains("Synchronisation")
+        );
         assert!(AgentTrayStatus::Checking.tooltip().contains("Vérification"));
     }
 
