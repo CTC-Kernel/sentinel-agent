@@ -76,6 +76,8 @@ jobs:
         run: |
           vcpkg install openssl:x64-windows-static
           echo "OPENSSL_DIR=C:\vcpkg\installed\x64-windows-static" >> $env:GITHUB_ENV
+          echo "OPENSSL_INCLUDE_DIR=C:\vcpkg\installed\x64-windows-static\include" >> $env:GITHUB_ENV
+          echo "OPENSSL_LIB_DIR=C:\vcpkg\installed\x64-windows-static\lib" >> $env:GITHUB_ENV
           echo "OPENSSL_STATIC=1" >> $env:GITHUB_ENV
         shell: pwsh
 
@@ -83,6 +85,8 @@ jobs:
         run: cargo build --release --package agent-core
         env:
           OPENSSL_DIR: C:\vcpkg\installed\x64-windows-static
+          OPENSSL_INCLUDE_DIR: C:\vcpkg\installed\x64-windows-static\include
+          OPENSSL_LIB_DIR: C:\vcpkg\installed\x64-windows-static\lib
           OPENSSL_STATIC: "1"
 
       - name: Install WiX Toolset
