@@ -177,11 +177,11 @@ impl IntegrityChecker {
     /// Get the expected hash from configuration.
     async fn get_expected_hash(&self, db: &Database) -> SyncResult<Option<String>> {
         // Check environment variable first (highest priority)
-        if let Ok(hash) = std::env::var(EXPECTED_HASH_ENV) {
-            if !hash.is_empty() {
-                debug!("Using expected hash from environment variable");
-                return Ok(Some(hash));
-            }
+        if let Ok(hash) = std::env::var(EXPECTED_HASH_ENV)
+            && !hash.is_empty()
+        {
+            debug!("Using expected hash from environment variable");
+            return Ok(Some(hash));
         }
 
         // Check database

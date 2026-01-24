@@ -204,7 +204,7 @@ impl Scheduler {
 
     /// Update the scan interval.
     pub async fn set_interval(&self, interval_secs: u64) -> Result<(), String> {
-        if interval_secs < MIN_INTERVAL_SECS || interval_secs > MAX_INTERVAL_SECS {
+        if !(MIN_INTERVAL_SECS..=MAX_INTERVAL_SECS).contains(&interval_secs) {
             return Err(format!(
                 "Invalid interval: must be between {} and {} seconds",
                 MIN_INTERVAL_SECS, MAX_INTERVAL_SECS
@@ -368,6 +368,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::field_reassign_with_default)]
     fn test_scheduler_config_validation() {
         let mut config = SchedulerConfig::default();
 

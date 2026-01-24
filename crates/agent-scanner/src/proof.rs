@@ -265,7 +265,7 @@ mod tests {
         let days_until_expiry = (expires_at - Utc::now()).num_days();
 
         // Should be approximately 30 days (allow 1 day tolerance)
-        assert!(days_until_expiry >= 29 && days_until_expiry <= 30);
+        assert!((29..=30).contains(&days_until_expiry));
     }
 
     #[test]

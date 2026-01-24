@@ -68,7 +68,7 @@ fn default_enabled() -> bool {
 
 impl From<ApiCheckRule> for CheckRule {
     fn from(api: ApiCheckRule) -> Self {
-        let severity = Severity::from_str(&api.severity).unwrap_or(Severity::Medium);
+        let severity = Severity::parse_str(&api.severity).unwrap_or(Severity::Medium);
 
         CheckRule {
             id: api.id,
@@ -454,12 +454,12 @@ mod tests {
 
     #[test]
     fn test_severity_conversion() {
-        assert_eq!(Severity::from_str("critical"), Some(Severity::Critical));
-        assert_eq!(Severity::from_str("high"), Some(Severity::High));
-        assert_eq!(Severity::from_str("medium"), Some(Severity::Medium));
-        assert_eq!(Severity::from_str("low"), Some(Severity::Low));
-        assert_eq!(Severity::from_str("info"), Some(Severity::Info));
-        assert_eq!(Severity::from_str("invalid"), None);
+        assert_eq!(Severity::parse_str("critical"), Some(Severity::Critical));
+        assert_eq!(Severity::parse_str("high"), Some(Severity::High));
+        assert_eq!(Severity::parse_str("medium"), Some(Severity::Medium));
+        assert_eq!(Severity::parse_str("low"), Some(Severity::Low));
+        assert_eq!(Severity::parse_str("info"), Some(Severity::Info));
+        assert_eq!(Severity::parse_str("invalid"), None);
     }
 
     #[test]

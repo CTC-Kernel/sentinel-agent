@@ -99,20 +99,20 @@ impl SystemMonitor {
             .args(["read", "/Library/Preferences/com.apple.alf", "globalstate"])
             .output();
 
-        if let Ok(result) = output {
-            if result.status.success() {
-                let state: i32 = String::from_utf8_lossy(&result.stdout)
-                    .trim()
-                    .parse()
-                    .unwrap_or(0);
+        if let Ok(result) = output
+            && result.status.success()
+        {
+            let state: i32 = String::from_utf8_lossy(&result.stdout)
+                .trim()
+                .parse()
+                .unwrap_or(0);
 
-                // 0 = disabled, 1 = enabled for specific services, 2 = enabled for essential services
-                if state == 0 {
-                    return Some(SecurityIncident::firewall_disabled(serde_json::json!({
-                        "firewall": "application_firewall",
-                        "globalstate": state,
-                    })));
-                }
+            // 0 = disabled, 1 = enabled for specific services, 2 = enabled for essential services
+            if state == 0 {
+                return Some(SecurityIncident::firewall_disabled(serde_json::json!({
+                    "firewall": "application_firewall",
+                    "globalstate": state,
+                })));
             }
         }
 
@@ -287,18 +287,19 @@ impl SystemMonitor {
 
         for line in sshd_config.lines() {
             let line = line.trim().to_lowercase();
-            if line.starts_with("permitrootlogin") && !line.starts_with('#') {
-                if line.contains("yes") || line.contains("without-password") {
-                    return Some(SecurityIncident::system_change(
-                        "SSH root login enabled",
-                        "SSH server allows root login, which is a security risk",
-                        IncidentSeverity::Medium,
-                        serde_json::json!({
-                            "setting": "PermitRootLogin",
-                            "value": if line.contains("yes") { "yes" } else { "without-password" },
-                        }),
-                    ));
-                }
+            if line.starts_with("permitrootlogin")
+                && !line.starts_with('#')
+                && (line.contains("yes") || line.contains("without-password"))
+            {
+                return Some(SecurityIncident::system_change(
+                    "SSH root login enabled",
+                    "SSH server allows root login, which is a security risk",
+                    IncidentSeverity::Medium,
+                    serde_json::json!({
+                        "setting": "PermitRootLogin",
+                        "value": if line.contains("yes") { "yes" } else { "without-password" },
+                    }),
+                ));
             }
         }
 
@@ -389,38 +390,37 @@ impl SystemMonitor {
             .args([".", "-read", "/Groups/admin", "GroupMembership"])
             .output();
 
-        if let Ok(result) = output {
-            if result.status.success() {
-                let stdout = String::from_utf8_lossy(&result.stdout);
-                // Format: GroupMembership: user1 user2
-                let admins: Vec<String> = stdout
-                    .strip_prefix("GroupMembership: ")
-                    .unwrap_or(&stdout)
-                    .trim()
-                    .split_whitespace()
-                    .map(|s| s.to_string())
+        if let Ok(result) = output
+            && result.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&result.stdout);
+            // Format: GroupMembership: user1 user2
+            let admins: Vec<String> = stdout
+                .strip_prefix("GroupMembership: ")
+                .unwrap_or(&stdout)
+                .split_whitespace()
+                .map(|s| s.to_string())
+                .collect();
+
+            if !self.known_admins.is_empty() {
+                let new_admins: Vec<&String> = admins
+                    .iter()
+                    .filter(|a| !self.known_admins.contains(a))
                     .collect();
 
-                if !self.known_admins.is_empty() {
-                    let new_admins: Vec<&String> = admins
-                        .iter()
-                        .filter(|a| !self.known_admins.contains(a))
-                        .collect();
-
-                    if !new_admins.is_empty() {
-                        return Some(SecurityIncident::system_change(
-                            "New administrator account",
-                            &format!(
-                                "New user(s) with administrator privileges detected: {:?}",
-                                new_admins
-                            ),
-                            IncidentSeverity::High,
-                            serde_json::json!({
-                                "new_admins": new_admins,
-                                "known_admins": self.known_admins,
-                            }),
-                        ));
-                    }
+                if !new_admins.is_empty() {
+                    return Some(SecurityIncident::system_change(
+                        "New administrator account",
+                        &format!(
+                            "New user(s) with administrator privileges detected: {:?}",
+                            new_admins
+                        ),
+                        IncidentSeverity::High,
+                        serde_json::json!({
+                            "new_admins": new_admins,
+                            "known_admins": self.known_admins,
+                        }),
+                    ));
                 }
             }
         }

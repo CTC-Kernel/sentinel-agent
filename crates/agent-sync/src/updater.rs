@@ -710,16 +710,15 @@ impl UpdateManager {
                     });
 
                     // Optionally verify version matches expected
-                    if let Some(ref ver) = reported_version {
-                        if let Ok(parsed) = semver::Version::parse(ver) {
-                            if &parsed != expected_version {
-                                warn!(
-                                    "Version mismatch: expected {}, got {}",
-                                    expected_version, parsed
-                                );
-                                // This is a warning, not a failure - version might be reported differently
-                            }
-                        }
+                    if let Some(ref ver) = reported_version
+                        && let Ok(parsed) = semver::Version::parse(ver)
+                        && &parsed != expected_version
+                    {
+                        warn!(
+                            "Version mismatch: expected {}, got {}",
+                            expected_version, parsed
+                        );
+                        // This is a warning, not a failure - version might be reported differently
                     }
 
                     info!(
@@ -919,6 +918,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::assertions_on_constants)]
     fn test_max_rollback_time() {
         // NFR-R5: Rollback < 2 minutes
         assert!(MAX_ROLLBACK_SECS <= 120);

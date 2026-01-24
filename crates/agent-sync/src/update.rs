@@ -38,7 +38,7 @@ pub enum UpdatePolicy {
 
 impl UpdatePolicy {
     /// Parse from string.
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_str(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
             "automatic" | "auto" => Some(UpdatePolicy::Automatic),
             "manual" | "manual_approval" => Some(UpdatePolicy::ManualApproval),
@@ -62,6 +62,7 @@ impl UpdatePolicy {
 /// Rollout group for staged deployment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum RolloutGroup {
     /// Canary group (1% of fleet).
     Canary,
@@ -70,6 +71,7 @@ pub enum RolloutGroup {
     /// Majority group (50% of fleet).
     Majority,
     /// General availability (100% of fleet).
+    #[default]
     GeneralAvailability,
 }
 
@@ -85,7 +87,7 @@ impl RolloutGroup {
     }
 
     /// Parse from string.
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_str(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
             "canary" => Some(RolloutGroup::Canary),
             "early_adopter" | "early" => Some(RolloutGroup::EarlyAdopter),
@@ -93,12 +95,6 @@ impl RolloutGroup {
             "general_availability" | "ga" | "all" => Some(RolloutGroup::GeneralAvailability),
             _ => None,
         }
-    }
-}
-
-impl Default for RolloutGroup {
-    fn default() -> Self {
-        RolloutGroup::GeneralAvailability
     }
 }
 
@@ -390,7 +386,7 @@ impl UpdateService {
             rollout_group: response
                 .rollout_group
                 .as_deref()
-                .and_then(RolloutGroup::from_str)
+                .and_then(RolloutGroup::parse_str)
                 .unwrap_or(self.rollout_group),
             released_at: response.released_at.unwrap_or_else(Utc::now),
         };
@@ -573,26 +569,26 @@ mod tests {
     #[test]
     fn test_update_policy_from_str() {
         assert_eq!(
-            UpdatePolicy::from_str("automatic"),
+            UpdatePolicy::parse_str("automatic"),
             Some(UpdatePolicy::Automatic)
         );
         assert_eq!(
-            UpdatePolicy::from_str("auto"),
+            UpdatePolicy::parse_str("auto"),
             Some(UpdatePolicy::Automatic)
         );
         assert_eq!(
-            UpdatePolicy::from_str("manual"),
+            UpdatePolicy::parse_str("manual"),
             Some(UpdatePolicy::ManualApproval)
         );
         assert_eq!(
-            UpdatePolicy::from_str("deferred"),
+            UpdatePolicy::parse_str("deferred"),
             Some(UpdatePolicy::Deferred)
         );
         assert_eq!(
-            UpdatePolicy::from_str("disabled"),
+            UpdatePolicy::parse_str("disabled"),
             Some(UpdatePolicy::Disabled)
         );
-        assert_eq!(UpdatePolicy::from_str("invalid"), None);
+        assert_eq!(UpdatePolicy::parse_str("invalid"), None);
     }
 
     #[test]
@@ -613,28 +609,31 @@ mod tests {
 
     #[test]
     fn test_rollout_group_from_str() {
-        assert_eq!(RolloutGroup::from_str("canary"), Some(RolloutGroup::Canary));
         assert_eq!(
-            RolloutGroup::from_str("early_adopter"),
+            RolloutGroup::parse_str("canary"),
+            Some(RolloutGroup::Canary)
+        );
+        assert_eq!(
+            RolloutGroup::parse_str("early_adopter"),
             Some(RolloutGroup::EarlyAdopter)
         );
         assert_eq!(
-            RolloutGroup::from_str("early"),
+            RolloutGroup::parse_str("early"),
             Some(RolloutGroup::EarlyAdopter)
         );
         assert_eq!(
-            RolloutGroup::from_str("majority"),
+            RolloutGroup::parse_str("majority"),
             Some(RolloutGroup::Majority)
         );
         assert_eq!(
-            RolloutGroup::from_str("ga"),
+            RolloutGroup::parse_str("ga"),
             Some(RolloutGroup::GeneralAvailability)
         );
         assert_eq!(
-            RolloutGroup::from_str("all"),
+            RolloutGroup::parse_str("all"),
             Some(RolloutGroup::GeneralAvailability)
         );
-        assert_eq!(RolloutGroup::from_str("invalid"), None);
+        assert_eq!(RolloutGroup::parse_str("invalid"), None);
     }
 
     #[test]

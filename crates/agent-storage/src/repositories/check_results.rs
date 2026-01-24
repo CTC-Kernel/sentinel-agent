@@ -42,7 +42,7 @@ impl CheckStatus {
     }
 
     /// Parse from database string representation.
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_str(s: &str) -> Option<Self> {
         match s {
             "pass" => Some(CheckStatus::Pass),
             "fail" => Some(CheckStatus::Fail),
@@ -255,7 +255,7 @@ impl<'a> CheckResultsRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let result = stmt
-                    .query_row([id], |row| Ok(Self::row_to_check_result(row)?))
+                    .query_row([id], Self::row_to_check_result)
                     .optional()
                     .map_err(|e| {
                         StorageError::Query(format!("Failed to query check result: {}", e))
@@ -324,9 +324,7 @@ impl<'a> CheckResultsRepository<'a> {
                     params.iter().map(|p| p.as_ref()).collect();
 
                 let results = stmt
-                    .query_map(param_refs.as_slice(), |row| {
-                        Ok(Self::row_to_check_result(row)?)
-                    })
+                    .query_map(param_refs.as_slice(), |row| Self::row_to_check_result(row))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -360,7 +358,7 @@ impl<'a> CheckResultsRepository<'a> {
                 })?;
 
                 let results = stmt
-                    .query_map([limit], |row| Ok(Self::row_to_check_result(row)?))
+                    .query_map([limit], Self::row_to_check_result)
                     .map_err(|e| {
                         StorageError::Query(format!("Failed to execute unsynced query: {}", e))
                     })?
@@ -457,7 +455,7 @@ impl<'a> CheckResultsRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map([], |row| Ok(Self::row_to_check_result(row)?))
+                    .query_map([], Self::row_to_check_result)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -475,7 +473,7 @@ impl<'a> CheckResultsRepository<'a> {
         let check_rule_id: String = row.get(1)?;
 
         let status_str: String = row.get(2)?;
-        let status = match CheckStatus::from_str(&status_str) {
+        let status = match CheckStatus::parse_str(&status_str) {
             Some(s) => s,
             None => {
                 warn!(
@@ -780,8 +778,8 @@ mod tests {
         assert_eq!(CheckStatus::Skip.as_str(), "skip");
         assert_eq!(CheckStatus::NotApplicable.as_str(), "not_applicable");
 
-        assert_eq!(CheckStatus::from_str("pass"), Some(CheckStatus::Pass));
-        assert_eq!(CheckStatus::from_str("invalid"), None);
+        assert_eq!(CheckStatus::parse_str("pass"), Some(CheckStatus::Pass));
+        assert_eq!(CheckStatus::parse_str("invalid"), None);
     }
 
     #[tokio::test]

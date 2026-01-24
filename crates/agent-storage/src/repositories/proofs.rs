@@ -175,7 +175,7 @@ impl<'a> ProofsRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let result = stmt
-                    .query_row([id], |row| Ok(Self::row_to_proof(row)?))
+                    .query_row([id], Self::row_to_proof)
                     .optional()
                     .map_err(|e| StorageError::Query(format!("Failed to query proof: {}", e)))?;
 
@@ -200,7 +200,7 @@ impl<'a> ProofsRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map([check_result_id], |row| Ok(Self::row_to_proof(row)?))
+                    .query_map([check_result_id], Self::row_to_proof)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -279,7 +279,7 @@ impl<'a> ProofsRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map([limit], |row| Ok(Self::row_to_proof(row)?))
+                    .query_map([limit], Self::row_to_proof)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {

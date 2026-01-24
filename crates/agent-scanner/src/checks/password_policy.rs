@@ -393,17 +393,17 @@ impl PasswordPolicyCheck {
             for line in raw.lines() {
                 let line = line.trim();
 
-                if line.contains("minChars") || line.contains("minimumLength") {
-                    if let Some(val) = Self::extract_plist_integer(line) {
-                        status.min_length = Some(val);
-                    }
+                if (line.contains("minChars") || line.contains("minimumLength"))
+                    && let Some(val) = Self::extract_plist_integer(line)
+                {
+                    status.min_length = Some(val);
                 }
 
-                if line.contains("maxMinutesUntilChangePassword") {
-                    if let Some(val) = Self::extract_plist_integer(line) {
-                        // Convert minutes to days
-                        status.max_age_days = Some(val / (60 * 24));
-                    }
+                if line.contains("maxMinutesUntilChangePassword")
+                    && let Some(val) = Self::extract_plist_integer(line)
+                {
+                    // Convert minutes to days
+                    status.max_age_days = Some(val / (60 * 24));
                 }
 
                 if line.contains("requiresMixedCase")
@@ -413,16 +413,16 @@ impl PasswordPolicyCheck {
                     status.complexity_required = Some(true);
                 }
 
-                if line.contains("usingHistory") {
-                    if let Some(val) = Self::extract_plist_integer(line) {
-                        status.history_count = Some(val);
-                    }
+                if line.contains("usingHistory")
+                    && let Some(val) = Self::extract_plist_integer(line)
+                {
+                    status.history_count = Some(val);
                 }
 
-                if line.contains("maxFailedLoginAttempts") {
-                    if let Some(val) = Self::extract_plist_integer(line) {
-                        status.lockout_threshold = Some(val);
-                    }
+                if line.contains("maxFailedLoginAttempts")
+                    && let Some(val) = Self::extract_plist_integer(line)
+                {
+                    status.lockout_threshold = Some(val);
                 }
             }
         }
@@ -523,13 +523,15 @@ impl PasswordPolicyCheck {
     /// Parse a numeric value from a line like "Minimum password length: 8"
     #[allow(dead_code)]
     fn parse_numeric_value(line: &str) -> Option<u32> {
-        line.split(':').last().and_then(|s| s.trim().parse().ok())
+        line.split(':')
+            .next_back()
+            .and_then(|s| s.trim().parse().ok())
     }
 
     /// Parse days value, handling "unlimited" and "(days)" suffix
     #[allow(dead_code)]
     fn parse_days_value(line: &str) -> Option<u32> {
-        let value_part = line.split(':').last()?.trim();
+        let value_part = line.split(':').next_back()?.trim();
 
         if value_part.to_lowercase().contains("unlimited")
             || value_part.to_lowercase().contains("never")
@@ -550,7 +552,9 @@ impl PasswordPolicyCheck {
     /// Parse config file value like "minlen = 14"
     #[allow(dead_code)]
     fn parse_config_value(line: &str) -> Option<u32> {
-        line.split('=').last().and_then(|s| s.trim().parse().ok())
+        line.split('=')
+            .next_back()
+            .and_then(|s| s.trim().parse().ok())
     }
 
     /// Extract integer from macOS plist line
@@ -607,10 +611,10 @@ impl Check for PasswordPolicyCheck {
             if let Some(true) = status.complexity_required {
                 details.push("complexity=enabled".to_string());
             }
-            if let Some(age) = status.max_age_days {
-                if age < 99999 {
-                    details.push(format!("max_age={}d", age));
-                }
+            if let Some(age) = status.max_age_days
+                && age < 99999
+            {
+                details.push(format!("max_age={}d", age));
             }
             if let Some(history) = status.history_count {
                 details.push(format!("history={}", history));

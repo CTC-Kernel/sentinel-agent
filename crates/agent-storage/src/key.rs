@@ -84,11 +84,11 @@ impl KeyManager {
         {
             // Use /dev/urandom for cryptographically secure random bytes
             use std::io::Read;
-            if let Ok(mut urandom) = fs::File::open("/dev/urandom") {
-                if urandom.read_exact(&mut key).is_ok() {
-                    debug!("Generated key using /dev/urandom");
-                    return key;
-                }
+            if let Ok(mut urandom) = fs::File::open("/dev/urandom")
+                && urandom.read_exact(&mut key).is_ok()
+            {
+                debug!("Generated key using /dev/urandom");
+                return key;
             }
 
             // Fallback: combine machine ID with time-based entropy
@@ -244,16 +244,16 @@ impl KeyManager {
     #[cfg(unix)]
     fn store_key(path: &Path, key: &[u8; KEY_LENGTH]) -> StorageResult<()> {
         // Ensure parent directory exists
-        if let Some(parent) = path.parent() {
-            if !parent.exists() {
-                fs::create_dir_all(parent).map_err(|e| {
-                    StorageError::KeyManagement(format!(
-                        "Failed to create key directory {}: {}",
-                        parent.display(),
-                        e
-                    ))
-                })?;
-            }
+        if let Some(parent) = path.parent()
+            && !parent.exists()
+        {
+            fs::create_dir_all(parent).map_err(|e| {
+                StorageError::KeyManagement(format!(
+                    "Failed to create key directory {}: {}",
+                    parent.display(),
+                    e
+                ))
+            })?;
         }
 
         // Write the key

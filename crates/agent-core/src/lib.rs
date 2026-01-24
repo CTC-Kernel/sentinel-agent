@@ -225,10 +225,10 @@ impl AgentRuntime {
         );
 
         // Upload results if we have findings
-        if !result.vulnerabilities.is_empty() {
-            if let Err(e) = self.upload_vulnerabilities(&result).await {
-                warn!("Failed to upload vulnerability findings: {}", e);
-            }
+        if !result.vulnerabilities.is_empty()
+            && let Err(e) = self.upload_vulnerabilities(&result).await
+        {
+            warn!("Failed to upload vulnerability findings: {}", e);
         }
 
         Ok(result)
