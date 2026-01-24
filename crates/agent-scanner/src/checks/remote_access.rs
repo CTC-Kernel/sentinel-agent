@@ -529,10 +529,10 @@ impl Check for RemoteAccessCheck {
                 if status.ssh_config.is_some() {
                     details.push("ssh=secure".to_string());
                 }
-                if let Some(rdp) = &status.rdp_config {
-                    if rdp.nla_required == Some(true) {
-                        details.push("rdp=nla_enabled".to_string());
-                    }
+                if let Some(rdp) = &status.rdp_config
+                    && rdp.nla_required == Some(true)
+                {
+                    details.push("rdp=nla_enabled".to_string());
                 }
             }
 

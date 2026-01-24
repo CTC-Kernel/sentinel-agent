@@ -32,7 +32,7 @@ impl ConfigSource {
     }
 
     /// Parse from database string representation.
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_str(s: &str) -> Option<Self> {
         match s {
             "local" => Some(ConfigSource::Local),
             "remote" => Some(ConfigSource::Remote),
@@ -131,7 +131,7 @@ impl<'a> ConfigRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let result = stmt
-                    .query_row([&key], |row| Self::row_to_config_entry(row))
+                    .query_row([&key], Self::row_to_config_entry)
                     .optional()
                     .map_err(|e| StorageError::Query(format!("Failed to query config: {}", e)))?;
 
@@ -214,7 +214,7 @@ impl<'a> ConfigRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map([], |row| Self::row_to_config_entry(row))
+                    .query_map([], Self::row_to_config_entry)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -248,7 +248,7 @@ impl<'a> ConfigRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map([], |row| Self::row_to_config_entry(row))
+                    .query_map([], Self::row_to_config_entry)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -371,7 +371,7 @@ impl<'a> ConfigRepository<'a> {
     /// Convert a database row to a ConfigEntry.
     fn row_to_config_entry(row: &rusqlite::Row<'_>) -> rusqlite::Result<ConfigEntry> {
         let source_str: String = row.get(4)?;
-        let source = ConfigSource::from_str(&source_str).unwrap_or(ConfigSource::Local);
+        let source = ConfigSource::parse_str(&source_str).unwrap_or(ConfigSource::Local);
 
         let updated_at_str: String = row.get(2)?;
         let updated_at = DateTime::parse_from_rfc3339(&updated_at_str)
@@ -665,8 +665,11 @@ mod tests {
         assert_eq!(ConfigSource::Local.as_str(), "local");
         assert_eq!(ConfigSource::Remote.as_str(), "remote");
 
-        assert_eq!(ConfigSource::from_str("local"), Some(ConfigSource::Local));
-        assert_eq!(ConfigSource::from_str("remote"), Some(ConfigSource::Remote));
-        assert_eq!(ConfigSource::from_str("invalid"), None);
+        assert_eq!(ConfigSource::parse_str("local"), Some(ConfigSource::Local));
+        assert_eq!(
+            ConfigSource::parse_str("remote"),
+            Some(ConfigSource::Remote)
+        );
+        assert_eq!(ConfigSource::parse_str("invalid"), None);
     }
 }
