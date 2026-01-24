@@ -89,6 +89,16 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                 <div className="absolute bottom-0 left-0 w-40 h-40 bg-brand-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
+                {/* Premium AI Background Image */}
+                <div className="absolute right-0 top-0 h-full w-1/2 pointer-events-none z-0 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-white/95 dark:to-slate-900/95 z-10" />
+                    <img
+                        src="/images/IA.png"
+                        alt=""
+                        className="w-full h-full object-cover object-right opacity-20 dark:opacity-10 mix-blend-multiply dark:mix-blend-color-dodge transition-all duration-700"
+                    />
+                </div>
+
                 <div className="p-6 h-full flex flex-col justify-between">
                     <div className="flex items-start justify-between mb-4 relative z-10">
                         <div className="flex items-center gap-3">
