@@ -54,7 +54,9 @@ impl ConnectionCollector {
         // Parse /proc/net/tcp
         if let Ok(content) = fs::read_to_string("/proc/net/tcp") {
             for line in content.lines().skip(1) {
-                if let Some(conn) = self.parse_proc_net_line(line, ConnectionProtocol::Tcp, &inode_map) {
+                if let Some(conn) =
+                    self.parse_proc_net_line(line, ConnectionProtocol::Tcp, &inode_map)
+                {
                     connections.push(conn);
                 }
             }
@@ -63,7 +65,9 @@ impl ConnectionCollector {
         // Parse /proc/net/tcp6
         if let Ok(content) = fs::read_to_string("/proc/net/tcp6") {
             for line in content.lines().skip(1) {
-                if let Some(conn) = self.parse_proc_net_line(line, ConnectionProtocol::Tcp6, &inode_map) {
+                if let Some(conn) =
+                    self.parse_proc_net_line(line, ConnectionProtocol::Tcp6, &inode_map)
+                {
                     connections.push(conn);
                 }
             }
@@ -72,7 +76,9 @@ impl ConnectionCollector {
         // Parse /proc/net/udp
         if let Ok(content) = fs::read_to_string("/proc/net/udp") {
             for line in content.lines().skip(1) {
-                if let Some(conn) = self.parse_proc_net_line(line, ConnectionProtocol::Udp, &inode_map) {
+                if let Some(conn) =
+                    self.parse_proc_net_line(line, ConnectionProtocol::Udp, &inode_map)
+                {
                     connections.push(conn);
                 }
             }
@@ -81,18 +87,25 @@ impl ConnectionCollector {
         // Parse /proc/net/udp6
         if let Ok(content) = fs::read_to_string("/proc/net/udp6") {
             for line in content.lines().skip(1) {
-                if let Some(conn) = self.parse_proc_net_line(line, ConnectionProtocol::Udp6, &inode_map) {
+                if let Some(conn) =
+                    self.parse_proc_net_line(line, ConnectionProtocol::Udp6, &inode_map)
+                {
                     connections.push(conn);
                 }
             }
         }
 
-        debug!("Collected {} network connections on Linux", connections.len());
+        debug!(
+            "Collected {} network connections on Linux",
+            connections.len()
+        );
         Ok(connections)
     }
 
     #[cfg(target_os = "linux")]
-    fn build_inode_map_linux(&self) -> std::collections::HashMap<u64, (u32, String, Option<String>)> {
+    fn build_inode_map_linux(
+        &self,
+    ) -> std::collections::HashMap<u64, (u32, String, Option<String>)> {
         use std::fs;
 
         let mut map = std::collections::HashMap::new();
@@ -114,9 +127,10 @@ impl ConnectionCollector {
                                     {
                                         if let Ok(inode) = inode_str.parse::<u64>() {
                                             // Get process name
-                                            let comm = fs::read_to_string(entry.path().join("comm"))
-                                                .map(|s| s.trim().to_string())
-                                                .ok();
+                                            let comm =
+                                                fs::read_to_string(entry.path().join("comm"))
+                                                    .map(|s| s.trim().to_string())
+                                                    .ok();
                                             // Get process path
                                             let exe = fs::read_link(entry.path().join("exe"))
                                                 .map(|p| p.to_string_lossy().to_string())
@@ -197,7 +211,11 @@ impl ConnectionCollector {
     }
 
     #[cfg(target_os = "linux")]
-    fn parse_hex_address(&self, hex_str: &str, protocol: &ConnectionProtocol) -> Option<(String, u16)> {
+    fn parse_hex_address(
+        &self,
+        hex_str: &str,
+        protocol: &ConnectionProtocol,
+    ) -> Option<(String, u16)> {
         let parts: Vec<&str> = hex_str.split(':').collect();
         if parts.len() != 2 {
             return None;
@@ -284,7 +302,10 @@ impl ConnectionCollector {
             }
         }
 
-        debug!("Collected {} network connections on macOS", connections.len());
+        debug!(
+            "Collected {} network connections on macOS",
+            connections.len()
+        );
         Ok(connections)
     }
 
@@ -413,7 +434,8 @@ impl ConnectionCollector {
             .map_err(|e| NetworkError::CommandFailed(format!("PowerShell failed: {}", e)))?;
 
         let tcp_stdout = String::from_utf8_lossy(&tcp_output.stdout);
-        let tcp_conns: Vec<serde_json::Value> = serde_json::from_str(&tcp_stdout).unwrap_or_default();
+        let tcp_conns: Vec<serde_json::Value> =
+            serde_json::from_str(&tcp_stdout).unwrap_or_default();
 
         for conn in tcp_conns {
             if let Some(nc) = self.parse_windows_tcp_connection(&conn) {
@@ -432,7 +454,8 @@ impl ConnectionCollector {
             .map_err(|e| NetworkError::CommandFailed(format!("PowerShell failed: {}", e)))?;
 
         let udp_stdout = String::from_utf8_lossy(&udp_output.stdout);
-        let udp_endpoints: Vec<serde_json::Value> = serde_json::from_str(&udp_stdout).unwrap_or_default();
+        let udp_endpoints: Vec<serde_json::Value> =
+            serde_json::from_str(&udp_stdout).unwrap_or_default();
 
         for endpoint in udp_endpoints {
             if let Some(nc) = self.parse_windows_udp_endpoint(&endpoint) {
@@ -501,7 +524,10 @@ impl ConnectionCollector {
     }
 
     #[cfg(target_os = "windows")]
-    fn parse_windows_udp_endpoint(&self, endpoint: &serde_json::Value) -> Option<NetworkConnection> {
+    fn parse_windows_udp_endpoint(
+        &self,
+        endpoint: &serde_json::Value,
+    ) -> Option<NetworkConnection> {
         let local_address = endpoint["LocalAddress"].as_str()?.to_string();
         let local_port = endpoint["LocalPort"].as_i64()? as u16;
         let pid = endpoint["OwningProcess"].as_i64().map(|p| p as u32);
@@ -533,17 +559,16 @@ impl ConnectionCollector {
             .args([
                 "-NoProfile",
                 "-Command",
-                &format!("(Get-Process -Id {} -ErrorAction SilentlyContinue).ProcessName", pid),
+                &format!(
+                    "(Get-Process -Id {} -ErrorAction SilentlyContinue).ProcessName",
+                    pid
+                ),
             ])
             .output()
             .ok()?;
 
         let name = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if name.is_empty() {
-            None
-        } else {
-            Some(name)
-        }
+        if name.is_empty() { None } else { Some(name) }
     }
 }
 

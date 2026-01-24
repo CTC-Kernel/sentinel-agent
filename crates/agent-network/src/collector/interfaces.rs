@@ -126,11 +126,7 @@ impl InterfaceCollector {
     }
 
     #[cfg(target_os = "linux")]
-    fn detect_interface_type_linux(
-        &self,
-        name: &str,
-        path: &std::path::Path,
-    ) -> InterfaceType {
+    fn detect_interface_type_linux(&self, name: &str, path: &std::path::Path) -> InterfaceType {
         use std::fs;
 
         if name == "lo" {
@@ -255,9 +251,8 @@ impl InterfaceCollector {
                 let line = line.trim();
 
                 if line.starts_with("ether ") {
-                    iface.mac_address = line
-                        .strip_prefix("ether ")
-                        .map(|s| s.trim().to_uppercase());
+                    iface.mac_address =
+                        line.strip_prefix("ether ").map(|s| s.trim().to_uppercase());
                 } else if line.starts_with("inet ") {
                     // inet 192.168.1.100 netmask ...
                     if let Some(addr) = line.split_whitespace().nth(1) {

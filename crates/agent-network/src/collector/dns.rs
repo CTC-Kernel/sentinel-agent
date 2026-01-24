@@ -66,11 +66,8 @@ impl DnsCollector {
                         }
                     }
                 } else if line.starts_with("search") {
-                    config.search_domains = line
-                        .split_whitespace()
-                        .skip(1)
-                        .map(String::from)
-                        .collect();
+                    config.search_domains =
+                        line.split_whitespace().skip(1).map(String::from).collect();
                 } else if line.starts_with("domain") {
                     config.suffix = line.split_whitespace().nth(1).map(String::from);
                 }

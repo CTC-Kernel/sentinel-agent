@@ -24,10 +24,16 @@ impl DeltaCalculator {
         new: &NetworkSnapshot,
     ) -> NetworkResult<NetworkDelta> {
         // Build interface maps for comparison
-        let old_interfaces: HashMap<&str, &NetworkInterface> =
-            old.interfaces.iter().map(|i| (i.name.as_str(), i)).collect();
-        let new_interfaces: HashMap<&str, &NetworkInterface> =
-            new.interfaces.iter().map(|i| (i.name.as_str(), i)).collect();
+        let old_interfaces: HashMap<&str, &NetworkInterface> = old
+            .interfaces
+            .iter()
+            .map(|i| (i.name.as_str(), i))
+            .collect();
+        let new_interfaces: HashMap<&str, &NetworkInterface> = new
+            .interfaces
+            .iter()
+            .map(|i| (i.name.as_str(), i))
+            .collect();
 
         // Find added interfaces (in new but not in old)
         let added_interfaces: Vec<NetworkInterface> = new_interfaces
@@ -230,6 +236,9 @@ mod tests {
         assert!(delta.added_interfaces.is_empty());
         assert!(delta.removed_interfaces.is_empty());
         assert_eq!(delta.changed_interfaces.len(), 1);
-        assert_eq!(delta.changed_interfaces[0].ipv4_addresses[0], "192.168.1.100");
+        assert_eq!(
+            delta.changed_interfaces[0].ipv4_addresses[0],
+            "192.168.1.100"
+        );
     }
 }

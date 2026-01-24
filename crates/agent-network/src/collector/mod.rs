@@ -17,7 +17,9 @@ pub use interfaces::InterfaceCollector;
 pub use routes::RouteCollector;
 
 use crate::error::NetworkResult;
-use crate::types::{DnsConfiguration, NetworkConnection, NetworkInterface, NetworkSnapshot, RouteEntry};
+use crate::types::{
+    DnsConfiguration, NetworkConnection, NetworkInterface, NetworkSnapshot, RouteEntry,
+};
 use chrono::Utc;
 use sha2::{Digest, Sha256};
 use tracing::{debug, warn};
@@ -46,15 +48,23 @@ impl NetworkCollector {
         debug!("Collecting network snapshot");
 
         // Collect all data in parallel where possible
-        let interfaces = self.interface_collector.collect().await.unwrap_or_else(|e| {
-            warn!("Failed to collect interfaces: {}", e);
-            Vec::new()
-        });
+        let interfaces = self
+            .interface_collector
+            .collect()
+            .await
+            .unwrap_or_else(|e| {
+                warn!("Failed to collect interfaces: {}", e);
+                Vec::new()
+            });
 
-        let connections = self.connection_collector.collect().await.unwrap_or_else(|e| {
-            warn!("Failed to collect connections: {}", e);
-            Vec::new()
-        });
+        let connections = self
+            .connection_collector
+            .collect()
+            .await
+            .unwrap_or_else(|e| {
+                warn!("Failed to collect connections: {}", e);
+                Vec::new()
+            });
 
         let routes = self.route_collector.collect().await.unwrap_or_else(|e| {
             warn!("Failed to collect routes: {}", e);
