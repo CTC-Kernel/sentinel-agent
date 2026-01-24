@@ -196,7 +196,9 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     description={t('audits.form.auditAssistant.desc')}
                 />
             )}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+            <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                <div className="relative z-10 space-y-6">
                 <FloatingLabelInput
                     label={t('audits.form.name')}
                     {...register('name')}
@@ -206,12 +208,12 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">{t('audits.form.description')}</label>
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('audits.form.description')}</label>
                     <textarea
                         {...register('description')}
                         rows={3}
                         disabled={readOnly}
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3.5 glass-input border border-white/60 dark:border-white/10 rounded-2xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-brand-500/50 outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
                         placeholder={t('audits.form.descriptionPlaceholder')}
                     />
                     {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
@@ -312,7 +314,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 />
 
                 <div className="space-y-4">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">{t('audits.form.scopeLabel')}</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('audits.form.scopeLabel')}</label>
                     <Controller
                         name="relatedAssetIds"
                         control={control}
@@ -373,6 +375,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                             />
                         )}
                     />
+                </div>
                 </div>
             </div>
 

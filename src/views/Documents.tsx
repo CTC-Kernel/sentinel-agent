@@ -23,6 +23,7 @@ import { DocumentSignature } from '../components/documents/DocumentSignature';
 import { DocumentTemplateModal } from '../components/documents/DocumentTemplateModal';
 import { DocumentTemplate } from '../data/documentTemplates';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { DocumentsCharts } from '../components/documents/DocumentsCharts';
 import { useDocumentWorkflow } from '../hooks/documents/useDocumentWorkflow';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
 import { useDocumentsData } from '../hooks/documents/useDocumentsData';
@@ -333,88 +334,17 @@ export const Documents: React.FC = () => {
                 actions={undefined}
             />
 
-            {/* Metrics Dashboard */}
+            {/* Advanced Charts Dashboard */}
             {loading ? (
-                <div className="glass-premium p-6 md:p-8 rounded-5xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="glass-premium p-6 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    ))}
+                </div>
             ) : (
                 <>
-                    <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-5xl border border-border/50 shadow-apple-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
-                        <div className="absolute inset-0 overflow-hidden rounded-5xl pointer-events-none">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
-                        </div>
-
-                        {/* Score */}
-                        <div className="flex items-center gap-6 relative z-10">
-                            <div className="relative">
-                                <svg className="w-24 h-24 transform -rotate-90" style={{ overflow: 'visible' }}>
-                                    <circle className="text-slate-100 dark:text-slate-800" strokeWidth="8" stroke="currentColor" fill="transparent" r="44" cx="48" cy="48" />
-                                    <circle
-                                        className={`${validationRate >= 80 ? 'text-emerald-500' : validationRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
-                                        strokeWidth="8"
-                                        strokeDasharray={276}
-                                        strokeDashoffset={276 - (276 * validationRate) / 100}
-                                        strokeLinecap="round"
-                                        stroke="currentColor"
-                                        fill="transparent"
-                                        r="44"
-                                        cx="48"
-                                        cy="48"
-                                    />
-                                </svg>
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                    <span className={`text-xl font-black ${validationRate >= 80 ? 'text-success-text' : validationRate >= 50 ? 'text-info-text' : 'text-warning-text'}`}>{Math.round(validationRate)}%</span>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">{t('documents.validated')}</h3>
-                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-[200px] leading-relaxed">
-                                    {t('documents.validatedDesc')}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Stat Counters */}
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:border-l sm:border-r border-slate-200 dark:border-white/10 sm:px-6 sm:mx-2">
-                            <div className="text-center">
-                                <div className="flex items-center justify-center gap-2 mb-1">
-                                    <FileText className="h-4 w-4 text-slate-500" />
-                                    <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('documents.total')}</div>
-                                </div>
-                                <div className="text-xl font-black text-slate-900 dark:text-white">{totalDocs}</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="flex items-center justify-center gap-2 mb-1">
-                                    <CheckCircle2 className="h-4 w-4 text-slate-500" />
-                                    <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('documents.published')}</div>
-                                </div>
-                                <div className="text-xl font-black text-slate-900 dark:text-white">{publishedDocs}</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="flex items-center justify-center gap-2 mb-1">
-                                    <Edit className="h-4 w-4 text-slate-500" />
-                                    <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('documents.drafts')}</div>
-                                </div>
-                                <div className="text-xl font-black text-slate-900 dark:text-white">{draftDocs}</div>
-                            </div>
-                        </div>
-
-                        {/* Alerts */}
-                        <div className="flex flex-col gap-3 w-full md:min-w-[220px]">
-                            <div className="flex items-center justify-between p-2.5 bg-warning-bg rounded-2xl border border-warning-border/30 shadow-sm">
-                                <div className="flex items-center gap-2">
-                                    <Bell className="h-4 w-4 text-warning-text" />
-                                    <span className="text-xs font-black text-warning-text uppercase tracking-widest">{t('documents.inReview')}</span>
-                                </div>
-                                <span className="text-sm font-black text-warning-text">{inReviewDocs}</span>
-                            </div>
-                            <div className="flex items-center justify-between p-2.5 bg-error-bg rounded-2xl border border-error-border/30 shadow-sm">
-                                <div className="flex items-center gap-2">
-                                    <History className="h-4 w-4 text-error-text" />
-                                    <span className="text-xs font-black text-error-text uppercase tracking-widest">{t('documents.expired')}</span>
-                                </div>
-                                <span className="text-sm font-black text-error-text">{expiredDocs}</span>
-                            </div>
-                        </div>
+                    <motion.div variants={slideUpVariants}>
+                        <DocumentsCharts documents={documents} loading={loading} />
                     </motion.div>
 
                     <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[calc(100vh-200px)] min-h-0">
