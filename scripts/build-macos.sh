@@ -56,14 +56,18 @@ echo "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
 # Sign the app (if certificate available)
 echo ""
 echo "4. Code signing..."
-if security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
+if security find-identity -v -p codesigning 2>/dev/null | grep -q "Developer ID Application"; then
     IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
     echo "Signing with: $IDENTITY"
     codesign --force --deep --sign "$IDENTITY" "$APP_BUNDLE"
     codesign --verify --verbose "$APP_BUNDLE"
 else
-    echo "No Developer ID found, skipping code signing"
-    echo "For distribution, sign with: codesign --force --deep --sign 'Developer ID Application: Your Name' '$APP_BUNDLE'"
+    echo "No Developer ID found, using ad-hoc signing"
+    echo "Note: For full Gatekeeper compliance, sign with a Developer ID certificate"
+    # Ad-hoc signing allows the app to run without the "damaged" error
+    # Users may still need to allow the app in System Preferences > Security
+    codesign --force --deep --sign - "$APP_BUNDLE"
+    codesign --verify --verbose "$APP_BUNDLE" || echo "Ad-hoc signed (verification may show warnings)"
 fi
 
 # Create DMG
@@ -95,7 +99,9 @@ INSTALLATION
 ============
 1. Glissez "Sentinel Agent" vers le dossier "Applications"
 2. Lancez l'application depuis le Launchpad
-3. Autorisez l'application si macOS le demande (Préférences Système > Sécurité)
+3. Si macOS affiche "endommagé" ou bloque l'app, exécutez dans Terminal :
+   xattr -cr "/Applications/Sentinel Agent.app"
+4. Autorisez l'application si macOS le demande (Préférences Système > Sécurité)
 
 FONCTIONNALITÉS
 ===============
