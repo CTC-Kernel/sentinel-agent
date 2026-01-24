@@ -116,7 +116,7 @@ impl FirewallCheck {
         let rule_count = self.get_windows_rule_count().await.ok();
 
         let any_enabled = profiles.iter().any(|p| p.enabled);
-        let all_enabled = profiles.iter().all(|p| p.enabled);
+        let _all_enabled = profiles.iter().all(|p| p.enabled);
 
         Ok(FirewallStatus {
             enabled: any_enabled,
