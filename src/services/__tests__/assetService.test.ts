@@ -125,7 +125,16 @@ describe('AssetService', () => {
             await AssetService.update('asset-1', updateData as never, user);
 
             expect(updateDoc).toHaveBeenCalled();
-            expect(logAction).toHaveBeenCalledWith(user, 'UPDATE', 'Asset', expect.any(String));
+            expect(logAction).toHaveBeenCalledWith(
+                user,
+                'UPDATE',
+                'Asset',
+                expect.stringContaining('Mise à jour Actif'),
+                undefined,
+                'asset-1',
+                undefined,
+                undefined
+            );
         });
 
         it('should throw error when user has no organization', async () => {
@@ -235,10 +244,10 @@ describe('AssetService', () => {
 
     describe('getAssetHistory', () => {
         it('should return filtered logs for an asset', async () => {
+            // Note: getAssetHistory queries by resourceId, so mock logs with matching resourceId
             const mockLogs = [
-                { id: 'log-1', details: 'Création Actif: Server 1', resourceType: 'Asset' },
-                { id: 'log-2', details: 'Mise à jour Actif: Server 1', resourceType: 'Asset' },
-                { id: 'log-3', details: 'Création Actif: Server 2', resourceType: 'Asset' },
+                { id: 'log-1', details: 'Création Actif: Server 1', resourceType: 'Asset', resourceId: 'asset-1' },
+                { id: 'log-2', details: 'Mise à jour Actif: Server 1', resourceType: 'Asset', resourceId: 'asset-1' },
             ];
 
             vi.mocked(getDocs).mockResolvedValue({
@@ -248,10 +257,10 @@ describe('AssetService', () => {
                 })),
             } as never);
 
-            const result = await AssetService.getAssetHistory('Server 1', 'org-1');
+            const result = await AssetService.getAssetHistory('asset-1', 'org-1');
 
             expect(result.logs).toHaveLength(2);
-            expect(result.logs.every(l => l.details?.includes('Server 1'))).toBe(true);
+            expect(result.logs.every(l => l.resourceId === 'asset-1')).toBe(true);
         });
 
         it('should return empty array when no logs found', async () => {

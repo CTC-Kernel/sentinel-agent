@@ -101,7 +101,7 @@ export class SupplierDoraSyncService {
             let syncCount = 0;
             for (const supplier of ictSuppliers) {
                 try {
-                    const synced = await this.syncSupplierToICTProvider(supplier.id);
+                    const synced = await this.syncSupplierToICTProvider(supplier.id, organizationId);
                     if (synced) syncCount++;
                 } catch (error) {
                     ErrorLogger.error(error, 'SupplierDoraSyncService.syncAllICTSuppliers', { metadata: { supplierId: supplier.id } });

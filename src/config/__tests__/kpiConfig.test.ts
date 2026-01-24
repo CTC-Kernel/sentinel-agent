@@ -115,10 +115,10 @@ describe('kpiConfig', () => {
     });
 
     it('should use correct Tailwind color classes', () => {
-      expect(KPI_COLOR_CLASSES.success.bg).toContain('green');
-      expect(KPI_COLOR_CLASSES.warning.bg).toContain('orange');
-      expect(KPI_COLOR_CLASSES.danger.bg).toContain('red');
-      expect(KPI_COLOR_CLASSES.neutral.bg).toContain('gray');
+      expect(KPI_COLOR_CLASSES.success.bg).toContain('success');
+      expect(KPI_COLOR_CLASSES.warning.bg).toContain('warning');
+      expect(KPI_COLOR_CLASSES.danger.bg).toContain('destructive');
+      expect(KPI_COLOR_CLASSES.neutral.bg).toContain('muted');
     });
   });
 

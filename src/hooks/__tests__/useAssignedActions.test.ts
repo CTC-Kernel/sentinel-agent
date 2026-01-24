@@ -199,6 +199,6 @@ describe('DUE_STATUS_COLOR_CLASSES', () => {
   it('should use correct color classes', () => {
     expect(DUE_STATUS_COLOR_CLASSES.danger.text).toContain('red');
     expect(DUE_STATUS_COLOR_CLASSES.warning.text).toContain('orange');
-    expect(DUE_STATUS_COLOR_CLASSES.neutral.text).toContain('gray');
+    expect(DUE_STATUS_COLOR_CLASSES.neutral.text).toContain('slate');
   });
 });

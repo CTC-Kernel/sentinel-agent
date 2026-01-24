@@ -1,6 +1,6 @@
 /**
  * SupplierDoraSyncService Tests
- * 
+ *
  * Tests for the synchronization service between Suppliers and ICT Providers
  * Ensures data consistency and proper mapping between the two modules
  */
@@ -16,6 +16,18 @@ import type { ICTProvider } from '../../types/dora';
 // Mock the services
 vi.mock('../SupplierService');
 vi.mock('../ICTProviderService');
+
+// Mock Firestore functions used by private methods
+vi.mock('firebase/firestore', () => ({
+    getDoc: vi.fn().mockResolvedValue({ exists: () => false }),
+    doc: vi.fn().mockReturnValue({}),
+    updateDoc: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock firebase db
+vi.mock('../../firebase', () => ({
+    db: {},
+}));
 
 describe('SupplierDoraSyncService', () => {
     const mockOrganizationId = 'test-org-123';
@@ -147,11 +159,11 @@ describe('SupplierDoraSyncService', () => {
             vi.mocked(SupplierService.getById).mockResolvedValue(nonICTSupplier);
 
             // Act
-            const result = await SupplierDoraSyncService.syncSupplierToICTProvider(mockSupplierId);
+            const result = await SupplierDoraSyncService.syncSupplierToICTProvider(mockSupplierId, mockOrganizationId);
 
             // Assert
             expect(result).toBe(false);
-            expect(SupplierService.getById).toHaveBeenCalledWith(mockSupplierId);
+            expect(SupplierService.getById).toHaveBeenCalledWith(mockSupplierId, mockOrganizationId);
             expect(ICTProviderService.getAll).not.toHaveBeenCalled();
         });
 
@@ -162,11 +174,11 @@ describe('SupplierDoraSyncService', () => {
             vi.mocked(ICTProviderService.create).mockResolvedValue(mockICTProviderId);
 
             // Act
-            const result = await SupplierDoraSyncService.syncSupplierToICTProvider(mockSupplierId);
+            const result = await SupplierDoraSyncService.syncSupplierToICTProvider(mockSupplierId, mockOrganizationId);
 
             // Assert
             expect(result).toBe(true);
-            expect(SupplierService.getById).toHaveBeenCalledWith(mockSupplierId);
+            expect(SupplierService.getById).toHaveBeenCalledWith(mockSupplierId, mockOrganizationId);
             expect(ICTProviderService.getAll).toHaveBeenCalledWith(mockOrganizationId);
             expect(ICTProviderService.create).toHaveBeenCalledWith(
                 mockOrganizationId,
@@ -186,7 +198,7 @@ describe('SupplierDoraSyncService', () => {
             vi.mocked(ICTProviderService.update).mockResolvedValue(undefined);
 
             // Act
-            const result = await SupplierDoraSyncService.syncSupplierToICTProvider(mockSupplierId);
+            const result = await SupplierDoraSyncService.syncSupplierToICTProvider(mockSupplierId, mockOrganizationId);
 
             // Assert
             expect(result).toBe(true);
@@ -205,7 +217,7 @@ describe('SupplierDoraSyncService', () => {
             vi.mocked(SupplierService.getById).mockResolvedValue(null);
 
             // Act & Assert
-            const result = await SupplierDoraSyncService.syncSupplierToICTProvider(mockSupplierId);
+            const result = await SupplierDoraSyncService.syncSupplierToICTProvider(mockSupplierId, mockOrganizationId);
             expect(result).toBe(false);
         });
     });
@@ -255,10 +267,10 @@ describe('SupplierDoraSyncService', () => {
             vi.mocked(ICTProviderService.update).mockResolvedValue(undefined);
 
             // Act
-            await SupplierDoraSyncService.removeICTProviderStatus(mockSupplierId);
+            await SupplierDoraSyncService.removeICTProviderStatus(mockSupplierId, mockOrganizationId);
 
             // Assert
-            expect(SupplierService.getById).toHaveBeenCalledWith(mockSupplierId);
+            expect(SupplierService.getById).toHaveBeenCalledWith(mockSupplierId, mockOrganizationId);
             expect(ICTProviderService.getAll).toHaveBeenCalledWith(mockOrganizationId);
             expect(ICTProviderService.update).toHaveBeenCalledWith(
                 mockICTProviderId,

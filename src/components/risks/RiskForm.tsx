@@ -173,7 +173,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const { data: libraryThreats } = useFirestoreCollection<ThreatTemplate>('threat_library', [], { enabled: showLibraryModal });
 
     // Validation error handler
-    const onInvalid = (errors: FieldErrors<RiskFormData>) => {
+    const onInvalid = useCallback((errors: FieldErrors<RiskFormData>) => {
         const missingFields = Object.keys(errors);
         const fieldTabMapping: Record<string, string> = {
             assetId: 'context', framework: 'context', ownerId: 'context', affectedProcessIds: 'context', relatedSupplierIds: 'context',
@@ -193,7 +193,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
         const translatedFields = missingFields.map(f => fieldLabels[f] || f);
         toast.error(`${t('validation.required')}: ${translatedFields.join(', ')}`);
-    };
+    }, [t, setActiveTab]);
 
     // Handlers
     const handleSelectTemplate = (templateName: string) => {
@@ -231,12 +231,12 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
         setIsSavingDraft(true);
         try { await onSaveDraft(data); setIsDraft(true); clearPersistedDraft(); bypassNavigation(); } finally { setIsSavingDraft(false); }
-    }, [onSaveDraft, getValues, clearPersistedDraft, bypassNavigation]);
+    }, [onSaveDraft, getValues, clearPersistedDraft, bypassNavigation, t, setActiveTab]);
 
     const handlePublishDraft = useCallback(async () => {
         if (!onPublishDraft) return;
         handleSubmit(async (validData: RiskFormData) => { await onPublishDraft(validData); setIsDraft(false); clearPersistedDraft(); bypassNavigation(); }, onInvalid)();
-    }, [onPublishDraft, handleSubmit, clearPersistedDraft, bypassNavigation]);
+    }, [onPublishDraft, handleSubmit, clearPersistedDraft, bypassNavigation, onInvalid]);
 
     const handleAutoGenerate = async () => {
         const currentThreat = getValues('threat');
