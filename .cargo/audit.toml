@@ -1,0 +1,26 @@
+# cargo-audit configuration
+# https://docs.rs/cargo-audit/latest/cargo_audit/
+
+[advisories]
+# Advisories to ignore (unmaintained crates we must use for now)
+ignore = [
+    # GTK3 bindings - unmaintained but required for tray-icon on Linux
+    "RUSTSEC-2024-0411", # gdkwayland-sys
+    "RUSTSEC-2024-0412", # gdk
+    "RUSTSEC-2024-0413", # atk
+    "RUSTSEC-2024-0414", # gdkx11-sys
+    "RUSTSEC-2024-0415", # gtk
+    "RUSTSEC-2024-0416", # atk-sys
+    "RUSTSEC-2024-0418", # gdk-sys
+    "RUSTSEC-2024-0419", # gtk3-macros
+    "RUSTSEC-2024-0420", # gtk-sys
+
+    # proc-macro-error - unmaintained, used by transitive deps
+    "RUSTSEC-2024-0370",
+
+    # instant - unmaintained, used by transitive deps
+    "RUSTSEC-2024-0384",
+
+    # glib unsound - we don't use VariantStrIter
+    "RUSTSEC-2024-0429",
+]
