@@ -4,6 +4,7 @@
 
 use crate::error::{NetworkError, NetworkResult};
 use crate::types::{ConnectionProtocol, ConnectionState, NetworkConnection};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::process::Command;
 use tracing::debug;
 
@@ -43,7 +44,6 @@ impl ConnectionCollector {
 
     #[cfg(target_os = "linux")]
     async fn collect_linux(&self) -> NetworkResult<Vec<NetworkConnection>> {
-        use std::collections::HashMap;
         use std::fs;
 
         let mut connections = Vec::new();
@@ -120,25 +120,22 @@ impl ConnectionCollector {
                         for fd in fds.flatten() {
                             if let Ok(link) = fs::read_link(fd.path()) {
                                 let link_str = link.to_string_lossy();
-                                if link_str.starts_with("socket:[") {
-                                    if let Some(inode_str) = link_str
-                                        .strip_prefix("socket:[")
-                                        .and_then(|s| s.strip_suffix(']'))
-                                    {
-                                        if let Ok(inode) = inode_str.parse::<u64>() {
-                                            // Get process name
-                                            let comm =
-                                                fs::read_to_string(entry.path().join("comm"))
-                                                    .map(|s| s.trim().to_string())
-                                                    .ok();
-                                            // Get process path
-                                            let exe = fs::read_link(entry.path().join("exe"))
-                                                .map(|p| p.to_string_lossy().to_string())
-                                                .ok();
+                                if let Some(inode_str) = link_str
+                                    .strip_prefix("socket:[")
+                                    .and_then(|s| s.strip_suffix(']'))
+                                {
+                                    if let Ok(inode) = inode_str.parse::<u64>() {
+                                        // Get process name
+                                        let comm = fs::read_to_string(entry.path().join("comm"))
+                                            .map(|s| s.trim().to_string())
+                                            .ok();
+                                        // Get process path
+                                        let exe = fs::read_link(entry.path().join("exe"))
+                                            .map(|p| p.to_string_lossy().to_string())
+                                            .ok();
 
-                                            if let Some(name) = comm {
-                                                map.insert(inode, (pid, name, exe));
-                                            }
+                                        if let Some(name) = comm {
+                                            map.insert(inode, (pid, name, exe));
                                         }
                                     }
                                 }
