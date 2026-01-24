@@ -18,7 +18,9 @@
 //! - `SENTINEL_PROXY_URL` → `proxy.url`
 //! - `SENTINEL_PROXY_USERNAME` → `proxy.username`
 
-use crate::constants::{DEFAULT_CHECK_INTERVAL_SECS, DEFAULT_OFFLINE_MODE_DAYS, DEFAULT_SERVER_URL};
+use crate::constants::{
+    DEFAULT_CHECK_INTERVAL_SECS, DEFAULT_OFFLINE_MODE_DAYS, DEFAULT_SERVER_URL,
+};
 use config::{Config, ConfigError, Environment, File, FileFormat};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -191,9 +193,7 @@ impl AgentConfig {
         // Build and deserialize
         let settings = builder.build().map_err(config_error_to_common)?;
 
-        let config: AgentConfig = settings
-            .try_deserialize()
-            .map_err(config_error_to_common)?;
+        let config: AgentConfig = settings.try_deserialize().map_err(config_error_to_common)?;
 
         // Validate the loaded configuration
         config.validate()?;
@@ -270,10 +270,7 @@ impl AgentConfig {
 
         // Validate URL format
         Url::parse(&self.server_url).map_err(|e| {
-            crate::error::CommonError::validation(format!(
-                "server_url is not a valid URL: {}",
-                e
-            ))
+            crate::error::CommonError::validation(format!("server_url is not a valid URL: {}", e))
         })?;
 
         // Validate check_interval_secs
@@ -358,7 +355,10 @@ mod tests {
     #[test]
     fn test_default_config() {
         let config = AgentConfig::default();
-        assert_eq!(config.server_url, "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net");
+        assert_eq!(
+            config.server_url,
+            "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net"
+        );
         assert_eq!(config.check_interval_secs, 3600);
         assert_eq!(config.offline_mode_days, 7);
         assert_eq!(config.log_level, "info");
@@ -438,7 +438,12 @@ mod tests {
         };
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("check_interval_secs"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("check_interval_secs")
+        );
     }
 
     #[test]
@@ -449,7 +454,12 @@ mod tests {
         };
         let result = config.validate();
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("offline_mode_days"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("offline_mode_days")
+        );
     }
 
     #[test]
@@ -470,7 +480,11 @@ mod tests {
                 log_level: level.to_string(),
                 ..Default::default()
             };
-            assert!(config.validate().is_ok(), "log_level '{}' should be valid", level);
+            assert!(
+                config.validate().is_ok(),
+                "log_level '{}' should be valid",
+                level
+            );
         }
     }
 
@@ -589,7 +603,10 @@ mod tests {
         // Should succeed with default values since file is optional
         assert!(result.is_ok());
         let config = result.unwrap();
-        assert_eq!(config.server_url, "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net");
+        assert_eq!(
+            config.server_url,
+            "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net"
+        );
     }
 
     /// Test that environment variables are configured correctly in the config builder.
@@ -608,7 +625,10 @@ mod tests {
 
         // Should build successfully
         let result = builder.build();
-        assert!(result.is_ok(), "Environment source configuration should be valid");
+        assert!(
+            result.is_ok(),
+            "Environment source configuration should be valid"
+        );
     }
 
     /// Test that nested proxy config can be deserialized from JSON.
@@ -633,7 +653,9 @@ mod tests {
 
     #[test]
     fn test_default_values_use_constants() {
-        use crate::constants::{DEFAULT_CHECK_INTERVAL_SECS, DEFAULT_OFFLINE_MODE_DAYS, DEFAULT_SERVER_URL};
+        use crate::constants::{
+            DEFAULT_CHECK_INTERVAL_SECS, DEFAULT_OFFLINE_MODE_DAYS, DEFAULT_SERVER_URL,
+        };
 
         let config = AgentConfig::default();
         assert_eq!(config.server_url, DEFAULT_SERVER_URL);

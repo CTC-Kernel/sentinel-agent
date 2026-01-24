@@ -6,8 +6,8 @@
 //! - Integrity verification by recomputing hash
 //! - Linked to check results via foreign key
 
-use crate::error::{StorageError, StorageResult};
 use crate::Database;
+use crate::error::{StorageError, StorageResult};
 use chrono::{DateTime, Utc};
 use hex;
 use rusqlite::OptionalExtension;
@@ -203,7 +203,9 @@ impl<'a> ProofsRepository<'a> {
                     .query_map([check_result_id], |row| Ok(Self::row_to_proof(row)?))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -280,7 +282,9 @@ impl<'a> ProofsRepository<'a> {
                     .query_map([limit], |row| Ok(Self::row_to_proof(row)?))
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| StorageError::Query(format!("Failed to collect results: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
 
                 Ok(results)
             })
@@ -324,7 +328,9 @@ impl<'a> ProofsRepository<'a> {
             .with_connection(move |conn| {
                 let count = conn
                     .execute("DELETE FROM proofs WHERE created_at < ?", [&before_str])
-                    .map_err(|e| StorageError::Query(format!("Failed to delete old proofs: {}", e)))?;
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete old proofs: {}", e))
+                    })?;
 
                 info!("Deleted {} proofs older than {}", count, before_str);
                 Ok(count)
@@ -357,21 +363,13 @@ impl<'a> ProofsRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to get stats: {}", e)))?;
 
                 let oldest: Option<String> = conn
-                    .query_row(
-                        "SELECT MIN(created_at) FROM proofs",
-                        [],
-                        |row| row.get(0),
-                    )
+                    .query_row("SELECT MIN(created_at) FROM proofs", [], |row| row.get(0))
                     .optional()
                     .map_err(|e| StorageError::Query(format!("Failed to get oldest: {}", e)))?
                     .flatten();
 
                 let newest: Option<String> = conn
-                    .query_row(
-                        "SELECT MAX(created_at) FROM proofs",
-                        [],
-                        |row| row.get(0),
-                    )
+                    .query_row("SELECT MAX(created_at) FROM proofs", [], |row| row.get(0))
                     .optional()
                     .map_err(|e| StorageError::Query(format!("Failed to get newest: {}", e)))?
                     .flatten();

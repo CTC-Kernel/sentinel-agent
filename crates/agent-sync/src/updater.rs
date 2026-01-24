@@ -15,8 +15,8 @@ use semver::Version;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::fs;
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
@@ -166,7 +166,8 @@ impl UpdateManager {
 
     /// Get path to the shadow copy (backup).
     pub fn shadow_path(&self) -> PathBuf {
-        self.install_dir.join(format!("{}{}", self.binary_name, SHADOW_COPY_SUFFIX))
+        self.install_dir
+            .join(format!("{}{}", self.binary_name, SHADOW_COPY_SUFFIX))
     }
 
     /// Get path to update metadata.
@@ -185,13 +186,12 @@ impl UpdateManager {
             });
         }
 
-        let data = fs::read_to_string(&path).await.map_err(|e| {
-            SyncError::Config(format!("Failed to read update metadata: {}", e))
-        })?;
+        let data = fs::read_to_string(&path)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to read update metadata: {}", e)))?;
 
-        serde_json::from_str(&data).map_err(|e| {
-            SyncError::Config(format!("Failed to parse update metadata: {}", e))
-        })
+        serde_json::from_str(&data)
+            .map_err(|e| SyncError::Config(format!("Failed to parse update metadata: {}", e)))
     }
 
     /// Save update metadata.
@@ -201,9 +201,9 @@ impl UpdateManager {
             SyncError::Config(format!("Failed to serialize update metadata: {}", e))
         })?;
 
-        fs::write(&path, data).await.map_err(|e| {
-            SyncError::Config(format!("Failed to write update metadata: {}", e))
-        })
+        fs::write(&path, data)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to write update metadata: {}", e)))
     }
 
     /// Apply an update.
@@ -234,10 +234,7 @@ impl UpdateManager {
         let from_version = update.current_version.clone();
         let to_version = update.new_version.clone();
 
-        info!(
-            "Starting update from {} to {}",
-            from_version, to_version
-        );
+        info!("Starting update from {} to {}", from_version, to_version);
 
         // Update state: Downloading
         *self.state.write().await = UpdateState::Downloading;
@@ -264,14 +261,19 @@ impl UpdateManager {
 
         // Verify SHA-256 integrity
         if !update.sha256.is_empty() {
-            match self.update_service.verify_package(&staging_path, &update.sha256).await {
+            match self
+                .update_service
+                .verify_package(&staging_path, &update.sha256)
+                .await
+            {
                 Ok(true) => {}
                 Ok(false) => {
                     *self.state.write().await = UpdateState::Failed;
                     // Clean up staging file
                     let _ = fs::remove_file(&staging_path).await;
                     // Mark version as failed for investigation (M1)
-                    self.mark_version_failed(&to_version, "SHA-256 hash mismatch").await;
+                    self.mark_version_failed(&to_version, "SHA-256 hash mismatch")
+                        .await;
                     return Ok(UpdateResult {
                         success: false,
                         from_version,
@@ -286,7 +288,8 @@ impl UpdateManager {
                     *self.state.write().await = UpdateState::Failed;
                     let _ = fs::remove_file(&staging_path).await;
                     // Mark version as failed for investigation (M1)
-                    self.mark_version_failed(&to_version, &format!("Verification error: {}", e)).await;
+                    self.mark_version_failed(&to_version, &format!("Verification error: {}", e))
+                        .await;
                     return Ok(UpdateResult {
                         success: false,
                         from_version,
@@ -311,7 +314,11 @@ impl UpdateManager {
                     *self.state.write().await = UpdateState::Failed;
                     let _ = fs::remove_file(&staging_path).await;
                     // Mark version as failed for investigation (M1)
-                    self.mark_version_failed(&to_version, &format!("Signature verification failed: {}", e)).await;
+                    self.mark_version_failed(
+                        &to_version,
+                        &format!("Signature verification failed: {}", e),
+                    )
+                    .await;
                     return Ok(UpdateResult {
                         success: false,
                         from_version,
@@ -399,19 +406,22 @@ impl UpdateManager {
         let health_check = self.perform_health_check(&to_version).await;
 
         if !health_check.healthy {
-            error!(
-                "Post-update health check FAILED: {:?}",
-                health_check.error
-            );
+            error!("Post-update health check FAILED: {:?}", health_check.error);
             *self.state.write().await = UpdateState::Failed;
 
             // Mark version as failed for investigation (M1)
-            let reason = health_check.error.as_deref().unwrap_or("Health check failed");
+            let reason = health_check
+                .error
+                .as_deref()
+                .unwrap_or("Health check failed");
             self.mark_version_failed(&to_version, reason).await;
 
             // Trigger rollback (AC1 of 10.3 - rollback on health check failure)
             if let Err(rollback_err) = self.rollback().await {
-                error!("Rollback after health check failure also failed: {}", rollback_err);
+                error!(
+                    "Rollback after health check failure also failed: {}",
+                    rollback_err
+                );
                 return Ok(UpdateResult {
                     success: false,
                     from_version,
@@ -431,7 +441,10 @@ impl UpdateManager {
                 from_version,
                 to_version,
                 state: UpdateState::RolledBack,
-                error: Some(format!("Health check failed: {}. Rolled back to previous version.", reason)),
+                error: Some(format!(
+                    "Health check failed: {}. Rolled back to previous version.",
+                    reason
+                )),
                 rolled_back: true,
                 timestamp: Utc::now(),
             });
@@ -468,11 +481,14 @@ impl UpdateManager {
             )));
         }
 
-        info!("Creating shadow copy: {:?} -> {:?}", binary_path, shadow_path);
+        info!(
+            "Creating shadow copy: {:?} -> {:?}",
+            binary_path, shadow_path
+        );
 
-        fs::copy(&binary_path, &shadow_path).await.map_err(|e| {
-            SyncError::Config(format!("Failed to create shadow copy: {}", e))
-        })?;
+        fs::copy(&binary_path, &shadow_path)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to create shadow copy: {}", e)))?;
 
         Ok(())
     }
@@ -488,24 +504,26 @@ impl UpdateManager {
         {
             let backup_path = binary_path.with_extension("old");
             if binary_path.exists() {
-                fs::rename(&binary_path, &backup_path).await.map_err(|e| {
-                    SyncError::Config(format!("Failed to move old binary: {}", e))
-                })?;
+                fs::rename(&binary_path, &backup_path)
+                    .await
+                    .map_err(|e| SyncError::Config(format!("Failed to move old binary: {}", e)))?;
             }
         }
 
-        fs::copy(staging_path, &binary_path).await.map_err(|e| {
-            SyncError::Config(format!("Failed to copy new binary: {}", e))
-        })?;
+        fs::copy(staging_path, &binary_path)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to copy new binary: {}", e)))?;
 
         // Set executable permissions on Unix
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
             let permissions = std::fs::Permissions::from_mode(0o755);
-            fs::set_permissions(&binary_path, permissions).await.map_err(|e| {
-                SyncError::Config(format!("Failed to set binary permissions: {}", e))
-            })?;
+            fs::set_permissions(&binary_path, permissions)
+                .await
+                .map_err(|e| {
+                    SyncError::Config(format!("Failed to set binary permissions: {}", e))
+                })?;
         }
 
         Ok(())
@@ -526,18 +544,20 @@ impl UpdateManager {
 
         *self.state.write().await = UpdateState::RolledBack;
 
-        fs::copy(&shadow_path, &binary_path).await.map_err(|e| {
-            SyncError::Config(format!("Rollback failed: {}", e))
-        })?;
+        fs::copy(&shadow_path, &binary_path)
+            .await
+            .map_err(|e| SyncError::Config(format!("Rollback failed: {}", e)))?;
 
         // Set executable permissions on Unix
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
             let permissions = std::fs::Permissions::from_mode(0o755);
-            fs::set_permissions(&binary_path, permissions).await.map_err(|e| {
-                SyncError::Config(format!("Failed to set binary permissions: {}", e))
-            })?;
+            fs::set_permissions(&binary_path, permissions)
+                .await
+                .map_err(|e| {
+                    SyncError::Config(format!("Failed to set binary permissions: {}", e))
+                })?;
         }
 
         // Update metadata
@@ -565,9 +585,9 @@ impl UpdateManager {
         let shadow_path = self.shadow_path();
 
         if shadow_path.exists() {
-            fs::remove_file(&shadow_path).await.map_err(|e| {
-                SyncError::Config(format!("Failed to remove shadow copy: {}", e))
-            })?;
+            fs::remove_file(&shadow_path)
+                .await
+                .map_err(|e| SyncError::Config(format!("Failed to remove shadow copy: {}", e)))?;
         }
 
         Ok(())
@@ -575,9 +595,9 @@ impl UpdateManager {
 
     /// Compute SHA-256 hash of a file.
     pub async fn compute_hash(path: &Path) -> SyncResult<String> {
-        let data = fs::read(path).await.map_err(|e| {
-            SyncError::Config(format!("Failed to read file for hashing: {}", e))
-        })?;
+        let data = fs::read(path)
+            .await
+            .map_err(|e| SyncError::Config(format!("Failed to read file for hashing: {}", e)))?;
 
         let mut hasher = Sha256::new();
         hasher.update(&data);
@@ -666,8 +686,9 @@ impl UpdateManager {
             std::time::Duration::from_secs(HEALTH_CHECK_TIMEOUT_SECS),
             tokio::process::Command::new(&binary_path)
                 .arg("--version")
-                .output()
-        ).await;
+                .output(),
+        )
+        .await;
 
         match version_check {
             Ok(Ok(output)) => {
@@ -676,15 +697,17 @@ impl UpdateManager {
 
                 if output.status.success() {
                     // Parse version from output
-                    let reported_version = version_output
-                        .lines()
-                        .next()
-                        .and_then(|line| {
-                            // Try to extract version number (e.g., "sentinel-agent 1.2.0" -> "1.2.0")
-                            line.split_whitespace()
-                                .find(|s| s.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false))
-                                .map(|s| s.to_string())
-                        });
+                    let reported_version = version_output.lines().next().and_then(|line| {
+                        // Try to extract version number (e.g., "sentinel-agent 1.2.0" -> "1.2.0")
+                        line.split_whitespace()
+                            .find(|s| {
+                                s.chars()
+                                    .next()
+                                    .map(|c| c.is_ascii_digit())
+                                    .unwrap_or(false)
+                            })
+                            .map(|s| s.to_string())
+                    });
 
                     // Optionally verify version matches expected
                     if let Some(ref ver) = reported_version {
@@ -699,7 +722,10 @@ impl UpdateManager {
                         }
                     }
 
-                    info!("Health check passed: binary reports version {:?}", reported_version);
+                    info!(
+                        "Health check passed: binary reports version {:?}",
+                        reported_version
+                    );
                     HealthCheckResult {
                         healthy: true,
                         version: reported_version,
@@ -782,7 +808,10 @@ impl UpdateManager {
 
         let path = format!("/v1/agents/{}/versions/failed", agent_id);
 
-        match client.post_json::<_, serde_json::Value>(&path, &report).await {
+        match client
+            .post_json::<_, serde_json::Value>(&path, &report)
+            .await
+        {
             Ok(_) => {
                 info!(
                     "Reported failed version {} for investigation: {}",

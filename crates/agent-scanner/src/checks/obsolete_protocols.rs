@@ -6,9 +6,9 @@
 //! - macOS: System crypto settings
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -154,13 +154,16 @@ impl ObsoleteProtocolsCheck {
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // SMBv1 - enabled if feature is enabled or registry value is not 0
             // Windows 10 1709+ has SMBv1 disabled by default, so missing keys = disabled
-            let smb1_feature = json.get("SMBv1_Feature")
+            let smb1_feature = json
+                .get("SMBv1_Feature")
                 .and_then(|v| v.as_str())
                 .map(|s| s == "Enabled");
-            let smb1_client = json.get("SMBv1_Client")
+            let smb1_client = json
+                .get("SMBv1_Client")
                 .and_then(|v| v.as_u64())
                 .map(|v| v != 0);
-            let smb1_server = json.get("SMBv1_Server")
+            let smb1_server = json
+                .get("SMBv1_Server")
                 .and_then(|v| v.as_u64())
                 .map(|v| v != 0);
 
@@ -192,12 +195,18 @@ impl ObsoleteProtocolsCheck {
             let tls13_enabled = Self::is_protocol_enabled(&json, "TLS13");
 
             status.min_tls_version = Some(
-                if tls10_enabled { "1.0" }
-                else if tls11_enabled { "1.1" }
-                else if tls12_enabled { "1.2" }
-                else if tls13_enabled { "1.3" }
-                else { "Unknown" }
-                .to_string()
+                if tls10_enabled {
+                    "1.0"
+                } else if tls11_enabled {
+                    "1.1"
+                } else if tls12_enabled {
+                    "1.2"
+                } else if tls13_enabled {
+                    "1.3"
+                } else {
+                    "Unknown"
+                }
+                .to_string(),
             );
         }
 
@@ -239,10 +248,18 @@ impl ObsoleteProtocolsCheck {
         // - TLS 1.2, TLS 1.3 are enabled by default
         // Missing registry keys means the system default applies.
 
-        let client_enabled = json.get(&format!("{}_ClientEnabled", prefix)).and_then(|v| v.as_u64());
-        let server_enabled = json.get(&format!("{}_ServerEnabled", prefix)).and_then(|v| v.as_u64());
-        let client_disabled = json.get(&format!("{}_ClientDisabled", prefix)).and_then(|v| v.as_u64());
-        let server_disabled = json.get(&format!("{}_ServerDisabled", prefix)).and_then(|v| v.as_u64());
+        let client_enabled = json
+            .get(&format!("{}_ClientEnabled", prefix))
+            .and_then(|v| v.as_u64());
+        let server_enabled = json
+            .get(&format!("{}_ServerEnabled", prefix))
+            .and_then(|v| v.as_u64());
+        let client_disabled = json
+            .get(&format!("{}_ClientDisabled", prefix))
+            .and_then(|v| v.as_u64());
+        let server_disabled = json
+            .get(&format!("{}_ServerDisabled", prefix))
+            .and_then(|v| v.as_u64());
 
         // If explicitly disabled
         if client_enabled == Some(0) && server_enabled == Some(0) {
@@ -260,8 +277,11 @@ impl ObsoleteProtocolsCheck {
         // If not explicitly configured, determine default based on protocol
         // Modern Windows (10 1607+/Server 2016+) has legacy protocols disabled by default
         let is_legacy = matches!(prefix, "SSL20" | "SSL30" | "TLS10" | "TLS11");
-        if client_enabled.is_none() && server_enabled.is_none()
-            && client_disabled.is_none() && server_disabled.is_none() {
+        if client_enabled.is_none()
+            && server_enabled.is_none()
+            && client_disabled.is_none()
+            && server_disabled.is_none()
+        {
             // Legacy protocols default to disabled, modern protocols default to enabled
             return !is_legacy;
         }
@@ -293,15 +313,21 @@ impl ObsoleteProtocolsCheck {
         // Check system crypto policy (RHEL/Fedora)
         if let Ok(content) = std::fs::read_to_string("/etc/crypto-policies/config") {
             let policy = content.trim().to_string();
-            status.raw_output.push_str(&format!("Crypto policy: {}\n", policy));
+            status
+                .raw_output
+                .push_str(&format!("Crypto policy: {}\n", policy));
             status.crypto_policy = Some(policy.clone());
 
             // Policies like LEGACY allow old protocols
             if policy.to_uppercase() == "LEGACY" {
                 status.tls10_enabled = Some(true);
                 status.tls11_enabled = Some(true);
-                status.obsolete_enabled.push("TLS 1.0 (LEGACY policy)".to_string());
-                status.obsolete_enabled.push("TLS 1.1 (LEGACY policy)".to_string());
+                status
+                    .obsolete_enabled
+                    .push("TLS 1.0 (LEGACY policy)".to_string());
+                status
+                    .obsolete_enabled
+                    .push("TLS 1.1 (LEGACY policy)".to_string());
             } else if policy.to_uppercase() == "DEFAULT" || policy.to_uppercase() == "FUTURE" {
                 status.tls10_enabled = Some(false);
                 status.tls11_enabled = Some(false);
@@ -312,7 +338,9 @@ impl ObsoleteProtocolsCheck {
 
         // Check OpenSSL configuration
         if let Ok(content) = std::fs::read_to_string("/etc/ssl/openssl.cnf") {
-            status.raw_output.push_str(&format!("=== /etc/ssl/openssl.cnf ===\n{}\n", content));
+            status
+                .raw_output
+                .push_str(&format!("=== /etc/ssl/openssl.cnf ===\n{}\n", content));
 
             for line in content.lines() {
                 let line = line.trim().to_lowercase();
@@ -340,7 +368,9 @@ impl ObsoleteProtocolsCheck {
 
         // Check SMB configuration
         if let Ok(content) = std::fs::read_to_string("/etc/samba/smb.conf") {
-            status.raw_output.push_str(&format!("=== /etc/samba/smb.conf ===\n{}\n", content));
+            status
+                .raw_output
+                .push_str(&format!("=== /etc/samba/smb.conf ===\n{}\n", content));
 
             let content_lower = content.to_lowercase();
             if content_lower.contains("server min protocol = nt1")
@@ -383,11 +413,16 @@ impl ObsoleteProtocolsCheck {
 
         // Check SMB configuration
         if let Ok(output) = Command::new("defaults")
-            .args(["read", "/Library/Preferences/SystemConfiguration/com.apple.smb.server"])
+            .args([
+                "read",
+                "/Library/Preferences/SystemConfiguration/com.apple.smb.server",
+            ])
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("SMB Server Config:\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("SMB Server Config:\n{}\n", result));
 
             // Check for SMB1 signing requirement (older systems)
             if result.contains("SigningRequired = 0") || result.contains("RequireSMB1 = 1") {
@@ -399,15 +434,16 @@ impl ObsoleteProtocolsCheck {
         // Check macOS version to determine TLS defaults
         // macOS 10.15 (Catalina)+ disabled TLS 1.0/1.1 for App Transport Security
         // macOS 12 (Monterey)+ fully deprecated legacy TLS
-        if let Ok(output) = Command::new("sw_vers")
-            .args(["-productVersion"])
-            .output()
-        {
+        if let Ok(output) = Command::new("sw_vers").args(["-productVersion"]).output() {
             let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            status.raw_output.push_str(&format!("macOS version: {}\n", version));
+            status
+                .raw_output
+                .push_str(&format!("macOS version: {}\n", version));
 
             // Parse major version number
-            let major_version: u32 = version.split('.').next()
+            let major_version: u32 = version
+                .split('.')
+                .next()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(0);
 
@@ -422,7 +458,9 @@ impl ObsoleteProtocolsCheck {
                 status.min_tls_version = Some("1.2".to_string());
             } else if major_version >= 10 {
                 // macOS 10.x - need to check minor version
-                let minor_version: u32 = version.split('.').nth(1)
+                let minor_version: u32 = version
+                    .split('.')
+                    .nth(1)
                     .and_then(|v| v.parse().ok())
                     .unwrap_or(0);
 
@@ -437,14 +475,20 @@ impl ObsoleteProtocolsCheck {
                     status.tls10_enabled = None;
                     status.tls11_enabled = None;
                     status.min_tls_version = Some("Unknown".to_string());
-                    status.issues.push("Older macOS version - TLS status unknown".to_string());
+                    status
+                        .issues
+                        .push("Older macOS version - TLS status unknown".to_string());
                 }
             } else {
                 // Very old macOS or parsing failed
-                status.issues.push("Unable to determine macOS version for TLS status".to_string());
+                status
+                    .issues
+                    .push("Unable to determine macOS version for TLS status".to_string());
             }
         } else {
-            status.issues.push("Failed to check macOS version".to_string());
+            status
+                .issues
+                .push("Failed to check macOS version".to_string());
         }
 
         // Check nscurl for TLS support
@@ -453,7 +497,9 @@ impl ObsoleteProtocolsCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stderr).to_string();
-            status.raw_output.push_str(&format!("ATS Diagnostics:\n{}\n", result));
+            status
+                .raw_output
+                .push_str(&format!("ATS Diagnostics:\n{}\n", result));
 
             // App Transport Security enforces TLS 1.2+
             if result.contains("ATS Default") && result.contains("PASS") {
@@ -561,7 +607,10 @@ impl Check for ObsoleteProtocolsCheck {
             ))
         } else {
             Ok(CheckOutput::fail(
-                format!("Obsolete protocols enabled: {}", status.obsolete_enabled.join(", ")),
+                format!(
+                    "Obsolete protocols enabled: {}",
+                    status.obsolete_enabled.join(", ")
+                ),
                 raw_data,
             ))
         }

@@ -22,11 +22,10 @@ struct Migration {
 }
 
 /// All migrations in order.
-const MIGRATIONS: &[Migration] = &[
-    Migration {
-        version: 1,
-        name: "initial_schema",
-        up: r#"
+const MIGRATIONS: &[Migration] = &[Migration {
+    version: 1,
+    name: "initial_schema",
+    up: r#"
             -- Agent configuration table
             -- Stores local agent settings synced from SaaS
             CREATE TABLE IF NOT EXISTS agent_config (
@@ -112,7 +111,7 @@ const MIGRATIONS: &[Migration] = &[
             CREATE INDEX IF NOT EXISTS idx_sync_queue_next_retry ON sync_queue(next_retry_at);
             CREATE INDEX IF NOT EXISTS idx_sync_queue_entity ON sync_queue(entity_type, entity_id);
         "#,
-        down: r#"
+    down: r#"
             DROP INDEX IF EXISTS idx_sync_queue_entity;
             DROP INDEX IF EXISTS idx_sync_queue_next_retry;
             DROP INDEX IF EXISTS idx_sync_queue_priority;
@@ -131,8 +130,7 @@ const MIGRATIONS: &[Migration] = &[
             DROP TABLE IF EXISTS check_rules;
             DROP TABLE IF EXISTS agent_config;
         "#,
-    },
-];
+}];
 
 /// Initialize the schema_version table if it doesn't exist.
 fn ensure_schema_version_table(conn: &Connection) -> StorageResult<()> {
@@ -145,7 +143,9 @@ fn ensure_schema_version_table(conn: &Connection) -> StorageResult<()> {
         );
         "#,
     )
-    .map_err(|e| StorageError::Migration(format!("Failed to create schema_version table: {}", e)))?;
+    .map_err(|e| {
+        StorageError::Migration(format!("Failed to create schema_version table: {}", e))
+    })?;
 
     debug!("Schema version table ready");
     Ok(())
@@ -201,7 +201,10 @@ fn run_migration(conn: &mut Connection, migration: &Migration) -> StorageResult<
     }
 
     tx.commit().map_err(|e| {
-        StorageError::Migration(format!("Failed to commit migration v{}: {}", migration.version, e))
+        StorageError::Migration(format!(
+            "Failed to commit migration v{}: {}",
+            migration.version, e
+        ))
     })?;
 
     info!(
@@ -480,7 +483,11 @@ mod tests {
             .collect::<Result<Vec<_>, _>>()
             .unwrap();
 
-        assert!(tables.is_empty(), "Unexpected tables after rollback: {:?}", tables);
+        assert!(
+            tables.is_empty(),
+            "Unexpected tables after rollback: {:?}",
+            tables
+        );
     }
 
     #[test]

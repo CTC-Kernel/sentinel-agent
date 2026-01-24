@@ -6,9 +6,9 @@
 //! - macOS: Screen sharing, SSH, remote management
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
+use crate::error::ScannerResult;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -185,9 +185,15 @@ impl RemoteAccessCheck {
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // RDP configuration
-            let rdp_enabled = json.get("RdpEnabled").and_then(|v| v.as_bool()).unwrap_or(false);
+            let rdp_enabled = json
+                .get("RdpEnabled")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
             let nla_required = json.get("NlaRequired").and_then(|v| v.as_bool());
-            let rdp_port = json.get("RdpPort").and_then(|v| v.as_u64()).map(|p| p as u16);
+            let rdp_port = json
+                .get("RdpPort")
+                .and_then(|v| v.as_u64())
+                .map(|p| p as u16);
             let enc_level = json.get("EncryptionLevel").and_then(|v| v.as_u64());
 
             if rdp_enabled {
@@ -202,10 +208,14 @@ impl RemoteAccessCheck {
 
                 // Check RDP security
                 if nla_required != Some(true) {
-                    status.security_issues.push("RDP: NLA not required".to_string());
+                    status
+                        .security_issues
+                        .push("RDP: NLA not required".to_string());
                 }
                 if enc_level.map(|e| e < 3).unwrap_or(false) {
-                    status.security_issues.push("RDP: Low encryption level".to_string());
+                    status
+                        .security_issues
+                        .push("RDP: Low encryption level".to_string());
                 }
             }
 
@@ -282,7 +292,9 @@ impl RemoteAccessCheck {
 
             // Parse sshd_config
             if let Ok(content) = std::fs::read_to_string("/etc/ssh/sshd_config") {
-                status.raw_output.push_str(&format!("=== /etc/ssh/sshd_config ===\n"));
+                status
+                    .raw_output
+                    .push_str(&format!("=== /etc/ssh/sshd_config ===\n"));
 
                 for line in content.lines() {
                     let line = line.trim();
@@ -297,17 +309,25 @@ impl RemoteAccessCheck {
                                 let value = parts[1].to_lowercase();
                                 ssh_config.permit_root_login = Some(value == "yes");
                                 if value == "yes" {
-                                    status.security_issues.push("SSH: Root login permitted".to_string());
+                                    status
+                                        .security_issues
+                                        .push("SSH: Root login permitted".to_string());
                                 }
-                                status.raw_output.push_str(&format!("PermitRootLogin: {}\n", parts[1]));
+                                status
+                                    .raw_output
+                                    .push_str(&format!("PermitRootLogin: {}\n", parts[1]));
                             }
                             "passwordauthentication" => {
                                 let value = parts[1].to_lowercase();
                                 ssh_config.password_auth = Some(value == "yes");
                                 if value == "yes" {
-                                    status.security_issues.push("SSH: Password authentication enabled".to_string());
+                                    status
+                                        .security_issues
+                                        .push("SSH: Password authentication enabled".to_string());
                                 }
-                                status.raw_output.push_str(&format!("PasswordAuthentication: {}\n", parts[1]));
+                                status
+                                    .raw_output
+                                    .push_str(&format!("PasswordAuthentication: {}\n", parts[1]));
                             }
                             "pubkeyauthentication" => {
                                 ssh_config.pubkey_auth = Some(parts[1].to_lowercase() == "yes");
@@ -325,10 +345,7 @@ impl RemoteAccessCheck {
         }
 
         // Check for VNC servers
-        if let Ok(output) = Command::new("pgrep")
-            .args(["-a", "vnc"])
-            .output()
-        {
+        if let Ok(output) = Command::new("pgrep").args(["-a", "vnc"]).output() {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
             if !result.is_empty() {
                 status.screen_sharing_enabled = Some(true);
@@ -390,7 +407,9 @@ impl RemoteAccessCheck {
             .output()
         {
             let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status.raw_output.push_str(&format!("Remote Login: {}\n", result.trim()));
+            status
+                .raw_output
+                .push_str(&format!("Remote Login: {}\n", result.trim()));
 
             if result.to_lowercase().contains("on") {
                 status.remote_access_enabled = true;
@@ -419,7 +438,9 @@ impl RemoteAccessCheck {
                                     let value = parts[1].to_lowercase();
                                     ssh_config.permit_root_login = Some(value == "yes");
                                     if value == "yes" {
-                                        status.security_issues.push("SSH: Root login permitted".to_string());
+                                        status
+                                            .security_issues
+                                            .push("SSH: Root login permitted".to_string());
                                     }
                                 }
                                 "passwordauthentication" => {
@@ -521,7 +542,10 @@ impl Check for RemoteAccessCheck {
             ))
         } else {
             Ok(CheckOutput::fail(
-                format!("Remote access security issues: {}", status.issues.join("; ")),
+                format!(
+                    "Remote access security issues: {}",
+                    status.issues.join("; ")
+                ),
                 raw_data,
             ))
         }

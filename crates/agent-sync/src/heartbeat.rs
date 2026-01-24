@@ -10,12 +10,12 @@ use crate::authenticated_client::AuthenticatedClient;
 use crate::error::{SyncError, SyncResult};
 use crate::types::{AgentCommand, HeartbeatRequest, HeartbeatResponse, SelfCheckResult};
 use agent_common::constants::{
-    AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS, MAX_SYNC_RETRIES,
-    RETRY_BACKOFF_BASE_MS, RETRY_BACKOFF_MAX_MS,
+    AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS, MAX_SYNC_RETRIES, RETRY_BACKOFF_BASE_MS,
+    RETRY_BACKOFF_MAX_MS,
 };
 use chrono::{DateTime, Utc};
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::Duration;
 use sysinfo::System;
 use tokio::sync::RwLock;
@@ -172,8 +172,8 @@ impl HeartbeatService {
         let sys = self.sys.read().await;
 
         // Calculate CPU usage (average across all CPUs)
-        let cpu_percent = sys.cpus().iter().map(|c| c.cpu_usage()).sum::<f32>()
-            / sys.cpus().len().max(1) as f32;
+        let cpu_percent =
+            sys.cpus().iter().map(|c| c.cpu_usage()).sum::<f32>() / sys.cpus().len().max(1) as f32;
 
         let memory_bytes = sys.used_memory();
 
@@ -242,7 +242,10 @@ impl HeartbeatService {
                 );
             }
         } else {
-            warn!("Heartbeat failed ({}/{} before offline mode)", failures, OFFLINE_MODE_THRESHOLD);
+            warn!(
+                "Heartbeat failed ({}/{} before offline mode)",
+                failures, OFFLINE_MODE_THRESHOLD
+            );
         }
     }
 

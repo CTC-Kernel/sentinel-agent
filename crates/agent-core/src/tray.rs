@@ -5,10 +5,10 @@
 
 use crate::ShutdownSignal;
 use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
+use std::sync::atomic::{AtomicBool, Ordering};
 use tracing::{debug, error, info, warn};
+use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
 /// Agent status for tray display.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -72,12 +72,7 @@ impl AgentTray {
             None,
         );
 
-        let pause_item = MenuItem::with_id(
-            menu_ids::PAUSE,
-            "Mettre en pause",
-            true,
-            None,
-        );
+        let pause_item = MenuItem::with_id(menu_ids::PAUSE, "Mettre en pause", true, None);
 
         let resume_item = MenuItem::with_id(
             menu_ids::RESUME,
@@ -86,19 +81,10 @@ impl AgentTray {
             None,
         );
 
-        let check_now_item = MenuItem::with_id(
-            menu_ids::CHECK_NOW,
-            "Vérifier maintenant",
-            true,
-            None,
-        );
+        let check_now_item =
+            MenuItem::with_id(menu_ids::CHECK_NOW, "Vérifier maintenant", true, None);
 
-        let open_logs_item = MenuItem::with_id(
-            menu_ids::OPEN_LOGS,
-            "Ouvrir les logs",
-            true,
-            None,
-        );
+        let open_logs_item = MenuItem::with_id(menu_ids::OPEN_LOGS, "Ouvrir les logs", true, None);
 
         let open_dashboard_item = MenuItem::with_id(
             menu_ids::OPEN_DASHBOARD,
@@ -107,25 +93,30 @@ impl AgentTray {
             None,
         );
 
-        let quit_item = MenuItem::with_id(
-            menu_ids::QUIT,
-            "Quitter",
-            true,
-            None,
-        );
+        let quit_item = MenuItem::with_id(menu_ids::QUIT, "Quitter", true, None);
 
         // Build the menu
         let menu = Menu::new();
-        menu.append(&status_item).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&pause_item).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&resume_item).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&check_now_item).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&open_logs_item).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&open_dashboard_item).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&PredefinedMenuItem::separator()).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&quit_item).map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&status_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&PredefinedMenuItem::separator())
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&pause_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&resume_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&check_now_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&PredefinedMenuItem::separator())
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&open_logs_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&open_dashboard_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&PredefinedMenuItem::separator())
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&quit_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
 
         // Create tray icon
         let icon = create_icon(AgentTrayStatus::Active)?;
@@ -230,8 +221,7 @@ fn create_icon(_status: AgentTrayStatus) -> Result<Icon, TrayError> {
     let (width, height) = rgba_image.dimensions();
     let rgba_data = rgba_image.into_raw();
 
-    Icon::from_rgba(rgba_data, width, height)
-        .map_err(|e| TrayError::IconCreate(e.to_string()))
+    Icon::from_rgba(rgba_data, width, height).map_err(|e| TrayError::IconCreate(e.to_string()))
 }
 
 /// Open the logs folder in the system file browser.

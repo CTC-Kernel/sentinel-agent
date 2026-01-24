@@ -503,7 +503,10 @@ mod tests {
             response.agent_id.to_string(),
             "550e8400-e29b-41d4-a716-446655440000"
         );
-        assert_eq!(response.client_private_key, "-----BEGIN PRIVATE KEY-----\nMIIE...");
+        assert_eq!(
+            response.client_private_key,
+            "-----BEGIN PRIVATE KEY-----\nMIIE..."
+        );
         assert!(response.server_certificate.is_some());
         assert!(response.initial_config.is_some());
     }

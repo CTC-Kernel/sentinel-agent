@@ -8,7 +8,7 @@
 //! - Uninstall: `sentinel-agent uninstall` (requires admin/root)
 
 use agent_common::config::AgentConfig;
-use agent_core::{init_logging, service, tray, AgentRuntime};
+use agent_core::{AgentRuntime, init_logging, service, tray};
 use clap::{Parser, Subcommand};
 use muda::MenuEvent;
 use std::process::ExitCode;
@@ -219,7 +219,7 @@ fn handle_install() -> ExitCode {
 
 /// Uninstall the service.
 fn handle_uninstall(purge: bool, keep_logs: bool) -> ExitCode {
-    use agent_core::cleanup::{cleanup_data, print_cleanup_summary, CleanupOptions};
+    use agent_core::cleanup::{CleanupOptions, cleanup_data, print_cleanup_summary};
 
     // First, uninstall the service
     match service::uninstall_service() {
@@ -365,7 +365,9 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
 
     // Check if enrolled
     let enrollment_manager = EnrollmentManager::new(&config, &db);
-    let is_enrolled = rt.block_on(enrollment_manager.is_enrolled()).unwrap_or(false);
+    let is_enrolled = rt
+        .block_on(enrollment_manager.is_enrolled())
+        .unwrap_or(false);
 
     if !is_enrolled {
         info!("Agent not enrolled. Requesting enrollment token.");
@@ -395,10 +397,13 @@ fn handle_run(config_path: Option<String>, no_tray: bool) -> ExitCode {
                     }
                     Err(e) => {
                         error!("Enrollment failed: {}", e);
-                        show_error_dialog("Échec de l'enrôlement", &format!(
-                            "L'enrôlement a échoué: {}\n\nVérifiez que le token est valide et non expiré.",
-                            e
-                        ));
+                        show_error_dialog(
+                            "Échec de l'enrôlement",
+                            &format!(
+                                "L'enrôlement a échoué: {}\n\nVérifiez que le token est valide et non expiré.",
+                                e
+                            ),
+                        );
                         return ExitCode::FAILURE;
                     }
                 }
@@ -453,7 +458,10 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     let agent_tray = match tray::AgentTray::new(shutdown.clone()) {
         Ok(tray) => tray,
         Err(e) => {
-            warn!("Failed to create tray icon: {}. Running in headless mode.", e);
+            warn!(
+                "Failed to create tray icon: {}. Running in headless mode.",
+                e
+            );
             // Fall back to headless mode
             let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
             return match rt.block_on(runtime.run()) {
@@ -472,9 +480,7 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     // Spawn the agent loop in a background task
     // Note: We use _ prefix because event_loop.run() never returns,
     // so we can't await this handle. The agent runs until tray shutdown.
-    let _agent_handle = rt.spawn(async move {
-        runtime.run().await
-    });
+    let _agent_handle = rt.spawn(async move { runtime.run().await });
 
     // Subscribe to menu events
     let menu_channel = MenuEvent::receiver();
@@ -538,11 +544,7 @@ Sentinel GRC → Paramètres → Agents → Enrôler un Agent" default answer ""
         .ok()?;
 
     let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if token.is_empty() {
-        None
-    } else {
-        Some(token)
-    }
+    if token.is_empty() { None } else { Some(token) }
 }
 
 #[cfg(target_os = "windows")]
@@ -566,11 +568,7 @@ fn show_enrollment_dialog() -> Option<String> {
         .ok()?;
 
     let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if token.is_empty() {
-        None
-    } else {
-        Some(token)
-    }
+    if token.is_empty() { None } else { Some(token) }
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]

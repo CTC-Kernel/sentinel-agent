@@ -187,13 +187,17 @@ impl ScoreCalculator {
                     weighted_total += weight;
 
                     // Category tracking
-                    let entry = category_data.entry(input.category.clone()).or_insert((0, 0));
+                    let entry = category_data
+                        .entry(input.category.clone())
+                        .or_insert((0, 0));
                     entry.0 += 1;
                     entry.1 += 1;
 
                     // Framework tracking
                     for framework in &input.frameworks {
-                        let entry = framework_data.entry(framework.clone()).or_insert((0.0, 0.0));
+                        let entry = framework_data
+                            .entry(framework.clone())
+                            .or_insert((0.0, 0.0));
                         entry.0 += weight;
                         entry.1 += weight;
                     }
@@ -202,11 +206,15 @@ impl ScoreCalculator {
                     failed_count += 1;
                     weighted_total += weight;
 
-                    let entry = category_data.entry(input.category.clone()).or_insert((0, 0));
+                    let entry = category_data
+                        .entry(input.category.clone())
+                        .or_insert((0, 0));
                     entry.1 += 1;
 
                     for framework in &input.frameworks {
-                        let entry = framework_data.entry(framework.clone()).or_insert((0.0, 0.0));
+                        let entry = framework_data
+                            .entry(framework.clone())
+                            .or_insert((0.0, 0.0));
                         entry.1 += weight;
                     }
                 }
@@ -218,11 +226,15 @@ impl ScoreCalculator {
                     weighted_total += weight;
 
                     // Track in category as partial (counted as 0.5 pass)
-                    let entry = category_data.entry(input.category.clone()).or_insert((0, 0));
+                    let entry = category_data
+                        .entry(input.category.clone())
+                        .or_insert((0, 0));
                     entry.1 += 1; // Add to total
 
                     for framework in &input.frameworks {
-                        let entry = framework_data.entry(framework.clone()).or_insert((0.0, 0.0));
+                        let entry = framework_data
+                            .entry(framework.clone())
+                            .or_insert((0.0, 0.0));
                         entry.0 += weight * 0.5; // Partial pass
                         entry.1 += weight;
                     }
@@ -388,8 +400,8 @@ mod tests {
     fn test_mixed_results() {
         let calculator = ScoreCalculator::new();
         let inputs = vec![
-            create_pass_input("encryption", CheckSeverity::High),   // weight 3.0
-            create_fail_input("firewall", CheckSeverity::Medium),   // weight 2.0
+            create_pass_input("encryption", CheckSeverity::High), // weight 3.0
+            create_fail_input("firewall", CheckSeverity::Medium), // weight 2.0
         ];
 
         let score = calculator.calculate(&inputs);
@@ -491,7 +503,7 @@ mod tests {
             CheckResult::pass("test1"),
             CheckResult::pass("test2"),
             CheckResult::fail("test3", "failed"),
-            CheckResult::error("test4", "error"),  // excluded
+            CheckResult::error("test4", "error"), // excluded
         ];
 
         let score = calculator.calculate_simple(&results);
@@ -514,9 +526,7 @@ mod tests {
     #[test]
     fn test_compliance_score_serialization() {
         let calculator = ScoreCalculator::new();
-        let inputs = vec![
-            create_pass_input("test", CheckSeverity::High),
-        ];
+        let inputs = vec![create_pass_input("test", CheckSeverity::High)];
 
         let score = calculator.calculate(&inputs);
 

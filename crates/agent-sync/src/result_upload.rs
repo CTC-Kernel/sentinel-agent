@@ -10,12 +10,12 @@ use crate::authenticated_client::AuthenticatedClient;
 use crate::error::{SyncError, SyncResult};
 use agent_storage::{CheckResult, CheckResultsRepository, Database, ProofsRepository};
 use chrono::{DateTime, Utc};
-use flate2::write::GzEncoder;
 use flate2::Compression;
+use flate2::write::GzEncoder;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 use tokio::sync::Semaphore;
 use tokio::time::Instant;
@@ -80,7 +80,10 @@ impl From<&CheckResult> for CheckResultPayload {
             proof_hash: None, // Proof hash added separately
             executed_at: result.executed_at,
             duration_ms: result.duration_ms,
-            raw_data: result.raw_data.as_ref().and_then(|s| serde_json::from_str(s).ok()),
+            raw_data: result
+                .raw_data
+                .as_ref()
+                .and_then(|s| serde_json::from_str(s).ok()),
         }
     }
 }
@@ -349,7 +352,9 @@ impl ResultUploader {
         // Upload with timeout enforcement (NFR-SC5: max 60 seconds)
         // In real implementation, this would use the compressed payload
         // For now, we use the standard JSON POST
-        let upload_future = self.client.post_json::<_, ResultUploadResponse>(&path, &request);
+        let upload_future = self
+            .client
+            .post_json::<_, ResultUploadResponse>(&path, &request);
         let timeout_duration = Duration::from_secs(UPLOAD_TIMEOUT_SECS);
 
         match tokio::time::timeout(timeout_duration, upload_future).await {

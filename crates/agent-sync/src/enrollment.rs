@@ -52,14 +52,14 @@ impl<'a> EnrollmentManager<'a> {
 
         // Check if already enrolled
         if let Some(credentials) = credentials_repo.load().await? {
-            info!(
-                "Agent already enrolled with ID: {}",
-                credentials.agent_id
-            );
+            info!("Agent already enrolled with ID: {}", credentials.agent_id);
 
             // Check certificate expiration
             if credentials.is_certificate_expired() {
-                warn!("Certificate expired at {}", credentials.certificate_expires_at);
+                warn!(
+                    "Certificate expired at {}",
+                    credentials.certificate_expires_at
+                );
                 // Certificate renewal will be handled separately
             } else if credentials.certificate_expires_within(30) {
                 warn!(
@@ -72,9 +72,11 @@ impl<'a> EnrollmentManager<'a> {
         }
 
         // Not enrolled - need enrollment token
-        let token = self.config.enrollment_token.as_ref().ok_or_else(|| {
-            SyncError::NotEnrolled
-        })?;
+        let token = self
+            .config
+            .enrollment_token
+            .as_ref()
+            .ok_or_else(|| SyncError::NotEnrolled)?;
 
         info!("Agent not enrolled. Starting enrollment with token.");
 
@@ -282,9 +284,7 @@ mod tests {
         let os_name = get_os_name();
         assert!(!os_name.is_empty());
         // Should be one of the known OS types
-        assert!(
-            os_name == "linux" || os_name == "macos" || os_name == "windows"
-        );
+        assert!(os_name == "linux" || os_name == "macos" || os_name == "windows");
     }
 
     #[test]

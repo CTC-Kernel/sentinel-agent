@@ -15,16 +15,16 @@ pub mod resources;
 pub mod service;
 pub mod tray;
 
-use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
 use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
 use agent_scanner::{
-    SecurityMonitor, SecurityScanResult, VulnerabilityScanResult, VulnerabilityScanner, ScanType,
+    ScanType, SecurityMonitor, SecurityScanResult, VulnerabilityScanResult, VulnerabilityScanner,
 };
+use api_client::{ApiClient, EnrollmentRequest, HeartbeatRequest};
 use resources::ResourceMonitor;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn};
 
@@ -111,9 +111,9 @@ impl AgentRuntime {
     /// Enroll the agent if not already enrolled.
     async fn ensure_enrolled(&self) -> Result<(), CommonError> {
         let mut api_client = self.api_client.write().await;
-        let client = api_client.as_mut().ok_or_else(|| {
-            CommonError::config("API client not initialized")
-        })?;
+        let client = api_client
+            .as_mut()
+            .ok_or_else(|| CommonError::config("API client not initialized"))?;
 
         // Check if already enrolled
         if client.agent_id().is_some() {
@@ -168,9 +168,9 @@ impl AgentRuntime {
     /// Send a heartbeat to the server.
     async fn send_heartbeat(&self) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
-        let client = api_client.as_ref().ok_or_else(|| {
-            CommonError::config("API client not initialized")
-        })?;
+        let client = api_client
+            .as_ref()
+            .ok_or_else(|| CommonError::config("API client not initialized"))?;
 
         let usage = self.resource_monitor.get_usage();
         let hostname = hostname::get()
@@ -185,9 +185,9 @@ impl AgentRuntime {
             os_info: format!("{} {}", std::env::consts::OS, get_os_version()),
             cpu_percent: usage.cpu_percent,
             memory_bytes: usage.memory_bytes,
-            last_check_at: None, // TODO: Track last check time
+            last_check_at: None,    // TODO: Track last check time
             compliance_score: None, // TODO: Track compliance score
-            pending_sync_count: 0, // TODO: Track pending syncs
+            pending_sync_count: 0,  // TODO: Track pending syncs
             self_check_result: None,
         };
 
@@ -212,7 +212,8 @@ impl AgentRuntime {
     async fn run_vulnerability_scan(&self) -> Result<VulnerabilityScanResult, CommonError> {
         info!("Starting vulnerability scan...");
 
-        let result = self.vulnerability_scanner
+        let result = self
+            .vulnerability_scanner
             .scan(ScanType::Packages)
             .await
             .map_err(|e| CommonError::config(format!("Vulnerability scan failed: {}", e)))?;
@@ -234,30 +235,37 @@ impl AgentRuntime {
     }
 
     /// Upload vulnerability findings to the server.
-    async fn upload_vulnerabilities(&self, scan_result: &VulnerabilityScanResult) -> Result<(), CommonError> {
+    async fn upload_vulnerabilities(
+        &self,
+        scan_result: &VulnerabilityScanResult,
+    ) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
-        let client = api_client.as_ref().ok_or_else(|| {
-            CommonError::config("API client not initialized")
-        })?;
+        let client = api_client
+            .as_ref()
+            .ok_or_else(|| CommonError::config("API client not initialized"))?;
 
-        let agent_id = client.agent_id().ok_or_else(|| {
-            CommonError::config("Agent not enrolled")
-        })?;
+        let agent_id = client
+            .agent_id()
+            .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
 
         // Convert scanner findings to API types
-        let vulnerabilities: Vec<serde_json::Value> = scan_result.vulnerabilities.iter().map(|v| {
-            serde_json::json!({
-                "package_name": v.package_name,
-                "installed_version": v.installed_version,
-                "available_version": v.available_version,
-                "cve_id": v.cve_id,
-                "cvss_score": v.cvss_score,
-                "severity": format!("{}", v.severity),
-                "description": v.description,
-                "remediation": v.remediation,
-                "detected_at": v.detected_at.to_rfc3339(),
+        let vulnerabilities: Vec<serde_json::Value> = scan_result
+            .vulnerabilities
+            .iter()
+            .map(|v| {
+                serde_json::json!({
+                    "package_name": v.package_name,
+                    "installed_version": v.installed_version,
+                    "available_version": v.available_version,
+                    "cve_id": v.cve_id,
+                    "cvss_score": v.cvss_score,
+                    "severity": format!("{}", v.severity),
+                    "description": v.description,
+                    "remediation": v.remediation,
+                    "detected_at": v.detected_at.to_rfc3339(),
+                })
             })
-        }).collect();
+            .collect();
 
         let payload = serde_json::json!({
             "vulnerabilities": vulnerabilities,
@@ -275,7 +283,8 @@ impl AgentRuntime {
     async fn run_security_scan(&self) -> Result<SecurityScanResult, CommonError> {
         debug!("Running security scan...");
 
-        let result = self.security_monitor
+        let result = self
+            .security_monitor
             .scan()
             .await
             .map_err(|e| CommonError::config(format!("Security scan failed: {}", e)))?;
@@ -300,15 +309,18 @@ impl AgentRuntime {
     }
 
     /// Upload a security incident to the server.
-    async fn upload_incident(&self, incident: &agent_scanner::SecurityIncident) -> Result<(), CommonError> {
+    async fn upload_incident(
+        &self,
+        incident: &agent_scanner::SecurityIncident,
+    ) -> Result<(), CommonError> {
         let api_client = self.api_client.read().await;
-        let client = api_client.as_ref().ok_or_else(|| {
-            CommonError::config("API client not initialized")
-        })?;
+        let client = api_client
+            .as_ref()
+            .ok_or_else(|| CommonError::config("API client not initialized"))?;
 
-        let agent_id = client.agent_id().ok_or_else(|| {
-            CommonError::config("Agent not enrolled")
-        })?;
+        let agent_id = client
+            .agent_id()
+            .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
 
         let payload = serde_json::json!({
             "incident_type": format!("{}", incident.incident_type),
@@ -323,7 +335,8 @@ impl AgentRuntime {
         let url = format!("/v1/agents/{}/incidents", agent_id);
         let response: serde_json::Value = client.post(&url, &payload).await?;
 
-        let incident_id = response.get("incident_id")
+        let incident_id = response
+            .get("incident_id")
             .and_then(|v| v.as_str())
             .unwrap_or("unknown");
 
@@ -337,14 +350,20 @@ impl AgentRuntime {
 
     /// Run the agent main loop.
     pub async fn run(&self) -> Result<(), CommonError> {
-        info!(
-            "Starting Sentinel GRC Agent v{}",
-            AGENT_VERSION
-        );
+        info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
         info!("Server URL: {}", self.config.server_url);
-        info!("Check interval: {} seconds", self.config.check_interval_secs);
-        info!("Vulnerability scan interval: {} seconds", self.vuln_scan_interval_secs);
-        info!("Security scan interval: {} seconds", self.security_scan_interval_secs);
+        info!(
+            "Check interval: {} seconds",
+            self.config.check_interval_secs
+        );
+        info!(
+            "Vulnerability scan interval: {} seconds",
+            self.vuln_scan_interval_secs
+        );
+        info!(
+            "Security scan interval: {} seconds",
+            self.security_scan_interval_secs
+        );
 
         // Check startup time is within limits
         self.resource_monitor.check_startup_time();
@@ -481,7 +500,11 @@ fn get_os_version() -> String {
                 content
                     .lines()
                     .find(|line| line.starts_with("VERSION_ID="))
-                    .map(|line| line.trim_start_matches("VERSION_ID=").trim_matches('"').to_string())
+                    .map(|line| {
+                        line.trim_start_matches("VERSION_ID=")
+                            .trim_matches('"')
+                            .to_string()
+                    })
             })
             .unwrap_or_else(|| "unknown".to_string())
     }
@@ -567,10 +590,9 @@ fn generate_fallback_machine_id() -> String {
 
 /// Initialize logging based on configuration.
 pub fn init_logging(log_level: &str) {
-    use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+    use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(log_level));
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
 
     tracing_subscriber::registry()
         .with(fmt::layer())

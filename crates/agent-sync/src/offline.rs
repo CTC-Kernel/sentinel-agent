@@ -651,13 +651,8 @@ mod tests {
         let local_time = Utc::now() - Duration::hours(1);
         let remote_time = Utc::now();
 
-        let resolution = resolve_rule_conflict(
-            "disk_encryption",
-            "1.0",
-            "2.0",
-            local_time,
-            remote_time,
-        );
+        let resolution =
+            resolve_rule_conflict("disk_encryption", "1.0", "2.0", local_time, remote_time);
 
         assert_eq!(resolution.strategy, ConflictStrategy::MostRecent);
         assert_eq!(resolution.after, "2.0");
@@ -668,13 +663,8 @@ mod tests {
         let local_time = Utc::now();
         let remote_time = Utc::now() - Duration::hours(1);
 
-        let resolution = resolve_rule_conflict(
-            "disk_encryption",
-            "2.0",
-            "1.0",
-            local_time,
-            remote_time,
-        );
+        let resolution =
+            resolve_rule_conflict("disk_encryption", "2.0", "1.0", local_time, remote_time);
 
         assert_eq!(resolution.strategy, ConflictStrategy::MostRecent);
         assert_eq!(resolution.after, "2.0");

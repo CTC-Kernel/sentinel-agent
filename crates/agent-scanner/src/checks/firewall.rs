@@ -178,11 +178,7 @@ impl FirewallCheck {
     #[cfg(target_os = "windows")]
     async fn get_windows_rule_count(&self) -> ScannerResult<u32> {
         let output = Command::new("powershell")
-            .args([
-                "-NoProfile",
-                "-Command",
-                "(Get-NetFirewallRule).Count",
-            ])
+            .args(["-NoProfile", "-Command", "(Get-NetFirewallRule).Count"])
             .output()
             .map_err(|e| ScannerError::CheckExecution(e.to_string()))?;
 
@@ -276,8 +272,7 @@ impl FirewallCheck {
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
         // nftables is "enabled" if there are rules
-        let enabled = !raw_output.trim().is_empty()
-            && raw_output.contains("table");
+        let enabled = !raw_output.trim().is_empty() && raw_output.contains("table");
 
         let rule_count = raw_output
             .lines()
@@ -309,11 +304,9 @@ impl FirewallCheck {
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
         // Check if there are any non-default rules
-        let has_rules = raw_output.lines().any(|l| {
-            !l.starts_with("Chain")
-                && !l.starts_with("target")
-                && !l.trim().is_empty()
-        });
+        let has_rules = raw_output
+            .lines()
+            .any(|l| !l.starts_with("Chain") && !l.starts_with("target") && !l.trim().is_empty());
 
         // Parse default policies
         let mut profiles = Vec::new();
@@ -326,8 +319,16 @@ impl FirewallCheck {
                     profiles.push(FirewallProfile {
                         name: name.clone(),
                         enabled: true,
-                        default_inbound: if name == "INPUT" { policy.clone() } else { None },
-                        default_outbound: if name == "OUTPUT" { policy.clone() } else { None },
+                        default_inbound: if name == "INPUT" {
+                            policy.clone()
+                        } else {
+                            None
+                        },
+                        default_outbound: if name == "OUTPUT" {
+                            policy.clone()
+                        } else {
+                            None
+                        },
                         rule_count: None,
                     });
                 }
@@ -336,18 +337,15 @@ impl FirewallCheck {
 
         let rule_count = raw_output
             .lines()
-            .filter(|l| {
-                !l.starts_with("Chain")
-                    && !l.starts_with("target")
-                    && !l.trim().is_empty()
-            })
+            .filter(|l| !l.starts_with("Chain") && !l.starts_with("target") && !l.trim().is_empty())
             .count() as u32;
 
         Ok(FirewallStatus {
-            enabled: has_rules || profiles.iter().any(|p| {
-                p.default_inbound.as_deref() == Some("DROP")
-                    || p.default_inbound.as_deref() == Some("REJECT")
-            }),
+            enabled: has_rules
+                || profiles.iter().any(|p| {
+                    p.default_inbound.as_deref() == Some("DROP")
+                        || p.default_inbound.as_deref() == Some("REJECT")
+                }),
             firewall_type: "iptables".to_string(),
             profiles,
             rule_count: Some(rule_count),
