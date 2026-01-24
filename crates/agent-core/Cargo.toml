@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish = false
+description = "Sentinel GRC endpoint compliance monitoring agent"
 
 [dependencies]
 agent-common = { path = "../agent-common" }
@@ -51,9 +52,9 @@ assets = [
     ["target/release/agent-core", "/opt/sentinel-grc/bin/sentinel-agent", "755"],
     ["../../config/agent.example.json", "/etc/sentinel/agent.json", "600"],
     ["../../wix/license.rtf", "/opt/sentinel-grc/share/doc/LICENSE.rtf", "644"],
+    ["debian/sentinel-agent.service", "/etc/systemd/system/sentinel-agent.service", "644"],
 ]
 maintainer-scripts = "debian/"
-systemd-units = { unit-name = "sentinel-agent", enable = true, start = true }
 
 # RPM package metadata (cargo-generate-rpm)
 [package.metadata.rpm]
