@@ -18,6 +18,7 @@ pub mod tray;
 use agent_common::config::AgentConfig;
 use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
 use agent_common::error::CommonError;
+use agent_network::{NetworkManager, NetworkSecurityAlert, NetworkSnapshot};
 use agent_scanner::{
     ScanType, SecurityMonitor, SecurityScanResult, VulnerabilityScanResult, VulnerabilityScanner,
 };
@@ -48,6 +49,8 @@ pub struct AgentRuntime {
     vulnerability_scanner: VulnerabilityScanner,
     /// Security monitor for incident detection.
     security_monitor: SecurityMonitor,
+    /// Network manager for network collection and detection.
+    network_manager: RwLock<NetworkManager>,
     /// Vulnerability scan interval in seconds.
     vuln_scan_interval_secs: u64,
     /// Security scan interval in seconds.
@@ -60,11 +63,13 @@ impl AgentRuntime {
         let resource_monitor = ResourceMonitor::new();
         let vulnerability_scanner = VulnerabilityScanner::new();
         let security_monitor = SecurityMonitor::new();
+        let network_manager = NetworkManager::new();
 
         info!(
             "Initialized vulnerability scanner ({} scanners available)",
             vulnerability_scanner.scanner_count()
         );
+        info!("Initialized network manager with smart scheduling");
 
         Self {
             config,
@@ -74,6 +79,7 @@ impl AgentRuntime {
             heartbeat_interval_secs: RwLock::new(DEFAULT_HEARTBEAT_INTERVAL_SECS),
             vulnerability_scanner,
             security_monitor,
+            network_manager: RwLock::new(network_manager),
             vuln_scan_interval_secs: DEFAULT_VULN_SCAN_INTERVAL_SECS,
             security_scan_interval_secs: DEFAULT_SECURITY_SCAN_INTERVAL_SECS,
         }
@@ -348,6 +354,123 @@ impl AgentRuntime {
         Ok(())
     }
 
+    /// Collect network information and run security detection.
+    async fn run_network_collection(&self) -> Result<NetworkSnapshot, CommonError> {
+        debug!("Collecting network information...");
+
+        let network_manager = self.network_manager.read().await;
+        let snapshot = network_manager
+            .collect_snapshot()
+            .await
+            .map_err(|e| CommonError::config(format!("Network collection failed: {}", e)))?;
+
+        info!(
+            "Network collection complete: {} interfaces, {} connections, {} routes",
+            snapshot.interfaces.len(),
+            snapshot.connections.len(),
+            snapshot.routes.len()
+        );
+
+        Ok(snapshot)
+    }
+
+    /// Run network security detection.
+    async fn run_network_security_detection(
+        &self,
+        snapshot: &NetworkSnapshot,
+    ) -> Result<Vec<NetworkSecurityAlert>, CommonError> {
+        debug!("Running network security detection...");
+
+        let network_manager = self.network_manager.read().await;
+        let alerts = network_manager
+            .detect_threats(&snapshot.connections)
+            .await
+            .map_err(|e| CommonError::config(format!("Network detection failed: {}", e)))?;
+
+        if !alerts.is_empty() {
+            warn!("Network security detection found {} alerts", alerts.len());
+            for alert in &alerts {
+                info!(
+                    "Network alert: {} (severity: {:?}, confidence: {}%)",
+                    alert.title, alert.severity, alert.confidence
+                );
+            }
+        } else {
+            debug!("Network security detection clean");
+        }
+
+        Ok(alerts)
+    }
+
+    /// Upload network snapshot to the server.
+    async fn upload_network_snapshot(
+        &self,
+        snapshot: &NetworkSnapshot,
+    ) -> Result<(), CommonError> {
+        let api_client = self.api_client.read().await;
+        let client = api_client
+            .as_ref()
+            .ok_or_else(|| CommonError::config("API client not initialized"))?;
+
+        let agent_id = client
+            .agent_id()
+            .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
+
+        let payload = serde_json::json!({
+            "timestamp": snapshot.timestamp.to_rfc3339(),
+            "interfaces": snapshot.interfaces,
+            "connections": snapshot.connections,
+            "routes": snapshot.routes,
+            "dns": snapshot.dns,
+            "primary_ip": snapshot.primary_ip,
+            "primary_mac": snapshot.primary_mac,
+            "hash": snapshot.hash,
+        });
+
+        let url = format!("/v1/agents/{}/network", agent_id);
+        let _response: serde_json::Value = client.post(&url, &payload).await?;
+
+        debug!("Uploaded network snapshot");
+        Ok(())
+    }
+
+    /// Upload network security alert to the server.
+    async fn upload_network_alert(
+        &self,
+        alert: &NetworkSecurityAlert,
+    ) -> Result<(), CommonError> {
+        let api_client = self.api_client.read().await;
+        let client = api_client
+            .as_ref()
+            .ok_or_else(|| CommonError::config("API client not initialized"))?;
+
+        let agent_id = client
+            .agent_id()
+            .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
+
+        let payload = serde_json::json!({
+            "alert_type": format!("{:?}", alert.alert_type),
+            "severity": format!("{:?}", alert.severity),
+            "title": alert.title,
+            "description": alert.description,
+            "connection": alert.connection,
+            "evidence": alert.evidence,
+            "confidence": alert.confidence,
+            "detected_at": alert.detected_at.to_rfc3339(),
+            "iocs_matched": alert.iocs_matched,
+        });
+
+        let url = format!("/v1/agents/{}/network/alerts", agent_id);
+        let _response: serde_json::Value = client.post(&url, &payload).await?;
+
+        info!(
+            "Reported network alert '{}' (severity: {:?})",
+            alert.title, alert.severity
+        );
+
+        Ok(())
+    }
+
     /// Run the agent main loop.
     pub async fn run(&self) -> Result<(), CommonError> {
         info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
@@ -402,6 +525,52 @@ impl AgentRuntime {
             warn!("Initial security scan failed: {}", e);
         }
         let mut last_security_scan = std::time::Instant::now();
+
+        // Initialize network collection with staggered start
+        let (network_static_interval, network_connection_interval, network_security_interval) = {
+            let mut network_manager = self.network_manager.write().await;
+            // Get initial intervals with jitter
+            let static_interval = network_manager.next_static_interval();
+            let conn_interval = network_manager.next_connection_interval();
+            let sec_interval = network_manager.next_security_interval();
+            info!(
+                "Network collection intervals: static={:.0}s, connections={:.0}s, security={:.0}s",
+                static_interval.as_secs_f64(),
+                conn_interval.as_secs_f64(),
+                sec_interval.as_secs_f64()
+            );
+            (static_interval, conn_interval, sec_interval)
+        };
+
+        // Initialize network timing with staggered delays
+        let mut last_network_static = std::time::Instant::now();
+        let mut last_network_connections = std::time::Instant::now();
+        let mut last_network_security = std::time::Instant::now();
+        let mut current_network_static_interval = network_static_interval;
+        let mut current_network_connection_interval = network_connection_interval;
+        let mut current_network_security_interval = network_security_interval;
+
+        // Run initial network collection
+        info!("Running initial network collection...");
+        match self.run_network_collection().await {
+            Ok(snapshot) => {
+                if let Err(e) = self.upload_network_snapshot(&snapshot).await {
+                    warn!("Failed to upload initial network snapshot: {}", e);
+                }
+                // Run initial network security detection
+                match self.run_network_security_detection(&snapshot).await {
+                    Ok(alerts) => {
+                        for alert in alerts {
+                            if let Err(e) = self.upload_network_alert(&alert).await {
+                                warn!("Failed to upload network alert: {}", e);
+                            }
+                        }
+                    }
+                    Err(e) => warn!("Initial network security detection failed: {}", e),
+                }
+            }
+            Err(e) => warn!("Initial network collection failed: {}", e),
+        }
 
         // Main agent loop
         while !self.is_shutdown_requested() {
@@ -461,6 +630,69 @@ impl AgentRuntime {
                     }
                 }
                 last_security_scan = std::time::Instant::now();
+            }
+
+            // Run network static info collection if interval has passed
+            if last_network_static.elapsed() >= current_network_static_interval {
+                is_active = true;
+                match self.run_network_collection().await {
+                    Ok(snapshot) => {
+                        if let Err(e) = self.upload_network_snapshot(&snapshot).await {
+                            warn!("Failed to upload network snapshot: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Network static collection failed: {}", e);
+                    }
+                }
+                last_network_static = std::time::Instant::now();
+                // Get next jittered interval
+                let mut network_manager = self.network_manager.write().await;
+                current_network_static_interval = network_manager.next_static_interval();
+            }
+
+            // Run network connection scan if interval has passed
+            if last_network_connections.elapsed() >= current_network_connection_interval {
+                is_active = true;
+                match self.run_network_collection().await {
+                    Ok(snapshot) => {
+                        // Only upload connections portion
+                        if let Err(e) = self.upload_network_snapshot(&snapshot).await {
+                            warn!("Failed to upload network connections: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Network connection collection failed: {}", e);
+                    }
+                }
+                last_network_connections = std::time::Instant::now();
+                let mut network_manager = self.network_manager.write().await;
+                current_network_connection_interval = network_manager.next_connection_interval();
+            }
+
+            // Run network security detection if interval has passed
+            if last_network_security.elapsed() >= current_network_security_interval {
+                is_active = true;
+                match self.run_network_collection().await {
+                    Ok(snapshot) => {
+                        match self.run_network_security_detection(&snapshot).await {
+                            Ok(alerts) => {
+                                for alert in alerts {
+                                    if let Err(e) = self.upload_network_alert(&alert).await {
+                                        warn!("Failed to upload network alert: {}", e);
+                                    }
+                                }
+                            }
+                            Err(e) => warn!("Network security detection failed: {}", e),
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Network collection for security scan failed: {}", e);
+                    }
+                }
+                last_network_security = std::time::Instant::now();
+                let mut network_manager = self.network_manager.write().await;
+                current_network_security_interval = network_manager.next_security_interval();
             }
 
             // Update resource limits check with active status
