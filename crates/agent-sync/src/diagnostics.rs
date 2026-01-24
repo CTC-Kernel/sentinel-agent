@@ -275,19 +275,15 @@ const DISCONNECTED_THRESHOLD_SECS: i64 = 300;
 /// Connection state enum per AC2.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum ConnectionState {
     /// Recent heartbeat, low failure rate.
     Connected,
     /// No heartbeat > 5 minutes.
+    #[default]
     Disconnected,
     /// High latency (p95 > 5000ms) or failure rate > 10%.
     Degraded,
-}
-
-impl Default for ConnectionState {
-    fn default() -> Self {
-        Self::Disconnected
-    }
 }
 
 /// Connection status details.
@@ -443,10 +439,10 @@ impl ConnectionTracker {
         }
 
         // Check degraded (high latency or failure rate)
-        if let Some(p95) = latency_p95 {
-            if p95 > DEGRADED_LATENCY_THRESHOLD_MS {
-                return ConnectionState::Degraded;
-            }
+        if let Some(p95) = latency_p95
+            && p95 > DEGRADED_LATENCY_THRESHOLD_MS
+        {
+            return ConnectionState::Degraded;
         }
 
         if failure_rate > DEGRADED_FAILURE_RATE_THRESHOLD {

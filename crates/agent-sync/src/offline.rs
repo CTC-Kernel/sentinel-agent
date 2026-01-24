@@ -52,7 +52,7 @@ impl SyncEntityType {
     }
 
     /// Parse from database string representation.
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_str(s: &str) -> Option<Self> {
         match s {
             "check_result" => Some(SyncEntityType::CheckResult),
             "proof" => Some(SyncEntityType::Proof),
@@ -479,10 +479,10 @@ mod tests {
         assert_eq!(SyncEntityType::Config.as_str(), "config");
 
         assert_eq!(
-            SyncEntityType::from_str("check_result"),
+            SyncEntityType::parse_str("check_result"),
             Some(SyncEntityType::CheckResult)
         );
-        assert_eq!(SyncEntityType::from_str("invalid"), None);
+        assert_eq!(SyncEntityType::parse_str("invalid"), None);
     }
 
     #[test]
@@ -512,7 +512,7 @@ mod tests {
 
         // Delay should be 2^5 = 32 seconds
         let delay = (next2 - Utc::now()).num_seconds();
-        assert!(delay >= 30 && delay <= 35);
+        assert!((30..=35).contains(&delay));
     }
 
     #[test]

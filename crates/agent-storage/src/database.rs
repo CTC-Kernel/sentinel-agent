@@ -60,17 +60,17 @@ impl Database {
     /// A new Database instance with an open encrypted connection.
     pub fn open(config: DatabaseConfig, key_manager: &KeyManager) -> StorageResult<Self> {
         // Ensure the data directory exists
-        if let Some(parent) = config.path.parent() {
-            if !parent.exists() {
-                std::fs::create_dir_all(parent).map_err(|e| {
-                    StorageError::Initialization(format!(
-                        "Failed to create data directory {}: {}",
-                        parent.display(),
-                        e
-                    ))
-                })?;
-                info!("Created data directory: {}", parent.display());
-            }
+        if let Some(parent) = config.path.parent()
+            && !parent.exists()
+        {
+            std::fs::create_dir_all(parent).map_err(|e| {
+                StorageError::Initialization(format!(
+                    "Failed to create data directory {}: {}",
+                    parent.display(),
+                    e
+                ))
+            })?;
+            info!("Created data directory: {}", parent.display());
         }
 
         // Get the encryption key

@@ -463,16 +463,14 @@ impl SessionLockCheck {
                 .push_str(&format!("=== pmset ===\n{}\n", result));
 
             for line in result.lines() {
-                if line.contains("displaysleep") {
-                    if let Some(mins) = line
+                if line.contains("displaysleep")
+                    && let Some(mins) = line
                         .split_whitespace()
                         .last()
                         .and_then(|s| s.parse::<u32>().ok())
-                    {
-                        if status.timeout_minutes.is_none() || mins > 0 {
-                            status.timeout_minutes = Some(mins);
-                        }
-                    }
+                    && (status.timeout_minutes.is_none() || mins > 0)
+                {
+                    status.timeout_minutes = Some(mins);
                 }
             }
         }

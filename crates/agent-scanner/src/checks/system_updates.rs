@@ -540,13 +540,13 @@ impl SystemUpdatesCheck {
         }
 
         // Check if updates haven't been checked recently
-        if let Some(days) = status.days_since_check {
-            if days > MAX_PENDING_DAYS {
-                issues.push(format!(
-                    "Updates not checked for {} days (max: {} days)",
-                    days, MAX_PENDING_DAYS
-                ));
-            }
+        if let Some(days) = status.days_since_check
+            && days > MAX_PENDING_DAYS
+        {
+            issues.push(format!(
+                "Updates not checked for {} days (max: {} days)",
+                days, MAX_PENDING_DAYS
+            ));
         }
 
         issues

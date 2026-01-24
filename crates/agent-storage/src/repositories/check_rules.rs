@@ -37,7 +37,7 @@ impl Severity {
     }
 
     /// Parse from database string representation.
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse_str(s: &str) -> Option<Self> {
         match s {
             "critical" => Some(Severity::Critical),
             "high" => Some(Severity::High),
@@ -292,7 +292,7 @@ impl<'a> CheckRulesRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let result = stmt
-                    .query_row([&id], |row| Self::row_to_check_rule(row))
+                    .query_row([&id], Self::row_to_check_rule)
                     .optional()
                     .map_err(|e| {
                         StorageError::Query(format!("Failed to query check rule: {}", e))
@@ -319,7 +319,7 @@ impl<'a> CheckRulesRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map([], |row| Self::row_to_check_rule(row))
+                    .query_map([], Self::row_to_check_rule)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -348,7 +348,7 @@ impl<'a> CheckRulesRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map([], |row| Self::row_to_check_rule(row))
+                    .query_map([], Self::row_to_check_rule)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -380,7 +380,7 @@ impl<'a> CheckRulesRepository<'a> {
 
                 let pattern = format!("%\"{}%", framework);
                 let results = stmt
-                    .query_map([&pattern], |row| Self::row_to_check_rule(row))
+                    .query_map([&pattern], Self::row_to_check_rule)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -410,7 +410,7 @@ impl<'a> CheckRulesRepository<'a> {
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
 
                 let results = stmt
-                    .query_map([&category], |row| Self::row_to_check_rule(row))
+                    .query_map([&category], Self::row_to_check_rule)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
@@ -598,7 +598,7 @@ impl<'a> CheckRulesRepository<'a> {
     /// Convert a database row to a CheckRule.
     fn row_to_check_rule(row: &rusqlite::Row<'_>) -> rusqlite::Result<CheckRule> {
         let severity_str: String = row.get(4)?;
-        let severity = Severity::from_str(&severity_str).unwrap_or(Severity::Medium);
+        let severity = Severity::parse_str(&severity_str).unwrap_or(Severity::Medium);
 
         let enabled_int: i32 = row.get(5)?;
 

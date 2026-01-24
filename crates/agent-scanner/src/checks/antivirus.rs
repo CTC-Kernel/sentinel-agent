@@ -590,7 +590,7 @@ mod tests {
         let old = Utc::now() - Duration::days(10);
 
         assert!(Utc::now() - recent < Duration::days(MAX_DEFINITION_AGE_DAYS));
-        assert!(!(Utc::now() - old < Duration::days(MAX_DEFINITION_AGE_DAYS)));
+        assert!((Utc::now() - old >= Duration::days(MAX_DEFINITION_AGE_DAYS)));
     }
 
     #[test]

@@ -285,18 +285,13 @@ pub enum AgentCommand {
 // ============================================================================
 
 /// Severity levels for vulnerabilities and incidents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Severity {
     Critical,
     High,
+    #[default]
     Medium,
     Low,
-}
-
-impl Default for Severity {
-    fn default() -> Self {
-        Self::Medium
-    }
 }
 
 /// Vulnerability finding to upload to the SaaS.
