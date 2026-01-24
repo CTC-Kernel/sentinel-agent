@@ -120,26 +120,24 @@ impl ConnectionCollector {
                     let fd_path = entry.path().join("fd");
                     if let Ok(fds) = fs::read_dir(&fd_path) {
                         for fd in fds.flatten() {
-                            if let Ok(link) = fs::read_link(fd.path()) {
-                                let link_str = link.to_string_lossy();
-                                if let Some(inode_str) = link_str
+                            if let Ok(link) = fs::read_link(fd.path())
+                                && let Some(inode_str) = link
+                                    .to_string_lossy()
                                     .strip_prefix("socket:[")
                                     .and_then(|s| s.strip_suffix(']'))
-                                {
-                                    if let Ok(inode) = inode_str.parse::<u64>() {
-                                        // Get process name
-                                        let comm = fs::read_to_string(entry.path().join("comm"))
-                                            .map(|s| s.trim().to_string())
-                                            .ok();
-                                        // Get process path
-                                        let exe = fs::read_link(entry.path().join("exe"))
-                                            .map(|p| p.to_string_lossy().to_string())
-                                            .ok();
+                                && let Ok(inode) = inode_str.parse::<u64>()
+                            {
+                                // Get process name
+                                let comm = fs::read_to_string(entry.path().join("comm"))
+                                    .map(|s| s.trim().to_string())
+                                    .ok();
+                                // Get process path
+                                let exe = fs::read_link(entry.path().join("exe"))
+                                    .map(|p| p.to_string_lossy().to_string())
+                                    .ok();
 
-                                        if let Some(name) = comm {
-                                            map.insert(inode, (pid, name, exe));
-                                        }
-                                    }
+                                if let Some(name) = comm {
+                                    map.insert(inode, (pid, name, exe));
                                 }
                             }
                         }
