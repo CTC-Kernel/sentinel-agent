@@ -227,19 +227,25 @@ fn create_icon(_status: AgentTrayStatus) -> Result<Icon, TrayError> {
 /// Open the logs folder in the system file browser.
 fn open_logs_folder() {
     #[cfg(target_os = "macos")]
-    let log_path = "/var/log/sentinel-grc";
+    let log_path = {
+        directories::BaseDirs::new()
+            .map(|dirs| dirs.data_dir().join("SentinelGRC").join("logs"))
+            .unwrap_or_else(|| std::path::PathBuf::from("/Library/Application Support/SentinelGRC/logs"))
+    };
 
     #[cfg(target_os = "windows")]
-    let log_path = r"C:\ProgramData\Sentinel\logs";
+    let log_path = std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs");
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    let log_path = "/var/log/sentinel-grc";
+    let log_path = std::path::PathBuf::from("/var/log/sentinel-grc");
 
-    if let Err(e) = open::that(log_path) {
+    if let Err(e) = open::that(&log_path) {
         warn!("Failed to open logs folder: {}", e);
         // Try opening parent directory if logs folder doesn't exist
         #[cfg(target_os = "macos")]
-        let _ = open::that("/var/log");
+        if let Some(parent) = log_path.parent() {
+            let _ = open::that(parent);
+        }
         #[cfg(target_os = "windows")]
         let _ = open::that(r"C:\ProgramData\Sentinel");
     }
@@ -248,7 +254,7 @@ fn open_logs_folder() {
 /// Open the web dashboard in the default browser.
 fn open_dashboard() {
     // Opens the dedicated agent settings page in Sentinel GRC
-    let dashboard_url = "https://sentinel-grc-a8701.web.app/settings?tab=agents";
+    let dashboard_url = "https://app.cyber-threat-consulting.com/settings?tab=agents";
     if let Err(e) = open::that(dashboard_url) {
         error!("Failed to open dashboard: {}", e);
     }
