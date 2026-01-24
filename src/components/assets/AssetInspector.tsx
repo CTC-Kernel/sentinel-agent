@@ -14,6 +14,7 @@ import { AssetInspectorProjects } from './inspector/AssetInspectorProjects';
 import { AssetInspectorAudits } from './inspector/AssetInspectorAudits';
 import { AssetInspectorDocuments } from './inspector/AssetInspectorDocuments';
 import { AssetInspectorHistory } from './inspector/AssetInspectorHistory';
+import { AgentDownloadModal } from './AgentDownloadModal';
 import { useAssetDetails } from '../../hooks/assets/useAssetDetails';
 import { useAssetSecurity } from '../../hooks/assets/useAssetSecurity';
 import { useStore } from '../../store';
@@ -88,6 +89,10 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         ];
     }, [selectedAsset]);
 
+    // Agent Download Modal State
+    const [showAgentModal, setShowAgentModal] = React.useState(false);
+    const [createdAssetName, setCreatedAssetName] = React.useState<string>('');
+
     // Use standardized Inspector hook
     const {
         activeTab,
@@ -104,14 +109,38 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                 return result;
             },
             onCreate: async (data) => {
-                const result = await onCreate(data as AssetFormData);
-                if (result === true) onClose();
+                const formData = data as AssetFormData;
+                const result = await onCreate(formData);
+
+                if (result === true || typeof result === 'string') {
+                    // Check if IT Asset to propose agent
+                    if (formData.type === 'Matériel') {
+                        setCreatedAssetName(formData.name);
+                        setShowAgentModal(true);
+                        // Do NOT close inspector immediately to allow modal to show
+                        // Inspector will be closed when user dismisses modal or downloads
+                    } else {
+                        onClose();
+                    }
+                }
                 return result;
             },
             onDelete: async (id, name) => onDelete(id, name)
         },
         getEntityName: (asset) => asset.name
     });
+
+    const handleDownloadAgent = () => {
+        // Mock download logic - eventually point to real binary
+        window.open('https://github.com/sentinel-cornery/sentinel-agent/releases/latest', '_blank');
+        setShowAgentModal(false);
+        onClose();
+    };
+
+    const handleCloseAgentModal = () => {
+        setShowAgentModal(false);
+        onClose();
+    };
 
     const {
         maintenanceRecords,
@@ -193,6 +222,13 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             activeTab={activeTab}
             onTabChange={setActiveTab}
         >
+
+            <AgentDownloadModal
+                isOpen={showAgentModal}
+                onClose={handleCloseAgentModal}
+                onDownload={handleDownloadAgent}
+                assetName={createdAssetName}
+            />
 
             <div className="space-y-8 max-w-7xl mx-auto">
                 {activeTab === 'details' && (
