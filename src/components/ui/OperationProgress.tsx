@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Loader2, CheckCircle2, AlertCircle, Clock } from './Icons';
 import { Button } from './button';
 import { cn } from '../../lib/utils';
@@ -88,21 +88,33 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
     const [eta, setEta] = useState<string | null>(null);
 
     // Calculate ETA based on elapsed time and progress
+    // Uses interval to update periodically without synchronous setState issues
     useEffect(() => {
+        // Early return without setState for invalid conditions
         if (!startTime || progress <= 0 || progress >= 100 || isComplete || isError) {
-            setEta(null);
+            // Only update if eta is not already null to avoid cascading renders
+            setEta((prev) => prev === null ? prev : null);
             return;
         }
 
-        const elapsed = (Date.now() - startTime.getTime()) / 1000;
-        const estimatedTotal = elapsed / (progress / 100);
-        const remaining = estimatedTotal - elapsed;
+        const calculateEta = () => {
+            const elapsed = (Date.now() - startTime.getTime()) / 1000;
+            const estimatedTotal = elapsed / (progress / 100);
+            const remaining = estimatedTotal - elapsed;
 
-        if (remaining > 0 && remaining < 86400) { // Max 24h
-            setEta(formatETA(remaining));
-        } else {
-            setEta(null);
-        }
+            if (remaining > 0 && remaining < 86400) { // Max 24h
+                setEta(formatETA(remaining));
+            } else {
+                setEta((prev) => prev === null ? prev : null);
+            }
+        };
+
+        // Calculate immediately
+        calculateEta();
+
+        // Update every second for real-time ETA
+        const interval = setInterval(calculateEta, 1000);
+        return () => clearInterval(interval);
     }, [progress, startTime, isComplete, isError]);
 
     const progressColor = useMemo(() => {

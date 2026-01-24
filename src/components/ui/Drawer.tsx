@@ -67,6 +67,7 @@ export const Drawer: React.FC<DrawerProps> = ({
     }, []);
 
     return createPortal(
+        <>
         <Transition.Root show={isOpen} as={React.Fragment}>
             <Dialog as="div" className="relative z-[100]" onClose={handleClose}>
                 <Transition.Child
@@ -193,7 +194,8 @@ export const Drawer: React.FC<DrawerProps> = ({
                     </div>
                 </div>
             </Dialog>
-        </Transition.Root>,
+        </Transition.Root>
+        </>,
         document.body
     );
 };
