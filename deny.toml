@@ -36,6 +36,8 @@ ignore = [
     "RUSTSEC-2024-0370", # proc-macro-error
     # instant is unmaintained, used by transitive deps
     "RUSTSEC-2024-0384", # instant
+    # glib unsound issue - we don't use VariantStrIter
+    "RUSTSEC-2024-0429", # glib
 ]
 
 # ============================================================================
