@@ -178,7 +178,7 @@ describe('Pricing', () => {
     it('should render Commencer buttons', () => {
         renderComponent();
 
-        const startButtons = screen.getAllByText('Commencer');
+        const startButtons = screen.getAllByText('Commencer maintenant');
         expect(startButtons).toHaveLength(3);
     });
 
@@ -187,7 +187,7 @@ describe('Pricing', () => {
 
         renderComponent();
 
-        const startButtons = screen.getAllByText('Commencer');
+        const startButtons = screen.getAllByText('Commencer maintenant');
         fireEvent.click(startButtons[0]);
 
         await waitFor(() => {
@@ -210,7 +210,7 @@ describe('Pricing', () => {
     it('should render recommended badge on Professional plan', () => {
         renderComponent();
 
-        expect(screen.getByText('Recommandé')).toBeInTheDocument();
+        expect(screen.getByText('RECOMMANDÉ')).toBeInTheDocument();
     });
 
     it('should open contact modal when clicking contact link', () => {

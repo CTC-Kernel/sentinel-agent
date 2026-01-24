@@ -11,7 +11,8 @@ import { ContactModal } from '../components/ui/ContactModal';
 import { LegalModal } from '../components/ui/LegalModal';
 import { PLANS } from '../config/plans';
 import { cn } from '../lib/utils';
-
+import { PremiumCard } from '../components/ui/PremiumCard';
+import { TechCorner } from '../components/ui/TechCorner';
 import { useStore } from '../store';
 import { SubscriptionService } from '../services/subscriptionService';
 import { PlanType } from '../types';
@@ -31,15 +32,7 @@ const PLAN_GRADIENTS: Record<string, { from: string; to: string; glow: string }>
   enterprise: { from: 'from-purple-500', to: 'to-fuchsia-600', glow: 'shadow-purple-500/30' }
 };
 
-// Tech corner decoration
-const TechCorners: React.FC<{ className?: string; color?: string }> = ({ className, color = 'brand-500/30' }) => (
-  <div className={cn("pointer-events-none", className)}>
-    <div className={`absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-${color} rounded-tl-lg`} />
-    <div className={`absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-${color} rounded-tr-lg`} />
-    <div className={`absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-${color} rounded-bl-lg`} />
-    <div className={`absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-${color} rounded-br-lg`} />
-  </div>
-);
+
 
 const Pricing = () => {
   const { t } = useTranslation();
@@ -232,7 +225,7 @@ const Pricing = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-24 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 mb-24 max-w-7xl mx-auto">
           {Object.entries(PLANS).map(([key, plan], index) => {
             const isPopular = plan.highlight;
             const price = isAnnual ? Math.round(plan.priceYearly / 12) : plan.priceMonthly;
@@ -245,147 +238,97 @@ const Pricing = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.3 }}
-                className={cn(
-                  "relative group rounded-4xl transition-all duration-500 overflow-hidden",
-                  isPopular
-                    ? 'md:scale-105 z-10'
-                    : 'hover:scale-[1.02]'
-                )}
               >
-                {/* Card Background */}
-                <div className={cn(
-                  "absolute inset-0",
-                  isPopular
-                    ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
-                    : 'glass-premium'
-                )} />
-
-                {/* Glow effect for popular */}
-                {isPopular && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-brand-500/20 via-transparent to-violet-500/20 pointer-events-none" />
-                )}
-
-                {/* Border */}
-                <div className={cn(
-                  "absolute inset-0 rounded-4xl border-2",
-                  isPopular
-                    ? 'border-brand-500/50'
-                    : 'border-white/60 dark:border-white/10'
-                )} />
-
-                {/* Popular badge */}
-                {isPopular && (
-                  <div className="absolute -top-px left-1/2 -translate-x-1/2">
-                    <div className="px-4 py-1.5 bg-gradient-to-r from-brand-500 to-violet-600 text-white text-xs font-black uppercase tracking-wider rounded-b-xl shadow-lg shadow-brand-500/30">
-                      <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-3 h-3" />
-                        Recommandé
+                <PremiumCard
+                  glass={!isPopular}
+                  gradient={isPopular}
+                  glow={isPopular}
+                  hover={true}
+                  className={cn(
+                    "h-full flex flex-col pt-10 px-8 pb-8",
+                    isPopular ? 'scale-105 z-10 border-brand-500/30' : 'border-white/60 dark:border-white/10'
+                  )}
+                >
+                  {isPopular && (
+                    <div className="absolute top-0 right-0">
+                      <div className="bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl shadow-lg">
+                        RECOMMANDÉ
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Card Content */}
-                <div className="relative p-8 pt-10">
-                  {/* Plan Icon & Name */}
-                  <div className="flex items-center gap-3 mb-6">
+                  {/* Icon & Title */}
+                  <div className="flex items-center gap-4 mb-6">
                     <div className={cn(
-                      "p-3 rounded-2xl shadow-lg",
-                      `bg-gradient-to-br ${gradient.from} ${gradient.to} ${gradient.glow}`
+                      "p-3 rounded-2xl shadow-inner",
+                      `bg-gradient-to-br ${gradient.from} ${gradient.to}`
                     )}>
                       <PlanIcon className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <h3 className={cn(
-                        "text-xl font-black",
-                        isPopular ? 'text-white' : 'text-slate-900 dark:text-white'
+                        "text-xl font-bold",
+                        isPopular ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white'
                       )}>
                         {plan.name}
                       </h3>
+                      <p className={cn("text-xs font-medium uppercase tracking-wider opacity-70")}>
+                        {isAnnual ? 'Facturation annuelle' : 'Facturation mensuelle'}
+                      </p>
                     </div>
                   </div>
 
                   {/* Price */}
                   <div className="mb-6">
                     <div className="flex items-baseline gap-1">
-                      <span className={cn(
-                        "text-5xl font-black tracking-tight",
-                        isPopular ? 'text-white' : 'text-slate-900 dark:text-white'
-                      )}>
-                        {price === 0 ? '0' : price}€
+                      <span className="text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+                        {price === 0 ? 'Gratuit' : `${price}€`}
                       </span>
-                      <span className={cn(
-                        "text-sm font-bold",
-                        isPopular ? 'text-slate-400' : 'text-slate-500'
-                      )}>
-                        /mois
-                      </span>
+                      {price > 0 && <span className="text-sm font-bold text-slate-500">/mois</span>}
                     </div>
-                    {isAnnual && price > 0 && (
-                      <p className={cn(
-                        "text-xs font-medium mt-1",
-                        isPopular ? 'text-slate-400' : 'text-slate-500'
-                      )}>
-                        Facturé {plan.priceYearly}€/an
-                      </p>
-                    )}
                   </div>
 
                   {/* Description */}
-                  <p className={cn(
-                    "text-sm leading-relaxed mb-8",
-                    isPopular ? 'text-slate-300' : 'text-slate-600 dark:text-slate-400'
-                  )}>
-                    {key === 'DISCOVERY' ? 'Pour découvrir la plateforme et gérer vos premiers risques.' :
-                      key === 'professional' ? 'Pour les équipes structurées qui visent la conformité ISO.' :
-                        'Pour les grandes organisations avec des besoins complexes de gouvernance.'}
+                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 mb-8 min-h-[40px]">
+                    {key === 'DISCOVERY' ? 'Idéal pour découvrir la plateforme et gérer vos premiers risques.' :
+                      key === 'professional' ? 'Pour les équipes structurées visant la conformité ISO 27001.' :
+                        'Pour les grandes organisations aux besoins complexes.'}
                   </p>
 
-                  {/* CTA Button */}
-                  <Button
-                    onClick={() => handleSelectPlan(plan.id)}
-                    isLoading={isLoading === plan.id}
-                    disabled={!!isLoading}
-                    className={cn(
-                      "w-full h-12 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 group/btn",
-                      isPopular
-                        ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-lg shadow-white/20'
-                        : 'bg-gradient-to-r from-slate-900 to-slate-800 dark:from-white dark:to-slate-100 text-white dark:text-slate-900 hover:shadow-lg'
-                    )}
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      {isLoading === plan.id ? 'Chargement...' : (
-                        <>
-                          Commencer
-                          <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all" />
-                        </>
-                      )}
-                    </span>
-                  </Button>
-
-                  {/* Features List */}
-                  <div className="mt-8 space-y-3">
+                  {/* Features */}
+                  <div className="space-y-4 mb-8 flex-grow">
                     {(plan.featuresList || []).slice(0, 6).map((feature, i) => (
                       <div key={i} className="flex items-start gap-3">
-                        <div className={cn(
-                          "mt-0.5 p-1 rounded-lg",
-                          isPopular ? 'bg-white/10' : 'bg-success-500/10'
-                        )}>
-                          <Check className={cn(
-                            "w-3 h-3",
-                            isPopular ? 'text-white' : 'text-success-500'
-                          )} />
+                        <div className="mt-0.5 p-1 rounded-full bg-success-500/10 dark:bg-success-500/20">
+                          <Check className="w-3 h-3 text-success-600 dark:text-success-400" />
                         </div>
-                        <span className={cn(
-                          "text-sm font-medium",
-                          isPopular ? 'text-slate-300' : 'text-slate-600 dark:text-slate-400'
-                        )}>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                           {feature}
                         </span>
                       </div>
                     ))}
                   </div>
-                </div>
+
+                  {/* CTA */}
+                  <Button
+                    onClick={() => handleSelectPlan(plan.id)}
+                    isLoading={isLoading === plan.id}
+                    disabled={!!isLoading}
+                    className={cn(
+                      "w-full rounded-xl font-bold py-6 transition-all duration-300 group",
+                      isPopular
+                        ? 'bg-gradient-to-r from-brand-600 to-violet-600 text-white shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:scale-[1.02]'
+                        : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100'
+                    )}
+                  >
+                    {isLoading === plan.id ? 'Chargement...' : (
+                      <span className="flex items-center gap-2">
+                        Commencer maintenant
+                        <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                      </span>
+                    )}
+                  </Button>
+                </PremiumCard>
               </motion.div>
             );
           })}
@@ -404,7 +347,8 @@ const Pricing = () => {
           </div>
 
           <div className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl relative">
-            <TechCorners />
+            <TechCorner position="top-left" className="dark:text-white/40" />
+            <TechCorner position="bottom-right" className="dark:text-white/40" />
 
             {/* Table Header - Sticky */}
             <div className="grid grid-cols-4 p-6 border-b border-slate-200/50 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
@@ -435,12 +379,12 @@ const Pricing = () => {
                 <div key={category.id}>
                   <button
                     onClick={() => toggleCategory(category.id)}
-                    className="w-full flex items-center justify-between p-6 bg-slate-50/50 dark:bg-slate-800/30 font-bold text-left hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
+                    className="w-full flex items-center justify-between p-6 bg-slate-50/80 dark:bg-slate-900/40 font-bold text-left hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
                   >
-                    <span className="text-lg font-black text-slate-800 dark:text-slate-200">{category.title}</span>
+                    <span className="text-lg font-black text-slate-900 dark:text-white">{category.title}</span>
                     <ChevronDown className={cn(
-                      "w-5 h-5 text-slate-400 transition-transform duration-300",
-                      expandedCategories.includes(category.id) && 'rotate-180 text-brand-500'
+                      "w-5 h-5 text-slate-400 dark:text-slate-500 transition-transform duration-300",
+                      expandedCategories.includes(category.id) && 'rotate-180 text-brand-500 dark:text-brand-400'
                     )} />
                   </button>
 
@@ -460,15 +404,15 @@ const Pricing = () => {
                             >
                               <div className="col-span-1 flex items-center gap-3 pl-4">
                                 {feature.icon && (
-                                  <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800">
-                                    <feature.icon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                  <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/80">
+                                    <feature.icon className="w-4 h-4 text-slate-500 dark:text-slate-300" />
                                   </div>
                                 )}
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
                                   {feature.name}
                                   {feature.tooltip && (
                                     <Tooltip content={feature.tooltip}>
-                                      <Info className="w-3.5 h-3.5 text-slate-400 ml-2 inline cursor-help" />
+                                      <Info className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 ml-2 inline cursor-help" />
                                     </Tooltip>
                                   )}
                                 </span>
@@ -493,53 +437,55 @@ const Pricing = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 overflow-hidden mb-24 max-w-4xl mx-auto relative"
+          className="max-w-4xl mx-auto mb-24 relative"
         >
-          <TechCorners />
+          <div className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 overflow-hidden">
+            <TechCorner position="top-right" className="dark:text-white/40" />
 
-          <div className="px-8 lg:px-10 pt-8 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100/50 dark:border-white/5 flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{t('pricing.faq', 'FAQ')}</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc', 'Questions fréquentes')}</p>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-brand-500/10 to-violet-500/10 rounded-2xl border border-brand-500/20">
-              <HelpCircle className="w-6 h-6 text-brand-500" />
-            </div>
-          </div>
-
-          <div className="divide-y divide-slate-100/50 dark:divide-white/5">
-            {faqs.map((faq, i) => (
-              <div key={i} className="group">
-                <button
-                  onClick={() => setExpandedCategories(prev => prev.includes(`faq-${i}`) ? prev.filter(c => c !== `faq-${i}`) : [...prev, `faq-${i}`])}
-                  className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
-                >
-                  <span className="font-bold text-slate-800 dark:text-slate-200 text-base pr-4">{faq.q}</span>
-                  <ChevronDown
-                    className={cn(
-                      "w-5 h-5 text-slate-400 flex-shrink-0 transition-transform duration-300",
-                      expandedCategories.includes(`faq-${i}`) && 'rotate-180 text-brand-500'
-                    )}
-                  />
-                </button>
-                <AnimatePresence>
-                  {expandedCategories.includes(`faq-${i}`) && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 lg:px-8 pb-6 lg:pb-8 pt-0">
-                        <p className="text-base text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
-                          {faq.a}
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+            <div className="px-8 lg:px-10 pt-8 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100/50 dark:border-white/5 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{t('pricing.faq', 'FAQ')}</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc', 'Questions fréquentes')}</p>
               </div>
-            ))}
+              <div className="p-3 bg-gradient-to-br from-brand-500/10 to-violet-500/10 rounded-2xl border border-brand-500/20">
+                <HelpCircle className="w-6 h-6 text-brand-500" />
+              </div>
+            </div>
+
+            <div className="divide-y divide-slate-100/50 dark:divide-white/5">
+              {faqs.map((faq, i) => (
+                <div key={i} className="group">
+                  <button
+                    onClick={() => setExpandedCategories(prev => prev.includes(`faq-${i}`) ? prev.filter(c => c !== `faq-${i}`) : [...prev, `faq-${i}`])}
+                    className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <span className="font-bold text-slate-800 dark:text-slate-100 text-base pr-4">{faq.q}</span>
+                    <ChevronDown
+                      className={cn(
+                        "w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-transform duration-300",
+                        expandedCategories.includes(`faq-${i}`) && 'rotate-180 text-brand-500 dark:text-brand-400'
+                      )}
+                    />
+                  </button>
+                  <AnimatePresence>
+                    {expandedCategories.includes(`faq-${i}`) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-6 lg:px-8 pb-6 lg:pb-8 pt-0">
+                          <p className="text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                            {faq.a}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
 
@@ -548,27 +494,30 @@ const Pricing = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 p-8 lg:p-12 max-w-4xl mx-auto mb-16 text-center relative overflow-hidden"
+          className="max-w-4xl mx-auto mb-16 relative"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 via-transparent to-violet-500/5 pointer-events-none" />
-          <TechCorners />
+          <div className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 p-8 lg:p-12 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 via-transparent to-violet-500/5 pointer-events-none" />
+            <TechCorner position="bottom-left" className="dark:text-white/40" />
+            <TechCorner position="top-right" className="dark:text-white/40" />
 
-          <div className="relative z-10">
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
-              Besoin d'une solution sur mesure ?
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 font-medium mb-8 max-w-lg mx-auto">
-              Notre équipe peut vous accompagner dans la définition de vos besoins et vous proposer une offre adaptée.
-            </p>
-            <Button
-              onClick={() => setIsContactOpen(true)}
-              className="px-8 py-3 h-auto bg-gradient-to-r from-brand-500 to-violet-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 transition-all duration-300"
-            >
-              <span className="flex items-center gap-2">
-                <Headset className="w-5 h-5" />
-                Contactez-nous
-              </span>
-            </Button>
+            <div className="relative z-10">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
+                Besoin d'une solution sur mesure ?
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400 font-medium mb-8 max-w-lg mx-auto">
+                Notre équipe peut vous accompagner dans la définition de vos besoins et vous proposer une offre adaptée.
+              </p>
+              <Button
+                onClick={() => setIsContactOpen(true)}
+                className="px-8 py-3 h-auto bg-gradient-to-r from-brand-500 to-violet-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 transition-all duration-300"
+              >
+                <span className="flex items-center gap-2">
+                  <Headset className="w-5 h-5" />
+                  Contactez-nous
+                </span>
+              </Button>
+            </div>
           </div>
         </motion.div>
 

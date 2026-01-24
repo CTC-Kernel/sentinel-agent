@@ -20,7 +20,7 @@ const bucket = getStorage().bucket();
 // Release metadata configuration
 const RELEASE_CONFIG = {
     agent: {
-        currentVersion: '1.0.0',
+        currentVersion: '0.1.0',
         releaseDate: '2026-01-24',
         changelogUrl: 'https://github.com/sentinel/agent/releases',
         platforms: {
