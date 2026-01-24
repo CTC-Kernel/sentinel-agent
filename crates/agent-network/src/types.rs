@@ -160,7 +160,7 @@ pub struct RouteEntry {
 // ============================================================================
 
 /// DNS configuration.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DnsConfiguration {
     /// DNS server addresses.
@@ -171,16 +171,6 @@ pub struct DnsConfiguration {
 
     /// DNS suffix.
     pub suffix: Option<String>,
-}
-
-impl Default for DnsConfiguration {
-    fn default() -> Self {
-        Self {
-            servers: Vec::new(),
-            search_domains: Vec::new(),
-            suffix: None,
-        }
-    }
 }
 
 // ============================================================================

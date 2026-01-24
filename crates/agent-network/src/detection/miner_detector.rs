@@ -42,28 +42,28 @@ impl MinerDetector {
             }
 
             // Check process name for known miners
-            if let Some(ref process_name) = conn.process_name {
-                if self.is_miner_process(process_name) {
-                    alerts.push(self.create_miner_process_alert(conn, process_name));
-                    continue; // Don't duplicate alerts for same connection
-                }
+            if let Some(ref process_name) = conn.process_name
+                && self.is_miner_process(process_name)
+            {
+                alerts.push(self.create_miner_process_alert(conn, process_name));
+                continue; // Don't duplicate alerts for same connection
             }
 
             // Check for connections to stratum ports
-            if let Some(remote_port) = conn.remote_port {
-                if self.is_stratum_port(remote_port) {
-                    // Additional check: is it connecting to a known pool?
-                    let is_known_pool = conn
-                        .remote_address
-                        .as_ref()
-                        .is_some_and(|addr| self.is_mining_pool(addr));
+            if let Some(remote_port) = conn.remote_port
+                && self.is_stratum_port(remote_port)
+            {
+                // Additional check: is it connecting to a known pool?
+                let is_known_pool = conn
+                    .remote_address
+                    .as_ref()
+                    .is_some_and(|addr| self.is_mining_pool(addr));
 
-                    if is_known_pool {
-                        alerts.push(self.create_mining_pool_alert(conn, remote_port));
-                    } else if remote_port == 3333 || remote_port == 4444 || remote_port == 5555 {
-                        // Common stratum ports - flag as suspicious
-                        alerts.push(self.create_suspicious_stratum_alert(conn, remote_port));
-                    }
+                if is_known_pool {
+                    alerts.push(self.create_mining_pool_alert(conn, remote_port));
+                } else if remote_port == 3333 || remote_port == 4444 || remote_port == 5555 {
+                    // Common stratum ports - flag as suspicious
+                    alerts.push(self.create_suspicious_stratum_alert(conn, remote_port));
                 }
             }
         }
@@ -77,7 +77,7 @@ impl MinerDetector {
     }
 
     fn is_stratum_port(&self, port: u16) -> bool {
-        port >= STRATUM_PORT_MIN && port <= STRATUM_PORT_MAX
+        (STRATUM_PORT_MIN..=STRATUM_PORT_MAX).contains(&port)
     }
 
     fn is_mining_pool(&self, addr: &str) -> bool {

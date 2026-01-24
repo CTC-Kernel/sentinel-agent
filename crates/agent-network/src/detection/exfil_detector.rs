@@ -89,21 +89,14 @@ impl ExfilDetector {
             }
 
             // DNS over non-standard ports (potential DNS tunneling)
-            if let Some(remote_port) = conn.remote_port {
-                if remote_port == 53 && !matches!(conn.protocol, ConnectionProtocol::Udp) {
-                    // TCP DNS could be legitimate but also used for tunneling
-                    if let Some(ref remote_addr) = conn.remote_address {
-                        if !self.is_known_dns_server(remote_addr) {
-                            alerts.push(self.create_dns_tunnel_alert(conn));
-                        }
-                    }
-                }
-
-                // ICMP/unusual protocol usage would require raw socket monitoring
-                // This is a simplified check
-
-                // Large number of connections on ephemeral ports to same host
-                // could indicate chunked data transfer
+            if let Some(remote_port) = conn.remote_port
+                && remote_port == 53
+                && !matches!(conn.protocol, ConnectionProtocol::Udp)
+                && let Some(ref remote_addr) = conn.remote_address
+                && !self.is_known_dns_server(remote_addr)
+            {
+                // TCP DNS could be legitimate but also used for tunneling
+                alerts.push(self.create_dns_tunnel_alert(conn));
             }
         }
 
