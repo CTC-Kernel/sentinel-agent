@@ -324,7 +324,7 @@ impl<'a> CheckResultsRepository<'a> {
                     params.iter().map(|p| p.as_ref()).collect();
 
                 let results = stmt
-                    .query_map(param_refs.as_slice(), |row| Self::row_to_check_result(row))
+                    .query_map(param_refs.as_slice(), Self::row_to_check_result)
                     .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| {
