@@ -212,7 +212,8 @@ describe('RSSIActionsWidget', () => {
     render(<RSSIActionsWidget organizationId="org-123" />);
 
     const count = screen.getByText('3');
-    expect(count).toHaveClass('text-red-600');
+    // Uses text-destructive CSS variable for overdue state
+    expect(count).toHaveClass('text-destructive');
   });
 
   it('should show count in blue when no overdue actions', () => {
@@ -230,7 +231,8 @@ describe('RSSIActionsWidget', () => {
     render(<RSSIActionsWidget organizationId="org-123" />);
 
     const count = screen.getByText('1');
-    expect(count).toHaveClass('text-blue-600');
+    // Uses text-primary CSS variable for normal state
+    expect(count).toHaveClass('text-primary');
   });
 
   it('should pass userId to hook', () => {

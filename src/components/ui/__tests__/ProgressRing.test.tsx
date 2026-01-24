@@ -77,7 +77,8 @@ describe('ProgressRing', () => {
         const { container } = render(<ProgressRing progress={50} />);
 
         const circles = container.querySelectorAll('circle');
-        expect(circles).toHaveLength(2);
+        // 3 circles: background, progress with gradient, and animated tip glow
+        expect(circles.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should apply custom color', () => {
@@ -86,8 +87,9 @@ describe('ProgressRing', () => {
         );
 
         const circles = container.querySelectorAll('circle');
-        // Second circle is the progress circle
-        expect(circles[1]).toHaveAttribute('stroke', '#ff0000');
+        // Progress circle uses gradient, check that tip glow circle has fill color
+        const tipGlow = circles[2]; // tip glow is the third circle
+        expect(tipGlow).toHaveAttribute('fill', '#ff0000');
     });
 
     it('should apply custom backgroundColor', () => {

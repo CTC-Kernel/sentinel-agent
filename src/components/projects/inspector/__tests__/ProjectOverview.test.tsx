@@ -142,8 +142,8 @@ describe('ProjectOverview', () => {
         it('has rounded stat cards', () => {
             const { container } = render(<ProjectOverview project={mockProject} />);
 
-            // Check for the custom large rounded border radius
-            expect(container.querySelector('[class*="rounded-\\[2rem\\]"]')).toBeInTheDocument();
+            // Uses rounded-4xl custom Tailwind class for stat cards
+            expect(container.querySelector('.rounded-4xl')).toBeInTheDocument();
         });
 
         it('has gradient backgrounds for stat cards', () => {

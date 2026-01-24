@@ -151,7 +151,8 @@ describe('ProcessGeneralDetails', () => {
         it('has metric cards with rounded styling', () => {
             const { container } = render(<ProcessGeneralDetails process={mockProcess} />);
 
-            expect(container.querySelector('[class*="rounded-\\[2rem\\]"]')).toBeInTheDocument();
+            // Uses rounded-4xl custom Tailwind class for metric cards
+            expect(container.querySelector('.rounded-4xl')).toBeInTheDocument();
         });
     });
 });
