@@ -215,9 +215,9 @@ impl KeyManager {
 
             if data_out.cbData as usize != KEY_LENGTH {
                 // Free the allocated memory
-                windows::Win32::Foundation::LocalFree(Some(
-                    windows::Win32::Foundation::HLOCAL(data_out.pbData as *mut _),
-                ));
+                windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+                    data_out.pbData as *mut _,
+                )));
                 return Err(StorageError::KeyManagement(format!(
                     "Invalid decrypted key size: expected {} bytes, got {}",
                     KEY_LENGTH, data_out.cbData
