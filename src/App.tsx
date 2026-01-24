@@ -175,7 +175,7 @@ const AppLayout: React.FC = () => {
             )}
 
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden relative z-decorator">
-                <TopBar setMobileOpen={setMobileOpen} />
+                <TopBar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
                 <SmoothScroll
                     id="main-content"

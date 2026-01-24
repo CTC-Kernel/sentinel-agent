@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon, RefreshCcw,
+  Scale, Shield, Printer, LucideIcon, RefreshCcw, X,
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -177,7 +177,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         data-tour="sidebar"
       >
         {/* Brand Logo */}
-        <div className="h-16 flex items-center px-6 mb-4 border-b border-slate-200/60 dark:border-white/5">
+        <div className="h-16 flex items-center justify-between px-6 mb-4 border-b border-slate-200/60 dark:border-white/5">
           <div className="flex items-center gap-3 group cursor-pointer select-none">
             <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black shadow-xl shadow-slate-900/30 ring-1 ring-black/5 dark:ring-white/10">
               <Lock className="h-5 w-5" strokeWidth={2.5} />
@@ -187,6 +187,14 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
               <span className="text-[10px] font-bold text-slate-500 dark:text-slate-500 tracking-[0.4em] mt-1 uppercase">GRC</span>
             </div>
           </div>
+          {/* Mobile Close Button */}
+          <button
+            aria-label="Fermer le menu"
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden p-2 -mr-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Navigation */}

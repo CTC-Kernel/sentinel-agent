@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
-import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare, Globe } from '../ui/Icons';
+import { Menu, X, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare, Globe } from '../ui/Icons';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { Breadcrumbs } from '../ui/Breadcrumbs';
 
@@ -16,10 +16,11 @@ import { PlanIndicator } from '../ui/PlanIndicator';
 import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
 
 interface TopBarProps {
+    mobileOpen: boolean;
     setMobileOpen: (open: boolean) => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
+export const TopBar: React.FC<TopBarProps> = ({ mobileOpen, setMobileOpen }) => {
     const { theme, toggleTheme, user, t, language, setLanguage } = useStore();
     const { updateUser } = useTeamData();
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -84,11 +85,14 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                 {/* Left: Mobile Menu & Search Trigger */}
                 <div className="flex items-center flex-1 gap-4">
                     <button
-                        aria-label="Ouvrir le menu mobile"
-                        onClick={() => setMobileOpen(true)}
-                        className="p-2.5 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                        aria-label={mobileOpen ? "Fermer le menu mobile" : "Ouvrir le menu mobile"}
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        className="p-2.5 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
                     >
-                        <Menu className="h-5 w-5" />
+                        <div className="relative h-5 w-5">
+                            <Menu className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'}`} />
+                            <X className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${mobileOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'}`} />
+                        </div>
                     </button>
 
                     {/* Breadcrumbs (Desktop) */}
