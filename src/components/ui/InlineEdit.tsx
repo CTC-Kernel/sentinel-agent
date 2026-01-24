@@ -8,7 +8,6 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Pencil, Loader2 } from './Icons';
 import { cn } from '../../lib/utils';
-import { appleEasing } from '../../utils/microInteractions';
 
 interface InlineEditProps {
     /** Current value */
@@ -320,7 +319,7 @@ export const InlineEditNumber: React.FC<InlineEditNumberProps> = ({
     onSave,
     min,
     max,
-    step,
+    step: _step,
     ...props
 }) => {
     const validate = useCallback((val: string): string | null => {

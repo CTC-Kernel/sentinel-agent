@@ -202,12 +202,12 @@ export const GeminiAssistant: React.FC = () => {
                 </div>
 
                 {/* High-Tech Status Label */}
-                <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-slate-950/90 backdrop-blur border border-brand-500/30 text-brand-100 text-[10px] font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
+                <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-slate-900 backdrop-blur border border-white/20 text-white text-[10px] font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                     </span>
-                    <span>AI Systems Online</span>
+                    <span>AI System Online</span>
                 </div>
             </button>
         );

@@ -175,12 +175,12 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
             }
         });
 
-        // Calculate cumulative
-        let cumulative = 0;
-        return months.map(m => {
-            cumulative += m.count;
-            return { name: m.name, count: m.count, value: m.value, cumulative };
-        });
+        // Calculate cumulative using reduce to avoid reassignment
+        return months.reduce<Array<{ name: string; count: number; value: number; cumulative: number }>>((acc, m) => {
+            const prevCumulative = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
+            acc.push({ name: m.name, count: m.count, value: m.value, cumulative: prevCumulative + m.count });
+            return acc;
+        }, []);
     }, [assets]);
 
     // Health gauge data

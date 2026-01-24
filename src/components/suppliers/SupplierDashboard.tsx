@@ -6,10 +6,10 @@ import { Supplier, Criticality } from '../../types';
 import { Building, ShieldAlert, FileText, CheckCircle2, TrendingUp, AlertTriangle, Star } from '../ui/Icons';
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    RadialBarChart, RadialBar, ComposedChart, Area, Line
+    RadialBarChart, RadialBar
 } from 'recharts';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
-import { SEVERITY_COLORS, SENTINEL_PALETTE, CHART_AXIS_COLORS } from '../../theme/chartTheme';
+import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../theme/chartTheme';
 
 interface SupplierDashboardProps {
     suppliers: Supplier[];

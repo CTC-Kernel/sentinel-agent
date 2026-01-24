@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Control } from '../../../types';
-import { PieChart as PieChartIcon, BarChart3 as BarChartIcon, Target, Shield, TrendingUp } from '../../ui/Icons';
+import { PieChart as PieChartIcon, BarChart3 as BarChartIcon, Target } from '../../ui/Icons';
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, RadialBarChart, RadialBar

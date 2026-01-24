@@ -9,7 +9,7 @@ import { slideUpVariants } from '../../ui/animationVariants';
 import { BusinessProcess, BcpDrill } from '../../../types';
 import { EmptyChartState } from '../../ui/EmptyChartState';
 import { SEVERITY_COLORS, SENTINEL_PALETTE } from '../../../theme/chartTheme';
-import { AlertTriangle, TrendingUp, Target, Activity } from '../../ui/Icons';
+import { AlertTriangle, Target, Activity } from '../../ui/Icons';
 
 interface ContinuityChartsProps {
     processes: BusinessProcess[];

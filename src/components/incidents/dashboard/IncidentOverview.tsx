@@ -14,7 +14,6 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    AreaChart,
     Area,
     Legend,
     RadialBarChart,
@@ -35,7 +34,6 @@ import {
     ShieldAlert,
     Siren,
     CheckCircle2,
-    Clock,
     AlertTriangle,
     TrendingUp,
     TrendingDown,
@@ -572,7 +570,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                         {categoryData.length === 0 ? (
                             <EmptyChartState variant="bar" message="Aucune catégorie" className="scale-75" />
                         ) : (
-                            categoryData.slice(0, 5).map((cat, i) => {
+                            categoryData.slice(0, 5).map((cat) => {
                                 const maxValue = Math.max(...categoryData.map(c => c.value));
                                 const percentage = (cat.value / maxValue) * 100;
                                 const isHovered = hoveredCategory === cat.name;

@@ -9,8 +9,6 @@ import {
     Sector,
     AreaChart,
     Area,
-    BarChart,
-    Bar,
     XAxis,
     YAxis,
     Tooltip,

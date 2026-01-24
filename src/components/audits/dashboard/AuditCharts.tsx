@@ -69,7 +69,7 @@ export const AuditCharts: React.FC<AuditChartsProps> = ({ statusData, findingsBy
     const complianceGaugeData = [{ name: 'Conformité', value: complianceRate, fill: 'url(#auditComplianceGradient)' }];
 
     // Finding severity data
-    const findingSeverityData = findingsByType.map((entry, idx) => ({
+    const findingSeverityData = findingsByType.map((entry) => ({
         ...entry,
         color: entry.name === 'Majeure' ? FINDING_COLORS.majeure : entry.name === 'Mineure' ? FINDING_COLORS.mineure : FINDING_COLORS.observation
     }));

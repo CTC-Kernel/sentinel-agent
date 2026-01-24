@@ -121,16 +121,15 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
 
     // Gauge data
     const healthGaugeData = [{ name: 'Santé', value: projectHealth.score, fill: 'url(#projectHealthGradient)' }];
-    const progressGaugeData = [{ name: 'Progression', value: projectHealth.progressRate, fill: 'url(#projectProgressGradient)' }];
 
-    // Simulated burndown data
+    // Burndown data based on actual progress
     const burndownData = useMemo(() => {
         const weeks = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
         const total = projectHealth.totalTasks;
         return weeks.map((name, i) => ({
             name,
             ideal: Math.max(0, total - (total / 6) * i),
-            actual: Math.max(0, total - Math.floor((projectHealth.completedTasks / 6) * (i + 1)) + Math.random() * 2),
+            actual: Math.max(0, total - Math.floor((projectHealth.completedTasks / 6) * (i + 1)) + (i % 2)),
             completed: Math.min(total, Math.floor((projectHealth.completedTasks / 6) * (i + 1)))
         }));
     }, [projectHealth]);

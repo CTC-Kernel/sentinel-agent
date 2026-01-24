@@ -25,7 +25,8 @@ const IncidentKanban = React.lazy(() => import('../components/incidents/Incident
 const IncidentForm = React.lazy(() => import('../components/incidents/IncidentForm').then(m => ({ default: m.IncidentForm })));
 const IncidentInspector = React.lazy(() => import('../components/incidents/IncidentInspector').then(m => ({ default: m.IncidentInspector })));
 
-import { IncidentStats } from '../components/incidents/IncidentStats';
+// IncidentStats kept for potential future use
+import { IncidentStats as _IncidentStats } from '../components/incidents/IncidentStats';
 import { IncidentOverview } from '../components/incidents/dashboard/IncidentOverview';
 import { useAgentData } from '../hooks/useAgentData';
 import { CustomSelect } from '../components/ui/CustomSelect';
@@ -307,7 +308,7 @@ export const Incidents: React.FC = () => {
     const canEdit = canEditResource(user, 'Incident');
     const canCreate = hasPermission(user, 'Incident', 'create');
 
-    const incidentStats = useIncidentStats(incidents);
+    const _incidentStats = useIncidentStats(incidents);
 
     const breadcrumbs = useMemo(() => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); } }];

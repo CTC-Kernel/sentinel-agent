@@ -3,9 +3,10 @@ import { useFirestoreCollection } from '../../../hooks/useFirestore';
 import { Document } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
-import { FileText, CheckCircle2, Edit, Loader2 } from '../../ui/Icons';
+import { FileText, CheckCircle2, Edit, Loader2, FolderOpen } from '../../ui/Icons';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '../../ui/GlassCard';
+import { EmptyState } from '../../ui/EmptyState';
 
 interface DocumentsStatsWidgetProps {
     navigate?: (path: string) => void;
@@ -42,6 +43,38 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
             <div className="h-full flex items-center justify-center min-h-[200px]">
                 <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
             </div>
+        );
+    }
+
+    // Empty state when no documents
+    if (stats.totalDocs === 0) {
+        return (
+            <GlassCard
+                className="h-full flex flex-col p-5 overflow-hidden"
+                hoverEffect={true}
+                gradientOverlay={true}
+            >
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                    <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
+                        <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
+                            <FileText className="w-4 h-4" />
+                        </div>
+                        Documents
+                    </h3>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center relative z-10">
+                    <EmptyState
+                        icon={FolderOpen}
+                        title="Aucun document"
+                        description="Créez ou importez des documents pour votre organisation."
+                        actionLabel="Ajouter un document"
+                        onAction={() => navigate('/documents')}
+                        semantic="info"
+                        compact
+                    />
+                </div>
+            </GlassCard>
         );
     }
 

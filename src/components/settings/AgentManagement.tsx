@@ -59,9 +59,7 @@ import {
     XAxis,
     YAxis,
     Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar
+    ResponsiveContainer
 } from 'recharts';
 import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
 

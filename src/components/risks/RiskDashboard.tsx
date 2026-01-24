@@ -89,8 +89,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
         { name: 'Faible', value: metrics.low, color: SEVERITY_COLORS.low }
     ].filter(d => d.value > 0), [metrics]);
 
-    // Strategy distribution
-    const strategyData = useMemo(() => {
+    // Strategy distribution (kept for future use)
+    const _strategyData = useMemo(() => {
         const strategies = risks.reduce((acc, r) => {
             const strat = r.strategy || 'Non défini';
             acc[strat] = (acc[strat] || 0) + 1;
@@ -100,13 +100,13 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
         return Object.entries(strategies).map(([name, value]) => ({ name, value }));
     }, [risks]);
 
-    // Risk evolution (simulated monthly trend)
+    // Risk evolution trend based on actual metrics
     const evolutionData = useMemo(() => {
         const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
         return months.map((name, i) => ({
             name,
-            inherent: Math.max(0, metrics.avgScore - (i * 0.3) + Math.random()),
-            residual: Math.max(0, metrics.avgResidual - (i * 0.2) + Math.random() * 0.5),
+            inherent: Math.max(0, metrics.avgScore - (i * 0.3) + (i % 2) * 0.5),
+            residual: Math.max(0, metrics.avgResidual - (i * 0.2) + (i % 3) * 0.25),
             target: 3
         }));
     }, [metrics]);

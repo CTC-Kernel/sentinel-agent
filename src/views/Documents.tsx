@@ -6,7 +6,7 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { Document, UserProfile } from '../types';
 import { getUserAvatarUrl } from '../utils/avatarUtils';
 import { canEditResource } from '../utils/permissions';
-import { Plus, MoreVertical, FileText, Upload, Bell, History, CheckCircle2, Edit, FileSpreadsheet, LayoutDashboard, FolderOpen } from '../components/ui/Icons';
+import { Plus, MoreVertical, FileText, Upload, FileSpreadsheet, LayoutDashboard, FolderOpen } from '../components/ui/Icons';
 import { CardSkeleton, ListSkeleton } from '../components/ui/Skeleton';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
@@ -206,10 +206,10 @@ export const Documents: React.FC = () => {
     // --- Metrics ---
     const totalDocs = documents.length;
     const publishedDocs = documents.filter(d => d.status === 'Publié' || d.status === 'Approuvé').length;
-    const inReviewDocs = documents.filter(d => d.status === 'En revue').length;
-    const draftDocs = documents.filter(d => d.status === 'Brouillon').length;
-    const expiredDocs = documents.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < new Date()).length;
-    const validationRate = totalDocs > 0 ? (publishedDocs / totalDocs) * 100 : 0;
+    const _inReviewDocs = documents.filter(d => d.status === 'En revue').length;
+    const _draftDocs = documents.filter(d => d.status === 'Brouillon').length;
+    const _expiredDocs = documents.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < new Date()).length;
+    const _validationRate = totalDocs > 0 ? (publishedDocs / totalDocs) * 100 : 0;
 
     // --- Filtering ---
     const deferredFilter = useDeferredValue(filter);

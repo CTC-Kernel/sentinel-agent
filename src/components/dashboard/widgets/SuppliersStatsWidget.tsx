@@ -3,8 +3,9 @@ import { useFirestoreCollection } from '../../../hooks/useFirestore';
 import { Supplier, Criticality } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
-import { Truck, ShieldAlert, CheckCircle2 } from '../../ui/Icons';
+import { Truck, ShieldAlert, CheckCircle2, Users } from '../../ui/Icons';
 import { GlassCard } from '../../ui/GlassCard';
+import { EmptyState } from '../../ui/EmptyState';
 
 interface SuppliersStatsWidgetProps {
     navigate?: (path: string) => void;
@@ -33,6 +34,38 @@ export const SuppliersStatsWidget: React.FC<SuppliersStatsWidgetProps> = ({ navi
             <div className="h-full flex items-center justify-center glass-panel rounded-2xl border border-white/60 dark:border-white/5 p-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
             </div>
+        );
+    }
+
+    // Empty state when no suppliers
+    if (stats.total === 0) {
+        return (
+            <GlassCard
+                className="h-full flex flex-col p-5 overflow-hidden"
+                hoverEffect={true}
+                gradientOverlay={true}
+            >
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                    <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
+                        <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
+                            <Truck className="w-4 h-4" />
+                        </div>
+                        Fournisseurs
+                    </h3>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center relative z-10">
+                    <EmptyState
+                        icon={Users}
+                        title="Aucun fournisseur"
+                        description="Ajoutez vos fournisseurs et tiers pour gérer les risques associés."
+                        actionLabel="Ajouter un fournisseur"
+                        onAction={() => navigate && navigate('/suppliers')}
+                        semantic="info"
+                        compact
+                    />
+                </div>
+            </GlassCard>
         );
     }
 

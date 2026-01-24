@@ -3,8 +3,9 @@ import { useFirestoreCollection } from '../../../hooks/useFirestore';
 import { Asset, Criticality } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
-import { Server, ShieldAlert, ShieldCheck } from '../../ui/Icons';
+import { Server, ShieldAlert, ShieldCheck, Box } from '../../ui/Icons';
 import { GlassCard } from '../../ui/GlassCard';
+import { EmptyState } from '../../ui/EmptyState';
 
 interface AssetStatsWidgetProps {
     navigate?: (path: string) => void;
@@ -32,6 +33,38 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
             <div className="h-full flex items-center justify-center glass-panel rounded-2xl border border-white/60 dark:border-white/5 p-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
             </div>
+        );
+    }
+
+    // Empty state when no assets
+    if (stats.total === 0) {
+        return (
+            <GlassCard
+                className="h-full flex flex-col p-5 overflow-hidden"
+                hoverEffect={true}
+                gradientOverlay={true}
+            >
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                    <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
+                        <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400">
+                            <Server className="w-4 h-4" />
+                        </div>
+                        Actifs
+                    </h3>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center relative z-10">
+                    <EmptyState
+                        icon={Box}
+                        title="Aucun actif recensé"
+                        description="Inventoriez vos actifs informationnels pour évaluer leur criticité."
+                        actionLabel="Ajouter un actif"
+                        onAction={() => navigate && navigate('/assets')}
+                        semantic="primary"
+                        compact
+                    />
+                </div>
+            </GlassCard>
         );
     }
 
