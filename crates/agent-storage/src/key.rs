@@ -215,7 +215,7 @@ impl KeyManager {
 
             if data_out.cbData as usize != KEY_LENGTH {
                 // Free the allocated memory
-                windows::Win32::System::Memory::LocalFree(Some(
+                windows::Win32::Foundation::LocalFree(Some(
                     windows::Win32::Foundation::HLOCAL(data_out.pbData as *mut _),
                 ));
                 return Err(StorageError::KeyManagement(format!(
@@ -228,7 +228,7 @@ impl KeyManager {
             std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
 
             // Free the allocated memory
-            windows::Win32::System::Memory::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+            windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
             )));
 
@@ -319,7 +319,7 @@ impl KeyManager {
                 std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec();
 
             // Free the allocated memory
-            windows::Win32::System::Memory::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+            windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
             )));
 
