@@ -215,9 +215,9 @@ impl KeyManager {
 
             if data_out.cbData as usize != KEY_LENGTH {
                 // Free the allocated memory
-                windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+                windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
                     data_out.pbData as *mut _,
-                )));
+                ));
                 return Err(StorageError::KeyManagement(format!(
                     "Invalid decrypted key size: expected {} bytes, got {}",
                     KEY_LENGTH, data_out.cbData
@@ -228,9 +228,9 @@ impl KeyManager {
             std::ptr::copy_nonoverlapping(data_out.pbData, key.as_mut_ptr(), KEY_LENGTH);
 
             // Free the allocated memory
-            windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+            windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
-            )));
+            ));
 
             debug!(
                 "Loaded and decrypted key using DPAPI from: {}",
@@ -319,9 +319,9 @@ impl KeyManager {
                 std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec();
 
             // Free the allocated memory
-            windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+            windows::Win32::Foundation::LocalFree(windows::Win32::Foundation::HLOCAL(
                 data_out.pbData as *mut _,
-            )));
+            ));
 
             // Write encrypted data to file
             fs::write(path, &encrypted).map_err(|e| {
