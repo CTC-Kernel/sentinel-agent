@@ -300,17 +300,21 @@ describe('AuditFindings', () => {
 
     describe('finding styling', () => {
         it('applies correct color for major findings', () => {
-            const { container } = render(<AuditFindings {...defaultProps} findings={mockFindings} />);
+            render(<AuditFindings {...defaultProps} findings={mockFindings} />);
 
-            // Check for red styling on major findings
-            expect(container.querySelector('.bg-red-100')).toBeInTheDocument();
+            // Filter to find only the badge (span), not the select option
+            const badges = screen.getAllByText('Majeure', { selector: 'span' });
+            expect(badges.length).toBeGreaterThan(0);
+            expect(badges[0].className).toContain('bg-red-500/10');
         });
 
         it('applies correct color for opportunity findings', () => {
-            const { container } = render(<AuditFindings {...defaultProps} findings={mockFindings} />);
+            render(<AuditFindings {...defaultProps} findings={mockFindings} />);
 
-            // Check for green styling on opportunity findings
-            expect(container.querySelector('.bg-green-100')).toBeInTheDocument();
+            // Filter to find only the badge (span), not the select option
+            const badges = screen.getAllByText('Opportunité', { selector: 'span' });
+            expect(badges.length).toBeGreaterThan(0);
+            expect(badges[0].className).toContain('bg-emerald-500/10');
         });
     });
 });
