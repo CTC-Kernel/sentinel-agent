@@ -99,7 +99,7 @@ Minimum coverage threshold: **70%**
 
 - **Website**: [cyber-threat-consulting.com](https://cyber-threat-consulting.com)
 - **Platform**: [app.cyber-threat-consulting.com](https://app.cyber-threat-consulting.com)
-- **Support**: support@cyber-threat-consulting.com
+- **Contact**: ***REMOVED***
 
 ## License
 
