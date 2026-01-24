@@ -212,7 +212,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                     <Link
                                         to="/pricing"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50/50 dark:hover:bg-brand-900/20 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-900/20 rounded-xl transition-colors"
                                     >
                                         <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[10px]">€</span>
                                         {t('settings.plansAndBilling')}

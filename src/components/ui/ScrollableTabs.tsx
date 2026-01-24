@@ -98,7 +98,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                             {tab.icon && (
                                 <tab.icon
                                     aria-hidden="true"
-                                    className={`h-4 w-4 mr-2 transition-colors ${isActive ? 'text-brand-500 dark:text-brand-400' : 'opacity-70 group-hover:opacity-100'
+                                    className={`h-4 w-4 mr-2 transition-colors ${isActive ? 'text-brand-500 dark:text-brand-500' : 'opacity-70 group-hover:opacity-100'
                                         }`}
                                 />
                             )}

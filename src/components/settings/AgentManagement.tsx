@@ -62,6 +62,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
+import { EnrollAgentModal } from './EnrollAgentModal';
 
 // Types for release info
 interface PlatformInfo {
@@ -997,83 +998,6 @@ export const AgentManagement: React.FC = () => {
 
                 {/* Sidebar Context */}
                 <div className="space-y-6">
-                    {/* Enrollment Card */}
-                    <AnimatePresence>
-                        {showEnrollment && (
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="glass-premium p-4 sm:p-6 rounded-5xl border border-brand-500/30 bg-brand-500/5 relative overflow-hidden"
-                            >
-                                <TechCorners className="border-brand-500/40" />
-                                <div className="relative z-10">
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                                        <ShieldCheck className="w-5 h-5 text-brand-500" />
-                                        Token d'Enrôlement
-                                    </h3>
-
-                                    {/* Token display */}
-                                    <div className="p-4 bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-brand-500/20 font-mono text-xs text-brand-600 dark:text-brand-400 break-all select-all flex justify-between items-center gap-2">
-                                        <span className="truncate">{enrollmentToken}</span>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(enrollmentToken || '');
-                                                toast.success("Token copié !");
-                                            }}
-                                            className="p-2.5 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-lg transition-colors flex-shrink-0"
-                                            title="Copier le token"
-                                        >
-                                            <Copy className="w-4 h-4" />
-                                        </button>
-                                    </div>
-
-                                    {/* Installation instructions */}
-                                    <div className="mt-4 space-y-3">
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                            Utilisez ce token lors de l'installation. Expire dans 24h.
-                                        </p>
-
-                                        <div className="space-y-2">
-                                            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                                                Commande d'enrôlement :
-                                            </p>
-                                            <div className="relative">
-                                                <pre className="p-3 bg-slate-900 dark:bg-black/50 rounded-xl text-[11px] text-success-400 overflow-x-auto">
-                                                    <code>sentinel-agent enroll --token {enrollmentToken?.substring(0, 8)}...</code>
-                                                </pre>
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(`sentinel-agent enroll --token ${enrollmentToken}`);
-                                                        toast.success("Commande copiée !");
-                                                    }}
-                                                    className="absolute right-2 top-2 p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
-                                                >
-                                                    <Copy className="w-3 h-3 text-muted-foreground" />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-2 border-t border-slate-200 dark:border-white/10">
-                                            <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                                <strong>macOS :</strong> Ouvrez le Terminal après installation<br />
-                                                <strong>Windows :</strong> Ouvrez PowerShell en admin<br />
-                                                <strong>Linux :</strong> Ouvrez un terminal
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <Button
-                                        className="w-full mt-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5"
-                                        onClick={() => setShowEnrollment(false)}
-                                    >
-                                        Fermer
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
                     {/* What is the Agent? */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -1654,6 +1578,15 @@ export const AgentManagement: React.FC = () => {
                     </motion.div>
                 </div>
             </div>
+
+            <EnrollAgentModal
+                isOpen={showEnrollment}
+                onClose={() => setShowEnrollment(false)}
+                enrollmentToken={enrollmentToken}
+                releaseInfo={releaseInfo}
+                loadingReleases={loadingReleases}
+            />
         </div>
+
     );
 };
