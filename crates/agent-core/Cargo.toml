@@ -8,6 +8,7 @@ description = "Sentinel GRC endpoint compliance monitoring agent"
 
 [dependencies]
 agent-common = { path = "../agent-common" }
+agent-network = { path = "../agent-network" }
 agent-scanner = { path = "../agent-scanner" }
 agent-storage = { path = "../agent-storage" }
 agent-sync = { path = "../agent-sync" }

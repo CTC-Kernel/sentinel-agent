@@ -43,6 +43,7 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 open = "5"
 tao = { version = "0.30", default-features = false, features = ["rwh_06"] }
 hostname = "0.4"
+rand = "0.9"
 
 [workspace.dependencies.windows]
 version = "0.58"
