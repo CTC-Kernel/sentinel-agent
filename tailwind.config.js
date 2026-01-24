@@ -23,10 +23,11 @@ export default {
         'decorator': '10',
         'sticky': '20',
         'header': '40',
-        'tooltip': '45',    // AUDIT FIX: tooltip doit être < modal pour éviter superposition
+        'sidebar': '45',    // AUDIT FIX: Sidebar between header and modal
         'modal': '50',
-        'dropdown': '55',   // AUDIT FIX: ajout niveau pour dropdowns
-        'popover': '60',    // AUDIT FIX: popovers au-dessus des modals si nécessaire
+        'dropdown': '55',   // AUDIT FIX: Dropdowns above modals
+        'popover': '60',    // AUDIT FIX: Popovers above dropdowns
+        'tooltip': '70',    // AUDIT FIX: Tooltips always on top
         'max': '9999',
       },
       fontFamily: {
