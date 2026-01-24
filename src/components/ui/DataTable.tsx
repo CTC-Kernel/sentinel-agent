@@ -222,7 +222,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             className={cn(
                                                 "px-4 py-4 sm:px-6 sm:py-4 text-left text-[11px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap transition-colors",
                                                 header.column.getCanSort() && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 hover:text-brand-600 dark:hover:text-brand-400",
-                                                header.id === 'select' && "w-[50px] px-2 sm:px-4"
+                                                header.id === 'select' && "w-[50px] px-2 sm:px-4",
+                                                (header.column.columnDef.meta as any)?.className
                                             )}
                                             style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                                         >
@@ -243,8 +244,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={`skeleton-row-${i}`}>
-                                    {tableColumns.map((_, j) => (
-                                        <td key={`skeleton-cell-${j}`} className="px-3 py-3 sm:px-6 sm:py-4">
+                                    {tableColumns.map((column, j) => (
+                                        <td key={`skeleton-cell-${j}`} className={cn("px-3 py-3 sm:px-6 sm:py-4", (column.meta as any)?.className)}>
                                             <Skeleton className="h-4 w-full" />
                                         </td>
                                     ))}
@@ -273,7 +274,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className="px-3 py-4 sm:px-6 sm:py-4 text-sm text-slate-700 dark:text-slate-300 font-medium">
+                                        <td key={cell.id} className={cn("px-3 py-4 sm:px-6 sm:py-4 text-sm text-slate-700 dark:text-slate-300 font-medium", (cell.column.columnDef.meta as any)?.className)}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}

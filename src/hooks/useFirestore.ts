@@ -161,18 +161,15 @@ export const useFirestoreCollection = <T = DocumentData>(
             return;
         }
 
-        // Set loading state immediately safely
-        // Set loading state immediately safely
-        setTimeout(() => {
-            if (isMounted) setRealtimeLoading(true);
-        }, 0);
+        // Set loading state immediately (inside effect is safe)
+        setRealtimeLoading(true);
 
         timeoutId = window.setTimeout(() => {
             if (isMounted) {
                 setRealtimeFailed(true);
                 setRealtimeLoading(false);
             }
-        }, 5000); // Réduit de 12s à 5s pour une meilleure UX
+        }, 5000); // 5s timeout
 
         let unsubscribe = () => { };
 
@@ -369,6 +366,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
         let unsubscribe = () => { };
 
         if (!docId) {
+            // Delay setting null to avoid flicker if ID changes rapidly
             const tm = window.setTimeout(() => {
                 if (isMounted) {
                     setRealtimeData(null);
@@ -383,11 +381,8 @@ export const useFirestoreDocument = <T extends { id: string }>(
         }
 
         if (realtime && !demoMode) {
-            // Avoid synchronous state update warning
-            const tm = window.setTimeout(() => {
-                if (isMounted) setRealtimeLoading(true);
-            }, 0);
-            timeouts.push(tm);
+            // Set loading immediately. safe inside useEffect.
+            setRealtimeLoading(true);
 
             try {
                 const docRef = doc(db, collectionName, docId);
@@ -425,9 +420,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
                 );
             } catch (err) {
                 console.error("Error setting up document listener:", err);
-                setTimeout(() => {
-                    if (isMounted) setRealtimeLoading(false);
-                }, 0);
+                if (isMounted) setRealtimeLoading(false);
             }
 
             return () => {

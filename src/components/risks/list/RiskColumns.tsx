@@ -126,11 +126,12 @@ export const useRiskColumns = ({
         {
             header: t('common.threat'),
             accessorKey: 'threat',
+            meta: { className: 'w-full md:w-auto' },
             cell: ({ row }) => {
                 const ownerUser = users.find(u => u.uid === row.original.owner);
                 return (
                     <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300 overflow-hidden">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300 overflow-hidden shrink-0">
                             {ownerUser ? (
                                 <img
                                     src={getUserAvatarUrl(ownerUser.photoURL, ownerUser.role)}
@@ -145,8 +146,8 @@ export const useRiskColumns = ({
                                 <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
                             )}
                         </div>
-                        <div>
-                            <div className="font-bold text-slate-900 dark:text-white text-[15px]">
+                        <div className="min-w-0">
+                            <div className="font-bold text-slate-900 dark:text-white text-[15px] truncate max-w-[200px] sm:max-w-xs transition-all">
                                 <TextHighlight text={row.original.threat} query={searchQuery} />
                             </div>
                             <div className="text-xs text-slate-600 font-medium">{getOwnerName(row.original.owner)}</div>
@@ -158,6 +159,7 @@ export const useRiskColumns = ({
         {
             header: t('common.vulnerability'),
             accessorKey: 'vulnerability',
+            meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => (
                 <div className="max-w-xs truncate" title={row.original.vulnerability}>
                     <TextHighlight text={row.original.vulnerability || ''} query={searchQuery} />
@@ -167,6 +169,7 @@ export const useRiskColumns = ({
         {
             header: t('common.assets'),
             accessorFn: (row) => assets.find(a => a.id === row.assetId)?.name || 'Actif inconnu',
+            meta: { className: 'hidden xl:table-cell' },
             cell: ({ row }) => (
                 <span className="text-slate-600 dark:text-muted-foreground font-medium">
                     {assets.find(a => a.id === row.original.assetId)?.name || 'Actif inconnu'}
@@ -176,6 +179,7 @@ export const useRiskColumns = ({
         {
             header: t('common.category'),
             accessorKey: 'category',
+            meta: { className: 'hidden xl:table-cell' },
             cell: ({ row }) => {
                 const category = row.original.category;
                 if (!category) {
@@ -207,6 +211,7 @@ export const useRiskColumns = ({
         {
             header: t('dashboard.strategy'),
             accessorKey: 'strategy',
+            meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => {
                 const styles = getStrategyStyles(row.original.strategy);
                 const StrategyIcon = styles.icon;
@@ -226,6 +231,7 @@ export const useRiskColumns = ({
             header: t('common.stepControls'),
             id: 'controls',
             accessorFn: (row) => row.mitigationControlIds?.length || 0,
+            meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => {
                 const { count, coverage } = getMitigationCoverage(row.original, controls);
                 if (count === 0) {
@@ -256,6 +262,7 @@ export const useRiskColumns = ({
         {
             header: t('common.status'),
             accessorKey: 'status',
+            meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => {
                 const isDraft = row.original.status === RISK_DRAFT_STATUS;
                 return (

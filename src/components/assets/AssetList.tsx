@@ -119,10 +119,16 @@ export const AssetList = React.memo<AssetListProps>(({
     }, [assets, activeFiltersQuery]);
 
     const columns = useMemo<ColumnDef<Asset>[]>(() => [
-        { header: t('common.name'), accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-foreground">{row.original.name}</span> },
+        {
+            header: t('common.name'),
+            accessorKey: 'name',
+            cell: ({ row }) => <span className="font-bold text-foreground">{row.original.name}</span>,
+            meta: { className: 'w-full md:w-auto' }
+        },
         {
             header: t('common.type'),
             accessorKey: 'type',
+            meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => {
                 const styles = getTypeStyles(row.original.type);
                 const TypeIcon = styles.icon;
@@ -138,10 +144,15 @@ export const AssetList = React.memo<AssetListProps>(({
                 );
             }
         },
-        { header: t('common.criticality'), accessorKey: 'confidentiality', cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span> },
+        {
+            header: t('common.criticality'),
+            accessorKey: 'confidentiality',
+            cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span>
+        },
         {
             header: t('common.owner'),
             accessorKey: 'owner',
+            meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => {
                 const ownerName = row.original.owner;
                 const ownerUser = users?.find(u => u.displayName === ownerName || u.email === ownerName);
@@ -164,6 +175,7 @@ export const AssetList = React.memo<AssetListProps>(({
         {
             header: t('common.status'),
             accessorKey: 'lifecycleStatus',
+            meta: { className: 'hidden xl:table-cell' },
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${row.original.lifecycleStatus === 'En service' ? 'bg-success' : 'bg-muted'}`}></span>
