@@ -507,7 +507,7 @@ fn get_process_memory() -> u64 {
         pmc.cb = std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
 
         if GetProcessMemoryInfo(process, &mut pmc, pmc.cb).is_ok() {
-            return pmc.WorkingSetSize;
+            return pmc.WorkingSetSize as u64;
         }
     }
     0
