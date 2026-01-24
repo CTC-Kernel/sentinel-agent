@@ -55,7 +55,6 @@ mod urls {
     pub const DASHBOARD: &str = "https://app.cyber-threat-consulting.com/settings?tab=agents";
     pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
     pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs/sentinel-agent";
-    pub const CONTACT: &str = "mailto:***REMOVED***";
 }
 
 /// System tray manager for the agent.
