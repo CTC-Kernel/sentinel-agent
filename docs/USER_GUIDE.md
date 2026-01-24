@@ -76,7 +76,8 @@ Cliquez sur l'icône pour accéder au menu :
 
 L'agent utilise un fichier de configuration JSON :
 
-- **macOS/Linux** : `/etc/sentinel/agent.json`
+- **macOS** : `~/Library/Application Support/SentinelGRC/agent.json`
+- **Linux** : `/etc/sentinel/agent.json`
 - **Windows** : `C:\ProgramData\Sentinel\agent.json`
 
 ### Paramètres disponibles
@@ -134,7 +135,7 @@ L'agent utilise un fichier de configuration JSON :
 
 ### Où trouver les logs ?
 
-- **macOS** : `/var/log/sentinel-grc/`
+- **macOS** : `~/Library/Application Support/SentinelGRC/logs/`
 - **Windows** : `C:\ProgramData\Sentinel\logs\`
 
 ---
@@ -145,7 +146,7 @@ L'agent utilise un fichier de configuration JSON :
 
 1. Quittez l'agent via le menu
 2. Supprimez l'application du dossier Applications
-3. (Optionnel) Supprimez `/etc/sentinel` et `/var/log/sentinel-grc`
+3. (Optionnel) Supprimez `~/Library/Application Support/SentinelGRC`
 
 ### Windows
 
