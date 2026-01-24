@@ -152,7 +152,8 @@ describe('Compliance View', () => {
         act(() => {
             renderWithProviders(<Compliance />);
         });
-        expect(screen.getByText('Conformité')).toBeInTheDocument();
+        // "Conformité" appears in multiple places (header and stats widget)
+        expect(screen.getAllByText('Conformité').length).toBeGreaterThan(0);
     });
 
     it('displays framework selector', () => {

@@ -169,7 +169,8 @@ describe('FolderTree', () => {
         it('highlights when selected', () => {
             const { container } = render(<FolderTree {...defaultProps} selectedFolderId={null} />);
 
-            expect(container.querySelector('.bg-brand-50')).toBeInTheDocument();
+            // Now uses bg-brand-500/10 for selected state (better dark mode contrast)
+            expect(container.querySelector('[class*="bg-brand-500"]')).toBeInTheDocument();
         });
     });
 
@@ -259,8 +260,8 @@ describe('FolderTree', () => {
         it('highlights selected folder', () => {
             const { container } = render(<FolderTree {...defaultProps} selectedFolderId="folder-1" />);
 
-            // Selected folder should have highlight class
-            expect(container.querySelectorAll('.bg-brand-50').length).toBeGreaterThan(0);
+            // Selected folder should have highlight class (now uses bg-brand-500/10 for better dark mode contrast)
+            expect(container.querySelectorAll('[class*="bg-brand-500"]').length).toBeGreaterThan(0);
         });
     });
 

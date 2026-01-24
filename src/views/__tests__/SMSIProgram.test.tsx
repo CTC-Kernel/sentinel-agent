@@ -96,8 +96,8 @@ vi.mock('../../components/ui/button', () => ({
   )
 }));
 
-vi.mock('../../components/smsi/SMSIStatsWidget', () => ({
-  SMSIStatsWidget: () => <div data-testid="stats-widget">Stats Widget</div>
+vi.mock('../../components/smsi/SMSIPremiumStats', () => ({
+  SMSIPremiumStats: () => <div data-testid="stats-widget">Stats Widget</div>
 }));
 
 vi.mock('../../components/ui/ScrollableTabs', () => ({

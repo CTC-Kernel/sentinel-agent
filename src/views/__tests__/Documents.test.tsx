@@ -173,6 +173,17 @@ vi.mock('framer-motion', () => ({
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
+// Mock usePersistedState to start on documents tab
+vi.mock('../../hooks/usePersistedState', () => ({
+    usePersistedState: (key: string, defaultVal: unknown) => {
+        // Start on 'documents' tab to test document list features
+        if (key === 'documents-active-tab') {
+            return ['documents', vi.fn()];
+        }
+        return [defaultVal, vi.fn()];
+    }
+}));
+
 // ---------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------

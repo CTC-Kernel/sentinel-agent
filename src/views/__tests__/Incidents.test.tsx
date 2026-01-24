@@ -6,6 +6,22 @@ import { MemoryRouter } from 'react-router-dom';
 
 // Mock Dependencies
 vi.mock('../../store');
+vi.mock('../../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'test-user', email: 'test@example.com' },
+        organizationId: 'org-1'
+    })
+}));
+vi.mock('../../hooks/useAgentData', () => ({
+    useAgentData: () => ({
+        agents: [],
+        loading: false
+    }),
+    default: () => ({
+        agents: [],
+        loading: false
+    })
+}));
 vi.mock('../../components/ui/Icons', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../components/ui/Icons')>();
     return {

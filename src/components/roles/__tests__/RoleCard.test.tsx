@@ -110,7 +110,7 @@ describe('RoleCard', () => {
         it('renders count badge with brand styling', () => {
             const { container } = render(<RoleCard role="admin" count={5} />);
 
-            expect(container.querySelector('.bg-brand-100')).toBeInTheDocument();
+            expect(container.querySelector('.bg-brand-500')).toBeInTheDocument();
         });
     });
 });
