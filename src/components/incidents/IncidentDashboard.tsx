@@ -133,6 +133,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         {
             accessorKey: 'severity',
             header: 'Sévérité',
+            meta: { className: 'hidden sm:table-cell' },
             cell: ({ row }) => (
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getSeverityColor(row.original.severity)}`}>
                     {row.original.severity}
@@ -142,6 +143,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         {
             accessorKey: 'status',
             header: 'Statut',
+            meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => (
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(row.original.status)}`}>
                     {row.original.status}
@@ -151,6 +153,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         {
             accessorKey: 'dateReported',
             header: 'Date',
+            meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => (
                 <span className="text-slate-600 dark:text-muted-foreground font-medium">
                     {new Date(row.original.dateReported).toLocaleDateString()}
@@ -160,6 +163,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         {
             accessorKey: 'reporter',
             header: 'Reporter',
+            meta: { className: 'hidden xl:table-cell' },
             cell: ({ row }) => {
                 const reporterName = row.original.reporter;
                 const reporterUser = users?.find(u => u.displayName === reporterName || u.email === reporterName);
@@ -184,6 +188,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         {
             accessorKey: 'category',
             header: 'Catégorie',
+            meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => (
                 <span className="text-slate-600 dark:text-muted-foreground font-medium">
                     {row.original.category || '-'}

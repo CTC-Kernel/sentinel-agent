@@ -335,6 +335,7 @@ export const Suppliers: React.FC = () => {
         {
             accessorKey: 'category',
             header: t('common.columns.category'),
+            meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => row.original.category
         },
         {
@@ -349,6 +350,7 @@ export const Suppliers: React.FC = () => {
         {
             accessorKey: 'status',
             header: t('common.columns.status'),
+            meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => (
                 <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${row.original.status === 'Actif' ? 'bg-success-bg text-success-text' : 'bg-slate-100 dark:bg-slate-800 text-slate-700'
                     }`}>
@@ -359,6 +361,7 @@ export const Suppliers: React.FC = () => {
         {
             accessorKey: 'isICTProvider',
             header: 'DORA',
+            meta: { className: 'hidden xl:table-cell' },
             cell: ({ row }) => (
                 row.original.isICTProvider ? (
                     <span className="px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-info-bg text-info-text border-info-border">
@@ -372,6 +375,7 @@ export const Suppliers: React.FC = () => {
         {
             accessorKey: 'securityScore', // Fixed property name
             header: 'Score',
+            meta: { className: 'hidden sm:table-cell' },
             cell: ({ row }) => {
                 const score = row.original.securityScore ?? 0;
                 return (

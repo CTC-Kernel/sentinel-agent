@@ -127,7 +127,7 @@ export const Incidents: React.FC = () => {
     const loading = loadingData || (shouldLoadDeps && loadingDeps);
 
     // Agent data for overview dashboard
-    const { agents } = useAgentData(user?.organizationId);
+    const { agents } = useAgentData();
 
     const handleImportFromEvents = useCallback(async (events: SecurityEvent[]) => {
         setIsSubmitting(true);
@@ -430,7 +430,7 @@ export const Incidents: React.FC = () => {
                             onViewModeChange={handleViewModeChange}
                             actions={
                                 <>
-                                    <div className="hidden md:block w-40 mr-2">
+                                    <div className="w-full md:w-40 mr-2">
                                         <CustomSelect
                                             value={statusFilter}
                                             onChange={handleStatusFilterChange}
@@ -445,7 +445,7 @@ export const Incidents: React.FC = () => {
                                             placeholder="Statut"
                                         />
                                     </div>
-                                    <div className="hidden md:block w-40 mr-4">
+                                    <div className="w-full md:w-40 mr-4">
                                         <CustomSelect
                                             value={severityFilter}
                                             onChange={handleSeverityFilterChange}

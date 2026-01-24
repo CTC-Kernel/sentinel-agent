@@ -75,6 +75,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         {
             accessorKey: 'category',
             header: 'Catégorie',
+            meta: { className: 'hidden sm:table-cell' },
             cell: ({ row }) => {
                 const styles = getProjectCategoryStyles(row.original.category || '');
                 const CategoryIcon = styles.icon;
@@ -93,6 +94,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         {
             accessorKey: 'manager',
             header: t('projects.columns.manager'),
+            meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => {
                 const managerUser = usersList.find(u => u.uid === row.original.managerId);
                 return (
@@ -114,6 +116,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         {
             id: 'members',
             header: t('projects.columns.team'),
+            meta: { className: 'hidden xl:table-cell' },
             cell: ({ row }) => {
                 const memberIds = row.original.members || [];
                 const members = usersList.filter(u => memberIds.includes(u.uid));
@@ -148,6 +151,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         {
             accessorKey: 'status',
             header: t('projects.columns.status'),
+            meta: { className: 'hidden sm:table-cell' },
             cell: ({ row }) => (
                 <Badge status={
                     row.original.status === 'En cours' ? 'info' :
@@ -167,6 +171,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         {
             accessorKey: 'progress',
             header: t('projects.columns.progress'),
+            meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => {
                 const styles = getProjectCategoryStyles(row.original.category || '');
                 return (
@@ -182,6 +187,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         {
             accessorKey: 'dueDate',
             header: t('projects.columns.dueDate'),
+            meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => (
                 <span className="text-slate-600 dark:text-muted-foreground font-medium text-xs">
                     {new Date(row.original.dueDate).toLocaleDateString()}

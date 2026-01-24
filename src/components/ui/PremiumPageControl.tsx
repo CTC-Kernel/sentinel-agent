@@ -70,7 +70,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
             </div>
 
             {/* Actions & Controls */}
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200/50 dark:border-white/5">
+            <div className="flex flex-wrap md:flex-nowrap items-center justify-between md:justify-start gap-2 pt-2 md:pt-0 md:pl-2 border-t md:border-t-0 md:border-l border-slate-200/50 dark:border-white/5 w-full md:w-auto">
                 {onRefresh && (
                     <button
                         onClick={onRefresh}
@@ -87,88 +87,90 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                     </div>
                 )}
 
-                {/* Advanced Search Toggle */}
-                {onToggleAdvancedSearch && (
-                    <button
-                        onClick={onToggleAdvancedSearch}
-                        className={`p-2 rounded-2xl transition-all duration-300 ${showAdvancedSearch
-                            ? 'bg-brand-500 text-white shadow-inner'
-                            : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
-                            }`}
-                        title="Filtres avancés"
-                    >
-                        <MoreVertical className="h-5 w-5" />
-                    </button>
-                )}
+                <div className="flex items-center gap-2 ml-auto md:ml-0">
+                    {/* Advanced Search Toggle */}
+                    {onToggleAdvancedSearch && (
+                        <button
+                            onClick={onToggleAdvancedSearch}
+                            className={`p-2 rounded-2xl transition-all duration-300 ${showAdvancedSearch
+                                ? 'bg-brand-500 text-white shadow-inner'
+                                : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
+                                }`}
+                            title="Filtres avancés"
+                        >
+                            <MoreVertical className="h-5 w-5" />
+                        </button>
+                    )}
 
-                {/* Custom View Options (Generic) */}
-                {viewOptions && activeView && onViewChange && (
-                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl">
-                        {viewOptions.map((option) => {
-                            const Icon = option.icon;
-                            return (
-                                <button
-                                    key={option.id}
-                                    onClick={() => onViewChange(option.id)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
-                                        ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
-                                        }`}
-                                    title={option.label}
-                                >
-                                    {Icon && <Icon className="w-4 h-4" />}
-                                    <span className="hidden md:inline text-sm font-medium">{option.label}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                )}
+                    {/* Custom View Options (Generic) */}
+                    {viewOptions && activeView && onViewChange && (
+                        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl">
+                            {viewOptions.map((option) => {
+                                const Icon = option.icon;
+                                return (
+                                    <button
+                                        key={option.id}
+                                        onClick={() => onViewChange(option.id)}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
+                                            ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                            }`}
+                                        title={option.label}
+                                    >
+                                        {Icon && <Icon className="w-4 h-4" />}
+                                        <span className="hidden lg:inline text-sm font-medium">{option.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
-                {/* Legacy View Mode Toggles */}
-                {onViewModeChange && viewMode && !viewOptions && (
-                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl">
-                        <button
-                            onClick={() => onViewModeChange?.('list')}
-                            className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'list'
-                                ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
-                                }`}
-                            title="Vue Liste"
-                        >
-                            <List className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={() => onViewModeChange?.('grid')}
-                            className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'grid'
-                                ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
-                                }`}
-                            title="Vue Grille"
-                        >
-                            <LayoutGrid className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={() => onViewModeChange?.('matrix')}
-                            className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'matrix'
-                                ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
-                                }`}
-                            title="Vue Matrice"
-                        >
-                            <LayoutDashboard className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={() => onViewModeChange?.('kanban')}
-                            className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'kanban'
-                                ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
-                                }`}
-                            title="Vue Kanban"
-                        >
-                            <LayoutGrid className="w-4 h-4 rotate-90" />
-                        </button>
-                    </div>
-                )}
+                    {/* Legacy View Mode Toggles */}
+                    {onViewModeChange && viewMode && !viewOptions && (
+                        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl">
+                            <button
+                                onClick={() => onViewModeChange?.('list')}
+                                className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'list'
+                                    ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                    }`}
+                                title="Vue Liste"
+                            >
+                                <List className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => onViewModeChange?.('grid')}
+                                className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'grid'
+                                    ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                    }`}
+                                title="Vue Grille"
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => onViewModeChange?.('matrix')}
+                                className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'matrix'
+                                    ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                    }`}
+                                title="Vue Matrice"
+                            >
+                                <LayoutDashboard className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => onViewModeChange?.('kanban')}
+                                className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'kanban'
+                                    ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                    }`}
+                                title="Vue Kanban"
+                            >
+                                <LayoutGrid className="w-4 h-4 rotate-90" />
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <AnimatePresence>

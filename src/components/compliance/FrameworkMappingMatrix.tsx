@@ -154,7 +154,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                 className={cn(
                                     "h-full rounded-full transition-all",
                                     fw.percentage >= 80 ? "bg-green-500" :
-                                    fw.percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
+                                        fw.percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
                                 )}
                                 style={{ width: `${fw.percentage}%` }}
                             />
@@ -242,10 +242,10 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                             {displayedControls.slice(0, 50).map(control => (
                                 <tr
                                     key={control.id}
-                                    className="hover:bg-slate-50 dark:hover:bg-slate-800/30 cursor-pointer"
+                                    className="group hover:bg-slate-50 dark:hover:bg-slate-800/30 cursor-pointer transition-colors"
                                     onClick={() => onControlClick?.(control)}
                                 >
-                                    <td className="sticky left-0 bg-white dark:bg-slate-900 px-4 py-3 z-10">
+                                    <td className="sticky left-0 bg-white/95 dark:bg-slate-900/95 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/30 px-4 py-3 z-10 transition-colors">
                                         <div className="flex items-center gap-2">
                                             <span className="font-mono text-xs text-slate-500">{control.code}</span>
                                             <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">
