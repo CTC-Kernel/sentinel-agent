@@ -445,6 +445,7 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     let shutdown = runtime.shutdown_signal();
 
     // Create the tao event loop (required for tray icon on macOS)
+    #[allow(unused_mut)] // mut needed on macOS for set_activation_policy
     let mut event_loop = EventLoopBuilder::new().build();
 
     // On macOS, set activation policy to Accessory (no dock icon, no window)
