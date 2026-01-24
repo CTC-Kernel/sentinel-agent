@@ -15,8 +15,8 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
 
     const { data: assets, loading } = useFirestoreCollection<Asset>(
         'assets',
-        [where('organizationId', '==', user?.organizationId)],
-        { realtime: true }
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
+        { realtime: true, enabled: !!user?.organizationId }
     );
 
     const stats = useMemo(() => {

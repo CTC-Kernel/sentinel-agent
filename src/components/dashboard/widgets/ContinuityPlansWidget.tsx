@@ -14,13 +14,13 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
 
     const { data: processes, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
-        [where('organizationId', '==', user?.organizationId)],
+        [where('organizationId', '==', user?.organizationId || 'ignore')],
         { realtime: true, enabled: !!user?.organizationId }
     );
 
     const { data: drills, loading: loadingDrills } = useFirestoreCollection<BcpDrill>(
         'bcp_drills',
-        [where('organizationId', '==', user?.organizationId), orderBy('date', 'desc'), limit(1)],
+        [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('date', 'desc'), limit(1)],
         { realtime: true, enabled: !!user?.organizationId }
     );
 

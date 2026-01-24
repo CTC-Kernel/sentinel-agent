@@ -16,9 +16,11 @@ export const RiskStatsWidget: React.FC<RiskStatsWidgetProps> = ({ risks }) => {
     const risksAboveAppetite = risks.filter(r => (r.residualScore || r.score) > RISK_ACCEPTANCE_THRESHOLD).length;
     const avgScore = risks.length > 0 ? risks.reduce((sum, r) => sum + r.score, 0) / risks.length : 0;
 
-    // Improvement trend (mock logic or real if historical data available, here calculated from reduction)
-    const avgResidual = risks.length > 0 ? risks.reduce((sum, r) => sum + ((r.residualProbability || 0) * (r.residualImpact || 0)), 0) / risks.length : 0;
-    const riskReduction = avgScore > 0 ? ((avgScore - avgResidual) / avgScore * 100) : 0;
+    // Improvement trend - calculated from residualScore vs score
+    const avgResidual = risks.length > 0
+        ? risks.reduce((sum, r) => sum + (r.residualScore ?? r.score), 0) / risks.length
+        : 0;
+    const riskReduction = avgScore > 0 ? Math.max(0, ((avgScore - avgResidual) / avgScore * 100)) : 0;
 
     const stats = [
         {

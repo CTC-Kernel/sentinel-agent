@@ -3,8 +3,9 @@ import { useFirestoreCollection } from '../../../hooks/useFirestore';
 import { Incident, Criticality } from '../../../types';
 import { where } from 'firebase/firestore';
 import { useStore } from '../../../store';
-import { Clock, AlertTriangle, Loader2 } from '../../ui/Icons';
+import { Clock, AlertTriangle, Loader2, ShieldCheck } from '../../ui/Icons';
 import { GlassCard } from '../../ui/GlassCard';
+import { EmptyState } from '../../ui/EmptyState';
 
 interface IncidentsStatsWidgetProps {
     navigate?: (path: string) => void;
@@ -55,6 +56,38 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
             <div className="h-full flex items-center justify-center min-h-[200px]">
                 <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
             </div>
+        );
+    }
+
+    // Empty state when no incidents
+    if (incidents.length === 0) {
+        return (
+            <GlassCard
+                className="h-full flex flex-col p-5 overflow-hidden"
+                hoverEffect={true}
+                gradientOverlay={true}
+            >
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
+                    <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
+                        <span className="relative flex h-2.5 w-2.5">
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+                        </span>
+                        Incidents
+                    </h3>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center relative z-10">
+                    <EmptyState
+                        icon={ShieldCheck}
+                        title="Aucun incident enregistré"
+                        description="Votre organisation n'a déclaré aucun incident de sécurité."
+                        actionLabel="Déclarer un incident"
+                        onAction={() => navigate && navigate('/incidents')}
+                        semantic="success"
+                        compact
+                    />
+                </div>
+            </GlassCard>
         );
     }
 

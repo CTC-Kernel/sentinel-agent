@@ -30,7 +30,7 @@ import {
 import { Button } from '../components/ui/button';
 import { EbiosReportService } from '../services/EbiosReportService';
 import { SMSIService } from '../services/SMSIService';
-import { SMSIStatsWidget } from '../components/smsi/SMSIStatsWidget';
+import { SMSIPremiumStats } from '../components/smsi/SMSIPremiumStats';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -324,7 +324,7 @@ export const SMSIProgramView: React.FC = () => {
       />
 
       {/* Stats Dashboard */}
-      <SMSIStatsWidget program={program} overdueCount={overdueMilestones.length} />
+      <SMSIPremiumStats program={program} overdueCount={overdueMilestones.length} />
 
       <ScrollableTabs
         tabs={tabs}

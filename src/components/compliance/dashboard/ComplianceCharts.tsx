@@ -106,7 +106,7 @@ export const ComplianceCharts: React.FC<ComplianceChartsProps> = ({
         }
         acc[domain].total++;
         if (control.status === 'Implémenté') acc[domain].implemented++;
-        acc[domain].inProgress++;
+        if (control.status === 'Partiel') acc[domain].inProgress++;
         return acc;
     }, {} as Record<string, { total: number; implemented: number; inProgress: number }>);
 

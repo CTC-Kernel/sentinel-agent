@@ -14,7 +14,9 @@ interface MaturityRadarWidgetProps {
 
 export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate, referential = "ISO 27001" }) => {
     const radarGradientId = React.useId();
-    const totalScore = Math.round(radarData.reduce((acc, curr) => acc + curr.A, 0) / radarData.length);
+    const totalScore = radarData.length > 0
+        ? Math.round(radarData.reduce((acc, curr) => acc + curr.A, 0) / radarData.length)
+        : 0;
 
     return (
         <div className="relative group/chart flex flex-col items-center pt-2 w-full h-full min-h-[380px]">

@@ -1,12 +1,12 @@
 import React, { useDeferredValue, useMemo, useState, useCallback } from 'react';
 import { SEO } from '../components/SEO';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Document, UserProfile } from '../types';
 import { getUserAvatarUrl } from '../utils/avatarUtils';
 import { canEditResource } from '../utils/permissions';
-import { Plus, MoreVertical, FileText, Upload, Bell, History, CheckCircle2, Edit, FileSpreadsheet } from '../components/ui/Icons';
+import { Plus, MoreVertical, FileText, Upload, Bell, History, CheckCircle2, Edit, FileSpreadsheet, LayoutDashboard, FolderOpen } from '../components/ui/Icons';
 import { CardSkeleton, ListSkeleton } from '../components/ui/Skeleton';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
@@ -24,6 +24,8 @@ import { DocumentTemplateModal } from '../components/documents/DocumentTemplateM
 import { DocumentTemplate } from '../data/documentTemplates';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { DocumentsCharts } from '../components/documents/DocumentsCharts';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { useDocumentWorkflow } from '../hooks/documents/useDocumentWorkflow';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
 import { useDocumentsData } from '../hooks/documents/useDocumentsData';
@@ -83,6 +85,7 @@ export const Documents: React.FC = () => {
     }, [usersList, user]);
 
     // --- State ---
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'documents'>('documents-active-tab', 'overview');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [filter, setFilter] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix' | 'kanban'>('grid');
@@ -92,6 +95,12 @@ export const Documents: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [templateData, setTemplateData] = useState<DocumentTemplate | null>(null);
+
+    // Tabs configuration
+    const tabs = useMemo(() => [
+        { id: 'overview', label: t('documents.overview') || 'Vue d\'ensemble', icon: LayoutDashboard },
+        { id: 'documents', label: t('documents.list') || 'Documents', icon: FolderOpen },
+    ], [t]);
 
     // --- Hooks Integration ---
     const {
@@ -334,20 +343,47 @@ export const Documents: React.FC = () => {
                 actions={undefined}
             />
 
-            {/* Advanced Charts Dashboard */}
-            {loading ? (
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    {[...Array(4)].map((_, i) => (
-                        <div key={i} className="glass-premium p-6 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                    ))}
-                </div>
-            ) : (
-                <>
-                    <motion.div variants={slideUpVariants}>
-                        <DocumentsCharts documents={documents} loading={loading} />
-                    </motion.div>
+            {/* Tabs Navigation */}
+            <div className="mb-6">
+                <ScrollableTabs
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={(id) => setActiveTab(id as 'overview' | 'documents')}
+                />
+            </div>
 
-                    <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[calc(100vh-200px)] min-h-0">
+            <AnimatePresence mode="wait">
+                {/* Overview Tab - Charts Dashboard */}
+                {activeTab === 'overview' && (
+                    <motion.div
+                        key="overview"
+                        variants={slideUpVariants}
+                        initial="initial"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        {loading ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                                {[...Array(4)].map((_, i) => (
+                                    <div key={i} className="glass-premium p-6 rounded-4xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                                ))}
+                            </div>
+                        ) : (
+                            <DocumentsCharts documents={documents} loading={loading} />
+                        )}
+                    </motion.div>
+                )}
+
+                {/* Documents Tab - Folder Tree & List */}
+                {activeTab === 'documents' && (
+                    <motion.div
+                        key="documents"
+                        variants={slideUpVariants}
+                        initial="initial"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[calc(100vh-200px)] min-h-0">
                         {/* Folder Tree Sidebar */}
                         <div className="w-full lg:w-72 flex-shrink-0 glass-premium rounded-3xl border border-border/50 shadow-apple-sm overflow-hidden flex flex-col min-w-0">
                             <FolderTree
@@ -498,8 +534,9 @@ export const Documents: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </>
+                </motion.div>
             )}
+            </AnimatePresence>
 
             {/* Document Details Drawer (Inspector) */}
             <DocumentInspector

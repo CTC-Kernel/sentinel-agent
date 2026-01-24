@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, HelpCircle, Globe, ChevronDown, LayoutDashboard, FolderKanban, FileText, Calendar, Siren, Bug, Box, ShieldAlert, Activity, HeartPulse, Fingerprint, Server, Building, Briefcase, Users, Gauge, Save, Brain, Database, Headset, Info, type LucideIcon } from '../components/ui/Icons';
+import { Check, X, HelpCircle, Globe, ChevronDown, LayoutDashboard, FolderKanban, FileText, Calendar, Siren, Bug, Box, ShieldAlert, Activity, HeartPulse, Fingerprint, Server, Building, Briefcase, Users, Gauge, Save, Brain, Database, Headset, Info, Sparkles, Crown, Star, Building2, ArrowRight, type LucideIcon } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -10,11 +10,36 @@ import { Tooltip } from '../components/ui/Tooltip';
 import { ContactModal } from '../components/ui/ContactModal';
 import { LegalModal } from '../components/ui/LegalModal';
 import { PLANS } from '../config/plans';
+import { cn } from '../lib/utils';
 
 import { useStore } from '../store';
 import { SubscriptionService } from '../services/subscriptionService';
 import { PlanType } from '../types';
 import { toast } from '../lib/toast';
+
+// Plan icons mapping
+const PLAN_ICONS: Record<string, LucideIcon> = {
+  discovery: Star,
+  professional: Crown,
+  enterprise: Building2
+};
+
+// Plan gradient mapping
+const PLAN_GRADIENTS: Record<string, { from: string; to: string; glow: string }> = {
+  discovery: { from: 'from-slate-400', to: 'to-slate-500', glow: 'shadow-slate-400/20' },
+  professional: { from: 'from-brand-500', to: 'to-violet-600', glow: 'shadow-brand-500/30' },
+  enterprise: { from: 'from-purple-500', to: 'to-fuchsia-600', glow: 'shadow-purple-500/30' }
+};
+
+// Tech corner decoration
+const TechCorners: React.FC<{ className?: string; color?: string }> = ({ className, color = 'brand-500/30' }) => (
+  <div className={cn("pointer-events-none", className)}>
+    <div className={`absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-${color} rounded-tl-lg`} />
+    <div className={`absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-${color} rounded-tr-lg`} />
+    <div className={`absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-${color} rounded-bl-lg`} />
+    <div className={`absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-${color} rounded-br-lg`} />
+  </div>
+);
 
 const Pricing = () => {
   const { t } = useTranslation();
@@ -127,9 +152,9 @@ const Pricing = () => {
   };
 
   const renderFeatureValue = (value: string | boolean) => {
-    if (value === true) return <Check className="w-5 h-5 text-success-text mx-auto" />;
-    if (value === false) return <X className="w-5 h-5 text-slate-500 mx-auto opacity-50" />;
-    return <span className="font-medium text-slate-700 dark:text-slate-300 text-sm">{value}</span>;
+    if (value === true) return <Check className="w-5 h-5 text-success-500 mx-auto" />;
+    if (value === false) return <X className="w-5 h-5 text-slate-300 dark:text-slate-600 mx-auto" />;
+    return <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{value}</span>;
   };
 
   const faqs = [
@@ -146,10 +171,19 @@ const Pricing = () => {
       <div className="relative z-10 container mx-auto px-4 pt-32 lg:pt-40">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-6"
+          >
+            <Sparkles className="w-4 h-4 text-brand-500" />
+            <span className="text-sm font-bold text-brand-600 dark:text-brand-400">Tarification transparente</span>
+          </motion.div>
+
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400"
+            className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white"
           >
             {t('common.pricingTitle')}
           </motion.h1>
@@ -157,7 +191,7 @@ const Pricing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-lg md:text-xl text-slate-600 dark:text-muted-foreground font-medium"
+            className="text-lg md:text-xl text-slate-600 dark:text-slate-400 font-medium"
           >
             {t('common.pricingSubtitle')}
           </motion.p>
@@ -167,84 +201,190 @@ const Pricing = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="mt-10 inline-flex items-center p-1 rounded-full bg-slate-200/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700"
+            className="mt-10 inline-flex items-center p-1.5 rounded-2xl glass-premium border border-white/60 dark:border-white/10 shadow-lg"
           >
             <button
               onClick={() => setIsAnnual(false)}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${!isAnnual ? 'bg-white dark:bg-slate-700 shadow-md text-brand-600 dark:text-brand-400' : 'text-muted-foreground hover:text-foreground'}`}
+              className={cn(
+                "px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300",
+                !isAnnual
+                  ? 'bg-white dark:bg-slate-800 shadow-md text-slate-900 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              )}
             >
               Mensuel
             </button>
             <button
               onClick={() => setIsAnnual(true)}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${isAnnual ? 'bg-white dark:bg-slate-700 shadow-md text-brand-600 dark:text-brand-400' : 'text-muted-foreground hover:text-foreground'}`}
+              className={cn(
+                "px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2",
+                isAnnual
+                  ? 'bg-white dark:bg-slate-800 shadow-md text-slate-900 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              )}
             >
               Annuel
-              <span className="px-2 py-0.5 rounded-full bg-success-bg text-success-text text-[10px] uppercase tracking-wider font-extrabold">-20%</span>
+              <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-success-500 to-emerald-500 text-white text-[10px] uppercase tracking-wider font-black shadow-sm">
+                -20%
+              </span>
             </button>
           </motion.div>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-24 max-w-7xl mx-auto">
           {Object.entries(PLANS).map(([key, plan], index) => {
             const isPopular = plan.highlight;
             const price = isAnnual ? Math.round(plan.priceYearly / 12) : plan.priceMonthly;
+            const PlanIcon = PLAN_ICONS[plan.id] || Star;
+            const gradient = PLAN_GRADIENTS[plan.id] || PLAN_GRADIENTS.discovery;
+
             return (
               <motion.div
                 key={plan.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.3 }}
-                className={`relative group p-8 rounded-4xl border transition-all duration-500 ${isPopular
-                  ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white border-transparent shadow-2xl scale-105 z-10'
-                  : 'bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                  }`}
+                className={cn(
+                  "relative group rounded-4xl transition-all duration-500 overflow-hidden",
+                  isPopular
+                    ? 'md:scale-105 z-10'
+                    : 'hover:scale-[1.02]'
+                )}
               >
+                {/* Card Background */}
+                <div className={cn(
+                  "absolute inset-0",
+                  isPopular
+                    ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+                    : 'glass-premium'
+                )} />
+
+                {/* Glow effect for popular */}
                 {isPopular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-brand-600 to-violet-600 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg">
-                    Recommandé
+                  <div className="absolute inset-0 bg-gradient-to-br from-brand-500/20 via-transparent to-violet-500/20 pointer-events-none" />
+                )}
+
+                {/* Border */}
+                <div className={cn(
+                  "absolute inset-0 rounded-4xl border-2",
+                  isPopular
+                    ? 'border-brand-500/50'
+                    : 'border-white/60 dark:border-white/10'
+                )} />
+
+                {/* Popular badge */}
+                {isPopular && (
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2">
+                    <div className="px-4 py-1.5 bg-gradient-to-r from-brand-500 to-violet-600 text-white text-xs font-black uppercase tracking-wider rounded-b-xl shadow-lg shadow-brand-500/30">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3" />
+                        Recommandé
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                <div className="mb-8">
-                  <h3 className={`text-xl font-bold mb-2 ${isPopular ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{plan.name}</h3>
-                  <div className="flex items-baseline gap-1">
-                    <span className={`text-4xl font-black ${isPopular ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
-                      {price === 0 ? '0€' : `${price}€`}
-                    </span>
-                    <span className={`text-sm font-medium ${isPopular ? 'text-slate-300' : 'text-slate-500'}`}>/mois</span>
+                {/* Card Content */}
+                <div className="relative p-8 pt-10">
+                  {/* Plan Icon & Name */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className={cn(
+                      "p-3 rounded-2xl shadow-lg",
+                      `bg-gradient-to-br ${gradient.from} ${gradient.to} ${gradient.glow}`
+                    )}>
+                      <PlanIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className={cn(
+                        "text-xl font-black",
+                        isPopular ? 'text-white' : 'text-slate-900 dark:text-white'
+                      )}>
+                        {plan.name}
+                      </h3>
+                    </div>
                   </div>
-                  <p className={`mt-4 text-sm leading-relaxed ${isPopular ? 'text-slate-300' : 'text-slate-500'}`}>
+
+                  {/* Price */}
+                  <div className="mb-6">
+                    <div className="flex items-baseline gap-1">
+                      <span className={cn(
+                        "text-5xl font-black tracking-tight",
+                        isPopular ? 'text-white' : 'text-slate-900 dark:text-white'
+                      )}>
+                        {price === 0 ? '0' : price}€
+                      </span>
+                      <span className={cn(
+                        "text-sm font-bold",
+                        isPopular ? 'text-slate-400' : 'text-slate-500'
+                      )}>
+                        /mois
+                      </span>
+                    </div>
+                    {isAnnual && price > 0 && (
+                      <p className={cn(
+                        "text-xs font-medium mt-1",
+                        isPopular ? 'text-slate-400' : 'text-slate-500'
+                      )}>
+                        Facturé {plan.priceYearly}€/an
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <p className={cn(
+                    "text-sm leading-relaxed mb-8",
+                    isPopular ? 'text-slate-300' : 'text-slate-600 dark:text-slate-400'
+                  )}>
                     {key === 'DISCOVERY' ? 'Pour découvrir la plateforme et gérer vos premiers risques.' :
                       key === 'professional' ? 'Pour les équipes structurées qui visent la conformité ISO.' :
                         'Pour les grandes organisations avec des besoins complexes de gouvernance.'}
                   </p>
-                </div>
 
-                <Button
-                  onClick={() => handleSelectPlan(plan.id)}
-                  isLoading={isLoading === plan.id}
-                  disabled={!!isLoading}
-                  className={`w-full h-12 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 ${isPopular
-                    ? 'bg-white text-slate-900 hover:bg-slate-100 hover:scale-[1.02]'
-                    : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-[1.02]'
-                    }`}
-                >
-                  {isLoading === plan.id ? 'Chargement...' : 'Commencer'}
-                </Button>
+                  {/* CTA Button */}
+                  <Button
+                    onClick={() => handleSelectPlan(plan.id)}
+                    isLoading={isLoading === plan.id}
+                    disabled={!!isLoading}
+                    className={cn(
+                      "w-full h-12 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 group/btn",
+                      isPopular
+                        ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-lg shadow-white/20'
+                        : 'bg-gradient-to-r from-slate-900 to-slate-800 dark:from-white dark:to-slate-100 text-white dark:text-slate-900 hover:shadow-lg'
+                    )}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      {isLoading === plan.id ? 'Chargement...' : (
+                        <>
+                          Commencer
+                          <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all" />
+                        </>
+                      )}
+                    </span>
+                  </Button>
 
-                <div className="mt-8 space-y-4">
-                  {(plan.featuresList || []).slice(0, 5).map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className={`mt-1 p-0.5 rounded-full ${isPopular ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800'}`}>
-                        <Check className={`w-3 h-3 ${isPopular ? 'text-white' : 'text-slate-900 dark:text-white'}`} />
+                  {/* Features List */}
+                  <div className="mt-8 space-y-3">
+                    {(plan.featuresList || []).slice(0, 6).map((feature, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className={cn(
+                          "mt-0.5 p-1 rounded-lg",
+                          isPopular ? 'bg-white/10' : 'bg-success-500/10'
+                        )}>
+                          <Check className={cn(
+                            "w-3 h-3",
+                            isPopular ? 'text-white' : 'text-success-500'
+                          )} />
+                        </div>
+                        <span className={cn(
+                          "text-sm font-medium",
+                          isPopular ? 'text-slate-300' : 'text-slate-600 dark:text-slate-400'
+                        )}>
+                          {feature}
+                        </span>
                       </div>
-                      <span className={`text-sm font-medium ${isPopular ? 'text-slate-200' : 'text-slate-600 dark:text-slate-400'}`}>
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             );
@@ -252,31 +392,56 @@ const Pricing = () => {
         </div>
 
         {/* Detailed Comparison Table */}
-        <div className="max-w-7xl mx-auto mb-20">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="max-w-7xl mx-auto mb-20"
+        >
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Comparaison Détaillée</h2>
-            <p className="text-slate-500">Tout ce inclus dans chaque plan.</p>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Comparaison Détaillée</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Tout ce qui est inclus dans chaque plan</p>
           </div>
 
-          <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-5xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
+          <div className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl relative">
+            <TechCorners />
+
             {/* Table Header - Sticky */}
-            <div className="grid grid-cols-4 p-6 border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
-              <div className="col-span-1 p-2 font-bold text-slate-500 uppercase text-xs tracking-wider">Fonctionnalités</div>
-              <div className="col-span-1 p-2 text-center font-bold text-slate-900 dark:text-white">Discovery</div>
-              <div className="col-span-1 p-2 text-center font-bold text-brand-600 dark:text-brand-400">Professional</div>
-              <div className="col-span-1 p-2 text-center font-bold text-slate-900 dark:text-white">Enterprise</div>
+            <div className="grid grid-cols-4 p-6 border-b border-slate-200/50 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
+              <div className="col-span-1 p-2 font-black text-slate-500 uppercase text-xs tracking-wider">Fonctionnalités</div>
+              <div className="col-span-1 p-2 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800">
+                  <Star className="w-4 h-4 text-slate-500" />
+                  <span className="font-bold text-slate-700 dark:text-slate-300">Discovery</span>
+                </div>
+              </div>
+              <div className="col-span-1 p-2 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-brand-500/10 to-violet-500/10 border border-brand-500/20">
+                  <Crown className="w-4 h-4 text-brand-500" />
+                  <span className="font-bold text-brand-600 dark:text-brand-400">Professional</span>
+                </div>
+              </div>
+              <div className="col-span-1 p-2 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30">
+                  <Building2 className="w-4 h-4 text-purple-500" />
+                  <span className="font-bold text-purple-700 dark:text-purple-300">Enterprise</span>
+                </div>
+              </div>
             </div>
 
             {/* Feature Categories */}
-            <div className="divide-y divide-slate-200 dark:divide-white/5">
+            <div className="divide-y divide-slate-200/50 dark:divide-white/5">
               {featureCategories.map((category) => (
-                <div key={category.id} className="transition-colors hover:bg-slate-50/30 dark:hover:bg-white/5">
+                <div key={category.id}>
                   <button
                     onClick={() => toggleCategory(category.id)}
-                    className="w-full flex items-center justify-between p-6 bg-slate-50/50 dark:bg-slate-900/30 font-bold text-left hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
+                    className="w-full flex items-center justify-between p-6 bg-slate-50/50 dark:bg-slate-800/30 font-bold text-left hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
                   >
-                    <span className="text-lg text-slate-800 dark:text-slate-200">{category.title}</span>
-                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${expandedCategories.includes(category.id) ? 'rotate-180' : ''}`} />
+                    <span className="text-lg font-black text-slate-800 dark:text-slate-200">{category.title}</span>
+                    <ChevronDown className={cn(
+                      "w-5 h-5 text-slate-400 transition-transform duration-300",
+                      expandedCategories.includes(category.id) && 'rotate-180 text-brand-500'
+                    )} />
                   </button>
 
                   <AnimatePresence>
@@ -287,12 +452,19 @@ const Pricing = () => {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="divide-y divide-slate-100 dark:divide-white/5">
+                        <div className="divide-y divide-slate-100/50 dark:divide-white/5">
                           {category.features.map((feature, idx) => (
-                            <div key={idx} className="grid grid-cols-4 p-4 items-center hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                            <div
+                              key={idx}
+                              className="grid grid-cols-4 p-4 items-center hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
+                            >
                               <div className="col-span-1 flex items-center gap-3 pl-4">
-                                {feature.icon && <feature.icon className="w-4 h-4 text-muted-foreground" />}
-                                <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
+                                {feature.icon && (
+                                  <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800">
+                                    <feature.icon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                  </div>
+                                )}
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
                                   {feature.name}
                                   {feature.tooltip && (
                                     <Tooltip content={feature.tooltip}>
@@ -301,9 +473,9 @@ const Pricing = () => {
                                   )}
                                 </span>
                               </div>
-                              <div className="col-span-1 text-center">{renderFeatureValue(feature.discovery)}</div>
-                              <div className="col-span-1 text-center bg-brand-50/30 dark:bg-brand-900/10 py-2 rounded-lg">{renderFeatureValue(feature.professional)}</div>
-                              <div className="col-span-1 text-center">{renderFeatureValue(feature.enterprise)}</div>
+                              <div className="col-span-1 text-center py-2">{renderFeatureValue(feature.discovery)}</div>
+                              <div className="col-span-1 text-center bg-brand-50/30 dark:bg-brand-900/10 py-2 rounded-xl mx-2">{renderFeatureValue(feature.professional)}</div>
+                              <div className="col-span-1 text-center py-2">{renderFeatureValue(feature.enterprise)}</div>
                             </div>
                           ))}
                         </div>
@@ -314,30 +486,40 @@ const Pricing = () => {
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* FAQ Section */}
-        <div className="glass-premium p-0 rounded-5xl overflow-hidden mb-24 max-w-4xl mx-auto">
-          <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 overflow-hidden mb-24 max-w-4xl mx-auto relative"
+        >
+          <TechCorners />
+
+          <div className="px-8 lg:px-10 pt-8 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100/50 dark:border-white/5 flex items-center justify-between">
             <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.faq', 'FAQ')}</h3>
-              <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1 font-medium">{t('pricing.faqDesc', 'Questions fréquentes')}</p>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{t('pricing.faq', 'FAQ')}</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc', 'Questions fréquentes')}</p>
             </div>
-            <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-              <HelpCircle className="w-6 h-6 text-slate-500" />
+            <div className="p-3 bg-gradient-to-br from-brand-500/10 to-violet-500/10 rounded-2xl border border-brand-500/20">
+              <HelpCircle className="w-6 h-6 text-brand-500" />
             </div>
           </div>
 
-          <div className="divide-y divide-slate-100 dark:divide-white/5">
+          <div className="divide-y divide-slate-100/50 dark:divide-white/5">
             {faqs.map((faq, i) => (
               <div key={i} className="group">
                 <button
                   onClick={() => setExpandedCategories(prev => prev.includes(`faq-${i}`) ? prev.filter(c => c !== `faq-${i}`) : [...prev, `faq-${i}`])}
-                  className="w-full flex items-center justify-between p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center justify-between p-6 lg:p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
                 >
-                  <span className="font-bold text-slate-800 dark:text-slate-200 text-base">{faq.q}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 text-base pr-4">{faq.q}</span>
                   <ChevronDown
-                    className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${expandedCategories.includes(`faq-${i}`) ? 'rotate-180 text-brand-500' : ''}`}
+                    className={cn(
+                      "w-5 h-5 text-slate-400 flex-shrink-0 transition-transform duration-300",
+                      expandedCategories.includes(`faq-${i}`) && 'rotate-180 text-brand-500'
+                    )}
                   />
                 </button>
                 <AnimatePresence>
@@ -348,8 +530,8 @@ const Pricing = () => {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-8 pb-8 pt-0">
-                        <p className="text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                      <div className="px-6 lg:px-8 pb-6 lg:pb-8 pt-0">
+                        <p className="text-base text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
                           {faq.a}
                         </p>
                       </div>
@@ -359,25 +541,49 @@ const Pricing = () => {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
+
+        {/* CTA Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 p-8 lg:p-12 max-w-4xl mx-auto mb-16 text-center relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 via-transparent to-violet-500/5 pointer-events-none" />
+          <TechCorners />
+
+          <div className="relative z-10">
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
+              Besoin d'une solution sur mesure ?
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 font-medium mb-8 max-w-lg mx-auto">
+              Notre équipe peut vous accompagner dans la définition de vos besoins et vous proposer une offre adaptée.
+            </p>
+            <Button
+              onClick={() => setIsContactOpen(true)}
+              className="px-8 py-3 h-auto bg-gradient-to-r from-brand-500 to-violet-600 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-xl hover:shadow-brand-500/30 transition-all duration-300"
+            >
+              <span className="flex items-center gap-2">
+                <Headset className="w-5 h-5" />
+                Contactez-nous
+              </span>
+            </Button>
+          </div>
+        </motion.div>
 
         {/* Footer Section */}
-        <div className="text-center pb-8 border-t border-slate-200 dark:border-slate-800 pt-8 mt-12">
-          <p className="text-sm text-slate-500 font-medium mb-4">
-            {t('pricing.contact.text', 'Besoin de plus d\'informations ?')}
-            <Button
-              variant="link"
-              onClick={() => setIsContactOpen(true)}
-              className="ml-1 text-slate-900 dark:text-white hover:underline font-bold h-auto p-0"
-            >
-              {t('pricing.contact.link', 'Contactez-nous')}
-            </Button>
-          </p>
-
-          <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-medium text-slate-500">
-            <Button variant="ghost" size="sm" onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">CGV</Button>
-            <Button variant="ghost" size="sm" onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">Confidentialité</Button>
-            <Button variant="ghost" size="sm" onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">Mentions Légales</Button>
+        <div className="text-center pb-8 border-t border-slate-200/50 dark:border-white/5 pt-8">
+          <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-bold text-slate-500">
+            <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
+              CGV
+            </button>
+            <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
+              Confidentialité
+            </button>
+            <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5">
+              Mentions Légales
+            </button>
           </div>
         </div>
       </div>

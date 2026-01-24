@@ -27,7 +27,7 @@ import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { OnboardingService } from '../services/onboardingService';
 import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
-import { AuditStatsWidget } from '../components/audits/AuditStatsWidget';
+import { AuditPremiumStats } from '../components/audits/AuditPremiumStats';
 
 export const Audits: React.FC = () => {
     const { user, t } = useStore();
@@ -214,7 +214,7 @@ export const Audits: React.FC = () => {
                 />
             </div>
 
-            <AuditStatsWidget
+            <AuditPremiumStats
                 audits={filteredAudits}
                 findingsCount={filteredAudits.flatMap(a => a.findings || []).filter(f => f.status === 'Ouvert').length}
             />
