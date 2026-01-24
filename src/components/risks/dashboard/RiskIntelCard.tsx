@@ -134,7 +134,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                     </div>
 
                     {/* Visual Bar Comparison */}
-                    <div className="relative pt-6 pb-2">
+                    <div className="relative pt-6 pb-2 overflow-hidden">
                         {/* 1. Inherent Bar (Background) */}
                         <div className="relative h-12 md:h-16 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
                             <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-200 to-red-100 dark:from-red-900/40 dark:to-red-800/20 w-full" />
@@ -147,23 +147,21 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                         {/* 2. Residual Bar (Foreground) */}
                         <motion.div
                             initial={{ width: "100%" }}
-                            animate={{ width: `${(metrics.avgResidual / metrics.avgInherent) * 100}%` }}
+                            animate={{ width: `${Math.max((metrics.avgResidual / metrics.avgInherent) * 100, 25)}%` }}
                             transition={{ duration: 1.2, ease: "circOut", delay: 0.3 }}
-                            className="absolute top-6 left-0 h-12 md:h-16 bg-gradient-to-r from-success-text to-brand-500 rounded-full shadow-lg shadow-brand-500/20 z-10 flex items-center overflow-visible"
+                            className="absolute top-6 left-0 h-12 md:h-16 bg-gradient-to-r from-success-text to-brand-500 rounded-full shadow-lg shadow-brand-500/20 z-10 flex items-center justify-end overflow-hidden"
                         >
-                            <div className="absolute right-4 text-right min-w-[100px]">
+                            <div className="pr-4 text-right shrink-0">
                                 <span className="block text-xs font-bold text-white/90 uppercase tracking-wider text-shadow-sm">Risque Résiduel</span>
                                 <span className="block text-lg md:text-2xl font-black text-white text-shadow-md">{metrics.avgResidual.toFixed(1)}</span>
                             </div>
-
-                            {/* The "Gap" Connector */}
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full pl-4 hidden md:flex items-center gap-2 opacity-80">
-                                <ArrowRight className="text-slate-400 w-5 h-5 animate-pulse" />
-                                <span className="text-xs font-bold text-slate-500 px-2 py-1 bg-white/80 dark:bg-black/50 rounded-md backdrop-blur-sm shadow-sm ring-1 ring-black/5">
-                                    Valeur Créée: Sécurisation
-                                </span>
-                            </div>
                         </motion.div>
+                    </div>
+
+                    {/* Value indicator below the bars */}
+                    <div className="flex items-center justify-center gap-2 mt-4 text-sm text-slate-500 dark:text-slate-400">
+                        <ArrowRight className="w-4 h-4" />
+                        <span className="font-medium">Valeur Créée: Sécurisation du patrimoine</span>
                     </div>
 
                     <p className="mt-6 text-xs text-center text-slate-400 max-w-lg mx-auto">
