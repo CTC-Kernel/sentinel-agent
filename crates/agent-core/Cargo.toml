@@ -40,7 +40,7 @@ signal-hook.workspace = true
 # DEB package metadata (cargo-deb)
 [package.metadata.deb]
 name = "sentinel-agent"
-maintainer = "Cyber Threat Consulting <support@cyber-threat-consulting.com>"
+maintainer = "Cyber Threat Consulting <***REMOVED***>"
 copyright = "2024-2026 Cyber Threat Consulting"
 license-file = ["../../LICENSE", "0"]
 extended-description = """\

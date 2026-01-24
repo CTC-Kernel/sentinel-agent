@@ -38,12 +38,24 @@ impl AgentTrayStatus {
 /// Menu item identifiers.
 mod menu_ids {
     pub const STATUS: &str = "status";
+    pub const VERSION: &str = "version";
     pub const PAUSE: &str = "pause";
     pub const RESUME: &str = "resume";
     pub const CHECK_NOW: &str = "check_now";
     pub const OPEN_LOGS: &str = "open_logs";
     pub const OPEN_DASHBOARD: &str = "open_dashboard";
+    pub const OPEN_WEBSITE: &str = "open_website";
+    pub const OPEN_GUIDE: &str = "open_guide";
+    pub const ABOUT: &str = "about";
     pub const QUIT: &str = "quit";
+}
+
+/// URLs for Cyber Threat Consulting
+mod urls {
+    pub const DASHBOARD: &str = "https://app.cyber-threat-consulting.com/settings?tab=agents";
+    pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
+    pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs/sentinel-agent";
+    pub const CONTACT: &str = "mailto:***REMOVED***";
 }
 
 /// System tray manager for the agent.
@@ -64,7 +76,10 @@ struct TrayMenuItems {
 impl AgentTray {
     /// Create a new system tray icon with menu.
     pub fn new(shutdown: ShutdownSignal) -> Result<Self, TrayError> {
-        // Create menu items
+        // Get version from Cargo.toml
+        let version = env!("CARGO_PKG_VERSION");
+
+        // Create menu items - Header section
         let status_item = MenuItem::with_id(
             menu_ids::STATUS,
             "Statut: Actif",
@@ -72,35 +87,72 @@ impl AgentTray {
             None,
         );
 
-        let pause_item = MenuItem::with_id(menu_ids::PAUSE, "Mettre en pause", true, None);
+        let version_item = MenuItem::with_id(
+            menu_ids::VERSION,
+            format!("Version: {}", version),
+            false, // disabled - just for display
+            None,
+        );
+
+        // Control section
+        let pause_item = MenuItem::with_id(menu_ids::PAUSE, "⏸ Mettre en pause", true, None);
 
         let resume_item = MenuItem::with_id(
             menu_ids::RESUME,
-            "Reprendre",
+            "▶ Reprendre",
             false, // initially disabled
             None,
         );
 
         let check_now_item =
-            MenuItem::with_id(menu_ids::CHECK_NOW, "Vérifier maintenant", true, None);
+            MenuItem::with_id(menu_ids::CHECK_NOW, "🔄 Vérifier maintenant", true, None);
 
-        let open_logs_item = MenuItem::with_id(menu_ids::OPEN_LOGS, "Ouvrir les logs", true, None);
+        // Resources section
+        let open_logs_item = MenuItem::with_id(menu_ids::OPEN_LOGS, "📁 Ouvrir les logs", true, None);
 
         let open_dashboard_item = MenuItem::with_id(
             menu_ids::OPEN_DASHBOARD,
-            "Ouvrir le tableau de bord",
+            "📊 Tableau de bord",
             true,
             None,
         );
 
-        let quit_item = MenuItem::with_id(menu_ids::QUIT, "Quitter", true, None);
+        // Help section
+        let open_website_item = MenuItem::with_id(
+            menu_ids::OPEN_WEBSITE,
+            "🌐 Site web",
+            true,
+            None,
+        );
 
-        // Build the menu
+        let open_guide_item = MenuItem::with_id(
+            menu_ids::OPEN_GUIDE,
+            "📖 Guide utilisateur",
+            true,
+            None,
+        );
+
+        let about_item = MenuItem::with_id(
+            menu_ids::ABOUT,
+            "ℹ️ À propos",
+            true,
+            None,
+        );
+
+        let quit_item = MenuItem::with_id(menu_ids::QUIT, "❌ Quitter", true, None);
+
+        // Build the menu with organized sections
         let menu = Menu::new();
+
+        // === Header Section ===
         menu.append(&status_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&version_item)
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
         menu.append(&PredefinedMenuItem::separator())
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+
+        // === Control Section ===
         menu.append(&pause_item)
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
         menu.append(&resume_item)
@@ -109,12 +161,26 @@ impl AgentTray {
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
         menu.append(&PredefinedMenuItem::separator())
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
-        menu.append(&open_logs_item)
-            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+
+        // === Resources Section ===
         menu.append(&open_dashboard_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&open_logs_item)
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
         menu.append(&PredefinedMenuItem::separator())
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+
+        // === Help Section ===
+        menu.append(&open_guide_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&open_website_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&about_item)
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+        menu.append(&PredefinedMenuItem::separator())
+            .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
+
+        // === Exit ===
         menu.append(&quit_item)
             .map_err(|e| TrayError::MenuBuild(e.to_string()))?;
 
@@ -194,7 +260,19 @@ impl AgentTray {
             }
             menu_ids::OPEN_DASHBOARD => {
                 info!("Opening dashboard");
-                open_dashboard();
+                open_url(urls::DASHBOARD);
+            }
+            menu_ids::OPEN_WEBSITE => {
+                info!("Opening website");
+                open_url(urls::WEBSITE);
+            }
+            menu_ids::OPEN_GUIDE => {
+                info!("Opening user guide");
+                open_url(urls::GUIDE);
+            }
+            menu_ids::ABOUT => {
+                info!("Opening about/contact");
+                show_about_dialog();
             }
             menu_ids::QUIT => {
                 info!("User requested quit");
@@ -251,12 +329,41 @@ fn open_logs_folder() {
     }
 }
 
-/// Open the web dashboard in the default browser.
-fn open_dashboard() {
-    // Opens the dedicated agent settings page in Sentinel GRC
-    let dashboard_url = "https://app.cyber-threat-consulting.com/settings?tab=agents";
-    if let Err(e) = open::that(dashboard_url) {
-        error!("Failed to open dashboard: {}", e);
+/// Open a URL in the default browser.
+fn open_url(url: &str) {
+    if let Err(e) = open::that(url) {
+        error!("Failed to open URL {}: {}", url, e);
+    }
+}
+
+/// Show the about dialog with agent information.
+fn show_about_dialog() {
+    let version = env!("CARGO_PKG_VERSION");
+
+    // Create an about message - on macOS/Windows this will open a simple dialog
+    // For now, we open a contact page with all info
+    let about_url = format!(
+        "{}?version={}&os={}",
+        urls::WEBSITE,
+        version,
+        std::env::consts::OS
+    );
+
+    info!(
+        "Sentinel Agent v{} - Cyber Threat Consulting\n\
+         Platform: {}\n\
+         Website: {}\n\
+         Contact: ***REMOVED***",
+        version,
+        std::env::consts::OS,
+        urls::WEBSITE
+    );
+
+    // Open the website with version info
+    if let Err(e) = open::that(&about_url) {
+        // Fallback to just opening the website
+        let _ = open::that(urls::WEBSITE);
+        warn!("Failed to open about URL: {}", e);
     }
 }
 
