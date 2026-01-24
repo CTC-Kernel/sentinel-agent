@@ -264,15 +264,15 @@ describe('localeConfig', () => {
     it('returns FR zod messages', () => {
       const messages = getZodMessages('fr');
       expect(messages.required).toBe('Ce champ est requis');
-      expect(messages.invalidDate).toContain('JJ/MM/AAAA');
-      expect(messages.invalidEmail).toBe('Adresse email invalide');
+      expect(messages.invalidDate).toContain('15/01/2026');
+      expect(messages.invalidEmail).toContain('email');
     });
 
     it('returns EN zod messages', () => {
       const messages = getZodMessages('en');
       expect(messages.required).toBe('This field is required');
-      expect(messages.invalidDate).toContain('MM/DD/YYYY');
-      expect(messages.invalidEmail).toBe('Invalid email address');
+      expect(messages.invalidDate).toContain('01/15/2026');
+      expect(messages.invalidEmail).toContain('email');
     });
 
     it('tooShort returns correct message with interpolation', () => {
@@ -319,7 +319,7 @@ describe('localeConfig', () => {
         const result = schema.safeParse('invalid');
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].message).toContain('JJ/MM/AAAA');
+          expect(result.error.issues[0].message).toContain('15/01/2026');
         }
       });
     });

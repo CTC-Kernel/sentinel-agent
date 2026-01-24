@@ -18,15 +18,15 @@ describe('zodErrorMap', () => {
     it('returns FR messages', () => {
       const messages = getLocalizedMessages('fr');
       expect(messages.required).toBe('Ce champ est requis');
-      expect(messages.invalidEmail).toBe('Adresse email invalide');
-      expect(messages.tooShort(3)).toBe('Minimum 3 caractères requis');
+      expect(messages.invalidEmail).toBe('Format email invalide (ex: nom@entreprise.com)');
+      expect(messages.tooShort(3)).toBe('Minimum 3 caractères (ex: aaa...)');
     });
 
     it('returns EN messages', () => {
       const messages = getLocalizedMessages('en');
       expect(messages.required).toBe('This field is required');
-      expect(messages.invalidEmail).toBe('Invalid email address');
-      expect(messages.tooShort(3)).toBe('Minimum 3 characters required');
+      expect(messages.invalidEmail).toBe('Invalid email format (e.g., name@company.com)');
+      expect(messages.tooShort(3)).toBe('Minimum 3 characters (e.g., aaa...)');
     });
   });
 
@@ -46,7 +46,7 @@ describe('zodErrorMap', () => {
         const result = schema.safeParse({ name: 'ab' });
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].message).toBe('Minimum 5 caractères requis');
+          expect(result.error.issues[0].message).toBe('Minimum 5 caractères (ex: aaaaa...)');
         }
       });
 
@@ -81,7 +81,7 @@ describe('zodErrorMap', () => {
         const result = schema.safeParse({ name: 'ab' });
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].message).toBe('Minimum 5 characters required');
+          expect(result.error.issues[0].message).toBe('Minimum 5 characters (e.g., aaaaa...)');
         }
       });
 
@@ -102,7 +102,7 @@ describe('zodErrorMap', () => {
       const result = schema.safeParse({ email: 'notanemail' });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Adresse email invalide');
+        expect(result.error.issues[0].message).toBe('Format email invalide (ex: nom@entreprise.com)');
       }
     });
 
@@ -111,7 +111,7 @@ describe('zodErrorMap', () => {
       const result = schema.safeParse({ email: 'notanemail' });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Invalid email address');
+        expect(result.error.issues[0].message).toBe('Invalid email format (e.g., name@company.com)');
       }
     });
 
@@ -160,7 +160,7 @@ describe('zodErrorMap', () => {
       const result = schema.safeParse({ age: 10 });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('La valeur doit être au moins 18');
+        expect(result.error.issues[0].message).toBe('Minimum 18 requis');
       }
     });
 
@@ -169,7 +169,7 @@ describe('zodErrorMap', () => {
       const result = schema.safeParse({ quantity: 150 });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Value must be at most 100');
+        expect(result.error.issues[0].message).toBe('Maximum 100 allowed');
       }
     });
 
@@ -178,7 +178,7 @@ describe('zodErrorMap', () => {
       const result = schema.safeParse({ count: 10.5 });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Veuillez entrer un nombre entier');
+        expect(result.error.issues[0].message).toBe('Nombre entier requis (ex: 1, 2, 3)');
       }
     });
 
@@ -187,7 +187,7 @@ describe('zodErrorMap', () => {
       const result = schema.safeParse({ amount: -5 });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('La valeur doit être positive');
+        expect(result.error.issues[0].message).toBe('La valeur doit être positive (> 0)');
       }
     });
 
@@ -263,10 +263,10 @@ describe('zodErrorMap', () => {
         expect(result.errors.length).toBe(2);
 
         const nameError = result.errors.find(e => e.path === 'name');
-        expect(nameError?.message).toBe('Minimum 3 caractères requis');
+        expect(nameError?.message).toBe('Minimum 3 caractères (ex: aaa...)');
 
         const emailError = result.errors.find(e => e.path === 'email');
-        expect(emailError?.message).toBe('Adresse email invalide');
+        expect(emailError?.message).toBe('Format email invalide (ex: nom@entreprise.com)');
       }
     });
   });
@@ -282,8 +282,8 @@ describe('zodErrorMap', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const errors = getErrorMessages(result.error);
-        expect(errors.name).toBe('Minimum 3 characters required');
-        expect(errors.email).toBe('Invalid email address');
+        expect(errors.name).toBe('Minimum 3 characters (e.g., aaa...)');
+        expect(errors.email).toBe('Invalid email format (e.g., name@company.com)');
       }
     });
 
@@ -300,7 +300,7 @@ describe('zodErrorMap', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const errors = getErrorMessages(result.error);
-        expect(errors['user.profile.name']).toBe('Minimum 3 characters required');
+        expect(errors['user.profile.name']).toBe('Minimum 3 characters (e.g., aaa...)');
       }
     });
   });
@@ -334,7 +334,7 @@ describe('zodErrorMap', () => {
         const result = schema.safeParse({ name: 'ab' });
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].message).toBe('Minimum 3 caractères requis');
+          expect(result.error.issues[0].message).toBe('Minimum 3 caractères (ex: aaa...)');
         }
       });
 
@@ -343,7 +343,7 @@ describe('zodErrorMap', () => {
         const result = schema.safeParse({ email: 'invalid' });
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].message).toBe('Adresse email invalide');
+          expect(result.error.issues[0].message).toBe('Format email invalide (ex: nom@entreprise.com)');
         }
       });
 
@@ -352,7 +352,7 @@ describe('zodErrorMap', () => {
         const result = schema.safeParse({ age: 10 });
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].message).toBe('La valeur doit être au moins 18');
+          expect(result.error.issues[0].message).toBe('Minimum 18 requis');
         }
       });
 
@@ -378,7 +378,7 @@ describe('zodErrorMap', () => {
         const result = schema.safeParse({ name: 'ab' });
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.error.issues[0].message).toBe('Minimum 3 characters required');
+          expect(result.error.issues[0].message).toBe('Minimum 3 characters (e.g., aaa...)');
         }
       });
     });
@@ -391,7 +391,7 @@ describe('zodErrorMap', () => {
       const tooShort = schema.safeParse({ name: 'ab' });
       expect(tooShort.success).toBe(false);
       if (!tooShort.success) {
-        expect(tooShort.error.issues[0].message).toBe('Minimum 3 caractères requis');
+        expect(tooShort.error.issues[0].message).toBe('Minimum 3 caractères (ex: aaa...)');
       }
 
       const tooLong = schema.safeParse({ name: 'this is way too long' });

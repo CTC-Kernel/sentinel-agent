@@ -10,16 +10,37 @@ interface ShortcutsHelpProps {
 export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
-    const shortcuts = [
-        { keys: ['Cmd', 'K'], description: 'Ouvrir la palette de commandes' },
-        { keys: ['Cmd', 'H'], description: 'Retour au tableau de bord' },
-        { keys: ['Cmd', 'N'], description: 'Créer un nouvel élément' },
-        { keys: ['Cmd', 'S'], description: 'Sauvegarder (si applicable)' },
-        { keys: ['Cmd', '/'], description: 'Recherche globale' },
-        { keys: ['Shift', '?'], description: 'Afficher cette aide' },
-        { keys: ['Cmd', 'Shift', 'T'], description: 'Changer le thème' },
-        { keys: ['Esc'], description: 'Fermer la fenêtre' },
+    const shortcutGroups = [
+        {
+            title: 'Actions globales',
+            shortcuts: [
+                { keys: ['Cmd', 'K'], description: 'Ouvrir la palette de commandes' },
+                { keys: ['Cmd', '/'], description: 'Recherche globale' },
+                { keys: ['Cmd', 'N'], description: 'Créer un nouvel élément' },
+                { keys: ['Cmd', 'S'], description: 'Sauvegarder (si applicable)' },
+                { keys: ['Shift', '?'], description: 'Afficher cette aide' },
+                { keys: ['Cmd', 'Shift', 'T'], description: 'Changer le thème' },
+                { keys: ['Esc'], description: 'Fermer la fenêtre' },
+            ]
+        },
+        {
+            title: 'Navigation rapide',
+            shortcuts: [
+                { keys: ['Cmd', '1'], description: 'Tableau de bord' },
+                { keys: ['Cmd', '2'], description: 'Analytique' },
+                { keys: ['Cmd', '3'], description: 'Risques' },
+                { keys: ['Cmd', '4'], description: 'Actifs' },
+                { keys: ['Cmd', '5'], description: 'Conformité' },
+                { keys: ['Cmd', '6'], description: 'Incidents' },
+                { keys: ['Cmd', '7'], description: 'Projets' },
+                { keys: ['Cmd', '8'], description: 'Audits' },
+                { keys: ['Cmd', '9'], description: 'Paramètres' },
+            ]
+        }
     ];
+
+    // Flatten for backwards compatibility
+    const shortcuts = shortcutGroups.flatMap(g => g.shortcuts);
 
     return createPortal(
         <div className="fixed inset-0 z-max flex items-center justify-center p-4">
@@ -47,20 +68,29 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
                     </button>
                 </div>
 
-                <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                    {shortcuts.map((shortcut) => (
-                        <div key={shortcut.description} className="flex items-center justify-between group">
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                                {shortcut.description}
-                            </span>
-                            <div className="flex items-center gap-1">
-                                {shortcut.keys.map((key, i) => (
-                                    <kbd
-                                        key={`key-${i}-${key}`}
-                                        className="min-w-[24px] px-2 py-1 flex items-center justify-center bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider font-mono"
-                                    >
-                                        {key === 'Cmd' ? <Command className="h-3 w-3" /> : key}
-                                    </kbd>
+                <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                    {shortcutGroups.map((group) => (
+                        <div key={group.title}>
+                            <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">
+                                {group.title}
+                            </h4>
+                            <div className="space-y-2">
+                                {group.shortcuts.map((shortcut) => (
+                                    <div key={shortcut.description} className="flex items-center justify-between group">
+                                        <span className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                                            {shortcut.description}
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            {shortcut.keys.map((key, i) => (
+                                                <kbd
+                                                    key={`key-${i}-${key}`}
+                                                    className="min-w-[24px] px-2 py-1 flex items-center justify-center bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider font-mono"
+                                                >
+                                                    {key === 'Cmd' ? <Command className="h-3 w-3" /> : key}
+                                                </kbd>
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>

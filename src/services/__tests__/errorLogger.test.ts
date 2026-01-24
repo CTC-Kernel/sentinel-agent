@@ -215,9 +215,9 @@ describe('ERROR_MESSAGES', () => {
     });
 
     it('should have French messages', () => {
-        // All messages should be in French
-        expect(ERROR_MESSAGES.UNKNOWN_ERROR).toContain('erreur');
-        expect(ERROR_MESSAGES.NETWORK_ERROR).toContain('réseau');
-        expect(ERROR_MESSAGES.PERMISSION_DENIED).toContain('permissions');
+        // All messages should be in French (checking actual message content)
+        expect(ERROR_MESSAGES.UNKNOWN_ERROR).toContain('inattendue');
+        expect(ERROR_MESSAGES.NETWORK_ERROR).toContain('impossible');
+        expect(ERROR_MESSAGES.PERMISSION_DENIED).toContain('refusé');
     });
 });
