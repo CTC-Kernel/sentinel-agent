@@ -12,8 +12,7 @@
 .DS_Store
 Thumbs.db
 
-# Cargo
-Cargo.lock
+# Cargo (keep Cargo.lock for reproducible builds)
 
 # Local config
 .env
