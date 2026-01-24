@@ -3,7 +3,7 @@
   Sentinel GRC Agent - Windows Installer (MSI)
 
   Build with WiX v4:
-    dotnet tool install --global wix
+    dotnet tool install -g wix
     wix build -o sentinel-agent.msi main.wxs
 
   Silent installation:
