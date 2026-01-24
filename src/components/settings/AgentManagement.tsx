@@ -193,19 +193,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
 };
 
 // Custom active shape for interactive pie chart
-const renderActiveShape = (props: {
-    cx: number;
-    cy: number;
-    midAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-    startAngle: number;
-    endAngle: number;
-    fill: string;
-    payload: { name: string; value: number; percent: number };
-    percent: number;
-    value: number;
-}) => {
+const renderActiveShape = (props: any) => {
     const RADIAN = Math.PI / 180;
     const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
     const sin = Math.sin(-RADIAN * midAngle);
@@ -398,11 +386,11 @@ export const AgentManagement: React.FC = () => {
                     releaseDate: undefined,
                     changelogUrl: 'https://github.com/sentinel/agent/releases',
                     platforms: {
-                        windows: { displayName: 'Windows (MSI)', available: false, downloadUrl: '', directUrl: null },
-                        macos: { displayName: 'macOS (DMG)', available: false, downloadUrl: '', directUrl: null },
-                        linux_deb: { displayName: 'Linux (DEB)', available: false, downloadUrl: '', directUrl: null },
-                        linux_rpm: { displayName: 'Linux (RPM)', available: false, downloadUrl: '', directUrl: null },
-                        linux_appimage: { displayName: 'Linux (AppImage)', available: false, downloadUrl: '', directUrl: null },
+                        windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: '#', directUrl: null },
+                        macos: { displayName: 'macOS (DMG)', available: true, downloadUrl: '#', directUrl: null },
+                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: '#', directUrl: null },
+                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: '#', directUrl: null },
+                        linux_appimage: { displayName: 'Linux (AppImage)', available: true, downloadUrl: '#', directUrl: null },
                     },
                     mobile: {
                         ios: { available: true, appStoreUrl: '#', comingSoon: true },
@@ -439,7 +427,7 @@ export const AgentManagement: React.FC = () => {
             }
 
             unsubscribe = AgentService.subscribeToAgents(
-                user.organizationId,
+                user.organizationId!,
                 (data) => {
                     setAgents(data);
                     setLoading(false);
