@@ -148,5 +148,124 @@ export const toast = {
             });
         }
         return '';
+    },
+
+    /**
+     * Show a toast with an undo action after a destructive operation
+     * The toast stays visible longer (8 seconds) to give users time to undo
+     *
+     * @param itemName - Name of the deleted item for context
+     * @param onUndo - Callback to restore the item
+     * @param itemType - Optional type of item (default: 'élément')
+     * @returns Object with cancel method to dismiss the toast programmatically
+     *
+     * @example
+     * const { cancel } = toast.deleted('Serveur-01', async () => {
+     *   await restoreAsset(assetId);
+     * }, 'actif');
+     *
+     * // If undo is successful, the item is restored and toast dismissed
+     * // If timeout expires, the deletion is permanent
+     */
+    deleted: (itemName: string, onUndo: () => void | Promise<void>, itemType = 'élément') => {
+        if (!notificationContext) return { cancel: () => { } };
+
+        let undoClicked = false;
+        const context = notificationContext;
+
+        const toastId = context.addNotification({
+            type: 'info',
+            title: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} supprimé`,
+            message: `"${itemName}" a été supprimé.`,
+            duration: 8000, // Longer duration for undo opportunity
+            action: {
+                label: 'Annuler',
+                onClick: async () => {
+                    undoClicked = true;
+                    context.removeNotification(toastId);
+
+                    try {
+                        await onUndo();
+                        context.addNotification({
+                            type: 'success',
+                            title: 'Restauré',
+                            message: `"${itemName}" a été restauré.`
+                        });
+                    } catch {
+                        context.addNotification({
+                            type: 'error',
+                            title: 'Échec',
+                            message: `Impossible de restaurer "${itemName}".`
+                        });
+                    }
+                }
+            }
+        });
+
+        return {
+            cancel: () => {
+                if (!undoClicked) {
+                    context.removeNotification(toastId);
+                }
+            },
+            wasUndone: () => undoClicked
+        };
+    },
+
+    /**
+     * Show a toast with undo for bulk deletion
+     *
+     * @param count - Number of items deleted
+     * @param onUndo - Callback to restore the items
+     * @param itemType - Type of items (default: 'éléments')
+     *
+     * @example
+     * toast.bulkDeleted(5, async () => {
+     *   await restoreAssets(assetIds);
+     * }, 'actifs');
+     */
+    bulkDeleted: (count: number, onUndo: () => void | Promise<void>, itemType = 'éléments') => {
+        if (!notificationContext) return { cancel: () => { } };
+
+        let undoClicked = false;
+        const context = notificationContext;
+
+        const toastId = context.addNotification({
+            type: 'info',
+            title: `${count} ${itemType} supprimés`,
+            message: `La suppression sera définitive dans quelques secondes.`,
+            duration: 8000,
+            action: {
+                label: 'Annuler',
+                onClick: async () => {
+                    undoClicked = true;
+                    context.removeNotification(toastId);
+
+                    try {
+                        await onUndo();
+                        context.addNotification({
+                            type: 'success',
+                            title: 'Restaurés',
+                            message: `${count} ${itemType} ont été restaurés.`
+                        });
+                    } catch {
+                        context.addNotification({
+                            type: 'error',
+                            title: 'Échec',
+                            message: `Impossible de restaurer les ${itemType}.`
+                        });
+                    }
+                }
+            }
+        });
+
+        return {
+            cancel: () => {
+                if (!undoClicked) {
+                    context.removeNotification(toastId);
+                }
+            },
+            wasUndone: () => undoClicked
+        };
     }
 };

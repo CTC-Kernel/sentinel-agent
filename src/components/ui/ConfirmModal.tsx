@@ -5,6 +5,12 @@ import { AlertTriangle, Info } from './Icons';
 import { Button } from './button';
 import { appleEasing } from '../../utils/microInteractions';
 
+interface AffectedItem {
+  type: string;
+  name: string;
+  count?: number;
+}
+
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,6 +19,10 @@ interface ConfirmModalProps {
   message: string;
   type?: 'danger' | 'warning' | 'info';
   details?: string; // Additional impact information
+  /** List of items that will be affected by this action */
+  affectedItems?: AffectedItem[];
+  /** Maximum number of affected items to show (rest will be collapsed) */
+  maxAffectedItemsShown?: number;
   confirmText?: string;
   cancelText?: string;
   loading?: boolean;
@@ -27,6 +37,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   message,
   type = 'danger',
   details,
+  affectedItems,
+  maxAffectedItemsShown = 5,
   confirmText = 'Confirmer',
   cancelText = 'Annuler',
   loading = false,
@@ -112,6 +124,37 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         transition={{ delay: 0.25, duration: 0.3, ease: appleEasing }}
                       >
                         <p className="text-xs text-slate-500 dark:text-muted-foreground font-medium">{details}</p>
+                      </motion.div>
+                    )}
+
+                    {/* Affected Items List */}
+                    {affectedItems && affectedItems.length > 0 && (
+                      <motion.div
+                        className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 text-left"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3, duration: 0.3, ease: appleEasing }}
+                      >
+                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                          Éléments liés qui seront affectés :
+                        </p>
+                        <ul className="space-y-1">
+                          {affectedItems.slice(0, maxAffectedItemsShown).map((item, index) => (
+                            <li key={index} className="text-xs text-slate-500 dark:text-muted-foreground flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                              <span className="font-medium">{item.type}:</span>
+                              <span className="truncate">{item.name}</span>
+                              {item.count && item.count > 1 && (
+                                <span className="text-slate-400">({item.count})</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                        {affectedItems.length > maxAffectedItemsShown && (
+                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 italic">
+                            ... et {affectedItems.length - maxAffectedItemsShown} autre(s)
+                          </p>
+                        )}
                       </motion.div>
                     )}
                   </motion.div>

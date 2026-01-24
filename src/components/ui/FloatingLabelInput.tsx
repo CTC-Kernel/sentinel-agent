@@ -89,6 +89,9 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                     `}
                 >
                     {label}
+                    {props.required && (
+                        <span className="text-destructive ml-0.5" aria-hidden="true">*</span>
+                    )}
                 </label>
             </div>
 

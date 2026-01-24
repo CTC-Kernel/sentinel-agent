@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './button';
 import { Dialog, Transition } from '@headlessui/react';
-import { X } from './Icons';
+import { X, AlertTriangle } from './Icons';
 
 // Apple-style cubic-bezier for smooth, spring-like animations
 const APPLE_EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
@@ -18,6 +18,12 @@ interface DrawerProps {
     breadcrumbs?: { label: string; onClick?: () => void }[];
     disableFocusTrap?: boolean; // Headless UI handles this, but keeping prop for compat if needed (though ignored)
     disableScroll?: boolean;
+    /** If true, shows a confirmation dialog before closing */
+    hasUnsavedChanges?: boolean;
+    /** Custom message for unsaved changes dialog */
+    unsavedChangesMessage?: string;
+    /** Callback before close - return false to prevent close */
+    beforeClose?: () => boolean | void;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -28,11 +34,41 @@ export const Drawer: React.FC<DrawerProps> = ({
     actions,
     children,
     width = 'max-w-2xl',
-    disableScroll = false
+    disableScroll = false,
+    hasUnsavedChanges = false,
+    unsavedChangesMessage = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?',
+    beforeClose
 }) => {
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+    const handleClose = useCallback(() => {
+        // Check beforeClose callback first
+        if (beforeClose) {
+            const canClose = beforeClose();
+            if (canClose === false) return;
+        }
+
+        // If there are unsaved changes, show confirmation dialog
+        if (hasUnsavedChanges) {
+            setShowConfirmDialog(true);
+            return;
+        }
+
+        onClose();
+    }, [beforeClose, hasUnsavedChanges, onClose]);
+
+    const handleConfirmClose = useCallback(() => {
+        setShowConfirmDialog(false);
+        onClose();
+    }, [onClose]);
+
+    const handleCancelClose = useCallback(() => {
+        setShowConfirmDialog(false);
+    }, []);
+
     return createPortal(
         <Transition.Root show={isOpen} as={React.Fragment}>
-            <Dialog as="div" className="relative z-[100]" onClose={onClose}>
+            <Dialog as="div" className="relative z-[100]" onClose={handleClose}>
                 <Transition.Child
                     as={React.Fragment}
                     enter="duration-400"
@@ -74,7 +110,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                             <div className="flex items-center gap-3 shrink-0">
                                                 {actions}
                                                 <Button
-                                                    onClick={onClose}
+                                                    onClick={handleClose}
                                                     variant="ghost"
                                                     size="icon"
                                                     className="rounded-full text-muted-foreground hover:text-slate-900 dark:text-slate-500 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10"
@@ -93,6 +129,67 @@ export const Drawer: React.FC<DrawerProps> = ({
                                 </Dialog.Panel>
                             </Transition.Child>
                         </div>
+                    </div>
+                </div>
+            </Dialog>
+        </Transition.Root>
+
+        {/* Unsaved Changes Confirmation Dialog */}
+        <Transition.Root show={showConfirmDialog} as={React.Fragment}>
+            <Dialog as="div" className="relative z-[110]" onClose={handleCancelClose}>
+                <Transition.Child
+                    as={React.Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" />
+                </Transition.Child>
+
+                <div className="fixed inset-0 z-10 overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-4">
+                        <Transition.Child
+                            as={React.Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0 scale-95"
+                            enterTo="opacity-100 scale-100"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100 scale-100"
+                            leaveTo="opacity-0 scale-95"
+                        >
+                            <Dialog.Panel className="relative transform overflow-hidden rounded-2xl glass-premium p-6 text-left shadow-xl transition-all sm:max-w-md w-full">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-warning-bg flex items-center justify-center">
+                                        <AlertTriangle className="h-5 w-5 text-warning-text" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <Dialog.Title className="text-lg font-semibold text-foreground">
+                                            Modifications non sauvegardées
+                                        </Dialog.Title>
+                                        <p className="mt-2 text-sm text-muted-foreground">
+                                            {unsavedChangesMessage}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mt-6 flex justify-end gap-3">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handleCancelClose}
+                                    >
+                                        Continuer l'édition
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleConfirmClose}
+                                    >
+                                        Quitter sans sauvegarder
+                                    </Button>
+                                </div>
+                            </Dialog.Panel>
+                        </Transition.Child>
                     </div>
                 </div>
             </Dialog>
