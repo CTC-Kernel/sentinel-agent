@@ -165,7 +165,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                                 onClick={() => setEventType(type)}
                                 className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all capitalize ${eventType === type
                                     ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm'
-                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    : 'text-slate-600 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-200'
                                     }`}
                             >
                                 {type === 'drill' ? 'Exercice BCP' : type}

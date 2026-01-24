@@ -92,7 +92,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                 <div className="text-center py-8">
                     <Shield className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                     <p className="text-sm text-slate-500">Aucun contrôle de sécurité lié</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                         Ajoutez des contrôles dans l'onglet Traitement pour réduire le risque résiduel
                     </p>
                 </div>

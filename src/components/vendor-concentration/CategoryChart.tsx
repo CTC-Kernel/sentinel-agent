@@ -191,14 +191,14 @@ const LegendItem: React.FC<LegendItemProps> = ({ category, color, onClick }) => 
           <span className="text-xs text-slate-500">
             {category.vendorCount} {t('vendorConcentration.chart.vendor', { count: category.vendorCount })}
           </span>
-          <span className="text-xs text-slate-400">•</span>
+          <span className="text-xs text-muted-foreground">•</span>
           <span className={`text-xs ${hhiLevel === 'high' ? 'text-red-500' : hhiLevel === 'moderate' ? 'text-yellow-500' : 'text-green-500'
             }`}>
             {formatPercentage(category.percentage)}
           </span>
         </div>
       </div>
-      <ChevronRight className="h-4 w-4 text-slate-400 flex-shrink-0" />
+      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
     </button>
   );
 };

@@ -109,7 +109,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
                         <span className={`text-2xl font-black ${progress === 100 ? 'text-emerald-500' : 'text-indigo-600'}`}>
                             {progress}%
                         </span>
-                        <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Conformité</p>
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Conformité</p>
                     </div>
                 </div>
 

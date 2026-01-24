@@ -191,7 +191,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                     "block text-xs mt-1",
                     criticality === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-400"
+                      : "text-muted-foreground"
                   )}>
                     {level[locale]}
                   </span>
@@ -227,7 +227,7 @@ export const EssentialAssetForm: React.FC<EssentialAssetFormProps> = ({
                       onChange={() => toggleMission(mission.id)}
                       className="w-4 h-4 rounded border-slate-300 text-info focus-visible:ring-brand-500"
                     />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                    <span className="text-sm text-slate-700 dark:text-muted-foreground">
                       {mission.name}
                     </span>
                   </label>

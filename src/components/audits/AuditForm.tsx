@@ -206,7 +206,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('audits.form.description')}</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">{t('audits.form.description')}</label>
                     <textarea
                         {...register('description')}
                         rows={3}

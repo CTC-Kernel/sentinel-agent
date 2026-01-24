@@ -168,7 +168,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
     return (
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+          <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
             {label}
           </label>
           <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
@@ -185,7 +185,7 @@ export const EcosystemPartyForm: React.FC<EcosystemPartyFormProps> = ({
           onChange={(e) => setValue(name, parseInt(e.target.value))}
           className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
         />
-        <div className="flex justify-between text-xs text-slate-400 mt-1">
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
           <span>{lowLabel}</span>
           <span>{highLabel}</span>
         </div>

@@ -86,7 +86,7 @@ export const SystemEntrance: React.FC = () => {
                     <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-b from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-white dark:to-slate-500 drop-shadow-2xl animate-fade-in">
                         SENTINEL <span className="text-brand-600 dark:text-brand-500 animate-pulse">_</span>
                     </h1>
-                    <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium tracking-widest uppercase">
+                    <p className="text-sm md:text-base text-slate-500 dark:text-muted-foreground font-medium tracking-widest uppercase">
                         Commandement Cyber Souverain
                     </p>
                 </div>

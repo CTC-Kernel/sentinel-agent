@@ -32,7 +32,7 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                         <Database className="h-8 w-8" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Total Backups</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-muted-foreground mb-1">Total Backups</p>
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.totalBackups}</p>
                     </div>
                 </div>
@@ -49,7 +49,7 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                         <HardDrive className="h-8 w-8" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Espace Utilisé</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-muted-foreground mb-1">Espace Utilisé</p>
                         <p className="text-3xl font-black text-slate-900 dark:text-white">{formatSize(stats.totalSize)}</p>
                     </div>
                 </div>
@@ -66,7 +66,7 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                         <CalendarDays className="h-8 w-8" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Dernier Backup</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-muted-foreground mb-1">Dernier Backup</p>
                         <p className="text-xl font-black text-slate-900 dark:text-white">
                             {stats.lastBackup ? new Date(stats.lastBackup).toLocaleDateString('fr-FR') : 'Aucun'}
                         </p>

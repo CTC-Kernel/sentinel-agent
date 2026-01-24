@@ -78,7 +78,7 @@ export const ActiveSessions: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.activeSessions') || "Sessions Actives"}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('settings.manageDevices') || "Gérez vos appareils connectés"}</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">{t('settings.manageDevices') || "Gérez vos appareils connectés"}</p>
                     </div>
                 </div>
                 {sessions.length > 1 && (
@@ -109,7 +109,7 @@ export const ActiveSessions: React.FC = () => {
                                         </span>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-muted-foreground">
                                     <span className="flex items-center gap-1">
                                         <Globe className="w-3 h-3" /> {session.location}
                                     </span>
@@ -118,7 +118,7 @@ export const ActiveSessions: React.FC = () => {
                                     <span>•</span>
                                     <span className="font-mono opacity-70">{session.ip}</span>
                                 </div>
-                                <div className="flex items-center gap-1 mt-1.5 text-[10px] font-medium text-slate-400">
+                                <div className="flex items-center gap-1 mt-1.5 text-[10px] font-medium text-muted-foreground">
                                     <Clock className="w-3 h-3" />
                                     {session.isCurrent ? (t('settings.onlineNow') || 'En ligne maintenant') : `${t('settings.lastActive') || 'Dernière activité'} : ${format(session.lastActive, "d MMM à HH:mm", { locale: fr })}`}
                                 </div>
@@ -131,7 +131,7 @@ export const ActiveSessions: React.FC = () => {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleRevokeSession(session.id)}
-                                    className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                                    className="text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </Button>

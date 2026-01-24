@@ -165,7 +165,7 @@ export const useRiskColumns = ({
             header: 'Actif',
             accessorFn: (row) => assets.find(a => a.id === row.assetId)?.name || 'Actif inconnu',
             cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                <span className="text-slate-600 dark:text-muted-foreground font-medium">
                     {assets.find(a => a.id === row.original.assetId)?.name || 'Actif inconnu'}
                 </span>
             ),
@@ -176,7 +176,7 @@ export const useRiskColumns = ({
             cell: ({ row }) => {
                 const category = row.original.category;
                 if (!category) {
-                    return <span className="text-xs text-slate-400 italic">Non définie</span>;
+                    return <span className="text-xs text-muted-foreground italic">Non définie</span>;
                 }
                 const styles = getCategoryStyles(category);
                 const CategoryIcon = styles.icon;
@@ -185,7 +185,7 @@ export const useRiskColumns = ({
                         <div className={`p-1 rounded-md ${styles.bg} ${styles.color} dark:bg-white/5`}>
                             <CategoryIcon className="h-3 w-3" />
                         </div>
-                        <span className="text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">
+                        <span className="text-slate-600 dark:text-muted-foreground font-medium whitespace-nowrap">
                             {category}
                         </span>
                     </div>
@@ -227,14 +227,14 @@ export const useRiskColumns = ({
                 const { count, coverage } = getMitigationCoverage(row.original, controls);
                 if (count === 0) {
                     return (
-                        <span className="text-xs text-slate-400 italic">Aucun</span>
+                        <span className="text-xs text-muted-foreground italic">Aucun</span>
                     );
                 }
                 return (
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
                             <Shield className="h-3.5 w-3.5 text-slate-400" />
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{count}</span>
+                            <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">{count}</span>
                         </div>
                         <div className="flex items-center gap-1" title={`Couverture: ${coverage}%`}>
                             <div className="w-10 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">

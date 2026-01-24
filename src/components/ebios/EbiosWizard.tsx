@@ -120,7 +120,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
                     {analysis.name}
                   </h1>
                 </div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                <p className="text-xs font-medium text-slate-500 dark:text-muted-foreground">
                   EBIOS RM Analysis
                 </p>
               </div>
@@ -263,7 +263,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
             >
               <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
               <div>
-                <span className="text-xs text-slate-400 block uppercase tracking-wider font-semibold text-left">{t('common.previous')}</span>
+                <span className="text-xs text-muted-foreground block uppercase tracking-wider font-semibold text-left">{t('common.previous')}</span>
                 <span className="hidden sm:block">{currentWorkshop > 1 ? WORKSHOP_INFO[(currentWorkshop - 1) as EbiosWorkshopNumber].shortName[locale] : t('ebios.previousWorkshop')}</span>
               </div>
             </button>

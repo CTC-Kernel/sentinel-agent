@@ -108,10 +108,10 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
   if (baseline.measures.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-slate-500 dark:text-slate-400">
+        <p className="text-slate-500 dark:text-muted-foreground">
           {t('ebios.workshop1.noSecurityBaselineYet')}
         </p>
-        <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+        <p className="text-sm text-muted-foreground dark:text-slate-500 mt-1">
           {t('ebios.workshop1.securityBaselineHint')}
         </p>
       </div>
@@ -172,7 +172,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
@@ -183,7 +183,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-5 h-5 text-slate-400" />
+          <Filter className="w-5 h-5 text-muted-foreground" />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
@@ -296,7 +296,7 @@ export const SecurityBaselinePanel: React.FC<SecurityBaselinePanelProps> = ({
                       </div>
 
                       {measure.notes && (
-                        <p className="mt-2 text-xs text-slate-400 dark:text-slate-500 italic">
+                        <p className="mt-2 text-xs text-muted-foreground dark:text-slate-500 italic">
                           {measure.notes}
                         </p>
                       )}

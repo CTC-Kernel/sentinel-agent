@@ -59,7 +59,7 @@ export const SectionEditor = memo(({ control, register, sIndex, onRemove }: Sect
                     type="button"
                     aria-label="Supprimer la section"
                     onClick={handleRemoveSection}
-                    className="ml-4 text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="ml-4 text-muted-foreground hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                     <Trash2 className="w-5 h-5" />
                 </button>

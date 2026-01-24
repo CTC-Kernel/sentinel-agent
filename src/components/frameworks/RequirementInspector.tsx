@@ -147,7 +147,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                   {/* Article Badge */}
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 mb-3">
                     <FileText className="w-4 h-4 text-slate-500" />
-                    <span className="font-mono font-semibold text-sm text-slate-700 dark:text-slate-300">
+                    <span className="font-mono font-semibold text-sm text-slate-700 dark:text-muted-foreground">
                       {requirement.articleRef}
                     </span>
                   </div>
@@ -195,7 +195,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                 {/* Linked controls count */}
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10">
                   <Link2 className="w-4 h-4 text-slate-500" />
-                  <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                  <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
                     {linkedControls.length} {t('requirements.controls')}
                   </span>
                 </div>
@@ -206,7 +206,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
             <div className="flex-1 overflow-y-auto">
               {/* Description Section */}
               <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                   {t('requirements.description')}
                 </h3>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -219,7 +219,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
               {/* Keywords Section */}
               {requirement.keywords && requirement.keywords.length > 0 && (
                 <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
-                  <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                  <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                     {t('requirements.keywords')}
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -238,19 +238,19 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
 
               {/* Linked Controls Section */}
               <div className="px-6 py-5">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                   {t('requirements.linkedControls')} ({linkedControls.length})
                 </h3>
 
                 {linkedControls.length === 0 ? (
                   <div className="text-center py-8">
                     <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                      <Link2 className="w-6 h-6 text-slate-400" />
+                      <Link2 className="w-6 h-6 text-muted-foreground" />
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground">
                       {t('requirements.noLinkedControls')}
                     </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground dark:text-slate-500 mt-1">
                       {t('requirements.noLinkedControlsHint')}
                     </p>
                   </div>
@@ -267,7 +267,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+                              <span className="font-mono text-xs font-semibold text-slate-500 dark:text-muted-foreground">
                                 {control.code}
                               </span>
                               <span className={cn(
@@ -288,7 +288,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
                                     style={{ width: `${control.coveragePercentage}%` }}
                                   />
                                 </div>
-                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                <span className="text-xs font-medium text-slate-500 dark:text-muted-foreground">
                                   {control.coveragePercentage}%
                                 </span>
                               </div>
@@ -305,7 +305,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
 
             {/* Footer */}
             <div className="flex-shrink-0 px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-slate-800/50">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
                   <span>{t('requirements.frameworkId')}: {requirement.frameworkId}</span>

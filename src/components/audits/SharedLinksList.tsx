@@ -105,7 +105,7 @@ export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => 
                             <button
                                 onClick={() => setConfirmRevokeId(link.id)}
                                 disabled={!!revokingId}
-                                className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                                className="p-2 text-muted-foreground hover:text-red-600 transition-colors"
                                 title="Révoquer l'accès"
                             >
                                 {revokingId === link.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}

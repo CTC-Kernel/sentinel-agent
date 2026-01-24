@@ -212,11 +212,11 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('missions') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-blue-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-blue-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -294,11 +294,11 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('essentialAssets') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-purple-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-purple-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -331,7 +331,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                           {asset.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-3 text-xs text-slate-400 font-medium">
+                      <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground font-medium">
                         <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50" />
                         {asset.linkedMissionIds.length} {t('ebios.workshop1.linkedMissions')}
                       </div>
@@ -385,11 +385,11 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('supportingAssets') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-cyan-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-cyan-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -430,7 +430,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         {asset.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-2 mt-3 text-xs text-slate-400 font-medium">
+                    <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground font-medium">
                       <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/50" />
                       {asset.linkedEssentialAssetIds.length} {t('ebios.workshop1.linkedEssentialAssets')}
                     </div>
@@ -486,11 +486,11 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('fearedEvents') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-rose-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-rose-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -528,7 +528,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                           {event.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-3 mt-3 text-xs text-slate-400 font-medium">
+                      <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground font-medium">
                         <span className="flex items-center gap-1.5">
                           <div className="w-1.5 h-1.5 rounded-full bg-rose-500/50" />
                           {event.linkedMissionIds.length} {t('ebios.workshop1.linkedMissions')}
@@ -589,11 +589,11 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('securityBaseline') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}

@@ -75,7 +75,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                                             size="icon"
                                             aria-label="Télécharger le backup"
                                             onClick={(e: React.MouseEvent) => { e.stopPropagation(); onDownload(backup.id); }}
-                                            className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            className="p-1.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             title="Télécharger"
                                         >
                                             <Download className="h-4 w-4" />
@@ -89,7 +89,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                                             e.stopPropagation();
                                             onDelete(backup.id); // Just propagate ID, parent handles confirmation
                                         }}
-                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         title="Supprimer"
                                     >
                                         <Trash2 className="h-4 w-4" />

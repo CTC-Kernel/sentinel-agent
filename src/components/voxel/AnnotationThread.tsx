@@ -155,14 +155,14 @@ const ReplyItem: React.FC<{
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(reply)}
-              className="p-1.5 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg hover:bg-slate-700/50 text-muted-foreground hover:text-white transition-colors"
               title="Modifier"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => onDelete(reply.id)}
-              className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-colors"
               title="Supprimer"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -224,7 +224,7 @@ const ReplyForm: React.FC<{
           <span className="text-xs text-amber-400">Modification en cours</span>
           <button
             onClick={onCancelEdit}
-            className="text-xs text-slate-400 hover:text-white"
+            className="text-xs text-muted-foreground hover:text-white"
           >
             Annuler
           </button>
@@ -504,7 +504,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                 <span className="text-sm font-medium text-white">
                   {annotation.author.displayName}
                 </span>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Clock className="w-3 h-3" />
                   <span>
                     {createdDate.toLocaleDateString('fr-FR')} a {createdDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
@@ -577,7 +577,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                   </span>
                 </div>
                 {annotation.resolutionNotes && (
-                  <p className="text-xs text-slate-400 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     {annotation.resolutionNotes}
                   </p>
                 )}
@@ -592,14 +592,14 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
               onClick={() => setIsExpanded(!isExpanded)}
               className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-800/30 transition-colors"
             >
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MessageSquare className="w-4 h-4" />
                 <span>{annotation.replyCount} réponse(s)</span>
               </div>
               {isExpanded ? (
-                <ChevronUp className="w-4 h-4 text-slate-400" />
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-slate-400" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
               )}
             </button>
 

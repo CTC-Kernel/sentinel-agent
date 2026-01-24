@@ -22,7 +22,7 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = ({ active, payload, lab
         return (
             <div className="glass-panel p-3 rounded-xl border border-white/60 dark:border-white/10 shadow-apple bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl animate-scale-in">
                 {!hideLabel && label && (
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide border-b border-slate-200 dark:border-white/10 pb-1">
+                    <p className="text-xs font-bold text-slate-500 dark:text-muted-foreground mb-2 uppercase tracking-wide border-b border-slate-200 dark:border-white/10 pb-1">
                         {label}
                     </p>
                 )}

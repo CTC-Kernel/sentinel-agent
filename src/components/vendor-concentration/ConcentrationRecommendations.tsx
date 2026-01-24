@@ -154,7 +154,7 @@ const ActionItem: React.FC<ActionItemProps> = ({ action, completed, onToggle }) 
       <button
         onClick={onToggle}
         className={`mt-0.5 flex-shrink-0 ${
-          completed ? 'text-green-500' : 'text-slate-400 hover:text-slate-600'
+          completed ? 'text-green-500' : 'text-muted-foreground hover:text-slate-600'
         }`}
       >
         {completed ? (
@@ -174,7 +174,7 @@ const ActionItem: React.FC<ActionItemProps> = ({ action, completed, onToggle }) 
         <p className="text-xs text-slate-500 mt-0.5">{action.description}</p>
         <div className="flex items-center gap-3 mt-2">
           <EffortBadge effort={action.effort} />
-          <span className="text-xs text-slate-400">•</span>
+          <span className="text-xs text-muted-foreground">•</span>
           <span className="text-xs text-slate-500">{action.timeline}</span>
         </div>
       </div>
@@ -247,9 +247,9 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
             </p>
             <div className="flex items-center gap-4">
               <RiskReduction percentage={recommendation.expectedRiskReduction} />
-              <span className="text-xs text-slate-400">•</span>
+              <span className="text-xs text-muted-foreground">•</span>
               <EffortBadge effort={recommendation.estimatedEffort} />
-              <span className="text-xs text-slate-400">•</span>
+              <span className="text-xs text-muted-foreground">•</span>
               <span className="text-xs text-slate-500">{recommendation.estimatedTimeline}</span>
             </div>
           </div>
@@ -286,7 +286,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
               {t('vendorConcentration.recommendations.rationale')}
             </p>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-sm text-slate-600 dark:text-muted-foreground">
               {recommendation.rationale}
             </p>
           </div>
@@ -366,7 +366,7 @@ export const ConcentrationRecommendations: React.FC<ConcentrationRecommendations
           <p className="text-lg font-semibold text-slate-900 dark:text-white">
             {recommendations.totalRecommendations} {t('vendorConcentration.recommendations.available')}
           </p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-muted-foreground">
             {t('vendorConcentration.recommendations.potentialReduction', {
               value: recommendations.estimatedTotalRiskReduction,
             })}

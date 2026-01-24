@@ -255,7 +255,7 @@ const Team: React.FC = () => {
                             <span className={`text-2xl font-black ${activityRate >= 80 ? 'text-emerald-600 dark:text-emerald-400' : activityRate >= 50 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}>
                                 {Math.round(activityRate)}%
                             </span>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Actifs</span>
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Actifs</span>
                         </div>
                     </div>
                     <div>

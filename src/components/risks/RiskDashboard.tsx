@@ -62,7 +62,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     </div>
                     <div>
                         <h3 className="font-bold text-lg text-slate-800 dark:text-white">Réduction du Risque (Inhérent vs Résiduel)</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Impact des mesures de sécurité par catégorie</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Impact des mesures de sécurité par catégorie</p>
                     </div>
                 </div>
 
@@ -81,7 +81,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg text-slate-800 dark:text-white">Top Risques Critiques</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">Actions prioritaires requises</p>
+                                <p className="text-xs text-slate-500 dark:text-muted-foreground">Actions prioritaires requises</p>
                             </div>
                         </div>
 

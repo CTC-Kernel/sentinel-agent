@@ -51,7 +51,7 @@ export const ReportTemplates: React.FC = () => {
                         <LayoutTemplate className="w-6 h-6 text-brand-500" />
                         Bibliothèque de Modèles
                     </h3>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-slate-500 dark:text-muted-foreground mt-1">
                         Utilisez des modèles pré-configurés pour vos rapports récurrents.
                     </p>
                 </div>
@@ -85,7 +85,7 @@ export const ReportTemplates: React.FC = () => {
                         <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-500 transition-colors">
                             {template.name}
                         </h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 h-10 line-clamp-2">
+                        <p className="text-sm text-slate-500 dark:text-muted-foreground mb-6 h-10 line-clamp-2">
                             {template.description}
                         </p>
 

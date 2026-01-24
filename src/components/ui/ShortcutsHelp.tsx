@@ -36,7 +36,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Raccourcis Clavier</h3>
-                            <p className="text-xs text-slate-600 dark:text-slate-400">Gagnez du temps avec ces commandes</p>
+                            <p className="text-xs text-slate-600 dark:text-muted-foreground">Gagnez du temps avec ces commandes</p>
                         </div>
                     </div>
                     <button
@@ -57,7 +57,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
                                 {shortcut.keys.map((key, i) => (
                                     <kbd
                                         key={`key-${i}-${key}`}
-                                        className="min-w-[24px] px-2 py-1 flex items-center justify-center bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider font-mono"
+                                        className="min-w-[24px] px-2 py-1 flex items-center justify-center bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono"
                                     >
                                         {key === 'Cmd' ? <Command className="h-3 w-3" /> : key}
                                     </kbd>
@@ -69,7 +69,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
 
                 <div className="px-6 py-4 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 text-center">
                     <p className="text-xs text-slate-500 dark:text-slate-500">
-                        Appuyez sur <kbd className="font-bold text-slate-600 dark:text-slate-300">Esc</kbd> pour fermer
+                        Appuyez sur <kbd className="font-bold text-slate-600 dark:text-muted-foreground">Esc</kbd> pour fermer
                     </p>
                 </div>
             </div>

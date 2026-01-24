@@ -155,7 +155,7 @@ export const SMSIDrawer: React.FC<SMSIDrawerProps> = ({
                                             )}>
                                                 {template.name}
                                             </h4>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            <p className="text-xs text-slate-500 dark:text-muted-foreground">
                                                 {template.description}
                                             </p>
                                         </div>

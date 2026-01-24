@@ -63,7 +63,7 @@ export const TenantList: React.FC = () => {
                     />
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors flex items-center text-slate-300">
+                    <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors flex items-center text-muted-foreground">
                         <Filter className="w-4 h-4 mr-2" />
                         Filter
                     </button>
@@ -76,7 +76,7 @@ export const TenantList: React.FC = () => {
             <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b border-slate-800 text-xs uppercase text-slate-400 font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
+                        <tr className="border-b border-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
                             <th className="px-6 py-4">Organization</th>
                             <th className="px-6 py-4">ID</th>
                             <th className="px-6 py-4">Status</th>
@@ -98,7 +98,7 @@ export const TenantList: React.FC = () => {
                                         </div>
                                         <div>
                                             <div className="font-medium text-white">{tenant.name}</div>
-                                            <div className="text-xs text-slate-400 flex items-center mt-0.5">
+                                            <div className="text-xs text-muted-foreground flex items-center mt-0.5">
                                                 <Shield className="w-3 h-3 mr-1" />
                                                 {(tenant.subscription?.planId as string) === 'enterprise' ? 'Enterprise' :
                                                     (tenant.subscription?.planId as string) === 'professional' ? 'Professional' : 'Discovery'}
@@ -106,7 +106,7 @@ export const TenantList: React.FC = () => {
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 font-mono text-xs text-slate-400">
+                                <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
                                     {tenant.id}
                                 </td>
                                 <td className="px-6 py-4">
@@ -117,13 +117,13 @@ export const TenantList: React.FC = () => {
                                         {tenant.isActive !== false ? 'Active' : 'Suspended'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-slate-400">
+                                <td className="px-6 py-4 text-sm text-muted-foreground">
                                     {tenant.createdAt ? new Date(tenant.createdAt).toLocaleDateString() : 'N/A'}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
-                                            className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                            className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
                                             title="Manage Tenant"
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -132,7 +132,7 @@ export const TenantList: React.FC = () => {
                                         >
                                             <ExternalLink className="w-4 h-4" />
                                         </button>
-                                        <button className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+                                        <button className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors">
                                             <MoreVertical className="w-4 h-4" />
                                         </button>
                                     </div>

@@ -301,7 +301,7 @@ export const BackupRestore: React.FC = () => {
                     <label key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group">
                       <div className="flex items-center gap-2">
                         <item.icon className="h-4 w-4 text-slate-500 group-hover:text-indigo-500 transition-colors" />
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{item.label}</span>
+                        <span className="font-medium text-slate-700 dark:text-muted-foreground">{item.label}</span>
                       </div>
                       <Controller
                         control={backupForm.control}
@@ -318,11 +318,11 @@ export const BackupRestore: React.FC = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                   <div className="flex items-center gap-2" data-tour="backup-schedule">
-                    <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
+                    <span className="text-sm font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde quotidienne" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Quotidien</Button>
-                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde hebdomadaire" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Hebdo</Button>
-                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde mensuelle" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Mensuel</Button>
+                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde quotidienne" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Quotidien</Button>
+                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde hebdomadaire" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Hebdo</Button>
+                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde mensuelle" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Mensuel</Button>
                     </div>
                   </div>
                   <Button
@@ -366,7 +366,7 @@ export const BackupRestore: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3">
                       {selectedBackup.collections.map((col) => (
                         <label key={col} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
-                          <span className="text-sm font-medium capitalize text-slate-700 dark:text-slate-300">{col}</span>
+                          <span className="text-sm font-medium capitalize text-slate-700 dark:text-muted-foreground">{col}</span>
                           <Switch
                             checked={restoreForm.watch('collections').includes(col)}
                             onChange={() => toggleCollection(col)}

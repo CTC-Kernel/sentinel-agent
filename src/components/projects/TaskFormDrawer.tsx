@@ -271,7 +271,7 @@ export const TaskFormDrawer: React.FC<TaskFormDrawerProps> = ({
 
                     {/* Progress */}
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-white/5">
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-2 flex items-center gap-2">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-muted-foreground mb-2 flex items-center gap-2">
                             <Target className="h-3.5 w-3.5" />
                             Progression ({progress}%)
                         </label>

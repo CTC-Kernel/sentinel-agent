@@ -130,7 +130,7 @@ export const IntegrationSettings: React.FC = () => {
                 </div>
                 <div className="relative z-10 p-6 flex-1 flex flex-col justify-between space-y-6">
                     <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 leading-relaxed">
                             {t('settings.aiDescription')}
                         </p>
                         <form onSubmit={handleSubmit(handleUpdateKeys)} className="space-y-4">
@@ -220,7 +220,7 @@ export const IntegrationSettings: React.FC = () => {
 
                     <div className="pt-6 border-t border-white/20 dark:border-white/5">
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2">{t('settings.integrationsPage.exportIcal')}</h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
+                        <p className="text-xs text-slate-600 dark:text-muted-foreground mb-4">
                             {t('settings.integrationsPage.exportIcalDesc')}
                         </p>
                         <Button
@@ -283,14 +283,14 @@ export const IntegrationSettings: React.FC = () => {
                         <h4 className="font-medium text-slate-900 dark:text-white">{t('settings.integrationsPage.ssoStatus')}</h4>
                         <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center gap-3">
                             <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
-                            <span className="text-sm text-slate-600 dark:text-slate-400">{t('settings.integrationsPage.notConfigured')}</span>
+                            <span className="text-sm text-slate-600 dark:text-muted-foreground">{t('settings.integrationsPage.notConfigured')}</span>
                         </div>
 
                         <div className="pt-4">
                             <Button className="w-full" disabled={true} variant="secondary">
                                 {t('settings.integrationsPage.saveAndTest')}
                             </Button>
-                            <p className="mt-2 text-xs text-center text-slate-400">
+                            <p className="mt-2 text-xs text-center text-muted-foreground">
                                 {t('settings.integrationsPage.contactSupport')}
                             </p>
                         </div>

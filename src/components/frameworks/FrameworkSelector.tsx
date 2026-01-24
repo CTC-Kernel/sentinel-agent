@@ -137,7 +137,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
         </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
           <Shield className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+          <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
             {frameworks.length} {t('frameworks.available', 'disponibles')}
           </span>
         </div>
@@ -147,7 +147,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
@@ -167,7 +167,7 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
                 'px-4 py-2 rounded-lg text-sm font-medium transition-all',
                 filterMode === mode
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  : 'text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
               )}
             >
               {mode === 'all' && t('frameworks.filterAll', 'Tous')}
@@ -195,12 +195,12 @@ export const FrameworkSelector: React.FC<FrameworkSelectorProps> = ({ className 
           className="py-16 text-center"
         >
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-            <Filter className="w-8 h-8 text-slate-400" />
+            <Filter className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
             {t('frameworks.noResults', 'Aucun framework trouvé')}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-muted-foreground">
             {t('frameworks.tryDifferentSearch', 'Essayez avec d\'autres critères de recherche')}
           </p>
         </motion.div>

@@ -113,11 +113,11 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/30">
                     <div className="flex items-center gap-2 mb-1">
                         <Shield className="w-4 h-4 text-slate-500" />
-                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                        <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">
                             {t('dora.riskWidget.nonEu', 'Hors UE')}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">
+                    <p className="text-2xl font-bold text-slate-700 dark:text-muted-foreground">
                         {concentrationAnalysis.nonEuProviders?.length || 0}
                     </p>
                 </div>

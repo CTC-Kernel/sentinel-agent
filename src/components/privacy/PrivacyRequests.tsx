@@ -95,7 +95,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                                             <span className="font-bold text-slate-900 dark:text-white">{req.dataSubject}</span>
                                             <span className="text-xs text-slate-500 px-2 py-0.5 bg-slate-100 dark:bg-slate-900 rounded-md font-mono">{req.id}</span>
                                         </div>
-                                        <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                                        <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-muted-foreground">
                                             <span className="flex items-center gap-1">
                                                 <FileText className="h-3.5 w-3.5" /> {req.requestType}
                                             </span>

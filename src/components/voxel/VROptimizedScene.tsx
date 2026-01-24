@@ -237,7 +237,7 @@ const VRPerformanceHUD: React.FC<VRPerformanceHUDProps> = ({ visible, targetFPS 
       <div className="bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-lg p-3 min-w-[200px] text-white font-mono text-xs">
         {/* FPS Display */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-slate-400">FPS</span>
+          <span className="text-muted-foreground">FPS</span>
           <div className="flex items-center gap-2">
             <div
               className="w-2 h-2 rounded-full"
@@ -251,13 +251,13 @@ const VRPerformanceHUD: React.FC<VRPerformanceHUDProps> = ({ visible, targetFPS 
 
         {/* Frame Time */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-slate-400">Frame</span>
+          <span className="text-muted-foreground">Frame</span>
           <span className="text-slate-200">{stats.averageFrameTimeMs.toFixed(2)}ms</span>
         </div>
 
         {/* Quality Level */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-slate-400">Quality</span>
+          <span className="text-muted-foreground">Quality</span>
           <span
             className={`
               px-2 py-0.5 rounded text-xs uppercase
@@ -274,7 +274,7 @@ const VRPerformanceHUD: React.FC<VRPerformanceHUDProps> = ({ visible, targetFPS 
         {/* Dropped Frames */}
         {stats.droppedFrames > 0 && (
           <div className="flex items-center justify-between mb-2">
-            <span className="text-slate-400">Dropped</span>
+            <span className="text-muted-foreground">Dropped</span>
             <span className="text-red-400">{stats.droppedFrames}</span>
           </div>
         )}
@@ -579,7 +579,7 @@ export const VROptimizedScene: React.FC<VROptimizedSceneProps> = ({
 
       {/* Quality indicator (non-VR) */}
       <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-1.5">
-        <span className="text-xs text-slate-400">Quality:</span>
+        <span className="text-xs text-muted-foreground">Quality:</span>
         <select
           value={qualityLevel}
           onChange={(e) => setQualityLevel(e.target.value as VRQualityLevel)}

@@ -345,7 +345,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white">Annotations</h3>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-muted-foreground">
             {visibleCount} / {totalCount}
           </span>
           <button
@@ -367,7 +367,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
         <>
           {/* Type filters */}
           <div className="space-y-2">
-            <span className="text-xs text-slate-400 uppercase tracking-wide">Types</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">Types</span>
             <div className="flex flex-wrap gap-2">
               {allTypes.map((type) => (
                 <button

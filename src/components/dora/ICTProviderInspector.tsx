@@ -178,20 +178,20 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                         <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                             <span className="text-xs text-slate-500 block mb-1">{t('dora.contract.startDate')}</span>
                             <span className="font-medium text-slate-900 dark:text-white flex items-center gap-1">
-                                <Calendar className="w-4 h-4 text-slate-400" />
+                                <Calendar className="w-4 h-4 text-muted-foreground" />
                                 {formatDate(provider.contractInfo?.startDate)}
                             </span>
                         </div>
                         <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                             <span className="text-xs text-slate-500 block mb-1">{t('dora.contract.endDate')}</span>
                             <span className="font-medium text-slate-900 dark:text-white flex items-center gap-1">
-                                <Calendar className="w-4 h-4 text-slate-400" />
+                                <Calendar className="w-4 h-4 text-muted-foreground" />
                                 {formatDate(provider.contractInfo?.endDate)}
                             </span>
                         </div>
                         <div className="col-span-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                             <span className="text-xs text-slate-500 block mb-1">{t('dora.contract.exitStrategy')}</span>
-                            <span className="text-sm text-slate-700 dark:text-slate-300">
+                            <span className="text-sm text-slate-700 dark:text-muted-foreground">
                                 {provider.contractInfo?.exitStrategy || '-'}
                             </span>
                         </div>
@@ -216,7 +216,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                     </h3>
                     <div className="space-y-3">
                         <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                            <span className="text-sm text-slate-600 dark:text-slate-400">{t('dora.compliance.locationEU')}</span>
+                            <span className="text-sm text-slate-600 dark:text-muted-foreground">{t('dora.compliance.locationEU')}</span>
                             {provider.compliance?.locationEU ? (
                                 <Badge status="success" variant="soft" size="sm">
                                     <Globe className="w-3 h-3 mr-1" />
@@ -228,7 +228,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                         </div>
                         {provider.compliance?.headquartersCountry && (
                             <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                <span className="text-sm text-slate-600 dark:text-slate-400">{t('dora.compliance.headquartersCountry')}</span>
+                                <span className="text-sm text-slate-600 dark:text-muted-foreground">{t('dora.compliance.headquartersCountry')}</span>
                                 <span className="font-medium text-slate-900 dark:text-white">
                                     {provider.compliance.headquartersCountry}
                                 </span>
@@ -294,7 +294,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                         </h3>
                         <div className="space-y-2">
                             {provider.contactName && (
-                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                                     <Building2 className="w-4 h-4" />
                                     {provider.contactName}
                                 </div>

@@ -338,7 +338,7 @@ export const Projects: React.FC = () => {
                                 <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
                                     <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                         <div className="p-1">
-                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.actions.title')}</div>
+                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.actions.title')}</div>
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button aria-label={t('projects.createFromTemplate')} onClick={handleOpenTemplateModal} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
@@ -458,7 +458,7 @@ export const Projects: React.FC = () => {
 
                         return (
                             <div key={statusKey} className="flex flex-col glass-premium rounded-3xl p-5 h-full border-slate-200/60 dark:border-white/5">
-                                <h4 className="flex justify-between px-1 mb-4 text-sm font-bold tracking-wider uppercase text-slate-600 dark:text-slate-400">
+                                <h4 className="flex justify-between px-1 mb-4 text-sm font-bold tracking-wider uppercase text-slate-600 dark:text-muted-foreground">
                                     {statusLabel}
                                     <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs shadow-sm border border-slate-200 dark:border-white/5">
                                         {columnProjects.length}
@@ -471,7 +471,7 @@ export const Projects: React.FC = () => {
                                             <SkeletonCard />
                                         </>
                                     ) : columnProjects.length === 0 ? (
-                                        <div className="flex items-center justify-center h-32 text-xs font-medium border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl text-slate-400">
+                                        <div className="flex items-center justify-center h-32 text-xs font-medium border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl text-muted-foreground">
                                             {t('projects.emptyTitle')}
                                         </div>
                                     ) : (

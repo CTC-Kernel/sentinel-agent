@@ -350,7 +350,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                                 type="checkbox"
                                                 className="rounded text-blue-600 focus-visible:ring-brand-500"
                                             />
-                                            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">Sécurisé</span>
+                                            <span className="text-[10px] font-bold text-slate-600 dark:text-muted-foreground">Sécurisé</span>
                                         </label>
                                         <button type="button" onClick={() => { setUploadedFileUrl(''); setUploadedFileHash(''); }} className="text-red-500 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
                                     </div>

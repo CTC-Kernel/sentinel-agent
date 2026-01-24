@@ -28,7 +28,7 @@ export const AgentVerificationBadge: React.FC<AgentVerificationBadgeProps> = ({
     if (!verified) {
         return showLabel ? (
             <span className={cn(
-                "inline-flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500",
+                "inline-flex items-center gap-1 text-xs text-muted-foreground dark:text-slate-500",
                 className
             )}>
                 <Bot className="w-3 h-3" />
@@ -96,7 +96,7 @@ export const AgentVerificationBadge: React.FC<AgentVerificationBadgeProps> = ({
         <div className="text-xs">
             <div className="font-semibold">{t('common.agents.verification.verifiedByAgent')}</div>
             {lastCheck && (
-                <div className="text-slate-400 mt-1">
+                <div className="text-muted-foreground mt-1">
                     {t('common.agents.verification.lastCheck')}: {formatLastCheck(lastCheck)}
                 </div>
             )}

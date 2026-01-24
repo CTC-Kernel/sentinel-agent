@@ -179,7 +179,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 1. Risk Metric */}
                         <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/risks')}>
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Risques</span>
+                                <span className="text-xs font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Risques</span>
                                 <AlertTriangle className="w-4 h-4 text-orange-500 group-hover/item:text-orange-400 transition-colors" />
                             </div>
                             <div className="flex items-end gap-2 mt-auto">
@@ -197,7 +197,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 2. Compliance Metric */}
                         <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/compliance')}>
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Conformité</span>
+                                <span className="text-xs font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Conformité</span>
                                 <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 80 ? 'text-emerald-500 group-hover/item:text-emerald-400' :
                                     effectiveComplianceScore >= 50 ? 'text-amber-500 group-hover/item:text-amber-400' :
                                         'text-red-500 group-hover/item:text-red-400'
@@ -223,7 +223,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                     <span className="absolute text-sm font-bold text-slate-900 dark:text-white">{effectiveComplianceScore}%</span>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">Score</div>
+                                    <div className="text-xs text-slate-500 dark:text-muted-foreground">Score</div>
                                     <div className={`text-sm font-bold ${effectiveComplianceScore >= 80 ? 'text-emerald-600 dark:text-emerald-400' :
                                         effectiveComplianceScore >= 50 ? 'text-amber-600 dark:text-amber-400' :
                                             'text-red-600 dark:text-red-400'
@@ -239,7 +239,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 3. Financial Metric */}
                         <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/risks')}>
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Financier</span>
+                                <span className="text-xs font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Financier</span>
                                 <Activity className="w-4 h-4 text-blue-500 group-hover/item:text-blue-400 transition-colors" />
                             </div>
                             <div className="mt-auto">

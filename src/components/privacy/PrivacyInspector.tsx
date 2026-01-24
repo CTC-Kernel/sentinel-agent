@@ -161,7 +161,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                 <div>
                                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                    <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">{log.details}</p>
                                     <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>
                                 </div>
                             </div>

@@ -147,7 +147,7 @@ export const VendorPortal: React.FC = () => {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
           {t('vendorPortal.accessError', 'Access Error')}
         </h1>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
+        <p className="text-slate-600 dark:text-muted-foreground mb-6">
           {error ? getPortalErrorMessage(error) : t('vendorPortal.unknownError', 'An unknown error occurred.')}
         </p>
         <p className="text-sm text-slate-500">
@@ -183,7 +183,7 @@ export const VendorPortal: React.FC = () => {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
           {t('vendorPortal.submitted', 'Questionnaire Submitted')}
         </h1>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
+        <p className="text-slate-600 dark:text-muted-foreground mb-6">
           {t('vendorPortal.submittedMessage', 'Thank you for completing the security questionnaire. Your responses have been recorded.')}
         </p>
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-white/10 w-full">

@@ -318,7 +318,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                 <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">
                                                     {hunterProfile?.user?.displayName || hunterName}
                                                 </h2>
-                                                <div className="flex items-center gap-4 text-slate-600 dark:text-slate-400">
+                                                <div className="flex items-center gap-4 text-slate-600 dark:text-muted-foreground">
                                                     <span className="flex items-center gap-1">
                                                         <Shield className="h-4 w-4" />
                                                         {hunterProfile?.user?.role || 'Security Analyst'}
@@ -333,7 +333,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                 <div className="text-3xl font-black text-brand-600 dark:text-brand-400">
                                                     #{mockHunterProfiles[hunterProfile?.user?.displayName || hunterName]?.rank || 4}
                                                 </div>
-                                                <div className="text-sm text-slate-500 dark:text-slate-400">Classement</div>
+                                                <div className="text-sm text-slate-500 dark:text-muted-foreground">Classement</div>
                                             </div>
                                         </div>
 
@@ -345,28 +345,28 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-white/5">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <Activity className="h-4 w-4 text-brand-500" />
-                                                            <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Contributions</div>
+                                                            <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Contributions</div>
                                                         </div>
                                                         <div className="text-2xl font-black text-slate-900 dark:text-white">{hunterProfile?.stats?.totalContributions || 0}</div>
                                                     </div>
                                                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-white/5">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <Shield className="h-4 w-4 text-emerald-500" />
-                                                            <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Verifiées</div>
+                                                            <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Verifiées</div>
                                                         </div>
                                                         <div className="text-2xl font-black text-slate-900 dark:text-white">{hunterProfile?.stats?.verifiedThreats || 0}</div>
                                                     </div>
                                                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-white/5">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <Zap className="h-4 w-4 text-yellow-500" />
-                                                            <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Réponse</div>
+                                                            <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Réponse</div>
                                                         </div>
                                                         <div className="text-2xl font-black text-slate-900 dark:text-white">{hunterProfile?.stats?.averageResponseTime || 0} min</div>
                                                     </div>
                                                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-white/5">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <TrendingUp className="h-4 w-4 text-purple-500" />
-                                                            <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Ce mois</div>
+                                                            <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Ce mois</div>
                                                         </div>
                                                         <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.threatsThisMonth}</div>
                                                     </div>
@@ -405,8 +405,8 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                                 </div>
                                                                 <div className="flex-1">
                                                                     <div className="font-medium text-slate-900 dark:text-white">{activity.title}</div>
-                                                                    <div className="text-sm text-slate-500 dark:text-slate-400">{activity.date}</div>
-                                                                    <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">{activity.impact}</div>
+                                                                    <div className="text-sm text-slate-500 dark:text-muted-foreground">{activity.date}</div>
+                                                                    <div className="text-xs text-muted-foreground dark:text-slate-500 mt-1">{activity.impact}</div>
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -422,7 +422,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                     <div className="space-y-4">
                                                         <div>
                                                             <div className="flex justify-between text-sm mb-1">
-                                                                <span className="text-slate-600 dark:text-slate-400">Précision</span>
+                                                                <span className="text-slate-600 dark:text-muted-foreground">Précision</span>
                                                                 <span className="font-bold text-slate-900 dark:text-white">{stats.accuracyRate}%</span>
                                                             </div>
                                                             <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
@@ -434,7 +434,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                         </div>
                                                         <div>
                                                             <div className="flex justify-between text-sm mb-1">
-                                                                <span className="text-slate-600 dark:text-slate-400">Réputation</span>
+                                                                <span className="text-slate-600 dark:text-muted-foreground">Réputation</span>
                                                                 <span className="font-bold text-slate-900 dark:text-white">{stats.reputationScore}/5.0</span>
                                                             </div>
                                                             <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
@@ -446,7 +446,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                         </div>
                                                         <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
                                                             <div className="flex justify-between text-sm">
-                                                                <span className="text-slate-600 dark:text-slate-400">Collaborations</span>
+                                                                <span className="text-slate-600 dark:text-muted-foreground">Collaborations</span>
                                                                 <span className="font-bold text-slate-900 dark:text-white">{stats.collaborations}</span>
                                                             </div>
                                                         </div>
@@ -468,8 +468,8 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
                                                                     </div>
                                                                     <div>
                                                                         <div className="font-medium text-slate-900 dark:text-white text-sm">{achievement.title}</div>
-                                                                        <div className="text-xs text-slate-500 dark:text-slate-400">{achievement.description}</div>
-                                                                        <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">{achievement.date}</div>
+                                                                        <div className="text-xs text-slate-500 dark:text-muted-foreground">{achievement.description}</div>
+                                                                        <div className="text-xs text-muted-foreground dark:text-slate-500 mt-1">{achievement.date}</div>
                                                                     </div>
                                                                 </div>
                                                             ))}
@@ -479,7 +479,7 @@ export const HunterProfileModal: React.FC<HunterProfileModalProps> = ({ isOpen, 
 
                                                 {/* Member Since */}
                                                 <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/5">
-                                                    <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Membre depuis</div>
+                                                    <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">Membre depuis</div>
                                                     <div className="font-bold text-slate-900 dark:text-white">{new Date(hunterProfile?.user?.createdAt || '2023-01-01').toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })}</div>
                                                 </div>
                                             </div>

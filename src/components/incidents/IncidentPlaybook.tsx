@@ -121,7 +121,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                     <AlertTriangle className="h-6 w-6" />
                     <h3 className="font-bold text-lg">Aucune réponse initiée</h3>
                 </div>
-                <p className="text-slate-600 dark:text-slate-300">
+                <p className="text-slate-600 dark:text-muted-foreground">
                     Pour traiter cet incident selon les normes ISO 27001, vous devez initier une procédure de réponse formelle.
                 </p>
 
@@ -202,7 +202,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                     <div className="bg-brand-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
                 </div>
 
-                <div className="flex gap-4 text-xs text-slate-600 dark:text-slate-400">
+                <div className="flex gap-4 text-xs text-slate-600 dark:text-muted-foreground">
                     <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
                         <span>Débuté le: {new Date(response.startedAt).toLocaleDateString()}</span>

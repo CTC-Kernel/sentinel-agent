@@ -73,17 +73,17 @@ export const IncidentSummaryCard: React.FC<IncidentSummaryCardProps> = ({
             {/* Key Metrics Breakdown */}
             <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2 relative z-decorator">
                 <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">Total</div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-muted-foreground mb-1">Total</div>
                     <div className="text-2xl font-black text-slate-900 dark:text-white">{totalIncidents}</div>
                 </div>
                 <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-muted-foreground mb-1">En Cours</div>
                     <div className={`text-2xl font-black ${openIncidents > 0 ? 'text-orange-500' : 'text-slate-900 dark:text-white'}`}>
                         {openIncidents}
                     </div>
                 </div>
                 <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">Critiques</div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-muted-foreground mb-1">Critiques</div>
                     <div className={`text-2xl font-black ${criticalIncidents > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                         {criticalIncidents}
                     </div>

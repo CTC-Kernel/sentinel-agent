@@ -617,7 +617,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
           <h3 className="font-bold text-slate-900 dark:text-white text-sm">
             {t('homologation.ai.title', 'Assistant IA Homologation')}
           </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-muted-foreground">
             {t('homologation.ai.subtitle', 'Conformité ANSSI')}
           </p>
         </div>

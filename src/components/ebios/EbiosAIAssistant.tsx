@@ -654,7 +654,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
           <h3 className="font-bold text-slate-900 dark:text-white text-sm">
             {t('ebios.ai.title', 'Assistant IA EBIOS RM')}
           </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-muted-foreground">
             {t('ebios.ai.subtitle', 'Atelier')} {currentWorkshop}
           </p>
         </div>

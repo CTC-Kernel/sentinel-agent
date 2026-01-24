@@ -106,7 +106,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                                 target.src = getUserAvatarUrl(null, managerUser?.role);
                             }}
                         />
-                        <span className="text-sm text-slate-700 dark:text-slate-300">{row.original.manager}</span>
+                        <span className="text-sm text-slate-700 dark:text-muted-foreground">{row.original.manager}</span>
                     </div>
                 );
             }
@@ -183,7 +183,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
             accessorKey: 'dueDate',
             header: t('projects.columns.dueDate'),
             cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
+                <span className="text-slate-600 dark:text-muted-foreground font-medium text-xs">
                     {new Date(row.original.dueDate).toLocaleDateString()}
                 </span>
             )

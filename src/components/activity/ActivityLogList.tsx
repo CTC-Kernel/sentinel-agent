@@ -41,7 +41,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                         <User className="h-4 w-4" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                             {row.original.userEmail}
                         </span>
                         {/* We could fetch Display Name if we had it, but email is reliable */}
@@ -115,7 +115,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                 }
 
                 return (
-                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-muted-foreground">
                         <Shield className="h-4 w-4" />
                         {linkPath ? (
                             <Link to={linkPath} className="hover:text-brand-600 hover:underline transition-colors font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-sm">
@@ -145,7 +145,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                                     {changes.map((change, i) => (
                                         <div key={`change-${i}`} className="grid grid-cols-[1fr,auto,1fr] gap-2 items-center">
                                             <span className="font-semibold text-slate-700 dark:text-slate-300 truncate" title={change.field}>{change.field}</span>
-                                            <span className="text-slate-400">→</span>
+                                            <span className="text-muted-foreground">→</span>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-red-500 line-through opacity-70 truncate max-w-[80px]" title={String(change.oldValue)}>{String(change.oldValue)}</span>
                                                 <span className="text-green-600 dark:text-green-400 font-bold truncate max-w-[80px]" title={String(change.newValue)}>{String(change.newValue)}</span>

@@ -390,7 +390,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
           </div>
           {(status.vrSupported || status.arSupported) && (
             <div className="pt-2 mt-2 border-t border-white/10">
-              <div className="text-xs text-slate-400 mb-1">Features:</div>
+              <div className="text-xs text-muted-foreground mb-1">Features:</div>
               <div className="grid grid-cols-2 gap-1 text-xs text-slate-500">
                 {status.capabilities.handTracking && <span>Hand Tracking</span>}
                 {status.capabilities.hitTest && <span>Surface Detection</span>}
@@ -440,7 +440,7 @@ export const XRMiniStatus: React.FC<XRMiniStatusProps> = ({ onClick, className =
       className={`
         flex items-center gap-1.5 px-2 py-1
         bg-slate-800/60 backdrop-blur-sm rounded-md
-        text-xs text-slate-400 hover:text-slate-200
+        text-xs text-muted-foreground hover:text-slate-200
         transition-colors
         ${className}
       `}

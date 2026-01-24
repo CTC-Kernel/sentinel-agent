@@ -306,13 +306,13 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
 
                       {connector.lastSync && (
                         <>
-                          <span className="text-slate-300">|</span>
+                          <span className="text-muted-foreground">|</span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {t('otConnector.lastSync', 'Last sync')}: {getRelativeTime(connector.lastSync.completedAt)}
                           </span>
                           {connector.lastSync.stats && (
-                            <span className="text-slate-400">
+                            <span className="text-muted-foreground">
                               ({formatSyncStats(connector.lastSync.stats)})
                             </span>
                           )}
@@ -321,7 +321,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
 
                       {connector.schedule.type !== 'manual' && connector.schedule.nextRun && (
                         <>
-                          <span className="text-slate-300">|</span>
+                          <span className="text-muted-foreground">|</span>
                           <span>
                             {t('otConnector.nextSync', 'Next')}: {getRelativeTime(connector.schedule.nextRun)}
                           </span>
@@ -402,7 +402,7 @@ export const OTConnectorList: React.FC<OTConnectorListProps> = ({
                     </Button>
 
                     {/* Chevron */}
-                    <ChevronRight className="h-4 w-4 text-slate-300 ml-2" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />
                   </div>
                 </div>
               </Card>

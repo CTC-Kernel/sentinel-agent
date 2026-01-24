@@ -147,7 +147,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10">
                         <div className="col-span-full mb-2">
-                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Objectifs de Reprise (SLA)</span>
+                            <span className="text-sm font-semibold text-slate-700 dark:text-muted-foreground">Objectifs de Reprise (SLA)</span>
                         </div>
                         <div className="relative">
                             <Controller
@@ -155,7 +155,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <div className="relative">
-                                        <Clock className="absolute left-3 top-3 w-4 h-4 text-slate-400 z-10" />
+                                        <Clock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground z-10" />
                                         <FloatingLabelInput
                                             label="RTO (Recovery Time)"
                                             placeholder="ex: 4h"
@@ -174,7 +174,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <div className="relative">
-                                        <DatabaseIcon className="absolute left-3 top-3 w-4 h-4 text-slate-400 z-10" />
+                                        <DatabaseIcon className="absolute left-3 top-3 w-4 h-4 text-muted-foreground z-10" />
                                         <FloatingLabelInput
                                             label="RPO (Data Loss)"
                                             placeholder="ex: 15min"

@@ -87,7 +87,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
                         </div>
                         <button
                             onClick={onSkip}
-                            className="text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            className="text-muted-foreground hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                             title="Quitter le tour"
                         >
                             <X className="w-5 h-5" />

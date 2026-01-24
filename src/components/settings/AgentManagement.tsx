@@ -86,7 +86,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
             {loading ? (
                 <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
             ) : available ? (
-                <Download className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
+                <Download className="w-4 h-4 text-muted-foreground group-hover:text-slate-900 dark:group-hover:text-white transition-colors" />
             ) : (
                 <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600">
                     Bientôt
@@ -350,7 +350,7 @@ export const AgentManagement: React.FC = () => {
                                             <td colSpan={5} className="px-6 py-20 text-center">
                                                 <div className="flex flex-col items-center gap-3">
                                                     <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full">
-                                                        <Server className="w-8 h-8 text-slate-400" />
+                                                        <Server className="w-8 h-8 text-muted-foreground" />
                                                     </div>
                                                     <div className="text-slate-900 dark:text-white font-bold">Aucun agent trouvé</div>
                                                     <p className="text-sm text-slate-500">Commencez par enrôler un nouvel agent.</p>
@@ -394,7 +394,7 @@ export const AgentManagement: React.FC = () => {
                                                         <button
                                                             onClick={() => handleDelete(agent.id)}
                                                             aria-label="Supprimer"
-                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -459,7 +459,7 @@ export const AgentManagement: React.FC = () => {
                                                 }}
                                                 className="absolute right-2 top-2 p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
                                             >
-                                                <Copy className="w-3 h-3 text-slate-400" />
+                                                <Copy className="w-3 h-3 text-muted-foreground" />
                                             </button>
                                         </div>
                                     </div>
@@ -491,7 +491,7 @@ export const AgentManagement: React.FC = () => {
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Qu'est-ce que l'Agent ?</h3>
                         </div>
-                        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                        <div className="space-y-3 text-sm text-slate-600 dark:text-muted-foreground">
                             <p>
                                 L'Agent Sentinel est un logiciel léger qui s'exécute en arrière-plan sur vos terminaux.
                             </p>
@@ -600,7 +600,7 @@ export const AgentManagement: React.FC = () => {
 
                         <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Installation rapide</h4>
-                            <ol className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                            <ol className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                                 <li className="flex gap-2">
                                     <span className="font-bold text-brand-500">1.</span>
                                     Téléchargez l'installateur pour votre système

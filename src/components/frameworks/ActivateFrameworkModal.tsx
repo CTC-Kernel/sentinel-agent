@@ -111,7 +111,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                     >
                       {t('frameworks.activateTitle', 'Activer {{code}}', { code: framework.code })}
                     </Dialog.Title>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground font-medium">
                       {t(
                         'frameworks.activateDescription',
                         'Ce framework sera ajouté à votre suivi de conformité.'

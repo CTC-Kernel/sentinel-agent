@@ -120,7 +120,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
         <div className="space-y-4">
             {/* Header with label and score */}
             <div className="flex justify-between items-end">
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-muted-foreground">
                     {label}
                 </label>
                 <div className="text-right">
@@ -263,7 +263,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
 
             {/* Position markers legend (when residual exists) */}
             {residualScore !== null && (
-                <div className="flex justify-center items-center gap-4 text-[10px] text-slate-500 dark:text-slate-400">
+                <div className="flex justify-center items-center gap-4 text-[10px] text-slate-500 dark:text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 bg-white rounded-full shadow ring-2 ring-slate-300" />
                         <span>Position brute</span>

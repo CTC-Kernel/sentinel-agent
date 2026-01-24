@@ -74,7 +74,7 @@ export const NotificationPermissionBanner: React.FC = () => {
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
                             Activer les Notifications
                         </h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground mb-4">
                             Recevez des alertes en temps réel pour les incidents critiques, audits imminents et risques non traités.
                         </p>
 

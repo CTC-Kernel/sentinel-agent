@@ -135,7 +135,7 @@ function WidgetCard({
               {t(`dashboard.widgetCategories.${category}`)}
             </span>
             {isDisabled && (
-              <span className="text-xs text-slate-400 dark:text-slate-500">
+              <span className="text-xs text-muted-foreground dark:text-slate-500">
                 (déjà ajouté)
               </span>
             )}
@@ -279,7 +279,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                 >
                   {t('dashboard.addWidget')}
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
                   {t('dashboard.customizeDashboard')}
                 </p>
               </div>
@@ -296,7 +296,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
             <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 shrink-0 space-y-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder={t('common.search')}
@@ -366,7 +366,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                               {CATEGORY_ICONS[category]}
                             </span>
                             {t(`dashboard.widgetCategories.${category}`)}
-                            <span className="text-xs text-slate-400 font-normal">
+                            <span className="text-xs text-muted-foreground font-normal">
                               ({widgets.length})
                             </span>
                           </h3>
@@ -402,7 +402,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({
                 )
               ) : (
                 // Empty state
-                <div className="col-span-full py-12 text-center flex flex-col items-center justify-center text-slate-400">
+                <div className="col-span-full py-12 text-center flex flex-col items-center justify-center text-muted-foreground">
                   <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
                     <Search className="w-8 h-8 opacity-20" />
                   </div>

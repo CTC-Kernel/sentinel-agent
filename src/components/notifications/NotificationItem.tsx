@@ -57,7 +57,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
                     <p className={cn("text-sm font-medium", notification.read ? "text-slate-600 dark:text-slate-400" : "text-slate-900 dark:text-slate-100")}>
                         {notification.title}
                     </p>
-                    <span className="text-xs text-slate-400 whitespace-nowrap flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: fr })}
                     </span>

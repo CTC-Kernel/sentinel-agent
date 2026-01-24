@@ -230,7 +230,7 @@ const ActionCard: React.FC<{
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <span className="font-mono text-xs font-semibold text-slate-500 dark:text-muted-foreground">
             {action.controlCode}
           </span>
           <span className={cn(
@@ -244,7 +244,7 @@ const ActionCard: React.FC<{
         <p className="text-sm font-medium text-slate-900 dark:text-white line-clamp-1">
           {action.controlName}
         </p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">
           {t('actions.currentStatus', 'Statut')}: {action.currentStatus}
         </p>
       </div>
@@ -255,7 +255,7 @@ const ActionCard: React.FC<{
           <TrendingUp className="w-4 h-4" />
           <span className="text-sm font-bold">+{action.potentialImprovement}%</span>
         </div>
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <span className="text-xs text-muted-foreground dark:text-slate-500">
           {t('actions.potentialGain', 'gain potentiel')}
         </span>
       </div>
@@ -311,7 +311,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
           <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
             {t('actions.allComplete', 'Excellent travail !')}
           </h4>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-muted-foreground">
             {t('actions.noActions', 'Tous vos contrôles sont implémentés et documentés.')}
           </p>
         </div>
@@ -336,12 +336,12 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
               {t('actions.priorityActions', 'Actions Prioritaires')}
             </h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-muted-foreground">
               {t('actions.subtitle', 'Maximisez votre score de conformité')}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-muted-foreground">
           <AlertTriangle className="w-4 h-4" />
           {priorityActions.length} {t('actions.pending', 'actions')}
         </div>
@@ -363,7 +363,7 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
 
       {/* Footer hint */}
       <div className="mt-4 pt-4 border-t border-white/20 dark:border-white/5 relative z-10">
-        <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
+        <p className="text-xs text-muted-foreground dark:text-slate-500 text-center">
           {t('actions.hint', 'Cliquez sur une action pour commencer')}
         </p>
       </div>

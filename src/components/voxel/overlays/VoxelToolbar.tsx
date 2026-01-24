@@ -70,7 +70,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
     disabled={disabled}
     className={`p-2 rounded-lg transition-colors ${active
         ? 'bg-blue-500/20 text-blue-400'
-        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+        : 'text-muted-foreground hover:text-slate-200 hover:bg-slate-700/50'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     title={label}
     aria-label={label}

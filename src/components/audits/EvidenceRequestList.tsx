@@ -214,7 +214,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                     <FileText className="h-5 w-5 text-brand-600" />
                     Demandes de preuves
-                    <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-muted-foreground">
                         {requests.length}
                     </span>
                 </h3>

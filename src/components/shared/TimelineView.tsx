@@ -133,7 +133,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center p-8 text-slate-400">
+            <div className="flex justify-center items-center p-8 text-muted-foreground">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
             </div>
         );
@@ -205,14 +205,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                     <span className="font-medium">{log.userName}</span>
                                 </div>
 
-                                <div className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                                <div className="text-xs text-slate-500 dark:text-muted-foreground mb-3">
                                     {format(log.timestamp, "d MMMM yyyy", { locale: fr })}
                                 </div>
 
                                 {log.changes && log.changes.length > 0 && (
                                     <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-white/5">
                                         {log.changes.slice(0, 3).map((change, idx) => (
-                                            <div key={`${idx}-${change}`} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                                            <div key={`${idx}-${change}`} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-muted-foreground">
                                                 <div className="w-1 h-1 rounded-full bg-slate-400"></div>
                                                 <span className="truncate">{change}</span>
                                             </div>
@@ -249,7 +249,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                     </h3>
                                     <button
                                         onClick={() => setSelectedLog(null)}
-                                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg p-1"
+                                        className="text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg p-1"
                                     >
                                         Fermer
                                     </button>

@@ -366,7 +366,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                                             onChange={(e) => setter(e.target.checked)}
                                                             className="rounded text-brand-600 focus-visible:ring-brand-500"
                                                         />
-                                                        <span className="text-sm text-slate-600 dark:text-slate-400">{label}</span>
+                                                        <span className="text-sm text-slate-600 dark:text-muted-foreground">{label}</span>
                                                     </label>
                                                 ))}
                                             </div>

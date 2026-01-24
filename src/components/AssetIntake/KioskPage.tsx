@@ -72,7 +72,7 @@ export const KioskPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-full border border-white/20 dark:border-white/5">
                     <Lock className="h-3 w-3 text-slate-600" />
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Connexion Sécurisée</span>
+                    <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Connexion Sécurisée</span>
                 </div>
             </header>
 
@@ -82,7 +82,7 @@ export const KioskPage: React.FC = () => {
                     <div className="text-center animate-fade-in">
                         <div className="w-16 h-16 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto mb-6"></div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Analyse du matériel...</h2>
-                        <p className="text-slate-600 dark:text-slate-400">Veuillez patienter pendant que nous détectons la configuration.</p>
+                        <p className="text-slate-600 dark:text-muted-foreground">Veuillez patienter pendant que nous détectons la configuration.</p>
                     </div>
                 ) : (
                     <div className="w-full max-w-2xl animate-slide-up">

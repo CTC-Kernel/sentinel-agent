@@ -22,7 +22,7 @@ const ServiceStatus: React.FC<{
         <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-800/70 transition-colors">
             <div className="flex items-center">
                 <div className={`p-2.5 rounded-lg bg-slate-800 mr-4 border border-slate-700`}>
-                    <Icon className="w-5 h-5 text-slate-400" />
+                    <Icon className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
                     <h4 className="font-medium text-white text-sm">{name}</h4>

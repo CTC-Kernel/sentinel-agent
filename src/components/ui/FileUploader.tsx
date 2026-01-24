@@ -163,7 +163,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                         ) : (
                             <>
                                 <Upload className={`text-slate-500 ${compact ? 'h-5 w-5 mb-1' : 'h-8 w-8 mb-2'}`} />
-                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                <p className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
                                     {label || "Cliquez pour sélectionner un fichier"}
                                 </p>
                                 {!compact && (
@@ -189,7 +189,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                 <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
                                     {selectedFile.name}
                                 </p>
-                                <p className="text-xs text-slate-600 dark:text-slate-400">
+                                <p className="text-xs text-slate-600 dark:text-muted-foreground">
                                     {formatFileSize(selectedFile.size)}
                                 </p>
                             </div>
@@ -234,7 +234,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                     style={{ width: `${progress}%` }}
                                 />
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">
                                 Upload en cours... {progress}%
                             </p>
                         </div>

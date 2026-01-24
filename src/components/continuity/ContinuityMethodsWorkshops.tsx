@@ -688,7 +688,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                         <BookOpen className="w-5 h-5 text-indigo-500" />
                         Méthodes & Ateliers de Continuité
                     </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
                         Méthodologies structurées pour vos projets de continuité d'activité
                     </p>
                 </div>
@@ -744,11 +744,11 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                     )}
                                 </div>
 
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
+                                <p className="text-sm text-slate-600 dark:text-muted-foreground mb-4 line-clamp-2">
                                     {template.description}
                                 </p>
 
-                                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-muted-foreground">
                                     <span className="flex items-center gap-1">
                                         <Clock className="w-3.5 h-3.5" />
                                         {template.estimatedDuration}
@@ -762,7 +762,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                 {isActive && (
                                     <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Progression</span>
+                                            <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Progression</span>
                                             <span className="text-xs font-bold text-slate-900 dark:text-white">{workshopProgress}%</span>
                                         </div>
                                         <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -799,7 +799,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                         <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
                                             {selectedTemplate.name}
                                         </h3>
-                                        <p className="text-slate-500 dark:text-slate-400 mt-1">{selectedTemplate.description}</p>
+                                        <p className="text-slate-500 dark:text-muted-foreground mt-1">{selectedTemplate.description}</p>
                                     </div>
                                 </div>
                                 {!activeWorkshop || activeWorkshop.templateId !== selectedTemplate.id ? (
@@ -827,7 +827,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                     </h4>
                                     <ul className="space-y-2">
                                         {selectedTemplate.bestPractices.map((practice, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                                                 <CheckCircle className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                                                 {practice}
                                             </li>
@@ -842,7 +842,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                     </h4>
                                     <ul className="space-y-2">
                                         {selectedTemplate.deliverables.map((deliverable, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                            <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                                                 <FileCheck className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                                                 {deliverable}
                                             </li>
@@ -886,7 +886,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                 </div>
                                                 <div className="text-left">
                                                     <div className="font-medium text-slate-900 dark:text-white">{phase.name}</div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                                                    <div className="text-xs text-slate-500 dark:text-muted-foreground">
                                                         {completedTasks}/{totalTasks} tâches • {phaseProgress}%
                                                     </div>
                                                 </div>
@@ -906,7 +906,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                     transition={{ duration: 0.2 }}
                                                 >
                                                     <div className="px-4 pb-4 border-t border-slate-200 dark:border-slate-700 pt-4">
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{phase.description}</p>
+                                                        <p className="text-sm text-slate-600 dark:text-muted-foreground mb-4">{phase.description}</p>
 
                                                         {/* Tasks */}
                                                         <div className="space-y-2 mb-4">
@@ -935,7 +935,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                                                 {task.title}
                                                                                 {task.isRequired && <span className="text-red-500 ml-1">*</span>}
                                                                             </div>
-                                                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{task.description}</div>
+                                                                            <div className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">{task.description}</div>
                                                                         </div>
                                                                     </div>
                                                                 );
@@ -945,7 +945,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                         {/* Phase Deliverables */}
                                                         {phase.deliverables && phase.deliverables.length > 0 && (
                                                             <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                                                                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                                                                <div className="text-xs font-medium text-slate-500 dark:text-muted-foreground mb-2">
                                                                     Livrables de cette phase:
                                                                 </div>
                                                                 <div className="flex flex-wrap gap-2">

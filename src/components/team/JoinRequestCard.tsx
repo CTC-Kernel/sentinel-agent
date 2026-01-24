@@ -25,7 +25,7 @@ export const JoinRequestCard = React.memo(({ req, onApprove, onReject }: JoinReq
                     </div>
                     <div>
                         <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400">{req.userEmail}</p>
+                        <p className="text-xs text-slate-600 dark:text-muted-foreground">{req.userEmail}</p>
                     </div>
                 </div>
                 <div className="mt-auto flex gap-2 pt-3">

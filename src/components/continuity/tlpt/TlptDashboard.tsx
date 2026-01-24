@@ -80,7 +80,7 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
                                 <div className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(campaign.status)}`}>
                                     {campaign.status}
                                 </div>
-                                <span className="text-xs text-slate-400">
+                                <span className="text-xs text-muted-foreground">
                                     {campaign.methodology}
                                 </span>
                             </div>
@@ -89,17 +89,17 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
                                 {campaign.name}
                             </h4>
 
-                            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                            <div className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                                 <div className="flex items-center gap-2">
-                                    <Target className="w-4 h-4 text-slate-400" />
+                                    <Target className="w-4 h-4 text-muted-foreground" />
                                     <span className="truncate">{campaign.scope}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-slate-400" />
+                                    <Users className="w-4 h-4 text-muted-foreground" />
                                     <span>{campaign.provider}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-slate-400" />
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
                                     <span>
                                         {campaign.startDate ? new Date(((campaign.startDate as unknown) as { seconds: number }).seconds ? ((campaign.startDate as unknown) as { seconds: number }).seconds * 1000 : campaign.startDate as Date | string | number).toLocaleDateString() : 'N/A'}
                                     </span>

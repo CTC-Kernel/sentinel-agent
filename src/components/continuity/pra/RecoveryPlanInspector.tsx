@@ -265,7 +265,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => remove(index)}
-                                            className="text-slate-400 hover:text-red-500 transition-colors bg-white dark:bg-slate-800 rounded-full p-1 shadow-sm border border-slate-100 dark:border-white/5"
+                                            className="text-muted-foreground hover:text-red-500 transition-colors bg-white dark:bg-slate-800 rounded-full p-1 shadow-sm border border-slate-100 dark:border-white/5"
                                         >
                                             <Trash2 className="w-3 h-3" />
                                         </button>
@@ -286,14 +286,14 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
                                                     />
                                                 </div>
                                                 <div className="md:col-span-4 flex items-center gap-2">
-                                                    <Clock className="w-3 h-3 text-slate-400" />
+                                                    <Clock className="w-3 h-3 text-muted-foreground" />
                                                     <input
                                                         type="number"
                                                         {...register(`steps.${index}.estimatedDuration` as const, { valueAsNumber: true })}
                                                         placeholder="Min"
                                                         className="w-full bg-transparent border-none p-0 text-sm text-right placeholder:text-muted-foreground focus:ring-0 text-slate-600 dark:text-slate-300"
                                                     />
-                                                    <span className="text-xs text-slate-400">min</span>
+                                                    <span className="text-xs text-muted-foreground">min</span>
                                                 </div>
                                             </div>
 
@@ -319,7 +319,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
 
                             {fields.length === 0 && (
                                 <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl bg-slate-50/50 dark:bg-white/5 flex flex-col items-center">
-                                    <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full mb-3 text-slate-400">
+                                    <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full mb-3 text-muted-foreground">
                                         <AlertTriangle className="w-6 h-6" />
                                     </div>
                                     <p className="text-sm font-medium text-slate-900 dark:text-white">Aucune procédure définie</p>

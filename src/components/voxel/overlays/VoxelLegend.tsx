@@ -209,14 +209,14 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
           aria-expanded={isExpanded}
           aria-controls="legend-content"
         >
-          <div className="flex items-center gap-2 text-slate-300">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Info className="w-4 h-4" aria-hidden="true" />
             <span className="text-sm font-medium">Legend</span>
           </div>
           {isExpanded ? (
-            <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
           ) : (
-            <ChevronUp className="w-4 h-4 text-slate-400" aria-hidden="true" />
+            <ChevronUp className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
           )}
         </button>
 
@@ -253,7 +253,7 @@ export const VoxelLegend: React.FC<VoxelLegendProps> = ({
                       {shapeIcon}
                     </div>
                     {/* Icon */}
-                    <div className="text-slate-400 flex-shrink-0" aria-hidden="true">
+                    <div className="text-muted-foreground flex-shrink-0" aria-hidden="true">
                       {icon}
                     </div>
                     {/* Label */}

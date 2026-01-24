@@ -75,7 +75,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                                 size="icon"
                                 onClick={() => handleDeleteClick(strategy.id)}
                                 aria-label="Supprimer la stratégie"
-                                className="absolute top-4 right-4 text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
+                                className="absolute top-4 right-4 text-muted-foreground hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
@@ -93,11 +93,11 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                             <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
                                 <span className="block text-xs text-slate-500 uppercase font-bold">RTO Cible</span>
-                                <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{strategy.rto}</span>
+                                <span className="font-mono font-bold text-slate-700 dark:text-muted-foreground">{strategy.rto}</span>
                             </div>
                             <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
                                 <span className="block text-xs text-slate-500 uppercase font-bold">RPO Cible</span>
-                                <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{strategy.rpo}</span>
+                                <span className="font-mono font-bold text-slate-700 dark:text-muted-foreground">{strategy.rpo}</span>
                             </div>
                         </div>
 
@@ -112,7 +112,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                                         </span>
                                     ) : null;
                                 })}
-                                {(!strategy.linkedAssets || strategy.linkedAssets.length === 0) && <span className="text-xs text-slate-400 italic">Aucun actif lié</span>}
+                                {(!strategy.linkedAssets || strategy.linkedAssets.length === 0) && <span className="text-xs text-muted-foreground italic">Aucun actif lié</span>}
                             </div>
                         </div>
                     </div>

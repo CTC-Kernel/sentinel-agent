@@ -71,7 +71,7 @@ const CoverageLegend: React.FC = () => {
           <div className={cn('w-6 h-6 rounded flex items-center justify-center', item.color)}>
             <item.icon className="w-3.5 h-3.5" />
           </div>
-          <span className="text-slate-600 dark:text-slate-400">{item.label}</span>
+          <span className="text-slate-600 dark:text-muted-foreground">{item.label}</span>
         </div>
       ))}
     </div>
@@ -115,23 +115,23 @@ const StatsSummary: React.FC<StatsSummaryProps> = ({ controls, frameworks }) => 
     <div className="flex items-center gap-6 text-sm">
       <div className="flex items-center gap-2">
         <span className="font-bold text-slate-900 dark:text-white">{controls.length}</span>
-        <span className="text-slate-500 dark:text-slate-400">{t('mapping.controls')}</span>
+        <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.controls')}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="font-bold text-slate-900 dark:text-white">{frameworks.length}</span>
-        <span className="text-slate-500 dark:text-slate-400">{t('mapping.frameworks')}</span>
+        <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.frameworks')}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="font-bold text-emerald-600 dark:text-emerald-400">{stats.fullCoverage}</span>
-        <span className="text-slate-500 dark:text-slate-400">{t('mapping.fullCoverage')}</span>
+        <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.fullCoverage')}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="font-bold text-amber-600 dark:text-amber-400">{stats.partialCoverage}</span>
-        <span className="text-slate-500 dark:text-slate-400">{t('mapping.partialCoverage')}</span>
+        <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.partialCoverage')}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="font-bold text-slate-500 dark:text-slate-400">{stats.unmapped}</span>
-        <span className="text-slate-500 dark:text-slate-400">{t('mapping.unmapped')}</span>
+        <span className="font-bold text-slate-500 dark:text-muted-foreground">{stats.unmapped}</span>
+        <span className="text-slate-500 dark:text-muted-foreground">{t('mapping.unmapped')}</span>
       </div>
     </div>
   );
@@ -227,7 +227,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
             {t('mapping.title')}
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
             {t('mapping.subtitle')}
           </p>
         </div>
@@ -241,7 +241,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
                 'p-2 rounded-md transition-all',
                 viewMode === 'matrix'
                   ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  : 'text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300'
               )}
               title={t('mapping.viewMatrix')}
             >
@@ -253,7 +253,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
                 'p-2 rounded-md transition-all',
                 viewMode === 'list'
                   ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  : 'text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300'
               )}
               title={t('mapping.viewList')}
             >
@@ -272,7 +272,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
@@ -314,12 +314,12 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
           className="text-center py-16"
         >
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-            <Grid className="w-8 h-8 text-slate-400" />
+            <Grid className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
             {t('mapping.noResults')}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-muted-foreground">
             {searchQuery ? t('mapping.noResultsSearch') : t('mapping.noControls')}
           </p>
         </motion.div>
@@ -366,7 +366,7 @@ export const MappingMatrix: React.FC<MappingMatrixProps> = ({
                       onClick={() => handleControlSelect(control)}
                       className="text-left group"
                     >
-                      <div className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <div className="font-mono text-xs font-semibold text-slate-500 dark:text-muted-foreground">
                         {control.controlCode}
                       </div>
                       <div className="text-sm text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors line-clamp-1">

@@ -449,7 +449,7 @@ export const Onboarding: React.FC = () => {
                                             step === 3 ? t('onboarding.pilot') :
                                                 step === 4 ? t('onboarding.team') : t('onboarding.initialMap')}
                         </h1>
-                        <p className="text-slate-600 dark:text-slate-400 font-medium text-lg">
+                        <p className="text-slate-600 dark:text-muted-foreground font-medium text-lg">
                             {mode === 'select' ? t('onboarding.subtitle.welcome') :
                                 mode === 'join' ? t('onboarding.subtitle.join') :
                                     step === 1 ? t('onboarding.subtitle.config') :
@@ -554,7 +554,7 @@ export const Onboarding: React.FC = () => {
                                         <Check className="h-8 w-8" strokeWidth={3} />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('onboarding.actions.sent')}</h3>
-                                    <p className="text-slate-600 dark:text-slate-400">
+                                    <p className="text-slate-600 dark:text-muted-foreground">
                                         {t('onboarding.actions.sentDesc')}
                                     </p>
                                     <Button
@@ -691,7 +691,7 @@ export const Onboarding: React.FC = () => {
                                             />
                                         </div>
                                     </div>
-                                    <label htmlFor="terms" className="text-sm text-slate-600 dark:text-slate-400">
+                                    <label htmlFor="terms" className="text-sm text-slate-600 dark:text-muted-foreground">
                                         {t('onboarding.form.terms')} <Button variant="link" size="sm" aria-label="Lire les conditions générales" type="button" onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline px-0 h-auto">{t('onboarding.form.conditions')}</Button>...
                                     </label>
 
@@ -751,7 +751,7 @@ export const Onboarding: React.FC = () => {
                                                             <h3 className={`font-bold text-lg ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
                                                                 {t(`pricing.plans.${planId}`)}
                                                             </h3>
-                                                            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-1">
+                                                            <p className="text-xs font-medium text-slate-600 dark:text-muted-foreground mt-1">
                                                                 {t(`pricing.plans.${planId}Desc`)}
                                                             </p>
                                                         </div>
@@ -765,7 +765,7 @@ export const Onboarding: React.FC = () => {
                                                     <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
                                                     <ul className="space-y-2">
                                                         {features && features.slice(0, 3).map((f) => (
-                                                            <li key={f} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                            <li key={f} className="flex items-center text-xs font-medium text-slate-600 dark:text-muted-foreground">
                                                                 <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-brand-100 dark:bg-slate-900/30 text-brand-600 dark:text-brand-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>
                                                                     <Check className="h-2.5 w-2.5" strokeWidth={3} />
                                                                 </div>

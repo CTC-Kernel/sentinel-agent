@@ -191,7 +191,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                 <div className="mb-8">
                                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{currentSection?.title}</h2>
                                     {currentSection?.description && (
-                                        <p className="text-slate-500 dark:text-slate-400">{currentSection.description}</p>
+                                        <p className="text-slate-500 dark:text-muted-foreground">{currentSection.description}</p>
                                     )}
                                 </div>
 
@@ -249,7 +249,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                         </div>
                                     ))}
                                     {(!currentSection?.questions || currentSection.questions.length === 0) && (
-                                        <div className="text-center p-8 text-slate-400 italic bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                                        <div className="text-center p-8 text-muted-foreground italic bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                                             Aucune question dans cette section.
                                         </div>
                                     )}

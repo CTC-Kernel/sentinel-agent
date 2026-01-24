@@ -222,7 +222,7 @@ export const AnimatedScoreCounter: React.FC<AnimatedScoreCounterProps> = ({
         >
           {/* Animated digit display */}
           <span className="inline-flex items-baseline">
-            {prefix && <span className="text-slate-400">{prefix}</span>}
+            {prefix && <span className="text-muted-foreground">{prefix}</span>}
             <AnimatePresence mode="popLayout">
               {formattedValue.split('').map((char, index) => (
                 <motion.span

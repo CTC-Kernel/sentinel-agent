@@ -23,7 +23,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
     if (fileUrl) {
         return (
             <div className="mb-4">
-                <label className="block text-sm font-medium mb-1 dark:text-slate-300">Fichier associé</label>
+                <label className="block text-sm font-medium mb-1 dark:text-muted-foreground">Fichier associé</label>
                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center gap-3 overflow-hidden">
                         <div className="h-10 w-10 flex-shrink-0 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
@@ -48,7 +48,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
 
     return (
         <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 dark:text-slate-300">Fichier (Optionnel)</label>
+            <label className="block text-sm font-medium mb-1 dark:text-muted-foreground">Fichier (Optionnel)</label>
             <FileUploader
                 onUploadComplete={(url, name, hash, _isSecure, size, type) => onUploadSuccess(url, name, type || 'application/octet-stream', size || 0, hash)}
                 category={storagePath}

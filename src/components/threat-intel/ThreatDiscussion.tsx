@@ -52,7 +52,7 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
                                                 <div className="ml-3 flex h-7 items-center">
                                                     <button
                                                         type="button"
-                                                        className="relative rounded-md text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2"
+                                                        className="relative rounded-md text-muted-foreground hover:text-slate-500 focus:outline-none focus:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2"
                                                         onClick={onClose}
                                                     >
                                                         <span className="absolute -inset-2.5" />

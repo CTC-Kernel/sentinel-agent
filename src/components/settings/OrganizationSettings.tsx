@@ -342,7 +342,7 @@ export const OrganizationSettings: React.FC = () => {
                                 <h4 className="text-md font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                                     <span className="text-blue-500">🏛️</span> {t('settings.doraCompliance', { defaultValue: 'Conformité DORA' })}
                                 </h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                                <p className="text-xs text-slate-500 dark:text-muted-foreground mb-4">
                                     {t('settings.doraComplianceDesc', { defaultValue: 'Informations requises pour la conformité au règlement DORA (Digital Operational Resilience Act) - Article 3.' })}
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -353,7 +353,7 @@ export const OrganizationSettings: React.FC = () => {
                                         placeholder="Ex: 549300EXAMPLE00LEI90"
                                     />
                                     <div className="space-y-1">
-                                        <label htmlFor="country-select" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        <label htmlFor="country-select" className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                             {t('settings.country', { defaultValue: 'Pays (UE)' })}
                                         </label>
                                         <select
@@ -405,7 +405,7 @@ export const OrganizationSettings: React.FC = () => {
                                 <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/10">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                 {t('settings.enableAI', { defaultValue: 'Activer Sentinel AI' })}
                                             </label>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
@@ -422,7 +422,7 @@ export const OrganizationSettings: React.FC = () => {
                                         <>
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                         {t('settings.dataSanitization', { defaultValue: 'Anonymisation des Données' })}
                                                     </label>
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
@@ -437,7 +437,7 @@ export const OrganizationSettings: React.FC = () => {
 
                                             <div className="flex items-center justify-between opacity-80">
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                         {t('settings.aiConsent', { defaultValue: 'Consentement d\'analyse' })}
                                                     </label>
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
@@ -479,7 +479,7 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
                         </div>
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                             <label htmlFor="member-search" className="sr-only">{t('settings.searchMembers')}</label>
                             <input
                                 id="member-search"

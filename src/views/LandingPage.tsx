@@ -66,7 +66,7 @@ export const LandingPage: React.FC = () => {
                         <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter">
                             L'ARSENAL <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-600 to-slate-400 dark:from-white dark:to-slate-400">COMPLET</span>.
                         </h2>
-                        <p className="text-xl text-slate-500 dark:text-slate-400 font-mono text-sm tracking-wide uppercase">
+                        <p className="text-xl text-slate-500 dark:text-muted-foreground font-mono text-sm tracking-wide uppercase">
                             Tout ce dont vous avez besoin pour gouverner.
                         </p>
                     </div>
@@ -100,7 +100,7 @@ export const LandingPage: React.FC = () => {
                     <div className="w-12 h-1 bg-slate-300 dark:bg-slate-800 rounded-full"></div>
                     <p className="text-xs font-bold font-mono text-slate-500 uppercase tracking-widest">Opérationnel dans toute l'Europe</p>
 
-                    <p className="text-[10px] text-slate-400 font-mono">
+                    <p className="text-[10px] text-muted-foreground font-mono">
                         © 2022 SENTINEL GRC. CYBER THREAT CONSULTING.
                     </p>
                 </div>

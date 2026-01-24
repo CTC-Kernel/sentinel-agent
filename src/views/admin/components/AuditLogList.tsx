@@ -100,7 +100,7 @@ export const AuditLogList: React.FC = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-slate-800 text-xs uppercase text-slate-400 font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
+                            <tr className="border-b border-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold bg-slate-900/80 backdrop-blur-sm sticky top-0">
                                 <th className="px-6 py-4 whitespace-nowrap">Timestamp</th>
                                 <th className="px-6 py-4 whitespace-nowrap">Actor</th>
                                 <th className="px-6 py-4 whitespace-nowrap">Action</th>
@@ -120,7 +120,7 @@ export const AuditLogList: React.FC = () => {
                             ) : filteredLogs.length > 0 ? (
                                 filteredLogs.map((log) => (
                                     <tr key={log.id} className="hover:bg-white/5 transition-colors group">
-                                        <td className="px-6 py-4 text-sm text-slate-400 font-mono">
+                                        <td className="px-6 py-4 text-sm text-muted-foreground font-mono">
                                             {new Date(log.timestamp).toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4">

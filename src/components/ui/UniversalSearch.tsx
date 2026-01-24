@@ -106,9 +106,9 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Search className="w-4 h-4 text-slate-400" />
-          <span className="text-sm text-slate-500 dark:text-slate-400">Rechercher...</span>
-          <kbd className="ml-auto hidden sm:flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs text-slate-600 dark:text-slate-400">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <span className="text-sm text-slate-500 dark:text-muted-foreground">Rechercher...</span>
+          <kbd className="ml-auto hidden sm:flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs text-slate-600 dark:text-muted-foreground">
             <Command className="w-3 h-3" />
             K
           </kbd>
@@ -126,7 +126,7 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
           >
             <div className="p-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -165,7 +165,7 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
                           {result.title}
                         </div>
                         {result.category && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400">
+                          <div className="text-xs text-slate-500 dark:text-muted-foreground">
                             {result.category}
                           </div>
                         )}
@@ -173,13 +173,13 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
                     </motion.button>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                  <div className="text-center py-8 text-slate-500 dark:text-muted-foreground">
                     Aucun résultat trouvé pour "{query}"
                   </div>
                 )}
               </div>
 
-              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2 text-xs text-slate-500 dark:text-muted-foreground">
                 <Clock className="w-3 h-3" />
                 <span>Utilisez ↑↓ pour naviguer, Entrée pour sélectionner</span>
               </div>

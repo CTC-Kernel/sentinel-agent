@@ -171,7 +171,7 @@ export const Integrations: React.FC = () => {
                         onClick={() => setActiveTab('providers')}
                         className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'providers'
                             ? 'text-slate-900 dark:text-white'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                            : 'text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300'
                             }`}
                     >
                         Connecteurs
@@ -181,7 +181,7 @@ export const Integrations: React.FC = () => {
                         onClick={() => setActiveTab('jobs')}
                         className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'jobs'
                             ? 'text-slate-900 dark:text-white'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                            : 'text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300'
                             }`}
                     >
                         Tâches & Scans
@@ -269,7 +269,7 @@ export const Integrations: React.FC = () => {
                         maxWidth="max-w-md"
                     >
                         <div className="space-y-6 pt-2">
-                            <p className="text-slate-600 dark:text-slate-400">
+                            <p className="text-slate-600 dark:text-muted-foreground">
                                 Veuillez saisir votre clé API (ou Token) pour permettre à Sentinel GRC d'accéder aux données de <strong>{selectedProvider?.name}</strong>.
                             </p>
 
@@ -295,7 +295,7 @@ export const Integrations: React.FC = () => {
                                     variant="outline"
                                     aria-label="Annuler la connexion"
                                     onClick={() => setApiKeyModalOpen(false)}
-                                    className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                                    className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white transition-colors"
                                 >
                                     Annuler
                                 </Button>

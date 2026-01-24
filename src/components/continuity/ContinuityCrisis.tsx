@@ -146,7 +146,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                 {/* Secure Room Access */}
                 <div className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center">
                     <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
-                        <Lock className="w-8 h-8 text-slate-400" />
+                        <Lock className="w-8 h-8 text-muted-foreground" />
                     </div>
                     <h3 className="font-bold text-lg mb-2">War Room Virtuelle</h3>
                     <p className="text-sm text-slate-500 mb-6">Accès sécurisé aux documents confidentiels et au chat crypté de crise.</p>

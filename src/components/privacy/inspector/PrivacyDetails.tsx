@@ -72,7 +72,7 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-white/5">
                         <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Finalité</label>
-                        <p className="text-slate-700 dark:text-slate-300">
+                        <p className="text-slate-700 dark:text-muted-foreground">
                             {activity.purpose || "Non spécifié"}
                         </p>
                     </div>

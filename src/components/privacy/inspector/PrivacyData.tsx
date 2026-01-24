@@ -114,7 +114,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                                 </span>
                             ))
                         ) : (
-                            <span className="text-slate-400 italic text-sm">Aucune catégorie renseignée</span>
+                            <span className="text-muted-foreground italic text-sm">Aucune catégorie renseignée</span>
                         )}
                     </div>
                 </div>
@@ -135,7 +135,7 @@ export const PrivacyData: React.FC<PrivacyDataProps> = ({
                         </div>
                         <div>
                             <h4 className="font-bold text-slate-900 dark:text-white">Analyse d'Impact (DPIA)</h4>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
                                 {activity.hasDPIA
                                     ? "Une analyse d'impact est requise pour ce traitement."
                                     : "Aucune analyse d'impact n'est requise pour le moment."}

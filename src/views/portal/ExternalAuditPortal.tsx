@@ -128,7 +128,7 @@ export const ExternalAuditPortal: React.FC = () => {
                                 }`}>
                                 {audit.status}
                             </div>
-                            <div className="text-xs text-slate-400 flex items-center gap-1">
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Shield className="w-3 h-3" />
                                 {t('certifier.portal.invitedAs')} <span className="text-slate-600 dark:text-slate-300 font-medium">{auditorEmail}</span>
                             </div>
@@ -172,7 +172,7 @@ export const ExternalAuditPortal: React.FC = () => {
                 {activeTab === 'overview' && (
                     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-white/5 shadow-sm">
                         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-slate-400" />
+                            <FileText className="w-5 h-5 text-muted-foreground" />
                             {t('certifier.portal.overview.scope')}
                         </h2>
                         <div className="prose dark:prose-invert max-w-none text-slate-600">
@@ -213,7 +213,7 @@ export const ExternalAuditPortal: React.FC = () => {
                                 <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
                                     <div className="flex justify-between items-start mb-2">
                                         <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{f.type}</span>
-                                        <span className="text-xs text-slate-400">{new Date(f.createdAt).toLocaleDateString()}</span>
+                                        <span className="text-xs text-muted-foreground">{new Date(f.createdAt).toLocaleDateString()}</span>
                                     </div>
                                     <p className="text-slate-800 dark:text-slate-200">{f.description}</p>
                                 </div>

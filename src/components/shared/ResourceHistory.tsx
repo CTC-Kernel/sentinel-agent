@@ -16,7 +16,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
     if (loading && logs.length === 0) {
         return (
-            <div className="flex justify-center items-center py-8 text-slate-400">
+            <div className="flex justify-center items-center py-8 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin mr-2" /> Chargement de l'historique...
             </div>
         );
@@ -70,7 +70,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                     <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                         {isValidDate(date) ? format(date, "d MMMM yyyy à HH:mm", { locale: fr }) : '-'}
                                     </p>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    <p className="text-sm text-slate-600 dark:text-muted-foreground">
                                         <span className={`font-bold uppercase text-xs mr-2 px-1.5 py-0.5 rounded ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' :
                                             log.action === 'DELETE' ? 'bg-red-100 text-red-700' :
                                                 'bg-blue-100 text-blue-700'
@@ -85,7 +85,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                                 <div key={`${idx}-${change.field}`} className="flex gap-2 font-mono">
                                                     <span className="text-slate-500">{change.field}:</span>
                                                     <span className="text-red-400 line-through">{String(change.oldValue)}</span>
-                                                    <span className="text-slate-400">→</span>
+                                                    <span className="text-muted-foreground">→</span>
                                                     <span className="text-green-500">{String(change.newValue)}</span>
                                                 </div>
                                             ))}

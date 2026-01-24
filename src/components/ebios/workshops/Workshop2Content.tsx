@@ -318,11 +318,11 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('riskSources') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-red-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-red-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -331,7 +331,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
           {expandedSections.has('riskSources') && (
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
               <p className="text-sm text-slate-500 font-medium mb-6 bg-muted/30 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
+                <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop2.riskSourcesHelp')}
               </p>
 
@@ -436,11 +436,11 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('targetedObjectives') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-amber-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-amber-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -449,7 +449,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
           {expandedSections.has('targetedObjectives') && (
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 animate-accordion-down">
               <p className="text-sm text-slate-500 font-medium mb-6 bg-muted/30 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                <Info className="w-4 h-4 inline-block mr-2 text-slate-400" />
+                <Info className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
                 {t('ebios.workshop2.targetedObjectivesHelp')}
               </p>
 
@@ -554,11 +554,11 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('srOvPairs') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-all">
                 <ChevronDown className="w-5 h-5" />
               </div>
             )}
@@ -569,7 +569,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
               {selectedSourcesCount === 0 || selectedObjectivesCount === 0 ? (
                 <div className="text-center py-12 bg-muted/30/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                   <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
-                    <Info className="w-8 h-8 text-slate-400" />
+                    <Info className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                     {t('ebios.workshop2.noSelectionTitle', 'Pas de sélection')}
@@ -676,7 +676,7 @@ export const Workshop2Content: React.FC<Workshop2ContentProps> = ({
                                             "w-8 h-8 rounded-md text-xs font-bold transition-all duration-200 flex items-center justify-center transform hover:scale-105",
                                             pair.relevance === level.level
                                               ? `bg-${level.color}-500 text-white shadow-sm`
-                                              : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-800"
+                                              : "text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-800"
                                           )}
                                         >
                                           {level.level}

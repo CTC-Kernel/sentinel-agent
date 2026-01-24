@@ -316,7 +316,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
         }}
         aria-label="Show minimap"
       >
-        <Map className="w-5 h-5 text-slate-400" />
+        <Map className="w-5 h-5 text-muted-foreground" />
       </button>
     );
   }
@@ -346,7 +346,7 @@ export const VoxelMinimap: React.FC<VoxelMinimapProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-700/50">
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <Map className="w-3.5 h-3.5" />
             <span className="text-xs font-medium">Minimap</span>
           </div>

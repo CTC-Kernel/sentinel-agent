@@ -127,7 +127,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                             {tenant.name}
                                         </Dialog.Title>
                                         <div className="flex items-center space-x-2">
-                                            <span className="text-sm text-slate-400 font-mono">{tenant.id}</span>
+                                            <span className="text-sm text-muted-foreground font-mono">{tenant.id}</span>
                                             <span className={`px-2 py-0.5 text-[10px] rounded-full uppercase font-bold tracking-wide ${isTenantActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
                                                 }`}>
                                                 {isTenantActive ? 'Active' : 'Suspended'}
@@ -135,7 +135,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors">
+                                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-muted-foreground hover:text-white transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -149,7 +149,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 className={({ selected }) =>
                                                     `py-4 text-sm font-medium border-b-2 transition-colors focus:outline-none ${selected
                                                         ? 'border-brand-500 text-brand-400'
-                                                        : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                                                        : 'border-transparent text-muted-foreground hover:text-slate-200 hover:border-slate-700'
                                                     }`
                                                 }
                                             >
@@ -164,7 +164,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                     <Tab.Panel className="space-y-8 focus:outline-none">
                                         <div className="grid grid-cols-3 gap-4">
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center">
                                                     <Users className="w-3 h-3 mr-1.5" /> Users
                                                 </p>
                                                 {loading ? (
@@ -174,7 +174,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 )}
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center">
                                                     <Shield className="w-3 h-3 mr-1.5" /> Projects
                                                 </p>
                                                 {loading ? (
@@ -184,7 +184,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                 )}
                                             </div>
                                             <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center">
                                                     <Database className="w-3 h-3 mr-1.5" /> Storage
                                                 </p>
                                                 <p className="text-2xl font-bold text-white">--</p>
@@ -224,7 +224,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
 
                                             <div className="space-y-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-slate-400 mb-1.5">Current Plan</label>
+                                                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">Current Plan</label>
                                                     <select
                                                         value={plan}
                                                         onChange={(e) => setPlan(e.target.value as PlanType)}
@@ -238,7 +238,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-400 mb-1.5">Max Users</label>
+                                                        <label className="block text-sm font-medium text-muted-foreground mb-1.5">Max Users</label>
                                                         <input
                                                             type="number"
                                                             value={maxUsers}
@@ -247,7 +247,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-400 mb-1.5">Max Projects</label>
+                                                        <label className="block text-sm font-medium text-muted-foreground mb-1.5">Max Projects</label>
                                                         <input
                                                             type="number"
                                                             value={maxProjects}

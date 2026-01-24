@@ -134,7 +134,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
             <h3 className="font-semibold text-slate-900 dark:text-white">
               {t('vendorScoring.configTitle', 'Scoring Configuration')}
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-500 dark:text-muted-foreground">
               {t('vendorScoring.configDescription', 'Adjust section weights and mark critical questions')}
             </p>
           </div>
@@ -176,7 +176,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
               <p className="font-medium text-slate-900 dark:text-white">
                 {section.title}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-muted-foreground">
                 {section.questionCount} {t('vendorScoring.questions', 'questions')}
               </p>
             </div>
@@ -207,7 +207,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
 
         {/* Total */}
         <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
-          <span className="text-sm text-slate-500 dark:text-slate-400">
+          <span className="text-sm text-slate-500 dark:text-muted-foreground">
             {t('vendorScoring.total', 'Total')}:
           </span>
           <span
@@ -231,7 +231,7 @@ export const ScoringConfig: React.FC<ScoringConfigProps> = ({
               className={`p-2 rounded-lg text-center ${config.bgColor}`}
             >
               <p className={`font-medium text-sm ${config.color}`}>{config.level}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-muted-foreground">
                 {config.minScore}-{config.maxScore}%
               </p>
             </div>

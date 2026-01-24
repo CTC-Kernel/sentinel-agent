@@ -266,7 +266,7 @@ export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ ease: appleEasing }}
         >
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
             Progression
           </span>
           <motion.span

@@ -65,7 +65,7 @@ export const LandingDashboardMockup: React.FC = () => {
             <div className="flex-1 flex flex-col bg-slate-950/30 relative">
                 {/* Top Bar */}
                 <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-white/5 backdrop-blur-sm">
-                    <div className="flex items-center gap-4 text-slate-400">
+                    <div className="flex items-center gap-4 text-muted-foreground">
                         <span className="hidden sm:inline hover:text-white transition-colors cursor-default">Pilotage</span>
                         <span className="hidden sm:inline text-slate-600">/</span>
                         <span className="font-bold text-slate-100">Vue d'ensemble</span>
@@ -167,8 +167,8 @@ export const LandingDashboardMockup: React.FC = () => {
                                 {/* Heading hierarchy: h2 for chart title (follows h1) */}
                                 <h2 className="font-bold text-white">Évolution de la maturité ISO 27001</h2>
                                 <div className="flex gap-4 text-xs">
-                                    <span className="flex items-center gap-1.5 text-slate-400"><div className="w-2 h-2 rounded-full bg-slate-600"></div>Cible</span>
-                                    <span className="flex items-center gap-1.5 text-slate-400"><div className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>Actuel</span>
+                                    <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-slate-600"></div>Cible</span>
+                                    <span className="flex items-center gap-1.5 text-muted-foreground"><div className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>Actuel</span>
                                 </div>
                             </div>
                             <div className="flex-1 flex items-end justify-between gap-4 px-2 pb-2 relative z-10">
@@ -201,11 +201,11 @@ export const LandingDashboardMockup: React.FC = () => {
                             </div>
                             <div className="mt-6 flex flex-col gap-2 relative z-10">
                                 <div className="flex justify-between text-xs items-center">
-                                    <span className="flex items-center gap-2 text-slate-400"><div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>En cours</span>
+                                    <span className="flex items-center gap-2 text-muted-foreground"><div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>En cours</span>
                                     <span className="font-bold text-slate-200">45%</span>
                                 </div>
                                 <div className="flex justify-between text-xs items-center">
-                                    <span className="flex items-center gap-2 text-slate-400"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>Clôturé</span>
+                                    <span className="flex items-center gap-2 text-muted-foreground"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>Clôturé</span>
                                     <span className="font-bold text-slate-200">32%</span>
                                 </div>
                             </div>

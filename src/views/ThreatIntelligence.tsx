@@ -511,7 +511,7 @@ const ThreatCard = React.memo(({
                 {(threat.id.startsWith('simulated') || threat.id.startsWith('baseline')) && (
                     <Badge status="neutral" variant="outline" className="opacity-70">Simulation</Badge>
                 )}
-                <span className="text-xs text-slate-400 font-mono">{threat.date}</span>
+                <span className="text-xs text-muted-foreground font-mono">{threat.date}</span>
                 <Badge status={threat.severity === 'Critical' ? 'error' : threat.severity === 'High' ? 'warning' : 'info'} variant="soft">{threat.severity}</Badge>
             </div>
 

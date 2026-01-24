@@ -200,7 +200,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 <div className="px-8 py-6 border-b border-white/10 glass-panel backdrop-blur-md relative z-10">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">Nouveau Document</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Assistant d'importation et de classification</p>
+                        <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">Assistant d'importation et de classification</p>
                     </div>
                     {/* Progress Steps */}
                     <div className="hidden md:flex items-center gap-2">
@@ -284,7 +284,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                                             <Shield className="w-3 h-3" /> Sécurisé
                                                         </span>
                                                     </label>
-                                                    <button type="button" onClick={() => { setUploadedFileUrl(''); setFileName(''); }} className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors">
+                                                    <button type="button" onClick={() => { setUploadedFileUrl(''); setFileName(''); }} className="p-2 hover:bg-red-50 text-muted-foreground hover:text-red-500 rounded-lg transition-colors">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>
@@ -497,13 +497,13 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     <div className="grid grid-cols-2 gap-4 text-xs">
                                         <div>
                                             <span className="text-slate-500 block">Dossier</span>
-                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="font-medium text-slate-700 dark:text-muted-foreground">
                                                 {folders.find(f => f.id === folderId)?.name || 'Racine'}
                                             </span>
                                         </div>
                                         <div>
                                             <span className="text-slate-500 block">Propriétaire</span>
-                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="font-medium text-slate-700 dark:text-muted-foreground">
                                                 {users.find(u => u.uid === ownerId)?.displayName || getValues('owner')}
                                             </span>
                                         </div>
@@ -515,7 +515,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                         </div>
                                         <div>
                                             <span className="text-slate-500 block">Sécurité</span>
-                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="font-medium text-slate-700 dark:text-muted-foreground">
                                                 {uploadedFileSecure ? 'Chiffré / Sécurisé' : 'Standard'}
                                             </span>
                                         </div>

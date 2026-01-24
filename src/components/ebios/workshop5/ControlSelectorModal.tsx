@@ -168,7 +168,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
         {/* Search & Filters */}
         <div className="py-4 space-y-3 border-b border-slate-200/50 dark:border-slate-700/50">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
@@ -234,9 +234,9 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                 >
                   <div className="flex items-center gap-3">
                     {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-slate-400" />
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-slate-400" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     )}
                     <div className="text-left">
                       <span className="font-medium text-slate-900 dark:text-white">
@@ -291,7 +291,7 @@ export const ControlSelectorModal: React.FC<ControlSelectorModalProps> = ({
                               )}
                             </div>
                             <div>
-                              <span className="font-mono text-sm text-slate-500 dark:text-slate-400">
+                              <span className="font-mono text-sm text-slate-500 dark:text-muted-foreground">
                                 {ctrl.code}
                               </span>
                               <span className="ml-2 text-sm text-slate-900 dark:text-white">

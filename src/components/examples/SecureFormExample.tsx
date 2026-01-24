@@ -132,7 +132,7 @@ export const SecureFormExample: React.FC = () => {
               {form.errors.name}
             </p>
           )}
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-muted-foreground">
             Essayez d'entrer: <code>&lt;script&gt;alert('xss')&lt;/script&gt;</code>
             <br />
             → Sera automatiquement sanitizé
@@ -199,7 +199,7 @@ export const SecureFormExample: React.FC = () => {
             className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white"
             placeholder="https://example.com"
           />
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-muted-foreground">
             Essayez d'entrer: <code>http://localhost/admin</code>
             <br />
             → Sera bloqué (Protection SSRF)
@@ -246,7 +246,7 @@ export const SecureFormExample: React.FC = () => {
               Upload en cours...
             </p>
           )}
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-muted-foreground">
             Max 5MB. Types acceptés: PNG, JPG, PDF
           </p>
         </div>

@@ -53,7 +53,7 @@ const RiskMatrixCell: React.FC<{
   if (vendors.length === 0) {
     return (
       <div className="h-24 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center">
-        <span className="text-xs text-slate-400">-</span>
+        <span className="text-xs text-muted-foreground">-</span>
       </div>
     );
   }
@@ -200,7 +200,7 @@ const VendorListItem: React.FC<{
             {t(`vendorScoring.risk.${vendor.latestScore.inherentRisk.toLowerCase()}`)}
           </span>
         </div>
-        <div className="flex items-center gap-3 mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <div className="flex items-center gap-3 mt-1 text-sm text-slate-500 dark:text-muted-foreground">
           {vendor.category && (
             <span className="flex items-center gap-1">
               <Building2 className="w-3 h-3" />
@@ -250,7 +250,7 @@ const StatisticsCards: React.FC<{ statistics: ScoringStatistics }> = ({
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-white/10">
-        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+        <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">
           {t('vendorScoring.averageScore', 'Average Score')}
         </div>
         <div className={`text-2xl font-bold ${getScoreColor(statistics.averageScore)}`}>
@@ -259,7 +259,7 @@ const StatisticsCards: React.FC<{ statistics: ScoringStatistics }> = ({
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-white/10">
-        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+        <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">
           {t('vendorScoring.vendorsAssessed', 'Vendors Assessed')}
         </div>
         <div className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -268,7 +268,7 @@ const StatisticsCards: React.FC<{ statistics: ScoringStatistics }> = ({
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-white/10">
-        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+        <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">
           {t('vendorScoring.highRisk', 'High/Critical Risk')}
         </div>
         <div className="text-2xl font-bold text-red-600">
@@ -277,7 +277,7 @@ const StatisticsCards: React.FC<{ statistics: ScoringStatistics }> = ({
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-white/10">
-        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+        <div className="text-sm text-slate-500 dark:text-muted-foreground mb-1">
           {t('vendorScoring.lowRisk', 'Low Risk')}
         </div>
         <div className="text-2xl font-bold text-green-600">
@@ -398,7 +398,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
         {/* Sort */}
         {viewMode === 'list' && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500 dark:text-slate-400">
+            <span className="text-sm text-slate-500 dark:text-muted-foreground">
               {t('vendorScoring.sortBy', 'Sort by')}:
             </span>
             {(['score', 'name', 'trend'] as SortField[]).map((field) => (
@@ -425,7 +425,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
       {sortedVendors.length === 0 ? (
         <div className="text-center py-12">
           <BarChart3 className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-500 dark:text-slate-400">
+          <p className="text-slate-500 dark:text-muted-foreground">
             {t('vendorScoring.noVendors', 'No vendors match the current filters')}
           </p>
         </div>

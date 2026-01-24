@@ -9,6 +9,7 @@ import { useThreats } from '../hooks/useThreats';
 import { Plus, Search, Trash2, ShieldAlert, BookOpen, AlertTriangle, Shield, Database } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { Modal } from '../components/ui/Modal';
+import { EmptyState } from '../components/ui/EmptyState';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
@@ -271,15 +272,15 @@ export const ThreatRegistry: React.FC = () => {
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
                     </div>
                 ) : filteredThreats.length === 0 ? (
-                    <div className="text-center py-20">
-                        <ShieldAlert className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">Aucune menace trouvée</h3>
-                        <p className="text-slate-600 mt-2">Commencez par importer la bibliothèque standard ou créez votre première menace.</p>
-                        {threats.length === 0 && (
-                            <Button variant="link" aria-label="Importer les modèles standards" onClick={handleSeed} className="mt-6 text-brand-500 hover:underline">
-                                Importer les modèles standards
-                            </Button>
-                        )}
+                    <div className="py-12">
+                        <EmptyState
+                            icon={ShieldAlert}
+                            title="Aucune menace trouvée"
+                            description="Commencez par importer la bibliothèque standard ou créez votre première menace."
+                            actionLabel={threats.length === 0 ? "Importer les modèles standards" : undefined}
+                            onAction={threats.length === 0 ? handleSeed : undefined}
+                            semantic="info"
+                        />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -413,7 +414,7 @@ const ThreatRegistryCard = React.memo(({
         <motion.div variants={slideUpVariants}>
             <div
                 onClick={() => onEdit(threat)}
-                className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-slate-100 dark:border-white/5 hover:border-brand-500/30 transition-all group relative overflow-hidden cursor-pointer hover:shadow-lg"
+                className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-slate-100 dark:border-white/5 hover:border-brand-500/30 transition-all duration-200 group relative overflow-hidden cursor-pointer hover:shadow-lg active:scale-[0.98]"
             >
                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                     <Button

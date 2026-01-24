@@ -86,7 +86,7 @@ export const SSOManager: React.FC = () => {
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Configuration SSO</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Gestion de l'authentification centralisée</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Gestion de l'authentification centralisée</p>
                     </div>
                 </div>
                 <div className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300 rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-2">

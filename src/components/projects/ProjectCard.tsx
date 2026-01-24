@@ -111,11 +111,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             </div>
 
             <h3 className={`font-bold text-slate-900 dark:text-white mb-2 line-clamp-1 ${compact ? 'text-base' : 'text-lg'}`}>{project.name}</h3>
-            {!compact && <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>}
+            {!compact && <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>}
 
             <div className={compact ? "mb-4" : "mb-6"}>
                 <div className="flex justify-between text-xs mb-1.5 font-medium">
-                    <span className="text-slate-600 dark:text-slate-300">Avancement</span>
+                    <span className="text-slate-600 dark:text-muted-foreground">Avancement</span>
                     <span className={getProjectCategoryStyles(project.category || '').color}>{project.progress}%</span>
                 </div>
                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5">

@@ -46,7 +46,7 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
                       isActive
                         ? "bg-brand-100 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 font-medium"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                        : "text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
                     )}
                   >
                     {item.icon || (index === 0 && <Home className="w-4 h-4" />)}
@@ -72,7 +72,7 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.2, delay: index * 0.1 + 0.2 }}
-                  className="flex items-center text-slate-400 dark:text-slate-600"
+                  className="flex items-center text-muted-foreground dark:text-slate-600"
                 >
                   {separator}
                 </motion.div>
@@ -104,7 +104,7 @@ export const CompactBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({ items, 
                 {item.path && !isLast ? (
                   <Link
                     to={item.path}
-                    className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors truncate max-w-[100px]"
+                    className="text-xs text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300 transition-colors truncate max-w-[100px]"
                   >
                     {item.label}
                   </Link>

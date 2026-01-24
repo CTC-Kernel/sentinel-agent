@@ -137,7 +137,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-6">
           {/* Strategic Scenario Selection */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
               {t('ebios.workshop4.parentStrategicScenario')} *
             </label>
             <select
@@ -195,7 +195,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Name */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
               {t('ebios.workshop4.scenarioName')} *
             </label>
             <input
@@ -219,7 +219,7 @@ export const OperationalScenarioForm: React.FC<OperationalScenarioFormProps> = (
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
               {t('ebios.workshop4.scenarioDescription')} *
             </label>
             <textarea

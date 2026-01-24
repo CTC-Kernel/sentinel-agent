@@ -167,7 +167,7 @@ const AssetMatchCard: React.FC<{
             <button
               type="button"
               onClick={onView}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-slate-200 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-slate-200 transition-colors"
               title="View asset"
             >
               <Eye className="h-4 w-4" />
@@ -177,7 +177,7 @@ const AssetMatchCard: React.FC<{
             <button
               type="button"
               onClick={onRemove}
-              className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-colors"
               title="Remove"
             >
               <X className="h-4 w-4" />
@@ -578,7 +578,7 @@ export const OTImpactSection: React.FC<OTImpactSectionProps> = ({
           <p className="text-sm text-slate-500 dark:text-white/50 mb-1">
             {t('otVulnerability.noOTImpact', 'No OT assets linked')}
           </p>
-          <p className="text-xs text-slate-400 dark:text-white/40">
+          <p className="text-xs text-muted-foreground dark:text-white/40">
             {cveId
               ? t('otVulnerability.useAutoMatch', 'Use Auto-Match or add assets manually')
               : t('otVulnerability.addManually', 'Add OT assets manually to calculate adjusted score')}

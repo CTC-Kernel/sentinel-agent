@@ -437,11 +437,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
                             <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('isICTProvider')} />
-                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Prestataire TIC Critique</label>
+                            <label className="text-sm font-bold text-slate-700 dark:text-muted-foreground">Prestataire TIC Critique</label>
                         </div>
                         <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
                             <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('supportsCriticalFunction')} />
-                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Supporte Fonction Critique</label>
+                            <label className="text-sm font-bold text-slate-700 dark:text-muted-foreground">Supporte Fonction Critique</label>
                         </div>
 
                         <div>

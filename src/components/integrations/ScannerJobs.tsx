@@ -89,7 +89,7 @@ export const ScannerJobs: React.FC = () => {
                         <Layers className="h-5 w-5 text-brand-500" />
                         Orchestrateur de Scans
                     </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground">
                         Gérez vos scans de vulnérabilités planifiés.
                     </p>
                 </div>
@@ -108,7 +108,7 @@ export const ScannerJobs: React.FC = () => {
                 </div>
             ) : jobs.length === 0 ? (
                 <div className="text-center py-12 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
-                    <p className="text-slate-500 dark:text-slate-400">Aucune tâche de scan configurée.</p>
+                    <p className="text-slate-500 dark:text-muted-foreground">Aucune tâche de scan configurée.</p>
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -134,7 +134,7 @@ export const ScannerJobs: React.FC = () => {
                                             {job.status}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-muted-foreground mt-1">
                                         <span className="flex items-center gap-1">
                                             <AlertCircle className="h-3 w-3" />
                                             Cible: {job.target}
@@ -156,7 +156,7 @@ export const ScannerJobs: React.FC = () => {
                             <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                                 <button
                                     onClick={() => setDeleteJobId(job.id)}
-                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                    className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                     title="Supprimer"
                                 >
                                     <Trash2 className="h-4 w-4" />
@@ -207,7 +207,7 @@ export const ScannerJobs: React.FC = () => {
                     <div className="flex justify-end gap-3 pt-4">
                         <button
                             onClick={() => setIsCreateModalOpen(false)}
-                            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
+                            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-lg"
                         >
                             Annuler
                         </button>

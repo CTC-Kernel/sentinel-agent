@@ -287,7 +287,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
             </div>
           ) : history.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
-              <Clock className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+              <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <p>{t('otConnector.history.empty', 'No sync history yet')}</p>
             </div>
           ) : (
@@ -376,7 +376,7 @@ export const OTSyncHistory: React.FC<OTSyncHistoryProps> = ({
                                 )}
                                 <span className="text-slate-700">{error.message}</span>
                                 {error.field && (
-                                  <span className="text-slate-400"> ({error.field})</span>
+                                  <span className="text-muted-foreground"> ({error.field})</span>
                                 )}
                               </li>
                             ))}

@@ -331,8 +331,8 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     <div className="grid gap-2">
                         {treatment.measures.map((measure, idx) => (
                             <div key={idx} className="flex items-start justify-between p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30">
-                                <p className="text-sm text-slate-700 dark:text-slate-300">{measure}</p>
-                                <button onClick={() => removeMeasure(idx)} className="text-slate-400 hover:text-red-500 p-1">
+                                <p className="text-sm text-slate-700 dark:text-muted-foreground">{measure}</p>
+                                <button onClick={() => removeMeasure(idx)} className="text-muted-foreground hover:text-red-500 p-1">
                                     <X className="h-4 w-4" />
                                 </button>
                             </div>
@@ -471,7 +471,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                             className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors text-left group"
                                         >
                                             <div className="flex items-center gap-2 min-w-0">
-                                                <Shield className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                                                <Shield className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
                                                     {ctrl.code} - {ctrl.name}
                                                 </span>

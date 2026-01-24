@@ -74,7 +74,7 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <input
                             placeholder="Rechercher un plan..."
                             value={searchQuery}
@@ -107,10 +107,10 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                     {filteredPlans.map(plan => (
                         <div key={plan.id} className="glass-panel p-6 rounded-2xl relative group hover:border-brand-500/30 transition-all flex flex-col h-full">
                             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                <button onClick={() => handleEdit(plan)} className="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
+                                <button onClick={() => handleEdit(plan)} className="p-2 text-muted-foreground hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
                                     <Edit2 className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => setConfirmDelete({ isOpen: true, id: plan.id })} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
+                                <button onClick={() => setConfirmDelete({ isOpen: true, id: plan.id })} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/10">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
@@ -129,18 +129,18 @@ export const ContinuityPRA: React.FC<ContinuityPRAProps> = ({
                                 </div>
                             </div>
 
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 h-10">
+                            <p className="text-sm text-slate-500 dark:text-muted-foreground mb-6 line-clamp-2 h-10">
                                 {plan.description || t('continuity.pra.noDescription')}
                             </p>
 
                             <div className="grid grid-cols-2 gap-3 mb-4 mt-auto">
                                 <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
-                                    <span className="block text-xs uppercase text-slate-400 font-bold mb-1">RTO</span>
-                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{plan.rto}</span>
+                                    <span className="block text-xs uppercase text-slate-500 dark:text-slate-400 font-bold mb-1">RTO</span>
+                                    <span className="font-mono font-bold text-slate-700 dark:text-muted-foreground">{plan.rto}</span>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-white/5 p-2 rounded-lg text-center">
-                                    <span className="block text-xs uppercase text-slate-400 font-bold mb-1">RPO</span>
-                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{plan.rpo}</span>
+                                    <span className="block text-xs uppercase text-slate-500 dark:text-slate-400 font-bold mb-1">RPO</span>
+                                    <span className="font-mono font-bold text-slate-700 dark:text-muted-foreground">{plan.rpo}</span>
                                 </div>
                             </div>
 

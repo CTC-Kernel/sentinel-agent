@@ -117,7 +117,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                 <div className="text-center py-8">
                     <LinkIcon className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                     <p className="text-sm text-slate-500">Aucun élément lié à cet audit</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                         Liez des contrôles, risques, actifs ou projets dans l'onglet Détails
                     </p>
                 </div>

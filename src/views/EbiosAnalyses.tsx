@@ -204,7 +204,7 @@ export const EbiosAnalyses: React.FC = () => {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
@@ -215,7 +215,7 @@ export const EbiosAnalyses: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-slate-400" />
+            <Filter className="w-5 h-5 text-muted-foreground" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as EbiosAnalysisStatus | 'all')}
@@ -271,7 +271,7 @@ export const EbiosAnalyses: React.FC = () => {
                         }}
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                       >
-                        <MoreVertical className="w-5 h-5 text-slate-400" />
+                        <MoreVertical className="w-5 h-5 text-muted-foreground" />
                       </button>
 
                       {actionMenuOpen === analysis.id && (
@@ -368,7 +368,7 @@ export const EbiosAnalyses: React.FC = () => {
                     </div>
 
                     {/* Metadata */}
-                    <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between text-xs text-slate-400">
+                    <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between text-xs text-muted-foreground">
                       <span>{t('ebios.updatedAt', { date: new Date(analysis.updatedAt).toLocaleDateString() })}</span>
                       {analysis.sector && (
                         <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">

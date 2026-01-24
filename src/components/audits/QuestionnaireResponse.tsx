@@ -179,13 +179,13 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                         <div className="mb-3 space-y-1">
                             {fileIds.length > 0 ? (
                                 fileIds.map((fid, idx) => (
-                                    <div key={fid} className="flex items-center text-xs text-slate-600 dark:text-slate-400">
+                                    <div key={fid} className="flex items-center text-xs text-slate-600 dark:text-muted-foreground">
                                         <FileText className="h-3 w-3 mr-2" />
                                         Preuve #{idx + 1} (ID: {fid.substring(0, 8)}...)
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-xs text-slate-400 italic">Aucune preuve jointe.</p>
+                                <p className="text-xs text-muted-foreground italic">Aucune preuve jointe.</p>
                             )}
                         </div>
                         {(!readOnly && status !== 'Submitted') && (
@@ -304,7 +304,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">{questionnaire.title}</h2>
                         {questionnaire.description && (
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{questionnaire.description}</p>
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">{questionnaire.description}</p>
                         )}
                     </div>
                     {status === 'Submitted' && (

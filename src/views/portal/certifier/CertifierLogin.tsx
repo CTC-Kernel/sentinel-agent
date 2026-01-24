@@ -53,7 +53,7 @@ export const CertifierLogin: React.FC = () => {
                 <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                     {t('certifier.portalTitle')}
                 </h2>
-                <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
+                <p className="mt-2 text-center text-sm text-slate-600 dark:text-muted-foreground">
                     {t('certifier.portalSubtitle')}
                 </p>
             </div>

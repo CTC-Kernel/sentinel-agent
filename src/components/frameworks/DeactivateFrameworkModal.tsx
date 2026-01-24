@@ -115,7 +115,7 @@ export const DeactivateFrameworkModal: React.FC<DeactivateFrameworkModalProps> =
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.3, ease: appleEasing }}
                   >
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground font-medium leading-relaxed">
                       {t(
                         'frameworks.deactivateDescription',
                         'Ce framework sera retiré de votre suivi de conformité.'

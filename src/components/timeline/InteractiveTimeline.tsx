@@ -294,7 +294,7 @@ export const InteractiveTimeline: React.FC = () => {
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                         Timeline Interactive
                     </h2>
-                    <p className="text-slate-600 dark:text-slate-400 mt-1">
+                    <p className="text-slate-600 dark:text-muted-foreground mt-1">
                         Vue chronologique de tous les événements SSI
                     </p>
                 </div>
@@ -405,29 +405,29 @@ export const InteractiveTimeline: React.FC = () => {
 
             {/* Legend */}
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl">
-                <p className="text-xs text-slate-600 dark:text-slate-400 mb-2 font-bold uppercase tracking-wider">
+                <p className="text-xs text-slate-600 dark:text-muted-foreground mb-2 font-bold uppercase tracking-wider">
                     Légende
                 </p>
                 <div className="flex flex-wrap gap-4 text-xs">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded bg-red-500"></div>
-                        <span className="text-slate-600 dark:text-slate-400">Incidents</span>
+                        <span className="text-slate-600 dark:text-muted-foreground">Incidents</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded bg-blue-500"></div>
-                        <span className="text-slate-600 dark:text-slate-400">Audits</span>
+                        <span className="text-slate-600 dark:text-muted-foreground">Audits</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded bg-purple-500"></div>
-                        <span className="text-slate-600 dark:text-slate-400">Projets</span>
+                        <span className="text-slate-600 dark:text-muted-foreground">Projets</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded bg-orange-500"></div>
-                        <span className="text-slate-600 dark:text-slate-400">Risques</span>
+                        <span className="text-slate-600 dark:text-muted-foreground">Risques</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded bg-green-500"></div>
-                        <span className="text-slate-600 dark:text-slate-400">Documents</span>
+                        <span className="text-slate-600 dark:text-muted-foreground">Documents</span>
                     </div>
                 </div>
             </div>

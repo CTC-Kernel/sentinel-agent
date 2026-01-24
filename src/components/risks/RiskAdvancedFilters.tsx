@@ -52,7 +52,7 @@ export const RiskAdvancedFilters: React.FC<RiskAdvancedFiltersProps> = ({
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                         Filtres avancés
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Personnalisez votre vue du registre</p>
+                    <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">Personnalisez votre vue du registre</p>
                 </div>
                 <Button
                     variant="ghost"
@@ -101,7 +101,7 @@ export const RiskAdvancedFilters: React.FC<RiskAdvancedFiltersProps> = ({
             </div>
 
             <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-white/5 flex items-center justify-between">
-                <p className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">
+                <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">
                     Les filtres sont appliqués en temps réel
                 </p>
                 {(statusFilter.length > 0 || categoryFilter.length > 0 || criticalityFilter.length > 0) && (

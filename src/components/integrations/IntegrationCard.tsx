@@ -37,7 +37,7 @@ export const IntegrationCard: React.FC<IntegrationCardProps> = ({ provider, onCo
             </div>
 
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 relative z-10">{provider.name}</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 min-h-[40px] leading-relaxed relative z-10">
+            <p className="text-sm text-slate-500 dark:text-muted-foreground mb-6 min-h-[40px] leading-relaxed relative z-10">
                 {provider.description}
             </p>
 

@@ -104,7 +104,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
                 <div className="text-2xl font-semibold text-slate-900 dark:text-white">
                     {value}
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
                     {title}
                 </p>
                 {subtitle && (
@@ -238,7 +238,7 @@ export const SupplierConcentrationTab: React.FC = () => {
                     <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
                         {t('vendorConcentration.title')}
                     </h2>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
                         {t('vendorConcentration.subtitle')}
                     </p>
                 </div>
@@ -354,7 +354,7 @@ export const SupplierConcentrationTab: React.FC = () => {
                                         </span>
                                     </div>
                                 )}
-                                <span className="text-slate-600 dark:text-slate-400">
+                                <span className="text-slate-600 dark:text-muted-foreground">
                                     {trends.changePercentage > 0
                                         ? t('vendorConcentration.trends.changeBy', { value: trends.changePercentage })
                                         : t('vendorConcentration.trends.noChange')
@@ -371,7 +371,7 @@ export const SupplierConcentrationTab: React.FC = () => {
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                         {t('vendorConcentration.dependencyMatrix.title')}
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+                    <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6">
                         {t('vendorConcentration.dependencyMatrix.description')}
                     </p>
                     <DependencyMatrix matrix={dependencyMatrix} />
@@ -385,7 +385,7 @@ export const SupplierConcentrationTab: React.FC = () => {
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                                 {t('vendorConcentration.recommendations.title')}
                             </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
                                 {t('vendorConcentration.recommendations.subtitle', {
                                     count: recommendations.totalRecommendations,
                                     reduction: recommendations.estimatedTotalRiskReduction,

@@ -108,7 +108,7 @@ export const SystemHealth: React.FC = () => {
                             </div>
                             <div className="text-right">
                                 <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{service.uptime}</p>
-                                <p className="text-[10px] text-slate-400">uptime</p>
+                                <p className="text-[10px] text-muted-foreground">uptime</p>
                             </div>
                         </div>
                     ))}
@@ -126,17 +126,17 @@ export const SystemHealth: React.FC = () => {
                         <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
                         <div>
                             <p className="text-sm font-bold text-slate-900 dark:text-white">{t('systemHealth.alerts.networkLatency')}</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('systemHealth.alerts.networkLatencyDesc')}</p>
+                            <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">{t('systemHealth.alerts.networkLatencyDesc')}</p>
                         </div>
-                        <span className="text-xs text-slate-400 ml-auto whitespace-nowrap">{t('systemHealth.alerts.twoHoursAgo')}</span>
+                        <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">{t('systemHealth.alerts.twoHoursAgo')}</span>
                     </div>
                     <div className="flex items-start gap-4 p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl">
                         <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
                         <div>
                             <p className="text-sm font-bold text-slate-900 dark:text-white">{t('systemHealth.alerts.backupComplete')}</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('systemHealth.alerts.backupCompleteDesc')}</p>
+                            <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">{t('systemHealth.alerts.backupCompleteDesc')}</p>
                         </div>
-                        <span className="text-xs text-slate-400 ml-auto whitespace-nowrap">{t('systemHealth.alerts.fourHoursAgo')}</span>
+                        <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">{t('systemHealth.alerts.fourHoursAgo')}</span>
                     </div>
                 </div>
             </motion.div>

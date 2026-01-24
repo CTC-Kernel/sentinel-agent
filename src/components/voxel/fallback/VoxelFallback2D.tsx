@@ -164,7 +164,7 @@ export const VoxelFallback2D: React.FC<VoxelFallback2DProps> = ({
           <h3 className="text-sm font-medium text-slate-300 mb-2">
             {t('voxel.fallback.requirementsTitle')}
           </h3>
-          <ul className="text-sm text-slate-400 space-y-1">
+          <ul className="text-sm text-muted-foreground space-y-1">
             <li>• Chrome 90+ / Firefox 88+ / Safari 14+ / Edge 90+</li>
             <li>• {t('voxel.fallback.requirementsGPU')}</li>
             <li>• {t('voxel.fallback.requirementsDrivers')}</li>

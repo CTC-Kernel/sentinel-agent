@@ -265,7 +265,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                     {(activeFilters.status || activeFilters.category || activeFilters.criticality) && (
                         <button
                             onClick={onClearAll}
-                            className="text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 transition-colors ml-auto px-2 py-1"
+                            className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:text-red-500 transition-colors ml-auto px-2 py-1"
                         >
                             {t('common.reset') || 'Effacer'}
                         </button>

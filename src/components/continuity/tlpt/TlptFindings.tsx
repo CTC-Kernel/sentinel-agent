@@ -93,7 +93,7 @@ export const TlptFindings: React.FC<TlptFindingsProps> = ({ campaign }) => {
                                         }`}>
                                         {vuln.status}
                                     </span>
-                                    <span className="text-xs text-slate-400">Score: {vuln.score}</span>
+                                    <span className="text-xs text-muted-foreground">Score: {vuln.score}</span>
                                 </div>
                             </div>
                         </div>

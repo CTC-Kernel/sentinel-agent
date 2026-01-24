@@ -203,7 +203,7 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                                                 {template.type}
                                                                             </Badge>
                                                                             {template.controlReference && (
-                                                                                <span className="text-xs text-slate-400 font-mono">
+                                                                                <span className="text-xs text-muted-foreground font-mono">
                                                                                     {template.controlReference}
                                                                                 </span>
                                                                             )}

@@ -15,7 +15,7 @@ const GUIDE_SECTIONS = [
         icon: Shield,
         content: (
             <div className="space-y-4">
-                <p className="text-slate-300">
+                <p className="text-muted-foreground">
                     CTC Engine est votre centre de commandement pour visualiser et analyser l'ensemble de votre écosystème de sécurité en 3D.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -24,14 +24,14 @@ const GUIDE_SECTIONS = [
                             <Network className="w-4 h-4 text-blue-400" />
                         </div>
                         <h4 className="text-sm font-medium text-white mb-1">Vue Unifiée</h4>
-                        <p className="text-xs text-slate-400">Tous vos actifs, risques, projets et contrôles dans une seule vue</p>
+                        <p className="text-xs text-muted-foreground">Tous vos actifs, risques, projets et contrôles dans une seule vue</p>
                     </div>
                     <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
                         <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center mb-2">
                             <Activity className="w-4 h-4 text-purple-400" />
                         </div>
                         <h4 className="text-sm font-medium text-white mb-1">Temps Réel</h4>
-                        <p className="text-xs text-slate-400">Visualisez les connexions et dépendances instantanément</p>
+                        <p className="text-xs text-muted-foreground">Visualisez les connexions et dépendances instantanément</p>
                     </div>
                 </div>
             </div>
@@ -47,11 +47,11 @@ const GUIDE_SECTIONS = [
                 <div className="grid gap-3">
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
                         <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
-                            <MousePointer className="w-5 h-5 text-slate-400" />
+                            <MousePointer className="w-5 h-5 text-muted-foreground" />
                         </div>
                         <div>
                             <h4 className="text-sm font-medium text-white">Clic gauche + Glisser</h4>
-                            <p className="text-xs text-slate-400">Rotation de la vue (orbite)</p>
+                            <p className="text-xs text-muted-foreground">Rotation de la vue (orbite)</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
@@ -60,7 +60,7 @@ const GUIDE_SECTIONS = [
                         </div>
                         <div>
                             <h4 className="text-sm font-medium text-white">Molette de souris</h4>
-                            <p className="text-xs text-slate-400">Zoom avant/arrière</p>
+                            <p className="text-xs text-muted-foreground">Zoom avant/arrière</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
@@ -69,7 +69,7 @@ const GUIDE_SECTIONS = [
                         </div>
                         <div>
                             <h4 className="text-sm font-medium text-white">Clic sur un nœud</h4>
-                            <p className="text-xs text-slate-400">Sélectionne et centre la vue sur l'élément</p>
+                            <p className="text-xs text-muted-foreground">Sélectionne et centre la vue sur l'élément</p>
                         </div>
                     </div>
                 </div>
@@ -83,7 +83,7 @@ const GUIDE_SECTIONS = [
         icon: Layers,
         content: (
             <div className="space-y-3">
-                <p className="text-xs text-slate-400 mb-3">Chaque type d'élément a une forme et couleur distincte :</p>
+                <p className="text-xs text-muted-foreground mb-3">Chaque type d'élément a une forme et couleur distincte :</p>
                 <div className="grid grid-cols-2 gap-2">
                     {[
                         { label: 'Actifs', color: 'bg-blue-500', desc: 'Serveurs, applications, données' },
@@ -118,27 +118,27 @@ const GUIDE_SECTIONS = [
         icon: AlertTriangle,
         content: (
             <div className="space-y-4">
-                <p className="text-xs text-slate-400">La taille et la couleur indiquent la criticité :</p>
+                <p className="text-xs text-muted-foreground">La taille et la couleur indiquent la criticité :</p>
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
                         <span className="w-4 h-4 rounded-full bg-red-500 animate-pulse" />
                         <div>
                             <h4 className="text-sm font-medium text-red-400">Critique</h4>
-                            <p className="text-xs text-slate-400">Risque score ≥15, Incident critique, Asset C/I/A critique</p>
+                            <p className="text-xs text-muted-foreground">Risque score ≥15, Incident critique, Asset C/I/A critique</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
                         <span className="w-4 h-4 rounded-full bg-amber-500" />
                         <div>
                             <h4 className="text-sm font-medium text-amber-400">Alerte</h4>
-                            <p className="text-xs text-slate-400">Risque score ≥10, Incident élevé, Projet en retard</p>
+                            <p className="text-xs text-muted-foreground">Risque score ≥10, Incident élevé, Projet en retard</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                         <span className="w-4 h-4 rounded-full bg-emerald-500" />
                         <div>
                             <h4 className="text-sm font-medium text-emerald-400">Normal</h4>
-                            <p className="text-xs text-slate-400">Éléments sans alerte particulière</p>
+                            <p className="text-xs text-muted-foreground">Éléments sans alerte particulière</p>
                         </div>
                     </div>
                 </div>
@@ -167,7 +167,7 @@ const GUIDE_SECTIONS = [
                         { icon: Camera, label: 'Capture (S)', desc: 'Télécharger une image' },
                     ].map(item => (
                         <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                            <item.icon className="w-4 h-4 text-slate-400" />
+                            <item.icon className="w-4 h-4 text-muted-foreground" />
                             <span className="text-xs font-medium text-white w-24">{item.label}</span>
                             <span className="text-xs text-slate-500">{item.desc}</span>
                         </div>
@@ -188,7 +188,7 @@ const GUIDE_SECTIONS = [
                         <AlertTriangle className="w-5 h-5 text-orange-400" />
                         <h4 className="text-sm font-semibold text-white">Panneau Anomalies</h4>
                     </div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-muted-foreground">
                         Détecte automatiquement les configurations anormales : actifs sans contrôles, risques non traités, fournisseurs sans évaluation...
                     </p>
                 </div>
@@ -197,7 +197,7 @@ const GUIDE_SECTIONS = [
                         <Zap className="w-5 h-5 text-purple-400" />
                         <h4 className="text-sm font-semibold text-white">Blast Radius</h4>
                     </div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-muted-foreground">
                         Simulez l'impact d'une défaillance. Sélectionnez un nœud et visualisez tous les éléments qui seraient affectés par effet de cascade.
                     </p>
                 </div>
@@ -206,7 +206,7 @@ const GUIDE_SECTIONS = [
                         <Clock className="w-5 h-5 text-cyan-400" />
                         <h4 className="text-sm font-semibold text-white">Time Machine</h4>
                     </div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-muted-foreground">
                         Voyagez dans le temps pour voir l'évolution de votre posture de sécurité. Comparez les états passés et présents.
                     </p>
                 </div>
@@ -230,7 +230,7 @@ const GUIDE_SECTIONS = [
                     { key: 'S', action: 'Capturer l\'écran' },
                 ].map(item => (
                     <div key={item.key} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
-                        <span className="text-xs text-slate-400">{item.action}</span>
+                        <span className="text-xs text-muted-foreground">{item.action}</span>
                         <kbd className="px-2 py-1 rounded bg-slate-800 text-xs font-mono text-white">{item.key}</kbd>
                     </div>
                 ))}
@@ -246,9 +246,9 @@ const GUIDE_SECTIONS = [
             <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-slate-800/50 border border-white/10">
                     <div className="flex items-center gap-3 mb-3">
-                        <Search className="w-5 h-5 text-slate-400" />
-                        <span className="text-sm text-slate-300">Rechercher un nœud...</span>
-                        <kbd className="ml-auto px-2 py-0.5 rounded bg-white/10 text-[10px] text-slate-400">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Rechercher un nœud...</span>
+                        <kbd className="ml-auto px-2 py-0.5 rounded bg-white/10 text-[10px] text-muted-foreground">
                             <Command className="w-3 h-3 inline" />K
                         </kbd>
                     </div>
@@ -323,7 +323,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                     </div>
                                     <div>
                                         <h2 className="text-base font-bold text-white">{section.title}</h2>
-                                        <p className="text-xs text-slate-400">{section.subtitle}</p>
+                                        <p className="text-xs text-muted-foreground">{section.subtitle}</p>
                                     </div>
                                 </div>
                                 <button

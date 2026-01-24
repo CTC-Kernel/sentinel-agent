@@ -293,13 +293,13 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                 )}
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs text-slate-500 dark:text-slate-400">
+                                <span className="text-xs text-slate-500 dark:text-muted-foreground">
                                     {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: fr })}
                                 </span>
                                 {hasReplies && (
                                     <button
                                         onClick={() => toggleCommentExpansion(comment.id)}
-                                        className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                        className="text-xs text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                                     >
                                         {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                                         {(comment as Comment & { replies?: Comment[] }).replies?.length || 0}
@@ -400,7 +400,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                     {searchQuery && (
                                         <button
                                             onClick={() => setSearchQuery('')}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
                                         >
                                             <X className="h-4 w-4" />
                                         </button>
@@ -484,7 +484,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                 style={{ maxHeight }}
             >
                 {loading ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                         <div className="animate-spin h-6 w-6 mb-2">⌛</div>
                         <p className="text-sm">Chargement...</p>
                     </div>

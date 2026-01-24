@@ -110,7 +110,7 @@ const StatCard: React.FC<StatCardProps> = ({
         <span style={{ color }} className="opacity-80">
           {icon}
         </span>
-        <span className="text-xs text-slate-400">{label}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
       </div>
       <div className="flex items-end gap-2">
         <span className="text-2xl font-semibold text-white">{value}</span>
@@ -276,7 +276,7 @@ const SegmentChart: React.FC<SegmentChartProps> = ({ data, loading }) => {
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-slate-400">{entry.name}</span>
+            <span className="text-muted-foreground">{entry.name}</span>
             <span className="text-white font-medium">{entry.value}</span>
           </div>
         ))}
@@ -481,7 +481,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
             <h3 className="text-lg font-semibold text-white">
               {t('otVulnerability.widget.title', 'OT Vulnerability Exposure')}
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               {t('otVulnerability.widget.subtitle', 'Industrial asset vulnerability status')}
             </p>
           </div>
@@ -532,7 +532,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
       <div className="grid grid-cols-3 gap-6 mb-6">
         {/* Trend Chart */}
         <div className="col-span-2">
-          <h4 className="text-sm font-medium text-slate-400 mb-3">
+          <h4 className="text-sm font-medium text-muted-foreground mb-3">
             {t('otVulnerability.widget.trend', '7-Day Trend')}
           </h4>
           <MiniTrendChart data={trendData} loading={loading} />
@@ -540,7 +540,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
         {/* Segment Distribution */}
         <div>
-          <h4 className="text-sm font-medium text-slate-400 mb-3">
+          <h4 className="text-sm font-medium text-muted-foreground mb-3">
             {t('otVulnerability.widget.bySegment', 'By Segment')}
           </h4>
           <SegmentChart
@@ -552,7 +552,7 @@ export const OTExposureWidget: React.FC<OTExposureWidgetProps> = ({
 
       {/* Top Affected Assets */}
       <div>
-        <h4 className="text-sm font-medium text-slate-400 mb-3">
+        <h4 className="text-sm font-medium text-muted-foreground mb-3">
           {t('otVulnerability.widget.topAffected', 'Most Vulnerable OT Assets')}
         </h4>
         <TopAssetsList

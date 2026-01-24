@@ -201,7 +201,7 @@ const RiskTable: React.FC<RiskTableProps> = ({ risks, currency, onDrillDown }) =
                     </span>
                   )}
                   {risk.trend === 'stable' && (
-                    <span className="inline-flex items-center text-slate-400">—</span>
+                    <span className="inline-flex items-center text-muted-foreground">—</span>
                   )}
                 </td>
                 <td className="py-3 text-right">

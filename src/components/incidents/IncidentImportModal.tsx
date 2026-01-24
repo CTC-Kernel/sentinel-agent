@@ -68,7 +68,7 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
             maxWidth="max-w-3xl"
         >
             <div className="p-1">
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 px-1">
+                <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 px-1">
                     {step === 'source'
                         ? 'Connectez-vous à vos outils de sécurité (SIEM/EDR) pour importer des alertes.'
                         : 'Sélectionnez les alertes à transformer en incidents.'}

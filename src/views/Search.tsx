@@ -187,7 +187,7 @@ export const Search: React.FC = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-slate-900 dark:text-white text-lg">{result.title}</h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{result.subtitle}</p>
+                                        <p className="text-sm text-slate-600 dark:text-muted-foreground font-medium">{result.subtitle}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">

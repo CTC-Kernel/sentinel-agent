@@ -101,7 +101,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.3, ease: appleEasing }}
                   >
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground font-medium leading-relaxed">
                       {message}
                     </p>
                     {details && (
@@ -111,7 +111,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.25, duration: 0.3, ease: appleEasing }}
                       >
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{details}</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground font-medium">{details}</p>
                       </motion.div>
                     )}
                   </motion.div>

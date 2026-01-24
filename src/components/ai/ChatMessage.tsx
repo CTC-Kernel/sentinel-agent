@@ -32,8 +32,8 @@ const markdownComponents: Components = {
 
     // Lists
     ul: ({ children }) => <ul className="list-disc list-outside ml-4 space-y-1 mb-3 text-slate-700 dark:text-slate-300 pointer-events-none">{children}</ul>,
-    ol: ({ children }) => <ol className="list-decimal list-outside ml-4 space-y-1 mb-3 text-slate-700 dark:text-slate-300">{children}</ol>,
-    li: ({ children }) => <li className="pl-1 leading-relaxed text-slate-700 dark:text-slate-300">{children}</li>,
+    ol: ({ children }) => <ol className="list-decimal list-outside ml-4 space-y-1 mb-3 text-slate-700 dark:text-muted-foreground">{children}</ol>,
+    li: ({ children }) => <li className="pl-1 leading-relaxed text-slate-700 dark:text-muted-foreground">{children}</li>,
 
     // Tables
     table: ({ children }) => (
@@ -45,7 +45,7 @@ const markdownComponents: Components = {
     ),
     thead: ({ children }) => <thead className="bg-slate-50 dark:bg-slate-900">{children}</thead>,
     th: ({ children }) => (
-        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             {children}
         </th>
     ),

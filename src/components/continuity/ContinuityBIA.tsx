@@ -105,7 +105,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                         </td>
                                         <td className="px-6 py-5 font-mono text-slate-600 dark:text-slate-300 font-bold">{proc.rto}</td>
                                         <td className="px-6 py-5 font-mono text-slate-600 dark:text-slate-300 font-bold">{proc.rpo}</td>
-                                        <td className="px-6 py-5 text-slate-600 dark:text-slate-400">
+                                        <td className="px-6 py-5 text-slate-600 dark:text-muted-foreground">
                                             <div className="flex items-center gap-2">
                                                 <img
                                                     src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
@@ -187,7 +187,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                         </div>
 
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{proc.name}</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{proc.description}</p>
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 line-clamp-2 flex-1 leading-relaxed">{proc.description}</p>
 
                         <div className="grid grid-cols-2 gap-4 mb-6">
                             <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-white/5 text-center">

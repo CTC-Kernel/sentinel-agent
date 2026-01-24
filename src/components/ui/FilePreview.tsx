@@ -39,7 +39,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate">
                                 {fileName}
                             </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground">
                                 {fileType}
                             </p>
                         </div>
@@ -101,7 +101,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                     {!isImage && !isPDF && (
                         <div className="flex flex-col items-center justify-center h-full space-y-4">
                             {getFileIcon()}
-                            <p className="text-slate-600 dark:text-slate-400">
+                            <p className="text-slate-600 dark:text-muted-foreground">
                                 Aperçu non disponible pour ce type de fichier
                             </p>
                             <Button asChild>

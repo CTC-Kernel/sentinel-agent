@@ -51,7 +51,7 @@ export const RiskKPICard: React.FC<RiskKPICardProps> = ({
                 )}
             </div>
             <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{value}</div>
-            <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">{subtext}</div>
+            <div className="text-sm text-slate-500 dark:text-muted-foreground font-medium">{subtext}</div>
         </motion.div>
     );
 };

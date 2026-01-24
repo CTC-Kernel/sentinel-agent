@@ -117,7 +117,7 @@ export const UserActivityLog: React.FC = () => {
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent animate-slide-in-left">
                         {isAdmin && viewMode === 'global' ? t('settings.activityPage.globalLog') : t('settings.activityPage.myLog')}
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400">
+                    <p className="text-slate-500 dark:text-muted-foreground">
                         {isAdmin && viewMode === 'global' ? t('settings.activityPage.globalLogDesc') : t('settings.activityPage.myLogDesc')}
                     </p>
                 </div>
@@ -128,7 +128,7 @@ export const UserActivityLog: React.FC = () => {
                             onClick={() => setViewMode('my')}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'my'
                                 ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                : 'text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                                 }`}
                         >
                             <span className="flex items-center gap-2">
@@ -140,7 +140,7 @@ export const UserActivityLog: React.FC = () => {
                             onClick={() => setViewMode('global')}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'global'
                                 ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                : 'text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                                 }`}
                         >
                             <span className="flex items-center gap-2">

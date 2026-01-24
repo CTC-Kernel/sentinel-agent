@@ -77,7 +77,7 @@ export class SettingsErrorBoundary extends Component<Props, State> {
                     </div>
 
                     {process.env.NODE_ENV === 'development' && this.state.error && (
-                        <div className="mt-8 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg text-left w-full max-w-lg overflow-auto text-xs font-mono text-slate-600 dark:text-slate-400">
+                        <div className="mt-8 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg text-left w-full max-w-lg overflow-auto text-xs font-mono text-slate-600 dark:text-muted-foreground">
                             <div className="mb-2 font-bold">Error Details:</div>
                             <div className="mb-2">{this.state.error.toString()}</div>
                             <div className="font-bold mb-1">Component Stack:</div>

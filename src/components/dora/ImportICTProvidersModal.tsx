@@ -150,7 +150,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                 <div className="absolute right-4 top-4">
                                     <button
                                         onClick={handleClose}
-                                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                        className="text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
@@ -191,7 +191,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center">
-                                            <Upload className="w-12 h-12 text-slate-400 mb-3" />
+                                            <Upload className="w-12 h-12 text-muted-foreground mb-3" />
                                             <p className="font-medium text-slate-900 dark:text-white">
                                                 {t('dora.import.dropzone')}
                                             </p>
@@ -207,7 +207,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
                                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
                                         {t('dora.import.expectedColumns')}
                                     </p>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 font-mono">
+                                    <p className="text-sm text-slate-600 dark:text-muted-foreground font-mono">
                                         {t('dora.import.columnsList')}
                                     </p>
                                 </div>

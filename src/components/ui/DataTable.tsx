@@ -283,7 +283,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             <tr>
                                 <td colSpan={tableColumns.length} className="p-0">
                                     {emptyState || (
-                                        <div className="flex flex-col items-center justify-center py-16 text-slate-500 dark:text-slate-400">
+                                        <div className="flex flex-col items-center justify-center py-16 text-slate-500 dark:text-muted-foreground">
                                             <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mb-4">
                                                 <Search className="h-8 w-8 opacity-40 text-muted-foreground" />
                                             </div>
@@ -300,7 +300,7 @@ export function DataTable<TData extends { id: string }, TValue>({
             {/* Pagination */}
             {table.getPageCount() > 1 && (
                 <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-slate-600 dark:text-muted-foreground">
                         Affichage {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} à {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, data.length)} sur {data.length} résultats
                     </p>
 

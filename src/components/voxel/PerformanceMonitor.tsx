@@ -282,7 +282,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             <span className="text-sm font-medium">Performance</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-sm text-slate-300">{fpsData.current.toFixed(0)} fps</span>
+            <span className="font-mono text-sm text-muted-foreground">{fpsData.current.toFixed(0)} fps</span>
             <span className="text-slate-500 text-xs">{collapsed ? '+' : '-'}</span>
           </div>
         </div>
@@ -439,8 +439,8 @@ export const PerformanceBadge: React.FC<PerformanceBadgeProps> = ({ nodeCount = 
       >
         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
         <span className="font-mono">{fpsData.current.toFixed(0)} fps</span>
-        <span className="text-slate-400">|</span>
-        <span className="text-slate-300">{nodeCount} nodes</span>
+        <span className="text-muted-foreground">|</span>
+        <span className="text-muted-foreground">{nodeCount} nodes</span>
       </button>
     </Html>
   );

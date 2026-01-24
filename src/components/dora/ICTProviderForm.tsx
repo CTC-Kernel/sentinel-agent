@@ -493,7 +493,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                     />
                                                 )}
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                 {t('dora.contract.auditRights')}
                                             </span>
                                         </label>
@@ -528,7 +528,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                     />
                                                 )}
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                 {t('dora.compliance.doraCompliant')}
                                             </span>
                                         </label>
@@ -547,7 +547,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                     />
                                                 )}
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                 {t('dora.compliance.locationEU')}
                                             </span>
                                         </label>
@@ -616,7 +616,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                     {/* Concentration Risk Slider with Visual Zones */}
                                     <div>
                                         <div className="flex items-center justify-between mb-3">
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-muted-foreground">
                                                 {t('dora.risk.concentration')}
                                             </label>
                                             <span className="text-xs text-slate-500">
@@ -687,7 +687,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                                             : t('dora.risk.lowRiskLabel', 'Risque Faible')}
                                                                 </span>
                                                             </div>
-                                                            <span className="text-xs text-slate-400">0% - 100%</span>
+                                                            <span className="text-xs text-muted-foreground">0% - 100%</span>
                                                         </div>
                                                     </div>
                                                 );
@@ -698,7 +698,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                     {/* Substitutability with Descriptive Options */}
                                     <div>
                                         <div className="flex items-center justify-between mb-3">
-                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">
+                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-muted-foreground">
                                                 {t('dora.risk.substitutability')}
                                             </label>
                                             <span className="text-xs text-slate-500">
@@ -747,7 +747,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                                         {t(`dora.risk.${level}Level`, level.charAt(0).toUpperCase() + level.slice(1))}
                                                                     </span>
                                                                 </div>
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                                <p className="text-xs text-slate-500 dark:text-muted-foreground">
                                                                     {config.desc}
                                                                 </p>
                                                             </button>
@@ -769,7 +769,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                                 return (
                                                     <div>
                                                         <div className="flex items-center justify-between mb-2">
-                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">
+                                                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-muted-foreground">
                                                                 {t('dora.risk.notes')}
                                                                 {isHighRisk && <span className="text-red-500 ml-1">*</span>}
                                                             </label>

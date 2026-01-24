@@ -108,7 +108,7 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
                                     </span>
                                 </div>
                             </div>
-                            <div className="ml-2 w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-400">
+                            <div className="ml-2 w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-muted-foreground">
                                 {project.progress}%
                             </div>
                         </div>

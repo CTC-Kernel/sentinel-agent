@@ -347,7 +347,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                   {search.description && (
                     <p className="text-xs text-slate-500 truncate">{search.description}</p>
                   )}
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-muted-foreground">
                     Utilisee {search.runCount} fois
                     {search.lastRunAt && ` - Derniere: ${formatDistanceToNow(search.lastRunAt, { addSuffix: true, locale: fr })}`}
                   </p>
@@ -550,7 +550,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
         <div className="border-t border-slate-200 dark:border-slate-700">
           {/* Results Header */}
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50">
-            <div className="text-sm text-slate-600 dark:text-slate-400">
+            <div className="text-sm text-slate-600 dark:text-muted-foreground">
               <span className="font-medium text-slate-900 dark:text-white">{results.totalCount}</span> resultats
               en <span className="font-medium">{results.searchTime}ms</span>
             </div>
@@ -632,7 +632,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
 
                         {isExpanded && (
                           <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs">
-                            <pre className="whitespace-pre-wrap text-slate-600 dark:text-slate-400 font-mono">
+                            <pre className="whitespace-pre-wrap text-slate-600 dark:text-muted-foreground font-mono">
                               {JSON.stringify(entry.details, null, 2)}
                             </pre>
                           </div>
@@ -643,7 +643,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                         <p className="text-xs text-slate-500">
                           {entry.timestamp ? format(new Date(entry.timestamp), 'dd/MM/yyyy HH:mm', { locale: fr }) : 'N/A'}
                         </p>
-                        <p className="text-xs text-slate-400 font-mono">
+                        <p className="text-xs text-muted-foreground font-mono">
                           {entry.documentId.substring(0, 8)}...
                         </p>
                       </div>
@@ -691,7 +691,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-muted-foreground">
                 <input
                   type="checkbox"
                   checked={searchIsPublic}

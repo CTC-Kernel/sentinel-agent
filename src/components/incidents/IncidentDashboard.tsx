@@ -152,7 +152,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             accessorKey: 'dateReported',
             header: 'Date',
             cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                <span className="text-slate-600 dark:text-muted-foreground font-medium">
                     {new Date(row.original.dateReported).toLocaleDateString()}
                 </span>
             )
@@ -174,7 +174,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 target.src = getUserAvatarUrl(null, reporterUser?.role);
                             }}
                         />
-                        <span className="text-slate-600 dark:text-slate-400 font-medium">
+                        <span className="text-slate-600 dark:text-muted-foreground font-medium">
                             {reporterName}
                         </span>
                     </div>
@@ -185,7 +185,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             accessorKey: 'category',
             header: 'Catégorie',
             cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                <span className="text-slate-600 dark:text-muted-foreground font-medium">
                     {row.original.category || '-'}
                 </span>
             )
@@ -324,7 +324,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-600 transition-colors leading-tight">
                                     {inc.title}
                                 </h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed">
+                                <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 line-clamp-2 leading-relaxed">
                                     {inc.description}
                                 </p>
                                 <div className="flex items-center justify-between pt-5 border-t border-dashed border-slate-200 dark:border-white/10 mt-auto">

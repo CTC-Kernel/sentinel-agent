@@ -69,7 +69,7 @@ export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, proc
                                                 </div>
                                                 {new Date(drill.date).toLocaleDateString()}
                                             </td>
-                                            <td className="px-6 py-5 font-medium text-slate-600 dark:text-slate-300">
+                                            <td className="px-6 py-5 font-medium text-slate-600 dark:text-muted-foreground">
                                                 {proc ? proc.name : 'Inconnu'}
                                             </td>
                                             <td className="px-6 py-5">

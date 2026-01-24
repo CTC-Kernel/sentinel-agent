@@ -141,7 +141,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
         <div className="py-4 space-y-3">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
@@ -192,7 +192,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
               >
                 {t('common.selectAll', 'Tout sélectionner')}
               </button>
-              <span className="text-slate-300">|</span>
+              <span className="text-muted-foreground">|</span>
               <button
                 onClick={deselectAll}
                 className="text-slate-500 hover:text-slate-600 font-medium"
@@ -212,7 +212,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
           ) : filteredAssets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Package className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
-              <p className="text-slate-500 dark:text-slate-400">
+              <p className="text-slate-500 dark:text-muted-foreground">
                 {searchQuery
                   ? t('ebios.workshop1.noAssetsMatchSearch', 'Aucun actif ne correspond à votre recherche')
                   : t('ebios.workshop1.noAssetsAvailable', 'Aucun actif disponible dans l\'inventaire')}

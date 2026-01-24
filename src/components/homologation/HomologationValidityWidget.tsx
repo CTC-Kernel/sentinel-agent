@@ -280,7 +280,7 @@ export const HomologationValidityWidget: React.FC<HomologationValidityWidgetProp
               </p>
             </div>
             <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-              <p className="text-lg font-bold text-slate-600 dark:text-slate-400">{stats.expired}</p>
+              <p className="text-lg font-bold text-slate-600 dark:text-muted-foreground">{stats.expired}</p>
               <p className="text-xs text-muted-foreground">
                 {t('homologation.validity.expired', 'Expirés')}
               </p>

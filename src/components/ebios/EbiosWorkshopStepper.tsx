@@ -228,7 +228,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                       isActive ? "bg-blue-500" :
                         "bg-slate-300 dark:bg-slate-600"
                   )} />
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-muted-foreground">
                     {WORKSHOP_STATUS_LABELS[workshop.status][locale]}
                   </p>
                 </div>

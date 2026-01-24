@@ -182,7 +182,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                     </div>
                                 )}
                             </div>
-                            <div className="text-xs text-slate-400 flex flex-col items-end">
+                            <div className="text-xs text-muted-foreground flex flex-col items-end">
                                 <span>{new Date(item.date).toLocaleDateString()}</span>
                                 <span>{new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>

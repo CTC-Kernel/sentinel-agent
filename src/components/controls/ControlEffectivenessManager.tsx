@@ -242,11 +242,11 @@ const DomainControlsPanel: React.FC<DomainControlsPanelProps> = ({
                     )}>
                       {score}%
                     </div>
-                    <div className="text-xs text-slate-400">
+                    <div className="text-xs text-muted-foreground">
                       {new Date(assessment.assessmentDate).toLocaleDateString('fr-FR')}
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
                 </div>
               ) : (
                 <Button

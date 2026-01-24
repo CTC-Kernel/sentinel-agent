@@ -409,7 +409,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
             <h4 className="font-medium text-slate-900 dark:text-white mb-4">Nouvelle réglementation</h4>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Nom *</label>
+                <label className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Nom *</label>
                 <input
                   type="text"
                   value={newRegulation.name}
@@ -419,7 +419,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Framework</label>
+                <label className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Framework</label>
                 <select
                   value={newRegulation.framework}
                   onChange={(e) => setNewRegulation(prev => ({ ...prev, framework: e.target.value }))}
@@ -432,7 +432,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Obligations clés</label>
+                <label className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Obligations clés</label>
                 <input
                   type="text"
                   value={newRegulation.obligations}
@@ -442,7 +442,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Échéance de conformité</label>
+                <label className="block text-sm text-slate-600 dark:text-muted-foreground mb-1">Échéance de conformité</label>
                 <input
                   type="date"
                   value={newRegulation.deadline}
@@ -492,7 +492,7 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
                 )}
                 <button
                   onClick={() => onRemoveRegulation(reg.id)}
-                  className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-colors"
+                  className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-muted-foreground hover:text-red-500 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

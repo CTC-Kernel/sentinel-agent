@@ -241,7 +241,7 @@ const AnnotationTooltip: React.FC<{
         <p className="text-sm text-white leading-relaxed">
           {contentPreview}
         </p>
-        <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
           <span>{annotation.author.displayName}</span>
           {annotation.replyCount > 0 && (
             <span>{annotation.replyCount} réponse(s)</span>

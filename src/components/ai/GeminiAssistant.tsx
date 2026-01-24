@@ -284,7 +284,7 @@ export const GeminiAssistant: React.FC = () => {
                         </div>
                         <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-none border border-slate-200 dark:border-slate-700/50 shadow-sm flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
-                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">L'IA réfléchit...</span>
+                            <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">L'IA réfléchit...</span>
                         </div>
                     </div>
                 )}

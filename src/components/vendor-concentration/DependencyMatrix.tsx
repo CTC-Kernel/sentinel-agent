@@ -354,7 +354,7 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
       </div>
 
       {/* Summary */}
-      <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+      <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-muted-foreground">
         <span>{filteredData.vendors.length} {t('vendorConcentration.matrix.vendors')}</span>
         <span>•</span>
         <span>{filteredData.services.length} {t('vendorConcentration.matrix.services')}</span>
@@ -371,23 +371,23 @@ export const DependencyMatrix: React.FC<DependencyMatrixProps> = ({
         <span className="text-slate-500">{t('vendorConcentration.matrix.legend')}:</span>
         <div className="flex items-center gap-1">
           <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30" />
-          <span className="text-slate-600 dark:text-slate-400">L = {t('vendorConcentration.matrix.levelLow')}</span>
+          <span className="text-slate-600 dark:text-muted-foreground">L = {t('vendorConcentration.matrix.levelLow')}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-4 h-4 rounded bg-yellow-100 dark:bg-yellow-900/30" />
-          <span className="text-slate-600 dark:text-slate-400">M = {t('vendorConcentration.matrix.levelMedium')}</span>
+          <span className="text-slate-600 dark:text-muted-foreground">M = {t('vendorConcentration.matrix.levelMedium')}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-900/30" />
-          <span className="text-slate-600 dark:text-slate-400">H = {t('vendorConcentration.matrix.levelHigh')}</span>
+          <span className="text-slate-600 dark:text-muted-foreground">H = {t('vendorConcentration.matrix.levelHigh')}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30" />
-          <span className="text-slate-600 dark:text-slate-400">C = {t('vendorConcentration.matrix.levelCritical')}</span>
+          <span className="text-slate-600 dark:text-muted-foreground">C = {t('vendorConcentration.matrix.levelCritical')}</span>
         </div>
         <div className="flex items-center gap-1">
           <AlertCircle className="h-3.5 w-3.5 text-red-500" />
-          <span className="text-slate-600 dark:text-slate-400">= {t('vendorConcentration.matrix.criticalService')}</span>
+          <span className="text-slate-600 dark:text-muted-foreground">= {t('vendorConcentration.matrix.criticalService')}</span>
         </div>
       </div>
 

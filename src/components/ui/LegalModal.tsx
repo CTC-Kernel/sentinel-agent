@@ -32,7 +32,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                 <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Informations Légales</h2>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Transparence et conformité</p>
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">Transparence et conformité</p>
                     </div>
                     <button
                         aria-label="Fermer la fenêtre"
@@ -98,7 +98,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
 
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Directeur de la Publication</h3>
-                                    <p className="text-slate-600 dark:text-slate-300">Monsieur le Gérant de Cyber Threat Consulting.</p>
+                                    <p className="text-slate-600 dark:text-muted-foreground">Monsieur le Gérant de Cyber Threat Consulting.</p>
                                 </section>
                             </div>
                         )}
@@ -118,7 +118,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
 
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">2. Finalité du Traitement</h3>
-                                    <ul className="list-disc pl-5 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <ul className="list-disc pl-5 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                                         <li>Gestion de l'accès sécurisé à la plateforme.</li>
                                         <li>Traçabilité des actions de gouvernance (Audit Trail).</li>
                                         <li>Notifications de sécurité et de conformité.</li>
@@ -130,7 +130,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-3">
                                         Pour assurer le bon fonctionnement et la qualité du service, nous utilisons les services tiers suivants :
                                     </p>
-                                    <ul className="list-disc pl-5 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <ul className="list-disc pl-5 space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
                                         <li><strong>Firebase Analytics</strong> (Google) : Mesure d'audience anonymisée, activée uniquement après votre consentement explicite.</li>
                                         <li><strong>Sentry</strong> (Functional Software, Inc.) : Surveillance des erreurs techniques pour améliorer la stabilité. Collecte des informations techniques (type de navigateur, système d'exploitation) et traces d'erreurs. Aucune donnée personnelle identifiable n'est transmise intentionnellement.</li>
                                         <li><strong>N8N</strong> (Workflow Automation) : Automatisation des notifications et intégrations. Les données transitant sont limitées au strict nécessaire pour le traitement concerné.</li>

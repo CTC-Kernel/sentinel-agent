@@ -116,11 +116,11 @@ export const FrameworkSettings: React.FC = () => {
     if (!hasPermission(user, 'Settings', 'manage')) {
         return (
             <div className="glass-panel p-8 text-center">
-                <Landmark className="w-12 h-12 mx-auto text-slate-400 mb-4" />
+                <Landmark className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Accès restreint
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-slate-500 dark:text-muted-foreground">
                     Vous n'avez pas les permissions nécessaires pour modifier les frameworks.
                 </p>
             </div>
@@ -136,7 +136,7 @@ export const FrameworkSettings: React.FC = () => {
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                             {t('settings.frameworksTitle') || 'Référentiels de Conformité'}
                         </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
                             {t('settings.frameworksDescription') ||
                              'Sélectionnez les référentiels que votre organisation doit respecter.'}
                         </p>
@@ -214,7 +214,7 @@ export const FrameworkSettings: React.FC = () => {
                                                         {fw.type}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                                <p className="text-sm text-slate-600 dark:text-muted-foreground">
                                                     {fw.label}
                                                 </p>
                                             </div>

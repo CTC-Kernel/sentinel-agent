@@ -143,7 +143,7 @@ export const RiskFormTreatmentTab: React.FC<RiskFormTreatmentTabProps> = React.m
                                                 </span>
                                                 {ctrl.status === 'Implémenté' && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full">Implémenté</span>}
                                             </div>
-                                            <span className="text-xs text-slate-600 dark:text-slate-400">{ctrl.name}</span>
+                                            <span className="text-xs text-slate-600 dark:text-muted-foreground">{ctrl.name}</span>
                                         </div>
                                     </label>
                                 )

@@ -197,7 +197,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     />
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                     <div className="flex flex-col">
                         <span className="text-[9px] uppercase tracking-wider text-slate-500 mb-0.5">Début</span>
                         <span>{startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
@@ -280,7 +280,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                     </div>
                     <div>
                         <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Planning Projet</p>
-                        <p className="text-[10px] text-slate-600 dark:text-slate-400">{tasks.length} tâches • {Math.round(tasks.reduce((acc, t) => acc + (t.progress || 0), 0) / (tasks.length || 1))}% global</p>
+                        <p className="text-[10px] text-slate-600 dark:text-muted-foreground">{tasks.length} tâches • {Math.round(tasks.reduce((acc, t) => acc + (t.progress || 0), 0) / (tasks.length || 1))}% global</p>
                     </div>
                 </div>
 
@@ -314,7 +314,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                                 onClick={() => onViewModeChange(mode)}
                                 className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
                                     ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-105'
-                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                    : 'text-slate-600 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}
                             >
                                 {mode === 'Day' ? 'Jour' : mode === 'Week' ? 'Sem' : 'Mois'}

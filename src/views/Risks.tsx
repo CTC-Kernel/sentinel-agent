@@ -40,6 +40,7 @@ import { PdfService } from '../services/PdfService';
 import { toast } from '@/lib/toast';
 import { canEditResource } from '../utils/permissions';
 import { useAuth } from '../hooks/useAuth';
+import { RiskDashboardSkeleton, RiskMatrixSkeleton, RiskListSkeleton, RiskContextSkeleton } from '../components/risks/RiskSkeletons';
 
 // Lazy Loading Heavy Components
 const RiskForm = React.lazy(() => import('../components/risks/RiskForm').then(m => ({ default: m.RiskForm })));
@@ -397,33 +398,38 @@ export const Risks: React.FC = () => {
 
             <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as RiskTab)} />
 
+
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="overview-tab" data-tour="risks-stats" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" tabIndex={0} className="focus:outline-none">
-                    <RiskDashboard risks={filteredRisks} />
+                    {loading ? <RiskDashboardSkeleton /> : <RiskDashboard risks={filteredRisks} />}
                 </motion.div>
             )}
 
             {/* CONTEXT TAB */}
             {activeTab === 'context' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="context-tab" role="tabpanel" id="panel-context" aria-labelledby="tab-context" className="focus:outline-none">
-                    <div className="glass-premium p-8 rounded-5xl border border-white/60 dark:border-white/10 shadow-apple-sm">
-                        <RiskContextManager />
-                    </div>
+                    {loading ? (
+                        <RiskContextSkeleton />
+                    ) : (
+                        <div className="glass-premium p-8 rounded-5xl border border-white/60 dark:border-white/10 shadow-apple-sm">
+                            <RiskContextManager />
+                        </div>
+                    )}
                 </motion.div>
             )}
 
             {/* FINANCIAL TAB */}
             {activeTab === 'financial' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="financial-tab" role="tabpanel" id="panel-financial" aria-labelledby="tab-financial" className="focus:outline-none">
-                    <FinancialRisk hideHeader />
+                    {loading ? <RiskDashboardSkeleton /> : <FinancialRisk hideHeader />}
                 </motion.div>
             )}
 
             {/* EBIOS RM TAB */}
             {activeTab === 'ebios' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="ebios-tab" role="tabpanel" id="panel-ebios" aria-labelledby="tab-ebios" className="focus:outline-none">
-                    <React.Suspense fallback={<Spinner />}>
+                    <React.Suspense fallback={<RiskListSkeleton />}>
                         <EbiosAnalyses />
                     </React.Suspense>
                 </motion.div>
@@ -432,6 +438,7 @@ export const Risks: React.FC = () => {
             {/* CONTENT TABS */}
             {activeTab !== 'overview' && activeTab !== 'context' && activeTab !== 'financial' && activeTab !== 'ebios' && (
                 <div className="space-y-4">
+                    {/* SavedViewsBar and Toolbar */}
                     <SavedViewsBar
                         views={savedViews}
                         activeViewId={activeViewId}
@@ -495,17 +502,19 @@ export const Risks: React.FC = () => {
 
             {activeTab === 'list' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="mt-8 focus:outline-none" role="tabpanel" id="panel-list" aria-labelledby="tab-list" tabIndex={0}>
-                    {viewMode === 'list' ? (
-                        <RiskList risks={filteredRisks} loading={loading} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDeleteRiskItem} onDuplicate={handleDuplicateRisk} onBulkDelete={bulkDeleteRisks} onSelect={setSelectedRisk} duplicatingIds={duplicatingIds} users={[]} assets={assets} emptyStateTitle={emptyStateTitle} emptyStateDescription={emptyStateDescription} emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined} onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined} searchQuery={activeFilters.query} />
+                    {loading ? (
+                        <RiskListSkeleton />
+                    ) : viewMode === 'list' ? (
+                        <RiskList risks={filteredRisks} loading={false} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDeleteRiskItem} onDuplicate={handleDuplicateRisk} onBulkDelete={bulkDeleteRisks} onSelect={setSelectedRisk} duplicatingIds={duplicatingIds} users={[]} assets={assets} emptyStateTitle={emptyStateTitle} emptyStateDescription={emptyStateDescription} emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined} onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined} searchQuery={activeFilters.query} />
                     ) : (
-                        <RiskGrid risks={filteredRisks} loading={loading} onSelect={setSelectedRisk} assets={assets} emptyStateIcon={ShieldAlert} emptyStateTitle={emptyStateTitle} emptyStateDescription={emptyStateDescription} emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined} onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDeleteRiskItem} searchQuery={activeFilters.query} />
+                        <RiskGrid risks={filteredRisks} loading={false} onSelect={setSelectedRisk} assets={assets} emptyStateIcon={ShieldAlert} emptyStateTitle={emptyStateTitle} emptyStateDescription={emptyStateDescription} emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined} onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDeleteRiskItem} searchQuery={activeFilters.query} />
                     )}
                 </motion.div>
             )}
 
             {activeTab === 'matrix' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1 focus:outline-none" role="tabpanel" id="panel-matrix" aria-labelledby="tab-matrix" tabIndex={0}>
-                    <React.Suspense fallback={<Spinner />}>
+                    <React.Suspense fallback={<RiskMatrixSkeleton />}>
                         <RiskMatrix
                             risks={filteredRisks}
                             matrixFilter={matrixFilter}

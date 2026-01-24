@@ -106,7 +106,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                 </div>
                 <div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-sm">Assistant IA Sentinel</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">Analyse et suggestions intelligentes</p>
+                    <p className="text-xs text-slate-600 dark:text-muted-foreground">Analyse et suggestions intelligentes</p>
                 </div>
             </div>
 
@@ -189,7 +189,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                                             <span className="font-bold text-slate-800 dark:text-slate-200">{c.title}</span>
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${c.importance === 'High' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>{c.importance}</span>
                                         </div>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400">{c.description}</p>
+                                        <p className="text-xs text-slate-600 dark:text-muted-foreground">{c.description}</p>
                                     </div>
                                 ))}
                             </div>

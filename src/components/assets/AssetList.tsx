@@ -356,7 +356,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                 <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center">
                                     <div className="flex items-center gap-2">
                                         <span className={`w-2 h-2 rounded-full ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                                        <span className="text-xs font-bold text-slate-600 dark:text-muted-foreground">
                                             {(() => {
                                                 const val = asset.lifecycleStatus || 'Neuf';
                                                 if (val === 'Neuf') return t('assets.status.new');

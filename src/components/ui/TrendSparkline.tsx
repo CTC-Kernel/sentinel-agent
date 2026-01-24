@@ -139,7 +139,7 @@ export function TrendSparkline({
   if (!history || history.length === 0) {
     return (
       <div className={cn('flex items-center gap-1', className)}>
-        <span className="text-xs text-slate-400">{t('common.noHistory')}</span>
+        <span className="text-xs text-muted-foreground">{t('common.noHistory')}</span>
       </div>
     );
   }

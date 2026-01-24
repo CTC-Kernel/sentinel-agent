@@ -303,13 +303,13 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
             <MapPin className="w-8 h-8 text-blue-400" />
           </div>
           <h2 className="text-xl font-semibold text-white mb-2">Guided Tour</h2>
-          <p className="text-slate-400 mb-6">
+          <p className="text-muted-foreground mb-6">
             Take a quick tour through your GRC landscape and discover key areas that need attention.
           </p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+              className="px-4 py-2 rounded-lg text-muted-foreground hover:text-white hover:bg-slate-700/50 transition-colors"
             >
               Skip
             </button>
@@ -379,7 +379,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
                   {currentStopIndex + 1} / {tourStops.length}
                 </span>
               </div>
-              <p className="text-sm text-slate-400">{currentStop?.description}</p>
+              <p className="text-sm text-muted-foreground">{currentStop?.description}</p>
             </div>
           </div>
 
@@ -392,7 +392,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
                 className="p-2 rounded-lg hover:bg-slate-700/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 aria-label="Previous stop"
               >
-                <ChevronLeft className="w-4 h-4 text-slate-400" />
+                <ChevronLeft className="w-4 h-4 text-muted-foreground" />
               </button>
               <button
                 onClick={togglePlay}
@@ -400,9 +400,9 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
                 aria-label={isPlaying ? 'Pause tour' : 'Play tour'}
               >
                 {isPlaying ? (
-                  <Pause className="w-4 h-4 text-slate-400" />
+                  <Pause className="w-4 h-4 text-muted-foreground" />
                 ) : (
-                  <Play className="w-4 h-4 text-slate-400" />
+                  <Play className="w-4 h-4 text-muted-foreground" />
                 )}
               </button>
               <button
@@ -410,7 +410,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
                 className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
                 aria-label={isLastStop ? 'Finish tour' : 'Next stop'}
               >
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
             <div className="flex items-center gap-2">
@@ -426,7 +426,7 @@ export const VoxelGuidedTour: React.FC<VoxelGuidedTourProps> = ({
                 className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
                 aria-label="Close tour"
               >
-                <X className="w-4 h-4 text-slate-400" />
+                <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
           </div>

@@ -41,7 +41,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                         <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
                             {Number(risk.score) || (Number(risk.probability) * Number(risk.impact)) || 0}
                         </div>
-                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.probability || 0} × Impact: {risk.impact || 0}</div>
+                        <div className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Prob: {risk.probability || 0} × Impact: {risk.impact || 0}</div>
                     </div>
                 </div>
                 <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
@@ -53,7 +53,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                         <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
                             {Number(risk.residualScore) || ((Number(risk.residualProbability) || Number(risk.probability)) * (Number(risk.residualImpact) || Number(risk.impact))) || 0}
                         </div>
-                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.residualProbability || risk.probability || 0} × Impact: {risk.residualImpact || risk.impact || 0}</div>
+                        <div className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Prob: {risk.residualProbability || risk.probability || 0} × Impact: {risk.residualImpact || risk.impact || 0}</div>
                     </div>
                 </div>
             </div>
@@ -67,7 +67,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                 {risk.scenario && (
                     <div>
                         <span className="text-[10px] uppercase text-slate-400 font-bold">Scénario</span>
-                        <p className="text-sm text-slate-600 dark:text-slate-300">{risk.scenario}</p>
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground">{risk.scenario}</p>
                     </div>
                 )}
                 {risk.vulnerability && (

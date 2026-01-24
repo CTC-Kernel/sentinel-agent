@@ -545,15 +545,15 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                       )}
                     >
                       {isVisible ? (
-                        <Eye className="w-3 h-3 text-slate-400" />
+                        <Eye className="w-3 h-3 text-muted-foreground" />
                       ) : (
-                        <EyeOff className="w-3 h-3 text-slate-400" />
+                        <EyeOff className="w-3 h-3 text-muted-foreground" />
                       )}
                       <Icon className={cn('w-3 h-3', config.color)} />
                       <span className="text-xs text-slate-700 dark:text-slate-300 truncate flex-1">
                         {t(`ebios.partyTypes.${type}`)}
                       </span>
-                      <span className="text-xs text-slate-400">{count}</span>
+                      <span className="text-xs text-muted-foreground">{count}</span>
                     </button>
                   );
                 }
@@ -603,7 +603,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
               }}
               className="absolute top-2 right-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
             >
-              <X className="w-4 h-4 text-slate-400" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
 
             {selectedParty && (
@@ -695,7 +695,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
                   </div>
                 </div>
                 {selectedPath.description && (
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                  <p className="mt-2 text-sm text-slate-600 dark:text-muted-foreground">
                     {selectedPath.description}
                   </p>
                 )}
@@ -741,7 +741,7 @@ export const EcosystemMap: React.FC<EcosystemMapProps> = ({
           <div className="text-center">
             <Globe className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
             <p className="text-slate-500">{t('ebios.ecosystem.noParties')}</p>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {t('ebios.ecosystem.addPartiesHelp')}
             </p>
           </div>

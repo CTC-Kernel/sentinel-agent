@@ -342,7 +342,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/10">
                 {displayControls.length === 0 ? (
                     <div className="text-center py-12 space-y-4">
-                        <p className="text-slate-600 dark:text-slate-400">Aucun contrôle disponible dans ce référentiel.</p>
+                        <p className="text-slate-600 dark:text-muted-foreground">Aucun contrôle disponible dans ce référentiel.</p>
                         {onSeed && !selectedVersion && (
                             <Button onClick={onSeed} variant="default">
                                 Charger les contrôles par défaut
@@ -400,7 +400,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                     <AlertTriangle className="h-3 w-3 text-amber-500" />
                                                     {item.linkedRisksCount}
                                                 </Badge>
-                                            ) : <span className="text-slate-400">-</span>}
+                                            ) : <span className="text-muted-foreground">-</span>}
                                         </td>
                                         <td className="px-4 py-3">
                                             {item.evidenceCount > 0 ? (
@@ -408,7 +408,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                                     <FileText className="h-3 w-3 text-blue-500" />
                                                     {item.evidenceCount}
                                                 </Badge>
-                                            ) : <span className="text-slate-400">-</span>}
+                                            ) : <span className="text-muted-foreground">-</span>}
                                         </td>
                                         <td className="px-4 py-3">
                                             {item.isHistorical ? (

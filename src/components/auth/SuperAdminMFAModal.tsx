@@ -58,7 +58,7 @@ export const SuperAdminMFAModal: React.FC<SuperAdminMFAModalProps> = ({
 
         {/* MFA Code Input */}
         <div className="space-y-4">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-muted-foreground">
             Pour confirmer cette action, veuillez entrer le code à 6 chiffres de votre application d'authentification.
           </p>
 

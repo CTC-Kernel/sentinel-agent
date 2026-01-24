@@ -187,7 +187,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                     </div>
                     <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-sm">{t('dashboard.gettingStarted')}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('dashboard.setupProgress')}</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">{t('dashboard.setupProgress')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -195,14 +195,14 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                         onClick={handleToggleExpand}
                         aria-label={isExpanded ? 'Réduire le guide de démarrage' : 'Développer le guide de démarrage'}
                         aria-expanded={isExpanded}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-muted-foreground hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
                     >
                         <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                     </button>
                     <button
                         onClick={handleClose}
                         aria-label="Fermer le guide de démarrage"
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-muted-foreground hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
                     >
                         <X className="h-4 w-4" />
                     </button>

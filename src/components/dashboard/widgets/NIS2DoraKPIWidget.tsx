@@ -68,7 +68,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
 
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs">
-                                <span className="text-slate-600 dark:text-slate-400">Taux de Notification</span>
+                                <span className="text-slate-600 dark:text-muted-foreground">Taux de Notification</span>
                                 <span className="font-bold text-slate-900 dark:text-white">{nis2Metrics.complianceRate}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-indigo-100 dark:bg-indigo-900/30 rounded-full overflow-hidden">
@@ -98,7 +98,7 @@ export const NIS2DoraKPIWidget: React.FC<Props> = ({ incidents = [], suppliers =
 
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs">
-                                <span className="text-slate-600 dark:text-slate-400">Score de Sécurité Avg</span>
+                                <span className="text-slate-600 dark:text-muted-foreground">Score de Sécurité Avg</span>
                                 <span className="font-bold text-slate-900 dark:text-white">{doraMetrics.avgScore}/100</span>
                             </div>
                             <div className="h-1.5 w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full overflow-hidden">

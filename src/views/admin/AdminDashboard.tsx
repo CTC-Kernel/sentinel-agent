@@ -28,7 +28,7 @@ const AdminDashboard: React.FC = () => {
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab
                             ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20'
-                            : 'text-slate-400 hover:text-white hover:bg-white/5'
+                            : 'text-muted-foreground hover:text-white hover:bg-white/5'
                             }`}
                     >
                         {tab.charAt(0).toUpperCase() + tab.slice(1)}

@@ -417,7 +417,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                   )}
                 </div>
 
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
+                <p className="text-sm text-slate-600 dark:text-muted-foreground mb-4 line-clamp-2">
                   {template.description}
                 </p>
 
@@ -435,7 +435,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                 {isActive && (
                   <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Progression</span>
+                      <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Progression</span>
                       <span className="text-xs font-bold text-slate-900 dark:text-white">{workshopProgress}%</span>
                     </div>
                     <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -500,7 +500,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                   </h4>
                   <ul className="space-y-2">
                     {selectedTemplate.bestPractices.map((practice, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                         <CheckCircle className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                         {practice}
                       </li>
@@ -515,7 +515,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                   </h4>
                   <ul className="space-y-2">
                     {selectedTemplate.deliverables.map((deliverable, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                         <FileCheck className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                         {deliverable}
                       </li>
@@ -568,7 +568,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
                       <div className="flex items-center gap-4">
                         {activeWorkshop?.templateId === selectedTemplate.id && (
                           <div className="text-right">
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                            <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
                               {completedTasks}/{totalTasks} tâches
                             </span>
                             <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mt-1">

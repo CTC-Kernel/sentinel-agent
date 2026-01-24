@@ -492,7 +492,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                 <div className="flex items-center gap-6">
                                   {/* Likelihood Selector (Compact) */}
                                   <div className="flex flex-col items-end mr-4">
-                                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
+                                    <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">{t('ebios.workshop4.likelihood')}</span>
                                     <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
                                       {!readOnly ? (
                                         LIKELIHOOD_SCALE.map((level) => (
@@ -506,7 +506,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                               "w-8 h-8 rounded-md text-xs font-bold transition-all relative z-10",
                                               opScenario.likelihood === level.level
                                                 ? `bg-${level.color}-500 text-white shadow-sm scale-110`
-                                                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                                : "text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                                             )}
                                             title={t(`ebios.likelihood.${level.level}`)}
                                           >
@@ -528,7 +528,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                     "p-2 rounded-full transition-all duration-300",
                                     isExpanded
                                       ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rotate-180"
-                                      : "bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
                                   )}>
                                     <ChevronDown className="w-5 h-5" />
                                   </div>
@@ -562,7 +562,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                       <div className="absolute top-4 bottom-4 left-[27px] w-px bg-slate-200 dark:bg-slate-700"></div>
 
                                       {opScenario.attackSequence.length === 0 ? (
-                                        <div className="text-center py-8 text-slate-400 italic bg-white dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                                        <div className="text-center py-8 text-muted-foreground italic bg-white dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
                                           {t('ebios.workshop4.noStepsYet')}
                                         </div>
                                       ) : (
@@ -613,7 +613,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                   ) : !readOnly && (
                                                     <button
                                                       onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
-                                                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-indigo-600 transition-colors py-1 px-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800"
+                                                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-indigo-600 transition-colors py-1 px-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800"
                                                     >
                                                       <Link2 className="w-3 h-3" />
                                                       {t('ebios.workshop4.addMitreRef')}
@@ -624,7 +624,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                 {!readOnly && (
                                                   <button
                                                     onClick={() => handleDeleteAttackStep(opScenario.id, step.id)}
-                                                    className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover/step:opacity-100"
+                                                    className="p-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover/step:opacity-100"
                                                     title={t('common.delete')}
                                                   >
                                                     <Trash2 className="w-4 h-4" />

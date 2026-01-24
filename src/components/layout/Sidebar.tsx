@@ -296,7 +296,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
               variant="ghost"
               size="sm"
               onClick={() => setShowLegalModal(true)}
-              className="w-full flex items-center justify-center gap-2 h-8 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="w-full flex items-center justify-center gap-2 h-8 text-[10px] font-medium text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
             >
               <Scale className="h-3 w-3" />
               <span>{t('settings.mentionsLegales')}</span>

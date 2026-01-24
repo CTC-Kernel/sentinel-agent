@@ -235,11 +235,11 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
               className="w-2.5 h-2.5 rounded-full"
               style={{ backgroundColor: STATUS_COLORS[node.status] }}
             />
-            <span className="text-xs text-slate-400 uppercase font-medium">{node.type}</span>
+            <span className="text-xs text-muted-foreground uppercase font-medium">{node.type}</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+            className="p-1 text-muted-foreground hover:text-white rounded-full hover:bg-white/10 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6L6 18M6 6l12 12" />
@@ -268,7 +268,7 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Connections</span>
-            <span className="text-slate-300">{node.connections?.length || 0}</span>
+            <span className="text-muted-foreground">{node.connections?.length || 0}</span>
           </div>
         </div>
       </div>

@@ -96,7 +96,7 @@ const ScoreGauge: React.FC<{
           {formatScore(score)}
         </span>
         {showGrade && (
-          <span className="text-xs text-slate-500 dark:text-slate-400">
+          <span className="text-xs text-slate-500 dark:text-muted-foreground">
             {getScoreGrade(score)}
           </span>
         )}
@@ -163,7 +163,7 @@ const SectionScoreBar: React.FC<{
             <h4 className="font-medium text-slate-900 dark:text-white">
               {section.sectionTitle}
             </h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-muted-foreground">
               {section.answeredCount}/{section.questionCount}{' '}
               {t('vendorScoring.questionsAnswered', 'questions answered')}
               {section.criticalIssues > 0 && (
@@ -178,14 +178,14 @@ const SectionScoreBar: React.FC<{
 
         <div className="flex items-center gap-3">
           {/* Weight indicator */}
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-muted-foreground">
             {t('vendorScoring.weight', 'Weight')}: {Math.round(section.weight)}%
           </span>
           {onToggle && (
             expanded ? (
-              <ChevronUp className="w-5 h-5 text-slate-400" />
+              <ChevronUp className="w-5 h-5 text-muted-foreground" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-slate-400" />
+              <ChevronDown className="w-5 h-5 text-muted-foreground" />
             )
           )}
         </div>
@@ -315,7 +315,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
               <RiskBadge level={score.inherentRisk} />
               {score.residualRisk !== score.inherentRisk && (
                 <>
-                  <span className="text-slate-400">→</span>
+                  <span className="text-muted-foreground">→</span>
                   <RiskBadge level={score.residualRisk} size="sm" />
                   <span className="text-xs text-slate-500">
                     ({t('vendorScoring.afterMitigation', 'after mitigation')})
@@ -341,7 +341,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
 
             {organizationAverage !== undefined && (
               <div className="flex items-center gap-2">
-                <span className="text-slate-500 dark:text-slate-400">
+                <span className="text-slate-500 dark:text-muted-foreground">
                   {t('vendorScoring.vsAverage', 'vs Avg')}:
                 </span>
                 <span
@@ -369,7 +369,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
           </div>
 
           {/* Completion info */}
-          <div className="text-sm text-slate-500 dark:text-slate-400">
+          <div className="text-sm text-slate-500 dark:text-muted-foreground">
             {score.answeredQuestions}/{score.totalQuestions}{' '}
             {t('vendorScoring.questionsAnswered', 'questions answered')} •{' '}
             {t('vendorScoring.calculatedAt', 'Calculated')}{' '}
@@ -407,7 +407,7 @@ export const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
         <div className="space-y-3">
           <h4 className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
             {t('vendorScoring.sectionBreakdown', 'Section Breakdown')}
-            <Info className="w-4 h-4 text-slate-400" />
+            <Info className="w-4 h-4 text-muted-foreground" />
           </h4>
 
           <div className="space-y-3">

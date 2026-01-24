@@ -95,12 +95,12 @@ const CategoryAccordion: React.FC<CategoryAccordionProps> = ({
             animate={{ rotate: isExpanded ? 90 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronRight className="w-4 h-4 text-slate-400" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </motion.div>
           <span className="font-semibold text-slate-900 dark:text-white">
             {categoryLabel}
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
+          <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-muted-foreground">
             {requirements.length}
           </span>
         </div>
@@ -303,7 +303,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
           {t('requirements.errorLoading')}
         </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-muted-foreground">
           {t('requirements.errorLoadingHint')}
         </p>
       </div>
@@ -321,7 +321,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
               <span className="ml-2 text-brand-600 dark:text-brand-400">{frameworkCode}</span>
             )}
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
             {totalCount} {t('requirements.requirements', { count: totalCount })}
           </p>
         </div>
@@ -347,7 +347,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
       <div className="flex flex-col lg:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
@@ -429,12 +429,12 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
           className="text-center py-16"
         >
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-            <FileText className="w-8 h-8 text-slate-400" />
+            <FileText className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
             {t('requirements.noResults')}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-muted-foreground">
             {hasActiveFilters
               ? t('requirements.noResultsFiltered')
               : t('requirements.noRequirements')}

@@ -257,13 +257,13 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                 </span>
                 {watchedIntermediates?.map((id) => (
                   <React.Fragment key={id}>
-                    <ArrowRight className="w-4 h-4 text-slate-400" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
                     <span className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm">
                       {getPartyName(id)}
                     </span>
                   </React.Fragment>
                 ))}
-                <ArrowRight className="w-4 h-4 text-slate-400" />
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
                 <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-medium">
                   {getAssetName(watchedTargetAssetId)}
                 </span>
@@ -320,7 +320,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
           <div className="grid grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
                   {t('ebios.workshop3.likelihood', 'Vraisemblance')}
                 </label>
                 <span className={cn(
@@ -340,7 +340,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                 onChange={(e) => setValue('likelihood', parseInt(e.target.value))}
                 className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
               />
-              <div className="flex justify-between text-xs text-slate-400 mt-1">
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
                 <span>{t('ebios.workshop3.unlikely', 'Peu probable')}</span>
                 <span>{t('ebios.workshop3.veryLikely', 'Très probable')}</span>
               </div>
@@ -348,7 +348,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label className="block text-sm font-medium text-slate-700 dark:text-muted-foreground">
                   {t('ebios.workshop3.complexity', 'Complexité')}
                 </label>
                 <span className={cn(
@@ -368,7 +368,7 @@ export const AttackPathForm: React.FC<AttackPathFormProps> = ({
                 onChange={(e) => setValue('complexity', parseInt(e.target.value))}
                 className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
               />
-              <div className="flex justify-between text-xs text-slate-400 mt-1">
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
                 <span>{t('ebios.workshop3.veryComplex', 'Très complexe')}</span>
                 <span>{t('ebios.workshop3.simple', 'Simple')}</span>
               </div>

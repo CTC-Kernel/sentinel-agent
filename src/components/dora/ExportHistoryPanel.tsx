@@ -127,7 +127,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
             {exports.length === 0 ? (
                 <div className="text-center py-12">
                     <FileDown className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500 dark:text-slate-400">
+                    <p className="text-slate-500 dark:text-muted-foreground">
                         {t('dora.export.noHistory')}
                     </p>
                 </div>
@@ -195,7 +195,7 @@ export const ExportHistoryPanel: React.FC<ExportHistoryPanelProps> = ({
                                             size="sm"
                                             onClick={() => exportRecord.id && setConfirmDeleteId(exportRecord.id)}
                                             disabled={isDeleting}
-                                            className="text-slate-400 hover:text-red-500"
+                                            className="text-muted-foreground hover:text-red-500"
                                         >
                                             {isDeleting ? (
                                                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -171,7 +171,7 @@ export const PartnerManagement: React.FC = () => {
                         >
                             <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-white/10 flex flex-col items-center">
                                 <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                                    <Building2 className="w-10 h-10 text-slate-300" />
+                                    <Building2 className="w-10 h-10 text-muted-foreground" />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                                     {t('certifier.partners.noPartners') || "Aucun partenaire connectée"}
@@ -199,7 +199,7 @@ export const PartnerManagement: React.FC = () => {
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                     <button
                                         onClick={() => setPartnerToDelete(partner)}
-                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                        className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         title="Retirer ce partenaire"
                                     >
                                         <Trash2 className="w-4 h-4" />
@@ -229,14 +229,14 @@ export const PartnerManagement: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                        <Mail className="w-4 h-4 text-slate-400" />
+                                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground">
+                                        <Mail className="w-4 h-4 text-muted-foreground" />
                                         <span className="truncate">{partner.contactEmail}</span>
                                     </div>
 
                                     {partner.status === 'ACTIVE' && (
                                         <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs text-slate-500 border border-slate-100 dark:border-white/5">
-                                            <span className="font-medium text-slate-700 dark:text-slate-300">ID Certifieur:</span>
+                                            <span className="font-medium text-slate-700 dark:text-muted-foreground">ID Certifieur:</span>
                                             <code className="ml-2 px-1 py-0.5 bg-white dark:bg-black/20 rounded border border-slate-200 dark:border-white/10 font-mono">
                                                 {partner.certifierId?.substring(0, 12)}...
                                             </code>
@@ -281,7 +281,7 @@ export const PartnerManagement: React.FC = () => {
 
                             <form onSubmit={handleInvite} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                                    <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-muted-foreground">
                                         {t('certifier.partners.emailLabel') || "Email du contact principal"}
                                     </label>
                                     <div className="relative group">

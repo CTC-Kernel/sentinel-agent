@@ -30,7 +30,7 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
             </div>
 
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{activity.name}</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{activity.purpose}</p>
+            <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 line-clamp-2 flex-1 leading-relaxed">{activity.purpose}</p>
 
             <div className="space-y-3 pt-5 border-t border-dashed border-slate-200 dark:border-white/10">
                 <div className="flex items-center justify-between">
@@ -45,7 +45,7 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
                 </div>
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center"><Clock className="h-3 w-3 mr-1.5" />Conservation</span>
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{activity.retentionPeriod}</span>
+                    <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">{activity.retentionPeriod}</span>
                 </div>
             </div>
 

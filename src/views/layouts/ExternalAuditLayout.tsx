@@ -14,7 +14,7 @@ export const ExternalAuditLayout: React.FC = () => {
                         </div>
                         <span className="font-bold text-lg tracking-tight">Sentinel<span className="text-brand-600 text-xs align-top ml-0.5">PORTAL</span></span>
                     </div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                    <div className="text-sm text-slate-500 dark:text-muted-foreground">
                         Espace Auditeur Sécurisé
                     </div>
                 </div>
@@ -35,7 +35,7 @@ export const ExternalAuditLayout: React.FC = () => {
 
             {/* Simple Footer */}
             <footer className="border-t border-slate-200 dark:border-white/10 mt-auto bg-white dark:bg-slate-950 py-6">
-                <div className="container mx-auto px-4 text-center text-xs text-slate-400">
+                <div className="container mx-auto px-4 text-center text-xs text-muted-foreground">
                     <p>&copy; 2022 Sentinel GRC. Accès restreint et monitoré.</p>
                 </div>
             </footer>

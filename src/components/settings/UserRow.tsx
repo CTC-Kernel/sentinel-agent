@@ -71,7 +71,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
                     {currentOrg?.ownerId === currentUser?.uid && user.uid !== currentUser?.uid && (
                         <button
                             onClick={() => onTransfer(user.uid)}
-                            className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                            className="p-2 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
                             title={t('settings.transferOwnership')}
                             aria-label={t('settings.transferOwnership')}
                             type="button"
@@ -85,7 +85,7 @@ export const UserRow = memo(({ user, currentUser, currentOrg, updating, onUpdate
                         <button
                             onClick={() => onRemove(user.uid)}
                             disabled={updating}
-                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                            className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
                             title={t('settings.removeMember')}
                             aria-label={t('settings.removeMember')}
                             type="button"

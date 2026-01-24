@@ -116,8 +116,8 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             accessorKey: 'dateScheduled',
             header: 'Date',
             cell: ({ row }) => (
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                    <CalendarDays className="w-4 h-4 text-slate-400" />
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground">
+                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
                     <span>{row.original.dateScheduled ? new Date(row.original.dateScheduled).toLocaleDateString() : 'TBD'}</span>
                 </div>
             )
@@ -127,7 +127,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             header: 'Auditeur',
             cell: ({ row }) => {
                 const auditorName = row.original.auditor;
-                if (!auditorName) return <span className="text-slate-400 italic">Non assigné</span>;
+                if (!auditorName) return <span className="text-muted-foreground italic">Non assigné</span>;
 
                 const auditorUser = users?.find(u => u.displayName === auditorName || u.email === auditorName);
 
@@ -142,7 +142,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                                 target.src = getUserAvatarUrl(null, auditorUser?.role);
                             }}
                         />
-                        <span className="text-sm text-slate-700 dark:text-slate-300">{auditorName}</span>
+                        <span className="text-sm text-slate-700 dark:text-muted-foreground">{auditorName}</span>
                     </div>
                 );
             }

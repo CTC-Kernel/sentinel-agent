@@ -164,15 +164,15 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                     {/* Key Metrics */}
                     <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
                         <div>
-                            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total</div>
+                            <div className="text-sm text-slate-600 dark:text-muted-foreground mb-1">Total</div>
                             <div className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</div>
                         </div>
                         <div>
-                            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
+                            <div className="text-sm text-slate-600 dark:text-muted-foreground mb-1">En Cours</div>
                             <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">{stats.active}</div>
                         </div>
                         <div>
-                            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Retard</div>
+                            <div className="text-sm text-slate-600 dark:text-muted-foreground mb-1">Retard</div>
                             <div className="text-2xl font-bold text-red-500">{stats.delayed}</div>
                         </div>
                     </div>

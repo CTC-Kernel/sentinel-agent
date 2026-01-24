@@ -78,7 +78,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
       case 'down':
         return <TrendingDown className="w-4 h-4 text-red-500" />;
       default:
-        return <Minus className="w-4 h-4 text-slate-400" />;
+        return <Minus className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -199,7 +199,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <span className={cn("w-2 h-2 rounded-full", phaseColors[phase])} />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                           {phaseLabels[phase]}
                         </span>
                       </div>
@@ -210,7 +210,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                             {phaseData.overdueMilestones} en retard
                           </Badge>
                         )}
-                        <span className="font-bold text-slate-700 dark:text-slate-300">
+                        <span className="font-bold text-slate-700 dark:text-muted-foreground">
                           {phaseData.score}%
                         </span>
                       </div>
@@ -303,7 +303,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
         >
           <div className="flex items-center gap-2">
             <FileCheck className="w-5 h-5 text-slate-400 group-hover:text-indigo-500" />
-            <span className="font-medium text-slate-700 dark:text-slate-300">
+            <span className="font-medium text-slate-700 dark:text-muted-foreground">
               Checklist de certification
             </span>
             <Badge variant="outline" size="sm">
@@ -334,7 +334,7 @@ export const SMSIMaturityDashboard: React.FC<SMSIMaturityDashboardProps> = ({
                   item.status === 'not_applicable' && "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
                 )}
               >
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.item}</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">{item.item}</span>
                 <div className="flex items-center gap-2">
                   {item.details && (
                     <span className="text-xs text-slate-500 max-w-[200px] truncate">{item.details}</span>
@@ -541,7 +541,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation 
           <h4 className="font-bold text-slate-900 dark:text-white">
             {recommendation.title}
           </h4>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
             {recommendation.description}
           </p>
         </div>

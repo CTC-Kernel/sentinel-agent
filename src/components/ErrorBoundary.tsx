@@ -49,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
                             {isPermissionError ? 'Accès Refusé' : 'Une erreur est survenue'}
                         </h1>
 
-                        <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed font-light">
+                        <p className="text-lg text-slate-600 dark:text-muted-foreground mb-10 leading-relaxed font-light">
                             {isPermissionError
                                 ? "Vous n'avez pas les permissions nécessaires pour accéder à cette ressource."
                                 : "Une erreur inattendue s'est produite. Notre équipe a été notifiée."}

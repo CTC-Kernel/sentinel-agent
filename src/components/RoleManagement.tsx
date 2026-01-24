@@ -100,7 +100,7 @@ export const RoleManagement: React.FC = () => {
                 {users.length === 0 ? (
                     <div className="text-center py-12">
                         <Info className="h-12 w-12 mx-auto text-slate-400 dark:text-slate-600 mb-4" />
-                        <p className="text-slate-600 dark:text-slate-400">Aucun utilisateur trouvé dans votre organisation.</p>
+                        <p className="text-slate-600 dark:text-muted-foreground">Aucun utilisateur trouvé dans votre organisation.</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">

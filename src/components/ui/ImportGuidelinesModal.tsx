@@ -186,7 +186,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                         <div className="flex flex-col items-center justify-center p-6 border-2 border-solid border-brand-500/50 bg-brand-50/50 dark:bg-brand-900/10 rounded-2xl relative">
                             <button
                                 onClick={(e) => { e.stopPropagation(); resetSelection(); }}
-                                className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 transition-colors"
                             >
                                 <AlertCircle className="w-4 h-4" />
                             </button>
@@ -196,7 +196,7 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
                             <span className="font-bold text-slate-900 dark:text-white mb-1 truncate max-w-[200px]">
                                 {selectedFile.name}
                             </span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                            <span className="text-xs text-slate-500 dark:text-muted-foreground mb-4">
                                 {(selectedFile.size / 1024).toFixed(1)} KB
                             </span>
                             <Button

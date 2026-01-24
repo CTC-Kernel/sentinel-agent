@@ -33,13 +33,13 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                                     {ctrl.status}
                                 </span>
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">{ctrl.name}</p>
-                            <div className="text-[10px] text-slate-400">Type: {ctrl.type || 'Non défini'}</div>
+                            <p className="text-xs text-slate-600 dark:text-muted-foreground mb-2">{ctrl.name}</p>
+                            <div className="text-[10px] text-muted-foreground">Type: {ctrl.type || 'Non défini'}</div>
                         </div>
                     ))}
                 </div>
             )}
-            <p className="text-xs text-slate-400 text-center mt-4">Les contrôles sont gérés dans le module Conformité.</p>
+            <p className="text-xs text-muted-foreground text-center mt-4">Les contrôles sont gérés dans le module Conformité.</p>
 
             {/* Supported Processes */}
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">

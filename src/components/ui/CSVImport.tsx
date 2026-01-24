@@ -172,7 +172,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     <Upload className="h-10 w-10 text-brand-600 dark:text-brand-400" />
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Importer depuis un fichier CSV</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Uploadez votre fichier CSV pour importer en masse</p>
+                                <p className="text-sm text-slate-600 dark:text-muted-foreground">Uploadez votre fichier CSV pour importer en masse</p>
                             </div>
 
                             <div
@@ -187,7 +187,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 />
                                 <div className="relative z-0">
                                     <Upload className="h-12 w-12 text-slate-500 mx-auto mb-3" />
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Cliquez pour sélectionner un fichier CSV</p>
+                                    <p className="text-sm font-bold text-slate-700 dark:text-muted-foreground">Cliquez pour sélectionner un fichier CSV</p>
                                     <p className="text-xs text-slate-600 mt-1">ou glissez-déposez ici</p>
                                     {file && (
                                         <p className="text-xs text-brand-600 dark:text-brand-400 mt-2 font-medium">
@@ -198,7 +198,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             </div>
 
                             <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Besoin d'un modèle ?</p>
+                                <p className="text-sm text-slate-600 dark:text-muted-foreground">Besoin d'un modèle ?</p>
                                 <button aria-label="Télécharger le modèle CSV" onClick={downloadTemplate} className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">
                                     Télécharger le modèle CSV
                                 </button>
@@ -258,7 +258,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     <thead className="bg-slate-50 dark:bg-slate-800/50">
                                         <tr>
                                             {fields.map(field => (
-                                                <th key={field.key} className="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300">
+                                                <th key={field.key} className="px-4 py-3 text-left font-bold text-slate-700 dark:text-muted-foreground">
                                                     {field.label} {field.required && <span className="text-red-500">*</span>}
                                                 </th>
                                             ))}
@@ -268,7 +268,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                         {parsedData.slice(0, 5).map((row, i) => (
                                             <tr key={`row-${i}`} className="border-t border-slate-200 dark:border-white/5">
                                                 {fields.map(field => (
-                                                    <td key={field.key} className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                                                    <td key={field.key} className="px-4 py-3 text-slate-600 dark:text-muted-foreground">
                                                         {String(row[field.key] || '-')}
                                                     </td>
                                                 ))}

@@ -122,7 +122,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
                 </span>
                 <ImpactBadge level={alert.impactLevel} />
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 dark:text-muted-foreground">
                 {t('vendorConcentration.spof.singleVendor', { vendor: alert.vendor.name })}
               </p>
               <UrgencyIndicator urgency={alert.urgency} />
@@ -193,7 +193,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
               {t('vendorConcentration.spof.recommendation')}
             </p>
-            <p className="text-sm text-slate-700 dark:text-slate-300">
+            <p className="text-sm text-slate-700 dark:text-muted-foreground">
               {alert.recommendation}
             </p>
           </div>

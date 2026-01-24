@@ -53,7 +53,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
 
                     <div className="flex justify-between items-end pt-8 px-8">
                         <div className="text-left">
-                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Délivré le</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Délivré le</p>
                             <div className="flex items-center gap-2 text-slate-700 font-medium">
                                 <Calendar className="h-4 w-4" />
                                 {issueDate.toLocaleDateString()}
@@ -64,7 +64,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
                             <div className="h-12 w-32 border-b border-slate-300 mb-1 flex items-end justify-end pb-1">
                                 <span className="font-dancing text-xl text-slate-600">Sentinel System</span>
                             </div>
-                            <p className="text-xs text-slate-400 uppercase tracking-wider">Signature</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Signature</p>
                         </div>
                     </div>
                 </div>

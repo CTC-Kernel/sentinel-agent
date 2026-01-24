@@ -14,7 +14,7 @@ export const DocumentSignature: React.FC<DocumentSignatureProps> = ({ isOpen, on
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Signature Électronique">
             <div className="space-y-4">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-600 dark:text-muted-foreground">
                     Veuillez signer dans le cadre ci-dessous pour valider ce document. Cette signature sera apposée sur le certificat d'intégrité.
                 </p>
                 <div className="border-2 border-slate-200 dark:border-white/10 rounded-xl overflow-hidden bg-white">

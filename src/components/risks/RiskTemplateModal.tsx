@@ -87,7 +87,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                         <Dialog.Title as="h2" className="text-2xl font-bold text-slate-900 dark:text-white">
                                             Importer des Risques depuis un Template
                                         </Dialog.Title>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                        <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
                                             Gagnez du temps avec des risques prédéfinis
                                         </p>
                                     </div>
@@ -123,7 +123,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                                         {template.category}
                                                                     </span>
                                                                 </div>
-                                                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                                                                <p className="text-sm text-slate-600 dark:text-muted-foreground mb-3">
                                                                     {template.description}
                                                                 </p>
                                                                 <div className="flex items-center gap-3 text-xs text-slate-600">

@@ -196,7 +196,7 @@ const LinkedControlItem = ({ control }: { control: Control }) => (
     <div className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center bg-white/40 dark:bg-white/5">
         <div>
             <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-mono text-slate-400">{control.code}</span>
+                <span className="text-xs font-mono text-muted-foreground">{control.code}</span>
                 <h4 className="font-bold text-slate-900 dark:text-white">{control.name}</h4>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{control.description}</p>

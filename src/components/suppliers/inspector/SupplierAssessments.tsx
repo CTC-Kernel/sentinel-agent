@@ -194,7 +194,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
       {/* Status Filter */}
       {assessments.length > 0 && (
         <div className="mb-4 flex items-center gap-2 flex-wrap">
-          <Filter className="w-4 h-4 text-slate-400" />
+          <Filter className="w-4 h-4 text-muted-foreground" />
           {STATUS_OPTIONS.map((status) => {
             const count = statusCounts[status] || 0;
             if (status !== 'all' && count === 0) return null;

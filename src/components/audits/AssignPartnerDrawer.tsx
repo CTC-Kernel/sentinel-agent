@@ -93,7 +93,7 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
         >
             <div className="flex flex-col h-full pt-6 px-1">
                 <div className="mb-6 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input
                         type="text"
                         placeholder="Rechercher un partenaire..."
@@ -110,9 +110,9 @@ export const AssignPartnerDrawer: React.FC<AssignPartnerDrawerProps> = ({ isOpen
                 ) : filteredPartners.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
                         <Building2 className="w-10 h-10 text-slate-300 mb-3" />
-                        <p className="text-slate-600 dark:text-slate-400 font-medium">Aucun partenaire trouvé</p>
+                        <p className="text-slate-600 dark:text-muted-foreground font-medium">Aucun partenaire trouvé</p>
                         {partners.length === 0 && (
-                            <p className="text-xs text-slate-400 mt-1 max-w-[200px]">
+                            <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
                                 Invitez des partenaires depuis les réglages pour les voir apparaître ici.
                             </p>
                         )}

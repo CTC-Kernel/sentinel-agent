@@ -22,7 +22,7 @@ export const DocumentDetails: React.FC<DocumentDetailsProps> = ({
                     Description
                 </h3>
                 <div className="glass-premium p-6 rounded-2xl border border-white/50 dark:border-white/5">
-                    <SafeHTML content={selectedDocument.description || '<p className="text-slate-400 italic">Aucune description disponible.</p>'} />
+                    <SafeHTML content={selectedDocument.description || '<p className="text-muted-foreground italic">Aucune description disponible.</p>'} />
                 </div>
             </div>
 

@@ -207,7 +207,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setEditingId(action.id)}
-                                            className="h-7 w-7 p-0 text-slate-400 hover:text-brand-500"
+                                            className="h-7 w-7 p-0 text-muted-foreground hover:text-brand-500"
                                             aria-label="Modifier l'action"
                                         >
                                             <Edit className="h-3.5 w-3.5" />
@@ -216,7 +216,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => onDelete(action.id)}
-                                            className="h-7 w-7 p-0 text-slate-400 hover:text-red-500"
+                                            className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500"
                                             aria-label="Supprimer l'action"
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />

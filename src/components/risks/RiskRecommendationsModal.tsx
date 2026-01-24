@@ -38,7 +38,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Analyse IA Hybride</h2>
-                            <p className="text-slate-600 dark:text-slate-400">Recommandations générées par le moteur d'IA souverain (OVH)</p>
+                            <p className="text-slate-600 dark:text-muted-foreground">Recommandations générées par le moteur d'IA souverain (OVH)</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">

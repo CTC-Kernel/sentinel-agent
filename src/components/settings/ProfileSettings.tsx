@@ -221,8 +221,8 @@ export const ProfileSettings: React.FC = () => {
                             )}
                         </div>
                         <div className="text-center">
-                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('settings.profilePhoto')}</p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500">{t('settings.photoRequirements')}</p>
+                            <p className="text-sm font-medium text-slate-500 dark:text-muted-foreground">{t('settings.profilePhoto')}</p>
+                            <p className="text-xs text-muted-foreground dark:text-slate-500">{t('settings.photoRequirements')}</p>
                         </div>
                     </div>
 
@@ -241,7 +241,7 @@ export const ProfileSettings: React.FC = () => {
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('settings.personalInfo')}</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.personalInfoDesc')}</p>
+                                <p className="text-sm text-slate-500 dark:text-muted-foreground">{t('settings.personalInfoDesc')}</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -311,7 +311,7 @@ export const ProfileSettings: React.FC = () => {
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
                                     {t('settings.security') || 'Sécurité'}
                                 </h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-slate-500 dark:text-muted-foreground">
                                     {t('settings.securityDesc') || 'Gérez la sécurité de votre compte et l\'authentification à deux facteurs.'}
                                 </p>
                             </div>
@@ -322,7 +322,7 @@ export const ProfileSettings: React.FC = () => {
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="font-medium text-slate-900 dark:text-white">Double Authentification (MFA)</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="text-xs text-slate-500 dark:text-muted-foreground">
                                         {user?.mfaEnabled
                                             ? "Votre compte est protégé par une authentification à deux facteurs."
                                             : "Ajoutez une couche de sécurité supplémentaire à votre compte."}
@@ -341,7 +341,7 @@ export const ProfileSettings: React.FC = () => {
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('settings.notifications')}</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.notificationsDesc')}</p>
+                                <p className="text-sm text-slate-500 dark:text-muted-foreground">{t('settings.notificationsDesc')}</p>
                             </div>
 
                             <div className="space-y-4">
@@ -360,7 +360,7 @@ export const ProfileSettings: React.FC = () => {
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
                                                         <Switch checked={field.value ?? false} onChange={field.onChange} />
-                                                        <span className="text-sm text-slate-600 dark:text-slate-300">{t('settings.notificationsChannels.email')}</span>
+                                                        <span className="text-sm text-slate-600 dark:text-muted-foreground">{t('settings.notificationsChannels.email')}</span>
                                                     </div>
                                                 )}
                                             />
@@ -370,7 +370,7 @@ export const ProfileSettings: React.FC = () => {
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
                                                         <Switch checked={field.value ?? false} onChange={field.onChange} />
-                                                        <span className="text-sm text-slate-600 dark:text-slate-300">{t('settings.notificationsChannels.push')}</span>
+                                                        <span className="text-sm text-slate-600 dark:text-muted-foreground">{t('settings.notificationsChannels.push')}</span>
                                                     </div>
                                                 )}
                                             />
@@ -380,7 +380,7 @@ export const ProfileSettings: React.FC = () => {
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
                                                         <Switch checked={field.value ?? false} onChange={field.onChange} />
-                                                        <span className="text-sm text-slate-600 dark:text-slate-300">{t('settings.notificationsChannels.inApp')}</span>
+                                                        <span className="text-sm text-slate-600 dark:text-muted-foreground">{t('settings.notificationsChannels.inApp')}</span>
                                                     </div>
                                                 )}
                                             />
@@ -396,7 +396,7 @@ export const ProfileSettings: React.FC = () => {
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Mode Démo</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-slate-500 dark:text-muted-foreground">
                                     Activez le mode démo pour explorer l'application avec des données fictives complètes.
                                 </p>
                             </div>
@@ -410,7 +410,7 @@ export const ProfileSettings: React.FC = () => {
                                 />
                                 <div className="flex-1">
                                     <h4 className="font-medium text-slate-900 dark:text-white">Activer le Mode Démo</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="text-xs text-slate-500 dark:text-muted-foreground">
                                         Ceci remplacera temporairement vos données par des données de démonstration.
                                         Aucune donnée réelle ne sera modifiée.
                                     </p>
@@ -429,7 +429,7 @@ export const ProfileSettings: React.FC = () => {
                                         {t('settings.private')}
                                     </span>
                                 </h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.apiKeysDesc')}</p>
+                                <p className="text-sm text-slate-500 dark:text-muted-foreground">{t('settings.apiKeysDesc')}</p>
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">

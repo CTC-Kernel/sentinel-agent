@@ -153,7 +153,7 @@ export const SecuritySettings: React.FC = () => {
                     </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-slate-600 dark:text-muted-foreground">
                         Sécurisez votre compte en ajoutant une seconde étape de validation.
                     </p>
 

@@ -141,7 +141,7 @@ export const ControlEffectivenessDashboard: React.FC<ControlEffectivenessDashboa
                     <GlassCard className="p-4 text-center">
                         <Shield className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                         <p className="text-sm text-slate-500">Aucune évaluation</p>
-                        <p className="text-xs text-slate-400">Commencez à évaluer vos contrôles</p>
+                        <p className="text-xs text-muted-foreground">Commencez à évaluer vos contrôles</p>
                     </GlassCard>
                 )}
             </div>

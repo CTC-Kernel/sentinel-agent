@@ -92,14 +92,14 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <FileCheck className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="text-sm text-slate-600 dark:text-muted-foreground">
                   {progress.answeredQuestions}/{progress.totalQuestions}{' '}
                   {t('vendorPortal.questionsAnswered', 'questions answered')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-brand-500" />
-                <span className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="text-sm text-slate-600 dark:text-muted-foreground">
                   {progress.completionPercentage}% {t('vendorPortal.complete', 'complete')}
                 </span>
               </div>
@@ -134,7 +134,7 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
           )}
 
           {/* Confirmation Text */}
-          <p className="text-slate-600 dark:text-slate-400 mb-4">
+          <p className="text-slate-600 dark:text-muted-foreground mb-4">
             {t(
               'vendorPortal.submitConfirmation',
               'Once submitted, you will not be able to modify your responses. The requesting organization will be notified of your submission.'
@@ -143,10 +143,10 @@ export const PortalSubmit: React.FC<PortalSubmitProps> = ({
 
           {/* What happens next */}
           <div className="space-y-2 mb-6">
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <p className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
               {t('vendorPortal.whatHappensNext', 'What happens next:')}
             </p>
-            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <ul className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
                 {t('vendorPortal.nextStep1', 'Your responses will be locked and submitted')}

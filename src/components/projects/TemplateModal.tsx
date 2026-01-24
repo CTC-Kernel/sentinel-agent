@@ -64,7 +64,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                             Créer depuis un Template
                         </h2>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
                             Démarrez rapidement avec un projet pré-configuré
                         </p>
                     </div>
@@ -95,7 +95,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                                                     {template.name}
                                                 </h3>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                                <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
                                                     {template.description}
                                                 </p>
                                                 <div className="flex items-center gap-4 mt-3 text-xs text-slate-600">
@@ -127,7 +127,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                     <span className="text-3xl">{selectedTemplate.icon}</span>
                                     <div>
                                         <h3 className="font-bold text-slate-900 dark:text-white">{selectedTemplate.name}</h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400">{selectedTemplate.description}</p>
+                                        <p className="text-sm text-slate-600 dark:text-muted-foreground">{selectedTemplate.description}</p>
                                     </div>
                                 </div>
                                 <div className="mt-3 flex gap-3 text-xs">
@@ -193,7 +193,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Ce qui sera créé:
                                 </h4>
-                                <ul className="space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                                <ul className="space-y-1 text-sm text-slate-600 dark:text-muted-foreground">
                                     <li>✓ {selectedTemplate.defaultTasks.length} tâches pré-configurées</li>
                                     <li>✓ {selectedTemplate.defaultMilestones.length} jalons avec dates calculées</li>
                                     {/* Note: startDate is watched or we can just use a generic message since it's dynamic */}

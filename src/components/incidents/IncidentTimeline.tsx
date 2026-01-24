@@ -15,7 +15,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
                     <Clock className="h-8 w-8 text-slate-500" />
                 </div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Chronologie</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Sélectionnez un incident pour voir son historique.</p>
+                <p className="text-xs text-slate-600 dark:text-muted-foreground">Sélectionnez un incident pour voir son historique.</p>
             </div>
         );
     }

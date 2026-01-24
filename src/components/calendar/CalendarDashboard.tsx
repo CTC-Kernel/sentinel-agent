@@ -448,7 +448,7 @@ export const CalendarDashboard: React.FC = () => {
 
                         {selectedEvent.status && (
                             <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
+                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-muted-foreground">
                                     <div className={`w-2 h-2 rounded-full ${selectedEvent.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`} />
                                     {selectedEvent.status}
                                 </span>

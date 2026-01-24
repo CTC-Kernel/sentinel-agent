@@ -66,7 +66,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/5">
             <div className="flex items-center gap-4">
-                <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                <p className="text-sm text-slate-600 dark:text-muted-foreground font-medium">
                     {startItem} à {endItem} sur {totalItems}
                 </p>
 

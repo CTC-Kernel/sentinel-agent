@@ -46,7 +46,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
                                             "relative flex items-center whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm transition-all flex-shrink-0 select-none snap-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
-                                            isActive ? "text-white" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                                            isActive ? "text-white" : "text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
                                         {isActive && (
@@ -97,7 +97,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                             />
                                         )}
                                         {!isActive && (
-                                            <ChevronRight className="w-4 h-4 text-slate-300 -ml-4 opacity-0 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" />
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground -ml-4 opacity-0 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" />
                                         )}
                                     </button>
                                 );

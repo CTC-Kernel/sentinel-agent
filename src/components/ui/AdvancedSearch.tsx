@@ -195,7 +195,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                         aria-label="Réinitialiser les filtres"
                         onClick={handleReset}
                         variant="ghost"
-                        className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        className="text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white"
                     >
                         Réinitialiser
                     </Button>

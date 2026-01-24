@@ -136,7 +136,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 uppercase tracking-wider">Score Moyen</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 font-mono leading-relaxed">
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground font-mono leading-relaxed">
                                 Niveau de conformité global du parc fournisseurs.
                             </p>
                         </div>

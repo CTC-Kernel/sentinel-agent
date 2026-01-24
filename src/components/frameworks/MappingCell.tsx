@@ -140,7 +140,7 @@ export const MappingCell: React.FC<MappingCellProps> = ({
                 <span className={cn('text-sm font-semibold', config.textColor)}>
                   {t(`mapping.coverage.${coverageStatus}`)}
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-muted-foreground">
                   {requirementCount} {t('mapping.requirements', { count: requirementCount })}
                 </span>
               </div>
@@ -149,7 +149,7 @@ export const MappingCell: React.FC<MappingCellProps> = ({
               <div className="space-y-1.5 max-h-32 overflow-y-auto">
                 {requirements.slice(0, 5).map((req) => (
                   <div key={req.id} className="flex items-start gap-2 text-xs">
-                    <span className="font-mono font-semibold text-slate-500 dark:text-slate-400 flex-shrink-0">
+                    <span className="font-mono font-semibold text-slate-500 dark:text-muted-foreground flex-shrink-0">
                       {req.articleRef}
                     </span>
                     <span className="text-slate-700 dark:text-slate-300 line-clamp-1">
@@ -158,7 +158,7 @@ export const MappingCell: React.FC<MappingCellProps> = ({
                   </div>
                 ))}
                 {requirements.length > 5 && (
-                  <div className="text-xs text-slate-400 dark:text-slate-500 pt-1">
+                  <div className="text-xs text-muted-foreground dark:text-slate-500 pt-1">
                     +{requirements.length - 5} {t('mapping.more')}
                   </div>
                 )}

@@ -163,7 +163,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
           {/* Progress Bar */}
           <div className="p-4 border-b border-slate-200 dark:border-white/10">
             <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-slate-600 dark:text-slate-400">
+              <span className="text-slate-600 dark:text-muted-foreground">
                 {t('vendorPortal.progress', 'Progress')}
               </span>
               <span className="font-medium text-slate-900 dark:text-white">
@@ -249,7 +249,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
             <SaveStatusIndicator saveStatus={saveStatus} t={t} />
           </div>
           {currentSection.description && (
-            <p className="text-slate-600 dark:text-slate-400">{currentSection.description}</p>
+            <p className="text-slate-600 dark:text-muted-foreground">{currentSection.description}</p>
           )}
           {isReadOnly && (
             <div className="mt-4 flex items-center gap-2 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
@@ -348,7 +348,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10 p-6">
       <div className="flex items-start gap-4">
         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+          <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
             {index + 1}
           </span>
         </div>
@@ -361,7 +361,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             {question.helperText && (
               <button
                 title={question.helperText}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                className="text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300"
               >
                 <HelpCircle className="w-4 h-4" />
               </button>

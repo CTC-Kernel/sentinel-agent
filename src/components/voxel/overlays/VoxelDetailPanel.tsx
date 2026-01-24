@@ -169,7 +169,7 @@ interface DetailRowProps {
 
 const DetailRow: React.FC<DetailRowProps> = ({ label, value, icon }) => (
   <div className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
-    <span className="text-xs text-slate-400 flex items-center gap-1.5">
+    <span className="text-xs text-muted-foreground flex items-center gap-1.5">
       {icon}
       {label}
     </span>
@@ -196,7 +196,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
   return (
     <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Score de Risque</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Score de Risque</span>
         <div
           className="px-3 py-1 rounded-full text-sm font-bold"
           style={{ backgroundColor: `${scoreConfig.color}20`, color: scoreConfig.color }}
@@ -220,7 +220,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
               />
             ))}
           </div>
-          <div className="text-right text-xs text-slate-400 mt-1">{probability}/5</div>
+          <div className="text-right text-xs text-muted-foreground mt-1">{probability}/5</div>
         </div>
         <div className="bg-slate-700/30 rounded-xl p-3">
           <div className="text-xs text-slate-500 mb-2">Impact</div>
@@ -235,7 +235,7 @@ const RiskScoreIndicator: React.FC<RiskScoreIndicatorProps> = ({ probability, im
               />
             ))}
           </div>
-          <div className="text-right text-xs text-slate-400 mt-1">{impact}/5</div>
+          <div className="text-right text-xs text-muted-foreground mt-1">{impact}/5</div>
         </div>
       </div>
     </div>
@@ -316,7 +316,7 @@ const AssetDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
     <div className="space-y-4">
       {/* Main Info Card */}
       <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
           <Server className="w-3.5 h-3.5" />
           Informations
         </h3>
@@ -331,7 +331,7 @@ const AssetDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
       {/* CIA Triad */}
       {(confidentiality || integrity || availability) && (
         <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
             <Shield className="w-3.5 h-3.5" />
             Classification CIA
           </h3>
@@ -380,7 +380,7 @@ const RiskDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
       {/* Risk Info */}
       <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
           <AlertTriangle className="w-3.5 h-3.5" />
           Détails du Risque
         </h3>
@@ -415,7 +415,7 @@ const ControlDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
       {effectiveness !== null && (
         <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Efficacité</span>
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Efficacité</span>
             <span className="text-lg font-bold text-white">{effectiveness}%</span>
           </div>
           <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
@@ -434,14 +434,14 @@ const ControlDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
       {/* Control Info */}
       <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
           <Shield className="w-3.5 h-3.5" />
           Informations
         </h3>
         <div className="space-y-1 divide-y divide-slate-700/30">
           {status && (
             <div className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
-              <span className="text-xs text-slate-400">Statut</span>
+              <span className="text-xs text-muted-foreground">Statut</span>
               <span
                 className="text-sm font-medium px-2 py-0.5 rounded-full"
                 style={{ backgroundColor: `${getStatusColor(status)}20`, color: getStatusColor(status) }}
@@ -472,7 +472,7 @@ const ProjectDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
       {progress !== null && (
         <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Avancement</span>
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Avancement</span>
             <span className="text-lg font-bold text-white">{progress}%</span>
           </div>
           <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
@@ -488,7 +488,7 @@ const ProjectDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
       {/* Project Info */}
       <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
           <FolderKanban className="w-3.5 h-3.5" />
           Informations
         </h3>
@@ -513,7 +513,7 @@ const AuditDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   return (
     <div className="space-y-4">
       <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
           <ClipboardCheck className="w-3.5 h-3.5" />
           Informations
         </h3>
@@ -558,7 +558,7 @@ const IncidentDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
           <div className="flex items-center gap-3">
             <Zap className="w-6 h-6" style={{ color: getSeverityColor(severity) }} />
             <div>
-              <div className="text-xs text-slate-400 uppercase">Sévérité</div>
+              <div className="text-xs text-muted-foreground uppercase">Sévérité</div>
               <div className="text-lg font-bold" style={{ color: getSeverityColor(severity) }}>{severity}</div>
             </div>
           </div>
@@ -567,7 +567,7 @@ const IncidentDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
 
       {/* Incident Info */}
       <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
           <Flame className="w-3.5 h-3.5" />
           Informations
         </h3>
@@ -591,7 +591,7 @@ const SupplierDetails: React.FC<TypeDetailSectionProps> = ({ node }) => {
   return (
     <div className="space-y-4">
       <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
           <Building2 className="w-3.5 h-3.5" />
           Informations
         </h3>
@@ -748,7 +748,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
                   </div>
                   <motion.button
                     onClick={onClose}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-slate-400 hover:text-white shrink-0"
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-muted-foreground hover:text-white shrink-0"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Fermer"
@@ -815,7 +815,7 @@ export const VoxelDetailPanel: React.FC<VoxelDetailPanelProps> = ({
 
               {/* Timeline */}
               <div className="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/50">
-                <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
                   <Calendar className="w-3.5 h-3.5" />
                   Historique
                 </h3>

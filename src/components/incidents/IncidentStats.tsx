@@ -48,7 +48,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                             <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {stats.open}
                             </p>
-                            <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('incidents.activeIncidents')}</span>
+                            <span className="text-sm font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.activeIncidents')}</span>
                         </div>
                     </div>
 
@@ -63,7 +63,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                             </div>
                             <div className="space-y-1">
                                 <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{stats.open}</p>
-                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.toTreat')}</p>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.toTreat')}</p>
                             </div>
                         </GlassCard>
 
@@ -79,7 +79,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                                 <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                     {stats.avgMttrHours !== null ? `${stats.avgMttrHours}h` : '-'}
                                 </p>
-                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.avgDelay')}</p>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.avgDelay')}</p>
                             </div>
                         </GlassCard>
 
@@ -95,7 +95,7 @@ export const IncidentStats: React.FC<IncidentStatsProps> = ({ stats, loading }) 
                                 <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                     {stats.criticalRatio !== null ? `${stats.criticalRatio}%` : '-'}
                                 </p>
-                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.volumeTotal')}</p>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.volumeTotal')}</p>
                             </div>
                         </GlassCard>
                     </div>

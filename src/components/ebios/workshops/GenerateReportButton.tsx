@@ -113,7 +113,7 @@ export const GenerateReportButton: React.FC<GenerateReportButtonProps> = ({
           ) : (
             <AlertCircle className="w-4 h-4 text-amber-500" />
           )}
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
             {allComplete
               ? 'Toutes les sections sont complètes'
               : `${completedCount}/${items.length} sections complètes`}

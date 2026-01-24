@@ -91,7 +91,7 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                     <CheckCircle className="w-8 h-8" />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Certification Enregistrée</h3>
-                <p className="text-slate-600 dark:text-slate-400">Le rapport de certification a été transmis. L'accès à cet audit est désormais archivé.</p>
+                <p className="text-slate-600 dark:text-muted-foreground">Le rapport de certification a été transmis. L'accès à cet audit est désormais archivé.</p>
             </div>
         );
     }
@@ -117,9 +117,9 @@ export const CertificateUploadSection: React.FC<CertificateUploadProps> = ({ tok
                         </>
                     ) : (
                         <>
-                            <Upload className="w-8 h-8 text-slate-400 mb-2" />
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Déposer le rapport ou le certificat (PDF)</span>
-                            <span className="text-xs text-slate-400 mt-1">Max 10 Mo</span>
+                            <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                            <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Déposer le rapport ou le certificat (PDF)</span>
+                            <span className="text-xs text-muted-foreground mt-1">Max 10 Mo</span>
                         </>
                     )}
                     <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileSelect} />

@@ -238,7 +238,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 font-display tracking-tight">
                         Analytics Dashboard
                     </h1>
-                    <p className="text-slate-700 dark:text-slate-400 font-medium">
+                    <p className="text-slate-700 dark:text-muted-foreground font-medium">
                         Vue d'ensemble des métriques et tendances de sécurité
                     </p>
                 </div>
@@ -262,7 +262,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                     onClick={() => setTimeRange(range)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === range
                                         ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                                        : 'text-slate-500 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200'
                                         }`}
                                 >
                                     {range === '7d' ? '7J' : range === '30d' ? '30J' : range === '90d' ? '90J' : '1A'}
@@ -430,7 +430,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70 mt-1">Partiels</p>
                             </div>
                             <div className="p-3 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/30">
-                                <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">{controls.filter(c => c.status === 'Non commencé').length}</p>
+                                <p className="text-2xl font-bold text-slate-700 dark:text-muted-foreground">{controls.filter(c => c.status === 'Non commencé').length}</p>
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70 dark:text-slate-400/70 mt-1">Non commencés</p>
                             </div>
                         </div>
@@ -500,7 +500,7 @@ export const AnalyticsDashboard: React.FC = () => {
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">
                                 Top 10 Risques Critiques
                             </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Risques nécessitant une attention immédiate</p>
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">Risques nécessitant une attention immédiate</p>
                         </div>
                         <button
                             onClick={() => navigate('/risks')}

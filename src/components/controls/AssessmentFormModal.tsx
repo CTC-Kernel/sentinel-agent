@@ -162,7 +162,7 @@ export const AssessmentFormModal: React.FC<AssessmentFormModalProps> = ({
                                 onChange={(e) => setFormData(prev => ({ ...prev, effectivenessScore: parseInt(e.target.value) }))}
                                 className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
                             />
-                            <div className="flex justify-between text-xs text-slate-400 mt-1">
+                            <div className="flex justify-between text-xs text-muted-foreground mt-1">
                                 <span>0%</span>
                                 <span>20%</span>
                                 <span>40%</span>

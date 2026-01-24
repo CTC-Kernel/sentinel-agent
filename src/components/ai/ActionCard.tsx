@@ -56,7 +56,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
 
     if (status === 'error') {
         return (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-500 dark:text-slate-400">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-500 dark:text-muted-foreground">
                 {message}
             </motion.div>
         );
@@ -82,7 +82,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ type, payload, reasoning
                     {actionDef.label}
                 </h4>
                 {reasoning && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 italic">
+                    <p className="text-xs text-slate-500 dark:text-muted-foreground mb-3 italic">
                         "{reasoning}"
                     </p>
                 )}

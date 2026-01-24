@@ -146,7 +146,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                        <div className="text-xs text-slate-500 dark:text-muted-foreground mb-1">
                                             {t('agents.widget.checkResults')}
                                         </div>
                                         <div className="flex gap-2 text-xs font-semibold">

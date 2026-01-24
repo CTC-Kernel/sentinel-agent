@@ -426,7 +426,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                       <div className="absolute -left-[21px] top-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full"></div>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                         <span className="text-xs font-bold text-slate-700">{event.type}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">
+                        <span className="text-[10px] text-muted-foreground font-mono">
                           {new Date(event.timestamp).toLocaleString()}
                         </span>
                       </div>

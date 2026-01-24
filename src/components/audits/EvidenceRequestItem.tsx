@@ -84,7 +84,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                 </div>
                 <div className="flex items-center gap-2 pl-4">
                     <div className={`p-1.5 rounded-full transition-transform duration-200 ${isExpanded ? 'bg-slate-100 dark:bg-white/10 rotate-180' : ''}`}>
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     </div>
                 </div>
             </div>

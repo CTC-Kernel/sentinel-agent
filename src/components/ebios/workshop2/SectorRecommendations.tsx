@@ -111,9 +111,9 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
           </div>
         </div>
         {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-slate-400" />
+          <ChevronUp className="w-5 h-5 text-muted-foreground" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-slate-400" />
+          <ChevronDown className="w-5 h-5 text-muted-foreground" />
         )}
       </button>
 
@@ -126,7 +126,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                 <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Lightbulb className="w-4 h-4 text-amber-500" />
                   {t('ebios.workshop2.recommendedSources', 'Sources de risque recommandées')}
-                  <span className="text-slate-400">({pendingSourceRecommendations.length})</span>
+                  <span className="text-muted-foreground">({pendingSourceRecommendations.length})</span>
                 </h4>
                 {!readOnly && pendingSourceRecommendations.length > 1 && (
                   <button
@@ -144,7 +144,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-red-600 dark:text-red-400">{source.code}</span>
-                    <span className="text-slate-500 dark:text-slate-400">-</span>
+                    <span className="text-slate-500 dark:text-muted-foreground">-</span>
                     <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{source.name}</span>
                     {!readOnly && (
                       <div className="flex items-center gap-1 ml-2">
@@ -179,7 +179,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                 <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Lightbulb className="w-4 h-4 text-amber-500" />
                   {t('ebios.workshop2.recommendedObjectives', 'Objectifs visés recommandés')}
-                  <span className="text-slate-400">({pendingObjectiveRecommendations.length})</span>
+                  <span className="text-muted-foreground">({pendingObjectiveRecommendations.length})</span>
                 </h4>
                 {!readOnly && pendingObjectiveRecommendations.length > 1 && (
                   <button
@@ -197,7 +197,7 @@ export const SectorRecommendations: React.FC<SectorRecommendationsProps> = ({
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
                   >
                     <span className="font-medium text-amber-600 dark:text-amber-400">{obj.code}</span>
-                    <span className="text-slate-500 dark:text-slate-400">-</span>
+                    <span className="text-slate-500 dark:text-muted-foreground">-</span>
                     <span className="text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{obj.name}</span>
                     {!readOnly && (
                       <div className="flex items-center gap-1 ml-2">

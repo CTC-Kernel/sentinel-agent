@@ -117,11 +117,11 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
     if (controls.length === 0) {
         return (
             <div className="glass-panel p-12 text-center">
-                <Layers className="w-12 h-12 mx-auto text-slate-400 mb-4" />
+                <Layers className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Aucun contrôle disponible
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-slate-500 dark:text-muted-foreground">
                     Ajoutez des contrôles pour voir les exigences partagées.
                 </p>
             </div>
@@ -304,7 +304,7 @@ export const SharedRequirementsView: React.FC<SharedRequirementsViewProps> = ({
                                             >
                                                 {control.status}
                                             </Badge>
-                                            <ChevronRight className="w-4 h-4 text-slate-400" />
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
                                         </div>
                                     </div>
                                 </button>

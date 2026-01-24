@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from './Icons';
 
 type FloatingLabelSelectIconComponent = React.ElementType<{ className?: string }>;
@@ -115,11 +116,21 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                 </label>
             </div>
 
-            {error && (
-                <p id={errorId} className="text-red-500 text-xs mt-1.5 ml-1 font-medium animate-fade-in">
-                    {error}
-                </p>
-            )}
+
+            <AnimatePresence>
+                {error && (
+                    <motion.p
+                        initial={{ opacity: 0, y: -5, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                        exit={{ opacity: 0, y: -5, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        id={errorId}
+                        className="text-red-500 text-xs mt-1.5 ml-1 font-medium overflow-hidden"
+                    >
+                        {error}
+                    </motion.p>
+                )}
+            </AnimatePresence>
         </div>
     );
 });

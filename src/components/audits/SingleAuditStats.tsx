@@ -43,7 +43,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                         </span>
                         <span className="text-sm text-slate-500 mb-1 font-medium">Score estimé</span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-2 relative z-10">
+                    <p className="text-xs text-muted-foreground mt-2 relative z-10">
                         Basé sur la sévérité des écarts ouverts.
                     </p>
                 </GlassCard>
@@ -74,7 +74,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                 <GlassCard className="p-6 relative overflow-hidden flex items-center justify-between">
                     <div className="relative z-10">
                         <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Progression</h4>
-                        <p className="text-sm text-slate-400">Des actions de remédiation</p>
+                        <p className="text-sm text-muted-foreground">Des actions de remédiation</p>
                     </div>
                     <div className="relative z-10">
                         <svg className="w-20 h-20 transform -rotate-90">
@@ -126,7 +126,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                     {findingsByType.map((item) => (
                         <div key={item.name} className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                            <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">
                                 {item.name} ({item.value})
                             </span>
                         </div>

@@ -347,7 +347,7 @@ export const Reports: React.FC = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
+                                    <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 min-h-[40px]">
                                         {t('reports.templateCards.iso27001.desc')}
                                     </p>
                                     <div className="flex gap-2">
@@ -381,7 +381,7 @@ export const Reports: React.FC = () => {
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.gdpr.title')}</h3>
                                         </div>
                                     </div>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
+                                    <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 min-h-[40px]">
                                         {t('reports.templateCards.gdpr.desc')}
                                     </p>
                                     <div className="flex gap-2">
@@ -427,7 +427,7 @@ export const Reports: React.FC = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
+                                    <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 min-h-[40px]">
                                         {t('reports.templateCards.custom.desc')}
                                     </p>
                                     <div className="flex gap-2">
@@ -460,7 +460,7 @@ export const Reports: React.FC = () => {
                         documents.filter(d => d.type === 'Rapport').map(doc => (
                             <div key={doc.id} className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all group">
                                 <div className="flex items-start justify-between mb-4">
-                                    <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400">
+                                    <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-muted-foreground">
                                         <FileText className="h-6 w-6" />
                                     </div>
                                     <span className={`px-2 py-1 rounded-lg text-xs font-bold ${doc.status === 'Publié' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-600'}`}>
@@ -551,7 +551,7 @@ export const Reports: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="text-xs text-slate-400 mb-4">
+                                    <div className="text-xs text-muted-foreground mb-4">
                                         {t('reports.scheduledSection.nextRun')}: {new Date(report.nextRunAt).toLocaleDateString('fr-FR', {
                                             day: 'numeric',
                                             month: 'short',

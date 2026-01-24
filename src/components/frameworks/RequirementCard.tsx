@@ -95,7 +95,7 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
       <div className="flex items-start gap-3">
         {/* Article Reference Badge */}
         <div className="flex-shrink-0 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10">
-          <span className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-300">
+          <span className="text-xs font-mono font-semibold text-slate-600 dark:text-muted-foreground">
             {requirement.articleRef}
           </span>
         </div>
@@ -120,7 +120,7 @@ export const RequirementCard: React.FC<RequirementCardProps> = ({
 
             {/* Linked controls count */}
             {linkedControlsCount > 0 && (
-              <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-muted-foreground">
                 <Link2 className="w-3 h-3" />
                 <span>
                   {linkedControlsCount} {t('requirements.linkedControls', { count: linkedControlsCount })}

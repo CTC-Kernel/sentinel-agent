@@ -24,7 +24,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center p-8 text-slate-400">
+            <div className="flex justify-center items-center p-8 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin mr-2" /> Chargement de l'historique...
             </div>
         );
@@ -72,7 +72,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                                     })()}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-muted-foreground">
                                 <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                                     <User className="h-3 w-3" />
                                 </div>

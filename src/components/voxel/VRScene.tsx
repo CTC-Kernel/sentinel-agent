@@ -166,12 +166,12 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
                 ${node.status === 'inactive' ? 'bg-slate-500' : ''}
               `}
             />
-            <span className="text-xs text-slate-400 uppercase">{node.type}</span>
+            <span className="text-xs text-muted-foreground uppercase">{node.type}</span>
           </div>
           {onClose && (
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-muted-foreground hover:text-white transition-colors"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -207,7 +207,7 @@ const VRNodeInfoPanel: React.FC<{ node: VoxelNode; onClose?: () => void }> = ({ 
         {/* Connections */}
         <div className="flex items-center justify-between text-sm mt-2">
           <span className="text-slate-500">Connections</span>
-          <span className="text-slate-300">{node.connections?.length || 0}</span>
+          <span className="text-muted-foreground">{node.connections?.length || 0}</span>
         </div>
       </div>
     </Html>

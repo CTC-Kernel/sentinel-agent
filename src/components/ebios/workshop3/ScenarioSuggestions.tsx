@@ -93,9 +93,9 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
           </div>
         </div>
         {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-slate-400" />
+          <ChevronUp className="w-5 h-5 text-muted-foreground" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-slate-400" />
+          <ChevronDown className="w-5 h-5 text-muted-foreground" />
         )}
       </button>
 
@@ -136,7 +136,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
                         <AlertTriangle className="w-3 h-3" />
                         G{template.typicalGravity}
                       </span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted-foreground">
                         {template.typicalImpactTypes
                           .map((type) =>
                             type === 'confidentiality'

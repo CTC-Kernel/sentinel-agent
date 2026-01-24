@@ -144,7 +144,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                     </div>
                 </div>
                 <div className="bg-white/50 dark:bg-white/5 rounded-xl p-2.5 flex items-center gap-3 border border-white/60 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
-                    <Edit className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    <Edit className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     <div className="flex flex-col min-w-0">
                         <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider truncate">Brouillons</span>
                         <span className="text-sm font-black text-foreground leading-none mt-0.5">{stats.draftDocs}</span>

@@ -23,7 +23,7 @@ export const AuditCertification: React.FC<AuditCertificationProps> = ({
                     <ShieldCheck className="w-5 h-5 text-brand-500" />
                     Accès Auditeur Externe
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                <p className="text-slate-600 dark:text-muted-foreground mb-6">
                     Créez un lien sécurisé pour permettre à un auditeur externe ou un organisme de certification d'accéder à cet audit, consulter les preuves et valider la conformité.
                 </p>
 

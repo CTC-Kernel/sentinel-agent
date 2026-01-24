@@ -67,7 +67,7 @@ export const UserManagement: React.FC = () => {
         <div className="space-y-6 animate-fade-in">
             <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 text-center max-w-2xl mx-auto">
                 <h3 className="text-xl font-bold text-white mb-2">Global User Lookup</h3>
-                <p className="text-slate-400 mb-6">Search for any user across all organizations by email.</p>
+                <p className="text-muted-foreground mb-6">Search for any user across all organizations by email.</p>
 
                 <form onSubmit={handleSearch} className="relative">
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
@@ -90,7 +90,7 @@ export const UserManagement: React.FC = () => {
 
             {hasSearched && (
                 <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-slate-400 uppercase tracking-wider ml-1">Results ({users.length})</h4>
+                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Results ({users.length})</h4>
 
                     <div className="grid gap-4">
                         {users.map(user => (
@@ -100,7 +100,7 @@ export const UserManagement: React.FC = () => {
                                         {user.photoURL ? (
                                             <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
                                         ) : (
-                                            <UserIcon className="w-6 h-6 text-slate-400" />
+                                            <UserIcon className="w-6 h-6 text-muted-foreground" />
                                         )}
                                     </div>
                                     <div>
@@ -109,7 +109,7 @@ export const UserManagement: React.FC = () => {
                                             {user.role === 'admin' && <Shield className="w-3 h-3 ml-2 text-brand-400" />}
                                             {user.role === 'super_admin' && <Shield className="w-3 h-3 ml-2 text-red-400" />}
                                         </h4>
-                                        <div className="flex items-center text-sm text-slate-400 mt-1 space-x-4">
+                                        <div className="flex items-center text-sm text-muted-foreground mt-1 space-x-4">
                                             <span className="flex items-center"><Mail className="w-3 h-3 mr-1.5" />{user.email}</span>
                                             {user.organizationId && (
                                                 <span className="flex items-center"><Building2 className="w-3 h-3 mr-1.5" />{user.organizationId}</span>
@@ -119,7 +119,7 @@ export const UserManagement: React.FC = () => {
                                 </div>
                                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
-                                        className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                        className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
                                         title="Impersonate User"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -128,7 +128,7 @@ export const UserManagement: React.FC = () => {
                                     >
                                         <LogIn className="w-4 h-4" />
                                     </button>
-                                    <button className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+                                    <button className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors">
                                         <MoreVertical className="w-4 h-4" />
                                     </button>
                                 </div>

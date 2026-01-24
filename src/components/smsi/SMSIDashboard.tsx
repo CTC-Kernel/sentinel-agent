@@ -104,7 +104,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                         {phaseData.progress}%
                                     </span>
 
-                                    <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-400">
+                                    <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <span>{phaseMilestones.length} jalons</span>
                                     </div>
                                 </motion.button>
@@ -179,7 +179,7 @@ const PhaseDetailsPanel: React.FC<PhaseDetailsPanelProps> = ({ phase, program, m
                         </Badge>
                     </div>
 
-                    <p className="text-slate-600 dark:text-slate-400 mb-4">{config.description}</p>
+                    <p className="text-slate-600 dark:text-muted-foreground mb-4">{config.description}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="glass-panel p-4 rounded-xl">

@@ -117,14 +117,14 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                             <div>
                                 <label className="text-sm font-medium text-slate-500 block mb-1">Échéance</label>
                                 <div className="flex items-center gap-2 text-slate-900 dark:text-white">
-                                    <Calendar className="w-4 h-4 text-slate-400" />
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
                                     {new Date(milestone.dueDate).toLocaleDateString()}
                                 </div>
                             </div>
                             <div>
                                 <label className="text-sm font-medium text-slate-500 block mb-1">Responsable</label>
                                 <div className="flex items-center gap-2 text-slate-900 dark:text-white">
-                                    <Users className="w-4 h-4 text-slate-400" />
+                                    <Users className="w-4 h-4 text-muted-foreground" />
                                     {responsibleName}
                                 </div>
                             </div>
@@ -169,8 +169,8 @@ export const SMSIInspector: React.FC<SMSIInspectorProps> = ({
                         <div className="space-y-2">
                             {linkedItems.map(item => (
                                 <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                                    <FileText className="w-4 h-4 text-slate-400" />
-                                    <span className="text-sm text-slate-700 dark:text-slate-300">{item.title}</span>
+                                    <FileText className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-sm text-slate-700 dark:text-muted-foreground">{item.title}</span>
                                     <Badge variant="outline" size="sm" className="ml-auto capitalize">{item.type}</Badge>
                                 </div>
                             ))}

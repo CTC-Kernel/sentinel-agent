@@ -95,7 +95,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
         return (
             <div key={comment.id} className={cn("flex gap-3", isReply ? "ml-8 mt-2" : "mt-4")}>
                 <div className="flex-shrink-0">
-                    <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-muted-foreground">
                         {comment.userName.charAt(0).toUpperCase()}
                     </div>
                 </div>
@@ -105,7 +105,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                             <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                 {comment.userName}
                             </span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                            <span className="text-xs text-slate-500 dark:text-muted-foreground">
                                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: fr })}
                             </span>
                         </div>
@@ -154,7 +154,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                 {replyTo && (
                     <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-2 rounded-lg mb-2 text-xs">
-                        <span className="text-slate-600 dark:text-slate-400">
+                        <span className="text-slate-600 dark:text-muted-foreground">
                             Réponse à un commentaire
                         </span>
                         <button type="button" onClick={() => setReplyTo(null)} className="text-slate-500 hover:text-red-500">

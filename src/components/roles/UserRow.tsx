@@ -39,14 +39,14 @@ export const UserRow: React.FC<UserRowProps> = ({
                             {user.displayName}
                         </div>
                         {user.department && (
-                            <div className="text-xs text-slate-600 dark:text-slate-400">
+                            <div className="text-xs text-slate-600 dark:text-muted-foreground">
                                 {user.department}
                             </div>
                         )}
                     </div>
                 </div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-muted-foreground">
                 {user.email}
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
@@ -69,7 +69,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                     </span>
                 )}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-muted-foreground">
                 {user.lastLogin
                     ? new Date(user.lastLogin).toLocaleDateString('fr-FR', {
                         day: 'numeric',

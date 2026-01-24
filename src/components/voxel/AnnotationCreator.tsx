@@ -295,7 +295,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
             onMouseDown={handleDragStart}
           >
             <div className="flex items-center gap-3">
-              <GripVertical className="w-4 h-4 text-slate-400" />
+              <GripVertical className="w-4 h-4 text-muted-foreground" />
               <h3 className="text-base font-semibold text-white">
                 {editingAnnotation ? 'Modifier l\'annotation' : 'Nouvelle annotation'}
               </h3>
@@ -304,7 +304,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
               onClick={onClose}
               className="p-2 rounded-xl hover:bg-slate-700/50 transition-colors"
             >
-              <X className="w-4 h-4 text-slate-400" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
 
@@ -312,7 +312,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
           <div className="p-5 space-y-5 bg-slate-900/60">
             {/* Position indicator */}
             {position && (
-              <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
                 <span className="px-2 py-1 bg-slate-800/50 rounded">
                   X: {position.x.toFixed(2)}
                 </span>
@@ -327,7 +327,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
 
             {/* Type selector */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Type</label>
+              <label className="text-sm font-medium text-muted-foreground">Type</label>
               <div className="flex gap-2">
                 {TYPE_OPTIONS.map((option) => (
                   <button
@@ -347,7 +347,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
 
             {/* Content textarea */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Contenu</label>
+              <label className="text-sm font-medium text-muted-foreground">Contenu</label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -362,7 +362,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
 
             {/* Color picker */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Couleur</label>
+              <label className="text-sm font-medium text-muted-foreground">Couleur</label>
               <div className="flex gap-2">
                 {COLOR_PRESETS.map((presetColor) => (
                   <button
@@ -378,7 +378,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
 
             {/* Visibility selector */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Visibilite</label>
+              <label className="text-sm font-medium text-muted-foreground">Visibilite</label>
               <div className="flex gap-2">
                 {VISIBILITY_OPTIONS.map((option) => (
                   <button
@@ -399,7 +399,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
             {/* Team selector (shown only when visibility is 'team') */}
             {visibility === 'team' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Équipe</label>
+                <label className="text-sm font-medium text-muted-foreground">Équipe</label>
                 <input
                   type="text"
                   value={teamId}
@@ -422,7 +422,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
           <div className="flex items-center justify-between px-5 py-4 bg-slate-800/50 border-t border-slate-700/50">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-white transition-colors"
               disabled={isSaving}
             >
               Annuler

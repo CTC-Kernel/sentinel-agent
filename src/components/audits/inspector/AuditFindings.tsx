@@ -138,7 +138,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                             {f.severity}
                                         </span>
                                     )}
-                                    <span className="text-xs text-slate-400">{new Date(f.createdAt || '').toLocaleDateString()}</span>
+                                    <span className="text-xs text-muted-foreground">{new Date(f.createdAt || '').toLocaleDateString()}</span>
                                 </div>
                                 <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{f.description}</p>
                             </div>
@@ -146,7 +146,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                 {canEdit && (
                                     <div className="flex items-center gap-1">
                                         <CustomTooltip content={t('audits.findingsSection.uploadEvidence')}>
-                                            <label htmlFor={`file-upload-${f.id}`} className={`cursor-pointer p-1 transition-colors focus-within:ring-2 focus-within:ring-brand-500 rounded ${uploadingFindingId === f.id ? 'text-indigo-500 animate-pulse' : 'text-slate-400 hover:text-indigo-500'}`}>
+                                            <label htmlFor={`file-upload-${f.id}`} className={`cursor-pointer p-1 transition-colors focus-within:ring-2 focus-within:ring-brand-500 rounded ${uploadingFindingId === f.id ? 'text-indigo-500 animate-pulse' : 'text-muted-foreground hover:text-indigo-500'}`}>
                                                 {uploadingFindingId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                                                 <input type="file"
                                                     id={`file-upload-${f.id}`}
@@ -158,7 +158,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                             </label>
                                         </CustomTooltip>
                                         <CustomTooltip content={t('audits.findingsSection.delete')}>
-                                            <button onClick={() => onDeleteFinding(f.id)} aria-label={t('audits.findingsSection.delete')} className="text-slate-400 hover:text-red-500 p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
+                                            <button onClick={() => onDeleteFinding(f.id)} aria-label={t('audits.findingsSection.delete')} className="text-muted-foreground hover:text-red-500 p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </CustomTooltip>

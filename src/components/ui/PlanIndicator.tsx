@@ -236,7 +236,7 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
                             {daysUntilRenewal !== null && status === 'active' && (
                                 <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 mb-2">
                                     <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                                    <span className="text-xs text-slate-600 dark:text-slate-400">
+                                    <span className="text-xs text-slate-600 dark:text-muted-foreground">
                                         Renouvellement dans <strong className="text-slate-800 dark:text-slate-200">{daysUntilRenewal}j</strong>
                                     </span>
                                 </div>

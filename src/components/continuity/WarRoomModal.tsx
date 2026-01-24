@@ -212,7 +212,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                         </div>
                                                     </div>
                                                     <Tooltip content="Ouvrir" position="left">
-                                                        <span className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/10">
+                                                        <span className="p-2 text-muted-foreground hover:text-white rounded-lg hover:bg-white/10">
                                                             <ExternalLink className="w-4 h-4" />
                                                         </span>
                                                     </Tooltip>
@@ -292,7 +292,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                         <span className="text-xs font-mono text-emerald-500 uppercase">Canal Sécurisé actif</span>
                                     </div>
-                                    <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-white/10 text-slate-400 hover:text-white" aria-label="Fermer le War Room">
+                                    <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-white/10 text-muted-foreground hover:text-white" aria-label="Fermer le War Room">
                                         <X className="w-5 h-5" aria-hidden="true" />
                                     </Button>
                                 </div>
@@ -395,7 +395,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                 type="button"
                                                 variant="ghost"
                                                 onClick={() => fileInputRef.current?.click()}
-                                                className="text-slate-400 hover:text-white"
+                                                className="text-muted-foreground hover:text-white"
                                                 aria-label="Joindre un fichier"
                                             >
                                                 <Paperclip className="w-5 h-5" />

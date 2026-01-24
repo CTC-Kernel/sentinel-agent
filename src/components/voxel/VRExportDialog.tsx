@@ -173,7 +173,7 @@ const QualitySelector: React.FC<QualitySelectorProps> = ({ quality, onChange, pl
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-slate-300">Quality Preset</label>
+      <label className="text-sm font-medium text-muted-foreground">Quality Preset</label>
       <div className="grid grid-cols-3 gap-2">
         {qualities.map((q) => (
           <button
@@ -217,7 +217,7 @@ const OptionsToggle: React.FC<OptionsToggleProps> = ({
 }) => (
   <label className={`flex items-center justify-between py-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
     <div>
-      <div className="text-sm text-slate-300">{label}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
       {description && <div className="text-xs text-slate-500">{description}</div>}
     </div>
     <button
@@ -258,7 +258,7 @@ const InstructionsPanel: React.FC<InstructionsPanelProps> = ({ platform }) => {
       <h4 className="text-sm font-medium text-slate-300 mb-3">How to use on {VR_PLATFORM_SETTINGS[platform].name}</h4>
       <ol className="space-y-2">
         {instructions.map((instruction, index) => (
-          <li key={index} className="flex gap-3 text-xs text-slate-400">
+          <li key={index} className="flex gap-3 text-xs text-muted-foreground">
             <span className="flex-shrink-0 w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-xs font-medium">
               {index + 1}
             </span>
@@ -368,11 +368,11 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div>
             <h2 className="text-lg font-semibold text-white">Export for VR</h2>
-            <p className="text-sm text-slate-400">Download optimized GLTF for VR headsets</p>
+            <p className="text-sm text-muted-foreground">Download optimized GLTF for VR headsets</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            className="p-2 text-muted-foreground hover:text-white rounded-lg hover:bg-white/10 transition-colors"
           >
             <CloseIcon />
           </button>
@@ -459,11 +459,11 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div>
                 <span className="text-slate-500">Nodes</span>
-                <span className="float-right text-slate-300">{nodes.length}</span>
+                <span className="float-right text-muted-foreground">{nodes.length}</span>
               </div>
               <div>
                 <span className="text-slate-500">Edges</span>
-                <span className="float-right text-slate-300">{includeEdges ? edges.length : 0}</span>
+                <span className="float-right text-muted-foreground">{includeEdges ? edges.length : 0}</span>
               </div>
               <div>
                 <span className="text-slate-500">Format</span>
@@ -473,7 +473,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
               </div>
               <div>
                 <span className="text-slate-500">Est. Size</span>
-                <span className="float-right text-slate-300">{sizeEstimate.formatted}</span>
+                <span className="float-right text-muted-foreground">{sizeEstimate.formatted}</span>
               </div>
             </div>
           </div>

@@ -41,7 +41,7 @@ export const Notifications: React.FC = () => {
                         <Bell className="w-6 h-6 text-brand-500" />
                         {t('notifications.title', { defaultValue: 'Notifications' })}
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-slate-500 dark:text-muted-foreground mt-1">
                         {t('notifications.subtitle', { defaultValue: 'Gérez vos alertes et messages importants' })}
                     </p>
                 </div>
@@ -81,7 +81,7 @@ export const Notifications: React.FC = () => {
                 </div>
 
                 <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input
                         type="text"
                         placeholder={t('common.search', { defaultValue: 'Rechercher...' })}
@@ -120,7 +120,7 @@ export const Notifications: React.FC = () => {
                                                 {new Date(notif.createdAt).toLocaleDateString()}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                                        <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1 leading-relaxed">
                                             {notif.message}
                                         </p>
                                         {notif.link && (
@@ -139,7 +139,7 @@ export const Notifications: React.FC = () => {
                                         {!notif.read && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); markAsRead(notif.id); }}
-                                                className="p-2 text-slate-400 hover:text-brand-500 transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                className="p-2 text-muted-foreground hover:text-brand-500 transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
                                                 title={t('notifications.markRead', { defaultValue: 'Marquer comme lu' })}
                                             >
                                                 <CheckCircle2 className="h-4 w-4" />
@@ -147,7 +147,7 @@ export const Notifications: React.FC = () => {
                                         )}
                                         <button
                                             onClick={(e) => { e.stopPropagation(); removeNotification(notif.id); }}
-                                            className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            className="p-2 text-muted-foreground hover:text-red-500 transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
                                             title={t('common.delete', { defaultValue: 'Supprimer' })}
                                         >
                                             <X className="h-4 w-4" />
@@ -160,12 +160,12 @@ export const Notifications: React.FC = () => {
                 ) : (
                     <div className="text-center py-20">
                         <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Bell className="w-8 h-8 text-slate-400" />
+                            <Bell className="w-8 h-8 text-muted-foreground" />
                         </div>
                         <h3 className="text-lg font-medium text-slate-900 dark:text-white">
                             {t('notifications.emptyTitle', { defaultValue: 'Aucune notification' })}
                         </h3>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-slate-500 dark:text-muted-foreground mt-1">
                             {filterStatus === 'unread'
                                 ? t('notifications.emptyUnread', { defaultValue: 'Vous êtes à jour !' })
                                 : t('notifications.emptyAll', { defaultValue: 'Rien à signaler pour le moment.' })}

@@ -100,11 +100,11 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
-                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Statut</th>
-                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</th>
-                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Type</th>
-                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Audit Source</th>
-                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Date</th>
+                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Statut</th>
+                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Description</th>
+                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Type</th>
+                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Audit Source</th>
+                                <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">Date</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -176,7 +176,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit,
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">
-                                            <span className="text-sm text-slate-500 dark:text-slate-400">
+                                            <span className="text-sm text-slate-500 dark:text-muted-foreground">
                                                 {finding.createdAt ? format(new Date(finding.createdAt), 'dd MMM yyyy', { locale: fr }) : '-'}
                                             </span>
                                         </td>

@@ -87,7 +87,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
         <div className="flex-1 min-w-0">
           {/* Control code and name */}
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span className="font-mono text-xs font-semibold text-slate-500 dark:text-muted-foreground">
               {control.controlCode}
             </span>
           </div>
@@ -104,10 +104,10 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
                   className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800"
                 >
                   <div className={cn('w-2 h-2 rounded-full', FRAMEWORK_COLORS[mapping.frameworkCode])} />
-                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                  <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">
                     {mapping.frameworkCode}
                   </span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                  <span className="text-xs text-muted-foreground dark:text-slate-500">
                     {mapping.coveragePercentage}%
                   </span>
                 </div>
@@ -117,7 +117,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
 
           {/* No mappings */}
           {control.mappings.length === 0 && (
-            <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-400 dark:text-slate-500">
+            <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground dark:text-slate-500">
               <Link2 className="w-3 h-3" />
               <span>{t('mapping.noMappings')}</span>
             </div>
@@ -131,7 +131,7 @@ export const ControlMappingCard: React.FC<ControlMappingCardProps> = ({
               <div className="text-lg font-bold text-slate-900 dark:text-white">
                 {avgCoverage}%
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="text-xs text-slate-500 dark:text-muted-foreground">
                 {totalRequirements} {t('mapping.reqs')}
               </div>
             </div>

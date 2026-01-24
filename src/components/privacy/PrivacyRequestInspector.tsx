@@ -45,7 +45,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                         <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Demandeur</h4>
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xl font-bold text-slate-600 dark:text-slate-300">
+                                <div className="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xl font-bold text-slate-600 dark:text-muted-foreground">
                                     {request.dataSubject.charAt(0)}
                                 </div>
                                 <div>
@@ -60,11 +60,11 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Détails de la demande</h4>
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
-                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Type</span>
+                                    <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Type</span>
                                     <span className="font-bold text-brand-600 dark:text-brand-400">{request.requestType}</span>
                                 </div>
                                 <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-white/5">
-                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Priorité</span>
+                                    <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Priorité</span>
                                     <Badge status={request.priority === 'High' ? 'error' : 'warning'} size="sm">{request.priority}</Badge>
                                 </div>
                             </div>

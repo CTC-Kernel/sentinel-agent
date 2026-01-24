@@ -157,7 +157,7 @@ const Pricing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-lg md:text-xl text-slate-600 dark:text-slate-400 font-medium"
+            className="text-lg md:text-xl text-slate-600 dark:text-muted-foreground font-medium"
           >
             {t('common.pricingSubtitle')}
           </motion.p>
@@ -291,8 +291,8 @@ const Pricing = () => {
                           {category.features.map((feature, idx) => (
                             <div key={idx} className="grid grid-cols-4 p-4 items-center hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                               <div className="col-span-1 flex items-center gap-3 pl-4">
-                                {feature.icon && <feature.icon className="w-4 h-4 text-slate-400" />}
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                {feature.icon && <feature.icon className="w-4 h-4 text-muted-foreground" />}
+                                <span className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                   {feature.name}
                                   {feature.tooltip && (
                                     <Tooltip content={feature.tooltip}>
@@ -321,7 +321,7 @@ const Pricing = () => {
           <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
             <div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.faq', 'FAQ')}</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc', 'Questions fréquentes')}</p>
+              <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1 font-medium">{t('pricing.faqDesc', 'Questions fréquentes')}</p>
             </div>
             <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
               <HelpCircle className="w-6 h-6 text-slate-500" />

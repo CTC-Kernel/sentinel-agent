@@ -60,7 +60,7 @@ export const ProcessGeneralDetails: React.FC<ProcessGeneralDetailsProps> = ({ pr
                                     <Badge variant="soft" size="sm" className="bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10">
                                         Resp: {task.owner}
                                     </Badge>
-                                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
                                         <Clock className="w-3 h-3" /> {task.duration}
                                     </span>
                                 </div>

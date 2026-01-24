@@ -75,7 +75,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                         <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
                             {stats.total}
                         </p>
-                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Actives (24h)</span>
+                        <span className="text-sm font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actives (24h)</span>
                     </div>
                 </div>
 
@@ -93,7 +93,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                         </div>
                         <div className="space-y-1">
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{stats.critical}</p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priorité haute</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priorité haute</p>
                         </div>
                     </div>
 
@@ -112,7 +112,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {stats.ransomware}
                             </p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Campagnes</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Campagnes</p>
                         </div>
                     </div>
 
@@ -131,7 +131,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {stats.malware}
                             </p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Détectés</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Détectés</p>
                         </div>
                     </div>
                 </div>

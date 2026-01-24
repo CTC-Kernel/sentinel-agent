@@ -198,7 +198,7 @@ export const SystemSettings: React.FC = () => {
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
                                 {t('settings.systemPage.exportData')}
                             </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-2xl">
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 leading-relaxed max-w-2xl">
                                 {t('settings.systemPage.exportDataDesc')}
                             </p>
                             <Button
@@ -239,7 +239,7 @@ export const SystemSettings: React.FC = () => {
                                     Art. 20 RGPD
                                 </span>
                             </h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-2xl">
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 leading-relaxed max-w-2xl">
                                 {t('settings.systemPage.gdprExportDesc') || 'Téléchargez toutes vos données personnelles conformément au droit à la portabilité (Article 20 RGPD). Cet export est toujours disponible, quel que soit votre plan d\'abonnement.'}
                             </p>
                             <Button
@@ -365,7 +365,7 @@ export const SystemSettings: React.FC = () => {
                 maxWidth="max-w-md"
             >
                 <div className="p-6 space-y-4">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground">
                         Pour des raisons de sécurité, veuillez confirmer votre mot de passe pour continuer la suppression du compte.
                     </p>
                     <FloatingLabelInput

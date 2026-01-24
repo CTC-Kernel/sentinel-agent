@@ -33,7 +33,7 @@ export const NotFound: React.FC = () => {
                     Page introuvable
                 </h2>
 
-                <p className="text-slate-600 dark:text-slate-400 mb-10 text-lg leading-relaxed">
+                <p className="text-slate-600 dark:text-muted-foreground mb-10 text-lg leading-relaxed">
                     Désolé, la page que vous recherchez semble avoir été déplacée, supprimée ou n'a jamais existé.
                 </p>
 

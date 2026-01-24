@@ -58,7 +58,7 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
 
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{supplier.name}</h3>
                 <div className="flex flex-wrap gap-2 mb-6">
-                    <span className="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">{supplier.category}</span>
+                    <span className="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-muted-foreground">{supplier.category}</span>
                     <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>{supplier.status}</span>
                     {supplier.isICTProvider && (
                         <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-slate-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
@@ -74,14 +74,14 @@ export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProp
                         <div className={`h-1.5 rounded-full ${getScoreColor(supplier.securityScore || 0)} transition-all duration-1000`} style={{ width: `${supplier.securityScore || 0}%` }}></div>
                     </div>
                     <div className="flex justify-between text-xs">
-                        <span className="text-slate-500 dark:text-slate-400">Contrat</span>
+                        <span className="text-slate-500 dark:text-muted-foreground">Contrat</span>
                         {supplier.contractEnd ? (
                             <span className={`font-medium ${isExpired ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>{new Date(supplier.contractEnd).toLocaleDateString()}</span>
-                        ) : <span className="text-slate-400">-</span>}
+                        ) : <span className="text-muted-foreground">-</span>}
                     </div>
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <div className="mt-auto pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs text-slate-500 dark:text-muted-foreground">
                     <div className="flex items-center">
                         {supplier.contactName && (
                             <div className="flex items-center gap-2">

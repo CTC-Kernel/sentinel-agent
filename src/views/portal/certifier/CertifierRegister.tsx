@@ -70,7 +70,7 @@ export const CertifierRegister: React.FC = () => {
                 <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                     {t('certifier.registerTitle')}
                 </h2>
-                <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
+                <p className="mt-2 text-center text-sm text-slate-600 dark:text-muted-foreground">
                     {t('certifier.registerSubtitle')}
                 </p>
             </div>
@@ -169,7 +169,7 @@ export const CertifierRegister: React.FC = () => {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground">
                             {t('certifier.alreadyRegistered')}{' '}
                             <Link to="/portal/login" className="font-medium text-brand-600 hover:text-brand-500 hover:underline">
                                 {t('certifier.loginLink')}

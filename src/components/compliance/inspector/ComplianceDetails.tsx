@@ -125,7 +125,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                         <Layers className="h-4 w-4 text-slate-500" />
                         <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest">Référentiels Satisfaits</h3>
                     </div>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-muted-foreground">
                         {1 + (control.mappedFrameworks?.length || 0)} référentiel(s)
                     </span>
                 </div>
@@ -179,7 +179,7 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 )}
 
                 {availableFrameworks.length === 0 && !control.mappedFrameworks?.length && (
-                    <p className="text-xs text-slate-400 italic mt-2">
+                    <p className="text-xs text-muted-foreground italic mt-2">
                         Ce contrôle ne satisfait que son référentiel principal.
                     </p>
                 )}
@@ -199,13 +199,13 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                             maxLength={2000}
                             disabled={!canEdit || updating || isSaving}
                         />
-                        <div className="text-[10px] text-right text-slate-400 mt-1">
+                        <div className="text-[10px] text-right text-muted-foreground mt-1">
                             {justification.length}/2000
                         </div>
                     </>
                 ) : (
                     <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                        {control.justification || <span className="text-slate-400 italic">Aucune justification fournie.</span>}
+                        {control.justification || <span className="text-muted-foreground italic">Aucune justification fournie.</span>}
                     </div>
                 )}
             </div>

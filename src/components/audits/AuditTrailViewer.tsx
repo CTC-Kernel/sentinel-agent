@@ -228,7 +228,7 @@ export const AuditTrailViewer: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                <div className="mt-4 flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                     <Filter className="h-4 w-4" />
                     <span>{filteredLogs.length} événement(s) trouvé(s)</span>
                 </div>
@@ -260,14 +260,14 @@ export const AuditTrailViewer: React.FC = () => {
                                         <span className={`px-2 py-1 rounded-lg text-xs font-bold ${getActionColor(log.action)}`}>
                                             {getActionIcon(log.action)} {log.action.toUpperCase()}
                                         </span>
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             {log.entityType}
                                         </span>
                                     </div>
                                     <ChevronRight className={`h-4 w-4 text-slate-500 transition-transform ${selectedLog?.id === log.id ? 'rotate-90' : ''}`} />
                                 </div>
 
-                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-1">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground mb-1">
                                     <User className="h-3 w-3" />
                                     <span>{log.userName}</span>
                                 </div>
@@ -278,7 +278,7 @@ export const AuditTrailViewer: React.FC = () => {
                                 </div>
 
                                 {log.changes && log.changes.length > 0 && (
-                                    <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                                    <div className="mt-2 text-xs text-slate-600 dark:text-muted-foreground">
                                         {log.changes.length} modification(s)
                                     </div>
                                 )}
@@ -298,24 +298,24 @@ export const AuditTrailViewer: React.FC = () => {
 
                             <div className="space-y-4 mb-6">
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Action</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Action</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
                                         {getActionIcon(selectedLog.action)} {selectedLog.action.toUpperCase()}
                                     </p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Type</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{selectedLog.entityType}</p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Utilisateur</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Utilisateur</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{selectedLog.userName}</p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Date</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
                                         {selectedLog.timestamp.toLocaleString('fr-FR')}
                                     </p>

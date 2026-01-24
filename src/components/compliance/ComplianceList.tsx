@@ -187,12 +187,12 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                 </div>
                                 <div className="min-w-0">
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight truncate pr-2">{domain.title}</h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1 truncate">{domain.description} • <span className="text-slate-700 dark:text-slate-300">{stats.total} contrôles</span></p>
+                                    <p className="text-sm text-slate-600 dark:text-muted-foreground font-medium mt-1 truncate">{domain.description} • <span className="text-slate-700 dark:text-muted-foreground">{stats.total} contrôles</span></p>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between md:justify-end gap-3 md:gap-8 w-full md:w-auto pl-[4.25rem] md:pl-0">
                                 <div className="w-full md:w-40">
-                                    <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
+                                    <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-muted-foreground mb-1.5">
                                         <span>Progression</span>
                                         <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
                                     </div>

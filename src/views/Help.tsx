@@ -867,7 +867,7 @@ export const Help: React.FC = () => {
                                     </div>
                                     <div>
                                         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{activeCategory.title}</h1>
-                                        <p className="text-slate-600 dark:text-slate-400 mt-1">
+                                        <p className="text-slate-600 dark:text-muted-foreground mt-1">
                                             {activeCategory.articles.length} articles disponibles
                                         </p>
                                     </div>
@@ -910,7 +910,7 @@ export const Help: React.FC = () => {
                                                         </h2>
                                                         <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-brand-500' : ''}`} />
                                                     </div>
-                                                    <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm leading-relaxed">
+                                                    <p className="text-slate-600 dark:text-muted-foreground mt-1 text-sm leading-relaxed">
                                                         {article.description}
                                                     </p>
                                                 </div>

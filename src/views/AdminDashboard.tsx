@@ -134,7 +134,7 @@ export const AdminDashboard: React.FC = () => {
                             <Building className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">{t('admin.stats.orgs')}</p>
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground">{t('admin.stats.orgs')}</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalOrgs}</p>
                         </div>
                     </div>
@@ -145,7 +145,7 @@ export const AdminDashboard: React.FC = () => {
                             <Users className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">{t('admin.stats.users')}</p>
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground">{t('admin.stats.users')}</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalUsers}</p>
                         </div>
                     </div>
@@ -156,7 +156,7 @@ export const AdminDashboard: React.FC = () => {
                             <Activity className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">{t('admin.stats.health')}</p>
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground">{t('admin.stats.health')}</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">{t('admin.stats.operational')}</p>
                         </div>
                     </div>

@@ -310,7 +310,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
             </div>
             {t('ebios.workshop5.treatmentProgress')}
           </h3>
-          <span className="text-xs font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+          <span className="text-xs font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-muted-foreground">
             {treatedCount}/{operationalScenarios.length} {t('ebios.workshop5.scenarios')}
           </span>
         </div>
@@ -327,7 +327,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
         <div className="mt-6">
           <div className="flex items-center gap-2 mb-3">
             <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700"></div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{t('ebios.workshop5.strategyDistribution')}</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('ebios.workshop5.strategyDistribution')}</span>
             <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700"></div>
           </div>
 
@@ -446,7 +446,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                             {opScenario.name}
                           </h4>
                           <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
-                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                            <span className="font-medium text-slate-700 dark:text-muted-foreground">
                               {strategicScenario?.name}
                             </span>
                             <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
@@ -497,7 +497,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                           "p-2 rounded-full transition-all duration-300",
                           isExpanded
                             ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 rotate-180"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
                         )}>
                           <ChevronDown className="w-5 h-5" />
                         </div>
@@ -612,7 +612,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                               className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-500/20 focus:border-blue-500 transition-all text-sm"
                                             />
                                           ) : (
-                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            <p className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                               {treatment.responsibleId || '-'}
                                             </p>
                                           )}
@@ -630,7 +630,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                               className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-500/20 focus:border-blue-500 transition-all text-sm"
                                             />
                                           ) : (
-                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            <p className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                               {treatment.deadline || '-'}
                                             </p>
                                           )}
@@ -684,7 +684,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                                 {!readOnly && (
                                                   <button
                                                     onClick={() => handleUpdateControls(opScenario.id, treatment.selectedControlIds.filter(c => c !== code))}
-                                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                    className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                                   >
                                                     <XCircle className="w-4 h-4" />
                                                   </button>
@@ -694,7 +694,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                           </div>
                                         ) : (
                                           <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-muted/30/50 dark:bg-slate-800/50">
-                                            <p className="text-sm text-slate-400 dark:text-slate-500 italic">
+                                            <p className="text-sm text-muted-foreground dark:text-slate-500 italic">
                                               {t('ebios.workshop5.noControlsSelected')}
                                             </p>
                                           </div>
@@ -750,7 +750,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                   {/* Risk Comparison Visualization */}
                                   <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                                     <div className="text-center">
-                                      <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('ebios.workshop5.initialRisk')}</span>
+                                      <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{t('ebios.workshop5.initialRisk')}</span>
                                       <span className={cn(
                                         "inline-block px-3 py-1 rounded-lg text-lg font-bold",
                                         `bg-${initialRiskColor}-100 dark:bg-${initialRiskColor}-900/30`,
@@ -766,7 +766,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                     </div>
 
                                     <div className="text-center">
-                                      <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('ebios.workshop5.residualRisk')}</span>
+                                      <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{t('ebios.workshop5.residualRisk')}</span>
                                       <span className={cn(
                                         "inline-block px-3 py-1 rounded-lg text-lg font-bold transition-all duration-500",
                                         residualRisk
@@ -781,11 +781,11 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                   {/* Effectiveness Control */}
                                   <div className="flex-1 flex flex-col justify-center">
                                     <div className="flex items-end justify-between mb-4">
-                                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                      <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                         {t('ebios.workshop5.controlEffectiveness')}
                                       </label>
                                       <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-mono">
-                                        {residualRisk?.controlEffectiveness || 0}<span className="text-sm text-slate-400">%</span>
+                                        {residualRisk?.controlEffectiveness || 0}<span className="text-sm text-muted-foreground">%</span>
                                       </span>
                                     </div>
 
@@ -819,7 +819,7 @@ export const Workshop5Content: React.FC<Workshop5ContentProps> = ({
                                       </div>
                                     </div>
 
-                                    <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-2">
+                                    <div className="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-2">
                                       <span>Ineffective</span>
                                       <span>Effective</span>
                                     </div>
@@ -943,7 +943,7 @@ const AcceptanceModal: React.FC<AcceptanceModalProps> = ({
         </h3>
 
         <div className="space-y-4">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-muted-foreground">
             {t('ebios.workshop5.acceptRiskDescription')}
           </p>
 

@@ -86,7 +86,7 @@ export const SMSIStatsWidget: React.FC<SMSIStatsWidgetProps> = ({ program, overd
             {stats.map((stat, index) => (
                 <GlassCard key={index} className="p-4 flex items-center justify-between" hoverEffect>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                        <p className="text-sm font-medium text-slate-500 dark:text-muted-foreground">
                             {stat.label}
                         </p>
                         <p className={cn(
@@ -96,7 +96,7 @@ export const SMSIStatsWidget: React.FC<SMSIStatsWidgetProps> = ({ program, overd
                             {stat.value}
                         </p>
                         {stat.subtext && (
-                            <p className="text-xs text-slate-400 mt-0.5">
+                            <p className="text-xs text-muted-foreground mt-0.5">
                                 {stat.subtext}
                             </p>
                         )}

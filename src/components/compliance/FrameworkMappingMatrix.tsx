@@ -98,11 +98,11 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
     if (controls.length === 0) {
         return (
             <div className="glass-panel p-12 text-center">
-                <Layers className="w-12 h-12 mx-auto text-slate-400 mb-4" />
+                <Layers className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Aucun contrôle disponible
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-slate-500 dark:text-muted-foreground">
                     Ajoutez des contrôles pour voir la matrice de mapping.
                 </p>
             </div>
@@ -143,9 +143,9 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                 </p>
                             </div>
                             {expandedFramework === fw.id ? (
-                                <ChevronUp className="w-5 h-5 text-slate-400" />
+                                <ChevronUp className="w-5 h-5 text-muted-foreground" />
                             ) : (
-                                <ChevronDown className="w-5 h-5 text-slate-400" />
+                                <ChevronDown className="w-5 h-5 text-muted-foreground" />
                             )}
                         </div>
                         {/* Coverage bar */}
@@ -172,7 +172,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                         </h3>
                         <button
                             onClick={() => setExpandedFramework(null)}
-                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            className="text-muted-foreground hover:text-slate-600 dark:hover:text-slate-300"
                         >
                             Fermer
                         </button>
@@ -188,7 +188,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                         <p className="text-xl font-bold text-green-800 dark:text-green-200">{coverage.mappedCount}</p>
                                     </div>
                                     <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                        <p className="text-sm text-slate-600 dark:text-slate-400">Total référentiel</p>
+                                        <p className="text-sm text-slate-600 dark:text-muted-foreground">Total référentiel</p>
                                         <p className="text-xl font-bold text-slate-800 dark:text-slate-200">{coverage.totalControls}</p>
                                     </div>
                                     <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
@@ -207,7 +207,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                 <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
                     Matrice de Mapping
                 </h3>
-                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                     <input
                         type="checkbox"
                         checked={showGapsOnly}
@@ -288,7 +288,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-6 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-6 text-xs text-slate-500 dark:text-muted-foreground">
                 <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
                         <Check className="w-3 h-3 text-brand-600 dark:text-brand-400" />

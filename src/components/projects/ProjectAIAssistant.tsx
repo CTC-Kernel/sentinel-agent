@@ -67,7 +67,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                 </div>
                 <div>
                     <h3 className="font-bold text-slate-900 dark:text-slate-100">Assistant Projet IA</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">Analyse, reporting et suggestions</p>
+                    <p className="text-xs text-slate-600 dark:text-muted-foreground">Analyse, reporting et suggestions</p>
                 </div>
             </div>
 
@@ -79,7 +79,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                         <div>
                             <span className="block font-bold text-slate-900 dark:text-white">Générer un rapport de statut</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-400">Synthèse d'avancement pour le COPIL</span>
+                            <span className="text-xs text-slate-600 dark:text-muted-foreground">Synthèse d'avancement pour le COPIL</span>
                         </div>
                     </button>
 
@@ -89,7 +89,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                         <div>
                             <span className="block font-bold text-slate-900 dark:text-white">Analyser les risques</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-400">Identifier les points de vigilance</span>
+                            <span className="text-xs text-slate-600 dark:text-muted-foreground">Identifier les points de vigilance</span>
                         </div>
                     </button>
 
@@ -99,7 +99,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                         <div>
                             <span className="block font-bold text-slate-900 dark:text-white">Suggérer des tâches</span>
-                            <span className="text-xs text-slate-600 dark:text-slate-400">Prochaines étapes recommandées</span>
+                            <span className="text-xs text-slate-600 dark:text-muted-foreground">Prochaines étapes recommandées</span>
                         </div>
                     </button>
                 </div>

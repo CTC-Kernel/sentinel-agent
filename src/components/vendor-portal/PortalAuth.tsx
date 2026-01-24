@@ -162,7 +162,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
               {t('vendorPortal.welcomeTitle', 'Welcome, {{name}}', { name: access.vendorName })}
             </h2>
 
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-slate-600 dark:text-muted-foreground mb-6">
               {t('vendorPortal.welcomeMessage', 'To access the security questionnaire, we need to verify your email address.')}
             </p>
 
@@ -207,7 +207,7 @@ export const PortalAuth: React.FC<PortalAuthProps> = ({
               {t('vendorPortal.enterCode', 'Enter Verification Code')}
             </h2>
 
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-slate-600 dark:text-muted-foreground mb-6">
               {t('vendorPortal.codeSentTo', 'A 6-digit code has been sent to {{email}}', { email: maskedEmail })}
             </p>
 

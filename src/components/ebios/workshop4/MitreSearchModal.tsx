@@ -123,7 +123,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
 
         {/* Search Bar */}
         <div className="mt-4 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
@@ -194,7 +194,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                           "hover:bg-slate-100 dark:hover:bg-slate-800"
                         )}
                       >
-                        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-400">
+                        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-700 dark:text-muted-foreground">
                           {technique.id}
                         </code>
                         <span className="text-slate-700 dark:text-slate-300 truncate">
@@ -231,7 +231,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                         </span>
                         <span className="truncate">{tactic.name[locale]}</span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     </button>
                   ))}
                 </div>
@@ -274,7 +274,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                             {technique.description[locale]}
                           </p>
                         </div>
-                        <Target className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <Target className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       </button>
 
                       {/* Subtechniques */}
@@ -311,7 +311,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                 <p className="text-slate-500">
                   {t('ebios.workshop4.selectTacticOrSearch')}
                 </p>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {t('ebios.workshop4.killChainDescription')}
                 </p>
               </div>
@@ -340,7 +340,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                           {technique.description[locale]}
                         </p>
                       </div>
-                      <Target className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <Target className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     </button>
 
                     {technique.subtechniques && technique.subtechniques.length > 0 && (

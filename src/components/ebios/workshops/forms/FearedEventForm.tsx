@@ -207,7 +207,7 @@ export const FearedEventForm: React.FC<FearedEventFormProps> = ({
                     "block text-xs mt-1",
                     gravity === level.level
                       ? `text-${level.color}-600 dark:text-${level.color}-400`
-                      : "text-slate-400"
+                      : "text-muted-foreground"
                   )}>
                     {level[locale]}
                   </span>

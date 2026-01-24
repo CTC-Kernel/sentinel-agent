@@ -66,7 +66,7 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
             </div>
 
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{user.displayName}</h3>
-            <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
+            <div className="flex items-center text-xs font-medium text-slate-600 dark:text-muted-foreground mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
                 <Mail className="h-3 w-3 mr-1.5 opacity-70" /> {user.email}
             </div>
 

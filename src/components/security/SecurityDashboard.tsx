@@ -184,7 +184,7 @@ export const SecurityDashboard: React.FC = () => {
             <Shield className="w-6 h-6" />
             Tableau de Bord Sécurité BMAD
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1">
             Monitoring en temps réel des métriques de sécurité
           </p>
         </div>
@@ -263,7 +263,7 @@ export const SecurityDashboard: React.FC = () => {
                   <div className="font-medium text-slate-900 dark:text-white">
                     {anomaly.type.replace(/_/g, ' ')}
                   </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">
+                  <div className="text-sm text-slate-600 dark:text-muted-foreground">
                     {anomaly.message}
                   </div>
                   <div className="text-xs text-slate-500 mt-1">
@@ -286,21 +286,21 @@ export const SecurityDashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <div className="text-sm text-slate-600 dark:text-slate-400">Durée totale</div>
+              <div className="text-sm text-slate-600 dark:text-muted-foreground">Durée totale</div>
               <div className="text-lg font-medium text-slate-900 dark:text-white">
                 {formatDuration(metrics.sessionMetrics.duration)}
               </div>
             </div>
 
             <div>
-              <div className="text-sm text-slate-600 dark:text-slate-400">Dernière activité</div>
+              <div className="text-sm text-slate-600 dark:text-muted-foreground">Dernière activité</div>
               <div className="text-lg font-medium text-slate-900 dark:text-white">
                 {new Date(metrics.sessionMetrics.lastActivity).toLocaleTimeString()}
               </div>
             </div>
 
             <div>
-              <div className="text-sm text-slate-600 dark:text-slate-400">Nombre d'actions</div>
+              <div className="text-sm text-slate-600 dark:text-muted-foreground">Nombre d'actions</div>
               <div className="text-lg font-medium text-slate-900 dark:text-white">
                 {metrics.sessionMetrics.activityCount}
               </div>
@@ -359,7 +359,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color, subt
         <div className={`p-2 rounded ${colorClasses[color]}`}>
           {icon}
         </div>
-        <div className="text-sm text-slate-600 dark:text-slate-400">{label}</div>
+        <div className="text-sm text-slate-600 dark:text-muted-foreground">{label}</div>
       </div>
       <div className="text-2xl font-bold text-slate-900 dark:text-white">{value}</div>
       {subtitle && (

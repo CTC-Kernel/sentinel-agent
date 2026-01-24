@@ -47,7 +47,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                 <div className="bg-slate-50 dark:bg-white/5 p-8 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 text-center">
                     <BrainCircuit className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                     <h3 className="font-bold text-slate-900 dark:text-white mb-2">Analyse IA de l'incident</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
+                    <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 max-w-md mx-auto">
                         L'IA peut analyser les détails de l'incident pour identifier la cause racine probable et suggérer des mesures correctives.
                     </p>
                     <button

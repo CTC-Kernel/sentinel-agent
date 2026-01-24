@@ -75,7 +75,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                             Une erreur est survenue
                         </h1>
-                        <p className="text-slate-600 dark:text-slate-400 mb-4">
+                        <p className="text-slate-600 dark:text-muted-foreground mb-4">
                             {this.state.error?.message || 'Une erreur inattendue est survenue.'}
                         </p>
                         <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-md mx-auto">

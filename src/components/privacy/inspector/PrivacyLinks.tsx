@@ -111,7 +111,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                                     {isEditing && (
                                         <button
                                             onClick={() => handleUnlinkAsset(asset.id)}
-                                            className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                             title="Délier l'actif"
                                         >
                                             <X className="h-4 w-4" />
@@ -164,7 +164,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                                         <div>
                                             <p className="font-medium text-slate-900 dark:text-white">{risk.threat}</p>
                                             <div className="flex gap-2 text-xs mt-1">
-                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300">
+                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-slate-600 dark:text-muted-foreground">
                                                     Score: {risk.residualScore}
                                                 </span>
                                             </div>
@@ -173,7 +173,7 @@ export const PrivacyLinks: React.FC<PrivacyLinksProps> = ({
                                     {isEditing && (
                                         <button
                                             onClick={() => handleUnlinkRisk(risk.id)}
-                                            className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                             title="Délier le risque"
                                         >
                                             <X className="h-4 w-4" />

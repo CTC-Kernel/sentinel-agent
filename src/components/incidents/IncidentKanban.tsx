@@ -58,7 +58,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                             <div className={`w-3 h-3 rounded-full ${column.color}`} />
                             <h3 className="font-bold text-sm text-slate-800 dark:text-white">{column.title}</h3>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-xs font-bold text-slate-600 dark:text-slate-300">
+                        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-xs font-bold text-slate-600 dark:text-muted-foreground">
                             {loading ? '-' : (groupedIncidents[column.id]?.length || 0)}
                         </span>
                     </div>
@@ -141,7 +141,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                         >
                                             {incident.severity}
                                         </Badge>
-                                        <span className="text-[10px] text-slate-400 font-mono">
+                                        <span className="text-[10px] text-muted-foreground font-mono">
                                             {new Date(incident.dateReported).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                         </span>
                                     </div>

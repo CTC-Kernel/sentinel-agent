@@ -484,13 +484,13 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
 
                           {isExpanded && (
                             <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs">
-                              <pre className="whitespace-pre-wrap text-slate-600 dark:text-slate-400 font-mono">
+                              <pre className="whitespace-pre-wrap text-slate-600 dark:text-muted-foreground font-mono">
                                 {JSON.stringify(entry.details, null, 2)}
                               </pre>
                               {entry.integrity?.hash && (
                                 <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
                                   <span className="text-slate-500">Hash d'integrite: </span>
-                                  <code className="text-slate-600 dark:text-slate-400">
+                                  <code className="text-slate-600 dark:text-muted-foreground">
                                     {entry.integrity.hash.substring(0, 16)}...
                                   </code>
                                 </div>
@@ -498,7 +498,7 @@ export const DocumentAuditTrail: React.FC<DocumentAuditTrailProps> = ({
                               {entry.metadata?.ipAddress && (
                                 <div className="mt-1">
                                   <span className="text-slate-500">IP: </span>
-                                  <code className="text-slate-600 dark:text-slate-400">
+                                  <code className="text-slate-600 dark:text-muted-foreground">
                                     {entry.metadata.ipAddress}
                                   </code>
                                 </div>

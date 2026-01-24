@@ -140,7 +140,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
                                     <span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
                                 </div>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{risk.vulnerability}</p>
+                                <p className="text-xs text-slate-600 dark:text-muted-foreground mb-3">{risk.vulnerability}</p>
                                 {risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}
                             </div>
                         ))}
@@ -172,7 +172,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span>
                                     <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>
                                 </div>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p>
+                                <p className="text-xs text-slate-600 dark:text-muted-foreground mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p>
                             </div>
                         ))}
                     </div>

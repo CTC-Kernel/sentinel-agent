@@ -192,7 +192,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
               >
                 {framework.code}
               </span>
-              <p className="text-xs text-slate-400 mt-0.5">{framework.name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{framework.name}</p>
             </div>
           </div>
           <div className="text-right">
@@ -215,7 +215,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
         </div>
 
         {/* Stats row */}
-        <div className="flex items-center justify-between text-xs text-slate-400">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
             {framework.mappedControls}/{framework.totalControls} controls
           </span>
@@ -252,7 +252,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
                 <div key={key} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <config.icon className="w-3.5 h-3.5" style={{ color: config.color }} />
-                    <span className="text-xs text-slate-300">{config.label}</span>
+                    <span className="text-xs text-muted-foreground">{config.label}</span>
                   </div>
                   <span className="text-xs font-medium" style={{ color: config.color }}>
                     {count}
@@ -350,16 +350,16 @@ export const VoxelFrameworkOverlay: React.FC<VoxelFrameworkOverlayProps> = ({
               <Layers className={`w-4 h-4 text-slate-400 ${isMinimized ? '' : 'hidden'}`} />
               {!isMinimized &&
                 (isMinimized ? (
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 ) : (
-                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
                 ))}
             </button>
           </div>
 
           {!isMinimized && (
             <div className="mt-2 flex items-center justify-between text-xs">
-              <span className="text-slate-400">Overall Coverage</span>
+              <span className="text-muted-foreground">Overall Coverage</span>
               <span
                 className="font-bold"
                 style={{

@@ -100,11 +100,11 @@ const ThreatMarker = React.memo(({ position, name, intensity, country, type, sev
                         {/* Footer Stats */}
                         <div className="flex gap-2 mt-2 pt-2 border-t border-white/5 bg-white/5 -mx-3 -mb-3 px-3 pb-3 rounded-b-xl">
                             <div className="flex-1">
-                                <div className="text-[9px] text-slate-400 uppercase tracking-wider">Intensity</div>
+                                <div className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Intensity</div>
                                 <div className="text-sm font-mono font-bold text-white">{intensity.toFixed(1)}</div>
                             </div>
                             <div className="flex-1 text-right">
-                                <div className="text-[9px] text-slate-400 uppercase tracking-wider">Status</div>
+                                <div className="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</div>
                                 <div className="text-sm font-mono font-bold text-emerald-400">ACTIVE</div>
                             </div>
                         </div>

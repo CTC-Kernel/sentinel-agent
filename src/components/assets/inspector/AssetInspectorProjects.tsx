@@ -28,12 +28,12 @@ export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
                                     {proj.status}
                                 </span>
                             </div>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{proj.description}</p>
+                            <p className="text-xs text-slate-600 dark:text-muted-foreground mb-3">{proj.description}</p>
                             <div className="flex items-center justify-between">
                                 <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
                                     <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
                                 </div>
-                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{proj.progress}%</span>
+                                <span className="text-xs font-bold text-slate-700 dark:text-muted-foreground">{proj.progress}%</span>
                             </div>
                         </div>
                     ))}

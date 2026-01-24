@@ -189,7 +189,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
         )}
 
         {/* Meta Info */}
-        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-muted-foreground">
           {/* Jurisdiction */}
           <div className="flex items-center gap-1">
             <Globe className="w-3.5 h-3.5" />
@@ -217,7 +217,7 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
         {/* Activated Info */}
         {isActive && activatedDate && (
           <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/5">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-muted-foreground">
               {t('frameworks.activatedOn', 'Activé le')} {activatedDate}
             </p>
           </div>
