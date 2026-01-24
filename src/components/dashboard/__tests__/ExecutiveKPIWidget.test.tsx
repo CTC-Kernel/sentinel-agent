@@ -244,12 +244,12 @@ describe('ExecutiveKPIWidget', () => {
       <ExecutiveKPIWidget organizationId="org-123" size="lg" />
     );
 
-    // Check for large size class
-    expect(screen.getByText('75')).toHaveClass('text-5xl');
+    // Check for large size class (matches KPICard SIZE_CONFIG)
+    expect(screen.getByText('75')).toHaveClass('text-3xl');
 
     rerender(<ExecutiveKPIWidget organizationId="org-123" size="sm" />);
 
-    expect(screen.getByText('75')).toHaveClass('text-2xl');
+    expect(screen.getByText('75')).toHaveClass('text-xl');
   });
 
   it('should have accessible region role', () => {

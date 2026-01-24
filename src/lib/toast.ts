@@ -7,28 +7,33 @@ export const setGlobalNotificationContext = (context: NotificationContextType | 
     notificationContext = context;
 };
 
+export interface ToastAction {
+    label: string;
+    onClick: () => void;
+}
+
 export const toast = {
-    success: (title: string, message?: string) => {
+    success: (title: string, message?: string, action?: ToastAction) => {
         if (notificationContext) {
             const actualTitle = message ? title : 'Succès';
             const actualMessage = message ? message : title;
-            return notificationContext.addNotification({ type: 'success', title: actualTitle, message: actualMessage });
+            return notificationContext.addNotification({ type: 'success', title: actualTitle, message: actualMessage, action });
         }
         return '';
     },
-    error: (title: string, message?: string) => {
+    error: (title: string, message?: string, action?: ToastAction) => {
         if (notificationContext) {
             const actualTitle = message ? title : 'Erreur';
             const actualMessage = message ? message : title;
-            return notificationContext.addNotification({ type: 'error', title: actualTitle, message: actualMessage });
+            return notificationContext.addNotification({ type: 'error', title: actualTitle, message: actualMessage, action });
         }
         return '';
     },
-    warning: (title: string, message?: string) => {
+    warning: (title: string, message?: string, action?: ToastAction) => {
         if (notificationContext) {
             const actualTitle = message ? title : 'Attention';
             const actualMessage = message ? message : title;
-            return notificationContext.addNotification({ type: 'warning', title: actualTitle, message: actualMessage });
+            return notificationContext.addNotification({ type: 'warning', title: actualTitle, message: actualMessage, action });
         }
         return '';
     },

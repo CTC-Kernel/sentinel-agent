@@ -22,7 +22,7 @@ export interface AppState {
   setTheme: (theme: 'light' | 'dark') => void;
   toggleTheme: () => void;
   setLoading: (loading: boolean) => void;
-  addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  addToast: (message: string, type?: 'success' | 'error' | 'info', action?: { label: string; onClick: () => void }) => void;
   removeToast: (id: string) => void;
 
   language: 'fr' | 'en' | 'de';
@@ -81,13 +81,13 @@ export const useStore = create<AppState>((set) => ({
     return { theme: newTheme };
   }),
   setLoading: (loading) => set({ isLoading: loading }),
-  addToast: (message, type = 'info') => {
+  addToast: (message, type = 'info', action) => {
     if (type === 'success') {
-      toast.success('Succès', message);
+      toast.success('Succès', message, action);
     } else if (type === 'error') {
-      toast.error('Erreur', message);
+      toast.error('Erreur', message, action);
     } else {
-      toast.info('Information', message);
+      toast.info('Information', message, action);
     }
     // Legacy state update removed
   },

@@ -19,24 +19,24 @@ describe('KPICard', () => {
   it('should render trend arrow when trend is up', () => {
     render(<KPICard title="Test KPI" value={42} trend="up" />);
 
-    // Check for green color class in the trend arrow
-    const arrow = document.querySelector('svg.text-green-500');
+    // Check for success color class in the trend arrow
+    const arrow = document.querySelector('svg.text-success');
     expect(arrow).toBeInTheDocument();
   });
 
   it('should render trend arrow when trend is down', () => {
     render(<KPICard title="Test KPI" value={42} trend="down" />);
 
-    // Check for red color class in the trend arrow
-    const arrow = document.querySelector('svg.text-red-500');
+    // Check for destructive color class in the trend arrow
+    const arrow = document.querySelector('svg.text-destructive');
     expect(arrow).toBeInTheDocument();
   });
 
   it('should render trend arrow when trend is stable', () => {
     render(<KPICard title="Test KPI" value={42} trend="stable" />);
 
-    // Check for gray color class in the trend arrow
-    const arrow = document.querySelector('svg.text-slate-500');
+    // Check for muted color class in the trend arrow
+    const arrow = document.querySelector('svg.text-muted-foreground');
     expect(arrow).toBeInTheDocument();
   });
 
@@ -57,7 +57,7 @@ describe('KPICard', () => {
       <KPICard title="Test KPI" value={42} colorScheme="success" />
     );
 
-    expect(container.firstChild).toHaveClass('bg-green-50');
+    expect(container.firstChild).toHaveClass('bg-success/10');
   });
 
   it('should apply warning color scheme', () => {
@@ -65,7 +65,7 @@ describe('KPICard', () => {
       <KPICard title="Test KPI" value={42} colorScheme="warning" />
     );
 
-    expect(container.firstChild).toHaveClass('bg-orange-50');
+    expect(container.firstChild).toHaveClass('bg-warning/10');
   });
 
   it('should apply danger color scheme', () => {
@@ -73,7 +73,7 @@ describe('KPICard', () => {
       <KPICard title="Test KPI" value={42} colorScheme="danger" />
     );
 
-    expect(container.firstChild).toHaveClass('bg-red-50');
+    expect(container.firstChild).toHaveClass('bg-destructive/10');
   });
 
   it('should apply neutral color scheme', () => {
@@ -81,28 +81,28 @@ describe('KPICard', () => {
       <KPICard title="Test KPI" value={42} colorScheme="neutral" />
     );
 
-    expect(container.firstChild).toHaveClass('bg-slate-50');
+    expect(container.firstChild).toHaveClass('bg-muted/30');
   });
 
   it('should render small size variant', () => {
     render(<KPICard title="Test KPI" value={42} size="sm" />);
 
     const valueElement = screen.getByText('42');
-    expect(valueElement).toHaveClass('text-2xl');
+    expect(valueElement).toHaveClass('text-xl');
   });
 
   it('should render medium size variant (default)', () => {
     render(<KPICard title="Test KPI" value={42} size="md" />);
 
     const valueElement = screen.getByText('42');
-    expect(valueElement).toHaveClass('text-4xl');
+    expect(valueElement).toHaveClass('text-2xl');
   });
 
   it('should render large size variant', () => {
     render(<KPICard title="Test KPI" value={42} size="lg" />);
 
     const valueElement = screen.getByText('42');
-    expect(valueElement).toHaveClass('text-5xl');
+    expect(valueElement).toHaveClass('text-3xl');
   });
 
   it('should be clickable when onClick is provided', () => {

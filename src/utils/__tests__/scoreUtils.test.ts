@@ -95,9 +95,10 @@ describe('scoreUtils', () => {
 
   describe('getScoreHexColor', () => {
     it('should return correct hex colors', () => {
-      expect(getScoreHexColor(30)).toBe('#ef4444'); // red-500
-      expect(getScoreHexColor(60)).toBe('#f97316'); // orange-500
-      expect(getScoreHexColor(80)).toBe('#22c55e'); // green-500
+      // Uses harmonized colors from SCORE_COLORS constant
+      expect(getScoreHexColor(30)).toBe('#d64545'); // SCORE_COLORS.bad
+      expect(getScoreHexColor(60)).toBe('#c87f1a'); // SCORE_COLORS.warning
+      expect(getScoreHexColor(80)).toBe('#2d9d6a'); // SCORE_COLORS.good
     });
   });
 

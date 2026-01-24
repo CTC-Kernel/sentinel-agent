@@ -177,10 +177,14 @@ const NotificationContainer: React.FC = () => {
               )}
               {notification.action && (
                 <button
-                  onClick={notification.action.onClick}
-                  className="mt-2 text-sm font-medium underline hover:no-underline"
+                  onClick={() => {
+                    notification.action?.onClick();
+                    removeNotification(notification.id);
+                  }}
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 border border-current/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {notification.action.label}
+                  <span aria-hidden="true">→</span>
                 </button>
               )}
             </div>

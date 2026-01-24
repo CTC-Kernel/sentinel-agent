@@ -107,31 +107,33 @@ export const localeConfig = {
 
       // String validations
       invalidString: 'Ce champ doit être du texte',
-      tooShort: (min: number) => `Minimum ${min} caractères requis`,
+      tooShort: (min: number) => min === 1
+        ? 'Ce champ ne peut pas être vide'
+        : `Minimum ${min} caractères (ex: ${'a'.repeat(Math.min(min, 5))}...)`,
       tooLong: (max: number) => `Maximum ${max} caractères autorisés`,
-      invalidEmail: 'Adresse email invalide',
+      invalidEmail: 'Format email invalide (ex: nom@entreprise.com)',
       invalidUrl: 'URL invalide (ex: https://exemple.com)',
-      invalidUuid: 'Identifiant invalide',
+      invalidUuid: 'Identifiant invalide (format UUID attendu)',
       invalidRegex: 'Format invalide',
 
       // Number validations
-      invalidNumber: 'Veuillez entrer un nombre valide',
-      notInteger: 'Veuillez entrer un nombre entier',
-      tooSmall: (min: number) => `La valeur doit être au moins ${min}`,
-      tooBig: (max: number) => `La valeur doit être au maximum ${max}`,
-      notPositive: 'La valeur doit être positive',
-      notNegative: 'La valeur doit être négative',
-      notNonNegative: 'La valeur ne peut pas être négative',
+      invalidNumber: 'Nombre invalide (ex: 42 ou 3.14)',
+      notInteger: 'Nombre entier requis (ex: 1, 2, 3)',
+      tooSmall: (min: number) => `Minimum ${min} requis`,
+      tooBig: (max: number) => `Maximum ${max} autorisé`,
+      notPositive: 'La valeur doit être positive (> 0)',
+      notNegative: 'La valeur doit être négative (< 0)',
+      notNonNegative: 'La valeur doit être positive ou nulle (>= 0)',
 
       // Date validations
-      invalidDate: 'Date invalide (format attendu : JJ/MM/AAAA)',
+      invalidDate: 'Format invalide (ex: 15/01/2026)',
 
       // Array validations
       arrayTooShort: (min: number) => `Sélectionnez au moins ${min} élément${min > 1 ? 's' : ''}`,
       arrayTooLong: (max: number) => `Maximum ${max} élément${max > 1 ? 's' : ''} autorisé${max > 1 ? 's' : ''}`,
 
       // Enum validations
-      invalidEnum: (options: string[]) => `Valeur invalide. Options: ${options.join(', ')}`,
+      invalidEnum: (options: string[]) => `Choisissez parmi : ${options.slice(0, 3).join(', ')}${options.length > 3 ? '...' : ''}`,
 
       // Custom messages
       custom: 'Valeur invalide',
@@ -154,31 +156,33 @@ export const localeConfig = {
 
       // String validations
       invalidString: 'This field must be text',
-      tooShort: (min: number) => `Minimum ${min} characters required`,
+      tooShort: (min: number) => min === 1
+        ? 'This field cannot be empty'
+        : `Minimum ${min} characters (e.g., ${'a'.repeat(Math.min(min, 5))}...)`,
       tooLong: (max: number) => `Maximum ${max} characters allowed`,
-      invalidEmail: 'Invalid email address',
+      invalidEmail: 'Invalid email format (e.g., name@company.com)',
       invalidUrl: 'Invalid URL (e.g., https://example.com)',
-      invalidUuid: 'Invalid identifier',
+      invalidUuid: 'Invalid identifier (UUID format expected)',
       invalidRegex: 'Invalid format',
 
       // Number validations
-      invalidNumber: 'Please enter a valid number',
-      notInteger: 'Please enter a whole number',
-      tooSmall: (min: number) => `Value must be at least ${min}`,
-      tooBig: (max: number) => `Value must be at most ${max}`,
-      notPositive: 'Value must be positive',
-      notNegative: 'Value must be negative',
-      notNonNegative: 'Value cannot be negative',
+      invalidNumber: 'Invalid number (e.g., 42 or 3.14)',
+      notInteger: 'Whole number required (e.g., 1, 2, 3)',
+      tooSmall: (min: number) => `Minimum ${min} required`,
+      tooBig: (max: number) => `Maximum ${max} allowed`,
+      notPositive: 'Value must be positive (> 0)',
+      notNegative: 'Value must be negative (< 0)',
+      notNonNegative: 'Value must be zero or positive (>= 0)',
 
       // Date validations
-      invalidDate: 'Invalid date (expected format: MM/DD/YYYY)',
+      invalidDate: 'Invalid format (e.g., 01/15/2026)',
 
       // Array validations
       arrayTooShort: (min: number) => `Select at least ${min} item${min > 1 ? 's' : ''}`,
       arrayTooLong: (max: number) => `Maximum ${max} item${max > 1 ? 's' : ''} allowed`,
 
       // Enum validations
-      invalidEnum: (options: string[]) => `Invalid value. Options: ${options.join(', ')}`,
+      invalidEnum: (options: string[]) => `Choose from: ${options.slice(0, 3).join(', ')}${options.length > 3 ? '...' : ''}`,
 
       // Custom messages
       custom: 'Invalid value',
@@ -201,31 +205,33 @@ export const localeConfig = {
 
       // String validations
       invalidString: 'Dieses Feld muss Text sein',
-      tooShort: (min: number) => `Mindestens ${min} Zeichen erforderlich`,
+      tooShort: (min: number) => min === 1
+        ? 'Dieses Feld darf nicht leer sein'
+        : `Mindestens ${min} Zeichen (z.B. ${'a'.repeat(Math.min(min, 5))}...)`,
       tooLong: (max: number) => `Maximal ${max} Zeichen erlaubt`,
-      invalidEmail: 'Ungültige E-Mail-Adresse',
+      invalidEmail: 'Ungültiges E-Mail-Format (z.B. name@firma.de)',
       invalidUrl: 'Ungültige URL (z.B. https://beispiel.de)',
-      invalidUuid: 'Ungültige Kennung',
+      invalidUuid: 'Ungültige Kennung (UUID-Format erwartet)',
       invalidRegex: 'Ungültiges Format',
 
       // Number validations
-      invalidNumber: 'Bitte geben Sie eine gültige Zahl ein',
-      notInteger: 'Bitte geben Sie eine ganze Zahl ein',
-      tooSmall: (min: number) => `Der Wert muss mindestens ${min} sein`,
-      tooBig: (max: number) => `Der Wert darf höchstens ${max} sein`,
-      notPositive: 'Der Wert muss positiv sein',
-      notNegative: 'Der Wert muss negativ sein',
-      notNonNegative: 'Der Wert darf nicht negativ sein',
+      invalidNumber: 'Ungültige Zahl (z.B. 42 oder 3,14)',
+      notInteger: 'Ganze Zahl erforderlich (z.B. 1, 2, 3)',
+      tooSmall: (min: number) => `Mindestens ${min} erforderlich`,
+      tooBig: (max: number) => `Maximal ${max} erlaubt`,
+      notPositive: 'Der Wert muss positiv sein (> 0)',
+      notNegative: 'Der Wert muss negativ sein (< 0)',
+      notNonNegative: 'Der Wert muss null oder positiv sein (>= 0)',
 
       // Date validations
-      invalidDate: 'Ungültiges Datum (erwartetes Format: TT.MM.JJJJ)',
+      invalidDate: 'Ungültiges Format (z.B. 15.01.2026)',
 
       // Array validations
       arrayTooShort: (min: number) => `Wählen Sie mindestens ${min} Element${min > 1 ? 'e' : ''}`,
       arrayTooLong: (max: number) => `Maximal ${max} Element${max > 1 ? 'e' : ''} erlaubt`,
 
       // Enum validations
-      invalidEnum: (options: string[]) => `Ungültiger Wert. Optionen: ${options.join(', ')}`,
+      invalidEnum: (options: string[]) => `Wählen Sie aus: ${options.slice(0, 3).join(', ')}${options.length > 3 ? '...' : ''}`,
 
       // Custom messages
       custom: 'Ungültiger Wert',

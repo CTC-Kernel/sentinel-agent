@@ -146,10 +146,29 @@ class ErrorLoggerService {
       messageKey = 'VALIDATION_FAILED';
     }
 
+    // Use enriched error message with hint and optional action
+    const enrichedMessage = ENRICHED_ERROR_MESSAGES[messageKey];
+    const fullMessage = enrichedMessage.hint
+      ? `${enrichedMessage.message}. ${enrichedMessage.hint}`
+      : enrichedMessage.message;
+
     try {
       const { addToast } = useStore.getState();
       if (addToast) {
-        addToast(ERROR_MESSAGES[messageKey], 'error');
+        // Build action if available
+        let toastAction: { label: string; onClick: () => void } | undefined;
+        if (enrichedMessage.action) {
+          const action = enrichedMessage.action;
+          toastAction = {
+            label: action.label,
+            onClick: action.handler || (() => {
+              if (action.route) {
+                window.location.href = action.route;
+              }
+            })
+          };
+        }
+        addToast(fullMessage, 'error', toastAction);
       }
     } catch {
       // Ignore toast errors if store is not ready
@@ -231,59 +250,192 @@ class ErrorLoggerService {
 // Export singleton
 export const ErrorLogger = new ErrorLoggerService();
 
-// Messages d'erreur standardisés
-export const ERROR_MESSAGES = {
+// Structure enrichie pour les messages d'erreur avec guidance et CTA
+export interface EnrichedErrorMessage {
+  message: string;
+  hint?: string;
+  action?: {
+    label: string;
+    route?: string;
+    handler?: () => void;
+  };
+}
+
+// Messages d'erreur enrichis avec contexte et actions
+export const ENRICHED_ERROR_MESSAGES: Record<string, EnrichedErrorMessage> = {
   // Général
-  UNKNOWN_ERROR: "Une erreur inattendue s'est produite",
-  NETWORK_ERROR: "Erreur de connexion réseau",
-  PERMISSION_DENIED: "Vous n'avez pas les permissions nécessaires",
-  MISSING_INDEX: "Index Firestore manquant (vérifiez la console)",
+  UNKNOWN_ERROR: {
+    message: "Une erreur inattendue s'est produite",
+    hint: "Essayez de rafraîchir la page. Si le problème persiste, contactez le support.",
+    action: { label: "Rafraîchir", handler: () => window.location.reload() }
+  },
+  NETWORK_ERROR: {
+    message: "Connexion impossible",
+    hint: "Vérifiez votre connexion internet et réessayez.",
+    action: { label: "Réessayer", handler: () => window.location.reload() }
+  },
+  PERMISSION_DENIED: {
+    message: "Accès refusé",
+    hint: "Vous n'avez pas les droits nécessaires. Contactez votre administrateur pour obtenir l'accès.",
+    action: { label: "Voir mes droits", route: "/settings/profile" }
+  },
+  MISSING_INDEX: {
+    message: "Configuration en cours",
+    hint: "La base de données se configure. Réessayez dans quelques instants."
+  },
 
   // Authentification
-  AUTH_FAILED: "Échec de l'authentification",
-  AUTH_EXPIRED: "Session expirée, veuillez vous reconnecter",
-  AUTH_INVALID_EMAIL: "Adresse email invalide",
-  AUTH_INVALID_PASSWORD: "Mot de passe invalide",
-  INVITE_FAILED: "Erreur lors de l'invitation",
+  AUTH_FAILED: {
+    message: "Connexion impossible",
+    hint: "Vérifiez vos identifiants. Mot de passe oublié ?",
+    action: { label: "Réinitialiser", route: "/forgot-password" }
+  },
+  AUTH_EXPIRED: {
+    message: "Session expirée",
+    hint: "Pour votre sécurité, reconnectez-vous.",
+    action: { label: "Se reconnecter", route: "/login" }
+  },
+  AUTH_INVALID_EMAIL: {
+    message: "Email invalide",
+    hint: "Format attendu : exemple@domaine.com"
+  },
+  AUTH_INVALID_PASSWORD: {
+    message: "Mot de passe incorrect",
+    hint: "Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.",
+    action: { label: "Mot de passe oublié ?", route: "/forgot-password" }
+  },
+  INVITE_FAILED: {
+    message: "Invitation échouée",
+    hint: "Vérifiez que l'email est correct et que l'utilisateur n'est pas déjà membre."
+  },
 
   // Données
-  FETCH_FAILED: "Impossible de charger les données",
-  CREATE_FAILED: "Erreur lors de la création",
-  UPDATE_FAILED: "Erreur lors de la mise à jour",
-  DELETE_FAILED: "Erreur lors de la suppression",
-  EMAIL_SEND_FAILED: "Échec de l'envoi de l'email",
+  FETCH_FAILED: {
+    message: "Chargement impossible",
+    hint: "Les données n'ont pas pu être récupérées. Vérifiez votre connexion.",
+    action: { label: "Réessayer", handler: () => window.location.reload() }
+  },
+  CREATE_FAILED: {
+    message: "Création impossible",
+    hint: "Vérifiez que tous les champs obligatoires sont remplis correctement."
+  },
+  UPDATE_FAILED: {
+    message: "Mise à jour impossible",
+    hint: "Les modifications n'ont pas pu être enregistrées. L'élément a peut-être été modifié par quelqu'un d'autre."
+  },
+  DELETE_FAILED: {
+    message: "Suppression impossible",
+    hint: "Cet élément est peut-être lié à d'autres données. Vérifiez ses dépendances."
+  },
+  EMAIL_SEND_FAILED: {
+    message: "Email non envoyé",
+    hint: "Vérifiez l'adresse email et réessayez."
+  },
 
   // Validation
-  VALIDATION_FAILED: "Données invalides",
-  REQUIRED_FIELD: "Ce champ est obligatoire",
-  INVALID_FORMAT: "Format invalide",
+  VALIDATION_FAILED: {
+    message: "Données invalides",
+    hint: "Vérifiez les champs en rouge et corrigez les erreurs indiquées."
+  },
+  REQUIRED_FIELD: {
+    message: "Champ obligatoire",
+    hint: "Ce champ doit être rempli pour continuer."
+  },
+  INVALID_FORMAT: {
+    message: "Format incorrect",
+    hint: "Vérifiez le format attendu pour ce champ."
+  },
 
   // Fichiers
-  FILE_UPLOAD_FAILED: "Échec du téléversement du fichier",
-  FILE_TOO_LARGE: "Fichier trop volumineux",
-  FILE_INVALID_TYPE: "Type de fichier non supporté",
+  FILE_UPLOAD_FAILED: {
+    message: "Téléversement échoué",
+    hint: "Vérifiez la taille du fichier (max 10 Mo) et le format autorisé."
+  },
+  FILE_TOO_LARGE: {
+    message: "Fichier trop volumineux",
+    hint: "La taille maximale est de 10 Mo. Compressez votre fichier ou utilisez un format plus léger."
+  },
+  FILE_INVALID_TYPE: {
+    message: "Format non supporté",
+    hint: "Formats acceptés : PDF, DOC, DOCX, XLS, XLSX, PNG, JPG."
+  },
 
   // Limites
-  QUOTA_EXCEEDED: "Quota dépassé",
-  RATE_LIMIT_EXCEEDED: "Trop de requêtes, veuillez patienter",
+  QUOTA_EXCEEDED: {
+    message: "Quota atteint",
+    hint: "Vous avez atteint la limite de votre forfait.",
+    action: { label: "Voir les forfaits", route: "/settings/billing" }
+  },
+  RATE_LIMIT_EXCEEDED: {
+    message: "Trop de requêtes",
+    hint: "Patientez quelques secondes avant de réessayer."
+  },
 
   // Métier
-  ASSET_NOT_FOUND: "Actif introuvable",
-  RISK_NOT_FOUND: "Risque introuvable",
-  PROJECT_NOT_FOUND: "Projet introuvable",
-  DOCUMENT_NOT_FOUND: "Document introuvable",
-  AUDIT_NOT_FOUND: "Audit introuvable",
-  SCAN_FAILED: "Erreur lors du scan de sécurité",
-  REPORT_GENERATION_FAILED: "Erreur lors de la génération du rapport",
+  ASSET_NOT_FOUND: {
+    message: "Actif introuvable",
+    hint: "Cet actif a peut-être été supprimé ou vous n'y avez pas accès.",
+    action: { label: "Voir tous les actifs", route: "/assets" }
+  },
+  RISK_NOT_FOUND: {
+    message: "Risque introuvable",
+    hint: "Ce risque a peut-être été supprimé ou archivé.",
+    action: { label: "Voir les risques", route: "/risks" }
+  },
+  PROJECT_NOT_FOUND: {
+    message: "Projet introuvable",
+    hint: "Ce projet a peut-être été supprimé ou vous n'y avez pas accès.",
+    action: { label: "Voir les projets", route: "/projects" }
+  },
+  DOCUMENT_NOT_FOUND: {
+    message: "Document introuvable",
+    hint: "Ce document a peut-être été supprimé ou déplacé.",
+    action: { label: "Voir les documents", route: "/documents" }
+  },
+  AUDIT_NOT_FOUND: {
+    message: "Audit introuvable",
+    hint: "Cet audit a peut-être été supprimé ou archivé.",
+    action: { label: "Voir les audits", route: "/audits" }
+  },
+  SCAN_FAILED: {
+    message: "Scan échoué",
+    hint: "Le scan de sécurité n'a pas pu être effectué. Vérifiez la configuration de l'actif.",
+    action: { label: "Configurer", route: "/assets" }
+  },
+  REPORT_GENERATION_FAILED: {
+    message: "Génération échouée",
+    hint: "Le rapport n'a pas pu être généré. Vérifiez que toutes les données nécessaires sont disponibles."
+  },
 
   // IA
-  AI_ERROR: "Erreur lors de l'analyse IA",
-  HIBP_FAILED: "Erreur lors de la vérification HIBP",
-  DELETE_ACCOUNT_FAILED: "Échec de la suppression du compte",
+  AI_ERROR: {
+    message: "Analyse IA indisponible",
+    hint: "Le service d'analyse est temporairement indisponible. Réessayez plus tard."
+  },
+  HIBP_FAILED: {
+    message: "Vérification impossible",
+    hint: "Le service de vérification des fuites de données est indisponible."
+  },
+  DELETE_ACCOUNT_FAILED: {
+    message: "Suppression impossible",
+    hint: "Votre compte ne peut pas être supprimé actuellement. Contactez le support.",
+    action: { label: "Contacter le support", route: "/support" }
+  },
 
   // Audit Portal
-  LINK_GEN_FAILED: "Échec de la génération du lien de partage",
-  PORTAL_ACCESS_FAILED: "Accès au portail refusé ou impossible"
-} as const;
+  LINK_GEN_FAILED: {
+    message: "Lien non généré",
+    hint: "Le lien de partage n'a pas pu être créé. Réessayez."
+  },
+  PORTAL_ACCESS_FAILED: {
+    message: "Accès au portail impossible",
+    hint: "Vérifiez que le lien est valide et non expiré."
+  }
+};
 
-export type ErrorMessageKey = keyof typeof ERROR_MESSAGES;
+// Messages d'erreur simples (rétrocompatibilité)
+export const ERROR_MESSAGES = Object.fromEntries(
+  Object.entries(ENRICHED_ERROR_MESSAGES).map(([key, value]) => [key, value.message])
+) as Record<string, string>;
+
+export type ErrorMessageKey = keyof typeof ENRICHED_ERROR_MESSAGES;
