@@ -14,7 +14,7 @@ vi.mock('../../../store', () => ({
 
 // Mock hook
 vi.mock('../../../hooks/useInspector', () => ({
-    useInspector: ({ actions }: { actions: any }) => ({
+    useInspector: ({ actions }: { actions: { onCreate: () => void } }) => ({
         activeTab: 'details',
         setActiveTab: vi.fn(),
         handleUpdate: vi.fn(),
@@ -49,7 +49,7 @@ vi.mock('../../../hooks/assets/useAssetSecurity', () => ({
 
 // Mock complex child components to simplify test
 vi.mock('../AssetForm', () => ({
-    AssetForm: ({ onSubmit }: { onSubmit: (data: any) => void }) => (
+    AssetForm: ({ onSubmit }: { onSubmit: (data: unknown) => void }) => (
         <form onSubmit={(e) => {
             e.preventDefault();
             onSubmit({ name: 'Test Asset', type: 'Matériel', owner: 'me' });
@@ -61,7 +61,7 @@ vi.mock('../AssetForm', () => ({
 
 // Mock AgentDownloadModal to verify it renders
 vi.mock('../AgentDownloadModal', () => ({
-    AgentDownloadModal: ({ isOpen, onDownload, onClose }: any) => (
+    AgentDownloadModal: ({ isOpen, onDownload, onClose }: { isOpen: boolean; onDownload: () => void; onClose: () => void }) => (
         isOpen ? (
             <div data-testid="agent-modal">
                 <button onClick={onDownload}>Download</button>

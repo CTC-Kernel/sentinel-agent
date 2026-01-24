@@ -391,6 +391,8 @@ export const aiService = {
                 
                 - Conclude with a general recommendation.
                 
+                IMPORTANT: Return ONLY the summary. Do NOT use conversational fillers. Start directly with the content.
+                
                 Use Markdown formatting to structure the response:
                 - Use # for main sections.
                 - Use **bold** for key metrics and emphasis.
@@ -450,6 +452,8 @@ export const aiService = {
                 
                 - Mention the most critical risks being addressed.
                 
+                IMPORTANT: Return ONLY the summary. Do NOT use conversational fillers. Start directly with the content.
+                
                 Use Markdown formatting to structure the response:
                 - Use # for main sections.
                 - Use **bold** for key metrics and emphasis.
@@ -480,6 +484,8 @@ export const aiService = {
                 - Provide a strategic recommendation for the board.
                 
                 Tone: Professional, Strategic, Concise.
+                IMPORTANT: Return ONLY the summary. Do NOT use conversational fillers like "Absolument", "Voici...", "Bien sûr" or any introductory text. Start directly with the content.
+                
                 Use Markdown formatting to structure the response:
                 - Use # for main sections.
                 - Use **bold** for key metrics and emphasis.
@@ -513,6 +519,8 @@ export const aiService = {
                 - Summarize recent drill results and readiness.
                 
                 Tone: Professional, Reassuring, Strategic.
+                IMPORTANT: Return ONLY the summary. Do NOT use conversational fillers. Start directly with the content.
+                
                 Use Markdown formatting to structure the response:
                 - Use # for main sections.
                 - Use **bold** for key metrics and emphasis.

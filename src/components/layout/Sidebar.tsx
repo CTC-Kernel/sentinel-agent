@@ -159,14 +159,14 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/40 z-header lg:hidden backdrop-blur-sm transition-opacity duration-500"
+          className="fixed inset-0 bg-slate-900/40 z-header lg:hidden backdrop-blur-sm transition-opacity duration-500 touch-none overscroll-contain"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
       )}
 
       <aside className={`
-        fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-modal w-[82vw] max-w-[320px] lg:w-[260px]
+        fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-sidebar w-[82vw] max-w-[320px] lg:w-[260px]
         bg-[var(--glass-bg)] dark:bg-[var(--glass-bg)]
         backdrop-blur-xl border-r border-[var(--glass-border)]
         shadow-[var(--glass-shadow)] lg:shadow-none
@@ -211,10 +211,12 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       onClick={() => setMobileOpen(false)}
                       data-tour={`${item.key}-nav`}
                       className={({ isActive }) => `
-                         group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 overflow-hidden
+                         group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight 
+                         transition-all duration-200 active:duration-75 active:scale-95 ease-out
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 overflow-hidden
                          ${isActive
                           ? 'bg-primary/10 text-primary font-bold border border-primary/10 shadow-sm backdrop-blur-md'
-                          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:translate-x-1'}
+                          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:translate-x-1 active:bg-slate-100/50 dark:active:bg-white/5'}
                        `}
                     >
                       {({ isActive }) => (
@@ -222,7 +224,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                           {/* Active Indicator Glow */}
                           {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_2px_hsl(var(--primary)/0.3)]" />}
 
-                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-300 ${isActive ? 'text-primary bg-primary/10' : `${groupIconColor} group-hover:text-foreground`}`}>
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-primary bg-primary/10' : `${groupIconColor} group-hover:text-foreground`}`}>
                             <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                           </span>
                           <span className="flex-1 truncate relative z-10">{item.name}</span>

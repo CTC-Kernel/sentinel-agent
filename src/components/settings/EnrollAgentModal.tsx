@@ -21,12 +21,21 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
+interface PlatformInfo {
+    displayName: string;
+    available: boolean;
+    downloadUrl: string;
+    directUrl: string | null;
+    checksum?: string;
+    fileSize?: string;
+}
+
 interface ReleaseInfo {
     product: string;
     currentVersion: string;
     releaseDate?: string;
     changelogUrl?: string;
-    platforms: Record<string, any>;
+    platforms: Record<string, PlatformInfo>;
     mobile?: {
         ios: { available: boolean; appStoreUrl: string; comingSoon: boolean };
         android: { available: boolean; playStoreUrl: string; comingSoon: boolean };
@@ -248,7 +257,7 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                         ].map((tab) => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
+                                onClick={() => setActiveTab(tab.id as 'download' | 'docs' | 'faq' | 'support')}
                                 className={cn(
                                     "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200",
                                     activeTab === tab.id

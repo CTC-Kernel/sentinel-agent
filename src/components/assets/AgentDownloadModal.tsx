@@ -3,7 +3,6 @@ import { Dialog, Transition } from '@headlessui/react';
 import { motion } from 'framer-motion';
 import { Download, ShieldCheck, X } from '../ui/Icons';
 import { Button } from '../ui/button';
-import { useStore } from '../../store';
 
 interface AgentDownloadModalProps {
     isOpen: boolean;
@@ -19,7 +18,6 @@ export const AgentDownloadModal: React.FC<AgentDownloadModalProps> = ({
     assetName
 }) => {
     const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
-    const { } = useStore();
 
     return (
         <Transition.Root show={isOpen} as={React.Fragment}>
