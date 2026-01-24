@@ -86,20 +86,71 @@ ln -s /Applications "$DMG_TEMP/Applications"
 
 # Create README
 cat > "$DMG_TEMP/LISEZ-MOI.txt" << EOF
-Sentinel Agent v$VERSION - Installation
-========================================
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     SENTINEL AGENT v$VERSION                                 ║
+║                     Cyber Threat Consulting                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
+INSTALLATION
+============
 1. Glissez "Sentinel Agent" vers le dossier "Applications"
 2. Lancez l'application depuis le Launchpad
-3. Autorisez l'application si macOS le demande
+3. Autorisez l'application si macOS le demande (Préférences Système > Sécurité)
 
-L'agent stocke ses données dans ~/Library/Application Support/SentinelGRC/
+FONCTIONNALITÉS
+===============
+• Surveillance de conformité en temps réel
+• Vérification automatique des politiques de sécurité
+• Synchronisation avec la plateforme Sentinel GRC
+• Mode hors-ligne avec mise en cache locale
+• Interface système tray pour contrôle rapide
 
-Configuration initiale:
-- Créez le fichier /etc/sentinel/agent.json avec votre token d'enrôlement
-- Ou contactez votre administrateur pour obtenir les instructions
+MENU SYSTÈME (ICÔNE DANS LA BARRE)
+===================================
+• Statut et version de l'agent
+• Pause/Reprise des vérifications
+• Vérification immédiate
+• Accès au tableau de bord en ligne
+• Accès aux logs
+• Guide utilisateur et site web
 
-Support: support@cyber-threat-consulting.com
+EMPLACEMENT DES DONNÉES
+=======================
+• Configuration : ~/Library/Application Support/SentinelGRC/agent.json
+• Base de données : ~/Library/Application Support/SentinelGRC/agent.db
+• Logs : ~/Library/Application Support/SentinelGRC/logs/
+
+CONFIGURATION INITIALE
+======================
+Option 1 - Via ligne de commande :
+  /Applications/Sentinel\\ Agent.app/Contents/MacOS/sentinel-agent enroll --token VOTRE_TOKEN
+
+Option 2 - Via fichier de configuration :
+  Créez ~/Library/Application Support/SentinelGRC/agent.json avec :
+  {
+    "enrollment_token": "VOTRE_TOKEN",
+    "server_url": "https://app.cyber-threat-consulting.com"
+  }
+
+COMMANDES DISPONIBLES
+=====================
+  sentinel-agent enroll --token <TOKEN>   Enrôler l'agent
+  sentinel-agent status                   Afficher le statut
+  sentinel-agent run                      Lancer une vérification
+  sentinel-agent --help                   Afficher l'aide
+
+LIENS UTILES
+============
+• Site web      : https://cyber-threat-consulting.com
+• Plateforme    : https://app.cyber-threat-consulting.com
+• Documentation : https://cyber-threat-consulting.com/docs/sentinel-agent
+
+CONTACT
+=======
+Email : contact@cyber-threat-consulting.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+© 2024-2026 Cyber Threat Consulting. Tous droits réservés.
 EOF
 
 # Create DMG using hdiutil
