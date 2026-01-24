@@ -316,7 +316,7 @@ export const Reports: React.FC = () => {
                 />
             </motion.div>
 
-            <motion.div variants={slideUpVariants} className="sticky top-[80px] z-30 mb-8">
+            <motion.div variants={slideUpVariants} className="mb-8">
                 <ScrollableTabs
                     tabs={TABS}
                     activeTab={activeTab}
