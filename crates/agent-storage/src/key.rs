@@ -6,7 +6,7 @@
 //! - Linux: File with restrictive permissions (0600)
 
 use crate::error::{StorageError, StorageResult};
-use agent_common::constants::DEFAULT_DATA_DIR;
+use agent_common::config::AgentConfig;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tracing::{debug, info, warn};
@@ -73,7 +73,7 @@ impl KeyManager {
 
     /// Get the path to the key file.
     fn get_key_path() -> PathBuf {
-        PathBuf::from(DEFAULT_DATA_DIR).join(KEY_FILE_NAME)
+        AgentConfig::platform_data_dir().join(KEY_FILE_NAME)
     }
 
     /// Generate a new random encryption key.

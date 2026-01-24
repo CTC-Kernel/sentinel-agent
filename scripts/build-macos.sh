@@ -7,8 +7,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_DIR/target/release"
 APP_NAME="Sentinel Agent"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
-DMG_NAME="SentinelAgent-macOS"
-VERSION="1.0.0"
+VERSION="${VERSION:-1.0.0}"  # Use VERSION env var or default to 1.0.0
 
 echo "=== Building Sentinel Agent for macOS ==="
 echo "Project dir: $PROJECT_DIR"
@@ -70,8 +69,9 @@ fi
 # Create DMG
 echo ""
 echo "5. Creating DMG..."
-DMG_PATH="$BUILD_DIR/$DMG_NAME-$VERSION.dmg"
-rm -f "$DMG_PATH"
+DMG_PATH="$BUILD_DIR/SentinelAgent-$VERSION.dmg"
+DMG_LATEST_PATH="$BUILD_DIR/SentinelAgent-latest.dmg"
+rm -f "$DMG_PATH" "$DMG_LATEST_PATH"
 
 # Create temporary folder for DMG contents
 DMG_TEMP="$BUILD_DIR/dmg-temp"
@@ -85,15 +85,15 @@ cp -R "$APP_BUNDLE" "$DMG_TEMP/"
 ln -s /Applications "$DMG_TEMP/Applications"
 
 # Create README
-cat > "$DMG_TEMP/LISEZ-MOI.txt" << 'EOF'
-Sentinel Agent - Installation
-=============================
+cat > "$DMG_TEMP/LISEZ-MOI.txt" << EOF
+Sentinel Agent v$VERSION - Installation
+========================================
 
 1. Glissez "Sentinel Agent" vers le dossier "Applications"
 2. Lancez l'application depuis le Launchpad
 3. Autorisez l'application si macOS le demande
 
-L'agent apparaîtra dans votre barre de menu (en haut à droite).
+L'agent stocke ses données dans ~/Library/Application Support/SentinelGRC/
 
 Configuration initiale:
 - Créez le fichier /etc/sentinel/agent.json avec votre token d'enrôlement
@@ -108,6 +108,9 @@ hdiutil create -volname "$APP_NAME" \
     -ov -format UDZO \
     "$DMG_PATH"
 
+# Create latest copy
+cp "$DMG_PATH" "$DMG_LATEST_PATH"
+
 # Cleanup
 rm -rf "$DMG_TEMP"
 
@@ -115,6 +118,7 @@ echo ""
 echo "=== Build complete ==="
 echo "App bundle: $APP_BUNDLE"
 echo "DMG: $DMG_PATH"
+echo "DMG (latest): $DMG_LATEST_PATH"
 echo ""
 echo "To install:"
 echo "  1. Open the DMG"

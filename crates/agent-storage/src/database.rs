@@ -6,7 +6,8 @@
 use crate::error::{StorageError, StorageResult};
 use crate::key::KeyManager;
 use crate::migrations::run_migrations;
-use agent_common::constants::{DB_FILE_NAME, DEFAULT_DATA_DIR};
+use agent_common::config::AgentConfig;
+use agent_common::constants::DB_FILE_NAME;
 use rusqlite::Connection;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -25,7 +26,7 @@ pub struct DatabaseConfig {
 impl Default for DatabaseConfig {
     fn default() -> Self {
         Self {
-            path: PathBuf::from(DEFAULT_DATA_DIR).join(DB_FILE_NAME),
+            path: AgentConfig::platform_data_dir().join(DB_FILE_NAME),
             create_if_missing: true,
         }
     }

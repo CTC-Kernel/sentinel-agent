@@ -253,7 +253,16 @@ impl AgentConfig {
             PathBuf::from(r"C:\ProgramData\Sentinel")
         }
 
-        #[cfg(not(windows))]
+        #[cfg(target_os = "macos")]
+        {
+            // On macOS, use Library/Application Support for user-level installation
+            // or /Library/Application Support for system-wide (requires root)
+            directories::BaseDirs::new()
+                .map(|dirs| dirs.data_dir().join("SentinelGRC"))
+                .unwrap_or_else(|| PathBuf::from("/Library/Application Support/SentinelGRC"))
+        }
+
+        #[cfg(all(not(windows), not(target_os = "macos")))]
         {
             PathBuf::from("/var/lib/sentinel-grc")
         }

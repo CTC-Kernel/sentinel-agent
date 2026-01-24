@@ -44,7 +44,9 @@ jobs:
       - name: Build DMG
         run: |
           chmod +x scripts/build-macos.sh
-          ./scripts/build-macos.sh
+          VERSION="${{ github.event.inputs.version || '1.0.0' }}" ./scripts/build-macos.sh
+        env:
+          VERSION: ${{ github.event.inputs.version || '1.0.0' }}
 
       - name: Generate checksums
         run: |
