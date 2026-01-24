@@ -42,7 +42,7 @@ Section: admin
 Priority: optional
 Architecture: amd64
 Depends: libc6 (>= 2.17), libssl3 | libssl1.1
-Maintainer: Cyber Threat Consulting <support@cyber-threat-consulting.com>
+Maintainer: Cyber Threat Consulting <contact@cyber-threat-consulting.com>
 Description: Sentinel GRC Agent
  A lightweight compliance monitoring agent that performs
  security checks on endpoints and reports to the Sentinel GRC platform.
@@ -123,23 +123,63 @@ chmod 600 "$DEB_DIR/$DEB_NAME/etc/sentinel/agent.json"
 
 # Create README
 cat > "$DEB_DIR/$DEB_NAME/usr/share/doc/sentinel-agent/README" << 'EOF'
-Sentinel GRC Agent
-==================
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        SENTINEL AGENT                                        ║
+║                     Cyber Threat Consulting                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-This agent monitors system compliance and reports to the Sentinel GRC platform.
+DESCRIPTION
+===========
+Agent de conformité endpoint pour la plateforme Sentinel GRC.
+Effectue des vérifications de sécurité automatisées et rapporte les résultats.
 
-Configuration:
-  /etc/sentinel/agent.json
+FONCTIONNALITÉS
+===============
+• Surveillance de conformité en temps réel
+• Vérification automatique des politiques de sécurité
+• Synchronisation avec la plateforme Sentinel GRC
+• Mode hors-ligne avec mise en cache locale (jusqu'à 7 jours)
 
-Logs:
+CONFIGURATION
+=============
+Fichier : /etc/sentinel/agent.json
+
+{
+  "enrollment_token": "VOTRE_TOKEN",
+  "server_url": "https://app.cyber-threat-consulting.com",
+  "check_interval_seconds": 3600,
+  "log_level": "info"
+}
+
+LOGS
+====
   journalctl -u sentinel-agent -f
 
-Commands:
-  sentinel-agent enroll --token <TOKEN>  - Enroll the agent
-  sentinel-agent status                  - Show agent status
-  sentinel-agent scan                    - Run compliance scan
+COMMANDES
+=========
+  sentinel-agent enroll --token <TOKEN>   Enrôler l'agent
+  sentinel-agent status                   Afficher le statut
+  sentinel-agent run                      Lancer une vérification
+  sentinel-agent --help                   Afficher l'aide
 
-Support: support@cyber-threat-consulting.com
+SERVICE SYSTEMD
+===============
+  sudo systemctl start sentinel-agent     Démarrer le service
+  sudo systemctl stop sentinel-agent      Arrêter le service
+  sudo systemctl status sentinel-agent    Statut du service
+
+LIENS UTILES
+============
+• Site web      : https://cyber-threat-consulting.com
+• Plateforme    : https://app.cyber-threat-consulting.com
+• Documentation : https://cyber-threat-consulting.com/docs/sentinel-agent
+
+CONTACT
+=======
+Email : contact@cyber-threat-consulting.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+© 2024-2026 Cyber Threat Consulting. Tous droits réservés.
 EOF
 
 # Build DEB package

@@ -159,7 +159,7 @@ L'agent utilise un fichier de configuration JSON :
 ## Support
 
 - **Documentation** : docs.cyber-threat-consulting.com
-- **Support** : support@cyber-threat-consulting.com
+- **Contact** : contact@cyber-threat-consulting.com
 - **Interface** : app.cyber-threat-consulting.com
 
 ---

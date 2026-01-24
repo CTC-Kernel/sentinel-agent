@@ -11,7 +11,7 @@
 If you discover a security vulnerability in Sentinel GRC Agent, please report it responsibly:
 
 1. **Do NOT** create a public GitHub issue
-2. Email security concerns to: security@cyber-threat-consulting.com
+2. Email security concerns to: contact@cyber-threat-consulting.com
 3. Include a detailed description and reproduction steps
 4. Allow 90 days for remediation before public disclosure
 
