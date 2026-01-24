@@ -144,7 +144,8 @@ describe('RiskFormIdentificationTab', () => {
         it('renders section header', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            expect(screen.getByText('Identification de la Menace')).toBeInTheDocument();
+            // i18n returns key when not configured
+            expect(screen.getByText('risks.tabs.identification')).toBeInTheDocument();
         });
 
         it('renders FileText icon', () => {
@@ -156,20 +157,23 @@ describe('RiskFormIdentificationTab', () => {
         it('renders threat input field', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            expect(screen.getByLabelText('Menace (Cause Potentielle)')).toBeInTheDocument();
+            // i18n returns key when not configured
+            expect(screen.getByLabelText('common.threat')).toBeInTheDocument();
         });
 
         it('renders vulnerability rich text editor', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
             expect(screen.getByTestId('rich-text-editor')).toBeInTheDocument();
-            expect(screen.getByText('Vulnérabilité (Faiblesse)')).toBeInTheDocument();
+            // i18n returns key when not configured
+            expect(screen.getByText('common.vulnerability')).toBeInTheDocument();
         });
 
         it('renders scenario textarea', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            expect(screen.getByLabelText('Scénario de Risque & Conséquences')).toBeInTheDocument();
+            // i18n returns key when not configured
+            expect(screen.getByLabelText('risks.scenario')).toBeInTheDocument();
         });
     });
 
@@ -177,13 +181,14 @@ describe('RiskFormIdentificationTab', () => {
         it('renders library button', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            expect(screen.getByText('Biblio')).toBeInTheDocument();
+            // i18n returns key when not configured
+            expect(screen.getByText('common.library')).toBeInTheDocument();
         });
 
         it('opens library modal when clicked', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('Biblio'));
+            fireEvent.click(screen.getByText('common.library'));
 
             expect(mockSetShowLibraryModal).toHaveBeenCalledWith(true);
         });
@@ -199,29 +204,31 @@ describe('RiskFormIdentificationTab', () => {
         it('renders AI assist for threat field', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            expect(screen.getByTestId('ai-assist-menace')).toBeInTheDocument();
+            // fieldName uses i18n key
+            expect(screen.getByTestId('ai-assist-common.threat')).toBeInTheDocument();
         });
 
         it('renders AI assist for vulnerability field', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            expect(screen.getByTestId('ai-assist-vulnérabilité')).toBeInTheDocument();
+            // fieldName uses i18n key
+            expect(screen.getByTestId('ai-assist-common.vulnerability')).toBeInTheDocument();
         });
 
         it('calls setValue when threat AI assist clicked', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            fireEvent.click(screen.getByTestId('ai-assist-menace'));
+            fireEvent.click(screen.getByTestId('ai-assist-common.threat'));
 
-            expect(mockSetValue).toHaveBeenCalledWith('threat', 'Suggested Menace', { shouldDirty: true });
+            expect(mockSetValue).toHaveBeenCalledWith('threat', 'Suggested common.threat', { shouldDirty: true });
         });
 
         it('calls setValue when vulnerability AI assist clicked', () => {
             render(<RiskFormIdentificationTab {...defaultProps} />);
 
-            fireEvent.click(screen.getByTestId('ai-assist-vulnérabilité'));
+            fireEvent.click(screen.getByTestId('ai-assist-common.vulnerability'));
 
-            expect(mockSetValue).toHaveBeenCalledWith('vulnerability', 'Suggested Vulnérabilité', { shouldDirty: true });
+            expect(mockSetValue).toHaveBeenCalledWith('vulnerability', 'Suggested common.vulnerability', { shouldDirty: true });
         });
     });
 

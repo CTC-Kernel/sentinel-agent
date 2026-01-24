@@ -19,7 +19,7 @@ vi.mock('../ICTProviderService');
 
 // Mock Firestore functions used by private methods
 vi.mock('firebase/firestore', () => ({
-    getDoc: vi.fn().mockResolvedValue({ exists: () => false }),
+    getDoc: vi.fn().mockResolvedValue({ exists: () => false, data: () => null }),
     doc: vi.fn().mockReturnValue({}),
     updateDoc: vi.fn().mockResolvedValue(undefined),
 }));

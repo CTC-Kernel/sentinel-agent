@@ -162,12 +162,44 @@ const NotificationContainer: React.FC = () => {
             exit={{ opacity: 0, x: 100, scale: 0.9 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              "flex items-start gap-3 p-4 rounded-2xl border shadow-elevation-lg backdrop-blur-md",
+              "relative flex items-start gap-3 p-4 rounded-2xl border shadow-elevation-lg backdrop-blur-md overflow-hidden",
               getColors(notification.type)
             )}
           >
+            {/* Success sparkle effect */}
+            {notification.type === 'success' && (
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.3, 0] }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12" />
+              </motion.div>
+            )}
+
+            {/* Progress bar for auto-dismiss */}
+            {!notification.persistent && (
+              <motion.div
+                className="absolute bottom-0 left-0 h-0.5 bg-current/30"
+                initial={{ width: '100%' }}
+                animate={{ width: '0%' }}
+                transition={{ duration: (notification.duration || 5000) / 1000, ease: 'linear' }}
+              />
+            )}
+
             <div className="flex-shrink-0 mt-0.5">
-              {getIcon(notification.type)}
+              {notification.type === 'success' ? (
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                >
+                  {getIcon(notification.type)}
+                </motion.div>
+              ) : (
+                getIcon(notification.type)
+              )}
             </div>
 
             <div className="flex-1 min-w-0">

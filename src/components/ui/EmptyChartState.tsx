@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, PieChart, LineChart, Activity, Plus } from './Icons';
+import { BarChart3, PieChart, LineChart, Activity, Plus, Lightbulb } from './Icons';
 import { useStore } from '../../store';
 
 interface EmptyChartStateProps {
@@ -11,6 +11,8 @@ interface EmptyChartStateProps {
     onAction?: () => void;
     icon?: React.ReactNode;
     variant?: 'bar' | 'line' | 'pie' | 'radar' | 'default';
+    /** Contextual tip explaining why the chart is empty or what data is needed */
+    tip?: string;
 }
 
 export const EmptyChartState: React.FC<EmptyChartStateProps> = ({
@@ -20,7 +22,8 @@ export const EmptyChartState: React.FC<EmptyChartStateProps> = ({
     actionLabel,
     onAction,
     icon,
-    variant = 'default'
+    variant = 'default',
+    tip
 }) => {
     const { t } = useStore();
 
@@ -94,6 +97,18 @@ export const EmptyChartState: React.FC<EmptyChartStateProps> = ({
                         <Plus className="w-4 h-4" />
                         {actionLabel}
                     </button>
+                </motion.div>
+            )}
+
+            {tip && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="mt-6 flex items-start gap-2 max-w-sm p-3 rounded-lg bg-info-bg/50 border border-info-border/30"
+                >
+                    <Lightbulb className="w-4 h-4 text-info-text flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-info-text leading-relaxed">{tip}</p>
                 </motion.div>
             )}
         </div>
