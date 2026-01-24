@@ -1,3 +1,10 @@
+// Allow platform-specific unused code (cross-platform crate)
+#![allow(unused_imports)]
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::useless_format)]
+#![allow(clippy::double_ended_iterator_last)]
+#![allow(clippy::map_flatten)]
+
 //! Agent Scanner - Compliance check engine and proof generation.
 //!
 //! This crate provides the compliance checking framework for the Sentinel
