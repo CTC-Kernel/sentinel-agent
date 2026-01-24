@@ -21,7 +21,18 @@ yanked = "deny"
 
 # Crates to ignore (use sparingly, with justification)
 ignore = [
-    # Example: "RUSTSEC-2020-0071", # Temporarily ignored due to no fix available
+    # GTK3 bindings are unmaintained but still needed for tray-icon on Linux
+    # The tray-icon crate depends on gtk for Linux support
+    "RUSTSEC-2024-0417", # gdk
+    "RUSTSEC-2024-0418", # gdk-pixbuf
+    "RUSTSEC-2024-0419", # gdk-sys
+    "RUSTSEC-2024-0420", # gdk-pixbuf-sys
+    "RUSTSEC-2024-0421", # gtk
+    "RUSTSEC-2024-0422", # gtk-sys
+    "RUSTSEC-2024-0423", # glib
+    "RUSTSEC-2024-0424", # glib-sys
+    "RUSTSEC-2024-0425", # gio
+    "RUSTSEC-2024-0426", # gio-sys
 ]
 
 # ============================================================================
