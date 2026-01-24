@@ -44,7 +44,6 @@
     <!-- Custom properties for configuration -->
     <Property Id="SERVERURL" Value="https://app.cyber-threat-consulting.com" />
     <Property Id="ENROLLMENTTOKEN" Secure="yes" />
-    <SetProperty Id="INSTALLDIR" Value="[ProgramFiles64Folder]Sentinel\" Sequence="first" />
 
     <!-- Media definition -->
     <Media Id="1" Cabinet="sentinel.cab" EmbedCab="yes" />
