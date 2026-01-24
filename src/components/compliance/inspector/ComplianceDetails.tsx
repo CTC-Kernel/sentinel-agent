@@ -133,10 +133,10 @@ export const ComplianceDetails: React.FC<ComplianceDetailsProps> = ({
                 {/* Primary Framework Badge */}
                 <div className="flex flex-wrap gap-2 mb-3">
                     {control.framework && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-500 text-white border border-brand-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
                             {getFrameworkLabel(control.framework)}
-                            <span className="text-[10px] text-brand-500 ml-1">(principal)</span>
+                            <span className="text-[10px] text-brand-100 ml-1">(principal)</span>
                         </span>
                     )}
 

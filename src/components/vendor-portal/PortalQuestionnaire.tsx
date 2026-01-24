@@ -194,7 +194,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
                   onClick={() => goToSection(index)}
                   className={`w-full text-left p-3 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300'
+                      ? 'bg-brand-500/10 dark:bg-brand-500/20 text-brand-700 dark:text-white font-medium'
                       : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
                   }`}
                 >

@@ -79,7 +79,7 @@ export const UserActivityLog: React.FC = () => {
                 accessorKey: 'action',
                 header: t('common.action'),
                 cell: ({ getValue }) => (
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 border border-brand-100 dark:border-brand-800">
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-brand-500 text-white">
                         {getValue() as string}
                     </span>
                 )

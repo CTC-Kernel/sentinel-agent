@@ -92,7 +92,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                     <button
                         onClick={onToggleAdvancedSearch}
                         className={`p-2 rounded-2xl transition-all duration-300 ${showAdvancedSearch
-                            ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 shadow-inner'
+                            ? 'bg-brand-500 text-white shadow-inner'
                             : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
                             }`}
                         title="Filtres avancés"

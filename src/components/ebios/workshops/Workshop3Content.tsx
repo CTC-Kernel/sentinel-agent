@@ -316,7 +316,7 @@ export const Workshop3Content: React.FC<Workshop3ContentProps> = ({
               <div className="ml-4 pl-4 border-l border-slate-200 dark:border-slate-700 hidden sm:block">
                 <button
                   onClick={() => setShowEcosystemMap(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-100 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 hover:bg-brand-200 dark:hover:bg-brand-900/40 transition-all transform hover:-translate-y-0.5 hover:shadow-md font-medium"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition-all transform hover:-translate-y-0.5 hover:shadow-md font-medium"
                   title={t('ebios.ecosystem.legend')}
                 >
                   <Network className="w-4 h-4" />

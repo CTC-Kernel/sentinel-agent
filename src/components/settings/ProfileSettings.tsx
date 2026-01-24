@@ -425,7 +425,7 @@ export const ProfileSettings: React.FC = () => {
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
                                     {t('settings.apiKeys')}
-                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-brand-500 text-white">
                                         {t('settings.private')}
                                     </span>
                                 </h3>

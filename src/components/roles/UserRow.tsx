@@ -64,7 +64,7 @@ export const UserRow: React.FC<UserRowProps> = ({
                         <option value="user">Utilisateur</option>
                     </select>
                 ) : (
-                    <span className="px-3 py-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg text-xs font-bold">
+                    <span className="px-3 py-1.5 bg-brand-500 text-white rounded-lg text-xs font-bold">
                         {getRoleName(user.role as Role)}
                     </span>
                 )}

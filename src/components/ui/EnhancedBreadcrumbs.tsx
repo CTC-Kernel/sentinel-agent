@@ -45,7 +45,7 @@ export const EnhancedBreadcrumbs: React.FC<EnhancedBreadcrumbsProps> = ({
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
                       isActive
-                        ? "bg-brand-100 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 font-medium"
+                        ? "bg-brand-500 text-white font-medium"
                         : "text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
                     )}
                   >

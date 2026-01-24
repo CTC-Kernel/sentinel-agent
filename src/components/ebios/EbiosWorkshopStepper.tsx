@@ -162,7 +162,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                   <span className={cn(
                     "text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full",
                     isDone ? "bg-success-bg text-success-text" :
-                      isActive ? "bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400" :
+                      isActive ? "bg-brand-500 text-white" :
                         "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                   )}>
                     {WORKSHOP_STATUS_LABELS[workshop.status][locale]}

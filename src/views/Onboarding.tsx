@@ -943,7 +943,7 @@ export const Onboarding: React.FC = () => {
                                                 <Server className="h-4 w-4" /> {t('onboarding.steps.assets')}
                                             </label>
                                             {initialAssets.length === 0 && !isScanning && (
-                                                <span className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg font-bold animate-pulse">
+                                                <span className="text-xs px-2 py-1 bg-brand-500 text-white rounded-lg font-bold animate-pulse">
                                                     {t('onboarding.steps.iaReady')}
                                                 </span>
                                             )}

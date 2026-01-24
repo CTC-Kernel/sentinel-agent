@@ -352,7 +352,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                                     e.stopPropagation();
                                                     onSelect(inc);
                                                 }}
-                                                className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg hover:scale-105 transition-transform font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                className="text-xs px-2 py-1 bg-brand-500 text-white rounded-lg hover:bg-brand-600 hover:scale-105 transition-all font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 Playbook
                                             </button>
