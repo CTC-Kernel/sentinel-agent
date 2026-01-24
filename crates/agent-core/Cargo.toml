@@ -57,15 +57,15 @@ assets = [
 maintainer-scripts = "debian/"
 
 # RPM package metadata (cargo-generate-rpm)
-[package.metadata.rpm]
-package = "sentinel-agent"
-
-[package.metadata.rpm.cargo]
-buildflags = ["--release"]
-
-[package.metadata.rpm.targets]
-sentinel-agent = { path = "/opt/sentinel-grc/bin/sentinel-agent" }
-
-[package.metadata.rpm.files]
-"../../config/agent.example.json" = { path = "/etc/sentinel/agent.json", mode = "600" }
-"debian/sentinel-agent.service" = { path = "/etc/systemd/system/sentinel-agent.service" }
+[package.metadata.generate-rpm]
+name = "sentinel-agent"
+license = "Proprietary"
+summary = "Sentinel GRC endpoint compliance monitoring agent"
+assets = [
+    { source = "target/release/agent-core", dest = "/opt/sentinel-grc/bin/sentinel-agent", mode = "755" },
+    { source = "config/agent.example.json", dest = "/etc/sentinel/agent.json", mode = "600", config = true },
+    { source = "crates/agent-core/debian/sentinel-agent.service", dest = "/etc/systemd/system/sentinel-agent.service", mode = "644" },
+]
+post_install_script = "crates/agent-core/debian/postinst"
+pre_uninstall_script = "crates/agent-core/debian/prerm"
+post_uninstall_script = "crates/agent-core/debian/postrm"
