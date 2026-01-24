@@ -226,6 +226,8 @@ describe('ThreatRegistry', () => {
 
         // Should show some indication that there are no threats
         expect(screen.queryByText('Phishing Attack')).not.toBeInTheDocument();
+        // Component should still render without errors
+        expect(screen.getByText('Bibliothèque de Menaces')).toBeInTheDocument();
     });
 
     it('should show seed button when no threats', () => {
@@ -240,8 +242,9 @@ describe('ThreatRegistry', () => {
 
         renderWithRouter(<ThreatRegistry />);
 
-        // Check for seed/initialize button
-        // Button may or may not exist depending on implementation
+        // When no threats exist, page should render without threats
+        // The seed button visibility depends on user permissions and component state
+        expect(screen.getByText('Bibliothèque de Menaces')).toBeInTheDocument();
     });
 
     it('should display threat risk score', () => {

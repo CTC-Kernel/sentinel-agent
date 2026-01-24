@@ -76,7 +76,7 @@ describe('DashboardHeader', () => {
     const mockT = vi.fn((key: string) => {
         const translations: Record<string, string> = {
             'sidebar.dashboard': 'Dashboard',
-            'dashboard.workspace': 'Workspace',
+            'common.pilotage': 'Pilotage',
             'dashboard.allSystemsOperational': 'All systems operational',
             'dashboard.executiveReport': 'Executive Report',
             'dashboard.exportIcal': 'Export iCal',
@@ -129,7 +129,7 @@ describe('DashboardHeader', () => {
         it('renders workspace label', () => {
             render(<DashboardHeader {...defaultProps} />);
 
-            expect(screen.getByText('Workspace')).toBeInTheDocument();
+            expect(screen.getByText('Pilotage')).toBeInTheDocument();
         });
 
         it('renders date', () => {

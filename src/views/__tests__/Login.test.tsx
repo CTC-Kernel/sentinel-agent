@@ -122,6 +122,16 @@ vi.mock('../../components/ui/LegalModal', () => ({
     LegalModal: () => <div data-testid="legal-modal" />
 }));
 
+// Mock SentinelAssistant
+vi.mock('../../components/auth/SentinelAssistant', () => ({
+    SentinelAssistant: () => <div data-testid="sentinel-assistant" />
+}));
+
+// Mock ThemeToggle
+vi.mock('../../components/ui/ThemeToggle', () => ({
+    ThemeToggle: () => <button data-testid="theme-toggle" />
+}));
+
 // Mock Framer Motion
 vi.mock('framer-motion', () => ({
     motion: {
