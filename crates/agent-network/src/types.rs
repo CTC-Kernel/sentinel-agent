@@ -357,9 +357,9 @@ pub struct NetworkSchedulerConfig {
 impl Default for NetworkSchedulerConfig {
     fn default() -> Self {
         Self {
-            static_info_interval_secs: 15 * 60, // 15 minutes
+            static_info_interval_secs: 15 * 60,    // 15 minutes
             connection_scan_interval_secs: 5 * 60, // 5 minutes
-            security_scan_interval_secs: 60,    // 1 minute
+            security_scan_interval_secs: 60,       // 1 minute
             jitter_percent: 20,
             deployment_group: 0,
         }

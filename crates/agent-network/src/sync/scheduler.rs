@@ -237,7 +237,7 @@ mod tests {
     fn test_group_offset() {
         let config = NetworkSchedulerConfig {
             static_info_interval_secs: 100,
-            jitter_percent: 0, // No jitter for predictable test
+            jitter_percent: 0,   // No jitter for predictable test
             deployment_group: 5, // Group 5 = 50% offset
             ..Default::default()
         };

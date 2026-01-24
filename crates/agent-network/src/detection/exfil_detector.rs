@@ -59,7 +59,10 @@ impl ExfilDetector {
                 if self.is_private_ip(remote_addr) {
                     continue;
                 }
-                dest_counts.entry(remote_addr.clone()).or_default().push(conn);
+                dest_counts
+                    .entry(remote_addr.clone())
+                    .or_default()
+                    .push(conn);
             }
         }
 
