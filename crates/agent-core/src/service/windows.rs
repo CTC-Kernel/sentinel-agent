@@ -8,7 +8,6 @@ use super::{
     ServiceState,
 };
 use std::ffi::OsString;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tracing::{error, info, warn};
@@ -26,10 +25,7 @@ use windows_service::{
 /// Global shutdown flag for the service.
 static SERVICE_SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
-/// Windows service entry point.
-///
-/// This function is called by the Windows Service Control Manager when the
-/// service is started.
+// Windows service entry point - called by the Windows Service Control Manager
 define_windows_service!(ffi_service_main, service_main);
 
 /// Service main function called by the SCM.
@@ -341,7 +337,6 @@ pub fn stop_service() -> ServiceResult<()> {
 /// - Second failure: Restart after 300 seconds (5 minutes)
 /// - Subsequent failures: Restart after 600 seconds (10 minutes)
 fn configure_service_recovery() -> ServiceResult<()> {
-    use std::ptr;
     use windows::Win32::System::Services::{
         ChangeServiceConfig2W, CloseServiceHandle, OpenSCManagerW, OpenServiceW, SC_ACTION,
         SC_ACTION_TYPE, SC_MANAGER_CONNECT, SERVICE_CHANGE_CONFIG, SERVICE_CONFIG_FAILURE_ACTIONS,
