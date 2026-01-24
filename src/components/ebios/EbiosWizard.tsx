@@ -196,7 +196,7 @@ export const EbiosWizard: React.FC<EbiosWizardProps> = ({
             <div className="relative flex flex-col md:flex-row md:items-start justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
+                  <span className="px-2.5 py-0.5 rounded-md bg-blue-500 dark:bg-blue-600 text-white text-xs font-bold uppercase tracking-wider">
                     {t('ebios.workshop')} {currentWorkshop}
                   </span>
                   <h2 className="text-2xl font-bold text-slate-900 dark:text-white">

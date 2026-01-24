@@ -1049,16 +1049,6 @@
             ]
         },
         {
-            "collectionGroup": "agents",
-            "queryScope": "COLLECTION_GROUP",
-            "fields": [
-                {
-                    "fieldPath": "id",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
             "collectionGroup": "enrollmentTokens",
             "queryScope": "COLLECTION_GROUP",
             "fields": [
@@ -1069,26 +1059,6 @@
                 {
                     "fieldPath": "revoked",
                     "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "enrollmentTokens",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "results",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
                 }
             ]
         },
@@ -1121,5 +1091,16 @@
             ]
         }
     ],
-    "fieldOverrides": []
+    "fieldOverrides": [
+        {
+            "collectionGroup": "agents",
+            "fieldPath": "id",
+            "indexes": [
+                {
+                    "queryScope": "COLLECTION_GROUP",
+                    "order": "ASCENDING"
+                }
+            ]
+        }
+    ]
 }

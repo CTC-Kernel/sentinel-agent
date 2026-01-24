@@ -76,7 +76,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="p-6 bg-blue-50/80 dark:bg-blue-900/10 rounded-4xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-blue-600/80 mb-1">Reçu le</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 mb-1">Reçu le</h4>
                             <div className="text-xl font-bold text-slate-900 dark:text-white">{format(new Date(request.submissionDate), 'dd MMMM yyyy', { locale: fr })}</div>
                         </div>
                         <Calendar className="h-8 w-8 text-blue-500/50" />
@@ -84,7 +84,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
                     <div className={`p-6 rounded-4xl border shadow-sm flex items-center justify-between ${new Date(request.dueDate) < new Date() ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-green-50/80 dark:bg-green-900/10 border-green-100 dark:border-green-900/30'
                         }`}>
                         <div>
-                            <h4 className={`text-xs font-bold uppercase tracking-widest mb-1 ${new Date(request.dueDate) < new Date() ? 'text-red-600/80' : 'text-green-600/80'}`}>Date Limite (30j)</h4>
+                            <h4 className={`text-xs font-bold uppercase tracking-widest mb-1 ${new Date(request.dueDate) < new Date() ? 'text-red-700 dark:text-red-300' : 'text-green-700 dark:text-green-300'}`}>Date Limite (30j)</h4>
                             <div className="text-xl font-bold text-slate-900 dark:text-white">{format(new Date(request.dueDate), 'dd MMMM yyyy', { locale: fr })}</div>
                         </div>
                         <Flag className={`h-8 w-8 ${new Date(request.dueDate) < new Date() ? 'text-red-500/50' : 'text-green-500/50'}`} />

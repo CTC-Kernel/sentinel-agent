@@ -109,7 +109,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
                                     Sentinel AI Analysis
                                 </h3>
-                                <p className="text-xs font-medium text-brand-600/80 dark:text-brand-400/80">
+                                <p className="text-xs font-medium text-brand-700 dark:text-brand-300">
                                     Synthèse de posture temps réel
                                 </p>
                             </div>

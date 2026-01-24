@@ -198,7 +198,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
 
                                 </div>
                             </div>
-                            <p className="text-xs text-brand-600/80 dark:text-brand-400">
+                            <p className="text-xs text-brand-800 dark:text-brand-200">
                                 {t('continuity.ai.desc')}
                             </p>
                         </div>

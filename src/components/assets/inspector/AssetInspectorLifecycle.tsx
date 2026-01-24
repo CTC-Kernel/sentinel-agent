@@ -89,7 +89,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
 
             <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600/80 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 flex items-center"><Archive className="h-4 w-4 mr-2" /> État du cycle de vie</h3>
                     <div className="px-3 py-1 rounded-full bg-blue-50 dark:bg-slate-900/20 text-blue-600 text-xs font-bold">{selectedAsset?.lifecycleStatus || 'Neuf'}</div>
                 </div>
                 <div className="space-y-4">

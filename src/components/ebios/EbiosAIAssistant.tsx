@@ -518,7 +518,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                       G{e.gravity}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{e.description}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{e.description}</p>
                   <span className="text-xs text-brand-600 dark:text-brand-400">{e.impactType}</span>
                 </div>
               ))}
@@ -560,8 +560,8 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                       G{s.gravity}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{s.description}</p>
-                  <p className="text-xs text-brand-600 dark:text-brand-400 mt-1">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{s.description}</p>
+                  <p className="text-xs text-brand-700 dark:text-brand-300 mt-1">
                     <GitBranch className="h-3 w-3 inline mr-1" />
                     {s.attackPath}
                   </p>
@@ -581,7 +581,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                       V{s.likelihood}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{s.description}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{s.description}</p>
                   <div className="mt-2 space-y-1">
                     {s.attackSteps.map((step, j) => (
                       <div key={j} className="flex items-start gap-2 text-xs">
@@ -616,7 +616,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                       {s.strategy}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{s.justification}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{s.justification}</p>
                   {s.suggestedControls.length > 0 && (
                     <div className="mt-2">
                       <span className="text-xs font-medium">{t('ebios.ai.controls', 'Contrôles suggérés')}:</span>
