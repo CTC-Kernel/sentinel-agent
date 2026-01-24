@@ -88,12 +88,10 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
     const [eta, setEta] = useState<string | null>(null);
 
     // Calculate ETA based on elapsed time and progress
-    // Uses interval to update periodically without synchronous setState issues
+    // Uses interval to update periodically - setState only called in interval callback
     useEffect(() => {
-        // Early return without setState for invalid conditions
+        // Early return for invalid conditions - no setState needed
         if (!startTime || progress <= 0 || progress >= 100 || isComplete || isError) {
-            // Only update if eta is not already null to avoid cascading renders
-            setEta((prev) => prev === null ? prev : null);
             return;
         }
 
@@ -105,16 +103,16 @@ export const OperationProgress: React.FC<OperationProgressProps> = ({
             if (remaining > 0 && remaining < 86400) { // Max 24h
                 setEta(formatETA(remaining));
             } else {
-                setEta((prev) => prev === null ? prev : null);
+                setEta(null);
             }
         };
 
-        // Calculate immediately
-        calculateEta();
-
-        // Update every second for real-time ETA
+        // Update every second for real-time ETA (interval callback is allowed)
         const interval = setInterval(calculateEta, 1000);
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+            setEta(null); // Reset on cleanup
+        };
     }, [progress, startTime, isComplete, isError]);
 
     const progressColor = useMemo(() => {
