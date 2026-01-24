@@ -241,6 +241,7 @@ import {
   // Status & Indicators
   Loader,
   Loader2,
+  Wifi,
   WifiOff,
   Circle,
 
@@ -523,6 +524,7 @@ export {
   // Status & Indicators
   Loader,
   Loader2,
+  Wifi,
   WifiOff,
   Circle,
 
