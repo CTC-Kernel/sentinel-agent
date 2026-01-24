@@ -456,7 +456,7 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     }
 
     // Create tray icon
-    let agent_tray = match tray::AgentTray::new(shutdown.clone()) {
+    let (agent_tray, _command_rx) = match tray::AgentTray::new(shutdown.clone()) {
         Ok(tray) => tray,
         Err(e) => {
             warn!(
