@@ -5,9 +5,10 @@
 //! - Search domains
 //! - DNS suffix
 
-use crate::error::{NetworkError, NetworkResult};
+#[cfg(not(target_os = "linux"))]
+use crate::error::NetworkError;
+use crate::error::NetworkResult;
 use crate::types::DnsConfiguration;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::process::Command;
 use tracing::debug;
 
