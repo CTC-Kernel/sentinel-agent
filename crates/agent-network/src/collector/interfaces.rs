@@ -158,10 +158,10 @@ impl InterfaceCollector {
         }
 
         // Check device type
-        if let Ok(uevent) = fs::read_to_string(path.join("device/uevent")) {
-            if uevent.contains("DEVTYPE=wlan") {
-                return InterfaceType::WiFi;
-            }
+        if let Ok(uevent) = fs::read_to_string(path.join("device/uevent"))
+            && uevent.contains("DEVTYPE=wlan")
+        {
+            return InterfaceType::WiFi;
         }
 
         // Default to Ethernet for physical interfaces
