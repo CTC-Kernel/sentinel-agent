@@ -134,7 +134,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {groups.map(group => (
                     <GroupCard
                         key={group.id}
@@ -154,7 +154,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                 width="max-w-6xl"
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <FloatingLabelInput
                             label="Nom du groupe"
                             {...register('name')}

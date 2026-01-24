@@ -36,7 +36,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                     gradientOverlay={true}
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mr-16 -mt-16 transition-opacity group-hover:opacity-70 pointer-events-none" />
-                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Santé de l'audit</h4>
+                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Santé de l'audit</h4>
                     <div className="flex items-end gap-2 relative z-10">
                         <span className="text-4xl font-black text-slate-900 dark:text-white">
                             {100 - (openFindings * 10)}%
@@ -50,7 +50,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
 
                 {/* Findings Summary */}
                 <GlassCard className="p-6 relative overflow-hidden">
-                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">État des Constats</h4>
+                    <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">État des Constats</h4>
                     <div className="flex items-center justify-between relative z-10">
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
@@ -73,7 +73,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                 {/* Completion Rate */}
                 <GlassCard className="p-6 relative overflow-hidden flex items-center justify-between">
                     <div className="relative z-10">
-                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Progression</h4>
+                        <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Progression</h4>
                         <p className="text-sm text-muted-foreground">Des actions de remédiation</p>
                     </div>
                     <div className="relative z-10">
@@ -90,7 +90,7 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
 
             {/* Distribution Chart */}
             <GlassCard className="p-6">
-                <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Répartition par Sévérité</h4>
+                <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6">Répartition par Sévérité</h4>
                 <div className="h-[200px] w-full relative z-10">
                     {findings.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">

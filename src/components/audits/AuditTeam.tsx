@@ -106,9 +106,9 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             {/* Internal Team */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/20 dark:border-white/5 shadow-sm">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/20 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center">
                         <Shield className="h-3.5 w-3.5 mr-2" /> Équipe Interne
@@ -131,7 +131,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                             />
                         </div>
                         <button onClick={handleAddInternal} aria-label="Confirmer l'ajout" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">OK</button>
-                        <button onClick={() => setIsAddingInternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
+                        <button onClick={() => setIsAddingInternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
                     </div>
                 )}
 
@@ -165,7 +165,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
             </div>
 
             {/* External Auditors */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/20 dark:border-white/5 shadow-sm">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/20 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center">
                         <ExternalLink className="h-3.5 w-3.5 mr-2" /> Auditeurs Externes
@@ -188,7 +188,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                             />
                         </div>
                         <button onClick={handleAddExternal} aria-label="Envoyer l'invitation" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Inviter</button>
-                        <button onClick={() => setIsAddingExternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
+                        <button onClick={() => setIsAddingExternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
                     </div>
                 )}
 

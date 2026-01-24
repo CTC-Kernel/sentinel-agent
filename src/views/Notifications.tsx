@@ -116,7 +116,7 @@ export const Notifications: React.FC = () => {
                                             <h3 className={`text-base font-bold ${!notif.read ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                                                 {notif.title}
                                             </h3>
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">
                                                 {new Date(notif.createdAt).toLocaleDateString()}
                                             </span>
                                         </div>

@@ -190,7 +190,7 @@ export const Audits: React.FC = () => {
     else if (role === 'direction') { auditsTitle = t('audits.title_exec'); auditsSubtitle = t('audits.subtitle_exec'); }
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10 pb-24">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24">
             <MasterpieceBackground />
             <SEO title={t('audits.title')} description={t('audits.subtitle')} />
 
@@ -265,7 +265,7 @@ export const Audits: React.FC = () => {
 
             {
                 activeTab === 'list' && (
-                    <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-8">
+                    <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6 sm:space-y-8">
                         <div className="glass-premium overflow-hidden rounded-5xl border border-white/60 dark:border-white/5 shadow-apple-sm">
                             <AuditsList
                                 audits={filteredAudits}

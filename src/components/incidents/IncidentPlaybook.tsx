@@ -192,7 +192,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Playbook Actif</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Playbook Actif</h3>
                         <h2 className="font-bold text-lg text-slate-900 dark:text-white">{playbook.title}</h2>
                     </div>
                     <Badge status={progress === 100 ? 'success' : 'info'} size="md">{progress}%</Badge>
@@ -216,7 +216,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
 
             {/* Steps List */}
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Étapes de résolution</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Étapes de résolution</h3>
                 <div className="space-y-4">
                     {playbook.steps.sort((a, b) => a.order - b.order).map((step) => {
                         const isCompleted = response.completedSteps.includes(step.id);
@@ -258,7 +258,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                                         <h4 className={`font-bold ${isCompleted ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-900 dark:text-white'}`}>
                                             {step.title}
                                         </h4>
-                                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-slate-100 dark:bg-white/10 px-2 py-1 rounded-md">
+                                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 px-2 py-1 rounded-md">
                                             {step.type}
                                         </span>
                                     </div>

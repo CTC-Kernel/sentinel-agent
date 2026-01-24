@@ -41,7 +41,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                             <p className="text-slate-600 dark:text-muted-foreground">Recommandations générées par le moteur d'IA souverain (OVH)</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                    <button onClick={onClose} className="p-2.5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         <X className="w-6 h-6 text-slate-600" />
                     </button>
                 </div>
@@ -67,13 +67,13 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                 <div key={rec.title} className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${rec.priority === 'urgent' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                rec.priority === 'high' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                                                    'bg-blue-100 text-blue-700 dark:bg-slate-900/30 dark:text-blue-400'
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${rec.priority === 'urgent' ? 'bg-error-bg text-error-text dark:bg-error-bg/30 dark:text-error-text' :
+                                                rec.priority === 'high' ? 'bg-warning-bg text-warning-text dark:bg-warning-bg/30 dark:text-warning-text' :
+                                                    'bg-info-bg text-info-text dark:bg-slate-900/30 dark:text-info-text'
                                                 }`}>
                                                 {rec.priority}
                                             </span>
-                                            <span className="flex items-center text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
+                                            <span className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
                                                 <ShieldCheck className="w-3 h-3 mr-1" />
                                                 Confiance: {(rec.confidence_score * 100).toFixed(0)}%
                                             </span>
@@ -88,7 +88,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                     </p>
 
                                     <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-5">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Actions Suggérées</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Actions Suggérées</h4>
                                         <ul className="space-y-3">
                                             {rec.suggested_actions.map((action) => (
                                                 <li key={action.action} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">

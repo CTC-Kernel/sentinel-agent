@@ -231,7 +231,7 @@ export const XRStatusBadge: React.FC<XRStatusBadgeProps> = ({
         className={`
           inline-flex items-center gap-2 px-3 py-1.5
           bg-slate-800/80 backdrop-blur-sm border border-white/5 rounded-lg
-          text-slate-400 text-xs
+          text-muted-foreground text-xs
           ${positionClasses} ${className}
         `}
       >

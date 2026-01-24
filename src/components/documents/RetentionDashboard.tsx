@@ -94,7 +94,7 @@ interface RetentionDashboardProps {
 const ACTION_CONFIG: Record<RetentionAction, { label: string; icon: LucideIcon; color: string }> = {
   archive: { label: 'Archiver', icon: Archive, color: 'text-blue-500' },
   delete: { label: 'Supprimer', icon: XCircle, color: 'text-red-500' },
-  notify: { label: 'Notifier', icon: Bell, color: 'text-amber-500' },
+  notify: { label: 'Notifier', icon: Bell, color: 'text-warning-500' },
 };
 
 const DOCUMENT_TYPES = ['Policy', 'Procedure', 'Evidence', 'Audit', 'Contract', 'HR', 'Legal', 'Financial'];
@@ -359,7 +359,7 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
     return [
       { label: '< 30 jours', value: ageDistribution.under30Days, percent: (ageDistribution.under30Days / total) * 100, color: 'bg-green-500' },
       { label: '30-90 jours', value: ageDistribution.under90Days, percent: (ageDistribution.under90Days / total) * 100, color: 'bg-blue-500' },
-      { label: '3-12 mois', value: ageDistribution.under1Year, percent: (ageDistribution.under1Year / total) * 100, color: 'bg-amber-500' },
+      { label: '3-12 mois', value: ageDistribution.under1Year, percent: (ageDistribution.under1Year / total) * 100, color: 'bg-warning-500' },
       { label: '1-3 ans', value: ageDistribution.under3Years, percent: (ageDistribution.under3Years / total) * 100, color: 'bg-orange-500' },
       { label: '> 3 ans', value: ageDistribution.over3Years, percent: (ageDistribution.over3Years / total) * 100, color: 'bg-red-500' },
     ];
@@ -400,10 +400,10 @@ export function RetentionDashboard({ className }: RetentionDashboardProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Expirent Bientot</CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
+            <Clock className="h-4 w-4 text-warning-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{stats.documentsExpiringSoon}</div>
+            <div className="text-2xl font-bold text-warning-600">{stats.documentsExpiringSoon}</div>
             <p className="text-xs text-muted-foreground">
               dans les 30 prochains jours
             </p>

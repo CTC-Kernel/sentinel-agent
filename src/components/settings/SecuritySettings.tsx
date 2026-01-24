@@ -103,13 +103,13 @@ export const SecuritySettings: React.FC = () => {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fade-in-up">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 col-span-1 md:col-span-2">{t('settings.security')}</h2>
 
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                        <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-lg text-brand-600 dark:text-brand-400">
                             <Key className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.changePassword')}</h3>
@@ -146,7 +146,7 @@ export const SecuritySettings: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                        <div className="p-2 bg-success-100 dark:bg-success-900/30 rounded-lg text-success-600 dark:text-success-400">
                             <ShieldAlert className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Authentification à deux facteurs</h3>
@@ -161,7 +161,7 @@ export const SecuritySettings: React.FC = () => {
                         <div className="space-y-4">
                             <Button
                                 onClick={handleEnrollMFA}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 border-none"
+                                className="w-full bg-success-600 hover:bg-success-700 text-white shadow-lg shadow-success-500/20 border-none"
                             >
                                 Activer MFA
                             </Button>
@@ -206,7 +206,7 @@ export const SecuritySettings: React.FC = () => {
                                     onClick={handleVerifyMFA}
                                     disabled={verifyingMFA || mfaCode.length < 6}
                                     isLoading={verifyingMFA}
-                                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 border-none"
+                                    className="flex-1 bg-success-600 hover:bg-success-700 text-white shadow-lg shadow-success-500/20 border-none"
                                 >
                                     Vérifier
                                 </Button>

@@ -21,34 +21,41 @@ const bucket = getStorage().bucket();
 const RELEASE_CONFIG = {
     agent: {
         currentVersion: '1.0.0',
+        releaseDate: '2026-01-24',
+        changelogUrl: 'https://github.com/sentinel/agent/releases',
         platforms: {
             windows: {
                 filename: 'SentinelAgentSetup-{version}.msi',
                 latestFilename: 'SentinelAgentSetup-latest.msi',
+                checksumFilename: 'SentinelAgentSetup-{version}.msi.sha256',
                 contentType: 'application/x-msi',
                 displayName: 'Windows (MSI)',
             },
             macos: {
                 filename: 'SentinelAgent-{version}.dmg',
                 latestFilename: 'SentinelAgent-latest.dmg',
+                checksumFilename: 'SentinelAgent-{version}.dmg.sha256',
                 contentType: 'application/x-apple-diskimage',
                 displayName: 'macOS (DMG)',
             },
             linux_deb: {
                 filename: 'sentinel-agent_{version}_amd64.deb',
                 latestFilename: 'sentinel-agent_latest_amd64.deb',
+                checksumFilename: 'sentinel-agent_{version}_amd64.deb.sha256',
                 contentType: 'application/vnd.debian.binary-package',
                 displayName: 'Linux (DEB)',
             },
             linux_rpm: {
                 filename: 'sentinel-agent-{version}.x86_64.rpm',
                 latestFilename: 'sentinel-agent-latest.x86_64.rpm',
+                checksumFilename: 'sentinel-agent-{version}.x86_64.rpm.sha256',
                 contentType: 'application/x-rpm',
                 displayName: 'Linux (RPM)',
             },
             linux_appimage: {
                 filename: 'SentinelAgent-{version}.AppImage',
                 latestFilename: 'SentinelAgent-latest.AppImage',
+                checksumFilename: 'SentinelAgent-{version}.AppImage.sha256',
                 contentType: 'application/x-executable',
                 displayName: 'Linux (AppImage)',
             },
@@ -246,6 +253,61 @@ const downloadRelease = onRequest({
 });
 
 /**
+ * Get checksum for a release file
+ */
+async function getChecksum(product, platform, version = 'latest') {
+    const config = RELEASE_CONFIG[product];
+    if (!config?.platforms?.[platform]?.checksumFilename) {
+        return null;
+    }
+
+    const platformConfig = config.platforms[platform];
+    const checksumFilename = version === 'latest'
+        ? platformConfig.checksumFilename.replace('{version}', config.currentVersion)
+        : platformConfig.checksumFilename.replace('{version}', version);
+
+    const filePath = `releases/${product}/${checksumFilename}`;
+    const file = bucket.file(filePath);
+
+    try {
+        const [exists] = await file.exists();
+        if (!exists) return null;
+
+        const [content] = await file.download();
+        return content.toString('utf-8').trim().split(' ')[0]; // SHA256 format: hash filename
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Get file size for a release
+ */
+async function getFileSize(product, platform, version = 'latest') {
+    const config = RELEASE_CONFIG[product];
+    const platformConfig = config?.platforms?.[platform];
+    if (!platformConfig) return null;
+
+    const filename = version === 'latest'
+        ? platformConfig.latestFilename
+        : platformConfig.filename.replace('{version}', version);
+
+    const filePath = `releases/${product}/${filename}`;
+    const file = bucket.file(filePath);
+
+    try {
+        const [metadata] = await file.getMetadata();
+        const bytes = parseInt(metadata.size, 10);
+        if (bytes < 1024 * 1024) {
+            return `${(bytes / 1024).toFixed(1)} KB`;
+        }
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Get release information
  * Returns available versions and download links
  */
@@ -262,19 +324,32 @@ const getReleaseInfo = onCall({
     const result = {
         product,
         currentVersion: config.currentVersion,
+        releaseDate: config.releaseDate || null,
+        changelogUrl: config.changelogUrl || null,
         platforms: {},
     };
 
-    // Check availability for each platform
-    for (const [platform, platformConfig] of Object.entries(config.platforms || {})) {
-        const latestUrl = await getDownloadUrl(product, platform, 'latest');
+    // Check availability for each platform (parallel)
+    const platformPromises = Object.entries(config.platforms || {}).map(async ([platform, platformConfig]) => {
+        const [latestUrl, checksum, fileSize] = await Promise.all([
+            getDownloadUrl(product, platform, 'latest'),
+            getChecksum(product, platform, 'latest'),
+            getFileSize(product, platform, 'latest'),
+        ]);
 
-        result.platforms[platform] = {
+        return [platform, {
             displayName: platformConfig.displayName,
             available: !!latestUrl,
             downloadUrl: `/releases/${product}/${platform}/latest`,
             directUrl: latestUrl,
-        };
+            checksum: checksum,
+            fileSize: fileSize,
+        }];
+    });
+
+    const platformResults = await Promise.all(platformPromises);
+    for (const [platform, data] of platformResults) {
+        result.platforms[platform] = data;
     }
 
     // Add mobile info

@@ -73,7 +73,7 @@ const Settings: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-24"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title={t('settings.title')} />

@@ -212,7 +212,7 @@ export const ThreatRegistry: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-24"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title="Bibliothèque de Menaces" description="Référentiel des menaces et vulnérabilités (ISO 27005)" />
@@ -283,7 +283,7 @@ export const ThreatRegistry: React.FC = () => {
                         />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {filteredThreats.map((threat) => (
                             <ThreatRegistryCard
                                 key={threat.id}
@@ -432,13 +432,13 @@ const ThreatRegistryCard = React.memo(({
                     <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/10' : 'bg-purple-50 text-purple-500 dark:bg-purple-500/10'}`}>
                         <Shield className="h-6 w-6" />
                     </div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">
                         {threat.framework}
                     </span>
                 </div>
 
                 <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{threat.name}</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 h-10">{threat.description}</p>
+                <p className="text-sm text-slate-600 dark:text-muted-foreground line-clamp-2 mb-4 h-10">{threat.description}</p>
 
                 <div className="space-y-3">
                     <div className="flex items-center text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-black/20 p-2 rounded-lg">

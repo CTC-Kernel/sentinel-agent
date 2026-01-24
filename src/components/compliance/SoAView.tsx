@@ -190,16 +190,16 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                     {selectedVersion && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                            <History className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                            <History className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                            <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
                                 Version {selectedVersion.version} - {new Date(selectedVersion.generatedAt).toLocaleDateString('fr-FR')}
                             </span>
                             <button
                                 onClick={() => setSelectedVersion(null)}
-                                className="ml-2 p-0.5 hover:bg-amber-200 dark:hover:bg-amber-800 rounded"
+                                className="ml-2 p-0.5 hover:bg-yellow-200 dark:hover:bg-yellow-800 rounded"
                             >
-                                <X className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                                <X className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
                             </button>
                         </div>
                     )}
@@ -331,9 +331,9 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                         <div className="text-xs text-green-600 dark:text-green-400 uppercase">Implémentés</div>
                         <div className="text-2xl font-bold text-green-700 dark:text-green-300">{currentStats.implementedControls}</div>
                     </div>
-                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                        <div className="text-xs text-amber-600 dark:text-amber-400 uppercase">Partiels</div>
-                        <div className="text-2xl font-bold text-amber-700 dark:text-amber-300">{currentStats.partialControls}</div>
+                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                        <div className="text-xs text-yellow-600 dark:text-yellow-400 uppercase">Partiels</div>
+                        <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{currentStats.partialControls}</div>
                     </div>
                 </div>
             )}
@@ -397,7 +397,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, framework = '
                                         <td className="px-4 py-3">
                                             {item.linkedRisksCount > 0 ? (
                                                 <Badge variant="outline" className="flex items-center gap-1">
-                                                    <AlertTriangle className="h-3 w-3 text-amber-500" />
+                                                    <AlertTriangle className="h-3 w-3 text-yellow-500" />
                                                     {item.linkedRisksCount}
                                                 </Badge>
                                             ) : <span className="text-muted-foreground">-</span>}

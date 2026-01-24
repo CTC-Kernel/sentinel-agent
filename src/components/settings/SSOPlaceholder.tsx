@@ -7,7 +7,7 @@ export const SSOPlaceholder: React.FC = () => {
     const { t } = useStore();
 
     return (
-        <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
+        <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
             <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
@@ -32,7 +32,7 @@ export const SSOPlaceholder: React.FC = () => {
 
                 <div className="max-w-md space-y-2">
                     <h4 className="text-base font-bold text-slate-900 dark:text-white">{t('settings.centralizeAccess') || "Centralisez vos accès"}</h4>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-sm text-slate-500 dark:text-muted-foreground leading-relaxed">
                         {t('settings.ssoExplanation') || "Connectez Sentinel GRC à votre fournisseur d'identité existant (Azure AD, Okta, Google Workspace) pour simplifier la connexion de vos collaborateurs."}
                     </p>
                 </div>

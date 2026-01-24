@@ -36,7 +36,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           {/* Left section: Icon + Title */}
-          <div className="flex items-center gap-6 sm:gap-8 min-w-0 flex-1 group/header">
+          <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 min-w-0 flex-1 group/header">
 
             {/* Icon container - Premium Glass Design */}
             {icon && (
@@ -46,7 +46,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 className={`
                   relative flex shrink-0 items-center justify-center
-                  ${compact ? 'w-24 h-24 rounded-2xl' : 'w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56 rounded-5xl'}
+                  ${compact ? 'w-20 h-20 sm:w-24 sm:h-24 rounded-2xl' : 'w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 xl:w-56 xl:h-56 rounded-3xl sm:rounded-4xl lg:rounded-5xl'}
                   bg-white/60 dark:bg-slate-950/40 backdrop-blur-2xl
                   shadow-2xl shadow-black/5 dark:shadow-black/20
                   ring-1 ring-[color:var(--glass-border)]
@@ -64,8 +64,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
                 {/* Icon Content */}
                 <div className={`
-                  relative z-10 flex items-center justify-center h-full w-full p-6
-                  ${compact ? '[&>svg]:w-12 [&>svg]:h-12' : '[&>svg]:w-24 [&>svg]:h-24 sm:[&>svg]:w-28 sm:[&>svg]:h-28'}
+                  relative z-10 flex items-center justify-center h-full w-full p-3 sm:p-4 lg:p-6
+                  ${compact ? '[&>svg]:w-10 [&>svg]:h-10 sm:[&>svg]:w-12 sm:[&>svg]:h-12' : '[&>svg]:w-12 [&>svg]:h-12 sm:[&>svg]:w-16 sm:[&>svg]:h-16 md:[&>svg]:w-20 md:[&>svg]:h-20 lg:[&>svg]:w-24 lg:[&>svg]:h-24'}
                   [&>svg]:stroke-[1.5]
                   [&>img]:w-full [&>img]:h-full [&>img]:object-contain [&>img]:drop-shadow-2xl
                   text-slate-900 dark:text-white
@@ -80,7 +80,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             <div className="min-w-0 flex flex-col gap-2">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className={`
-                  ${compact ? 'text-2xl' : 'text-3xl sm:text-4xl lg:text-5xl'}
+                  ${compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl'}
                   font-bold font-display tracking-tight leading-none
                   text-slate-900 dark:text-white
                   drop-shadow-sm dark:drop-shadow-lg

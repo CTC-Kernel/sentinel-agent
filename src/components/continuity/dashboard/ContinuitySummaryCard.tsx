@@ -92,35 +92,35 @@ export const ContinuitySummaryCard: React.FC<ContinuitySummaryCardProps> = ({ pr
                 <div className="text-center group/metric">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <History className="h-4 w-4 text-slate-500 group-hover/metric:text-amber-500 transition-colors" />
-                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Expirés</div>
+                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Expirés</div>
                     </div>
                     <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.overdueTests}</div>
                 </div>
                 <div className="text-center group/metric">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <Activity className="h-4 w-4 text-slate-500 group-hover/metric:text-brand-500 transition-colors" />
-                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Processus</div>
+                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Processus</div>
                     </div>
                     <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.total}</div>
                 </div>
                 <div className="text-center group/metric">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <ShieldCheck className="h-4 w-4 text-slate-500 group-hover/metric:text-rose-500 transition-colors" />
-                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Critiques</div>
+                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Critiques</div>
                     </div>
                     <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.critical}</div>
                 </div>
                 <div className="text-center group/metric">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <Zap className="h-4 w-4 text-slate-500 group-hover/metric:text-blue-500 transition-colors" />
-                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Exercices</div>
+                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Exercices</div>
                     </div>
                     <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.totalDrills}</div>
                 </div>
             </div>
 
             {/* Drill Success Rate Mini-Card */}
-            <div className="min-w-[200px] flex flex-col justify-center relative z-10 pl-4">
+            <div className="min-w-0 sm:min-w-[200px] flex flex-col justify-center relative z-10 pl-4">
                 <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors cursor-default mb-2">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />

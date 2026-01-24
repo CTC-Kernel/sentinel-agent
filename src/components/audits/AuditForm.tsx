@@ -217,7 +217,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <Controller
                         name="type"
                         control={control}

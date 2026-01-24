@@ -226,13 +226,13 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                         }}
                         aria-label={step.isCompleted ? `${step.label} - Terminé` : `${step.label} - Cliquez pour compléter`}
                         className={`flex items-center justify-between p-3 rounded-xl text-sm transition-all duration-200 border ${step.isCompleted
-                            ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 cursor-default border-emerald-200/30 dark:border-emerald-800/30'
+                            ? 'bg-success/5 text-success-text dark:text-success cursor-default border-success-border/30 dark:border-success/20'
                             : 'hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-600 dark:text-slate-300 border-slate-200/30 dark:border-slate-700/30 hover:border-slate-300/50 dark:hover:border-slate-600/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500'
                             }`}
                     >
                         <div className="flex items-center gap-3">
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${step.isCompleted
-                                ? 'bg-emerald-500 border-emerald-500 text-white'
+                                ? 'bg-success border-success text-white'
                                 : 'border-slate-300 dark:border-slate-600'
                                 }`}>
                                 {step.isCompleted ? <Check className="h-3 w-3" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />}
@@ -242,7 +242,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                             </span>
                         </div>
                         {step.isCompleted ? (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-500/20 px-2 py-1 rounded-full text-emerald-700 dark:text-emerald-300 shadow-sm">
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-success-bg dark:bg-success/20 px-2 py-1 rounded-full text-success-text dark:text-success shadow-sm">
                                 {t('common.done')}
                             </span>
                         ) : (

@@ -47,7 +47,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
 
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+                    <div className="p-1.5 rounded-lg bg-success-bg dark:bg-success/10 text-success-text dark:text-success">
                         <ShieldCheck className="w-4 h-4" />
                     </div>
                     Conformité
@@ -102,7 +102,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                         Moyenne pondérée des contrôles implémentés.
                     </p>
                     <div className="flex items-center gap-2 mt-2">
-                        <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50`}>
+                        <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 bg-success-bg text-success-text dark:bg-success/20 dark:text-success border border-success-border dark:border-success/30`}>
                             <TrendingUp className="w-3 h-3" />
                             Stable
                         </div>
@@ -118,7 +118,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 </div>
                 <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden relative">
                     <div
-                        className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
+                        className="h-full bg-gradient-to-r from-success to-success/80 rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
                         style={{ width: `${(stats.implementedControls / (stats.totalControls || 1)) * 100}%` }}
                     >
                         {/* Shimmer effect */}

@@ -956,8 +956,8 @@ export function SignatureWorkflow({
             )}
 
             {/* Legal notice */}
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-              <p className="text-sm text-amber-800 dark:text-amber-200">
+            <div className="bg-warning-50 dark:bg-warning-950/30 border border-warning-200 dark:border-warning-800 rounded-lg p-3">
+              <p className="text-sm text-warning-800 dark:text-warning-200">
                 <Shield className="h-4 w-4 inline mr-1" />
                 En signant, vous attestez avoir lu et approuvé le contenu de ce document.
                 Votre signature sera horodatée et liée cryptographiquement au document.

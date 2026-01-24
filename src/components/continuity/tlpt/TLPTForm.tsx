@@ -58,10 +58,10 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-6">
-            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Informations Générales</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <Controller
                         name="name"
                         control={control}
@@ -97,7 +97,7 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4">
                     <Controller
                         name="methodology"
                         control={control}
@@ -148,7 +148,7 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4">
                     <Controller
                         name="startDate"
                         control={control}

@@ -193,17 +193,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
     <div className="space-y-6">
       {/* Missions Section */}
       <div className="animate-fade-in-up delay-100">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/5 hover:border-blue-500/20">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-brand/5 hover:border-brand-500/20">
           <button
             onClick={() => toggleSection('missions')}
             className="w-full flex items-center justify-between group"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform duration-300">
                 <Building2 className="w-6 h-6" />
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                   {t('ebios.workshop1.missions')}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
@@ -212,7 +212,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('missions') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-blue-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-brand-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
@@ -231,12 +231,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   className={cn(
                     "group p-4 rounded-2xl border transition-all duration-200",
                     "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-blue-500/30 hover:shadow-md hover:-translate-y-0.5"
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-brand-500/30 hover:shadow-md hover:-translate-y-0.5"
                   )}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                         {mission.name}
                       </h4>
                       {mission.description && (
@@ -260,9 +260,9 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddMission}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-blue-600 font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-100/50 dark:hover:bg-brand-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-brand-600 font-medium group"
                 >
-                  <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                  <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
                     <Plus className="w-4 h-4" />
                   </div>
                   {t('ebios.workshop1.addMission')}
@@ -275,17 +275,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
       {/* Essential Assets Section */}
       <div className="animate-fade-in-up delay-200">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/5 hover:border-purple-500/20">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/5 hover:border-violet-500/20">
           <button
             onClick={() => toggleSection('essentialAssets')}
             className="w-full flex items-center justify-between group"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform duration-300">
                 <Box className="w-6 h-6" />
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                   {t('ebios.workshop1.essentialAssets')}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
@@ -294,7 +294,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('essentialAssets') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-purple-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-violet-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
@@ -313,13 +313,13 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   className={cn(
                     "group p-4 rounded-2xl border transition-all duration-200",
                     "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-purple-500/30 hover:shadow-md hover:-translate-y-0.5"
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-violet-500/30 hover:shadow-md hover:-translate-y-0.5"
                   )}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                        <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                           {asset.name}
                         </h4>
                         <span className="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
@@ -332,7 +332,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground font-medium">
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
                         {asset.linkedMissionIds.length} {t('ebios.workshop1.linkedMissions')}
                       </div>
                     </div>
@@ -351,9 +351,9 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddEssentialAsset}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-purple-500/50 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-purple-600 font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-violet-500/50 hover:bg-violet-50/50 dark:hover:bg-violet-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-violet-600 font-medium group"
                 >
-                  <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-200 dark:group-hover:bg-purple-800 transition-colors">
+                  <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-violet-200 dark:group-hover:bg-violet-800 transition-colors">
                     <Plus className="w-4 h-4" />
                   </div>
                   {t('ebios.workshop1.addEssentialAsset')}
@@ -366,17 +366,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
       {/* Supporting Assets Section */}
       <div className="animate-fade-in-up delay-300">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/5 hover:border-cyan-500/20">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-slate-500/5 hover:border-slate-500/20">
           <button
             onClick={() => toggleSection('supportingAssets')}
             className="w-full flex items-center justify-between group"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-slate-500/10 text-slate-600 dark:text-slate-400 group-hover:scale-110 transition-transform duration-300">
                 <Server className="w-6 h-6" />
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
                   {t('ebios.workshop1.supportingAssets')}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
@@ -385,7 +385,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('supportingAssets') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-cyan-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-500 group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
@@ -404,12 +404,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   className={cn(
                     "group p-4 rounded-2xl border transition-all duration-200",
                     "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-cyan-500/30 hover:shadow-md hover:-translate-y-0.5"
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400/30 hover:shadow-md hover:-translate-y-0.5"
                   )}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                      <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
                         {asset.name}
                       </h4>
                       <span className="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
@@ -417,7 +417,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       </span>
                       {asset.linkedAssetId && (
                         <span
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-info-bg text-info-text border border-info-border"
                           title={t('ebios.workshop1.linkedToInventory', 'Lié à l\'inventaire')}
                         >
                           <Link2 className="w-3 h-3" />
@@ -431,7 +431,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       </p>
                     )}
                     <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground font-medium">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/50" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-500/50" />
                       {asset.linkedEssentialAssetIds.length} {t('ebios.workshop1.linkedEssentialAssets')}
                     </div>
                   </div>
@@ -442,18 +442,18 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleAddSupportingAsset}
-                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-cyan-500/50 hover:bg-cyan-50/50 dark:hover:bg-cyan-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-cyan-600 font-medium group"
+                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-400/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-slate-700 font-medium group"
                   >
-                    <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-cyan-200 dark:group-hover:bg-cyan-800 transition-colors">
+                    <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-300 dark:group-hover:bg-slate-700 transition-colors">
                       <Plus className="w-4 h-4" />
                     </div>
                     {t('ebios.workshop1.addSupportingAsset')}
                   </button>
                   <button
                     onClick={() => setShowImportModal(true)}
-                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-blue-600 font-medium group"
+                    className="flex-1 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-500/50 hover:bg-brand-100/50 dark:hover:bg-brand-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-brand-600 font-medium group"
                   >
-                    <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                    <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-brand-200 dark:group-hover:bg-brand-800 transition-colors">
                       <Download className="w-4 h-4" />
                     </div>
                     {t('ebios.workshop1.importFromInventory', 'Importer depuis l\'inventaire')}
@@ -467,17 +467,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
       {/* Feared Events Section */}
       <div className="animate-fade-in-up delay-400">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-rose-500/5 hover:border-rose-500/20">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-error/5 hover:border-error/20">
           <button
             onClick={() => toggleSection('fearedEvents')}
             className="w-full flex items-center justify-between group"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-error-bg text-error-text group-hover:scale-110 transition-transform duration-300">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-error-text transition-colors">
                   {t('ebios.workshop1.fearedEvents')}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
@@ -486,7 +486,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('fearedEvents') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-rose-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-error group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (
@@ -505,20 +505,20 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                   className={cn(
                     "group p-4 rounded-2xl border transition-all duration-200",
                     "bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700",
-                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-rose-500/30 hover:shadow-md hover:-translate-y-0.5"
+                    !readOnly && "cursor-pointer hover:bg-white dark:hover:bg-slate-800 hover:border-error/30 hover:shadow-md hover:-translate-y-0.5"
                   )}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                        <h4 className="font-semibold text-slate-900 dark:text-white truncate text-base group-hover:text-error-text transition-colors">
                           {event.name}
                         </h4>
                         <span className={cn(
                           "px-2 py-0.5 rounded-md text-[10px] uppercase font-bold border",
-                          event.impactType === 'confidentiality' && "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800",
-                          event.impactType === 'integrity' && "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
-                          event.impactType === 'availability' && "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
+                          event.impactType === 'confidentiality' && "bg-info-bg text-info-text border-info-border",
+                          event.impactType === 'integrity' && "bg-success-bg text-success-text border-success-border",
+                          event.impactType === 'availability' && "bg-warning-bg text-warning-text border-warning-border"
                         )}>
                           {t(`ebios.impactTypes.${event.impactType}`)}
                         </span>
@@ -530,12 +530,12 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
                       )}
                       <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground font-medium">
                         <span className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-rose-500/50" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-error/50" />
                           {event.linkedMissionIds.length} {t('ebios.workshop1.linkedMissions')}
                         </span>
                         <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
                         <span className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
                           {event.linkedEssentialAssetIds.length} {t('ebios.workshop1.linkedAssets')}
                         </span>
                       </div>
@@ -555,9 +555,9 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               {!readOnly && (
                 <button
                   onClick={handleAddFearedEvent}
-                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-rose-500/50 hover:bg-rose-50/50 dark:hover:bg-rose-900/10 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-rose-600 font-medium group"
+                  className="w-full p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-error/50 hover:bg-error-bg/50 transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-error-text font-medium group"
                 >
-                  <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-rose-200 dark:group-hover:bg-rose-800 transition-colors">
+                  <div className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-error-bg transition-colors">
                     <Plus className="w-4 h-4" />
                   </div>
                   {t('ebios.workshop1.addFearedEvent')}
@@ -570,17 +570,17 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
 
       {/* Security Baseline Section */}
       <div className="animate-fade-in-up delay-500">
-        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/5 hover:border-emerald-500/20">
+        <GlassCard className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-success/5 hover:border-success/20">
           <button
             onClick={() => toggleSection('securityBaseline')}
             className="w-full flex items-center justify-between group"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300">
+              <div className="p-3 rounded-2xl bg-success-bg text-success-text group-hover:scale-110 transition-transform duration-300">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-success-text transition-colors">
                   {t('ebios.workshop1.securityBaseline')}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium">
@@ -589,7 +589,7 @@ export const Workshop1Content: React.FC<Workshop1ContentProps> = ({
               </div>
             </div>
             {expandedSections.has('securityBaseline') ? (
-              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+              <div className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-success group-hover:text-white transition-all">
                 <ChevronUp className="w-5 h-5" />
               </div>
             ) : (

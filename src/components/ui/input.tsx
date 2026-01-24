@@ -28,7 +28,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     "dark:bg-slate-800/50 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500",
                     "dark:hover:border-primary/40 dark:hover:bg-slate-800/70",
                     // Error state styling
-                    hasError && "border-red-500 dark:border-red-500 focus-visible:ring-red-500 hover:border-red-500",
+                    hasError && "border-error-500 dark:border-error-500 focus-visible:ring-error-500 hover:border-error-500",
                     className
                 )}
                 ref={ref}

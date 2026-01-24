@@ -249,8 +249,8 @@ export const DocumentTemplateModal: React.FC<DocumentTemplateModalProps> = ({
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                                                <div className="mt-4 p-3 bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 rounded-lg">
+                                                    <p className="text-xs text-warning-700 dark:text-warning-300">
                                                         Les sections marquées [À_PERSONNALISER] doivent être adaptées à votre organisation.
                                                     </p>
                                                 </div>

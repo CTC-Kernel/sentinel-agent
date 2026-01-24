@@ -199,7 +199,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
     return (
         <div className="space-y-6">
-            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-6">
+            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-6">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <CheckCircle2 className="h-5 w-5 text-brand-500" />
@@ -211,16 +211,16 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                         </span>
                     )}
                     {treatment.slaStatus === 'At Risk' && (
-                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold flex items-center gap-1 border border-orange-200">
+                        <span className="px-3 py-1 bg-warning-bg text-warning-text rounded-full text-xs font-bold flex items-center gap-1 border border-warning-border">
                             <Clock className="h-3 w-3" /> SLA À Risque
                         </span>
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {/* Strategy */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Stratégie</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Stratégie</label>
                         <div className="relative group">
                             <select
                                 value={treatment.strategy}
@@ -238,7 +238,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Status */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Statut</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Statut</label>
                         <div className="relative group">
                             <select
                                 value={treatment.status}
@@ -256,9 +256,9 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Owner */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Responsable</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Responsable</label>
                         <div className="relative group">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                             <select
                                 value={treatment.ownerId || ''}
                                 onChange={(e) => handleChange('ownerId', e.target.value)}
@@ -274,9 +274,9 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Due Date */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Échéance (SLA)</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Échéance (SLA)</label>
                         <div className="relative group">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                             <input value={treatment.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)}
                                 type="date"
                                 className={`w-full pl-10 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none ${treatment.slaStatus === 'Breached' ? 'border-red-500 text-red-600' : ''
@@ -293,9 +293,9 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Estimated Cost */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Coût Estimé (€)</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Coût Estimé (€)</label>
                         <div className="relative group">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold group-focus-within:text-brand-500 transition-colors">€</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold group-focus-within:text-brand-500 transition-colors">€</span>
                             <input value={treatment.estimatedCost || ''} onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
                                 type="number"
                                 className="w-full pl-8 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-muted-foreground"
@@ -309,7 +309,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                 {/* Description */}
                 <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Description du plan</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Description du plan</label>
                     <textarea
                         value={treatment.description}
                         onChange={(e) => handleChange('description', e.target.value)}
@@ -323,14 +323,14 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
             {/* AI Generated Measures */}
             {treatment.measures && treatment.measures.length > 0 && (
-                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-purple-500" />
+                        <Sparkles className="h-4 w-4 text-violet-500" />
                         Mesures suggérées (IA)
                     </h3>
                     <div className="grid gap-2">
                         {treatment.measures.map((measure, idx) => (
-                            <div key={idx} className="flex items-start justify-between p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30">
+                            <div key={idx} className="flex items-start justify-between p-3 bg-violet-50/50 dark:bg-violet-900/10 rounded-xl border border-violet-100 dark:border-violet-900/30">
                                 <p className="text-sm text-slate-700 dark:text-muted-foreground">{measure}</p>
                                 <button onClick={() => removeMeasure(idx)} className="text-muted-foreground hover:text-red-500 p-1">
                                     <X className="h-4 w-4" />
@@ -343,7 +343,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
             {/* Linked Controls - Enhanced with search and filters */}
             {onRiskUpdate && (
-                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
                     <div className="flex items-center justify-between">
                         <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <Shield className="h-4 w-4 text-brand-500" />
@@ -355,14 +355,14 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 <div className="flex items-center gap-1.5">
                                     <div className="w-16 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                         <div
-                                            className={`h-full rounded-full transition-all ${mitigationCoverage >= 80 ? 'bg-emerald-500' :
-                                                mitigationCoverage >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                            className={`h-full rounded-full transition-all ${mitigationCoverage >= 80 ? 'bg-success-text' :
+                                                mitigationCoverage >= 50 ? 'bg-warning-text' : 'bg-error-text'
                                                 }`}
                                             style={{ width: `${mitigationCoverage}%` }}
                                         />
                                     </div>
-                                    <span className={`text-xs font-bold ${mitigationCoverage >= 80 ? 'text-emerald-600' :
-                                        mitigationCoverage >= 50 ? 'text-amber-600' : 'text-red-600'
+                                    <span className={`text-xs font-bold ${mitigationCoverage >= 80 ? 'text-success-text' :
+                                        mitigationCoverage >= 50 ? 'text-warning-text' : 'text-error-text'
                                         }`}>
                                         {mitigationCoverage}%
                                     </span>
@@ -384,7 +384,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                                 return (
                                     <div key={ctrl.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-3">
-                                            <Shield className={`h-4 w-4 ${isImplemented ? 'text-emerald-500' : isPartial ? 'text-amber-500' : 'text-slate-400'}`} />
+                                            <Shield className={`h-4 w-4 ${isImplemented ? 'text-success-text' : isPartial ? 'text-warning-text' : 'text-slate-400'}`} />
                                             <div>
                                                 <p className="text-sm font-bold text-slate-900 dark:text-white">{ctrl.code} - {ctrl.name}</p>
                                                 <div className="flex items-center gap-2 mt-0.5">
@@ -416,7 +416,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
                     {/* Add Control Section - Enhanced with search and filter */}
                     <div className="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
                             <Plus className="h-3.5 w-3.5" />
                             Lier un nouveau contrôle
                         </label>

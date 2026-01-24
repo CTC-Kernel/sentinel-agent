@@ -46,7 +46,7 @@ export const SystemEntrance: React.FC = () => {
     // Boot Screen (Theme Aware)
     if (isBooting) {
         return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-emerald-600 dark:text-emerald-500 font-mono flex items-center justify-center p-8 transition-colors duration-500">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-green-600 dark:text-green-500 font-mono flex items-center justify-center p-8 transition-colors duration-500">
                 <div className="w-full max-w-lg">
                     {bootSequence.map((line, i) => (
                         <div key={`msg-${i}`} className="mb-2 animate-fade-in font-bold">
@@ -80,8 +80,8 @@ export const SystemEntrance: React.FC = () => {
                 {/* Brand Identity / Status */}
                 <div className={`mb-12 transition-all duration-700 ${isScanning ? 'scale-90 opacity-50' : 'scale-100 opacity-100'}`}>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 mb-6 backdrop-blur-md shadow-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">Système Sécurisé • Niveau 4</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-muted-foreground font-bold">Système Sécurisé • Niveau 4</span>
                     </div>
                     <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-b from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-white dark:to-slate-500 drop-shadow-2xl animate-fade-in">
                         SENTINEL <span className="text-brand-600 dark:text-brand-500 animate-pulse">_</span>
@@ -103,7 +103,7 @@ export const SystemEntrance: React.FC = () => {
                             <div className="relative">
                                 <Loader2 className="h-12 w-12 text-slate-500 dark:text-slate-400 animate-spin" />
                             </div>
-                            <div className="mt-6 font-mono text-sm tracking-widest text-slate-600 dark:text-slate-400 font-bold uppercase">
+                            <div className="mt-6 font-mono text-sm tracking-widest text-slate-600 dark:text-muted-foreground font-bold uppercase">
                                 Chargement...
                             </div>
                         </div>
@@ -148,11 +148,11 @@ export const SystemEntrance: React.FC = () => {
                 </div>
                 <div className="flex gap-8">
                     <span className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                         Réseau: En Ligne
                     </span>
                     <span className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                         Intel: Actif
                     </span>
                 </div>

@@ -14,9 +14,9 @@ export const RiskLinkedProjects: React.FC<RiskLinkedProjectsProps> = ({
     onNavigateToProject
 }) => {
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
                 {canEdit && (
                     <button
                         aria-label="Créer un nouveau projet lié"

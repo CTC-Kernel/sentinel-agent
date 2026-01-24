@@ -78,7 +78,7 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
             onDragEnd={handleDragEnd}
         >
             <SortableContext items={layout.map(w => w.id)} strategy={rectSortingStrategy}>
-                <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-10 ${isEditing ? 'min-h-[500px]' : ''}`}>
+                <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 pb-10 ${isEditing ? 'min-h-[500px]' : ''}`}>
                     {layout.map((widget) => (
                         !widget.isHidden && (
                             <SortableWidget

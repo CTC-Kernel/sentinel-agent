@@ -144,7 +144,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
             {/* Suggestions Section */}
             {showSuggestions && suggestions.length > 0 && !searchQuery && (
               <div className="mb-4">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
                   <Sparkles className="w-3 h-3" />
                   {t('ebios.workshop4.suggestedTechniques')}
                 </h3>
@@ -166,7 +166,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                 </div>
                 <button
                   onClick={() => setShowSuggestions(false)}
-                  className="mt-2 text-xs text-slate-500 hover:text-slate-700"
+                  className="mt-2 text-xs text-muted-foreground hover:text-foreground"
                 >
                   {t('ebios.workshop4.browseAll')}
                 </button>
@@ -176,7 +176,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
             {/* Search Results */}
             {searchQuery.length >= 2 && (
               <>
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                   {t('ebios.workshop4.searchResults')} ({searchResults.length})
                 </h3>
                 {searchResults.length === 0 ? (
@@ -210,7 +210,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
             {/* Tactics List */}
             {!searchQuery && !showSuggestions && (
               <>
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                   {t('ebios.workshop4.tactics')}
                 </h3>
                 <div className="space-y-1">
@@ -247,7 +247,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                     {MITRE_TACTICS.find(t => t.id === selectedTacticId)?.name[locale]}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {MITRE_TACTICS.find(t => t.id === selectedTacticId)?.description[locale]}
                   </p>
                 </div>
@@ -333,7 +333,7 @@ export const MitreSearchModal: React.FC<MitreSearchModalProps> = ({
                         <p className="font-medium text-slate-900 dark:text-white">
                           {technique.name[locale]}
                         </p>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                           {MITRE_TACTICS.find(t => t.id === technique.tacticId)?.name[locale]}
                         </p>
                         <p className="text-xs text-slate-500 mt-1 line-clamp-2">

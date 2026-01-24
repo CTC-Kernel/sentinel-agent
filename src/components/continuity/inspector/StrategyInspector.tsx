@@ -93,7 +93,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
                 </div>
             }
         >
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
                 <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800">
                     <h3 className="font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
                         <Server className="w-4 h-4" />

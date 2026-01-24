@@ -21,12 +21,11 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
 
     const getCellColor = (p: number, i: number) => {
         const score = p * i;
-        // Using Tailwind classes that match SENTINEL_PALETTE indirectly or SEVERITY_COLORS
-        // These mimic the RiskMatrixSelector colors for consistency
-        if (score >= 15) return 'bg-rose-500/90 dark:bg-rose-600/90'; // Critical
-        if (score >= 10) return 'bg-orange-500/90 dark:bg-orange-600/90'; // High
-        if (score >= 5) return 'bg-amber-400/90 dark:bg-amber-500/90'; // Medium
-        return 'bg-emerald-500/90 dark:bg-emerald-600/90'; // Low
+        // Using semantic tokens for consistency
+        if (score >= 15) return 'bg-error-text/90 dark:bg-error-text/80'; // Critical
+        if (score >= 10) return 'bg-warning-text/90 dark:bg-warning-text/80'; // High
+        if (score >= 5) return 'bg-info-text/90 dark:bg-info-text/80'; // Medium
+        return 'bg-success-text/90 dark:bg-success-text/80'; // Low
     };
 
     return (
@@ -79,16 +78,16 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
             {/* Legend */}
             <div className="mt-8 flex gap-4 text-[10px] font-medium text-slate-500 dark:text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-emerald-500" /> Faible
+                    <div className="w-2.5 h-2.5 rounded bg-success-text" /> Faible
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-amber-400" /> Moyen
+                    <div className="w-2.5 h-2.5 rounded bg-info-text" /> Moyen
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-orange-500" /> Élevé
+                    <div className="w-2.5 h-2.5 rounded bg-warning-text" /> Élevé
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-rose-500" /> Critique
+                    <div className="w-2.5 h-2.5 rounded bg-error-text" /> Critique
                 </div>
             </div>
         </div>

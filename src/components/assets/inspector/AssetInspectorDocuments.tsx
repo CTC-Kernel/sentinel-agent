@@ -12,8 +12,8 @@ export const AssetInspectorDocuments: React.FC<AssetInspectorDocumentsProps> = (
     linkedDocuments
 }) => {
     return (
-        <div className="space-y-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
+        <div className="space-y-6 sm:space-y-8">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center">
                 <FileText className="h-4 w-4 mr-2" /> Documents Liés ({linkedDocuments.length})
             </h3>
             {linkedDocuments.length === 0 ? (
@@ -24,7 +24,7 @@ export const AssetInspectorDocuments: React.FC<AssetInspectorDocumentsProps> = (
                         <div key={doc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white truncate pr-4">{doc.title}</span>
-                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${doc.status === 'Publié' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${doc.status === 'Publié' ? 'bg-green-100 text-green-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
                                     {doc.status}
                                 </span>
                             </div>

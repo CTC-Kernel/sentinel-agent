@@ -97,7 +97,7 @@ export function AutoSaveIndicator({
     case 'saving':
       return (
         <div
-          className={`${baseStyles} text-blue-600 dark:text-blue-400 ${className}`}
+          className={`${baseStyles} text-info-600 dark:text-info-400 ${className}`}
           role="status"
           aria-live="polite"
           aria-busy="true"
@@ -110,7 +110,7 @@ export function AutoSaveIndicator({
     case 'saved':
       return (
         <div
-          className={`${baseStyles} text-emerald-600 dark:text-emerald-400 ${className}`}
+          className={`${baseStyles} text-success-600 dark:text-success-400 ${className}`}
           role="status"
           aria-live="polite"
         >
@@ -131,7 +131,7 @@ export function AutoSaveIndicator({
     case 'error':
       return (
         <div
-          className={`${baseStyles} text-rose-600 dark:text-rose-400 ${className}`}
+          className={`${baseStyles} text-error-600 dark:text-error-400 ${className}`}
           role="alert"
           aria-live="assertive"
         >
@@ -143,9 +143,9 @@ export function AutoSaveIndicator({
                 <button
                   onClick={onRetry}
                   className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 text-xs font-medium
-                           bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300
-                           rounded hover:bg-rose-200 dark:hover:bg-rose-900/50
-                           focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1
+                           bg-error-100 dark:bg-error-900/30 text-error-700 dark:text-error-300
+                           rounded hover:bg-error-200 dark:hover:bg-error-900/50
+                           focus:outline-none focus:ring-2 focus:ring-error-500 focus:ring-offset-1
                            transition-colors"
                   type="button"
                   aria-label={l.retry}

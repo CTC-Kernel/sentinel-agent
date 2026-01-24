@@ -56,58 +56,58 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
     };
 
     return (
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-3xl p-6 border border-indigo-100 dark:border-white/5 shadow-sm relative overflow-hidden h-full flex flex-col">
+        <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/10 dark:to-violet-900/10 rounded-3xl p-6 border border-brand-100 dark:border-white/5 shadow-sm relative overflow-hidden h-full flex flex-col">
             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                <Sparkles className="w-24 h-24 text-indigo-600" />
+                <Sparkles className="w-24 h-24 text-brand-600" />
             </div>
 
             <div className="flex items-center gap-3 mb-6 relative z-10">
-                <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm text-indigo-600 dark:text-indigo-400">
+                <div className="p-2 bg-white dark:bg-white/10 rounded-xl shadow-sm text-brand-600 dark:text-brand-400">
                     <Bot className="w-5 h-5" />
                 </div>
                 <div>
                     <h3 className="font-bold text-slate-900 dark:text-slate-100">Assistant Projet IA</h3>
-                    <p className="text-xs text-slate-600 dark:text-muted-foreground">Analyse, reporting et suggestions</p>
+                    <p className="text-xs text-muted-foreground">Analyse, reporting et suggestions</p>
                 </div>
             </div>
 
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-3 relative z-10">
-                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-                        <div className="p-2 bg-blue-100 dark:bg-slate-900/30 text-blue-600 dark:text-blue-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
+                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                        <div className="p-2 bg-info/10 text-info rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <FileText className="w-5 h-5" />
                         </div>
                         <div>
                             <span className="block font-bold text-slate-900 dark:text-white">Générer un rapport de statut</span>
-                            <span className="text-xs text-slate-600 dark:text-muted-foreground">Synthèse d'avancement pour le COPIL</span>
+                            <span className="text-xs text-muted-foreground">Synthèse d'avancement pour le COPIL</span>
                         </div>
                     </button>
 
-                    <button onClick={() => handleAction('risks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-                        <div className="p-2 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
+                    <button onClick={() => handleAction('risks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-warning">
+                        <div className="p-2 bg-warning/10 text-warning rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <AlertTriangle className="w-5 h-5" />
                         </div>
                         <div>
                             <span className="block font-bold text-slate-900 dark:text-white">Analyser les risques</span>
-                            <span className="text-xs text-slate-600 dark:text-muted-foreground">Identifier les points de vigilance</span>
+                            <span className="text-xs text-muted-foreground">Identifier les points de vigilance</span>
                         </div>
                     </button>
 
-                    <button onClick={() => handleAction('tasks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
+                    <button onClick={() => handleAction('tasks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-brand-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-success">
+                        <div className="p-2 bg-success/10 text-success rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <Target className="w-5 h-5" />
                         </div>
                         <div>
                             <span className="block font-bold text-slate-900 dark:text-white">Suggérer des tâches</span>
-                            <span className="text-xs text-slate-600 dark:text-muted-foreground">Prochaines étapes recommandées</span>
+                            <span className="text-xs text-muted-foreground">Prochaines étapes recommandées</span>
                         </div>
                     </button>
                 </div>
             )}
 
             {loading && (
-                <div className="flex flex-col items-center justify-center py-12 text-slate-600 dark:text-slate-400 flex-1">
-                    <Loader2 className="w-10 h-10 animate-spin mb-4 text-indigo-500" />
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground flex-1">
+                    <Loader2 className="w-10 h-10 animate-spin mb-4 text-brand-500" />
                     <p className="text-sm font-medium animate-pulse">L'IA analyse le projet...</p>
                 </div>
             )}
@@ -121,7 +121,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                             </ReactMarkdown>
                         </div>
                     </div>
-                    <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                    <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-muted-foreground rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         Retour aux options
                     </button>
                 </div>

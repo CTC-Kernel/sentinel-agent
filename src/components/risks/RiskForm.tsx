@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useWatch, FieldErrors } from 'react-hook-form';
 import { useZodForm } from '../../hooks/useZodForm';
 import { toast } from '@/lib/toast';
@@ -59,13 +60,6 @@ interface RiskFormProps {
     autoSaveDebounceMs?: number;
 }
 
-const TABS = [
-    { id: 'context', label: 'Contexte & Actifs', icon: LayoutGrid },
-    { id: 'identification', label: 'Identification', icon: FileText },
-    { id: 'assessment', label: 'Évaluation', icon: Activity },
-    { id: 'treatment', label: 'Traitement & Contrôles', icon: Layers },
-    { id: 'history', label: 'Historique', icon: History },
-];
 
 export const RiskForm: React.FC<RiskFormProps> = ({
     onSubmit,
@@ -87,6 +81,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     enableAutoSave = true,
     autoSaveDebounceMs = 30000
 }) => {
+    const { t } = useTranslation();
+
     // State
     const [isDraft, setIsDraft] = useState(() => initialDraftMode || (existingRisk?.status === RISK_DRAFT_STATUS));
     const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -96,6 +92,14 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const [showLibraryModal, setShowLibraryModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [suggestedControlIds, setSuggestedControlIds] = useState<string[]>([]);
+
+    const TABS = [
+        { id: 'context', label: t('risks.tabs.context') || 'Contexte & Actifs', icon: LayoutGrid },
+        { id: 'identification', label: t('risks.tabs.identification') || 'Identification', icon: FileText },
+        { id: 'assessment', label: t('risks.tabs.assessment') || 'Évaluation', icon: Activity },
+        { id: 'treatment', label: t('risks.tabs.treatment') || 'Traitement & Contrôles', icon: Layers },
+        { id: 'history', label: t('common.history'), icon: History },
+    ];
 
     const { user } = useAuth();
 
@@ -179,8 +183,16 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         };
         const firstErrorField = missingFields[0];
         if (firstErrorField && fieldTabMapping[firstErrorField]) setActiveTab(fieldTabMapping[firstErrorField]);
-        const translatedFields = missingFields.map(f => f === 'assetId' ? 'Actif Principal' : f === 'threat' ? 'Menace' : f === 'vulnerability' ? 'Vulnérabilité' : f === 'justification' ? 'Justification' : f);
-        toast.error(`Formulaire incomplet. Veuillez vérifier : ${translatedFields.join(', ')}`);
+
+        const fieldLabels: Record<string, string> = {
+            assetId: t('common.assets'),
+            threat: t('common.threat'),
+            vulnerability: t('common.vulnerability'),
+            justification: t('risks.validation_justification') // Assuming this key exists or similar context
+        };
+
+        const translatedFields = missingFields.map(f => fieldLabels[f] || f);
+        toast.error(`${t('validation.required')}: ${translatedFields.join(', ')}`);
     };
 
     // Handlers
@@ -214,7 +226,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         const data = getValues();
         const { canSave, errors: draftErrors } = canSaveRiskAsDraft(data as Record<string, unknown>);
         if (!canSave) {
-            if (draftErrors.threat) { toast.error('La menace est requise pour enregistrer un brouillon'); setActiveTab('identification'); }
+            if (draftErrors.threat) { toast.error(t('risks.validation_threat_required') || 'La menace est requise pour enregistrer un brouillon'); setActiveTab('identification'); }
             return;
         }
         setIsSavingDraft(true);
@@ -310,7 +322,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {TABS.map((tab) => {
                         const Icon = tab.icon;
                         return (
-                            <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-600 hover:text-slate-700 dark:text-slate-400'}`}>
+                            <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-muted-foreground hover:text-foreground dark:text-slate-400'}`}>
                                 <Icon className="h-4 w-4" />
                                 {tab.label}
                             </button>
@@ -348,7 +360,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {activeTab === 'identification' && <RiskFormIdentificationTab control={control} errors={errors} assets={assets} getValues={getValues} setValue={setValue} showLibraryModal={showLibraryModal} setShowLibraryModal={setShowLibraryModal} readOnly={readOnly} />}
                     {activeTab === 'assessment' && <RiskFormAssessmentTab probability={probability ?? 3} impact={impact ?? 3} residualProbability={residualProbability ?? 3} residualImpact={residualImpact ?? 3} setValue={setValue} control={control} errors={errors} readOnly={readOnly} />}
                     {activeTab === 'treatment' && <RiskFormTreatmentTab control={control} errors={errors} existingRisk={existingRisk} controls={controls} usersList={usersList} getValues={getValues} setValue={setValue} strategy={strategy || 'Atténuer'} probability={probability ?? 3} impact={impact ?? 3} mitigationControlIds={mitigationControlIds || []} suggestedControlIds={suggestedControlIds} readOnly={readOnly} />}
-                    {activeTab === 'history' && existingRisk?.id && <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm"><ResourceHistory resourceId={existingRisk.id} resourceType="Risk" /></div>}
+                    {activeTab === 'history' && existingRisk?.id && <div className="space-y-6 glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm"><ResourceHistory resourceId={existingRisk.id} resourceType="Risk" /></div>}
                 </fieldset>
                 {activeTab === 'history' && !existingRisk?.id && <div className="p-8 text-center text-slate-500">Veuillez enregistrer le risque pour voir l'historique.</div>}
             </div>
@@ -364,8 +376,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         ) : (
                             <div className="flex gap-2">
                                 {onSaveDraft && (!isEditing || isDraft) && <Button type="button" variant="secondary" onClick={handleSaveAsDraft} isLoading={isSavingDraft} disabled={isSavingDraft || isLoading} className="px-6 py-3 border border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl font-medium text-sm">Enregistrer brouillon</Button>}
-                                {isDraft && isEditing && onPublishDraft && <Button type="button" onClick={handlePublishDraft} isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-green-500/20 font-bold text-sm">Publier le Risque</Button>}
-                                {(!isDraft || !isEditing) && <Button type="submit" isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm">{isEditing ? 'Sauvegarder' : 'Créer le Risque'}</Button>}
+                                {isDraft && isEditing && onPublishDraft && <Button type="button" onClick={handlePublishDraft} isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-6 py-3 bg-gradient-to-r from-success-text to-success-text/90 hover:from-success-text/90 hover:to-success-text/80 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-success-text/20 font-bold text-sm">Publier le Risque</Button>}
+                                {(!isDraft || !isEditing) && <Button type="submit" isLoading={isLoading} disabled={isLoading || isSavingDraft} className="px-8 py-3 bg-gradient-to-r from-brand-600 to-violet-600 hover:from-brand-700 hover:to-violet-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm">{isEditing ? 'Sauvegarder' : 'Créer le Risque'}</Button>}
                             </div>
                         )}
                     </div>
@@ -381,7 +393,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             <div key={t.id} onClick={() => handleSelectThreatFromLibrary(t)} className="border border-slate-200 dark:border-white/10 p-4 rounded-xl hover:border-brand-500 cursor-pointer bg-white dark:bg-slate-800 transition-all hover:shadow-md group">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-brand-500" /><span className="font-bold text-slate-900 dark:text-white line-clamp-1">{t.name}</span></div>
-                                    <span className="text-[10px] uppercase font-bold text-slate-500 border px-1.5 py-0.5 rounded">{t.framework}</span>
+                                    <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 border px-1.5 py-0.5 rounded">{t.framework}</span>
                                 </div>
                                 <p className="text-xs text-slate-600 line-clamp-2 mb-2">{t.description}</p>
                                 <div className="flex gap-2 text-[10px] text-slate-500">

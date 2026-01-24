@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { ShieldAlert } from '../ui/Icons';
 import { DataTable } from '../ui/DataTable';
@@ -32,6 +33,7 @@ export const RiskList = React.memo<RiskListProps>(({
     emptyStateTitle, emptyStateDescription, emptyStateActionLabel, onEmptyStateAction,
     searchQuery = ''
 }) => {
+    const { t } = useTranslation();
     const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
 
     const handleDelete = React.useCallback(async (id: string, name: string) => {
@@ -76,9 +78,9 @@ export const RiskList = React.memo<RiskListProps>(({
                     emptyState={
                         <EmptyState
                             icon={ShieldAlert}
-                            title={emptyStateTitle || "Aucun risque identifié"}
-                            description={emptyStateDescription || "Votre registre de risques est parfaitement clean. Commencez par ajouter une nouvelle menace."}
-                            actionLabel={emptyStateActionLabel || "Créer un risque"}
+                            title={emptyStateTitle || t('common.noResults')}
+                            description={emptyStateDescription || t('common.emptyChart.addData')}
+                            actionLabel={emptyStateActionLabel || t('common.create')}
                             onAction={onEmptyStateAction || (() => window.dispatchEvent(new CustomEvent('open-risk-modal')))}
                             color="emerald"
                         />

@@ -196,7 +196,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
 
             <div className="space-y-8 max-w-7xl mx-auto">
                 {activeTab === 'details' && (
-                    <div className="space-y-8">
+                    <div className="space-y-6 sm:space-y-8">
                         <AssetForm
                             initialData={selectedAsset || undefined}
                             onSubmit={async (data) => {

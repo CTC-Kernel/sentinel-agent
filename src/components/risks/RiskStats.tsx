@@ -58,7 +58,7 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-muted-foreground mb-2">Non Traités</p>
                             <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-amber-500 drop-shadow-sm">
+                                <span className="text-2xl font-black text-warning-text drop-shadow-sm">
                                     {stats.untreatedCritical}
                                 </span>
                                 <span className="text-xs font-medium text-slate-600 dark:text-muted-foreground">Critiques</span>
@@ -67,10 +67,10 @@ export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-muted-foreground mb-2">Réduction</p>
                             <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-emerald-500 drop-shadow-sm">
+                                <span className="text-2xl font-black text-success-text drop-shadow-sm">
                                     {stats.reductionPercentage}%
                                 </span>
-                                <TrendingDown className="h-4 w-4 text-emerald-500" />
+                                <TrendingDown className="h-4 w-4 text-success-text" />
                             </div>
                         </div>
                     </div>

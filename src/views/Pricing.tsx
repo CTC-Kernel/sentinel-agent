@@ -127,7 +127,7 @@ const Pricing = () => {
   };
 
   const renderFeatureValue = (value: string | boolean) => {
-    if (value === true) return <Check className="w-5 h-5 text-emerald-400 mx-auto" />;
+    if (value === true) return <Check className="w-5 h-5 text-success-text mx-auto" />;
     if (value === false) return <X className="w-5 h-5 text-slate-500 mx-auto opacity-50" />;
     return <span className="font-medium text-slate-700 dark:text-slate-300 text-sm">{value}</span>;
   };
@@ -171,16 +171,16 @@ const Pricing = () => {
           >
             <button
               onClick={() => setIsAnnual(false)}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${!isAnnual ? 'bg-white dark:bg-slate-700 shadow-md text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${!isAnnual ? 'bg-white dark:bg-slate-700 shadow-md text-brand-600 dark:text-brand-400' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Mensuel
             </button>
             <button
               onClick={() => setIsAnnual(true)}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${isAnnual ? 'bg-white dark:bg-slate-700 shadow-md text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 ${isAnnual ? 'bg-white dark:bg-slate-700 shadow-md text-brand-600 dark:text-brand-400' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Annuel
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] uppercase tracking-wider font-extrabold">-20%</span>
+              <span className="px-2 py-0.5 rounded-full bg-success-bg text-success-text text-[10px] uppercase tracking-wider font-extrabold">-20%</span>
             </button>
           </motion.div>
         </div>
@@ -202,7 +202,7 @@ const Pricing = () => {
                   }`}
               >
                 {isPopular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-brand-600 to-violet-600 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg">
                     Recommandé
                   </div>
                 )}
@@ -263,7 +263,7 @@ const Pricing = () => {
             <div className="grid grid-cols-4 p-6 border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
               <div className="col-span-1 p-2 font-bold text-slate-500 uppercase text-xs tracking-wider">Fonctionnalités</div>
               <div className="col-span-1 p-2 text-center font-bold text-slate-900 dark:text-white">Discovery</div>
-              <div className="col-span-1 p-2 text-center font-bold text-blue-600 dark:text-blue-400">Professional</div>
+              <div className="col-span-1 p-2 text-center font-bold text-brand-600 dark:text-brand-400">Professional</div>
               <div className="col-span-1 p-2 text-center font-bold text-slate-900 dark:text-white">Enterprise</div>
             </div>
 
@@ -302,7 +302,7 @@ const Pricing = () => {
                                 </span>
                               </div>
                               <div className="col-span-1 text-center">{renderFeatureValue(feature.discovery)}</div>
-                              <div className="col-span-1 text-center bg-blue-50/30 dark:bg-blue-900/10 py-2 rounded-lg">{renderFeatureValue(feature.professional)}</div>
+                              <div className="col-span-1 text-center bg-brand-50/30 dark:bg-brand-900/10 py-2 rounded-lg">{renderFeatureValue(feature.professional)}</div>
                               <div className="col-span-1 text-center">{renderFeatureValue(feature.enterprise)}</div>
                             </div>
                           ))}
@@ -337,7 +337,7 @@ const Pricing = () => {
                 >
                   <span className="font-bold text-slate-800 dark:text-slate-200 text-base">{faq.q}</span>
                   <ChevronDown
-                    className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${expandedCategories.includes(`faq-${i}`) ? 'rotate-180 text-blue-500' : ''}`}
+                    className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${expandedCategories.includes(`faq-${i}`) ? 'rotate-180 text-brand-500' : ''}`}
                   />
                 </button>
                 <AnimatePresence>

@@ -309,7 +309,7 @@ const BusinessContextTab: React.FC<BusinessContextTabProps> = ({ data, onSave, i
           </div>
           <div className="flex flex-wrap gap-2">
             {formData.criticalProcesses.map((process, index) => (
-              <Badge key={index} variant="soft" className="gap-1.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+              <Badge key={index} variant="soft" className="gap-1.5 py-1.5 bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text">
                 <AlertTriangle className="w-3 h-3" />
                 {process}
                 <button onClick={() => removeItem('criticalProcesses', index)} className="ml-1 hover:text-red-500">
@@ -363,8 +363,8 @@ const RegulatoryContextTab: React.FC<RegulatoryContextTabProps> = ({
     <GlassCard className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-            <Scale className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+            <Scale className="w-5 h-5 text-violet-600 dark:text-violet-400" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Contexte Réglementaire</h3>
@@ -545,7 +545,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
     critical: { label: 'Critique', color: 'red', description: 'Risques inacceptables' },
   };
 
-  // Static mappings for Tailwind JIT
+  // Static mappings for Tailwind JIT - using semantic tokens
   const LEVEL_STYLES: Record<string, {
     border: string;
     bg: string;
@@ -553,28 +553,28 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
     text: string;
   }> = {
     emerald: {
-      border: 'border-emerald-200 dark:border-emerald-900',
-      bg: 'bg-emerald-50/50 dark:bg-emerald-900/10',
-      dot: 'bg-emerald-500',
-      text: 'text-emerald-700 dark:text-emerald-400'
+      border: 'border-success-border dark:border-success-border/50',
+      bg: 'bg-success-bg/50 dark:bg-success-bg/10',
+      dot: 'bg-success-text',
+      text: 'text-success-text dark:text-success-text'
     },
     amber: {
-      border: 'border-amber-200 dark:border-amber-900',
-      bg: 'bg-amber-50/50 dark:bg-amber-900/10',
-      dot: 'bg-amber-500',
-      text: 'text-amber-700 dark:text-amber-400'
+      border: 'border-info-border dark:border-info-border/50',
+      bg: 'bg-info-bg/50 dark:bg-info-bg/10',
+      dot: 'bg-info-text',
+      text: 'text-info-text dark:text-info-text'
     },
     orange: {
-      border: 'border-orange-200 dark:border-orange-900',
-      bg: 'bg-orange-50/50 dark:bg-orange-900/10',
-      dot: 'bg-orange-500',
-      text: 'text-orange-700 dark:text-orange-400'
+      border: 'border-warning-border dark:border-warning-border/50',
+      bg: 'bg-warning-bg/50 dark:bg-warning-bg/10',
+      dot: 'bg-warning-text',
+      text: 'text-warning-text dark:text-warning-text'
     },
     red: {
-      border: 'border-red-200 dark:border-red-900',
-      bg: 'bg-red-50/50 dark:bg-red-900/10',
-      dot: 'bg-red-500',
-      text: 'text-red-700 dark:text-red-400'
+      border: 'border-error-border dark:border-error-border/50',
+      bg: 'bg-error-bg/50 dark:bg-error-bg/10',
+      dot: 'bg-error-text',
+      text: 'text-error-text dark:text-error-text'
     }
   };
 
@@ -582,8 +582,8 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
     <GlassCard className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-            <Target className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-10 h-10 rounded-xl bg-success-bg dark:bg-success-bg/30 flex items-center justify-center">
+            <Target className="w-5 h-5 text-success-text dark:text-success-text" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Appétit au Risque</h3>
@@ -596,7 +596,7 @@ const RiskAppetiteTab: React.FC<RiskAppetiteTabProps> = ({ data, onSave, isSavin
         </Button>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         {/* Description */}
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -788,8 +788,8 @@ const EvaluationCriteriaTab: React.FC<EvaluationCriteriaTabProps> = ({ data, onS
     <GlassCard className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          <div className="w-10 h-10 rounded-xl bg-warning-bg dark:bg-warning-bg/30 flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-warning-text dark:text-warning-text" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Critères d'Évaluation</h3>

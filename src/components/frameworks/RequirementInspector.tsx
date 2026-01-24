@@ -206,7 +206,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
             <div className="flex-1 overflow-y-auto">
               {/* Description Section */}
               <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                   {t('requirements.description')}
                 </h3>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -219,7 +219,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
               {/* Keywords Section */}
               {requirement.keywords && requirement.keywords.length > 0 && (
                 <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5">
-                  <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                  <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                     {t('requirements.keywords')}
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -238,7 +238,7 @@ export const RequirementInspector: React.FC<RequirementInspectorProps> = ({
 
               {/* Linked Controls Section */}
               <div className="px-6 py-5">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                   {t('requirements.linkedControls')} ({linkedControls.length})
                 </h3>
 

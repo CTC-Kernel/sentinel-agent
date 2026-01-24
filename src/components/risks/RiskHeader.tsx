@@ -72,7 +72,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                         >
                             <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-slate-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                 <div className="p-1">
-                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Rapports & Exports
                                     </div>
                                     <Menu.Item>
@@ -96,7 +96,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                 disabled={isGeneratingReport}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
                                             >
-                                                {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-indigo-500'}`} />}
+                                                {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-violet-500'}`} />}
                                                 Rapport Exécutif
                                             </button>
                                         )}
@@ -120,7 +120,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                 onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                             >
-                                                <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
+                                                <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success-text'}`} />
                                                 Obsidian
                                             </button>
                                         )}
@@ -140,7 +140,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     </Menu.Item>
                                 </div>
                                 <div className="p-1">
-                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Données
                                     </div>
                                     {canEdit && (
@@ -153,7 +153,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                         disabled={importing}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
-                                                        {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />}
+                                                        {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-success-text'}`} />}
                                                         Import CSV
                                                     </button>
                                                 )}
@@ -165,7 +165,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                                         onClick={onTemplateModalOpen}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
-                                                        <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                        <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-info-text'}`} />
                                                         Templates
                                                     </button>
                                                 )}
@@ -184,7 +184,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     aria-label="Lancer l'analyse IA"
                                     onClick={onAIAnalysis}
                                     disabled={isAnalyzing}
-                                    className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/20 font-bold text-sm"
+                                    className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-violet-500 text-white rounded-xl hover:from-violet-700 hover:to-violet-600 shadow-lg shadow-violet-500/20 font-bold text-sm"
                                 >
                                     {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
                                     <span className="hidden md:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>

@@ -55,7 +55,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             {/* Status Header */}
             <div className={`p-8 rounded-4xl border-2 transition-all duration-500 overflow-hidden relative ${crisisActive ? 'bg-red-950/30 border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.2)]' : 'glass-panel border-white/10'}`}>
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -108,7 +108,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                             </Button>
                         )}
                         {activationStep > 0 && !crisisActive && (
-                            <button onClick={() => setActivationStep(0)} className="text-sm text-slate-500 hover:text-slate-700">Annuler</button>
+                            <button onClick={() => setActivationStep(0)} className="text-sm text-muted-foreground hover:text-foreground">Annuler</button>
                         )}
                     </div>
                 </div>
@@ -121,7 +121,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Contacts Card */}
-                <div className="md:col-span-2 glass-panel p-6 rounded-2xl border border-white/10">
+                <div className="md:col-span-2 glass-panel p-4 sm:p-6 rounded-2xl border border-white/10">
                     <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
                         <Phone className="w-5 h-5 text-info" /> Annuaire de Crise (Décideurs)
                     </h3>
@@ -144,7 +144,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                 </div>
 
                 {/* Secure Room Access */}
-                <div className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center">
+                <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center">
                     <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
                         <Lock className="w-8 h-8 text-muted-foreground" />
                     </div>
@@ -158,7 +158,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
 
             {/* Event Log Placeholder */}
             {crisisActive && (
-                <div className="glass-panel p-6 rounded-2xl border border-red-500/20">
+                <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-red-500/20">
                     <h3 className="font-bold mb-4">Journal des Événements (Main Courante)</h3>
                     <div className="space-y-4">
                         <div className="flex gap-4 items-start">

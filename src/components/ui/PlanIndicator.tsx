@@ -42,12 +42,12 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
         name: 'Professional',
         shortName: 'Pro',
         icon: Crown,
-        gradient: 'from-blue-500 to-indigo-600',
-        bgGradient: 'from-blue-50 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20',
-        borderColor: 'border-blue-200/60 dark:border-blue-800/60',
-        textColor: 'text-blue-700 dark:text-blue-300',
-        glowColor: 'shadow-blue-200/50 dark:shadow-blue-900/50',
-        accentColor: 'bg-blue-500',
+        gradient: 'from-brand-500 to-violet-600',
+        bgGradient: 'from-brand-50 to-violet-50/80 dark:from-brand-900/20 dark:to-violet-900/20',
+        borderColor: 'border-brand-200/60 dark:border-brand-800/60',
+        textColor: 'text-brand-700 dark:text-brand-300',
+        glowColor: 'shadow-brand-200/50 dark:shadow-brand-900/50',
+        accentColor: 'bg-brand-500',
     },
     enterprise: {
         name: 'Enterprise',
@@ -74,11 +74,11 @@ const PLAN_CONFIG: Record<PlanType | 'unknown', {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; pulse?: boolean }> = {
-    active: { label: 'Actif', color: 'text-emerald-600 dark:text-emerald-400', pulse: false },
-    trialing: { label: 'Essai', color: 'text-amber-600 dark:text-amber-400', pulse: true },
-    past_due: { label: 'Impayé', color: 'text-red-600 dark:text-red-400', pulse: true },
+    active: { label: 'Actif', color: 'text-success-600 dark:text-success-400', pulse: false },
+    trialing: { label: 'Essai', color: 'text-warning-600 dark:text-warning-400', pulse: true },
+    past_due: { label: 'Impayé', color: 'text-error-600 dark:text-error-400', pulse: true },
     canceled: { label: 'Annulé', color: 'text-slate-500 dark:text-slate-500', pulse: false },
-    incomplete: { label: 'Incomplet', color: 'text-orange-600 dark:text-orange-400', pulse: false },
+    incomplete: { label: 'Incomplet', color: 'text-warning-600 dark:text-warning-400', pulse: false },
 };
 
 export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', compact = false }) => {
@@ -254,11 +254,11 @@ export const PlanIndicator: React.FC<PlanIndicatorProps> = ({ className = '', co
 
                             {/* Upgrade CTA */}
                             {showUpgradeHint && (
-                                <div className="flex items-center justify-between p-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
-                                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                                <div className="flex items-center justify-between p-2 rounded-xl bg-gradient-to-r from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20">
+                                    <span className="text-xs font-medium text-brand-700 dark:text-brand-300">
                                         Passer à Pro
                                     </span>
-                                    <div className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400">
+                                    <div className="flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400">
                                         <Sparkles className="w-3 h-3" />
                                         Upgrade
                                     </div>

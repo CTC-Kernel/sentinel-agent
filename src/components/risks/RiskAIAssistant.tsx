@@ -169,14 +169,14 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
     }
 
     return (
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-500/30">
+        <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-500/30">
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-white dark:bg-slate-900/50 rounded-xl shadow-sm">
-                    <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                 </div>
                 <div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-sm">Assistant IA Sentinel</h3>
-                    <p className="text-xs text-slate-600 dark:text-muted-foreground">Analyse et suggestions intelligentes</p>
+                    <p className="text-xs text-muted-foreground">Analyse et suggestions intelligentes</p>
                 </div>
             </div>
 
@@ -184,7 +184,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                 <button
                     onClick={() => handleAction('analyze')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${mode === 'analyze' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'analyze' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
                     aria-label="Analyser le risque avec l'IA"
                 >
                     {loading && mode === 'analyze' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
@@ -193,7 +193,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                 <button
                     onClick={() => handleAction('mitigate')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${mode === 'mitigate' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'mitigate' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
                     aria-label="Suggérer des mesures d'atténuation par IA"
                 >
                     {loading && mode === 'mitigate' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
@@ -202,7 +202,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                 <button
                     onClick={() => handleAction('improve')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${mode === 'improve' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'improve' ? 'bg-brand-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'}`}
                     aria-label="Améliorer le texte du risque par IA"
                 >
                     {loading && mode === 'improve' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-2" />}
@@ -211,13 +211,13 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
             </div>
 
             {error && (
-                <div className="text-xs text-red-500 mb-2">{error}</div>
+                <div className="text-xs text-error mb-2">{error}</div>
             )}
 
             {response && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-indigo-100 dark:border-indigo-500/20 shadow-sm animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-500/20 shadow-sm animate-fade-in">
                     <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 flex items-center">
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
                             Réponse de l'IA
                         </h4>
@@ -250,7 +250,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                         <button
                             onClick={handleApply}
                             disabled={applying}
-                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800"
+                            className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800"
                         >
                             {applying ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
                             {applying ? 'Application...' : 'Appliquer les changements'}

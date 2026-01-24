@@ -149,13 +149,13 @@ export const EbiosAnalyses: React.FC = () => {
   const getStatusColor = (status: EbiosAnalysisStatus) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+        return 'bg-success-bg text-success-text';
       case 'in_progress':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
+        return 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400';
       case 'archived':
         return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400';
       default:
-        return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
+        return 'bg-warning-bg text-warning-text';
     }
   };
 
@@ -188,7 +188,7 @@ export const EbiosAnalyses: React.FC = () => {
           actions={
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/25 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/25 transition-all"
             >
               <Plus className="w-5 h-5" />
               {t('ebios.newAnalysis')}
@@ -307,7 +307,7 @@ export const EbiosAnalyses: React.FC = () => {
                               setShowDeleteConfirm(true);
                               setActionMenuOpen(null);
                             }}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-error-text hover:bg-error-bg"
                           >
                             <Trash2 className="w-4 h-4" />
                             {t('common.delete')}
@@ -357,9 +357,9 @@ export const EbiosAnalyses: React.FC = () => {
                             key={num}
                             className={cn(
                               "flex-1 h-1.5 rounded-full",
-                              workshop.status === 'validated' ? "bg-purple-500" :
-                                workshop.status === 'completed' ? "bg-green-500" :
-                                  workshop.status === 'in_progress' ? "bg-blue-500" :
+                              workshop.status === 'validated' ? "bg-violet-500" :
+                                workshop.status === 'completed' ? "bg-success-text" :
+                                  workshop.status === 'in_progress' ? "bg-brand-500" :
                                     "bg-slate-200 dark:bg-slate-700"
                             )}
                           />

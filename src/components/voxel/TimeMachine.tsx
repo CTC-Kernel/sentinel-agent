@@ -128,7 +128,7 @@ function DeltaIndicator({ value, suffix = '' }: { value: number; suffix?: string
   return (
     <span className={cn(
       'text-xs flex items-center gap-0.5',
-      isPositive ? 'text-emerald-500' : 'text-red-500'
+      isPositive ? 'text-success' : 'text-red-500'
     )}>
       {isPositive ? (
         <TrendingUp className="h-3 w-3" />
@@ -194,11 +194,11 @@ const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
     initial={{ opacity: 0, height: 0 }}
     animate={{ opacity: 1, height: 'auto' }}
     exit={{ opacity: 0, height: 0 }}
-    className="px-5 py-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-b border-white/10"
+    className="px-5 py-4 bg-gradient-to-r from-slate-500/10 to-slate-600/10 border-b border-white/10"
   >
     <div className="flex items-start justify-between mb-3">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <Info className="w-4 h-4 text-cyan-400" />
+        <Info className="w-4 h-4 text-brand-400" />
         Guide Time Machine
       </h3>
       <button onClick={onClose} className="text-white/40 hover:text-white">
@@ -207,15 +207,15 @@ const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
     </div>
     <div className="space-y-3 text-xs text-white/70">
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">1</span>
+        <span className="w-5 h-5 rounded bg-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">1</span>
         <p><strong className="text-white">Navigation temporelle</strong> - Utilisez le calendrier ou le slider pour naviguer dans l'historique de votre graphe (jusqu'a 90 jours).</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">2</span>
+        <span className="w-5 h-5 rounded bg-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">2</span>
         <p><strong className="text-white">Snapshots quotidiens</strong> - Chaque jour, un snapshot capture l'etat de vos noeuds, connexions, anomalies et metriques de conformite.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">3</span>
+        <span className="w-5 h-5 rounded bg-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">3</span>
         <p><strong className="text-white">Mode comparaison</strong> - Cliquez sur "Comparer" pour voir les differences entre deux dates et identifier les tendances.</p>
       </div>
       <div className="flex gap-2">
@@ -223,7 +223,7 @@ const TimeMachineHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
         <p><strong className="text-white">Indicateurs delta</strong> - Les fleches vertes/rouges montrent l'evolution par rapport a la date de comparaison.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">5</span>
+        <span className="w-5 h-5 rounded bg-success/20 flex items-center justify-center text-success shrink-0">5</span>
         <p><strong className="text-white">Lecture seule</strong> - Les donnees historiques sont preservees et ne peuvent pas etre modifiees.</p>
       </div>
     </div>
@@ -432,7 +432,7 @@ export function TimeMachine({
       {/* Header */}
       <div className="p-5 border-b border-white/10 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
             <Clock className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -445,7 +445,7 @@ export function TimeMachine({
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowHelp(!showHelp)}
-            className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-cyan-500/20 text-cyan-400' : 'hover:bg-white/10 text-white/60 hover:text-white'}`}
+            className={`p-2 rounded-full transition-colors ${showHelp ? 'bg-brand-500/20 text-brand-400' : 'hover:bg-white/10 text-white/60 hover:text-white'}`}
             title="Aide"
           >
             <Info className="h-5 w-5" />

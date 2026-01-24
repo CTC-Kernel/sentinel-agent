@@ -43,8 +43,8 @@ const stateConfig: Record<EncryptionState, {
   },
   pending: {
     icon: Loader2,
-    color: 'text-amber-600 dark:text-amber-400',
-    bgColor: 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800',
+    color: 'text-warning-600 dark:text-warning-400',
+    bgColor: 'bg-warning-50 dark:bg-warning-950 border-warning-200 dark:border-warning-800',
     labelKey: 'pending',
   },
   unencrypted: {

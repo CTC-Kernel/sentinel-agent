@@ -341,7 +341,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                       {search.name}
                     </span>
                     {search.isPublic && (
-                      <Star className="h-3 w-3 text-amber-500" />
+                      <Star className="h-3 w-3 text-warning-500" />
                     )}
                   </div>
                   {search.description && (
@@ -604,7 +604,7 @@ export const EDiscoverySearch: React.FC<EDiscoverySearchProps> = ({
                             {entry.userEmail}
                           </span>
                           {entry.documentName && (
-                            <span className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                               {entry.documentName}
                             </span>
                           )}

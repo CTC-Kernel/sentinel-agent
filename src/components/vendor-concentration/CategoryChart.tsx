@@ -269,12 +269,12 @@ const VendorList: React.FC<VendorListProps> = ({ category, onBack }) => {
             </div>
             <div className="text-right">
               <span className={`px-2 py-1 rounded text-xs font-medium ${vendor.riskLevel === 'Critical'
-                ? 'bg-red-100 dark:bg-red-900/30 text-red-600'
+                ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
                 : vendor.riskLevel === 'High'
-                  ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'
+                  ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
                   : vendor.riskLevel === 'Medium'
-                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600'
-                    : 'bg-green-100 dark:bg-green-900/30 text-green-600'
+                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
+                    : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                 }`}>
                 {vendor.riskLevel}
               </span>
@@ -377,7 +377,7 @@ export const CategoryChart: React.FC<CategoryChartProps> = ({
 
       {/* Legend */}
       <div className="lg:w-64 space-y-1">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
           {t('vendorConcentration.chart.categories')}
         </p>
         {categories.map((category, index) => (

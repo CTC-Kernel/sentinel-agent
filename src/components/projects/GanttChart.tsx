@@ -146,7 +146,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                 {/* Toolbar Skeleton */}
                 <div className="h-16 w-full bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
                 {/* Chart Skeleton */}
-                <div className="w-full h-[600px] bg-slate-100 dark:bg-slate-800/50 rounded-3xl animate-pulse" />
+                <div className="w-full h-[350px] sm:h-[450px] md:h-[600px] bg-slate-100 dark:bg-slate-800/50 rounded-3xl animate-pulse" />
             </div>
         );
     }
@@ -199,12 +199,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
                 <div className="flex items-center justify-between text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                     <div className="flex flex-col">
-                        <span className="text-[9px] uppercase tracking-wider text-slate-500 mb-0.5">Début</span>
+                        <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Début</span>
                         <span>{startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
                     <div className="text-slate-300 dark:text-slate-700">→</div>
                     <div className="flex flex-col items-end">
-                        <span className="text-[9px] uppercase tracking-wider text-slate-500 mb-0.5">Fin</span>
+                        <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Fin</span>
                         <span>{endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
                     </div>
                 </div>
@@ -325,7 +325,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
             </div>
 
             {/* Chart */}
-            <div className="w-full h-[600px] overflow-hidden bg-card/40 backdrop-blur-sm rounded-3xl border border-border shadow-inner ring-1 ring-border/60 relative" ref={ganttRef}>
+            <div className="w-full h-[350px] sm:h-[450px] md:h-[600px] overflow-hidden bg-card/40 backdrop-blur-sm rounded-3xl border border-border shadow-inner ring-1 ring-border/60 relative" ref={ganttRef}>
                 <Gantt
                     tasks={ganttTasks}
                     viewMode={libraryViewMode}

@@ -68,12 +68,12 @@ export const ActiveSessions: React.FC = () => {
     };
 
     return (
-        <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
+        <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
             <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl text-blue-600 dark:text-blue-400 backdrop-blur-md">
+                    <div className="p-2.5 bg-info-500/10 dark:bg-info-500/20 rounded-xl text-info-600 dark:text-info-400 backdrop-blur-md">
                         <Globe className="w-5 h-5" />
                     </div>
                     <div>
@@ -97,14 +97,14 @@ export const ActiveSessions: React.FC = () => {
                 {sessions.map((session) => (
                     <div key={session.id} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/40 dark:border-white/5 transition-all hover:bg-white/80 dark:hover:bg-white/10">
                         <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-xl ${session.isCurrent ? 'bg-emerald-100/50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                            <div className={`p-3 rounded-xl ${session.isCurrent ? 'bg-success-100/50 text-success-600 dark:bg-success-500/10 dark:text-success-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
                                 {session.type === 'desktop' ? <Monitor className="w-5 h-5" /> : <Smartphone className="w-5 h-5" />}
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
                                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">{session.device}</h4>
                                     {session.isCurrent && (
-                                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 text-[10px] font-bold uppercase tracking-wide rounded-full">
+                                        <span className="px-2 py-0.5 bg-success-100 text-success-700 dark:bg-success-500/20 dark:text-success-300 text-[10px] font-bold uppercase tracking-wide rounded-full">
                                             {t('settings.thisDevice') || "Cet appareil"}
                                         </span>
                                     )}
@@ -139,7 +139,7 @@ export const ActiveSessions: React.FC = () => {
                         )}
                         {session.isCurrent && (
                             <Tooltip content={t('settings.secureSession') || "Session sécurisée"} position="left">
-                                <div className="text-emerald-500 dark:text-emerald-400 p-2">
+                                <div className="text-success-500 dark:text-success-400 p-2">
                                     <ShieldCheck className="w-5 h-5" />
                                 </div>
                             </Tooltip>

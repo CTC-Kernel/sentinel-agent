@@ -309,12 +309,12 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
       {/* Summary Stats */}
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
-        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-indigo-200/50 dark:border-indigo-800/50">
-          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-brand-200/50 dark:border-brand-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-110 transition-transform">
             <Cpu className="w-5 h-5" />
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{totalScenarios}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop4.totalScenarios')}</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{totalScenarios}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.totalScenarios')}</p>
         </GlassCard>
 
         <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-red-200/50 dark:border-red-800/50">
@@ -322,7 +322,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
             <AlertTriangle className="w-5 h-5" />
           </div>
           <p className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">{criticalScenarios}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop4.criticalScenarios')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.criticalScenarios')}</p>
         </GlassCard>
 
         <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-orange-200/50 dark:border-orange-800/50">
@@ -332,17 +332,17 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
           <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
             {data.operationalScenarios.reduce((sum, s) => sum + s.attackSequence.length, 0)}
           </p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop4.totalSteps')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.totalSteps')}</p>
         </GlassCard>
 
-        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-purple-200/50 dark:border-purple-800/50">
-          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+        <GlassCard className="text-center group hover:scale-[1.02] transition-transform duration-300 border-violet-200/50 dark:border-violet-800/50">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform">
             <Shield className="w-5 h-5" />
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+          <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
             {strategicScenarios.length}
           </p>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{t('ebios.workshop4.sourceScenarios')}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('ebios.workshop4.sourceScenarios')}</p>
         </GlassCard>
       </div>
 
@@ -362,9 +362,9 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
           </GlassCard>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 animate-fade-in-up delay-100">
-              <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-              <p className="text-sm text-blue-700 dark:text-blue-300">
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-info-bg border border-info-border animate-fade-in-up delay-100">
+              <Info className="w-5 h-5 text-info flex-shrink-0" />
+              <p className="text-sm text-info-text">
                 {t('ebios.workshop4.helpText', 'Déclinaison des scénarios stratégiques en scénarios opérationnels. Pour chaque scénario, définissez la séquence d\'attaque technique (mode opératoire) et évaluez la vraisemblance.')}
               </p>
             </div>
@@ -410,7 +410,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                       {!readOnly && (
                         <button
                           onClick={() => handleAddScenario(strategicScenario.id)}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all transform hover:-translate-y-0.5"
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium shadow-lg shadow-brand hover:shadow-brand transition-all transform hover:-translate-y-0.5"
                         >
                           <Plus className="w-4 h-4" />
                           {t('ebios.workshop4.addOperational')}
@@ -428,7 +428,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                           {!readOnly && (
                             <button
                               onClick={() => handleAddScenario(strategicScenario.id)}
-                              className="text-sm text-info hover:text-blue-600 font-medium hover:underline"
+                              className="text-sm text-info hover:text-brand-600 font-medium hover:underline"
                             >
                               {t('ebios.workshop4.clickToAdd', 'Cliquez pour commencer')}
                             </button>
@@ -447,8 +447,8 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                               className={cn(
                                 "rounded-2xl border transition-all duration-300 overflow-hidden",
                                 isExpanded
-                                  ? "bg-white/60 dark:bg-slate-800/60 border-indigo-200 dark:border-indigo-800 shadow-md ring-1 ring-indigo-500/10"
-                                  : "bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md"
+                                  ? "bg-white/60 dark:bg-slate-800/60 border-brand-200 dark:border-brand-800 shadow-md ring-1 ring-brand-500/10"
+                                  : "bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md"
                               )}
                             >
                               {/* Scenario Item Header */}
@@ -470,7 +470,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                   <div>
                                     <h4 className={cn(
                                       "font-bold text-base transition-colors",
-                                      isExpanded ? "text-indigo-600 dark:text-indigo-400" : "text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                                      isExpanded ? "text-brand-600 dark:text-brand-400" : "text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400"
                                     )}>
                                       {opScenario.name}
                                     </h4>
@@ -480,7 +480,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                         {opScenario.attackSequence.length} {t('ebios.workshop4.attackSteps')}
                                       </span>
                                       {opScenario.linkedRiskId && (
-                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800">
+                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-success-bg text-success-text border border-success-border">
                                           <FileCheck className="w-3 h-3" />
                                           {t('ebios.workshop4.riskCreated')}
                                         </span>
@@ -527,7 +527,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                   <div className={cn(
                                     "p-2 rounded-full transition-all duration-300",
                                     isExpanded
-                                      ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rotate-180"
+                                      ? "bg-brand-100 dark:bg-brand-900/30 text-brand-600 rotate-180"
                                       : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700"
                                   )}>
                                     <ChevronDown className="w-5 h-5" />
@@ -541,7 +541,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                   <div className="p-5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
                                     <div className="flex items-center justify-between mb-5">
                                       <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <div className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                                        <div className="p-1.5 rounded-lg bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
                                           <List className="w-4 h-4" />
                                         </div>
                                         {t('ebios.workshop4.attackSequence')}
@@ -549,7 +549,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                       {!readOnly && (
                                         <button
                                           onClick={() => handleAddAttackStep(opScenario.id)}
-                                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm"
+                                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all shadow-sm"
                                         >
                                           <Plus className="w-4 h-4" />
                                           {t('ebios.workshop4.addStep')}
@@ -569,12 +569,12 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                         opScenario.attackSequence.map((step) => (
                                           <div key={step.id} className="relative flex items-start group/step">
                                             {/* Step Number Bubble */}
-                                            <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-slate-50 dark:ring-slate-800/80">
+                                            <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center relative z-10 shadow-sm mt-2.5 mr-4 ring-4 ring-slate-50 dark:ring-slate-800/80">
                                               {step.order}
                                             </div>
 
                                             {/* Step Content */}
-                                            <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-3 transition-all hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md">
+                                            <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-3 transition-all hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md">
                                               <div className="flex items-start gap-4">
                                                 <div className="flex-1">
                                                   {!readOnly ? (
@@ -582,7 +582,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                       value={step.description}
                                                       onChange={(e) => handleUpdateAttackStep(opScenario.id, step.id, { description: e.target.value })}
                                                       placeholder={t('ebios.workshop4.stepDescriptionPlaceholder')}
-                                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-500/20 focus:border-indigo-500 transition-all text-sm resize-none min-h-[60px]"
+                                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus-visible:ring-2 focus-visible:ring-brand-500/20 focus:border-brand-500 transition-all text-sm resize-none min-h-[60px]"
                                                     />
                                                   ) : (
                                                     <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -613,7 +613,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                                   ) : !readOnly && (
                                                     <button
                                                       onClick={() => handleOpenMitreModal(opScenario.id, step.id)}
-                                                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-indigo-600 transition-colors py-1 px-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800"
+                                                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-brand-600 transition-colors py-1 px-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 border border-transparent hover:border-brand-100 dark:hover:border-brand-800"
                                                     >
                                                       <Link2 className="w-3 h-3" />
                                                       {t('ebios.workshop4.addMitreRef')}
@@ -647,9 +647,9 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                               e.preventDefault();
                                               // Navigate or open risk
                                             }}
-                                            className="group flex items-center gap-3 px-4 py-2 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 hover:shadow-md transition-all"
+                                            className="group flex items-center gap-3 px-4 py-2 rounded-xl bg-success-bg border border-success-border text-success-text hover:shadow-md transition-all"
                                           >
-                                            <div className="p-1 rounded-full bg-green-100 dark:bg-green-800">
+                                            <div className="p-1 rounded-full bg-success-bg">
                                               <FileCheck className="w-4 h-4" />
                                             </div>
                                             <div className="text-left">
@@ -666,7 +666,7 @@ export const Workshop4Content: React.FC<Workshop4ContentProps> = ({
                                             disabled={creatingRiskForScenario === opScenario.id}
                                             className={cn(
                                               "flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
-                                              "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100"
+                                              "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 dark:hover:bg-slate-800"
                                             )}
                                           >
                                             {creatingRiskForScenario === opScenario.id ? (

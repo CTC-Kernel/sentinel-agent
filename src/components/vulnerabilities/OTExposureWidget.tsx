@@ -348,7 +348,7 @@ const TopAssetsList: React.FC<TopAssetsListProps> = ({ assets, onAssetClick, loa
             >
               {asset.highestSeverity}
             </span>
-            <span className="text-slate-400 text-xs">{asset.vulnerabilityCount} CVE</span>
+            <span className="text-muted-foreground text-xs">{asset.vulnerabilityCount} CVE</span>
           </div>
         </button>
       ))}

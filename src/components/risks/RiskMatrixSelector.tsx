@@ -90,10 +90,10 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
     // Get cell color based on position
     const getCellColor = (p: number, i: number): string => {
         const score = p * i;
-        if (score >= 15) return 'bg-rose-500';
-        if (score >= 10) return 'bg-orange-500';
-        if (score >= 5) return 'bg-amber-400';
-        return 'bg-emerald-500';
+        if (score >= 15) return 'bg-error-text';
+        if (score >= 10) return 'bg-warning-text';
+        if (score >= 5) return 'bg-info-text';
+        return 'bg-success-text';
     };
 
     // Check if this cell is the current selection
@@ -243,19 +243,19 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
             {showLegend && (
                 <div className="flex justify-center items-center gap-3 text-[10px] text-slate-600 dark:text-slate-400 mt-4">
                     <div className="flex items-center gap-1">
-                        <div className="w-3 h-3 rounded bg-emerald-500" />
+                        <div className="w-3 h-3 rounded bg-success-text" />
                         <span>Faible (1-4)</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <div className="w-3 h-3 rounded bg-amber-400" />
+                        <div className="w-3 h-3 rounded bg-info-text" />
                         <span>Moyen (5-9)</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <div className="w-3 h-3 rounded bg-orange-500" />
+                        <div className="w-3 h-3 rounded bg-warning-text" />
                         <span>Élevé (10-14)</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <div className="w-3 h-3 rounded bg-rose-500" />
+                        <div className="w-3 h-3 rounded bg-error-text" />
                         <span>Critique (15-25)</span>
                     </div>
                 </div>

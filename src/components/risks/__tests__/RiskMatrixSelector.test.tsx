@@ -38,10 +38,10 @@ describe('getRiskLevelFromScore', () => {
       expect(getRiskLevelFromScore(4).label).toBe('Faible');
     });
 
-    it('should have emerald color', () => {
+    it('should have success color', () => {
       const level = getRiskLevelFromScore(4);
-      expect(level.bgColor).toBe('bg-emerald-500');
-      expect(level.color).toBe('emerald');
+      expect(level.bgColor).toBe('bg-success-text');
+      expect(level.color).toBe('success');
     });
   });
 
@@ -52,10 +52,10 @@ describe('getRiskLevelFromScore', () => {
       expect(getRiskLevelFromScore(9).label).toBe('Moyen');
     });
 
-    it('should have amber color', () => {
+    it('should have info color', () => {
       const level = getRiskLevelFromScore(5);
-      expect(level.bgColor).toBe('bg-amber-400');
-      expect(level.color).toBe('amber');
+      expect(level.bgColor).toBe('bg-info-text');
+      expect(level.color).toBe('info');
     });
   });
 
@@ -66,10 +66,10 @@ describe('getRiskLevelFromScore', () => {
       expect(getRiskLevelFromScore(14).label).toBe('Élevé');
     });
 
-    it('should have orange color', () => {
+    it('should have warning color', () => {
       const level = getRiskLevelFromScore(10);
-      expect(level.bgColor).toBe('bg-orange-500');
-      expect(level.color).toBe('orange');
+      expect(level.bgColor).toBe('bg-warning-text');
+      expect(level.color).toBe('warning');
     });
   });
 
@@ -80,10 +80,10 @@ describe('getRiskLevelFromScore', () => {
       expect(getRiskLevelFromScore(25).label).toBe('Critique');
     });
 
-    it('should have rose color', () => {
+    it('should have error color', () => {
       const level = getRiskLevelFromScore(15);
-      expect(level.bgColor).toBe('bg-rose-500');
-      expect(level.color).toBe('rose');
+      expect(level.bgColor).toBe('bg-error-text');
+      expect(level.color).toBe('error');
     });
   });
 });

@@ -140,7 +140,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                                 +{remaining}
                             </div>
                         )}
-                        {memberIds.length === 0 && <span className="text-slate-400 text-xs">-</span>}
+                        {memberIds.length === 0 && <span className="text-muted-foreground text-xs">-</span>}
                     </div>
                 );
             }

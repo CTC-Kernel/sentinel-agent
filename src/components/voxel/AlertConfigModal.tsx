@@ -88,17 +88,17 @@ const ANOMALY_TYPE_INFO: Record<
 const SEVERITY_LEVELS: VoxelAnomalySeverity[] = ['critical', 'high', 'medium', 'low'];
 
 const SEVERITY_COLORS: Record<VoxelAnomalySeverity, string> = {
-  critical: 'text-red-500',
-  high: 'text-orange-500',
+  critical: 'text-error',
+  high: 'text-warning',
   medium: 'text-yellow-500',
-  low: 'text-blue-500',
+  low: 'text-info',
 };
 
 const SEVERITY_BG: Record<VoxelAnomalySeverity, string> = {
-  critical: 'bg-red-500',
-  high: 'bg-orange-500',
+  critical: 'bg-error',
+  high: 'bg-warning',
   medium: 'bg-yellow-500',
-  low: 'bg-blue-500',
+  low: 'bg-info',
 };
 
 // ============================================================================
@@ -148,7 +148,7 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({ threshold, onChange }) => {
           onClick={handleToggle}
           className={`
             mt-0.5 w-10 h-6 rounded-full relative transition-colors
-            ${threshold.enabled ? 'bg-indigo-500' : 'bg-white/10'}
+            ${threshold.enabled ? 'bg-brand-500' : 'bg-white/10'}
           `}
         >
           <span
@@ -331,7 +331,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
             <div className="p-6 border-b border-white/10 shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
                     <Bell className="h-5 w-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
@@ -368,13 +368,13 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                     className={`
                       p-4 rounded-xl border transition-all text-left
                       ${channels.inApp
-                        ? 'bg-indigo-500/10 border-indigo-500/30'
+                        ? 'bg-brand-500/10 border-brand-500/30'
                         : 'bg-white/[0.02] border-white/5'}
                     `}
                   >
                     <div className="flex items-center gap-3">
                       {channels.inApp ? (
-                        <Bell className="h-5 w-5 text-indigo-400" />
+                        <Bell className="h-5 w-5 text-brand-400" />
                       ) : (
                         <BellOff className="h-5 w-5 text-white/30" />
                       )}
@@ -395,13 +395,13 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                     className={`
                       p-4 rounded-xl border transition-all text-left
                       ${channels.email
-                        ? 'bg-indigo-500/10 border-indigo-500/30'
+                        ? 'bg-brand-500/10 border-brand-500/30'
                         : 'bg-white/[0.02] border-white/5'}
                     `}
                   >
                     <div className="flex items-center gap-3">
                       <Mail
-                        className={`h-5 w-5 ${channels.email ? 'text-indigo-400' : 'text-white/30'}`}
+                        className={`h-5 w-5 ${channels.email ? 'text-brand-400' : 'text-white/30'}`}
                       />
                       <div>
                         <span className="text-sm font-medium text-white">
@@ -437,7 +437,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                         setMaxAlertsPerHour(parseInt(e.target.value) || 10);
                         markChanged();
                       }}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-500"
                     />
                   </div>
                   <div className="p-4 rounded-xl bg-white/5 border border-white/10">
@@ -454,7 +454,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                         setCooldownMinutes(parseInt(e.target.value) || 30);
                         markChanged();
                       }}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-500"
                     />
                   </div>
                 </div>
@@ -503,7 +503,7 @@ export const AlertConfigModal: React.FC<AlertConfigModalProps> = ({
                   <button
                     onClick={handleSave}
                     disabled={!hasChanges || isSaving || isLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Save className="h-4 w-4" />
                     {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}

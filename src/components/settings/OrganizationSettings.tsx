@@ -262,7 +262,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Subscription */}
             {user?.organizationId && (
-                <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 rounded-4xl p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden group border border-white/10">
+                <div className="bg-gradient-to-r from-violet-900 via-violet-800 to-violet-900 rounded-4xl p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden group border border-white/10">
                     <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/15 transition-colors duration-500"></div>
 
                     <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -283,7 +283,7 @@ export const OrganizationSettings: React.FC = () => {
                                     </span>
                                 </div>
                                 {currentOrg?.subscription?.currentPeriodEnd && (
-                                    <p className="text-sm text-indigo-200 mt-1">
+                                    <p className="text-sm text-violet-200 mt-1">
                                         {t('settings.renewalDate').replace('{date}', formatDate(currentOrg.subscription.currentPeriodEnd))}
                                     </p>
                                 )}
@@ -292,7 +292,7 @@ export const OrganizationSettings: React.FC = () => {
                         <Button
                             onClick={handleManageSubscription}
                             isLoading={subLoading}
-                            className="bg-white text-indigo-900 hover:bg-indigo-50 font-semibold border-none shadow-none"
+                            className="bg-white text-violet-900 hover:bg-violet-50 font-semibold border-none shadow-none"
                         >
                             {currentOrg?.subscription?.planId === 'discovery' ? t('settings.upgradeSub') : t('settings.manage')}
                         </Button>
@@ -315,7 +315,7 @@ export const OrganizationSettings: React.FC = () => {
 
                     <div className="relative z-10 p-6">
                         <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <FloatingLabelInput
                                     label={t('settings.orgName')}
                                     {...orgForm.register('orgName')}
@@ -345,7 +345,7 @@ export const OrganizationSettings: React.FC = () => {
                                 <p className="text-xs text-slate-500 dark:text-muted-foreground mb-4">
                                     {t('settings.doraComplianceDesc', { defaultValue: 'Informations requises pour la conformité au règlement DORA (Digital Operational Resilience Act) - Article 3.' })}
                                 </p>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <FloatingLabelInput
                                         label={t('settings.lei', { defaultValue: 'LEI (Legal Entity Identifier)' })}
                                         {...orgForm.register('lei')}
@@ -408,7 +408,7 @@ export const OrganizationSettings: React.FC = () => {
                                             <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                 {t('settings.enableAI', { defaultValue: 'Activer Sentinel AI' })}
                                             </label>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
+                                            <p className="text-xs text-slate-500 dark:text-muted-foreground max-w-md">
                                                 {t('settings.enableAIDesc', { defaultValue: 'Permet l\'utilisation des fonctionnalités d\'intelligence artificielle pour l\'analyse de risques et la génération de contenu.' })}
                                             </p>
                                         </div>
@@ -425,7 +425,7 @@ export const OrganizationSettings: React.FC = () => {
                                                     <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                         {t('settings.dataSanitization', { defaultValue: 'Anonymisation des Données' })}
                                                     </label>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
+                                                    <p className="text-xs text-slate-500 dark:text-muted-foreground max-w-md">
                                                         {t('settings.dataSanitizationDesc', { defaultValue: 'Supprime automatiquement les noms, emails et numéros de téléphone avant l\'envoi aux modèles IA.' })}
                                                     </p>
                                                 </div>
@@ -440,7 +440,7 @@ export const OrganizationSettings: React.FC = () => {
                                                     <label className="text-sm font-medium text-slate-700 dark:text-muted-foreground">
                                                         {t('settings.aiConsent', { defaultValue: 'Consentement d\'analyse' })}
                                                     </label>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
+                                                    <p className="text-xs text-slate-500 dark:text-muted-foreground max-w-md">
                                                         {t('settings.aiConsentDesc', { defaultValue: 'J\'autorise Sentinel à traiter les données (anonymisées si activé) pour fournir des analyses.' })}
                                                     </p>
                                                 </div>
@@ -470,12 +470,12 @@ export const OrganizationSettings: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-purple-500/10 dark:bg-purple-500/20 rounded-xl text-purple-600 dark:text-purple-400">
+                            <div className="p-2.5 bg-violet-500/10 dark:bg-violet-500/20 rounded-xl text-violet-600 dark:text-violet-400">
                                 <Users className="w-5 h-5" />
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
-                                <p className="text-xs text-slate-500 font-medium">{t('settings.membersCount').replace('{count}', usersList.length.toString())}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t('settings.membersCount').replace('{count}', usersList.length.toString())}</p>
                             </div>
                         </div>
                         <div className="relative">

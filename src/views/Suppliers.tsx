@@ -350,7 +350,7 @@ export const Suppliers: React.FC = () => {
             accessorKey: 'status',
             header: t('common.columns.status'),
             cell: ({ row }) => (
-                <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${row.original.status === 'Actif' ? 'bg-success-bg text-success-text' : 'bg-slate-100 text-slate-700'
+                <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${row.original.status === 'Actif' ? 'bg-success-bg text-success-text' : 'bg-slate-100 dark:bg-slate-800 text-slate-700'
                     }`}>
                     {row.original.status}
                 </span>
@@ -365,7 +365,7 @@ export const Suppliers: React.FC = () => {
                         DORA ICT
                     </span>
                 ) : (
-                    <span className="text-slate-400 text-xs">-</span>
+                    <span className="text-muted-foreground text-xs">-</span>
                 )
             )
         },
@@ -425,7 +425,7 @@ export const Suppliers: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-20 min-w-0"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-20 min-w-0"
         >
             <MasterpieceBackground />
             <SEO
@@ -541,7 +541,7 @@ export const Suppliers: React.FC = () => {
                                         >
                                             <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                                 <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                                         {t('suppliers.tools')}
                                                     </div>
                                                     <Menu.Item>
@@ -559,7 +559,7 @@ export const Suppliers: React.FC = () => {
                                                     </Menu.Item>
                                                 </div>
                                                 <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                                         {t('suppliers.reports')}
                                                     </div>
                                                     <Menu.Item>

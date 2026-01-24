@@ -148,10 +148,10 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 <div className="glass-premium p-6 md:p-8 rounded-5xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
                 {/* Charts Grid Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="glass-premium p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                    <div className="glass-premium p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                    <div className="glass-premium p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
-                    <div className="glass-premium p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
                 </div>
             </div>
         );
@@ -221,7 +221,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     >
                         <div className="flex items-center justify-center gap-2 mb-2">
                             <Server className="h-4 w-4 text-slate-500 group-hover/metric:text-brand-500 transition-colors" />
-                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Total</div>
+                            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Total</div>
                         </div>
                         <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{totalAssets}</div>
                     </div>
@@ -234,21 +234,21 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     >
                         <div className="flex items-center justify-center gap-2 mb-2">
                             <ShieldAlert className="h-4 w-4 text-slate-500 group-hover/metric:text-red-500 transition-colors" />
-                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Critiques</div>
+                            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Critiques</div>
                         </div>
                         <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{criticalAssets}</div>
                     </div>
                     <div className="text-center group/metric">
                         <div className="flex items-center justify-center gap-2 mb-2">
                             <Euro className="h-4 w-4 text-slate-500 group-hover/metric:text-emerald-500 transition-colors" />
-                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Valeur</div>
+                            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest font-mono">Valeur</div>
                         </div>
                         <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{(currentValue / 1000).toFixed(0)}k€</div>
                     </div>
                 </div>
 
                 {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 min-w-[200px] pr-4">
+                <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] pr-4">
                     <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors cursor-default">
                         <div className="flex items-center gap-2">
                             <Wrench className="h-4 w-4 text-amber-600 dark:text-amber-400" />

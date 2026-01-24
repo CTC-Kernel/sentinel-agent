@@ -56,7 +56,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-4 sm:p-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                     <FloatingLabelInput label="Nom du traitement" {...register('name')} placeholder="ex: Gestion Paie" error={errors.name?.message} />
                 </div>
@@ -127,7 +127,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
                 <div>
                     <CustomSelect
                         label="Actifs liés"

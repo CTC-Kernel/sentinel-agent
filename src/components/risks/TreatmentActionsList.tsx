@@ -18,8 +18,8 @@ interface TreatmentActionsListProps {
 
 const STATUS_CONFIG: Record<TreatmentActionStatus, { icon: typeof CheckCircle2; color: string; badgeStatus: 'success' | 'warning' | 'info' }> = {
     'À faire': { icon: Circle, color: 'text-slate-400', badgeStatus: 'info' },
-    'En cours': { icon: Clock, color: 'text-amber-500', badgeStatus: 'warning' },
-    'Terminé': { icon: CheckCircle2, color: 'text-emerald-500', badgeStatus: 'success' }
+    'En cours': { icon: Clock, color: 'text-warning-text', badgeStatus: 'warning' },
+    'Terminé': { icon: CheckCircle2, color: 'text-success-text', badgeStatus: 'success' }
 };
 
 export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
@@ -47,7 +47,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                 return { label: 'En retard', color: 'text-red-600 bg-red-50 border-red-200' };
             }
             if (isToday(date)) {
-                return { label: 'Aujourd\'hui', color: 'text-orange-600 bg-orange-50 border-orange-200' };
+                return { label: 'Aujourd\'hui', color: 'text-warning-text bg-warning-bg border-warning-border' };
             }
             return null;
         } catch {
@@ -88,7 +88,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
     const progressPercentage = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
 
     return (
-        <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+        <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <ListChecks className="h-4 w-4 text-brand-500" />
@@ -100,11 +100,11 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                         <div className="flex items-center gap-1.5">
                             <div className="w-16 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full rounded-full bg-emerald-500 transition-all"
+                                    className="h-full rounded-full bg-success-text transition-all"
                                     style={{ width: `${progressPercentage}%` }}
                                 />
                             </div>
-                            <span className="text-xs font-bold text-emerald-600">
+                            <span className="text-xs font-bold text-success-text">
                                 {completedActions}/{totalActions}
                             </span>
                         </div>
@@ -140,7 +140,7 @@ export const TreatmentActionsList: React.FC<TreatmentActionsListProps> = ({
                                 key={action.id}
                                 className={`flex items-start gap-3 p-3 rounded-xl border transition-colors ${
                                     action.status === 'Terminé'
-                                        ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30'
+                                        ? 'bg-success-bg/50 dark:bg-success-bg/10 border-success-border dark:border-success-border/30'
                                         : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-sm'
                                 }`}
                             >

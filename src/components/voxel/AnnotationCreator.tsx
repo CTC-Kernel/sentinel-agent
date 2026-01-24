@@ -334,7 +334,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                     key={option.value}
                     onClick={() => setType(option.value)}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${type === option.value
-                      ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-400'
+                      ? 'bg-brand-500/20 border-2 border-brand-500 text-brand-400'
                       : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
                       }`}
                   >
@@ -385,7 +385,7 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                     key={option.value}
                     onClick={() => setVisibility(option.value)}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all ${visibility === option.value
-                      ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-400'
+                      ? 'bg-brand-500/20 border-2 border-brand-500 text-brand-400'
                       : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:bg-slate-700/50'
                       }`}
                   >
@@ -441,8 +441,8 @@ export const AnnotationCreator: React.FC<AnnotationCreatorProps> = ({
                 onClick={handleSave}
                 disabled={isSaving || !content.trim()}
                 className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${isSaving || !content.trim()
-                  ? 'bg-blue-500/30 text-blue-300/50 cursor-not-allowed'
-                  : 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25'
+                  ? 'bg-brand-500/30 text-brand-300/50 cursor-not-allowed'
+                  : 'bg-brand-500 text-white hover:bg-brand-600 shadow-lg shadow-brand-500/25'
                   }`}
               >
                 {isSaving ? (

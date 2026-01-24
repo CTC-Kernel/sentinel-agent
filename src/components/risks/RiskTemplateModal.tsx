@@ -46,10 +46,10 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
 
     const getCategoryColor = (category: string) => {
         switch (category) {
-            case 'OWASP': return 'from-red-500 to-orange-500';
-            case 'ISO27001': return 'from-blue-500 to-indigo-500';
-            case 'RGPD': return 'from-purple-500 to-pink-500';
-            case 'Cloud': return 'from-cyan-500 to-blue-500';
+            case 'OWASP': return 'from-error-text to-warning-text';
+            case 'ISO27001': return 'from-info-text to-violet-500';
+            case 'RGPD': return 'from-violet-500 to-violet-400';
+            case 'Cloud': return 'from-info-text to-brand-500';
             default: return 'from-slate-500 to-slate-600';
         }
     };
@@ -193,10 +193,10 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                             </span>
                                                             <div className="flex items-center gap-2">
                                                                 {/* <span className="text-slate-600">{risk.category || 'N/A'}</span> */}
-                                                                <span className={`px-2 py-0.5 rounded font-bold ${risk.score >= 15 ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-                                                                    risk.score >= 10 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400' :
-                                                                        risk.score >= 5 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400' :
-                                                                            'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                                                                <span className={`px-2 py-0.5 rounded font-bold ${risk.score >= 15 ? 'bg-error-bg text-error-text dark:bg-error-bg/20 dark:text-error-text' :
+                                                                    risk.score >= 10 ? 'bg-warning-bg text-warning-text dark:bg-warning-bg/20 dark:text-warning-text' :
+                                                                        risk.score >= 5 ? 'bg-info-bg text-info-text dark:bg-info-bg/20 dark:text-info-text' :
+                                                                            'bg-success-bg text-success-text dark:bg-success-bg/20 dark:text-success-text'
                                                                     }`}>
                                                                     {risk.score}
                                                                 </span>

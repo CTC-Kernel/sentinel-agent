@@ -361,7 +361,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
               className={`p-2 rounded-md transition-colors ${
                 viewMode === 'list'
                   ? 'bg-white dark:bg-slate-700 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <List className="w-4 h-4" />
@@ -371,7 +371,7 @@ export const VendorComparison: React.FC<VendorComparisonProps> = ({
               className={`p-2 rounded-md transition-colors ${
                 viewMode === 'matrix'
                   ? 'bg-white dark:bg-slate-700 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Grid3X3 className="w-4 h-4" />

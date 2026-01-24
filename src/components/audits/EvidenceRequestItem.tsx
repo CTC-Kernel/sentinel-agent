@@ -57,7 +57,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                 onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onExpand(isExpanded ? null : req.id)}
             >
                 <div className="flex items-center gap-4 min-w-0">
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${req.status === 'Accepted' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${req.status === 'Accepted' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800'}`}>
                         <FileText className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
@@ -169,7 +169,7 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                                     onClick={() => handleAction('delete', () => onDelete(req.id))}
                                     disabled={!!processingAction}
                                     aria-label="Supprimer la demande"
-                                    className="w-full px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {processingAction === 'delete' ? <span className="animate-spin mr-2">⌛</span> : <Trash2 className="w-4 h-4 mr-2" />}
                                     Supprimer

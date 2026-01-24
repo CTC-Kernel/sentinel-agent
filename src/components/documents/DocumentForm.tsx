@@ -187,7 +187,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <CustomSelect
                         label="Statut"
                         options={['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète', 'Archivé'].map(s => ({ value: s, label: s }))}
@@ -204,7 +204,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <Controller
                         control={control}
                         name="reviewers"
@@ -235,7 +235,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <FloatingLabelInput
                         label="Prochaine révision"
                         type="date"
@@ -390,7 +390,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold"
+                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold"
                 >
                     {initialData ? 'Enregistrer' : 'Créer'}
                 </Button>

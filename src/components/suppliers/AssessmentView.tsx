@@ -179,7 +179,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-6 lg:p-10">
-                    <div className="max-w-3xl mx-auto space-y-8">
+                    <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentSectionIndex}
@@ -221,7 +221,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                                         onClick={() => handleAnswerChange(question.id, 'Yes')}
                                                         className={`px-4 py-2 rounded-lg border flex-1 transition-colors ${localAnswers[question.id]?.value === 'Yes'
                                                             ? 'bg-green-50 border-green-200 text-green-700 font-medium'
-                                                            : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                                                            : 'border-slate-200 hover:bg-slate-50 dark:bg-slate-900 text-slate-600'
                                                             }`}
                                                     >
                                                         Oui
@@ -231,7 +231,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
                                                         onClick={() => handleAnswerChange(question.id, 'No')}
                                                         className={`px-4 py-2 rounded-lg border flex-1 transition-colors ${localAnswers[question.id]?.value === 'No'
                                                             ? 'bg-red-50 border-red-200 text-red-700 font-medium'
-                                                            : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                                                            : 'border-slate-200 hover:bg-slate-50 dark:bg-slate-900 text-slate-600'
                                                             }`}
                                                     >
                                                         Non

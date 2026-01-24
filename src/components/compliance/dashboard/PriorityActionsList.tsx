@@ -178,14 +178,14 @@ const CRITICALITY_CONFIG = {
     borderColor: 'border-red-200 dark:border-red-800',
   },
   medium: {
-    color: 'text-amber-600 dark:text-amber-400',
-    bgColor: 'bg-amber-100 dark:bg-amber-900/30',
-    borderColor: 'border-amber-200 dark:border-amber-800',
+    color: 'text-yellow-600 dark:text-yellow-400',
+    bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
+    borderColor: 'border-yellow-200 dark:border-yellow-800',
   },
   low: {
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
-    borderColor: 'border-emerald-200 dark:border-emerald-800',
+    color: 'text-green-600 dark:text-green-400',
+    bgColor: 'bg-green-100 dark:bg-green-900/30',
+    borderColor: 'border-green-200 dark:border-green-800',
   },
 };
 
@@ -251,7 +251,7 @@ const ActionCard: React.FC<{
 
       {/* Impact indicator */}
       <div className="flex flex-col items-end gap-1 flex-shrink-0">
-        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
           <TrendingUp className="w-4 h-4" />
           <span className="text-sm font-bold">+{action.potentialImprovement}%</span>
         </div>
@@ -305,8 +305,8 @@ export const PriorityActionsList: React.FC<PriorityActionsListProps> = ({
       )}>
         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-4xl" />
         <div className="relative z-10 flex flex-col items-center justify-center py-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-4">
-            <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
+            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
             {t('actions.allComplete', 'Excellent travail !')}

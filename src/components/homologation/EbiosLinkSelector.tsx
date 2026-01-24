@@ -270,7 +270,7 @@ export const EbiosLinkSelector: React.FC<EbiosLinkSelectorProps> = ({
                 variant="outline"
                 className={cn(
                   'text-xs',
-                  isComplete ? 'bg-green-50 text-green-700 border-green-300' : 'bg-slate-50 text-slate-600'
+                  isComplete ? 'bg-green-50 text-green-700 border-green-300' : 'bg-slate-50 dark:bg-slate-900 text-slate-600'
                 )}
               >
                 {t(`homologation.ebios.workshop${ws}`, `Atelier ${ws}`)}

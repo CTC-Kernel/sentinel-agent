@@ -153,7 +153,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     />
                     <label
                         htmlFor={disabled ? undefined : "file-upload"}
-                        className={`flex flex-col items-center justify-center w-full ${compact ? 'h-20' : 'h-32'} border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-slate-200 bg-slate-100 cursor-not-allowed' : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 bg-slate-50 dark:bg-slate-800/50'}`}
+                        className={`flex flex-col items-center justify-center w-full ${compact ? 'h-20' : 'h-32'} border-2 border-dashed rounded-2xl transition-colors ${disabled ? 'border-slate-200 bg-slate-100 cursor-not-allowed' : 'border-slate-300 dark:border-slate-600 cursor-pointer hover:border-brand-500 dark:hover:border-brand-400 bg-slate-50 dark:bg-slate-800/50'}`}
                     >
                         {disabled ? (
                             <div className="text-center">
@@ -182,8 +182,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 <div className="glass-premium p-4 rounded-xl">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-slate-900/30 flex items-center justify-center">
-                                <File className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-100 dark:bg-slate-900/30 flex items-center justify-center">
+                                <File className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
@@ -211,7 +211,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     {!uploading && (
                         <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 mb-4">
                             <div className="flex items-center gap-2">
-                                <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-emerald-500' : 'text-slate-500'}`} />
+                                <ShieldCheck className={`h-5 w-5 ${isSecure ? 'text-success-500' : 'text-slate-500'}`} />
                                 <div>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">Document Stratégique</p>
                                     <p className="text-[11px] text-slate-600">Active le filigrane et la vérification d'intégrité</p>
@@ -220,7 +220,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                             <Switch
                                 checked={isSecure}
                                 onChange={setIsSecure}
-                                className={isSecure ? '!bg-emerald-500' : ''}
+                                className={isSecure ? '!bg-success-500' : ''}
                             />
                         </div>
                     )}
@@ -230,7 +230,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                         <div className="mt-3">
                             <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                                 <div
-                                    className="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-300 ease-out"
+                                    className="h-full bg-brand-600 dark:bg-brand-500 transition-all duration-300 ease-out"
                                     style={{ width: `${progress}%` }}
                                 />
                             </div>
@@ -262,9 +262,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             )}
             {/* Success Message */}
             {progress === 100 && !uploading && (
-                <div className="flex items-center space-x-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
-                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
-                    <p className="text-sm text-green-600 dark:text-green-400">Fichier téléversé avec succès !</p>
+                <div className="flex items-center space-x-2 p-3 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-xl">
+                    <CheckCircle2 className="h-4 w-4 text-success-600 dark:text-success-400 flex-shrink-0" />
+                    <p className="text-sm text-success-600 dark:text-success-400">Fichier téléversé avec succès !</p>
                 </div>
             )}
         </div>

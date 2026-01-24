@@ -86,7 +86,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                                 onClick={() => setActiveTab('details')}
                                 className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'details'
                                     ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                    : 'border-transparent text-muted-foreground hover:text-foreground'
                                     }`}
                             >
                                 <FileText className="w-4 h-4" />
@@ -96,7 +96,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                                 onClick={() => setActiveTab('findings')}
                                 className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'findings'
                                     ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                    : 'border-transparent text-muted-foreground hover:text-foreground'
                                     }`}
                             >
                                 <AlertTriangle className="w-4 h-4" />
@@ -109,7 +109,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                     {activeTab === 'details' ? (
                         <form id="tlpt-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <Controller
                                     name="name"
                                     control={control}
@@ -142,7 +142,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <Controller
                                     name="methodology"
                                     control={control}
@@ -188,7 +188,7 @@ export const TlptCampaignDrawer: React.FC<Props> = ({ isOpen, onClose, onSubmit,
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <Controller
                                     name="startDate"
                                     control={control}

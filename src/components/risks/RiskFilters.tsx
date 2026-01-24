@@ -93,7 +93,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                                 {onExportExcel && (
                                     <button
                                         onClick={onExportExcel}
-                                        className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+                                        className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:bg-success-bg hover:text-success-text hover:border-success-border transition-all"
                                         title="Exporter en Excel"
                                     >
                                         <FileSpreadsheet className="h-5 w-5" />
@@ -102,7 +102,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                                 {onExportPdf && (
                                     <button
                                         onClick={onExportPdf}
-                                        className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
+                                        className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:bg-error-bg hover:text-error-text hover:border-error-border transition-all"
                                         title="Exporter en PDF"
                                     >
                                         <FileText className="h-5 w-5" />

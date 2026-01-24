@@ -1,51 +1,57 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, Link } from 'react-router-dom';
 import { ChevronRight, Home } from './Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
-const routeNameMap: Record<string, string> = {
-    'assets': 'Actifs',
-    'risks': 'Risques',
-    'controls': 'Contrôles',
-    'audits': 'Audits',
-    'projects': 'Projets',
-    'incidents': 'Incidents',
-    'suppliers': 'Fournisseurs',
-    'compliance': 'Conformité',
-    'documents': 'Documents',
-    'settings': 'Paramètres',
-    'team': 'Équipe',
-    'privacy': 'Confidentialité',
-    'continuity': 'Continuité',
-    'analytics': 'Analytique',
-    'timeline': 'Chronologie',
-    'audit-trail': "Journal d'audit",
-    'vulnerabilities': 'Vulnérabilités',
-    'threat-library': 'Bibliothèque de menaces',
-    'threat-intelligence': 'Renseignement',
-    'reports': 'Rapports',
-    'system-health': 'Santé du système',
-    'backup': 'Sauvegarde',
-    'admin_management': 'Admin',
-    'integrations': 'Intégrations'
-};
+
 
 export const Breadcrumbs: React.FC = () => {
     const location = useLocation();
 
+
+    const { t } = useTranslation();
+
     const crumbs = useMemo(() => {
         const pathnames = location.pathname.split('/').filter((x) => x);
+
+        // Define map with exact translation keys
+        const routeKeys: Record<string, string> = {
+            'assets': 'common.assets',
+            'risks': 'common.risks',
+            'controls': 'common.controls',
+            'audits': 'common.audits',
+            'incidents': 'common.incidents',
+            'suppliers': 'common.suppliers',
+            'compliance': 'common.compliance',
+            'documents': 'common.documents',
+            'settings': 'common.settings.title',
+            'team': 'common.team',
+            'privacy': 'common.privacyGdpr',
+            'backup': 'common.backup',
+            'admin': 'common.adminShort'
+        };
+
         return pathnames.map((value, index) => {
             const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-            const name = routeNameMap[value] || (value.length > 20 ? 'Détails' : value.charAt(0).toUpperCase() + value.slice(1));
+
+            // Try to find translation key, fallback to direct value
+            const i18nKey = routeKeys[value] || `common.${value}`;
+            let label = i18nKey ? t(i18nKey) : value;
+
+            // If translation returns the key itself (missing key), capitalize the value
+            if (label === i18nKey) {
+                label = value.length > 20 ? t('common.details') : value.charAt(0).toUpperCase() + value.slice(1);
+            }
+
             return {
-                label: name,
+                label: label,
                 path: to,
                 isLast: index === pathnames.length - 1
             };
         });
-    }, [location.pathname]);
+    }, [location.pathname, t]);
 
     if (crumbs.length === 0) {
         return null;

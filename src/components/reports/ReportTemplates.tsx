@@ -44,7 +44,7 @@ const templates: ReportTemplate[] = [
 
 export const ReportTemplates: React.FC = () => {
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             <div className="flex items-center justify-between">
                 <div>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -61,7 +61,7 @@ export const ReportTemplates: React.FC = () => {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {templates.map((template, index) => (
                     <motion.div
                         key={template.id}

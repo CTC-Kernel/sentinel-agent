@@ -436,6 +436,57 @@
   animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Premium Shimmer Rotate - Conic gradient rotation */
+@keyframes shimmer-rotate {
+  0% {
+    --shimmer-angle: 0deg;
+  }
+  100% {
+    --shimmer-angle: 360deg;
+  }
+}
+
+@property --shimmer-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.animate-shimmer-rotate {
+  animation: shimmer-rotate 4s linear infinite;
+}
+
+/* Float Delayed - Floating with delay offset */
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.animate-float-delayed {
+  animation: float-delayed 4s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+/* Pulse Slow - Slower, subtler pulse */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
 /* ============================================================================
    WCAG 2.1 - Accessibility: Reduced Motion Support
    Users who have requested reduced motion will see minimal or no animations
@@ -445,8 +496,11 @@
 
   /* Disable all infinite/continuous animations */
   .animate-shimmer,
+  .animate-shimmer-rotate,
   .animate-pulse-glow,
+  .animate-pulse-slow,
   .animate-float,
+  .animate-float-delayed,
   .animate-spin-slow,
   .animate-spin-slow-reverse,
   .animate-monitoring-ping,

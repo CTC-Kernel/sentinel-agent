@@ -119,7 +119,7 @@ export const UserManagement: React.FC = () => {
                                 </div>
                                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
-                                        className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
+                                        className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
                                         title="Impersonate User"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -128,7 +128,7 @@ export const UserManagement: React.FC = () => {
                                     >
                                         <LogIn className="w-4 h-4" />
                                     </button>
-                                    <button className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors">
+                                    <button className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors">
                                         <MoreVertical className="w-4 h-4" />
                                     </button>
                                 </div>

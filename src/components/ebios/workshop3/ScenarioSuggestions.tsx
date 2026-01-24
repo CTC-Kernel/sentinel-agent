@@ -162,7 +162,7 @@ export const ScenarioSuggestions: React.FC<ScenarioSuggestionsProps> = ({
                       {onDismissTemplate && (
                         <button
                           onClick={() => onDismissTemplate(template.id)}
-                          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors"
+                          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-muted-foreground transition-colors"
                           title={t('ebios.workshop3.dismissTemplate', 'Ignorer')}
                         >
                           <X className="w-4 h-4" />

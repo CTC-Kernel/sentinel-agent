@@ -31,7 +31,7 @@ export const ComplianceEvidence: React.FC<ComplianceEvidenceProps> = ({
 
     return (
         <div className="max-w-3xl mx-auto space-y-6">
-            <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="font-bold text-slate-900 dark:text-white">Preuves documentaires</h3>
                     {canEdit && (

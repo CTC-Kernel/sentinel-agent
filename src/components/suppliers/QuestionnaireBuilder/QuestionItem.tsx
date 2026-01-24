@@ -15,7 +15,7 @@ export const QuestionItem = memo(({ sIndex, qIndex, register, onRemove }: Questi
 
     return (
         <div className="flex gap-4 items-start bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700/50 group hover:border-brand-200 dark:hover:border-brand-900/30 transition-colors">
-            <div className="mt-2 text-slate-300 group-hover:text-slate-400 transition-colors">
+            <div className="mt-2 text-slate-300 group-hover:text-muted-foreground transition-colors">
                 <Grip className="w-4 h-4 cursor-grab" />
             </div>
             <div className="flex-1 grid grid-cols-1 gap-3">

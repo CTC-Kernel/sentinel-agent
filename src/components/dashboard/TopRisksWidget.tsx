@@ -15,7 +15,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
         .slice(0, 5);
 
     return (
-        <div className="glass-panel p-6 rounded-5xl h-full">
+        <div className="glass-panel p-4 sm:p-6 rounded-5xl h-full">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h3 className="text-lg font-bold text-foreground">Risques Critiques</h3>

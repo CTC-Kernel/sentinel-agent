@@ -35,13 +35,13 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const Icon = type === 'info' ? Info : AlertTriangle;
-  const colorClass = type === 'danger' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-    type === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
-      'bg-blue-100 text-blue-600 dark:bg-slate-900/30 dark:text-blue-400';
+  const colorClass = type === 'danger' ? 'bg-error-100 text-error-600 dark:bg-error-900/30 dark:text-error-400' :
+    type === 'warning' ? 'bg-warning-100 text-warning-600 dark:bg-warning-900/30 dark:text-warning-400' :
+      'bg-info-100 text-info-600 dark:bg-slate-900/30 dark:text-info-400';
 
-  const buttonClass = type === 'danger' ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20' :
-    type === 'warning' ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20' :
-      'text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20';
+  const buttonClass = type === 'danger' ? 'text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20' :
+    type === 'warning' ? 'text-warning-600 hover:bg-warning-50 dark:hover:bg-warning-900/20' :
+      'text-info-600 hover:bg-info-50 dark:bg-slate-900 dark:hover:bg-info-900/20';
 
   return (
     <Transition.Root show={isOpen} as={React.Fragment}>

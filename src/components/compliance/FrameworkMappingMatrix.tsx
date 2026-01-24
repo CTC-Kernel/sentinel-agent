@@ -154,7 +154,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                 className={cn(
                                     "h-full rounded-full transition-all",
                                     fw.percentage >= 80 ? "bg-green-500" :
-                                    fw.percentage >= 50 ? "bg-amber-500" : "bg-red-500"
+                                    fw.percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
                                 )}
                                 style={{ width: `${fw.percentage}%` }}
                             />
@@ -165,7 +165,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
 
             {/* Expanded Framework Details */}
             {expandedFramework && (
-                <div className="glass-panel p-6 rounded-xl border border-brand-200 dark:border-brand-800 animate-fade-in">
+                <div className="glass-panel p-4 sm:p-6 rounded-xl border border-brand-200 dark:border-brand-800 animate-fade-in">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                             {getFrameworkLabel(expandedFramework)}
@@ -191,9 +191,9 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                                         <p className="text-sm text-slate-600 dark:text-muted-foreground">Total référentiel</p>
                                         <p className="text-xl font-bold text-slate-800 dark:text-slate-200">{coverage.totalControls}</p>
                                     </div>
-                                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                                        <p className="text-sm text-amber-700 dark:text-amber-300">Mappings potentiels</p>
-                                        <p className="text-xl font-bold text-amber-800 dark:text-amber-200">{coverage.gaps.length}</p>
+                                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                                        <p className="text-sm text-yellow-700 dark:text-yellow-300">Mappings potentiels</p>
+                                        <p className="text-xl font-bold text-yellow-800 dark:text-yellow-200">{coverage.gaps.length}</p>
                                     </div>
                                 </>
                             ) : null;
@@ -214,7 +214,7 @@ export const FrameworkMappingMatrix: React.FC<FrameworkMappingMatrixProps> = ({
                         onChange={(e) => setShowGapsOnly(e.target.checked)}
                         className="rounded border-slate-300 text-brand-600 focus-visible:ring-brand-500"
                     />
-                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
                     Afficher les gaps uniquement
                 </label>
             </div>

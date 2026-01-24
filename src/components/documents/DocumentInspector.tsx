@@ -77,7 +77,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             title={selectedDocument.title}
-            width="max-w-6xl"
+            width="max-w-[95vw] md:max-w-6xl"
             actions={
                 <div className="flex gap-2">
                     {canEdit && (
@@ -107,18 +107,18 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                 </div>
             }
         >
-            <div className="p-6 space-y-8">
+            <div className="p-6 space-y-6 sm:space-y-8">
                 {/* Meta Header */}
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <WorkflowStatusBadge status={selectedDocument.status} />
                             {selectedDocument.isSecure && (
-                                <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200">
+                                <span className="bg-success-100 text-success-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border border-success-200 dark:bg-success-900/30 dark:text-success-400 dark:border-success-800">
                                     <ShieldCheck className="h-3 w-3" /> Coffre-fort
                                 </span>
                             )}
-                            <span className="text-sm text-slate-500 px-2 py-0.5 bg-slate-100 rounded-lg border border-slate-200">
+                            <span className="text-sm text-slate-500 px-2 py-0.5 bg-slate-100 rounded-lg border border-slate-200 dark:border-slate-700">
                                 v{selectedDocument.version}
                             </span>
                         </div>

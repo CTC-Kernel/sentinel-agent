@@ -159,7 +159,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
           {/* Affected Services */}
           {alert.affectedServices.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
                 {t('vendorConcentration.spof.affectedServices')}
               </p>
               <div className="flex flex-wrap gap-1">
@@ -190,7 +190,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onClick }) => {
 
           {/* Recommendation */}
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
               {t('vendorConcentration.spof.recommendation')}
             </p>
             <p className="text-sm text-slate-700 dark:text-muted-foreground">

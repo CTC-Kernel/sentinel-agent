@@ -59,7 +59,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
     return (
         <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm h-full">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Chronologie</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Chronologie</h3>
                 {selectedIncident.dateResolved && (
                     <div className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg">
                         <Clock className="h-3 w-3 mr-1" />

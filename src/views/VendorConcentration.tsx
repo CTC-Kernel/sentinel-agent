@@ -75,9 +75,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   const colorClasses = {
     default: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
-    warning: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
-    danger: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
-    success: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+    warning: 'bg-warning-bg text-warning-text',
+    danger: 'bg-error-bg text-error-text',
+    success: 'bg-success-bg text-success-text',
   };
 
   const TrendIcon = trend?.direction === 'up'
@@ -87,9 +87,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
       : Minus;
 
   const trendColor = trend?.direction === 'up'
-    ? 'text-red-500'
+    ? 'text-error-text'
     : trend?.direction === 'down'
-      ? 'text-green-500'
+      ? 'text-success-text'
       : 'text-slate-500';
 
   return (
@@ -145,7 +145,7 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, icon: Icon, labe
     className={`
       flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
       ${active
-        ? 'bg-blue-600 text-white shadow-apple'
+        ? 'bg-brand-600 text-white shadow-apple'
         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
       }
     `}
@@ -167,9 +167,9 @@ const ConcentrationBadge: React.FC<ConcentrationBadgeProps> = ({ level }) => {
   const { t } = useTranslation();
 
   const styles = {
-    low: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-    moderate: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
-    high: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    low: 'bg-success-bg text-success-text',
+    moderate: 'bg-warning-bg text-warning-text',
+    high: 'bg-error-bg text-error-text',
   };
 
   return (
@@ -262,7 +262,7 @@ export const VendorConcentration: React.FC = () => {
   if (isLoading && !metrics) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
+        <RefreshCw className="h-8 w-8 animate-spin text-brand-600" />
       </div>
     );
   }
@@ -287,7 +287,7 @@ export const VendorConcentration: React.FC = () => {
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
                 ${showFilters
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                  ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                 }
               `}
@@ -303,7 +303,7 @@ export const VendorConcentration: React.FC = () => {
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               {t('common.refresh')}
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 transition-all">
               <Download className="h-4 w-4" />
               {t('common.export')}
             </button>
@@ -379,7 +379,7 @@ export const VendorConcentration: React.FC = () => {
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Category Distribution Chart */}
-          <div className="glass-panel p-6 rounded-2xl">
+          <div className="glass-panel p-4 sm:p-6 rounded-2xl">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
               {t('vendorConcentration.categoryDistribution.title')}
             </h2>
@@ -392,13 +392,13 @@ export const VendorConcentration: React.FC = () => {
           </div>
 
           {/* SPOF Alerts */}
-          <div className="glass-panel p-6 rounded-2xl">
+          <div className="glass-panel p-4 sm:p-6 rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {t('vendorConcentration.spofAlerts.title')}
               </h2>
               {spofSummary && spofSummary.totalSPOFs > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-error-bg text-error-text">
                   {spofSummary.totalSPOFs} {t('vendorConcentration.spofAlerts.alertCount')}
                 </span>
               )}
@@ -413,7 +413,7 @@ export const VendorConcentration: React.FC = () => {
 
           {/* Trend Summary */}
           {trends && trends.overallTrend.length > 0 && (
-            <div className="glass-panel p-6 rounded-2xl lg:col-span-2">
+            <div className="glass-panel p-4 sm:p-6 rounded-2xl lg:col-span-2">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 {t('vendorConcentration.trends.title')}
               </h2>
@@ -441,7 +441,7 @@ export const VendorConcentration: React.FC = () => {
       )}
 
       {activeTab === 'matrix' && dependencyMatrix && (
-        <div className="glass-panel p-6 rounded-2xl">
+        <div className="glass-panel p-4 sm:p-6 rounded-2xl">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
             {t('vendorConcentration.dependencyMatrix.title')}
           </h2>
@@ -455,7 +455,7 @@ export const VendorConcentration: React.FC = () => {
       )}
 
       {activeTab === 'recommendations' && recommendations && (
-        <div className="glass-panel p-6 rounded-2xl">
+        <div className="glass-panel p-4 sm:p-6 rounded-2xl">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -469,7 +469,7 @@ export const VendorConcentration: React.FC = () => {
               </p>
             </div>
             {recommendations.highPriority > 0 && (
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600">
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-error-bg text-error-text">
                 {recommendations.highPriority} {t('vendorConcentration.recommendations.highPriority')}
               </span>
             )}

@@ -14,10 +14,10 @@ export const ProcessDependencies: React.FC<ProcessDependenciesProps> = ({ linked
     const { t } = useStore();
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             {/* Assets */}
             <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2">
                     <Server className="h-4 w-4" /> {t('continuity.assetsSupport')} ({linkedAssets.length})
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -32,7 +32,7 @@ export const ProcessDependencies: React.FC<ProcessDependenciesProps> = ({ linked
 
             {/* Suppliers */}
             <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2">
                     <Truck className="h-4 w-4" /> {t('common.suppliers')} ({linkedSuppliers.length})
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -47,7 +47,7 @@ export const ProcessDependencies: React.FC<ProcessDependenciesProps> = ({ linked
 
             {/* Risks */}
             <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" /> {t('common.associatedRisks')} ({linkedRisks.length})
                 </h3>
                 <div className="grid gap-3">

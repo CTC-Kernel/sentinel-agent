@@ -19,32 +19,32 @@ export function getRiskLevelFromScore(score: number): RiskLevel {
     if (score >= RISK_THRESHOLDS.CRITICAL) {
         return {
             label: 'Critique',
-            color: 'rose',
-            bgColor: 'bg-rose-500',
-            textColor: 'text-rose-600 dark:text-rose-400'
+            color: 'error',
+            bgColor: 'bg-error-text',
+            textColor: 'text-error-text dark:text-error-text'
         };
     }
     if (score >= RISK_THRESHOLDS.HIGH) {
         return {
             label: 'Élevé',
-            color: 'orange',
-            bgColor: 'bg-orange-500',
-            textColor: 'text-orange-600 dark:text-orange-400'
+            color: 'warning',
+            bgColor: 'bg-warning-text',
+            textColor: 'text-warning-text dark:text-warning-text'
         };
     }
     if (score >= RISK_THRESHOLDS.MEDIUM) {
         return {
             label: 'Moyen',
-            color: 'amber',
-            bgColor: 'bg-amber-400',
-            textColor: 'text-amber-600 dark:text-amber-400'
+            color: 'info',
+            bgColor: 'bg-info-text',
+            textColor: 'text-info-text dark:text-info-text'
         };
     }
     return {
         label: 'Faible',
-        color: 'emerald',
-        bgColor: 'bg-emerald-500',
-        textColor: 'text-emerald-600 dark:text-emerald-400'
+        color: 'success',
+        bgColor: 'bg-success-text',
+        textColor: 'text-success-text dark:text-success-text'
     };
 }
 

@@ -17,8 +17,8 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
     risks
 }) => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="glass-premium p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -43,7 +43,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                 </div>
             </div>
 
-            <div className="glass-premium p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -67,7 +67,7 @@ export const IncidentImpactDetails: React.FC<IncidentImpactDetailsProps> = ({
                 </div>
             </div>
 
-            <div className="glass-premium p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden md:col-span-2">
+            <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden md:col-span-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">

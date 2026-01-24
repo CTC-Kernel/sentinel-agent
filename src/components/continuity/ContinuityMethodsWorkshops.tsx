@@ -33,7 +33,7 @@ interface ContinuityMethodsWorkshopsProps {
     onStartWorkshop?: (templateId: string) => void;
 }
 
-// Module configuration
+// Module configuration - Using muted, professional colors aligned with design tokens
 const MODULE_CONFIG: Record<string, {
     icon: React.ElementType;
     color: string;
@@ -44,49 +44,49 @@ const MODULE_CONFIG: Record<string, {
 }> = {
     bia: {
         icon: AlertOctagon,
-        color: 'bg-orange-500',
-        bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-        borderColor: 'border-orange-200 dark:border-orange-800',
+        color: 'bg-warning',
+        bgColor: 'bg-warning-bg dark:bg-warning/10',
+        borderColor: 'border-warning-border dark:border-warning/30',
         label: 'BIA',
         labelFr: 'Analyse d\'Impact'
     },
     strategies: {
         icon: ShieldCheck,
-        color: 'bg-blue-500',
-        bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-        borderColor: 'border-blue-200 dark:border-blue-800',
+        color: 'bg-brand-500',
+        bgColor: 'bg-brand-50/50 dark:bg-brand-900/10',
+        borderColor: 'border-brand-200 dark:border-brand-800',
         label: 'Strategies',
         labelFr: 'Stratégies'
     },
     pra: {
         icon: FileText,
-        color: 'bg-purple-500',
-        bgColor: 'bg-purple-50 dark:bg-purple-900/20',
-        borderColor: 'border-purple-200 dark:border-purple-800',
+        color: 'bg-violet-500',
+        bgColor: 'bg-violet-50/50 dark:bg-violet-900/10',
+        borderColor: 'border-violet-200 dark:border-violet-800',
         label: 'DRP',
         labelFr: 'PRA'
     },
     drills: {
         icon: Zap,
-        color: 'bg-yellow-500',
-        bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-        borderColor: 'border-yellow-200 dark:border-yellow-800',
+        color: 'bg-info',
+        bgColor: 'bg-info-bg dark:bg-info/10',
+        borderColor: 'border-info-border dark:border-info/30',
         label: 'Exercises',
         labelFr: 'Exercices'
     },
     tlpt: {
         icon: Target,
-        color: 'bg-red-500',
-        bgColor: 'bg-red-50 dark:bg-red-900/20',
-        borderColor: 'border-red-200 dark:border-red-800',
+        color: 'bg-error',
+        bgColor: 'bg-error-bg dark:bg-error/10',
+        borderColor: 'border-error-border dark:border-error/30',
         label: 'TLPT',
         labelFr: 'TLPT (DORA)'
     },
     crisis: {
         icon: AlertTriangle,
-        color: 'bg-pink-500',
-        bgColor: 'bg-pink-50 dark:bg-pink-900/20',
-        borderColor: 'border-pink-200 dark:border-pink-800',
+        color: 'bg-destructive',
+        bgColor: 'bg-destructive/5 dark:bg-destructive/10',
+        borderColor: 'border-destructive/30 dark:border-destructive/40',
         label: 'Crisis',
         labelFr: 'Gestion de Crise'
     },
@@ -880,7 +880,7 @@ export const ContinuityMethodsWorkshops: React.FC<ContinuityMethodsWorkshopsProp
                                                     "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
                                                     phaseStatus === 'completed' ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" :
                                                         phaseStatus === 'in_progress' ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400" :
-                                                            "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                                            "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
                                                 )}>
                                                     {phaseStatus === 'completed' ? <CheckCircle className="w-4 h-4" /> : index + 1}
                                                 </div>

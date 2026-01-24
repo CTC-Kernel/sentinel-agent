@@ -153,7 +153,7 @@ export const Privacy: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-24"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -222,14 +222,14 @@ export const Privacy: React.FC = () => {
 
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t('privacy.stats.sensitiveData')}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{t('privacy.stats.sensitiveData')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-orange-500">{stats.sensitive}</span>
                             <Badge status="warning" variant="soft" size="sm">{t('privacy.stats.priority')}</Badge>
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t('privacy.stats.dpiaRequired')}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{t('privacy.stats.dpiaRequired')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-slate-900 dark:text-white">
                                 {stats.dpiaMissing}
@@ -238,7 +238,7 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t('privacy.stats.inProgress')}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{t('privacy.stats.inProgress')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-blue-500">
                                 {stats.review}
@@ -247,7 +247,7 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{t('privacy.stats.activeCompliance')}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{t('privacy.stats.activeCompliance')}</p>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-black text-emerald-500">
                                 {stats.total > 0 ? Math.round(((stats.total - stats.review) / stats.total) * 100) : 0}%
@@ -269,7 +269,7 @@ export const Privacy: React.FC = () => {
                 }
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {loading ? (
                     <CardSkeleton count={6} />
                 ) : filteredActivities.length === 0 ? (

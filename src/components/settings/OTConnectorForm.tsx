@@ -270,7 +270,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
               'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
               isActive && 'bg-blue-100 text-blue-700',
               isPast && 'bg-green-100 text-green-700',
-              !isActive && !isPast && 'bg-slate-100 text-slate-500'
+              !isActive && !isPast && 'bg-slate-100 dark:bg-slate-800 text-slate-500'
             )}>
               {isPast ? (
                 <Check className="h-4 w-4" />
@@ -344,7 +344,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                 className={cn(
                   'p-4 rounded-xl border-2 text-left transition-all',
                   isSelected && 'border-blue-500 bg-blue-50',
-                  !isSelected && !isDisabled && 'border-slate-200 hover:border-slate-300',
+                  !isSelected && !isDisabled && 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600',
                   isDisabled && 'opacity-50 cursor-not-allowed border-slate-200'
                 )}
               >
@@ -403,7 +403,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             placeholder=".*\.csv$"
             className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           />
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {t('otConnector.csv.filePatternHelp', 'Regular expression to match CSV files')}
           </p>
         </div>
@@ -490,7 +490,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
                 'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors',
                 formData.schedule.type === type
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-slate-200 hover:border-slate-300'
+                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
               )}
             >
               <input
@@ -551,7 +551,7 @@ export const OTConnectorForm: React.FC<OTConnectorFormProps> = ({
             placeholder="0 2 * * *"
             className="w-full px-4 py-2 border rounded-lg font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           />
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {t('otConnector.schedule.cronHelp', 'Format: minute hour day month weekday (e.g., "0 2 * * *" for 2 AM daily)')}
           </p>
         </div>

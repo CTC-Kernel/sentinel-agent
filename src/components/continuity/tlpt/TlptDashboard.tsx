@@ -38,7 +38,7 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
     };
 
     if (loading) return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[1, 2, 3].map((i) => (
                 <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
             ))}
@@ -69,7 +69,7 @@ export const TlptDashboard: React.FC<Props> = ({ campaigns, loading, onAdd, onUp
                     onAction={canEdit ? handleCreate : undefined}
                 />
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {campaigns.map(campaign => (
                         <div
                             key={campaign.id}
@@ -130,6 +130,6 @@ function getStatusColor(status: string) {
         case 'Analysis': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
         case 'Remediation': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300';
         case 'Closed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
-        default: return 'bg-slate-100 text-slate-700';
+        default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700';
     }
 }

@@ -1,0 +1,177 @@
+import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
+import {
+    Activity, ShieldAlert, TrendingDown, Target,
+    ArrowRight, AlertTriangle, CheckCircle
+} from '../../ui/Icons';
+import { Risk } from '../../../types';
+import { GlassCard } from '../../ui/GlassCard';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../../../constants/RiskConstants';
+import { cn } from '../../../utils/cn';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+
+interface RiskIntelCardProps {
+    risks: Risk[];
+}
+
+export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
+
+    // --- 1. Compute Metrics ---
+    const metrics = useMemo(() => {
+        const total = risks.length;
+        if (total === 0) return null;
+
+        const critical = risks.filter(r => r.score >= 10).length;
+        const aboveAppetite = risks.filter(r => (r.residualScore ?? r.score) > RISK_ACCEPTANCE_THRESHOLD).length;
+
+        // Averages for "The Gap" Visualization
+        const totalInherent = risks.reduce((sum, r) => sum + r.score, 0);
+        const totalResidual = risks.reduce((sum, r) => sum + ((r.residualProbability ?? 0) * (r.residualImpact ?? 0)), 0);
+
+        const avgInherent = totalInherent / total;
+        const avgResidual = totalResidual / total;
+        const reduction = avgInherent > 0 ? ((avgInherent - avgResidual) / avgInherent) * 100 : 0;
+
+        return {
+            total,
+            critical,
+            aboveAppetite,
+            avgInherent,
+            avgResidual,
+            reduction
+        };
+    }, [risks]);
+
+    // --- 2. Empty State ---
+    if (!metrics) {
+        return (
+            <GlassCard className="p-8 flex items-center justify-center min-h-[200px]">
+                <div className="text-center opacity-60">
+                    <Activity className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+                    <p className="text-lg font-medium">En attente de données...</p>
+                    <p className="text-sm">Ajoutez des risques pour activer l'intelligence.</p>
+                </div>
+            </GlassCard>
+        );
+    }
+
+    // --- 3. Render "The Command Center" ---
+    return (
+        <GlassCard className="mb-8 overflow-hidden relative border-t border-white/20 dark:border-white/10" hoverEffect={false}>
+            {/* Ambient Background Gradient for "Hero" feel */}
+            <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-brand-500/5 to-transparent pointer-events-none" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6 lg:p-8 relative z-10">
+
+                {/* LEFT: Vital Signs (Vertical Stack) */}
+                <div className="lg:col-span-4 flex flex-col justify-between gap-6 border-r border-slate-200/50 dark:border-white/5 pr-0 lg:pr-8">
+                    <div>
+                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 flex items-center gap-3">
+                            <Activity className="text-brand-500 w-6 h-6" />
+                            Global Risk Intel
+                        </h2>
+                        <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
+                            État de santé du registre au {format(new Date(), 'd MMMM yyyy', { locale: fr })}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="bg-white/50 dark:bg-black/20 p-4 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm"
+                        >
+                            <p className="text-sm text-slate-500 font-medium mb-1">Total Risques</p>
+                            <div className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
+                                {metrics.total}
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className={cn(
+                                "p-4 rounded-2xl border shadow-sm",
+                                metrics.critical > 0
+                                    ? "bg-error-bg/50 dark:bg-error-bg/10 border-error-border dark:border-error-border/30"
+                                    : "bg-success-bg/50 dark:bg-success-bg/10 border-success-border dark:border-success-border/30"
+                            )}
+                        >
+                            <div className="flex items-center justify-between mb-1">
+                                <p className={cn("text-sm font-medium", metrics.critical > 0 ? "text-error-text dark:text-error-text" : "text-success-text dark:text-success-text")}>
+                                    Critiques
+                                </p>
+                                {metrics.critical > 0 ? <ShieldAlert className="w-4 h-4 text-error-text" /> : <CheckCircle className="w-4 h-4 text-success-text" />}
+                            </div>
+                            <div className={cn("text-3xl font-black tracking-tight", metrics.critical > 0 ? "text-error-text dark:text-error-text/90" : "text-success-text dark:text-success-text/90")}>
+                                {metrics.critical}
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-sm p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                        <AlertTriangle className={cn("w-5 h-5", metrics.aboveAppetite > 0 ? "text-warning-text" : "text-slate-400")} />
+                        <span className="text-slate-600 dark:text-slate-300">
+                            <strong>{metrics.aboveAppetite}</strong> risques hors appétence (&gt; {RISK_ACCEPTANCE_THRESHOLD})
+                        </span>
+                    </div>
+                </div>
+
+                {/* RIGHT: The "Value Creation" Engine (Visualization) */}
+                <div className="lg:col-span-8 flex flex-col justify-center pl-0 lg:pl-4">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <Target className="w-5 h-5 text-violet-500" />
+                            Performance de Traitement
+                        </h3>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-success-bg dark:bg-success-bg/20 text-success-text dark:text-success-text rounded-full text-sm font-bold border border-success-border dark:border-success-border/50">
+                            <TrendingDown className="w-4 h-4" />
+                            -{metrics.reduction.toFixed(0)}% de Risque
+                        </div>
+                    </div>
+
+                    {/* Visual Bar Comparison */}
+                    <div className="relative pt-6 pb-2">
+                        {/* 1. Inherent Bar (Background) */}
+                        <div className="relative h-12 md:h-16 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
+                            <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-200 to-red-100 dark:from-red-900/40 dark:to-red-800/20 w-full" />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-right">
+                                <span className="block text-xs font-bold text-red-700 dark:text-red-300 uppercase tracking-wider">Risque Brut Moyen</span>
+                                <span className="block text-lg md:text-2xl font-black text-red-800 dark:text-red-200">{metrics.avgInherent.toFixed(1)}</span>
+                            </div>
+                        </div>
+
+                        {/* 2. Residual Bar (Foreground) */}
+                        <motion.div
+                            initial={{ width: "100%" }}
+                            animate={{ width: `${(metrics.avgResidual / metrics.avgInherent) * 100}%` }}
+                            transition={{ duration: 1.2, ease: "circOut", delay: 0.3 }}
+                            className="absolute top-6 left-0 h-12 md:h-16 bg-gradient-to-r from-success-text to-brand-500 rounded-full shadow-lg shadow-brand-500/20 z-10 flex items-center overflow-visible"
+                        >
+                            <div className="absolute right-4 text-right min-w-[100px]">
+                                <span className="block text-xs font-bold text-white/90 uppercase tracking-wider text-shadow-sm">Risque Résiduel</span>
+                                <span className="block text-lg md:text-2xl font-black text-white text-shadow-md">{metrics.avgResidual.toFixed(1)}</span>
+                            </div>
+
+                            {/* The "Gap" Connector */}
+                            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full pl-4 hidden md:flex items-center gap-2 opacity-80">
+                                <ArrowRight className="text-slate-400 w-5 h-5 animate-pulse" />
+                                <span className="text-xs font-bold text-slate-500 px-2 py-1 bg-white/80 dark:bg-black/50 rounded-md backdrop-blur-sm shadow-sm ring-1 ring-black/5">
+                                    Valeur Créée: Sécurisation
+                                </span>
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    <p className="mt-6 text-xs text-center text-slate-400 max-w-lg mx-auto">
+                        Le graphique ci-dessus illustre la réduction de l'exposition au risque grâce aux contrôles en place.
+                        La zone rouge représente le risque évité (Impact de la Gouvernance).
+                    </p>
+                </div>
+            </div>
+        </GlassCard>
+    );
+};

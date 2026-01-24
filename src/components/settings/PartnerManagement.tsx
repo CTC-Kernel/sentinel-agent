@@ -161,7 +161,7 @@ export const PartnerManagement: React.FC = () => {
             </div>
 
             {/* Partners List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <AnimatePresence>
                     {partners.length === 0 ? (
                         <motion.div
@@ -208,8 +208,8 @@ export const PartnerManagement: React.FC = () => {
 
                                 <div className="flex items-start gap-4 mb-4">
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${partner.status === 'ACTIVE'
-                                        ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/20'
-                                        : 'bg-gradient-to-br from-orange-400 to-amber-500 text-white shadow-lg shadow-orange-500/20'
+                                        ? 'bg-gradient-to-br from-success-500 to-success-600 text-white shadow-lg shadow-success-500/20'
+                                        : 'bg-gradient-to-br from-warning-400 to-warning-500 text-white shadow-lg shadow-warning-500/20'
                                         }`}>
                                         {partner.status === 'ACTIVE' ? <ShieldCheck className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
                                     </div>
@@ -219,8 +219,8 @@ export const PartnerManagement: React.FC = () => {
                                         </h4>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${partner.status === 'ACTIVE'
-                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                                ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+                                                : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
                                                 }`}>
                                                 {partner.status === 'ACTIVE' ? "Partenaire Actif" : "Invitation envoyée"}
                                             </span>
@@ -235,7 +235,7 @@ export const PartnerManagement: React.FC = () => {
                                     </div>
 
                                     {partner.status === 'ACTIVE' && (
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs text-slate-500 border border-slate-100 dark:border-white/5">
+                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-white/5">
                                             <span className="font-medium text-slate-700 dark:text-muted-foreground">ID Certifieur:</span>
                                             <code className="ml-2 px-1 py-0.5 bg-white dark:bg-black/20 rounded border border-slate-200 dark:border-white/10 font-mono">
                                                 {partner.certifierId?.substring(0, 12)}...
@@ -285,7 +285,7 @@ export const PartnerManagement: React.FC = () => {
                                         {t('certifier.partners.emailLabel') || "Email du contact principal"}
                                     </label>
                                     <div className="relative group">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                                         <input
                                             name="email"
                                             type="email"

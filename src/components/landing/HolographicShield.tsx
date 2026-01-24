@@ -7,7 +7,7 @@ export const HolographicShield = () => {
             <div className="absolute inset-0 rounded-full border border-brand-500/20 border-t-brand-500/60 border-b-brand-500/60 animate-[spin_10s_linear_infinite] shadow-[0_0_30px_rgba(59,130,246,0.2)]"></div>
 
             {/* Inner Counter-Rotating Ring */}
-            <div className="absolute inset-8 rounded-full border border-dashed border-indigo-400/30 animate-[spin_15s_linear_infinite_reverse]"></div>
+            <div className="absolute inset-8 rounded-full border border-dashed border-violet-400/30 animate-[spin_15s_linear_infinite_reverse]"></div>
 
             {/* Pulsing Core Field */}
             <div className="absolute inset-20 rounded-full bg-brand-500/10 blur-3xl animate-pulse"></div>
@@ -27,7 +27,7 @@ export const HolographicShield = () => {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-brand-400 rounded-full shadow-[0_0_10px_rgba(59,130,246,1)]"></div>
             </div>
             <div className="absolute w-[80%] h-[80%] animate-[spin_12s_linear_infinite_reverse]">
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-indigo-400 rounded-full shadow-[0_0_10px_rgba(99,102,241,1)]"></div>
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-violet-400 rounded-full shadow-[0_0_10px_rgba(139,92,246,1)]"></div>
             </div>
         </div>
     );

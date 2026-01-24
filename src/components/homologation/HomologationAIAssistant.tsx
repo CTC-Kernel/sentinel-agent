@@ -361,9 +361,9 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
     if (!response) return null;
 
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-indigo-100 dark:border-indigo-500/20 shadow-sm animate-fade-in">
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-500/20 shadow-sm animate-fade-in">
         <div className="flex justify-between items-start mb-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 flex items-center">
             <Bot className="h-3.5 w-3.5 mr-1.5" />
             {t('homologation.ai.response', 'Analyse IA')}
           </h4>
@@ -383,10 +383,10 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
               <div className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                 <span className="font-medium">{t('homologation.ai.recommendedLevel', 'Niveau recommandé')}</span>
                 <span className={`px-2 py-1 rounded text-xs font-bold ${
-                  response.levelAnalysis.recommendedLevel === 'etoile' ? 'bg-green-100 text-green-700' :
-                  response.levelAnalysis.recommendedLevel === 'simple' ? 'bg-blue-100 text-blue-700' :
-                  response.levelAnalysis.recommendedLevel === 'standard' ? 'bg-amber-100 text-amber-700' :
-                  'bg-red-100 text-red-700'
+                  response.levelAnalysis.recommendedLevel === 'etoile' ? 'bg-success/10 text-success' :
+                  response.levelAnalysis.recommendedLevel === 'simple' ? 'bg-info/10 text-info' :
+                  response.levelAnalysis.recommendedLevel === 'standard' ? 'bg-warning/10 text-warning' :
+                  'bg-error/10 text-error'
                 }`}>
                   {LEVEL_LABELS[response.levelAnalysis.recommendedLevel]}
                 </span>
@@ -401,11 +401,11 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                 </ul>
               </div>
               {response.levelAnalysis.missingInfo && response.levelAnalysis.missingInfo.length > 0 && (
-                <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                  <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                <div className="p-2 bg-warning/10 rounded-lg">
+                  <span className="text-xs font-medium text-warning">
                     {t('homologation.ai.missingInfo', 'Informations manquantes')}:
                   </span>
-                  <ul className="list-disc pl-4 text-xs mt-1 text-amber-600 dark:text-amber-300">
+                  <ul className="list-disc pl-4 text-xs mt-1 text-warning">
                     {response.levelAnalysis.missingInfo.map((m, i) => (
                       <li key={i}>{m}</li>
                     ))}
@@ -415,7 +415,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
               {onUpdate && response.levelAnalysis.recommendedLevel !== dossier.level && (
                 <button
                   onClick={handleApplyLevel}
-                  className="w-full flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors"
+                  className="w-full flex items-center justify-center px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors"
                 >
                   <Shield className="h-3.5 w-3.5 mr-2" />
                   {t('homologation.ai.applyLevel', 'Appliquer le niveau recommandé')}
@@ -441,7 +441,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
               {response.strategyOutline.recommendations.length > 0 && (
                 <div>
                   <span className="text-xs font-medium">{t('homologation.ai.recommendations', 'Recommandations')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1 text-indigo-600 dark:text-indigo-400">
+                  <ul className="list-disc pl-4 text-xs mt-1 text-brand-600 dark:text-brand-400">
                     {response.strategyOutline.recommendations.map((r, i) => (
                       <li key={i}>{r}</li>
                     ))}
@@ -456,7 +456,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
             <div className="space-y-3">
               {response.riskAnalysis.coveredRisks.length > 0 && (
                 <div>
-                  <span className="text-xs font-medium text-green-600">{t('homologation.ai.coveredRisks', 'Risques couverts')}:</span>
+                  <span className="text-xs font-medium text-success">{t('homologation.ai.coveredRisks', 'Risques couverts')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.riskAnalysis.coveredRisks.map((r, i) => (
                       <li key={i}>{r}</li>
@@ -465,9 +465,9 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                 </div>
               )}
               {response.riskAnalysis.gaps.length > 0 && (
-                <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <span className="text-xs font-medium text-red-600 dark:text-red-400">{t('homologation.ai.gaps', 'Lacunes identifiées')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1 text-red-600 dark:text-red-300">
+                <div className="p-2 bg-error/10 rounded-lg">
+                  <span className="text-xs font-medium text-error">{t('homologation.ai.gaps', 'Lacunes identifiées')}:</span>
+                  <ul className="list-disc pl-4 text-xs mt-1 text-error">
                     {response.riskAnalysis.gaps.map((g, i) => (
                       <li key={i}>{g}</li>
                     ))}
@@ -485,7 +485,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                 </div>
               )}
               {response.riskAnalysis.ebiosSyncStatus && (
-                <p className="text-xs text-indigo-600 dark:text-indigo-400">
+                <p className="text-xs text-brand-600 dark:text-brand-400">
                   {response.riskAnalysis.ebiosSyncStatus}
                 </p>
               )}
@@ -498,9 +498,9 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
               {response.actionPlan.items.map((item, i) => (
                 <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg flex items-start gap-2">
                   <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                    item.priority === 'high' ? 'bg-red-500' :
-                    item.priority === 'medium' ? 'bg-amber-500' :
-                    'bg-green-500'
+                    item.priority === 'high' ? 'bg-error' :
+                    item.priority === 'medium' ? 'bg-warning' :
+                    'bg-success'
                   }`} />
                   <div className="flex-1">
                     <span className="font-medium text-xs">{item.action}</span>
@@ -518,7 +518,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                 </div>
               ))}
               {response.actionPlan.timeline && (
-                <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-2">
+                <p className="text-xs text-brand-600 dark:text-brand-400 mt-2">
                   {t('homologation.ai.timeline', 'Calendrier')}: {response.actionPlan.timeline}
                 </p>
               )}
@@ -534,18 +534,18 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
                   <div className="w-24 h-2 bg-slate-200 dark:bg-slate-600 rounded-full mt-1">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        response.readinessAssessment.score >= 80 ? 'bg-green-500' :
-                        response.readinessAssessment.score >= 50 ? 'bg-amber-500' :
-                        'bg-red-500'
+                        response.readinessAssessment.score >= 80 ? 'bg-success' :
+                        response.readinessAssessment.score >= 50 ? 'bg-warning' :
+                        'bg-error'
                       }`}
                       style={{ width: `${response.readinessAssessment.score}%` }}
                     />
                   </div>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  response.readinessAssessment.status === 'ready' ? 'bg-green-100 text-green-700' :
-                  response.readinessAssessment.status === 'almost_ready' ? 'bg-amber-100 text-amber-700' :
-                  'bg-red-100 text-red-700'
+                  response.readinessAssessment.status === 'ready' ? 'bg-success/10 text-success' :
+                  response.readinessAssessment.status === 'almost_ready' ? 'bg-warning/10 text-warning' :
+                  'bg-error/10 text-error'
                 }`}>
                   {response.readinessAssessment.score}%
                 </span>
@@ -553,7 +553,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
 
               {response.readinessAssessment.strengths.length > 0 && (
                 <div>
-                  <span className="text-xs font-medium text-green-600">{t('homologation.ai.strengths', 'Points forts')}:</span>
+                  <span className="text-xs font-medium text-success">{t('homologation.ai.strengths', 'Points forts')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.readinessAssessment.strengths.map((s, i) => (
                       <li key={i}>{s}</li>
@@ -564,7 +564,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
 
               {response.readinessAssessment.weaknesses.length > 0 && (
                 <div>
-                  <span className="text-xs font-medium text-amber-600">{t('homologation.ai.weaknesses', 'Points à améliorer')}:</span>
+                  <span className="text-xs font-medium text-warning">{t('homologation.ai.weaknesses', 'Points à améliorer')}:</span>
                   <ul className="list-disc pl-4 text-xs mt-1">
                     {response.readinessAssessment.weaknesses.map((w, i) => (
                       <li key={i}>{w}</li>
@@ -574,9 +574,9 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
               )}
 
               {response.readinessAssessment.blockers && response.readinessAssessment.blockers.length > 0 && (
-                <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <span className="text-xs font-medium text-red-600 dark:text-red-400">{t('homologation.ai.blockers', 'Bloquants')}:</span>
-                  <ul className="list-disc pl-4 text-xs mt-1 text-red-600 dark:text-red-300">
+                <div className="p-2 bg-error/10 rounded-lg">
+                  <span className="text-xs font-medium text-error">{t('homologation.ai.blockers', 'Bloquants')}:</span>
+                  <ul className="list-disc pl-4 text-xs mt-1 text-error">
                     {response.readinessAssessment.blockers.map((b, i) => (
                       <li key={i}>{b}</li>
                     ))}
@@ -607,11 +607,11 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-500/30">
+    <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-500/30">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 bg-white dark:bg-slate-900/50 rounded-xl shadow-sm">
-          <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
         </div>
         <div>
           <h3 className="font-bold text-slate-900 dark:text-white text-sm">
@@ -630,10 +630,10 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
             key={action}
             onClick={() => handleAction(action)}
             disabled={loading}
-            className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+            className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
               activeAction === action
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'
+                ? 'bg-brand-600 text-white shadow-md'
+                : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'
             }`}
           >
             {loading && activeAction === action ? (
@@ -648,7 +648,7 @@ export const HomologationAIAssistant: React.FC<HomologationAIAssistantProps> = (
 
       {/* Error */}
       {error && (
-        <div className="text-xs text-red-500 mb-2">{error}</div>
+        <div className="text-xs text-error mb-2">{error}</div>
       )}
 
       {/* Response */}

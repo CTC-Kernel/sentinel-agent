@@ -33,10 +33,10 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
 
     const getCellColor = (p: number, i: number) => {
         const score = (5 - p) * (i + 1); // 5-p because row 0 is probability 5
-        if (score >= 15) return 'bg-red-500/90 text-white';
-        if (score >= 10) return 'bg-orange-500/90 text-white';
-        if (score >= 5) return 'bg-yellow-500/90 text-white';
-        return 'bg-emerald-500/90 text-white';
+        if (score >= 15) return 'bg-destructive/90 text-white';
+        if (score >= 10) return 'bg-warning/90 text-white';
+        if (score >= 5) return 'bg-warning/70 text-white';
+        return 'bg-success/90 text-white';
     };
 
     if (loading) {

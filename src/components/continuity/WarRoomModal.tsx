@@ -170,7 +170,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-slate-900 w-full max-w-6xl h-[85vh] rounded-3xl border border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.2)] flex overflow-hidden flex-col md:flex-row relative"
+                            className="bg-slate-900 w-full max-w-[95vw] md:max-w-6xl h-[90vh] md:h-[85vh] rounded-3xl border border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.2)] flex overflow-hidden flex-col md:flex-row relative"
                         >
                             {/* CRT/Scanline Overlay */}
                             <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(transparent,transparent_2px,rgba(0,0,0,0.1)_3px)] opacity-50 z-decorator mix-blend-overlay" />
@@ -184,13 +184,13 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                     </div>
                                     <Dialog.Title as="h2" className="text-2xl font-black text-white uppercase tracking-tight">War Room</Dialog.Title>
                                     <p className="text-red-400 text-sm font-mono mt-1 break-all">REF: {incidentId}</p>
-                                    <p className="text-slate-400 text-xs mt-2 line-clamp-2">{incidentTitle}</p>
+                                    <p className="text-muted-foreground text-xs mt-2 line-clamp-2">{incidentTitle}</p>
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                                     {/* Critical Docs */}
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                                             <FileText className="w-4 h-4" /> Documents Critiques
                                         </h3>
                                         <div className="space-y-2">
@@ -223,7 +223,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
 
                                     {/* Quick Actions */}
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                                             <AlertTriangle className="w-4 h-4" /> Actions Rapides
                                         </h3>
                                         <div className="space-y-2">
@@ -246,7 +246,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
 
                                     {/* Active Users - Real-time Presence */}
                                     <div>
-                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                                             <User className="w-4 h-4" /> En Ligne ({presence.length})
                                         </h3>
                                         <div className="space-y-2">
@@ -274,7 +274,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                                 {p.displayName}
                                                                 {p.id === user?.uid && <span className="text-slate-400 ml-1">(vous)</span>}
                                                             </p>
-                                                            <p className="text-xs text-slate-500 capitalize">{p.role}</p>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{p.role}</p>
                                                         </div>
                                                     </div>
                                                 ))
@@ -366,7 +366,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, inc
                                                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-sm"
                                                 >
                                                     {getFileIcon(file.type)}
-                                                    <span className="truncate max-w-[150px] text-blue-200">{file.name}</span>
+                                                    <span className="truncate max-w-[100px] sm:max-w-[150px] text-blue-200">{file.name}</span>
                                                     <button
                                                         type="button"
                                                         onClick={() => removePendingAttachment(idx)}

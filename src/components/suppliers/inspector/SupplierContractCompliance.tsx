@@ -92,9 +92,9 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
     const progress = Math.round((completedCount / totalCount) * 100);
 
     return (
-        <div className="p-6 h-full overflow-y-auto space-y-8">
+        <div className="p-6 h-full overflow-y-auto space-y-6 sm:space-y-8">
             {/* Header */}
-            <div className="glass-panel p-6 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+            <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
                 <div className="flex justify-between items-start mb-4">
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -156,7 +156,7 @@ export const SupplierContractCompliance: React.FC<Props> = ({ supplier, canEdit,
                                     <h4 className={`font-bold text-sm mb-1 ${isChecked ? 'text-emerald-900 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
                                         {req.label}
                                     </h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    <p className="text-xs text-slate-500 dark:text-muted-foreground leading-relaxed">
                                         {req.description}
                                     </p>
                                 </div>

@@ -71,9 +71,9 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                         {isValidDate(date) ? format(date, "d MMMM yyyy à HH:mm", { locale: fr }) : '-'}
                                     </p>
                                     <p className="text-sm text-slate-600 dark:text-muted-foreground">
-                                        <span className={`font-bold uppercase text-xs mr-2 px-1.5 py-0.5 rounded ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' :
-                                            log.action === 'DELETE' ? 'bg-red-100 text-red-700' :
-                                                'bg-blue-100 text-blue-700'
+                                        <span className={`font-bold uppercase text-xs mr-2 px-1.5 py-0.5 rounded ${log.action === 'CREATE' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                                            log.action === 'DELETE' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
+                                                'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                                             }`}>{log.action}</span>
                                         {log.details}
                                     </p>
@@ -93,7 +93,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                                     )}
                                 </div>
 
-                                <div className="flex items-center text-xs text-slate-500 gap-1 mt-1 sm:mt-0">
+                                <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 gap-1 mt-1 sm:mt-0">
                                     <User className="h-3 w-3" />
                                     {log.userDisplayName || log.userEmail || 'Système'}
                                 </div>

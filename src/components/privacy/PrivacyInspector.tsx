@@ -66,7 +66,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
 
             <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
                 {inspectorTab === 'details' && (
-                    <div className="space-y-8">
+                    <div className="space-y-6 sm:space-y-8">
                         {isEditing ? (
                             <>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -159,7 +159,7 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                                     <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                 </span>
                                 <div>
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
                                     <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">{log.details}</p>
                                     <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>

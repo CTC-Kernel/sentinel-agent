@@ -45,7 +45,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                 <History className="h-4 w-4 text-brand-500" /> Piste d'Audit ({resourceLogs.length})
             </h3>
 
-            <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-8">
+            <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-6 sm:space-y-8">
                 {resourceLogs.map((log) => (
                     <div key={log.id} className="relative pl-6">
                         {/* Dot */}

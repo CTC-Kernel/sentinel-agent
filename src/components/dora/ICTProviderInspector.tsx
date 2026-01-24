@@ -135,7 +135,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
 
                 {/* Services Section */}
                 <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                         <Server className="w-4 h-4" />
                         {t('dora.fields.services')} ({provider.services?.length || 0})
                     </h3>
@@ -170,11 +170,11 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
 
                 {/* Contract Section */}
                 <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                         <FileText className="w-4 h-4" />
                         {t('dora.contract.title')}
                     </h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                             <span className="text-xs text-slate-500 block mb-1">{t('dora.contract.startDate')}</span>
                             <span className="font-medium text-slate-900 dark:text-white flex items-center gap-1">
@@ -210,7 +210,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
 
                 {/* Compliance Section */}
                 <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                         <Shield className="w-4 h-4" />
                         {t('dora.compliance.title')}
                     </h3>
@@ -251,11 +251,11 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
 
                 {/* Risk Section */}
                 <section>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4" />
                         {t('dora.risk.title')}
                     </h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                             <span className="text-xs text-slate-500 block mb-2">{t('dora.risk.concentration')}</span>
                             <div className="flex items-center gap-2">
@@ -288,7 +288,7 @@ export const ICTProviderInspector: React.FC<ICTProviderInspectorProps> = ({
                 {/* Contact Section */}
                 {(provider.contactName || provider.contactEmail || provider.contactPhone || provider.website) && (
                     <section>
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
                             <Building2 className="w-4 h-4" />
                             Contact
                         </h3>

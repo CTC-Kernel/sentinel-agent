@@ -87,7 +87,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
             >
                 {/* Background Effects */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-brand-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
                 <div className="p-6 h-full flex flex-col justify-between">
                     <div className="flex items-start justify-between mb-4 relative z-10">
@@ -161,14 +161,14 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 <div className="p-6 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-emerald-500/10">
-                                <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                            <div className="p-2.5 rounded-xl bg-success/10 border border-success/20 shadow-sm shadow-success/10">
+                                <Activity className="w-5 h-5 text-success-text dark:text-success" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
                                     Santé Globale
                                 </h3>
-                                <p className="text-xs font-medium text-emerald-600/80 dark:text-emerald-400/80">
+                                <p className="text-xs font-medium text-success-text/80 dark:text-success/80">
                                     Indicateurs de performance clés
                                 </p>
                             </div>
@@ -179,16 +179,16 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 1. Risk Metric */}
                         <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/risks')}>
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Risques</span>
-                                <AlertTriangle className="w-4 h-4 text-orange-500 group-hover/item:text-orange-400 transition-colors" />
+                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Risques</span>
+                                <AlertTriangle className="w-4 h-4 text-warning group-hover/item:text-warning/80 transition-colors" />
                             </div>
                             <div className="flex items-end gap-2 mt-auto">
                                 <span className="text-3xl font-bold text-slate-900 dark:text-white">{stats.totalRisks}</span>
-                                <span className="text-xs font-medium text-red-500 mb-1.5">{stats.criticalRisks} critiques</span>
+                                <span className="text-xs font-medium text-destructive mb-1.5">{stats.criticalRisks} critiques</span>
                             </div>
                             <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden">
                                 <div
-                                    className="bg-red-500 h-full rounded-full"
+                                    className="bg-destructive h-full rounded-full"
                                     style={{ width: `${Math.min(100, (stats.criticalRisks / (stats.totalRisks || 1)) * 100)}%` }}
                                 />
                             </div>
@@ -197,10 +197,10 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 2. Compliance Metric */}
                         <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/compliance')}>
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Conformité</span>
-                                <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 80 ? 'text-emerald-500 group-hover/item:text-emerald-400' :
-                                    effectiveComplianceScore >= 50 ? 'text-amber-500 group-hover/item:text-amber-400' :
-                                        'text-red-500 group-hover/item:text-red-400'
+                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Conformité</span>
+                                <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 80 ? 'text-success group-hover/item:text-success/80' :
+                                    effectiveComplianceScore >= 50 ? 'text-warning group-hover/item:text-warning/80' :
+                                        'text-destructive group-hover/item:text-destructive/80'
                                     }`} />
                             </div>
                             <div className="flex items-center justify-between mt-auto gap-4">
@@ -213,9 +213,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                             stroke="currentColor" strokeWidth="4" fill="transparent"
                                             strokeDasharray={175.92}
                                             strokeDashoffset={175.92 - (175.92 * effectiveComplianceScore) / 100}
-                                            className={`${effectiveComplianceScore >= 80 ? 'text-emerald-500' :
-                                                effectiveComplianceScore >= 50 ? 'text-amber-500' :
-                                                    'text-red-500'
+                                            className={`${effectiveComplianceScore >= 80 ? 'text-success' :
+                                                effectiveComplianceScore >= 50 ? 'text-warning' :
+                                                    'text-destructive'
                                                 } transition-all duration-1000 ease-out`}
                                             strokeLinecap="round"
                                         />
@@ -224,9 +224,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 </div>
                                 <div className="text-right">
                                     <div className="text-xs text-slate-500 dark:text-muted-foreground">Score</div>
-                                    <div className={`text-sm font-bold ${effectiveComplianceScore >= 80 ? 'text-emerald-600 dark:text-emerald-400' :
-                                        effectiveComplianceScore >= 50 ? 'text-amber-600 dark:text-amber-400' :
-                                            'text-red-600 dark:text-red-400'
+                                    <div className={`text-sm font-bold ${effectiveComplianceScore >= 80 ? 'text-success-text dark:text-success' :
+                                        effectiveComplianceScore >= 50 ? 'text-warning-text dark:text-warning' :
+                                            'text-error-text dark:text-error'
                                         }`}>
                                         {effectiveComplianceScore >= 80 ? 'Excellente' :
                                             effectiveComplianceScore >= 50 ? 'Moyenne' :
@@ -239,18 +239,18 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         {/* 3. Financial Metric */}
                         <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/risks')}>
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Financier</span>
-                                <Activity className="w-4 h-4 text-blue-500 group-hover/item:text-blue-400 transition-colors" />
+                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Financier</span>
+                                <Activity className="w-4 h-4 text-info group-hover/item:text-info/80 transition-colors" />
                             </div>
                             <div className="mt-auto">
                                 <div className="text-xl font-bold text-slate-900 dark:text-white truncate" title={new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.financialRisk)}>
                                     {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, notation: "compact" }).format(stats.financialRisk)}
                                 </div>
-                                <span className="text-xs font-medium text-blue-500 cursor-help" title="Calculé sur la base de l'exposition au risque et de la valeur des actifs (Top 20 risques).">* Exposition estimée</span>
+                                <span className="text-xs font-medium text-info cursor-help" title="Calculé sur la base de l'exposition au risque et de la valeur des actifs (Top 20 risques).">* Exposition estimée</span>
                             </div>
                             <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden">
                                 <div
-                                    className="bg-blue-500 h-full rounded-full"
+                                    className="bg-info h-full rounded-full"
                                     style={{ width: `${Math.min(100, Math.max(5, (stats.financialRisk / (stats.assetValue || 1)) * 100))}%` }}
                                 />
                             </div>

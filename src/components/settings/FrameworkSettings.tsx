@@ -128,9 +128,9 @@ export const FrameworkSettings: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             {/* Header */}
-            <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10">
+            <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-white/60 dark:border-white/10">
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">

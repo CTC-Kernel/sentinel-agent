@@ -71,7 +71,7 @@ export const Search: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-24"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title="Recherche Avancée" description="Recherchez dans tous vos actifs, risques, documents et projets" />
@@ -197,7 +197,7 @@ export const Search: React.FC = () => {
                                         </span>
                                     )}
                                     {result.score !== undefined && (
-                                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${result.score >= 8 ? 'bg-red-100 text-red-700' : result.score >= 5 ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${result.score >= 8 ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : result.score >= 5 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'}`}>
                                             Score: {result.score}
                                         </span>
                                     )}

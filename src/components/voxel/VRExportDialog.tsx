@@ -149,7 +149,7 @@ const PlatformCard: React.FC<PlatformCardProps> = ({ platform, isSelected, onSel
       </h3>
 
       {/* Description */}
-      <p className="text-xs text-slate-500 mt-1">{settings.description}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{settings.description}</p>
     </button>
   );
 };
@@ -433,7 +433,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
               className="w-full px-4 py-2 bg-slate-800 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               placeholder="voxel-vr-export"
             />
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               File will be saved as {filename}.{VR_PLATFORM_SETTINGS[platform].recommendedFormat}
             </p>
           </div>
@@ -519,7 +519,7 @@ export const VRExportDialog: React.FC<VRExportDialogProps> = ({
                 flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium
                 transition-all duration-200
                 ${isExporting || !scene || !validation.valid
-                  ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                  ? 'bg-slate-600 text-muted-foreground cursor-not-allowed'
                   : 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25'
                 }
               `}

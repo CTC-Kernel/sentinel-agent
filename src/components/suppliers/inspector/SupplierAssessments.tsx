@@ -23,7 +23,7 @@ const getStatusColorClasses = (status: string): string => {
     case 'Reviewed':
       return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
     case 'Archived':
-      return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+      return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
     case 'Expired':
       return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
     case 'In Progress':
@@ -207,7 +207,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   isActive
                     ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
                 }`}
               >
                 {status === 'all' ? t('vendorAssessment.allStatuses', 'All') : getStatusLabel(status, t)}
@@ -285,7 +285,7 @@ export const SupplierAssessments: React.FC<SupplierAssessmentsProps> = ({
                         </h3>
                         {/* Framework badge */}
                         {enhanced.framework && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 rounded">
+                          <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-700 dark:text-slate-400 rounded">
                             {enhanced.framework}
                           </span>
                         )}

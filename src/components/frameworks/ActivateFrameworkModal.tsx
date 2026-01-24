@@ -134,7 +134,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                       >
                         <Calendar className="w-4 h-4" />
                         {t('frameworks.targetComplianceDate', 'Date cible de conformité')}
-                        <span className="text-slate-400 text-xs">
+                        <span className="text-muted-foreground text-xs">
                           ({t('common.optional', 'optionnel')})
                         </span>
                       </label>
@@ -155,7 +155,7 @@ export const ActivateFrameworkModal: React.FC<ActivateFrameworkModalProps> = ({
                       >
                         <FileText className="w-4 h-4" />
                         {t('frameworks.notes', 'Notes')}
-                        <span className="text-slate-400 text-xs">
+                        <span className="text-muted-foreground text-xs">
                           ({t('common.optional', 'optionnel')})
                         </span>
                       </label>

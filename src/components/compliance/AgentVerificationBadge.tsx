@@ -42,9 +42,9 @@ export const AgentVerificationBadge: React.FC<AgentVerificationBadgeProps> = ({
             case 'pass':
                 return {
                     icon: CheckCircle2,
-                    color: 'text-emerald-600 dark:text-emerald-400',
-                    bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
-                    borderColor: 'border-emerald-200 dark:border-emerald-900/30',
+                    color: 'text-green-600 dark:text-green-400',
+                    bgColor: 'bg-green-50 dark:bg-green-900/20',
+                    borderColor: 'border-green-200 dark:border-green-900/30',
                     label: 'OK'
                 };
             case 'fail':
@@ -58,9 +58,9 @@ export const AgentVerificationBadge: React.FC<AgentVerificationBadgeProps> = ({
             case 'error':
                 return {
                     icon: AlertTriangle,
-                    color: 'text-orange-600 dark:text-orange-400',
-                    bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-                    borderColor: 'border-orange-200 dark:border-orange-900/30',
+                    color: 'text-yellow-600 dark:text-yellow-400',
+                    bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
+                    borderColor: 'border-yellow-200 dark:border-yellow-900/30',
                     label: 'Error'
                 };
             default:
@@ -134,9 +134,9 @@ export const AgentVerificationIndicator: React.FC<{
 
     const getStatusColor = () => {
         switch (status) {
-            case 'pass': return 'bg-emerald-500';
+            case 'pass': return 'bg-green-500';
             case 'fail': return 'bg-red-500';
-            case 'error': return 'bg-orange-500';
+            case 'error': return 'bg-yellow-500';
             default: return 'bg-slate-400';
         }
     };

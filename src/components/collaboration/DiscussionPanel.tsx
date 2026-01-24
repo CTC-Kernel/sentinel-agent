@@ -363,7 +363,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                         "p-2 rounded-lg transition-colors",
                                         notificationsEnabled
                                             ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300"
-                                            : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-700"
+                                            : "bg-slate-100 dark:bg-slate-800 text-muted-foreground hover:text-foreground"
                                     )}
                                     title={notificationsEnabled ? "Désactiver les notifications" : "Activer les notifications"}
                                 >
@@ -553,7 +553,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                             className={cn(
                                 "absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all",
                                 isSubmitting || !isValid
-                                    ? "bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed"
+                                    ? "bg-slate-200 dark:bg-slate-700 text-muted-foreground cursor-not-allowed"
                                     : "bg-brand-600 text-white hover:bg-brand-700"
                             )}
                         >

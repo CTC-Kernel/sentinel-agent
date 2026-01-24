@@ -135,7 +135,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-muted-foreground hover:text-white transition-colors">
+                                <button onClick={onClose} className="p-2.5 hover:bg-white/10 rounded-full text-muted-foreground hover:text-white transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -199,7 +199,7 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({ isOpen, on
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <p className="text-sm text-slate-300 font-medium">Suspend Organization</p>
-                                                    <p className="text-xs text-slate-500 mt-1">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                                         Stop all access immediately.
                                                     </p>
                                                 </div>

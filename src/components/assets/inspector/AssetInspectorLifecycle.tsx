@@ -74,10 +74,10 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             <div className="bg-white dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-x-auto">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-8">Timeline du cycle de vie</h3>
-                <div className="min-w-[600px] px-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-8">Timeline du cycle de vie</h3>
+                <div className="min-w-[320px] sm:min-w-[500px] md:min-w-[600px] px-4">
                     <LifecycleTimeline
                         status={selectedAsset?.lifecycleStatus || 'Neuf'}
                         purchaseDate={selectedAsset?.purchaseDate}
@@ -112,7 +112,7 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                     <p className="text-xl font-black text-blue-700 dark:text-blue-400">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(calculateTCO())}</p>
                                 </div>
                             </div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Courbe d'amortissement (5 ans)</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Courbe d'amortissement (5 ans)</h4>
                             <div className="h-40 w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     {getDepreciationData().length === 0 ? (

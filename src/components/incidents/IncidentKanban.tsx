@@ -51,7 +51,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
     return (
         <div className="flex h-full gap-6 overflow-x-auto pb-6">
             {COLUMNS.map(column => (
-                <div key={column.id} className="min-w-[320px] max-w-[320px] flex flex-col h-full rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 backdrop-blur-md">
+                <div key={column.id} className="min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] flex flex-col h-full rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 backdrop-blur-md">
                     {/* Column Header */}
                     <div className="p-4 border-b border-white/20 flex items-center justify-between sticky top-0 bg-inherit rounded-t-2xl z-10 backdrop-blur-md">
                         <div className="flex items-center gap-2">

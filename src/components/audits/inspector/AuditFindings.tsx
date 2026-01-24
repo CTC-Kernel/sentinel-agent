@@ -133,7 +133,7 @@ export const AuditFindings: React.FC<AuditFindingsProps> = ({
                                             f.severity === 'Haute' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
                                             f.severity === 'Moyenne' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
                                             f.severity === 'Faible' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
-                                            'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                                         }`}>
                                             {f.severity}
                                         </span>

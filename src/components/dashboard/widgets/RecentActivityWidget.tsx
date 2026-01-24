@@ -51,9 +51,9 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
 
     const getActivityIcon = (resource: string) => {
         switch (resource) {
-            case 'Risk': return <ShieldAlert className="h-3.5 w-3.5 text-orange-500" />;
-            case 'Incident': return <Siren className="h-3.5 w-3.5 text-red-500" />;
-            case 'Asset': return <Server className="h-3.5 w-3.5 text-blue-500" />;
+            case 'Risk': return <ShieldAlert className="h-3.5 w-3.5 text-warning" />;
+            case 'Incident': return <Siren className="h-3.5 w-3.5 text-destructive" />;
+            case 'Asset': return <Server className="h-3.5 w-3.5 text-info" />;
             default: return <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />;
         }
     };
@@ -98,7 +98,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = React.m
                             className={`relative group ${log.resourceId ? 'cursor-pointer' : ''}`}
                             onClick={() => handleLogClick(log)}
                         >
-                            <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-blue-400 transition-all z-10">
+                            <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-brand-400 transition-all z-10">
                                 {getActivityIcon(log.resource)}
                             </span>
                             <div className="flex justify-between items-start bg-card/60 p-3 rounded-xl border border-transparent hover:border-border transition-colors group-hover:bg-accent/50">

@@ -48,9 +48,9 @@ const RadioGroupItem = React.forwardRef<HTMLDivElement, RadioGroupItemProps>(
           cn(
             'relative flex cursor-pointer rounded-lg px-4 py-3 border transition-all focus:outline-none',
             checked
-              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+              ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
               : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600',
-            active && 'ring-2 ring-indigo-500',
+            active && 'ring-2 ring-brand-500',
             className
           )
         }
@@ -61,7 +61,7 @@ const RadioGroupItem = React.forwardRef<HTMLDivElement, RadioGroupItemProps>(
               className={cn(
                 'h-4 w-4 rounded-full border-2 flex items-center justify-center mr-3 flex-shrink-0',
                 checked
-                  ? 'border-indigo-500 bg-indigo-500'
+                  ? 'border-brand-500 bg-brand-500'
                   : 'border-slate-300 dark:border-slate-600'
               )}
             >

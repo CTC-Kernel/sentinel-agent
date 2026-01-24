@@ -53,7 +53,7 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                     <button
                         onClick={handleAnalyzeIncident}
                         disabled={analyzing}
-                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                        className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-brand-500/20 flex items-center gap-2 mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                     >
                         {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                         {analyzing ? 'Analyse en cours...' : 'Lancer l\'analyse'}
@@ -63,12 +63,12 @@ export const IncidentAIAssistant: React.FC<IncidentAIAssistantProps> = ({ incide
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
                         <h3 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-indigo-500" /> Rapport d'analyse
+                            <Sparkles className="h-5 w-5 text-brand-500" /> Rapport d'analyse
                         </h3>
                         <button
                             onClick={handleAnalyzeIncident}
                             disabled={analyzing}
-                            className="p-2 text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                            className="p-2 text-muted-foreground hover:text-brand-500 hover:bg-brand-50 dark:bg-slate-900 dark:hover:bg-brand-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             title="Relancer l'analyse"
                         >
                             <Loader2 className={`h-4 w-4 ${analyzing ? 'animate-spin' : ''}`} />

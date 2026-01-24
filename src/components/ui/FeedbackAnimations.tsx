@@ -30,7 +30,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     primary: 'bg-brand-600 hover:bg-brand-700 text-white focus-visible:ring-brand-500 shadow-lg shadow-brand-500/20',
     secondary: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-brand-500',
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg shadow-red-500/20',
-    success: 'bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500 shadow-lg shadow-emerald-500/20'
+    success: 'bg-success-600 hover:bg-success-700 text-white focus:ring-success-500 shadow-lg shadow-success-500/20'
   };
 
   const sizeClasses = {
@@ -239,16 +239,16 @@ export const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
 
   const colorClasses = {
     brand: 'bg-brand-500',
-    success: 'bg-emerald-500',
-    warning: 'bg-amber-500',
-    danger: 'bg-red-500'
+    success: 'bg-success-500',
+    warning: 'bg-warning-500',
+    danger: 'bg-error-500'
   };
 
   const glowClasses = {
     brand: 'shadow-brand-500/50',
-    success: 'shadow-emerald-500/50',
-    warning: 'shadow-amber-500/50',
-    danger: 'shadow-red-500/50'
+    success: 'shadow-success-500/50',
+    warning: 'shadow-warning-500/50',
+    danger: 'shadow-error-500/50'
   };
 
   const sizeClasses = {
@@ -327,16 +327,16 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
 
   const colorClasses = {
     brand: 'stroke-brand-500',
-    success: 'stroke-emerald-500',
-    warning: 'stroke-amber-500',
-    danger: 'stroke-red-500'
+    success: 'stroke-success-500',
+    warning: 'stroke-warning-500',
+    danger: 'stroke-error-500'
   };
 
   const textColorClasses = {
     brand: 'text-brand-600',
-    success: 'text-emerald-600',
-    warning: 'text-amber-600',
-    danger: 'text-red-600'
+    success: 'text-success-600',
+    warning: 'text-warning-600',
+    danger: 'text-error-600'
   };
 
   return (

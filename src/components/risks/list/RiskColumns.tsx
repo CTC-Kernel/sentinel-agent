@@ -53,7 +53,7 @@ const getStrategyStyles = (strategy: string) => {
                 color: 'text-slate-600 dark:text-slate-400',
                 bg: 'bg-slate-100 dark:bg-slate-800',
                 border: 'border-slate-200 dark:border-white/10',
-                badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                badge: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
             };
         case 'Atténuer':
             return {
@@ -66,10 +66,10 @@ const getStrategyStyles = (strategy: string) => {
         case 'Transférer':
             return {
                 icon: Share2,
-                color: 'text-purple-600 dark:text-purple-400',
-                bg: 'bg-purple-50 dark:bg-purple-900/20',
-                border: 'border-purple-100 dark:border-purple-800/50',
-                badge: 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-100 dark:border-purple-800'
+                color: 'text-violet-600 dark:text-violet-400',
+                bg: 'bg-violet-50 dark:bg-violet-900/20',
+                border: 'border-violet-100 dark:border-violet-800/50',
+                badge: 'bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 border-violet-100 dark:border-violet-800'
             };
         case 'Éviter':
             return {
@@ -85,20 +85,22 @@ const getStrategyStyles = (strategy: string) => {
                 color: 'text-slate-600 dark:text-slate-400',
                 bg: 'bg-slate-100 dark:bg-slate-800',
                 border: 'border-slate-200 dark:border-white/10',
-                badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                badge: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
             };
     }
 };
 
 const getCategoryStyles = (category: string) => {
     const cat = category.toLowerCase();
-    if (cat.includes('financier')) return { icon: CreditCard, color: 'text-emerald-600', bg: 'bg-emerald-50' };
-    if (cat.includes('opérationnel')) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' };
-    if (cat.includes('juridique') || cat.includes('compliance')) return { icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' };
-    if (cat.includes('cyber') || cat.includes('sécurité')) return { icon: Shield, color: 'text-purple-600', bg: 'bg-purple-50' };
-    if (cat.includes('réputation')) return { icon: Globe, color: 'text-indigo-600', bg: 'bg-indigo-50' };
+    if (cat.includes('financier')) return { icon: CreditCard, color: 'text-success-text', bg: 'bg-success-bg' };
+    if (cat.includes('opérationnel')) return { icon: AlertTriangle, color: 'text-warning-text', bg: 'bg-warning-bg' };
+    if (cat.includes('juridique') || cat.includes('compliance')) return { icon: FileText, color: 'text-info-text', bg: 'bg-info-bg' };
+    if (cat.includes('cyber') || cat.includes('sécurité')) return { icon: Shield, color: 'text-violet-600', bg: 'bg-violet-50' };
+    if (cat.includes('réputation')) return { icon: Globe, color: 'text-violet-600', bg: 'bg-violet-50' };
     return { icon: ShieldAlert, color: 'text-slate-600', bg: 'bg-slate-50' };
 };
+
+import { useTranslation } from 'react-i18next';
 
 export const useRiskColumns = ({
     canEdit,
@@ -112,16 +114,17 @@ export const useRiskColumns = ({
     duplicatingIds = new Set(),
     searchQuery = '',
 }: UseRiskColumnsProps): ColumnDef<Risk>[] => {
+    const { t } = useTranslation();
 
     const getOwnerName = React.useCallback((ownerId?: string) => {
-        if (!ownerId) return 'Non assigné';
+        if (!ownerId) return t('common.unknown'); // Was 'Non assigné'
         const user = users.find(u => u.uid === ownerId);
         return user ? (user.displayName || user.email) : ownerId;
-    }, [users]);
+    }, [users, t]);
 
     return React.useMemo(() => [
         {
-            header: 'Menace',
+            header: t('common.threat'),
             accessorKey: 'threat',
             cell: ({ row }) => {
                 const ownerUser = users.find(u => u.uid === row.original.owner);
@@ -153,7 +156,7 @@ export const useRiskColumns = ({
             },
         },
         {
-            header: 'Vulnérabilité',
+            header: t('common.vulnerability'),
             accessorKey: 'vulnerability',
             cell: ({ row }) => (
                 <div className="max-w-xs truncate" title={row.original.vulnerability}>
@@ -162,7 +165,7 @@ export const useRiskColumns = ({
             ),
         },
         {
-            header: 'Actif',
+            header: t('common.assets'),
             accessorFn: (row) => assets.find(a => a.id === row.assetId)?.name || 'Actif inconnu',
             cell: ({ row }) => (
                 <span className="text-slate-600 dark:text-muted-foreground font-medium">
@@ -171,7 +174,7 @@ export const useRiskColumns = ({
             ),
         },
         {
-            header: 'Catégorie',
+            header: t('common.category'),
             accessorKey: 'category',
             cell: ({ row }) => {
                 const category = row.original.category;
@@ -193,7 +196,7 @@ export const useRiskColumns = ({
             },
         },
         {
-            header: 'Score',
+            header: t('dashboard.score'),
             accessorKey: 'score',
             cell: ({ row }) => (
                 <Badge status={getRiskLevel(row.original.score).status} variant="soft" size="sm">
@@ -202,7 +205,7 @@ export const useRiskColumns = ({
             ),
         },
         {
-            header: 'Stratégie',
+            header: t('dashboard.strategy'),
             accessorKey: 'strategy',
             cell: ({ row }) => {
                 const styles = getStrategyStyles(row.original.strategy);
@@ -220,7 +223,7 @@ export const useRiskColumns = ({
             },
         },
         {
-            header: 'Contrôles',
+            header: t('common.stepControls'),
             id: 'controls',
             accessorFn: (row) => row.mitigationControlIds?.length || 0,
             cell: ({ row }) => {
@@ -251,7 +254,7 @@ export const useRiskColumns = ({
             },
         },
         {
-            header: 'Statut',
+            header: t('common.status'),
             accessorKey: 'status',
             cell: ({ row }) => {
                 const isDraft = row.original.status === RISK_DRAFT_STATUS;

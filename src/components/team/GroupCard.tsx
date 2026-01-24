@@ -42,7 +42,7 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                         <p className="text-xs text-slate-600">{group.members?.length || 0} membres</p>
                     </div>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{group.description || "Aucune description"}</p>
+                <p className="text-sm text-slate-600 dark:text-muted-foreground line-clamp-2">{group.description || "Aucune description"}</p>
 
                 {/* Member Avatars Preview */}
                 <div className="mt-4 flex -space-x-2 overflow-hidden">

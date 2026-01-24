@@ -86,7 +86,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     <button
                         aria-label="Ouvrir le menu mobile"
                         onClick={() => setMobileOpen(true)}
-                        className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                        className="p-2.5 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
                     >
                         <Menu className="h-5 w-5" />
                     </button>
@@ -113,7 +113,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     <button
                         aria-label="Rechercher"
                         onClick={openCommandPalette}
-                        className="md:hidden p-2 text-slate-500 hover:text-slate-600 dark:hover:text-white transition-colors"
+                        className="md:hidden p-2.5 text-slate-500 hover:text-slate-600 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
                     >
                         <Search className="h-5 w-5" />
                     </button>
@@ -162,7 +162,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                         >
                             <div className="hidden sm:flex flex-col items-end mr-1">
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{user?.displayName}</span>
-                                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
+                                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
                             </div>
                             <img
                                 alt="Profile"
@@ -177,7 +177,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-950 border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/20 dark:ring-white/5">
+                            <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-64 max-w-[256px] bg-white dark:bg-slate-950 border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/20 dark:ring-white/5">
                                 <div className="p-4 bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 border-b border-slate-200/50 dark:border-white/10">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>

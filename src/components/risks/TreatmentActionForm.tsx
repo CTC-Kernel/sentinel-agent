@@ -58,7 +58,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
             {/* Title */}
             <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Titre <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -74,7 +74,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
             {/* Description */}
             <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Description
                 </label>
                 <textarea
@@ -91,7 +91,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Owner */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Responsable
                     </label>
                     <div className="relative">
@@ -110,7 +110,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
                 {/* Deadline */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Échéance
                     </label>
                     <div className="relative">
@@ -125,7 +125,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
 
                 {/* Status */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Statut
                     </label>
                     <select

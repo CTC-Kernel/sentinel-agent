@@ -204,7 +204,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="space-y-4">
                             <div>
                                 <Controller
@@ -307,7 +307,7 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
                     <div className="space-y-4">
                         <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">{t('continuity.criticalDependencies')}</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <div>
                                     <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> {t('continuity.internalAssets')}</span>
                                     <Controller

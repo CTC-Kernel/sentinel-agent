@@ -318,7 +318,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
             <CardTitle className="text-sm font-medium">
               {t('legalHold.stats.active', 'Holds Actifs')}
             </CardTitle>
-            <Shield className="h-4 w-4 text-amber-500" />
+            <Shield className="h-4 w-4 text-warning-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeHolds}</div>
@@ -413,7 +413,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
                         <div>
                           <CardTitle className="flex items-center gap-2">
                             {hold.status === 'active' ? (
-                              <Shield className="h-5 w-5 text-amber-500" />
+                              <Shield className="h-5 w-5 text-warning-500" />
                             ) : (
                               <ShieldOff className="h-5 w-5 text-green-500" />
                             )}
@@ -537,7 +537,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-amber-500" />
+              <Shield className="h-5 w-5 text-warning-500" />
               {t('legalHold.create', 'Nouveau Legal Hold')}
             </DialogTitle>
             <DialogDescription>
@@ -674,7 +674,7 @@ export function LegalHoldManager({ className }: LegalHoldManagerProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-warning-500" />
               {t('legalHold.releaseTitle', 'Liberer le Legal Hold')}
             </DialogTitle>
             <DialogDescription>

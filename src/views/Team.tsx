@@ -195,7 +195,7 @@ const Team: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-24"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
             <ConfirmModal
@@ -239,7 +239,7 @@ const Team: React.FC = () => {
                                 cy="48"
                             />
                             <circle
-                                className={`${activityRate >= 80 ? 'text-emerald-500' : activityRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                                className={`${activityRate >= 80 ? 'text-success-text' : activityRate >= 50 ? 'text-brand-500' : 'text-warning-text'} transition-all duration-1000 ease-out`}
                                 strokeWidth="8"
                                 strokeDasharray={251.2}
                                 strokeDashoffset={251.2 - (251.2 * activityRate) / 100}
@@ -252,7 +252,7 @@ const Team: React.FC = () => {
                             />
                         </svg>
                         <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
-                            <span className={`text-2xl font-black ${activityRate >= 80 ? 'text-emerald-600 dark:text-emerald-400' : activityRate >= 50 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                            <span className={`text-2xl font-black ${activityRate >= 80 ? 'text-success-text' : activityRate >= 50 ? 'text-brand-600 dark:text-brand-400' : 'text-warning-text'}`}>
                                 {Math.round(activityRate)}%
                             </span>
                             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Actifs</span>
@@ -310,7 +310,7 @@ const Team: React.FC = () => {
                     onClick={handleRolesTab}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'roles'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
+                        : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300'
                         }`}
                 >
                     {t('team.tabs.roles')}
@@ -321,7 +321,7 @@ const Team: React.FC = () => {
                     onClick={handleGroupsTab}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
+                        : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300'
                         }`}
                 >
                     {t('team.tabs.groups')}
@@ -386,7 +386,7 @@ const Team: React.FC = () => {
                         {joinRequests.length > 0 && (
                             <div className="col-span-full mb-4">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
-                                    <UserPlus className="h-5 w-5 mr-2 text-blue-500" />
+                                    <UserPlus className="h-5 w-5 mr-2 text-brand-500" />
                                     Demandes d'accès ({joinRequests.length})
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -497,7 +497,7 @@ const Team: React.FC = () => {
                 {selectedUser && (
                     <form onSubmit={(e) => { e.preventDefault(); editForm.handleSubmit(handleUpdateUser)(e); }} className="p-4 sm:p-8 space-y-6">
                         <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('team.edit.account')}</p>
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{t('team.edit.account')}</p>
                             <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
                         </div>
 

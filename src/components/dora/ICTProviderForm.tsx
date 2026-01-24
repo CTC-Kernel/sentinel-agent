@@ -148,13 +148,13 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                     {/* General Tab */}
                     {activeTab === 'general' && (
                         <div className="space-y-6">
-                            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                                     <Building2 className="w-5 h-5 mr-2 text-indigo-500" />
                                     {t('dora.fields.name')}
                                 </h3>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div className="col-span-2">
                                         <Controller
                                             name="name"
@@ -277,7 +277,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                     {/* Services Tab */}
                     {activeTab === 'services' && (
                         <div className="space-y-6">
-                            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                                         <Server className="w-5 h-5 mr-2 text-indigo-500" />
@@ -313,7 +313,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                             className="p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5"
                                         >
                                             <div className="flex items-start justify-between mb-4">
-                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                                     Service {index + 1}
                                                 </span>
                                                 {!readOnly && serviceFields.length > 1 && (
@@ -394,13 +394,13 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                     {/* Contract Tab */}
                     {activeTab === 'contract' && (
                         <div className="space-y-6">
-                            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                                     <FileText className="w-5 h-5 mr-2 text-indigo-500" />
                                     {t('dora.contract.title')}
                                 </h3>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <Controller
                                         name="contractInfo.startDate"
                                         control={control}
@@ -506,13 +506,13 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                     {/* Compliance Tab */}
                     {activeTab === 'compliance' && (
                         <div className="space-y-6">
-                            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                                     <Shield className="w-5 h-5 mr-2 text-indigo-500" />
                                     {t('dora.compliance.title')}
                                 </h3>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div className="col-span-2 flex flex-wrap gap-4">
                                         <label className="flex items-center gap-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5 cursor-pointer flex-1 min-w-[200px]">
                                             <Controller
@@ -606,13 +606,13 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
                                 </div>
                             </div>
 
-                            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5">
+                            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                                     <AlertTriangle className="w-5 h-5 mr-2 text-indigo-500" />
                                     {t('dora.risk.title')}
                                 </h3>
 
-                                <div className="space-y-8">
+                                <div className="space-y-6 sm:space-y-8">
                                     {/* Concentration Risk Slider with Visual Zones */}
                                     <div>
                                         <div className="flex items-center justify-between mb-3">

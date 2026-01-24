@@ -479,7 +479,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
     return (
       <button
         onClick={handler}
-        className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        className="mt-3 w-full flex items-center justify-center px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       >
         <CheckSquare className="h-3.5 w-3.5 mr-2" />
         {label}
@@ -491,9 +491,9 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
     if (!response) return null;
 
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-indigo-100 dark:border-indigo-500/20 shadow-sm animate-fade-in">
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-brand-100 dark:border-brand-500/20 shadow-sm animate-fade-in">
         <div className="flex justify-between items-start mb-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 flex items-center">
             <Bot className="h-3.5 w-3.5 mr-1.5" />
             {t('ebios.ai.response', 'Suggestions IA')}
           </h4>
@@ -514,12 +514,12 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                 <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{e.name}</span>
-                    <span className="text-xs px-2 py-0.5 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 rounded">
+                    <span className="text-xs px-2 py-0.5 bg-warning/10 text-warning rounded">
                       G{e.gravity}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{e.description}</p>
-                  <span className="text-xs text-indigo-600 dark:text-indigo-400">{e.impactType}</span>
+                  <span className="text-xs text-brand-600 dark:text-brand-400">{e.impactType}</span>
                 </div>
               ))}
             </div>
@@ -529,7 +529,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
           {response.riskSourceAnalysis && (
             <div className="space-y-2">
               <div>
-                <span className="font-medium text-green-600">{t('ebios.ai.relevant', 'Pertinentes')}:</span>
+                <span className="font-medium text-success">{t('ebios.ai.relevant', 'Pertinentes')}:</span>
                 <ul className="list-disc pl-4 text-xs mt-1">
                   {response.riskSourceAnalysis.relevantSources.map((s, i) => (
                     <li key={i}>{s}</li>
@@ -556,12 +556,12 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                 <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{s.name}</span>
-                    <span className="text-xs px-2 py-0.5 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded">
+                    <span className="text-xs px-2 py-0.5 bg-error/10 text-error rounded">
                       G{s.gravity}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{s.description}</p>
-                  <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
+                  <p className="text-xs text-brand-600 dark:text-brand-400 mt-1">
                     <GitBranch className="h-3 w-3 inline mr-1" />
                     {s.attackPath}
                   </p>
@@ -577,7 +577,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                 <div key={i} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{s.name}</span>
-                    <span className="text-xs px-2 py-0.5 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 rounded">
+                    <span className="text-xs px-2 py-0.5 bg-warning/10 text-warning rounded">
                       V{s.likelihood}
                     </span>
                   </div>
@@ -588,7 +588,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                         <span className="font-mono bg-slate-200 dark:bg-slate-600 px-1 rounded">{j + 1}</span>
                         <span>{step.description}</span>
                         {step.mitreId && (
-                          <span className="text-purple-600 dark:text-purple-400 font-mono">
+                          <span className="text-violet-600 dark:text-violet-400 font-mono">
                             [{step.mitreId}]
                           </span>
                         )}
@@ -608,10 +608,10 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{s.scenarioName}</span>
                     <span className={`text-xs px-2 py-0.5 rounded ${
-                      s.strategy === 'mitigate' ? 'bg-blue-100 text-blue-700' :
-                      s.strategy === 'transfer' ? 'bg-purple-100 text-purple-700' :
-                      s.strategy === 'avoid' ? 'bg-red-100 text-red-700' :
-                      'bg-slate-100 text-slate-700'
+                      s.strategy === 'mitigate' ? 'bg-info/10 text-info' :
+                      s.strategy === 'transfer' ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' :
+                      s.strategy === 'avoid' ? 'bg-error/10 text-error' :
+                      'bg-slate-100 dark:bg-slate-800 text-muted-foreground'
                     }`}>
                       {s.strategy}
                     </span>
@@ -644,11 +644,11 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-500/30">
+    <div className="bg-gradient-to-br from-brand-50 to-violet-50 dark:from-brand-900/20 dark:to-violet-900/20 rounded-2xl p-5 border border-brand-100 dark:border-brand-500/30">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 bg-white dark:bg-slate-900/50 rounded-xl shadow-sm">
-          <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          <Sparkles className="h-5 w-5 text-brand-600 dark:text-brand-400" />
         </div>
         <div>
           <h3 className="font-bold text-slate-900 dark:text-white text-sm">
@@ -667,10 +667,10 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
             key={action}
             onClick={() => handleAction(action)}
             disabled={loading}
-            className={`flex items-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+            className={`flex items-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
               activeAction === action
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'
+                ? 'bg-brand-600 text-white shadow-md'
+                : 'bg-white dark:bg-slate-800 text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-900/30 border border-transparent hover:border-brand-200'
             }`}
           >
             {loading && activeAction === action ? (
@@ -685,7 +685,7 @@ export const EbiosAIAssistant: React.FC<EbiosAIAssistantProps> = ({
 
       {/* Error */}
       {error && (
-        <div className="text-xs text-red-500 mb-2">{error}</div>
+        <div className="text-xs text-error mb-2">{error}</div>
       )}
 
       {/* Response */}

@@ -338,12 +338,12 @@ const Assets: React.FC = () => {
             variants={staggerContainerVariants}
             initial="hidden"
             animate="visible"
-            className="flex flex-col gap-10 pb-24"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO title={t('assets.title')} description={t('assets.description')} />
 
-            <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
                 {/* Header */}
                 <motion.div variants={slideUpVariants}>
                     <PageHeader

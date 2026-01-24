@@ -8,10 +8,10 @@ interface ProjectOverviewProps {
 
 export const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Objectif</h3>
-                <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3">Objectif</h3>
+                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                     <p className="relative z-10 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                         {project.description || "Aucune description disponible."}
                     </p>

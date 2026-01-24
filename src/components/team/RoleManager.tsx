@@ -159,7 +159,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                     onAction={handleNewRole}
                 />
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {roles.map(role => (
                         <RoleCard
                             key={role.id}
@@ -179,7 +179,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 width="max-w-6xl"
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <FloatingLabelInput
                             label="Nom du rôle"
                             {...register('name')}
@@ -201,9 +201,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50 dark:bg-slate-800/50 text-left">
                                     <tr>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-lg">Ressource</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider rounded-tl-lg">Ressource</th>
                                         {ACTIONS.map(action => (
-                                            <th key={action} className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">{action}</th>
+                                            <th key={action} className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">{action}</th>
                                         ))}
                                     </tr>
                                 </thead>

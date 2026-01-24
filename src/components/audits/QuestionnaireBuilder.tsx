@@ -97,7 +97,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-1 space-y-8 pr-2 custom-scrollbar">
                 {/* General Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <FloatingLabelInput
                         label="Titre du questionnaire"
                         value={title}

@@ -275,16 +275,17 @@ const typeIcons: Record<string, React.ReactNode> = {
   'Certification': <Award className="w-6 h-6" />,
 };
 
+// Using muted, professional colors aligned with design tokens
 const typeColors: Record<string, string> = {
-  'Interne': 'bg-blue-500',
-  'Externe': 'bg-purple-500',
-  'Certification': 'bg-amber-500',
+  'Interne': 'bg-brand-500',
+  'Externe': 'bg-violet-500',
+  'Certification': 'bg-warning',
 };
 
 const typeBgColors: Record<string, string> = {
-  'Interne': 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
-  'Externe': 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800',
-  'Certification': 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',
+  'Interne': 'bg-brand-50/50 dark:bg-brand-900/10 border-brand-200 dark:border-brand-800',
+  'Externe': 'bg-violet-50/50 dark:bg-violet-900/10 border-violet-200 dark:border-violet-800',
+  'Certification': 'bg-warning-bg dark:bg-warning/10 border-warning-border dark:border-warning/30',
 };
 
 export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
@@ -645,7 +646,7 @@ export const AuditMethodsWorkshops: React.FC<AuditMethodsWorkshopsProps> = ({
 
                             {phase.deliverables && phase.deliverables.length > 0 && (
                               <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                                <h6 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                <h6 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                                   Livrables de cette phase
                                 </h6>
                                 <div className="flex flex-wrap gap-2">

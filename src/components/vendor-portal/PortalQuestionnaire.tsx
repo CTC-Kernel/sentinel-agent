@@ -202,7 +202,7 @@ export const PortalQuestionnaire: React.FC<PortalQuestionnaireProps> = ({
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                       isComplete
                         ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                        : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
                     }`}>
                       {isComplete ? (
                         <CheckCircle className="w-3.5 h-3.5" />

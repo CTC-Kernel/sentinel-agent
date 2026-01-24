@@ -109,7 +109,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                         </Dialog.Title>
                                         <p className="text-sm text-slate-500">Confidentialité et Réseau de Confiance</p>
                                     </div>
-                                    <button type="button" aria-label="Fermer la fenêtre" onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus-visible:ring-brand-500">
+                                    <button type="button" aria-label="Fermer la fenêtre" onClick={onClose} className="p-2.5 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus-visible:ring-brand-500">
                                         <X className="h-5 w-5 text-slate-400" />
                                     </button>
                                 </div>
@@ -122,7 +122,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                         aria-selected={activeTab === 'general'}
                                         aria-label="Onglet Paramètres Généraux"
                                         onClick={() => setActiveTab('general')}
-                                        className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'general' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                        className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'general' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                                     >
                                         Paramètres Généraux
                                     </button>
@@ -132,7 +132,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                         aria-selected={activeTab === 'network'}
                                         aria-label={`Onglet Mon Réseau, ${partners.filter(p => p.status === 'trusted').length} partenaires de confiance`}
                                         onClick={() => setActiveTab('network')}
-                                        className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'network' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                        className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'network' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                                     >
                                         Mon Réseau ({partners.filter(p => p.status === 'trusted').length})
                                     </button>
@@ -141,7 +141,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                 {/* Content */}
                                 <div className="flex-1 overflow-y-auto p-6">
                                     {activeTab === 'general' ? (
-                                        <div className="space-y-8">
+                                        <div className="space-y-6 sm:space-y-8">
                                             <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-200 dark:border-blue-800 flex items-start gap-3">
                                                 <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                                                 <div className="text-sm text-blue-800 dark:text-blue-300">
@@ -179,7 +179,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                 <div className="space-y-3">
                                                     <label className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`p-2 rounded-lg ${settings.anonymizeIdentity ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
+                                                            <div className={`p-2 rounded-lg ${settings.anonymizeIdentity ? 'bg-green-100 text-green-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                                                                 <UserMinus className="h-5 w-5" />
                                                             </div>
                                                             <div>
@@ -206,7 +206,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
 
                                                     <label className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`p-2 rounded-lg ${settings.autoShareHighSeverity ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-400'}`}>
+                                                            <div className={`p-2 rounded-lg ${settings.autoShareHighSeverity ? 'bg-red-100 text-red-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                                                                 <AlertTriangle className="h-5 w-5" />
                                                             </div>
                                                             <div>

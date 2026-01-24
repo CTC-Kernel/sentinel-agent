@@ -100,7 +100,7 @@ export const SMSIDashboard: React.FC<SMSIDashboardProps> = ({
                                         {config.label}
                                     </span>
 
-                                    <span className="text-xs text-slate-500 mt-1">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                         {phaseData.progress}%
                                     </span>
 

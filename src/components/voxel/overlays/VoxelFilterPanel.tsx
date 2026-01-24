@@ -246,7 +246,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
     <div
       className={`fixed left-4 top-16 z-40 ${className}`}
       style={{
-        width: collapsed ? '48px' : '280px',
+        width: collapsed ? '48px' : 'min(280px, calc(100vw - 2rem))',
         transition: 'width 0.2s ease-out',
       }}
     >
@@ -311,7 +311,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Search */}
             <div>
-              <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 block">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 block">
                 Search
               </label>
               <div className="relative">
@@ -336,7 +336,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Entity Type Filter */}
             <div>
-              <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 block">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 block">
                 Entity Types
               </label>
               <div className="space-y-0.5">
@@ -356,7 +356,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
 
             {/* Status Filter */}
             <div>
-              <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 block">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 block">
                 Status
               </label>
               <div className="space-y-0.5">
@@ -386,7 +386,7 @@ export const VoxelFilterPanel: React.FC<VoxelFilterPanelProps> = ({
             {/* Active Filter Badges */}
             {getActiveFilterBadges.length > 0 && (
               <div>
-                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 block">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2 block">
                   Active Filters
                 </label>
                 <div className="flex flex-wrap gap-1.5">

@@ -178,7 +178,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
                                 style={{ width: `${concentration}%` }}
                             />
                         </div>
-                        <span className="text-xs text-slate-500 font-mono">{concentration}%</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{concentration}%</span>
                     </div>
                 );
             },
@@ -290,7 +290,7 @@ export const ICTProviderList: React.FC<ICTProviderListProps> = ({
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
                     {t('dora.providers.emptyTitle')}
                 </h3>
-                <p className="text-slate-500 dark:text-slate-400 max-w-md">
+                <p className="text-slate-500 dark:text-muted-foreground max-w-md">
                     {t('dora.providers.emptyDesc')}
                 </p>
             </div>

@@ -204,7 +204,7 @@ export const ImportICTProvidersModal: React.FC<ImportICTProvidersModalProps> = (
 
                                 {/* Expected Format */}
                                 <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                                         {t('dora.import.expectedColumns')}
                                     </p>
                                     <p className="text-sm text-slate-600 dark:text-muted-foreground font-mono">

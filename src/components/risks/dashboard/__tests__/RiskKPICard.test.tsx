@@ -48,31 +48,31 @@ describe('RiskKPICard', () => {
         it('applies red color styles', () => {
             const { container } = render(<RiskKPICard {...defaultProps} color="red" />);
 
-            expect(container.querySelector('.bg-red-50')).toBeInTheDocument();
+            expect(container.querySelector('.bg-error-bg')).toBeInTheDocument();
         });
 
         it('applies orange color styles', () => {
             const { container } = render(<RiskKPICard {...defaultProps} color="orange" />);
 
-            expect(container.querySelector('.bg-orange-50')).toBeInTheDocument();
+            expect(container.querySelector('.bg-warning-bg')).toBeInTheDocument();
         });
 
         it('applies blue color styles', () => {
             const { container } = render(<RiskKPICard {...defaultProps} color="blue" />);
 
-            expect(container.querySelector('.bg-blue-50')).toBeInTheDocument();
+            expect(container.querySelector('.bg-info-bg')).toBeInTheDocument();
         });
 
         it('applies purple color styles', () => {
             const { container } = render(<RiskKPICard {...defaultProps} color="purple" />);
 
-            expect(container.querySelector('.bg-purple-50')).toBeInTheDocument();
+            expect(container.querySelector('.bg-violet-50')).toBeInTheDocument();
         });
 
         it('applies emerald color styles', () => {
             const { container } = render(<RiskKPICard {...defaultProps} color="emerald" />);
 
-            expect(container.querySelector('.bg-emerald-50')).toBeInTheDocument();
+            expect(container.querySelector('.bg-success-bg')).toBeInTheDocument();
         });
     });
 
@@ -93,7 +93,7 @@ describe('RiskKPICard', () => {
             render(<RiskKPICard {...defaultProps} chip={{ label: 'Good', color: 'emerald' }} />);
 
             const chip = screen.getByText('Good');
-            expect(chip).toHaveClass('text-emerald-500');
+            expect(chip).toHaveClass('text-success-text');
         });
     });
 

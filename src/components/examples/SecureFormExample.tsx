@@ -258,7 +258,7 @@ export const SecureFormExample: React.FC = () => {
             disabled={form.isSubmitting || !form.isValid}
             className={`flex-1 px-4 py-2 rounded-md font-medium ${
               form.isSubmitting || !form.isValid
-                ? 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed'
+                ? 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-muted-foreground cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >

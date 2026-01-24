@@ -46,13 +46,13 @@ const SEVERITY_CONFIG: Record<
   { color: string; bgColor: string; icon: React.FC<{ className?: string }> }
 > = {
   critical: {
-    color: 'text-red-500',
-    bgColor: 'bg-red-500/10 border-red-500/30',
+    color: 'text-error',
+    bgColor: 'bg-error/10 border-error/30',
     icon: AlertOctagon,
   },
   high: {
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10 border-orange-500/30',
+    color: 'text-warning',
+    bgColor: 'bg-warning/10 border-warning/30',
     icon: AlertTriangle,
   },
   medium: {
@@ -61,8 +61,8 @@ const SEVERITY_CONFIG: Record<
     icon: AlertCircle,
   },
   low: {
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-500/10 border-blue-500/30',
+    color: 'text-info',
+    bgColor: 'bg-info/10 border-info/30',
     icon: Info,
   },
 };
@@ -140,7 +140,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
       exit={{ opacity: 0, y: -10 }}
       className={`
         p-3 rounded-xl border transition-all cursor-pointer
-        ${isSelected ? 'ring-2 ring-indigo-500' : ''}
+        ${isSelected ? 'ring-2 ring-brand-500' : ''}
         ${config.bgColor}
         hover:border-white/20
       `}
@@ -247,7 +247,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
                       onCreateTask(anomaly);
                       setShowActions(false);
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-indigo-400 hover:bg-white/5 flex items-center gap-2"
+                    className="w-full px-4 py-2.5 text-left text-sm text-brand-400 hover:bg-white/5 flex items-center gap-2"
                   >
                     <ListTodo className="h-4 w-4" />
                     Creer une tache
@@ -273,7 +273,7 @@ const AnomalyItem: React.FC<AnomalyItemProps> = ({
               value={dismissReason}
               onChange={(e) => setDismissReason(e.target.value)}
               placeholder="Raison de l'exclusion..."
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500"
               onClick={(e) => e.stopPropagation()}
             />
             <div className="flex justify-end gap-2 mt-2">
@@ -315,11 +315,11 @@ const AnomalyHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) => (
     initial={{ opacity: 0, height: 0 }}
     animate={{ opacity: 1, height: 'auto' }}
     exit={{ opacity: 0, height: 0 }}
-    className="px-5 py-4 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-b border-white/10"
+    className="px-5 py-4 bg-gradient-to-r from-brand-500/10 to-purple-500/10 border-b border-white/10"
   >
     <div className="flex items-start justify-between mb-3">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <Info className="w-4 h-4 text-indigo-400" />
+        <Info className="w-4 h-4 text-brand-400" />
         Comment utiliser ce panneau
       </h3>
       <button onClick={onClose} className="text-white/40 hover:text-white">
@@ -336,11 +336,11 @@ const AnomalyHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) => (
         <p><strong className="text-white">Filtrez par sévérité</strong> - Cliquez sur les badges Critique/Élevé/Moyen/Faible pour filtrer les anomalies.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">3</span>
+        <span className="w-5 h-5 rounded bg-info/20 flex items-center justify-center text-info shrink-0">3</span>
         <p><strong className="text-white">Actions rapides</strong> - Cliquez sur ⋮ pour : voir le nœud en 3D, marquer résolu, ignorer, ou créer une tâche.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">4</span>
+        <span className="w-5 h-5 rounded bg-success/20 flex items-center justify-center text-success shrink-0">4</span>
         <p><strong className="text-white">Actions groupées</strong> - Sélectionnez plusieurs anomalies pour les résoudre en lot.</p>
       </div>
     </div>
@@ -526,13 +526,13 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
           onClick={() => setShowFilters(!showFilters)}
           className={`
             flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors
-            ${showFilters || typeFilter.length > 0 ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-white/60 hover:text-white'}
+            ${showFilters || typeFilter.length > 0 ? 'bg-brand-500/20 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}
           `}
         >
           <Filter className="h-3 w-3" />
           Filtres
           {typeFilter.length > 0 && (
-            <span className="bg-indigo-500 text-white px-1.5 rounded-full text-[10px]">
+            <span className="bg-brand-500 text-white px-1.5 rounded-full text-[10px]">
               {typeFilter.length}
             </span>
           )}
@@ -543,7 +543,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
 
         <button
           onClick={() => setShowHelp(!showHelp)}
-          className={`p-1.5 rounded-lg transition-colors ${showHelp ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
+          className={`p-1.5 rounded-lg transition-colors ${showHelp ? 'bg-brand-500/20 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
           title="Aide"
         >
           <Info className="h-4 w-4" />
@@ -590,7 +590,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
               {(severityFilter.length > 0 || typeFilter.length > 0) && (
                 <button
                   onClick={clearFilters}
-                  className="text-[10px] text-indigo-400 hover:text-indigo-300"
+                  className="text-[10px] text-brand-400 hover:text-brand-300"
                 >
                   Effacer tout
                 </button>
@@ -603,7 +603,7 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
                   onClick={() => toggleTypeFilter(type)}
                   className={`
                     px-2 py-1 rounded text-[10px] transition-colors
-                    ${typeFilter.includes(type) ? 'bg-indigo-500 text-white' : 'bg-white/10 text-white/60 hover:text-white'}
+                    ${typeFilter.includes(type) ? 'bg-brand-500 text-white' : 'bg-white/10 text-white/60 hover:text-white'}
                   `}
                 >
                   {ANOMALY_TYPE_LABELS[type] || type}
@@ -616,10 +616,10 @@ export const AnomalyPanel: React.FC<AnomalyPanelProps> = ({
 
       {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className="px-5 py-3 border-b border-white/10 bg-indigo-500/10 flex items-center gap-2">
+        <div className="px-5 py-3 border-b border-white/10 bg-brand-500/10 flex items-center gap-2">
           <button
             onClick={handleSelectAll}
-            className="text-xs text-indigo-400 hover:text-indigo-300"
+            className="text-xs text-brand-400 hover:text-brand-300"
           >
             {selectedIds.size === filteredAnomalies.length ? 'Désélectionner tout' : 'Sélectionner tout'}
           </button>

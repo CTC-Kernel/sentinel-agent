@@ -214,7 +214,7 @@ const AffectedNodeItem: React.FC<{
       exit={{ opacity: 0, x: -10 }}
       className={`
         p-3 rounded-xl border cursor-pointer transition-all
-        ${isSelected ? 'ring-2 ring-indigo-500 bg-indigo-500/10' : 'bg-white/5 hover:bg-white/10'}
+        ${isSelected ? 'ring-2 ring-brand-500 bg-brand-500/10' : 'bg-white/5 hover:bg-white/10'}
         border-white/10 hover:border-white/20
       `}
       onClick={onSelect}
@@ -287,7 +287,7 @@ const WhatIfBuilder: React.FC<{
         <select
           value={scenarioType}
           onChange={(e) => setScenarioType(e.target.value as WhatIfScenario['type'])}
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
         >
           <option value="remove_node">Supprimer un controle</option>
           <option value="add_node">Ajouter un controle</option>
@@ -298,7 +298,7 @@ const WhatIfBuilder: React.FC<{
           <select
             value={selectedNodeId}
             onChange={(e) => setSelectedNodeId(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500"
           >
             <option value="">Sélectionner un contrôle...</option>
             {controlNodes.map((node) => (
@@ -312,7 +312,7 @@ const WhatIfBuilder: React.FC<{
         <button
           onClick={handleApply}
           disabled={!selectedNodeId}
-          className="w-full px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-lg transition-colors"
+          className="w-full px-4 py-2 bg-brand-500 hover:bg-brand-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-lg transition-colors"
         >
           Appliquer le scenario
         </button>
@@ -343,7 +343,7 @@ const ConfigPanel: React.FC<{
           max={10}
           value={config.maxDepth}
           onChange={(e) => onSetConfig({ maxDepth: parseInt(e.target.value, 10) })}
-          className="w-full accent-indigo-500"
+          className="w-full accent-brand-500"
         />
         <div className="text-xs text-white/70 text-right">{config.maxDepth}</div>
       </div>
@@ -356,7 +356,7 @@ const ConfigPanel: React.FC<{
           max={50}
           value={(config.minProbability || 0.1) * 100}
           onChange={(e) => onSetConfig({ minProbability: parseInt(e.target.value, 10) / 100 })}
-          className="w-full accent-indigo-500"
+          className="w-full accent-brand-500"
         />
         <div className="text-xs text-white/70 text-right">{((config.minProbability || 0.1) * 100).toFixed(0)}%</div>
       </div>
@@ -367,7 +367,7 @@ const ConfigPanel: React.FC<{
           type="checkbox"
           checked={config.bidirectional || false}
           onChange={(e) => onSetConfig({ bidirectional: e.target.checked })}
-          className="accent-indigo-500"
+          className="accent-brand-500"
         />
       </div>
     </div>
@@ -383,7 +383,7 @@ const BlastRadiusHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
     initial={{ opacity: 0, height: 0 }}
     animate={{ opacity: 1, height: 'auto' }}
     exit={{ opacity: 0, height: 0 }}
-    className="px-5 py-4 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border-b border-white/10"
+    className="px-5 py-4 bg-gradient-to-r from-purple-500/10 to-brand-500/10 border-b border-white/10"
   >
     <div className="flex items-start justify-between mb-3">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -400,19 +400,19 @@ const BlastRadiusHelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) 
         <p><strong className="text-white">Simulation d'impact</strong> - Cliquez sur un noeud dans la vue 3D pour voir tous les elements qui seraient affectes en cas de defaillance.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">2</span>
+        <span className="w-5 h-5 rounded bg-brand-500/20 flex items-center justify-center text-brand-400 shrink-0">2</span>
         <p><strong className="text-white">Statistiques</strong> - Visualisez le nombre de noeuds impactes, la profondeur de propagation et l'impact metier global.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">3</span>
+        <span className="w-5 h-5 rounded bg-info/20 flex items-center justify-center text-info shrink-0">3</span>
         <p><strong className="text-white">Scenario What-If</strong> - Simulez la suppression d'un controle pour evaluer l'impact sur votre posture de securite.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">4</span>
+        <span className="w-5 h-5 rounded bg-slate-500/20 flex items-center justify-center text-slate-400 shrink-0">4</span>
         <p><strong className="text-white">Configuration</strong> - Ajustez la profondeur max et le seuil minimum d'impact pour affiner vos analyses.</p>
       </div>
       <div className="flex gap-2">
-        <span className="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">5</span>
+        <span className="w-5 h-5 rounded bg-success/20 flex items-center justify-center text-success shrink-0">5</span>
         <p><strong className="text-white">Export</strong> - Generez des rapports PDF ou CSV pour partager vos analyses avec votre equipe.</p>
       </div>
     </div>
@@ -526,7 +526,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
       <div className="p-5 border-b border-white/10 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-brand-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
               <Activity className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -569,7 +569,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               label="Noeuds impactes"
               value={stats.totalAffected}
               icon={Layers}
-              color="text-indigo-400"
+              color="text-brand-400"
               delta={whatIfResult?.affectedNodesDelta}
               delay={0}
             />
@@ -585,7 +585,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
               label="Profondeur max"
               value={stats.maxDepth}
               icon={GitBranch}
-              color="text-blue-400"
+              color="text-info"
               delay={0.2}
             />
             <div className={`rounded-xl p-3 border ${businessImpactColors.bg} ${businessImpactColors.border}`}>
@@ -628,7 +628,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                   onClick={() => setFilterType(filterType === type ? 'all' : type as VoxelNodeType)}
                   className={`
                     flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] transition-colors
-                    ${filterType === type ? 'bg-indigo-500/30 text-indigo-300' : 'bg-white/5 text-white/60 hover:bg-white/10'}
+                    ${filterType === type ? 'bg-brand-500/30 text-brand-300' : 'bg-white/5 text-white/60 hover:bg-white/10'}
                   `}
                 >
                   <Icon className="h-3 w-3" />
@@ -650,7 +650,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher..."
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500"
+            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-500"
           />
         </div>
 
@@ -658,7 +658,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+          className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
         >
           <option value="impact">Impact</option>
           <option value="depth">Profondeur</option>
@@ -668,7 +668,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
         {/* Help toggle */}
         <button
           onClick={() => setShowHelp(!showHelp)}
-          className={`p-2 rounded-lg transition-colors ${showHelp ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
+          className={`p-2 rounded-lg transition-colors ${showHelp ? 'bg-brand-500/20 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
           title="Aide"
         >
           <Info className="h-4 w-4" />
@@ -677,7 +677,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
         {/* Config toggle */}
         <button
           onClick={() => setShowConfig(!showConfig)}
-          className={`p-2 rounded-lg transition-colors ${showConfig ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
+          className={`p-2 rounded-lg transition-colors ${showConfig ? 'bg-brand-500/20 text-brand-400' : 'bg-white/5 text-white/60 hover:text-white'}`}
         >
           <Sliders className="h-4 w-4" />
         </button>
@@ -708,7 +708,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
           onClick={() => setShowWhatIf(!showWhatIf)}
           className={`
             w-full flex items-center justify-between px-4 py-2 rounded-lg transition-colors
-            ${showWhatIf ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-white/70 hover:bg-white/10'}
+            ${showWhatIf ? 'bg-brand-500/20 text-brand-400' : 'bg-white/5 text-white/70 hover:bg-white/10'}
           `}
         >
           <span className="flex items-center gap-2 text-sm font-medium">
@@ -785,7 +785,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
             className={`p-4 rounded-xl border ${whatIfResult.impactDelta < 0
                 ? 'bg-green-500/10 border-green-500/30'
-                : 'bg-indigo-500/10 border-indigo-500/30'
+                : 'bg-brand-500/10 border-brand-500/30'
               }`}
           >
             <div className="flex items-center gap-2 mb-3">
@@ -800,7 +800,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
                   <AlertTriangle className="h-4 w-4 text-amber-400" />
                 )}
               </motion.div>
-              <span className={`text-xs font-medium ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-indigo-400'
+              <span className={`text-xs font-medium ${whatIfResult.impactDelta < 0 ? 'text-green-400' : 'text-brand-400'
                 }`}>
                 {whatIfResult.impactDelta < 0 ? 'Amelioration detectee !' : 'Comparaison What-If'}
               </span>
@@ -900,7 +900,7 @@ export const BlastRadiusPanel: React.FC<BlastRadiusPanelProps> = ({
             <button
               onClick={onExportPdf}
               disabled={affectedNodes.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-xl transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-500 hover:bg-brand-600 disabled:bg-white/10 disabled:text-white/30 text-white text-sm font-medium rounded-xl transition-colors"
             >
               <FileText className="h-4 w-4" />
               Export PDF

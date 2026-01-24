@@ -68,14 +68,14 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
 
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <div className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400">
+                    <div className="p-1.5 rounded-lg bg-error-bg dark:bg-error/10 text-error-text dark:text-error">
                         <HeartPulse className="w-4 h-4" />
                     </div>
                     Continuité
                 </h3>
                 <button
                     onClick={() => navigate && navigate('/continuity')}
-                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                     Voir tout
                 </button>
@@ -104,7 +104,7 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
                             strokeDasharray={circumference}
                             strokeDashoffset={strokeDashoffset}
                             strokeLinecap="round"
-                            className={`transition-all duration-1000 ease-out ${stats.coverage >= 80 ? 'text-emerald-500' : stats.coverage >= 50 ? 'text-amber-500' : 'text-rose-500'}`}
+                            className={`transition-all duration-1000 ease-out ${stats.coverage >= 80 ? 'text-success' : stats.coverage >= 50 ? 'text-warning' : 'text-destructive'}`}
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center flex-col">
@@ -117,13 +117,13 @@ export const ContinuityPlansWidget: React.FC<ContinuityPlansWidgetProps> = ({ na
                     <span className="text-sm font-bold text-foreground">{stats.lastDrillStr}</span>
 
                     {stats.lastDrillResult && (
-                        <div className={`mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${stats.lastDrillResult === 'Succès' ? 'bg-green-50 text-green-600 border-green-100 dark:bg-green-900/20 dark:border-green-900/30' : 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:border-red-900/30'}`}>
+                        <div className={`mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${stats.lastDrillResult === 'Succès' ? 'bg-success-bg text-success-text border-success-border dark:bg-success/10 dark:border-success/20' : 'bg-error-bg text-error-text border-error-border dark:bg-error/10 dark:border-error/20'}`}>
                             {stats.lastDrillResult === 'Succès' ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
                             {stats.lastDrillResult}
                         </div>
                     )}
                     {!stats.lastDrillResult && (
-                        <div className="mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-muted-foreground">
+                        <div className="mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800 dark:text-muted-foreground">
                             <CalendarClock className="w-3 h-3" />
                             À Planifier
                         </div>

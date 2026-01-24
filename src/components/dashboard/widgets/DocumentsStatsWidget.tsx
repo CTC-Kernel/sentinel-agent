@@ -53,7 +53,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
         >
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                    <div className="p-1.5 rounded-lg bg-info-bg dark:bg-info/10 text-info-text dark:text-info">
                         <FileText className="w-4 h-4" />
                     </div>
                     Documents
@@ -120,7 +120,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/40" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px] shadow-success/40" />
                             <span className="text-xs text-muted-foreground font-bold">Publiés</span>
                         </div>
                         <span className="text-xs font-black text-foreground">{stats.publishedDocs}</span>
@@ -137,7 +137,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
 
             <div className="grid grid-cols-2 gap-2 mt-auto relative z-10">
                 <div className="bg-white/50 dark:bg-white/5 rounded-xl p-2.5 flex items-center gap-3 border border-white/60 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
                     <div className="flex flex-col min-w-0">
                         <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider truncate">Publiés</span>
                         <span className="text-sm font-black text-foreground leading-none mt-0.5">{stats.publishedDocs}</span>

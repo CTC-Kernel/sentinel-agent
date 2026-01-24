@@ -265,7 +265,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             ) : (
                 <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">
                     {activeTab === 'details' && (
-                        <div className="space-y-8">
+                        <div className="space-y-6 sm:space-y-8">
                             <RiskGeneralDetails
                                 risk={risk}
                                 assetName={getAssetName(risk.assetId)}

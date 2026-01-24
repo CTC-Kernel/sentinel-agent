@@ -572,7 +572,7 @@ export const Onboarding: React.FC = () => {
                                     variant="ghost"
                                     aria-label={t('onboarding.actions.back')}
                                     onClick={() => setMode('select')}
-                                    className="w-full py-4 text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 font-bold transition-colors h-auto"
+                                    className="w-full py-4 text-muted-foreground hover:text-foreground dark:hover:text-slate-300 font-bold transition-colors h-auto"
                                 >
                                     {t('onboarding.actions.back')}
                                 </Button>
@@ -759,7 +759,7 @@ export const Onboarding: React.FC = () => {
                                                             <span className={`block text-xl font-bold font-display tracking-tight ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
                                                                 {plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly}€`}
                                                             </span>
-                                                            {plan.priceMonthly > 0 && <span className="text-xs text-slate-500 font-medium">/ mois</span>}
+                                                            {plan.priceMonthly > 0 && <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ mois</span>}
                                                         </div>
                                                     </div>
                                                     <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
@@ -907,7 +907,7 @@ export const Onboarding: React.FC = () => {
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{userInvite.email}</span>
-                                                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{userInvite.role}</span>
+                                                            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">{userInvite.role}</span>
                                                         </div>
                                                     </div>
                                                     <Button variant="ghost" size="icon" aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-slate-500 hover:text-red-500 transition-colors">
@@ -990,7 +990,7 @@ export const Onboarding: React.FC = () => {
                                                             <Plus className="h-5 w-5" />
                                                         </Button>
                                                     </div>
-                                                    <Button variant="link" size="sm" onClick={() => setManualMode(false)} aria-label="Passer au scan automatique" className="text-xs text-slate-500 hover:text-slate-700 underline h-auto px-0">Switch to auto scan</Button>
+                                                    <Button variant="link" size="sm" onClick={() => setManualMode(false)} aria-label="Passer au scan automatique" className="text-xs text-muted-foreground hover:text-foreground underline h-auto px-0">Switch to auto scan</Button>
                                                 </div>
                                             ) : (
                                                 initialAssets.length === 0 && (
@@ -1005,7 +1005,7 @@ export const Onboarding: React.FC = () => {
                                                             {/* BrainCircuit NOT imported. Using Activity. */}
                                                         </div>
                                                         <h3 className="font-bold text-slate-900 dark:text-white">{t('onboarding.actions.autoScan')}</h3>
-                                                        <p className="text-xs text-slate-500 mt-1">{t('onboarding.actions.autoScanDesc')}</p>
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('onboarding.actions.autoScanDesc')}</p>
                                                         <div className="mt-4">
                                                             <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); setManualMode(true); }} aria-label="Ajouter manuellement un actif" className="text-xs text-brand-600 font-bold hover:underline h-auto px-0">{t('onboarding.actions.manualAdd')}</Button>
                                                         </div>
@@ -1023,7 +1023,7 @@ export const Onboarding: React.FC = () => {
                                                             </div>
                                                             <div className="flex flex-col">
                                                                 <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{asset.name}</span>
-                                                                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{asset.type}</span>
+                                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">{asset.type}</span>
                                                             </div>
                                                         </div>
                                                         <Button variant="ghost" size="icon" onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-slate-500 hover:text-red-500 transition-colors">

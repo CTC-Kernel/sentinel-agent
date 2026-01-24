@@ -75,13 +75,13 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
                     <div className="text-xl font-bold text-slate-700 dark:text-slate-200">{projectStats.activeCount}</div>
                     <div className="text-xs text-muted-foreground">En cours</div>
                 </div>
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-2 rounded-lg text-center">
-                    <div className="text-xl font-bold text-emerald-600">{projectStats.completedCount}</div>
-                    <div className="text-xs text-emerald-600/80">Terminés</div>
+                <div className="bg-success-bg dark:bg-success/10 p-2 rounded-lg text-center">
+                    <div className="text-xl font-bold text-success-text dark:text-success">{projectStats.completedCount}</div>
+                    <div className="text-xs text-success-text/80 dark:text-success/80">Terminés</div>
                 </div>
-                <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded-lg text-center">
-                    <div className="text-xl font-bold text-red-600">{projectStats.overdueCount}</div>
-                    <div className="text-xs text-red-600/80">En retard</div>
+                <div className="bg-error-bg dark:bg-error/10 p-2 rounded-lg text-center">
+                    <div className="text-xl font-bold text-error-text dark:text-error">{projectStats.overdueCount}</div>
+                    <div className="text-xs text-error-text/80 dark:text-error/80">En retard</div>
                 </div>
             </div>
 
@@ -102,7 +102,7 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate text-foreground group-hover:text-brand-500 transition-colors">{project.name}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                    {isOverdue && <span className="text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded">En retard</span>}
+                                    {isOverdue && <span className="text-[10px] font-bold text-error-text dark:text-error bg-error-bg dark:bg-error/10 px-1.5 py-0.5 rounded">En retard</span>}
                                     <span className="text-[10px] text-muted-foreground">
                                         {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'Sans date'}
                                     </span>

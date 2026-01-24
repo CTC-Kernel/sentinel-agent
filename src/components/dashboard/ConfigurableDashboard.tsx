@@ -128,7 +128,7 @@ export function ConfigurableDashboard({
     return (
       <div className={cn('animate-pulse', className)}>
         <div className="h-10 w-48 bg-muted rounded mb-6" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}

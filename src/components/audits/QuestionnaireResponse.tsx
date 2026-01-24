@@ -316,7 +316,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 sm:space-y-8">
                     {questionnaire.questions.map((q, index) => (
                         <div key={q.id} className="space-y-3">
                             <div className="flex items-start justify-between">

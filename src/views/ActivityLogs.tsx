@@ -19,7 +19,7 @@ export const ActivityLogs: React.FC = () => {
     return (
         <div className="relative min-h-screen">
             <MasterpieceBackground />
-            <div className="relative z-10 p-6 md:p-8 flex flex-col gap-10 max-w-[1920px] mx-auto pb-24">
+            <div className="relative z-10 p-6 md:p-8 flex flex-col gap-6 sm:gap-8 lg:gap-10 max-w-[1920px] mx-auto pb-24">
                 <PageHeader
                     title={t('activity.title')}
                     subtitle={t('activity.subtitle')}
@@ -45,7 +45,7 @@ export const ActivityLogs: React.FC = () => {
                                 variant="ghost"
                                 size="icon"
                                 onClick={refresh}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 title={t('activity.refresh')}
                             >
                                 <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
@@ -115,7 +115,7 @@ export const ActivityLogs: React.FC = () => {
                         }
                     />
 
-                    <div className="glass-premium p-6 rounded-2xl">
+                    <div className="glass-premium p-4 sm:p-6 rounded-2xl">
                         <ActivityLogList
                             logs={logs}
                             loading={loading}

@@ -748,7 +748,7 @@ export const Help: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10"
         >
             <MasterpieceBackground />
             <SEO title="Centre d'Aide" description="Documentation et support Sentinel GRC" />
@@ -860,7 +860,7 @@ export const Help: React.FC = () => {
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 scroll-smooth">
                         {activeCategory ? (
-                            <div className="max-w-4xl mx-auto space-y-8">
+                            <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
                                 <div className="flex items-center gap-4 mb-8">
                                     <div className="p-3 bg-brand-500/10 rounded-2xl ring-1 ring-brand-500/20">
                                         <activeCategory.icon className="w-8 h-8 text-brand-600 dark:text-brand-400" />

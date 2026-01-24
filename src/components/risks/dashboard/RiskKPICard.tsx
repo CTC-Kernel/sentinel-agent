@@ -25,11 +25,11 @@ export const RiskKPICard: React.FC<RiskKPICardProps> = ({
     delay = 0
 }) => {
     const colorStyles = {
-        red: 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400',
-        orange: 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400',
-        blue: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400',
-        purple: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400',
-        emerald: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+        red: 'bg-error-bg dark:bg-error-bg/20 text-error-text dark:text-error-text',
+        orange: 'bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text',
+        blue: 'bg-info-bg dark:bg-info-bg/20 text-info-text dark:text-info-text',
+        purple: 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400',
+        emerald: 'bg-success-bg dark:bg-success-bg/20 text-success-text dark:text-success-text'
     };
 
     return (
@@ -44,7 +44,7 @@ export const RiskKPICard: React.FC<RiskKPICardProps> = ({
                     <Icon className="w-6 h-6" />
                 </div>
                 {chip && (
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${chip.color === 'emerald' ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : ''
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${chip.color === 'emerald' ? 'text-success-text bg-success-bg dark:bg-success-bg/20' : ''
                         }`}>
                         {chip.label}
                     </span>

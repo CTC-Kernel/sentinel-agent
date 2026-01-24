@@ -74,7 +74,7 @@ export const AuditTrailViewer: React.FC = () => {
             case 'create': return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
             case 'update': return 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400';
             case 'delete': return 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400';
-            default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+            default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
         }
     };
 
@@ -123,7 +123,7 @@ export const AuditTrailViewer: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-6 sm:space-y-8"
         >
             <MasterpieceBackground />
             <SEO title="Journal d'Audit" />
@@ -150,11 +150,11 @@ export const AuditTrailViewer: React.FC = () => {
             />
 
             {/* Filters */}
-            <div className="glass-panel p-6 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm">
+            <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Search */}
                     <div className="relative flex-1 md:min-w-[300px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                         <input
                             value={filters.searchQuery}
                             aria-label="Rechercher dans l'audit trail"
@@ -260,7 +260,7 @@ export const AuditTrailViewer: React.FC = () => {
                                         <span className={`px-2 py-1 rounded-lg text-xs font-bold ${getActionColor(log.action)}`}>
                                             {getActionIcon(log.action)} {log.action.toUpperCase()}
                                         </span>
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                                             {log.entityType}
                                         </span>
                                     </div>
@@ -298,24 +298,24 @@ export const AuditTrailViewer: React.FC = () => {
 
                             <div className="space-y-4 mb-6">
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Action</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Action</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
                                         {getActionIcon(selectedLog.action)} {selectedLog.action.toUpperCase()}
                                     </p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Type</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{selectedLog.entityType}</p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Utilisateur</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Utilisateur</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{selectedLog.userName}</p>
                                 </div>
 
                                 <div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</span>
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Date</span>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
                                         {selectedLog.timestamp.toLocaleString('fr-FR')}
                                     </p>

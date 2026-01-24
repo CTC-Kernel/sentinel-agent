@@ -120,6 +120,46 @@ export const DashboardWithQuickActions: React.FC = () => {
 
     const isEmpty = React.useMemo(() => !loading && allRisks.length === 0 && allAssets.length === 0 && myProjects.length === 0, [loading, allRisks, allAssets, myProjects]);
 
+    // Calcul de la prochaine échéance
+    const nextDeadline = React.useMemo(() => {
+        const now = new Date();
+        const deadlines: { title: string; date: Date; type: 'audit' | 'project' | 'control' | 'task'; link?: string }[] = [];
+
+        // Ajouter les audits planifiés
+        myAudits?.forEach(audit => {
+            if (audit.dateScheduled && audit.status !== 'Terminé' && audit.status !== 'Validé') {
+                const auditDate = new Date(audit.dateScheduled);
+                if (auditDate >= now) {
+                    deadlines.push({
+                        title: audit.name,
+                        date: auditDate,
+                        type: 'audit',
+                        link: `/audits?id=${audit.id}`
+                    });
+                }
+            }
+        });
+
+        // Ajouter les projets avec deadline
+        myProjects?.forEach(project => {
+            if (project.endDate && project.status !== 'Terminé') {
+                const projectDate = new Date(project.endDate);
+                if (projectDate >= now) {
+                    deadlines.push({
+                        title: project.name,
+                        date: projectDate,
+                        type: 'project',
+                        link: `/projects?id=${project.id}`
+                    });
+                }
+            }
+        });
+
+        // Trier par date et retourner la plus proche
+        deadlines.sort((a, b) => a.date.getTime() - b.date.getTime());
+        return deadlines[0] || null;
+    }, [myAudits, myProjects]);
+
     const { insight, healthIssues, myActionItems } = useDashboardInsights({
         controls,
         myDocs,
@@ -172,7 +212,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                     variants={staggerContainerVariants}
                     initial="initial"
                     animate="visible"
-                    className="flex flex-col gap-10"
+                    className="flex flex-col gap-6 sm:gap-8 lg:gap-10"
                     data-tour="dashboard"
                 >
                     <MasterpieceBackground />
@@ -199,6 +239,7 @@ export const DashboardWithQuickActions: React.FC = () => {
                         onShowGettingStarted={() => setGettingStartedState('expanded')}
                         isGettingStartedClosed={!showGettingStarted}
                         activeIncidentsCount={activeIncidentsCount}
+                        nextDeadline={nextDeadline}
                     />
 
                     {showGettingStarted && (

@@ -283,7 +283,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
           {/* Rationale */}
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
               {t('vendorConcentration.recommendations.rationale')}
             </p>
             <p className="text-sm text-slate-600 dark:text-muted-foreground">
@@ -386,10 +386,10 @@ export const ConcentrationRecommendations: React.FC<ConcentrationRecommendations
         <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 text-xs font-medium">
           {recommendations.highPriority} {t('vendorConcentration.recommendations.priority.high')}
         </span>
-        <span className="px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 text-xs font-medium">
+        <span className="px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-xs font-medium">
           {recommendations.recommendations.filter(r => r.priority === 'medium').length} {t('vendorConcentration.recommendations.priority.medium')}
         </span>
-        <span className="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 text-xs font-medium">
+        <span className="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium">
           {recommendations.recommendations.filter(r => r.priority === 'low').length} {t('vendorConcentration.recommendations.priority.low')}
         </span>
       </div>

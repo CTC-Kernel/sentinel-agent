@@ -55,7 +55,7 @@ const GUIDE_SECTIONS = [
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                        <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 text-xs font-bold">
+                        <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-muted-foreground text-xs font-bold">
                             Scroll
                         </div>
                         <div>
@@ -64,7 +64,7 @@ const GUIDE_SECTIONS = [
                         </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                        <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 text-xs font-bold">
+                        <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-muted-foreground text-xs font-bold">
                             Clic
                         </div>
                         <div>

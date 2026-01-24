@@ -86,7 +86,7 @@ const statusConfig: Record<
     label: 'Vérification en attente',
     description: 'L\'intégrité n\'a pas encore été vérifiée',
     badgeStatus: 'warning',
-    color: 'text-amber-600 dark:text-amber-400',
+    color: 'text-warning-600 dark:text-warning-400',
   },
   compromised: {
     icon: ShieldAlert,
@@ -619,7 +619,7 @@ export function IntegrityCertificate({
                             ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
                             : event.status === 'compromised'
                               ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                              : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                         )}
                       >
                         {event.status === 'verified' ? (

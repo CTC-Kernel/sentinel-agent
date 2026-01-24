@@ -292,7 +292,7 @@ export const Reports: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-24"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -325,15 +325,15 @@ export const Reports: React.FC = () => {
             </motion.div>
 
             {activeTab === 'templates' && (
-                <div className="space-y-10">
+                <div className="space-y-6 sm:space-y-8 lg:space-y-10">
                     {/* Compliance Section */}
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                             <ShieldCheck className="h-6 w-6 text-brand-500" />
                             {t('reports.categories.compliance')}
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div className="glass-premium p-6 rounded-3xl border border-white/10 hover:border-brand-500 transition-all group relative overflow-hidden">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/10 hover:border-brand-500 transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -342,7 +342,7 @@ export const Reports: React.FC = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.iso27001.title')}</h3>
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 mt-1">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-bg text-success-text mt-1">
                                                 {t('reports.badges.recommended')}
                                             </span>
                                         </div>
@@ -370,11 +370,11 @@ export const Reports: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="glass-premium p-6 rounded-3xl border border-white/10 hover:border-blue-500 transition-all group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors"></div>
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/10 hover:border-brand-500 transition-all group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
-                                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
+                                        <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-xl text-brand-600 group-hover:scale-110 transition-transform">
                                             <Lock className="h-8 w-8" />
                                         </div>
                                         <div>
@@ -386,7 +386,7 @@ export const Reports: React.FC = () => {
                                     </p>
                                     <div className="flex gap-2">
                                         <Button
-                                            className="flex-1 justify-center group-hover:bg-blue-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+                                            className="flex-1 justify-center group-hover:bg-brand-600 group-hover:text-white dark:group-hover:text-white transition-colors"
                                             variant="outline"
                                             onClick={() => generatePDF('gdpr', t('reports.templateCards.gdpr.title'))}
                                         >
@@ -409,20 +409,20 @@ export const Reports: React.FC = () => {
                     {/* Executive Section */}
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            <FileText className="h-6 w-6 text-purple-500" />
+                            <FileText className="h-6 w-6 text-violet-500" />
                             {t('reports.categories.executive')}
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div className="glass-premium p-6 rounded-3xl border border-white/10 hover:border-purple-500 transition-all group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/20 transition-colors"></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/10 hover:border-violet-500 transition-all group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
-                                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 group-hover:scale-110 transition-transform">
+                                        <div className="p-3 bg-violet-100 dark:bg-violet-900/30 rounded-xl text-violet-600 group-hover:scale-110 transition-transform">
                                             <Settings className="h-8 w-8" />
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.custom.title')}</h3>
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 mt-1">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400 mt-1">
                                                 {t('reports.badges.complete')}
                                             </span>
                                         </div>
@@ -432,7 +432,7 @@ export const Reports: React.FC = () => {
                                     </p>
                                     <div className="flex gap-2">
                                         <Button
-                                            className="flex-1 justify-center group-hover:bg-purple-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+                                            className="flex-1 justify-center group-hover:bg-violet-600 group-hover:text-white dark:group-hover:text-white transition-colors"
                                             variant="outline"
                                             onClick={() => setShowConfigModal(true)}
                                         >
@@ -455,15 +455,15 @@ export const Reports: React.FC = () => {
             )}
 
             {activeTab === 'generated' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {documents.filter(d => d.type === 'Rapport').length > 0 ? (
                         documents.filter(d => d.type === 'Rapport').map(doc => (
-                            <div key={doc.id} className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all group">
+                            <div key={doc.id} className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all group">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-muted-foreground">
                                         <FileText className="h-6 w-6" />
                                     </div>
-                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${doc.status === 'Publié' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-600'}`}>
+                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${doc.status === 'Publié' ? 'bg-success-bg text-success-text' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
                                         {doc.status}
                                     </span>
                                 </div>
@@ -501,9 +501,9 @@ export const Reports: React.FC = () => {
                     </div>
 
                     {loadingScheduled ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="glass-premium p-6 rounded-2xl animate-pulse">
+                                <div key={i} className="glass-premium p-4 sm:p-6 rounded-2xl animate-pulse">
                                     <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-4"></div>
                                     <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-2"></div>
                                     <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
@@ -511,12 +511,12 @@ export const Reports: React.FC = () => {
                             ))}
                         </div>
                     ) : scheduledReports.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                             {scheduledReports.map(report => (
                                 <div
                                     key={report.id}
-                                    className={`glass-premium p-6 rounded-2xl border transition-all ${report.status === 'active'
-                                        ? 'border-emerald-200 dark:border-emerald-800'
+                                    className={`glass-premium p-4 sm:p-6 rounded-2xl border transition-all ${report.status === 'active'
+                                        ? 'border-success-border'
                                         : 'border-slate-200 dark:border-slate-700 opacity-60'
                                         }`}
                                 >
@@ -525,8 +525,8 @@ export const Reports: React.FC = () => {
                                             <Calendar className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                                         </div>
                                         <span className={`px-2 py-1 rounded-lg text-xs font-bold ${report.status === 'active'
-                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                                            ? 'bg-success-bg text-success-text'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                                             }`}>
                                             {report.status === 'active' ? t('reports.status.active') : t('reports.status.paused')}
                                         </span>

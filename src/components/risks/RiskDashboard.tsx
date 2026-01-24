@@ -26,7 +26,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="glass-panel p-6 rounded-4xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
+                    className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
                     aria-label="Graphique Heatmap des risques"
                 >
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
@@ -41,7 +41,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="glass-panel p-6 rounded-4xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
+                    className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-sm hover:shadow-apple transition-shadow duration-300"
                     aria-label="Graphique d'avancement des traitements"
                 >
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
@@ -109,10 +109,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
 
                                         <div className="mt-auto pt-3 border-t border-slate-100 dark:border-white/5 flex justify-between items-center">
                                             <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md
-                                            ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                                                    risk.strategy === 'Transférer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                                                        risk.strategy === 'Éviter' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-                                                            'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                                            ${risk.strategy === 'Atténuer' ? 'bg-info-bg text-info-text dark:bg-info-bg/20 dark:text-info-text' :
+                                                    risk.strategy === 'Transférer' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400' :
+                                                        risk.strategy === 'Éviter' ? 'bg-success-bg text-success-text dark:bg-success-bg/20 dark:text-success-text' :
+                                                            'bg-warning-bg text-warning-text dark:bg-warning-bg/20 dark:text-warning-text'
                                                 }`}>
                                                 {risk.strategy}
                                             </span>

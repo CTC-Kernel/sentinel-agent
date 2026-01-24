@@ -51,7 +51,7 @@ export const DocumentVersionHistory: React.FC<DocumentVersionHistoryProps> = ({ 
                                     href={version.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-brand-600 transition-colors"
+                                    className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-brand-600 transition-colors"
                                     title="Télécharger"
                                 >
                                     <Download className="h-4 w-4" />

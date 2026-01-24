@@ -104,7 +104,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                             <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl glass-panel p-8 text-left align-middle transition-all">
                                 <div className="flex justify-between items-center mb-6">
                                     <Dialog.Title as="h3" className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                        <Mail className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                                         Nous contacter
                                     </Dialog.Title>
                                     <button
@@ -128,7 +128,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                                 id="contact-name"
                                                 {...register('name')}
                                                 type="text"
-                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
+                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.name ? 'border-error-500' : 'border-slate-200 dark:border-slate-700'}`}
                                                 placeholder="Votre nom"
                                             />
                                         </div>
@@ -145,7 +145,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                                 id="contact-email"
                                                 {...register('email')}
                                                 type="email"
-                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
+                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.email ? 'border-error-500' : 'border-slate-200 dark:border-slate-700'}`}
                                                 placeholder="votre@email.com"
                                             />
                                         </div>
@@ -162,7 +162,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                                 id="contact-subject"
                                                 {...register('subject')}
                                                 type="text"
-                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.subject ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
+                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.subject ? 'border-error-500' : 'border-slate-200 dark:border-slate-700'}`}
                                                 placeholder="Sujet de votre message"
                                             />
                                         </div>
@@ -177,7 +177,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                             id="contact-message"
                                             {...register('message')}
                                             rows={4}
-                                            className={`w-full p-4 bg-slate-50 dark:bg-slate-800 border rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm resize-none ${errors.message ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
+                                            className={`w-full p-4 bg-slate-50 dark:bg-slate-800 border rounded-xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm resize-none ${errors.message ? 'border-error-500' : 'border-slate-200 dark:border-slate-700'}`}
                                             placeholder="Comment pouvons-nous vous aider ?"
                                         />
                                         <FormError message={errors.message?.message} />

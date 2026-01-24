@@ -345,7 +345,7 @@ export const Incidents: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-24"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24"
         >
             <MasterpieceBackground />
             <SEO
@@ -470,7 +470,7 @@ export const Incidents: React.FC = () => {
                                         >
                                             <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                                 <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                                         {t('incidents.tools')}
                                                     </div>
                                                     {canEdit && (

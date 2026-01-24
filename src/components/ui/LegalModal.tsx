@@ -54,7 +54,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                             onClick={() => setActiveTab(tab.id)}
                             className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${activeTab === tab.id
                                 ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                                : 'border-transparent text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
+                                : 'border-transparent text-muted-foreground hover:text-foreground dark:hover:text-slate-300'
                                 }`}
                         >
                             <tab.icon className={`h-4 w-4 mr-2.5 ${activeTab === tab.id ? 'text-brand-500' : 'opacity-70'}`} />
@@ -105,7 +105,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
 
                         {activeTab === 'privacy' && (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 text-blue-800 dark:text-blue-200 text-sm font-medium mb-6">
+                                <div className="bg-info-50 dark:bg-slate-900/20 p-4 rounded-xl border border-info-100 dark:border-info-800 text-info-800 dark:text-info-200 text-sm font-medium mb-6">
                                     Conformément au RGPD, Sentinel GRC assure la protection de vos données personnelles.
                                 </div>
 
@@ -188,7 +188,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
 
                         {activeTab === 'cgv' && (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm font-medium mb-6">
+                                <div className="bg-success-50 dark:bg-success-900/20 p-4 rounded-xl border border-success-100 dark:border-success-800 text-success-800 dark:text-success-200 text-sm font-medium mb-6">
                                     Conditions Générales de Vente (CGV) applicables aux abonnements SaaS Sentinel GRC.
                                 </div>
 

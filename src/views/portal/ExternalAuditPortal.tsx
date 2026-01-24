@@ -88,7 +88,7 @@ export const ExternalAuditPortal: React.FC = () => {
     if (error || !auditData) {
         return (
             <div className="max-w-md mx-auto mt-20 text-center space-y-4">
-                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Lock className="w-8 h-8" />
                 </div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('certifier.portal.accessDenied')}</h1>
@@ -140,26 +140,26 @@ export const ExternalAuditPortal: React.FC = () => {
                 <div className="flex items-center gap-6 mt-8 border-b border-slate-100 dark:border-white/5">
                     <button
                         onClick={() => setActiveTab('overview')}
-                        className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                        className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                     >
                         {t('certifier.portal.tabs.overview')}
                     </button>
                     <button
                         onClick={() => setActiveTab('findings')}
-                        className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'findings' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                        className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'findings' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                     >
-                        {t('certifier.portal.tabs.findings')} <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 px-1.5 rounded-md text-xs">{auditData.findings.length}</span>
+                        {t('certifier.portal.tabs.findings')} <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 rounded-md text-xs">{auditData.findings.length}</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('controls')}
-                        className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'controls' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                        className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'controls' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                     >
-                        {t('certifier.portal.tabs.evidence')} <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 px-1.5 rounded-md text-xs">{auditData.documents?.length || 0}</span>
+                        {t('certifier.portal.tabs.evidence')} <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 rounded-md text-xs">{auditData.documents?.length || 0}</span>
                     </button>
                     {permissions.includes('certify') && (
                         <button
                             onClick={() => setActiveTab('certify')}
-                            className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'certify' ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                            className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'certify' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                         >
                             {t('certifier.portal.tabs.certification')}
                         </button>
@@ -212,7 +212,7 @@ export const ExternalAuditPortal: React.FC = () => {
                             auditData.findings.map((f, i) => (
                                 <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{f.type}</span>
+                                        <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>{f.type}</span>
                                         <span className="text-xs text-muted-foreground">{new Date(f.createdAt).toLocaleDateString()}</span>
                                     </div>
                                     <p className="text-slate-800 dark:text-slate-200">{f.description}</p>
@@ -245,7 +245,7 @@ export const ExternalAuditPortal: React.FC = () => {
                                                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
                                                     <FileText className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">{doc.type}</span>
+                                                <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 px-2 py-1 rounded">{doc.type}</span>
                                             </div>
                                             <h4 className="font-medium text-sm text-slate-900 dark:text-white mb-1 truncate" title={doc.name}>{doc.name}</h4>
                                             <p className="text-xs text-slate-500 mb-3">{doc.category || t('certifier.portal.evidence.defaultCategory')}</p>

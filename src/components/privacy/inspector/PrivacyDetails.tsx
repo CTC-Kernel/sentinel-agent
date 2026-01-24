@@ -25,7 +25,7 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
     if (isEditing) {
         return (
             <div className="space-y-6 animate-fade-in">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <FloatingLabelInput
                         label="Nom de l'activité"
                         {...register('name')}
@@ -69,9 +69,9 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
                 <h3 className="text-sm font-bold bg-slate-100 dark:bg-slate-800 p-2 rounded-lg inline-block text-slate-700 dark:text-slate-300 mb-4">
                     Description & Finalité
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-white/5">
-                        <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Finalité</label>
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 block">Finalité</label>
                         <p className="text-slate-700 dark:text-muted-foreground">
                             {activity.purpose || "Non spécifié"}
                         </p>
@@ -79,7 +79,7 @@ export const PrivacyDetails: React.FC<PrivacyDetailsProps> = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                     <h4 className="text-sm font-bold text-slate-500 mb-3 uppercase">Responsabilité</h4>
                     <div className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 space-y-3">

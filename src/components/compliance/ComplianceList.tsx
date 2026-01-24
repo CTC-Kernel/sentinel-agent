@@ -36,38 +36,38 @@ const getFrameworkStyles = (framework: Framework) => {
             };
         case 'GDPR':
             return {
-                accent: 'text-emerald-600 dark:text-emerald-400',
-                bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-                border: 'border-emerald-100 dark:border-emerald-800/50',
-                progress: 'bg-emerald-600 shadow-emerald-600/20'
+                accent: 'text-green-600 dark:text-green-400',
+                bg: 'bg-green-50 dark:bg-green-900/20',
+                border: 'border-green-100 dark:border-green-800/50',
+                progress: 'bg-green-600 shadow-green-600/20'
             };
         case 'DORA':
             return {
-                accent: 'text-amber-600 dark:text-amber-400',
-                bg: 'bg-amber-50 dark:bg-amber-900/20',
-                border: 'border-amber-100 dark:border-amber-800/50',
-                progress: 'bg-amber-600 shadow-amber-600/20'
+                accent: 'text-yellow-600 dark:text-yellow-400',
+                bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+                border: 'border-yellow-100 dark:border-yellow-800/50',
+                progress: 'bg-yellow-600 shadow-yellow-600/20'
             };
         case 'ISO22301':
             return {
-                accent: 'text-indigo-600 dark:text-indigo-400',
-                bg: 'bg-indigo-50 dark:bg-indigo-900/20',
-                border: 'border-indigo-100 dark:border-indigo-800/50',
-                progress: 'bg-indigo-600 shadow-indigo-600/20'
+                accent: 'text-violet-600 dark:text-violet-400',
+                bg: 'bg-violet-50 dark:bg-violet-900/20',
+                border: 'border-violet-100 dark:border-violet-800/50',
+                progress: 'bg-violet-600 shadow-violet-600/20'
             };
         case 'SOC2':
             return {
-                accent: 'text-rose-600 dark:text-rose-400',
-                bg: 'bg-rose-50 dark:bg-rose-900/20',
-                border: 'border-rose-100 dark:border-rose-800/50',
-                progress: 'bg-rose-600 shadow-rose-600/20'
+                accent: 'text-red-600 dark:text-red-400',
+                bg: 'bg-red-50 dark:bg-red-900/20',
+                border: 'border-red-100 dark:border-red-800/50',
+                progress: 'bg-red-600 shadow-red-600/20'
             };
         case 'HDS':
             return {
-                accent: 'text-cyan-600 dark:text-cyan-400',
-                bg: 'bg-cyan-50 dark:bg-cyan-900/20',
-                border: 'border-cyan-100 dark:border-cyan-800/50',
-                progress: 'bg-cyan-600 shadow-cyan-600/20'
+                accent: 'text-blue-600 dark:text-blue-400',
+                bg: 'bg-blue-50 dark:bg-blue-900/20',
+                border: 'border-blue-100 dark:border-blue-800/50',
+                progress: 'bg-blue-600 shadow-blue-600/20'
             };
         case 'PCI_DSS':
             return {
@@ -78,10 +78,10 @@ const getFrameworkStyles = (framework: Framework) => {
             };
         case 'NIST_CSF':
             return {
-                accent: 'text-orange-600 dark:text-orange-400',
-                bg: 'bg-orange-50 dark:bg-orange-900/20',
-                border: 'border-orange-100 dark:border-orange-800/50',
-                progress: 'bg-orange-600 shadow-orange-600/20'
+                accent: 'text-yellow-600 dark:text-yellow-400',
+                bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+                border: 'border-yellow-100 dark:border-yellow-800/50',
+                progress: 'bg-yellow-600 shadow-yellow-600/20'
             };
         default:
             return {

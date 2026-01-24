@@ -145,7 +145,7 @@ export const Integrations: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10 pb-24 min-w-0"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24 min-w-0"
         >
             <MasterpieceBackground />
             <SEO title="Intégrations" description="Connectez vos outils pour automatiser la collecte de preuves" />
@@ -194,7 +194,7 @@ export const Integrations: React.FC = () => {
                     {/* Filters & Search - Premium Glass Design */}
                     <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-slate-950/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-8">
                         <div className="relative flex-1 min-w-0 group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                             <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                                 aria-label="Rechercher une intégration"
                                 type="text"

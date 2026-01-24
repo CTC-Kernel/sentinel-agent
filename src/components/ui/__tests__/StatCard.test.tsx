@@ -37,7 +37,7 @@ describe('StatCard', () => {
         title: 'Total Users',
         value: 1250,
         icon: MockIcon,
-        colorClass: 'bg-blue-500'
+        colorClass: 'bg-brand-500'
     };
 
     beforeEach(() => {

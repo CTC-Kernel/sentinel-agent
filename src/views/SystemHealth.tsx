@@ -33,11 +33,11 @@ export const SystemHealth: React.FC = () => {
     ];
 
     const getStatusColor = (status: string) => {
-        return status === 'operational' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
+        return status === 'operational' ? 'bg-success-text shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-error-text shadow-[0_0_10px_rgba(239,68,68,0.5)]';
     };
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
             <MasterpieceBackground />
             <PageHeader
                 title={t('systemHealth.title')}
@@ -55,15 +55,15 @@ export const SystemHealth: React.FC = () => {
             {/* Voxel Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: t('systemHealth.metrics.activeUsers'), value: loading ? '...' : userCount, icon: Users, color: 'text-blue-500', sub: t('systemHealth.metrics.totalAccounts') },
+                    { label: t('systemHealth.metrics.activeUsers'), value: loading ? '...' : userCount, icon: Users, color: 'text-brand-500', sub: t('systemHealth.metrics.totalAccounts') },
                     { label: t('systemHealth.metrics.systemLoad'), value: `${Math.round(metrics.systemLoad)}%`, icon: Cpu, color: 'text-violet-500', sub: t('systemHealth.metrics.cpuUsage') },
-                    { label: t('systemHealth.metrics.memory'), value: `${Math.round(metrics.memoryUsage)}%`, icon: Server, color: 'text-emerald-500', sub: t('systemHealth.metrics.ramAllocated') },
-                    { label: t('systemHealth.metrics.latency'), value: `${Math.round(metrics.networkLatency)}ms`, icon: Activity, color: 'text-amber-500', sub: t('systemHealth.metrics.globalPing') },
+                    { label: t('systemHealth.metrics.memory'), value: `${Math.round(metrics.memoryUsage)}%`, icon: Server, color: 'text-success-text', sub: t('systemHealth.metrics.ramAllocated') },
+                    { label: t('systemHealth.metrics.latency'), value: `${Math.round(metrics.networkLatency)}ms`, icon: Activity, color: 'text-warning-text', sub: t('systemHealth.metrics.globalPing') },
                 ].map((metric) => (
                     <motion.div
                         key={metric.label}
                         variants={slideUpVariants}
-                        className="glass-premium p-6 rounded-2xl relative overflow-hidden group"
+                        className="glass-premium p-4 sm:p-6 rounded-2xl relative overflow-hidden group"
                     >
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <metric.icon className="h-24 w-24" />
@@ -83,12 +83,12 @@ export const SystemHealth: React.FC = () => {
             </div>
 
             {/* Services Status */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-2xl">
+            <motion.div variants={slideUpVariants} className="glass-premium p-4 sm:p-6 rounded-2xl">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <Globe className="h-5 w-5 text-brand-500" />
                     {t('systemHealth.servicesStatus')}
-                    <span className="ml-auto flex items-center gap-2 text-xs font-normal text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full border border-emerald-100 dark:border-emerald-800">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="ml-auto flex items-center gap-2 text-xs font-normal text-success-text bg-success-bg px-3 py-1 rounded-full border border-success-border">
+                        <span className="w-2 h-2 rounded-full bg-success-text animate-pulse"></span>
                         {t('systemHealth.operational')}
                     </span>
                 </h3>
@@ -103,11 +103,11 @@ export const SystemHealth: React.FC = () => {
                                 <h4 className="font-bold text-slate-900 dark:text-white text-sm">{service.name}</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className={`w-2 h-2 rounded-full ${getStatusColor(service.status)}`}></span>
-                                    <span className="text-xs text-slate-500 capitalize">{service.status}</span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{service.status}</span>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{service.uptime}</p>
+                                <p className="text-xs font-bold text-success-text">{service.uptime}</p>
                                 <p className="text-[10px] text-muted-foreground">uptime</p>
                             </div>
                         </div>
@@ -116,22 +116,22 @@ export const SystemHealth: React.FC = () => {
             </motion.div>
 
             {/* Recent Alerts (Mock) */}
-            <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-2xl">
+            <motion.div variants={slideUpVariants} className="glass-premium p-4 sm:p-6 rounded-2xl">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-amber-500" />
+                    <AlertCircle className="h-5 w-5 text-warning-text" />
                     {t('systemHealth.recentAlerts')}
                 </h3>
                 <div className="space-y-3">
-                    <div className="flex items-start gap-4 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-xl">
-                        <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                    <div className="flex items-start gap-4 p-3 bg-warning-bg border border-warning-border rounded-xl">
+                        <AlertCircle className="h-5 w-5 text-warning-text mt-0.5" />
                         <div>
                             <p className="text-sm font-bold text-slate-900 dark:text-white">{t('systemHealth.alerts.networkLatency')}</p>
                             <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">{t('systemHealth.alerts.networkLatencyDesc')}</p>
                         </div>
                         <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">{t('systemHealth.alerts.twoHoursAgo')}</span>
                     </div>
-                    <div className="flex items-start gap-4 p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl">
-                        <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                    <div className="flex items-start gap-4 p-3 bg-success-bg border border-success-border rounded-xl">
+                        <CheckCircle2 className="h-5 w-5 text-success-text mt-0.5" />
                         <div>
                             <p className="text-sm font-bold text-slate-900 dark:text-white">{t('systemHealth.alerts.backupComplete')}</p>
                             <p className="text-xs text-slate-600 dark:text-muted-foreground mt-1">{t('systemHealth.alerts.backupCompleteDesc')}</p>

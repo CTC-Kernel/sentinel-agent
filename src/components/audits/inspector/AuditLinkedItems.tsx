@@ -109,7 +109,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
     if (hasNoLinkedItems) {
         return (
-            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                     <LinkIcon className="h-4 w-4 text-brand-500" />
                     Éléments Liés
@@ -129,7 +129,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
         <div className="space-y-6">
             {/* Linked Controls */}
             {linkedControls.length > 0 && (
-                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                         <Shield className="h-4 w-4 text-brand-500" />
                         Contrôles Audités ({linkedControls.length})
@@ -153,7 +153,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
                                             </p>
                                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                                 {ctrl.framework && (
-                                                    <span className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                                                         {ctrl.framework}
                                                     </span>
                                                 )}
@@ -185,7 +185,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
             {/* Linked Risks */}
             {linkedRisks.length > 0 && (
-                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                         <ShieldAlert className="h-4 w-4 text-rose-500" />
                         Risques Associés ({linkedRisks.length})
@@ -237,7 +237,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
             {/* Linked Assets */}
             {linkedAssets.length > 0 && (
-                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                         <Server className="h-4 w-4 text-cyan-500" />
                         Actifs Concernés ({linkedAssets.length})
@@ -288,7 +288,7 @@ export const AuditLinkedItems: React.FC<AuditLinkedItemsProps> = ({
 
             {/* Linked Projects */}
             {linkedProjects.length > 0 && (
-                <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                     <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                         <FolderKanban className="h-4 w-4 text-indigo-500" />
                         Projets Liés ({linkedProjects.length})

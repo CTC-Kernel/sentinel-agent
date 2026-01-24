@@ -161,7 +161,7 @@ export const DORARiskWidget: React.FC<DORARiskWidgetProps> = ({ className = '' }
             {/* High Risk Providers List */}
             {highRiskProviders.length > 0 && (
                 <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                         {t('dora.riskWidget.criticalProviders', 'Fournisseurs Critiques')}
                     </p>
                     <div className="space-y-2">

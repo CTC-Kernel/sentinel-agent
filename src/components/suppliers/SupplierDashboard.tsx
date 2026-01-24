@@ -44,8 +44,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
         return (
             <div className="space-y-6 animate-fade-in">
                 {/* Top Summary Section Skeleton */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="glass-premium p-6 rounded-5xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                     <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                         <div className="glass-premium p-5 rounded-4xl h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
@@ -55,8 +55,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 </div>
                 {/* Charts Section Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
-                    <div className="glass-premium p-6 rounded-5xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
-                    <div className="glass-premium p-6 rounded-5xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
+                    <div className="glass-premium p-4 sm:p-6 rounded-5xl h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50 shadow-sm" />
                 </div>
             </div>
         );
@@ -88,9 +88,9 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
             className="space-y-6"
         >
             {/* Top Summary Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* 1. Main Score Card (Glass + Gradient) */}
-                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-5xl shadow-apple relative overflow-hidden group transition-all duration-300">
+                <motion.div variants={slideUpVariants} className="glass-premium p-4 sm:p-6 rounded-5xl shadow-apple relative overflow-hidden group transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
 
                     {/* Tech Corners */}
@@ -151,7 +151,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             <Building className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                         </div>
                         <span className="text-2xl font-black text-slate-900 dark:text-white mb-1 font-mono">{totalSuppliers}</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total</span>
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total</span>
                     </div>
 
                     {/* Metric 2 */}
@@ -160,7 +160,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             <ShieldAlert className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                         </div>
                         <span className={`text-2xl font-black mb-1 font-mono ${criticalSuppliers > 0 ? 'text-orange-500' : 'text-slate-900 dark:text-white'}`}>{criticalSuppliers}</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Critiques</span>
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Critiques</span>
                     </div>
 
                     {/* Metric 3 */}
@@ -172,7 +172,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             <FileText className="h-5 w-5 text-error-text" />
                         </div>
                         <span className={`text-2xl font-black mb-1 font-mono ${expiredContracts > 0 ? 'text-error-text' : 'text-slate-900 dark:text-white'}`}>{expiredContracts}</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expirés</span>
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Expirés</span>
                     </div>
 
                     {/* Metric 4 */}
@@ -181,7 +181,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             <CheckCircle2 className="h-5 w-5 text-success-text" />
                         </div>
                         <span className="text-2xl font-black text-slate-900 dark:text-white mb-1 font-mono">{compliantSuppliers}</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Conformes</span>
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Conformes</span>
                     </div>
                 </motion.div>
             </div>

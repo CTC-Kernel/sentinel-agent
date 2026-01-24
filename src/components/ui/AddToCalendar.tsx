@@ -49,7 +49,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
                             className="flex items-center px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             onClick={() => setIsOpen(false)}
                         >
-                            <ExternalLink className="h-4 w-4 mr-2 text-blue-500" />
+                            <ExternalLink className="h-4 w-4 mr-2 text-brand-500" />
                             Google Calendar
                         </a>
                         <a
@@ -59,7 +59,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
                             className="flex items-center px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             onClick={() => setIsOpen(false)}
                         >
-                            <ExternalLink className="h-4 w-4 mr-2 text-blue-400" />
+                            <ExternalLink className="h-4 w-4 mr-2 text-info-400" />
                             Outlook
                         </a>
                         <button
@@ -69,7 +69,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
                             }}
                             className="w-full flex items-center px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
-                            <Download className="h-4 w-4 mr-2 text-emerald-500" />
+                            <Download className="h-4 w-4 mr-2 text-success-500" />
                             Fichier ICS
                         </button>
                     </div>

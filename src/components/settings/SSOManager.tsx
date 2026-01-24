@@ -76,7 +76,7 @@ export const SSOManager: React.FC = () => {
     // In production we would enforce the check: if (!isEnterprise) return <SSOPlaceholder />;
 
     return (
-        <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
+        <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full col-span-1 md:col-span-2">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
             <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 flex items-center justify-between">

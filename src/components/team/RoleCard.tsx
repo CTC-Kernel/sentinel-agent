@@ -40,7 +40,7 @@ export const RoleCard = memo(({ role, onEdit, onDelete }: RoleCardProps) => {
                     <p className="text-xs text-slate-600">{Object.keys(role.permissions).length} ressources configurées</p>
                 </div>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{role.description || "Aucune description"}</p>
+            <p className="text-sm text-slate-600 dark:text-muted-foreground line-clamp-2">{role.description || "Aucune description"}</p>
         </div>
 
         <ConfirmModal

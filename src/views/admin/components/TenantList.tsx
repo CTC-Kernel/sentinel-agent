@@ -53,7 +53,7 @@ export const TenantList: React.FC = () => {
             {/* Controls */}
             <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <input
                         type="text"
                         placeholder="Search tenants..."
@@ -123,7 +123,7 @@ export const TenantList: React.FC = () => {
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
-                                            className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
+                                            className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
                                             title="Manage Tenant"
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -132,7 +132,7 @@ export const TenantList: React.FC = () => {
                                         >
                                             <ExternalLink className="w-4 h-4" />
                                         </button>
-                                        <button className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors">
+                                        <button className="p-2.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors">
                                             <MoreVertical className="w-4 h-4" />
                                         </button>
                                     </div>

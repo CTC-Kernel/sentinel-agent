@@ -202,7 +202,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
 
                         <div className="space-y-3 pt-4 border-t border-dashed border-slate-200 dark:border-white/10">
                             <div className="flex items-center justify-between text-xs">
-                                <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><LayoutDashboard className="h-3 w-3 mr-1.5" /> Responsable</span>
+                                <span className="flex items-center font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide"><LayoutDashboard className="h-3 w-3 mr-1.5" /> Responsable</span>
                                 <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px] flex items-center gap-2">
                                     <img
                                         src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
@@ -217,11 +217,11 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                 </span>
                             </div>
                             <div className="flex items-center justify-between text-xs">
-                                <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><Server className="h-3 w-3 mr-1.5" /> Dépendances</span>
+                                <span className="flex items-center font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide"><Server className="h-3 w-3 mr-1.5" /> Dépendances</span>
                                 <span className="font-bold text-slate-700 dark:text-slate-200">{proc.supportingAssetIds?.length || 0} actifs</span>
                             </div>
                             <div className="flex items-center justify-between text-xs">
-                                <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><ClipboardCheck className="h-3 w-3 mr-1.5" /> Dernier Test</span>
+                                <span className="flex items-center font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide"><ClipboardCheck className="h-3 w-3 mr-1.5" /> Dernier Test</span>
                                 <span className={`font-bold px-2 py-0.5 rounded ${isOverdue ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
                                     {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : 'Jamais'}
                                 </span>

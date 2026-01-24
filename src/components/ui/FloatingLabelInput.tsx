@@ -52,7 +52,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         aria-required={props.required}
                         rows={rows}
                         className={`
-                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-foreground
+                            peer w-full px-4 py-3.5 bg-transparent outline-none focus:ring-0 font-medium text-foreground
                             placeholder-transparent rounded-2xl resize-none
                             ${Icon ? 'pl-2' : ''}
                         `}
@@ -67,7 +67,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         aria-describedby={describedBy}
                         aria-required={props.required}
                         className={`
-                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-foreground
+                            peer w-full px-4 py-3.5 bg-transparent outline-none focus:ring-0 font-medium text-foreground
                             placeholder-transparent rounded-2xl
                             ${Icon ? 'pl-2' : ''}
                         `}

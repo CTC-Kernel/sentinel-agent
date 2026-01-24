@@ -155,7 +155,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, b
   >
     {icon}
     {badge !== undefined && (
-      <span className={`absolute -top-0.5 -right-0.5 flex items-center justify-center rounded-full bg-indigo-500 font-bold text-white ${compact ? 'min-w-[14px] h-[14px] text-[8px] px-0.5' : 'min-w-[16px] h-[16px] text-[9px] px-1'}`}>
+      <span className={`absolute -top-0.5 -right-0.5 flex items-center justify-center rounded-full bg-brand-500 font-bold text-white ${compact ? 'min-w-[14px] h-[14px] text-[8px] px-0.5' : 'min-w-[16px] h-[16px] text-[9px] px-1'}`}>
         {badge}
       </span>
     )}
@@ -215,15 +215,15 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30"
+          className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-gradient-to-r from-brand-500/20 to-violet-500/20 border border-brand-500/30"
         >
-          <span className="w-2 h-2 rounded-full bg-indigo-400" />
+          <span className="w-2 h-2 rounded-full bg-brand-400" />
           <span className="text-xs text-white/90 font-medium max-w-[150px] truncate">
             {safeRender((selectedNode.data as { name?: string; title?: string; threat?: string }).name || (selectedNode.data as { title?: string }).title || (selectedNode.data as { threat?: string }).threat)}
           </span>
           <span className="text-[10px] text-white/40 capitalize">{selectedNode.type}</span>
           {connectionCount > 0 && (
-            <span className="text-[10px] text-indigo-400">{connectionCount}</span>
+            <span className="text-[10px] text-brand-400">{connectionCount}</span>
           )}
         </motion.div>
       )}
@@ -751,7 +751,7 @@ export const VoxelView: React.FC = () => {
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-violet-600 shadow-lg shadow-brand-500/30">
                 <Shield className="w-4 h-4 text-white" />
               </div>
               <div className="hidden sm:block">
@@ -784,10 +784,10 @@ export const VoxelView: React.FC = () => {
                 <span className="text-[10px] text-amber-400/70 hidden lg:inline">alertes</span>
               </div>
             )}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30">
-              <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-xs font-medium text-emerald-400">{orderedNodes.length}</span>
-              <span className="text-[10px] text-emerald-400/70 hidden lg:inline">nœuds</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-success/15 border border-success/30">
+              <Activity className="w-3.5 h-3.5 text-success" />
+              <span className="text-xs font-medium text-success">{orderedNodes.length}</span>
+              <span className="text-[10px] text-success/70 hidden lg:inline">nœuds</span>
             </div>
           </div>
 
@@ -809,8 +809,8 @@ export const VoxelView: React.FC = () => {
               onClick={handleAIAnalysis}
               disabled={analyzing}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 ${analyzing
-                ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
-                : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30'
+                ? 'bg-brand-500/20 text-brand-300 cursor-wait'
+                : 'bg-gradient-to-r from-brand-500 to-violet-600 text-white hover:shadow-lg hover:shadow-brand-500/30'
                 }`}
             >
               {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
@@ -980,8 +980,8 @@ export const VoxelView: React.FC = () => {
                   <span className="text-[10px] text-amber-400">{warningCount}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-[10px] text-emerald-400">{orderedNodes.length - criticalCount - warningCount}</span>
+                  <span className="w-2 h-2 rounded-full bg-success" />
+                  <span className="text-[10px] text-success">{orderedNodes.length - criticalCount - warningCount}</span>
                 </div>
               </div>
             </div>
@@ -991,7 +991,7 @@ export const VoxelView: React.FC = () => {
               <span className="text-[10px] font-medium text-white/40 uppercase tracking-wide">Liens</span>
               <div className="mt-1 space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded" />
+                  <div className="w-4 h-0.5 bg-gradient-to-r from-brand-500 to-violet-500 rounded" />
                   <span className="text-[10px] text-white/70">Dépendance</span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -1081,7 +1081,7 @@ export const VoxelView: React.FC = () => {
                           <button
                             key={node.id}
                             onClick={() => handleCommandSelect(node)}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 ${index === 0 ? 'bg-indigo-500/20 border border-indigo-500/30' : 'hover:bg-white/5'
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 ${index === 0 ? 'bg-brand-500/20 border border-brand-500/30' : 'hover:bg-white/5'
                               }`}
                           >
                             <span className={`w-3 h-3 rounded-full ${layer?.bgColor || 'bg-slate-500'}`} />

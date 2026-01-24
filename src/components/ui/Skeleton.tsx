@@ -94,7 +94,7 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ r
 export const SkeletonCard: React.FC<{ className?: string; delay?: number }> = ({ className = '', delay = 0 }) => {
   return (
     <motion.div
-      className={`glass-premium p-6 rounded-4xl space-y-4 ${className}`}
+      className={`glass-premium p-4 sm:p-6 rounded-4xl space-y-4 ${className}`}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, duration: 0.4, ease: appleEasing }}
@@ -112,7 +112,7 @@ export const SkeletonCard: React.FC<{ className?: string; delay?: number }> = ({
 // Card Skeleton Grid with stagger animation
 export const CardSkeleton: React.FC<{ count?: number; className?: string }> = ({ count = 3, className = '' }) => {
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonCard key={`card-skeleton-${i}`} delay={i * 0.1} />
       ))}

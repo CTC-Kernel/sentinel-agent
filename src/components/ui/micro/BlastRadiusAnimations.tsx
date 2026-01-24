@@ -214,7 +214,7 @@ const AnimatedAffectedNode: React.FC<{
         <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
           {node.label}
         </p>
-        <p className="text-xs text-slate-500 capitalize">{node.type}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{node.type}</p>
       </div>
 
       {/* Impact badge with pulse for critical */}
@@ -225,10 +225,10 @@ const AnimatedAffectedNode: React.FC<{
           transition={{ delay: delay + 0.2, type: 'spring', stiffness: 200 }}
           className={cn(
             'px-2 py-1 rounded-full text-xs font-bold',
-            impactLevel === 'critical' && 'bg-red-100 text-red-600',
-            impactLevel === 'high' && 'bg-orange-100 text-orange-600',
+            impactLevel === 'critical' && 'bg-error-100 text-error-600',
+            impactLevel === 'high' && 'bg-warning-100 text-warning-600',
             impactLevel === 'medium' && 'bg-yellow-100 text-yellow-600',
-            impactLevel === 'low' && 'bg-green-100 text-green-600'
+            impactLevel === 'low' && 'bg-success-100 text-success-600'
           )}
         >
           {Math.round(node.impact * 100)}%
@@ -424,7 +424,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
         <div className="space-y-1">
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Avec mitigation</span>
-            <span className={cn('font-medium', isImprovement ? 'text-green-500' : 'text-red-500')}>
+            <span className={cn('font-medium', isImprovement ? 'text-success-500' : 'text-error-500')}>
               {Math.round(scenarioImpact * 100)}%
             </span>
           </div>
@@ -435,7 +435,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
               transition={{ duration: 0.8, delay: 0.3, ease: appleEasing }}
               className={cn(
                 'h-full rounded-full',
-                isImprovement ? 'bg-green-500' : 'bg-red-500'
+                isImprovement ? 'bg-success-500' : 'bg-error-500'
               )}
             />
           </div>
@@ -450,8 +450,8 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
         className={cn(
           'flex items-center justify-center gap-3 p-4 rounded-xl',
           isImprovement
-            ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-            : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+            ? 'bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800'
+            : 'bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800'
         )}
       >
         <motion.div
@@ -460,9 +460,9 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
           transition={{ delay: 1, type: 'spring' }}
         >
           {isImprovement ? (
-            <TrendingDown className="w-8 h-8 text-green-500" />
+            <TrendingDown className="w-8 h-8 text-success-500" />
           ) : (
-            <TrendingUp className="w-8 h-8 text-red-500" />
+            <TrendingUp className="w-8 h-8 text-error-500" />
           )}
         </motion.div>
         <div className="text-center">
@@ -472,13 +472,13 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
             transition={{ delay: 1 }}
             className={cn(
               'text-2xl font-bold',
-              isImprovement ? 'text-green-600' : 'text-red-600'
+              isImprovement ? 'text-success-600' : 'text-error-600'
             )}
           >
             {isImprovement ? '-' : '+'}
             {improvementPercent}%
           </motion.p>
-          <p className={cn('text-sm', isImprovement ? 'text-green-600' : 'text-red-600')}>
+          <p className={cn('text-sm', isImprovement ? 'text-success-600' : 'text-error-600')}>
             {isImprovement ? "Reduction de l'impact" : "Augmentation de l'impact"}
           </p>
         </div>
@@ -490,10 +490,10 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2 }}
-          className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg"
+          className="flex items-center gap-2 p-3 bg-success-50 dark:bg-success-900/20 rounded-lg"
         >
-          <Shield className="w-5 h-5 text-green-500" />
-          <span className="text-sm text-green-700 dark:text-green-300">
+          <Shield className="w-5 h-5 text-success-500" />
+          <span className="text-sm text-success-700 dark:text-success-300">
             <strong>{protectedNodes.length}</strong> elements proteges par cette mitigation
           </span>
           {celebrateImprovement && protectedNodes.length >= 5 && (
@@ -514,7 +514,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.5, type: 'spring' }}
-          className="flex items-center gap-3 p-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl text-white"
+          className="flex items-center gap-3 p-4 bg-gradient-to-r from-success-500 to-success-600 rounded-xl text-white"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -525,7 +525,7 @@ export const WhatIfComparison: React.FC<WhatIfComparisonProps> = ({
           </motion.div>
           <div>
             <p className="font-bold">Excellente mitigation !</p>
-            <p className="text-sm text-green-100">
+            <p className="text-sm text-success-100">
               Cette action reduit significativement la zone d'impact.
             </p>
           </div>
@@ -547,10 +547,10 @@ export const AnimatedStatsCard: React.FC<{
   animate?: boolean;
 }> = ({ label, value, icon, color = 'default', delay = 0, animate = true }) => {
   const colorClasses = {
-    default: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
-    success: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-    warning: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
-    danger: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+    default: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+    success: 'bg-success-100 text-success-600 dark:bg-success-900/30 dark:text-success-400',
+    warning: 'bg-warning-100 text-warning-600 dark:bg-warning-900/30 dark:text-warning-400',
+    danger: 'bg-error-100 text-error-600 dark:bg-error-900/30 dark:text-error-400',
   };
 
   return (

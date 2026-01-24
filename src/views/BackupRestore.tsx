@@ -235,7 +235,7 @@ export const BackupRestore: React.FC = () => {
       variants={staggerContainerVariants}
       initial="initial"
       animate="visible"
-      className="flex flex-col gap-10 min-w-0"
+      className="flex flex-col gap-6 sm:gap-8 lg:gap-10 min-w-0"
     >
       <MasterpieceBackground />
       <SEO title="Sauvegardes & Restauration" description="Gérez vos points de restauration et la sécurité de vos données" />
@@ -257,7 +257,7 @@ export const BackupRestore: React.FC = () => {
               variant="ghost"
               aria-label="Mode Sauvegarde"
               onClick={() => setActiveTab('backup')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'backup' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'backup' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300'}`}
             >
               Sauvegarder
             </Button>
@@ -265,7 +265,7 @@ export const BackupRestore: React.FC = () => {
               variant="ghost"
               aria-label="Mode Restauration"
               onClick={() => setActiveTab('restore')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'restore' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'restore' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300'}`}
             >
               Restaurer
             </Button>
@@ -280,7 +280,7 @@ export const BackupRestore: React.FC = () => {
         {/* Left Panel: Actions */}
         <div className="lg:col-span-2 space-y-6 min-w-0">
           {activeTab === 'backup' ? (
-            <div className="glass-premium p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <Save className="h-5 w-5 text-indigo-500" /> Nouvelle Sauvegarde
               </h2>
@@ -318,7 +318,7 @@ export const BackupRestore: React.FC = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                   <div className="flex items-center gap-2" data-tour="backup-schedule">
-                    <span className="text-sm font-bold text-slate-600 dark:text-slate-500 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
+                    <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                       <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde quotidienne" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Quotidien</Button>
                       <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde hebdomadaire" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Hebdo</Button>
@@ -339,7 +339,7 @@ export const BackupRestore: React.FC = () => {
               </form>
             </div>
           ) : (
-            <div className="glass-premium p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
+            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <RotateCcw className="h-5 w-5 text-indigo-500" /> Restauration
               </h2>
@@ -350,7 +350,7 @@ export const BackupRestore: React.FC = () => {
                 </div>
               ) : (
                 <form onSubmit={restoreForm.handleSubmit(handleRestore)} className="space-y-6">
-                  <div className="p-4 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                  <div className="p-4 bg-indigo-50 dark:bg-slate-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Sauvegarde sélectionnée</span>
                       <span className="text-xs font-mono bg-white dark:bg-black/20 px-2 py-1 rounded text-slate-600">{selectedBackup.id}</span>
@@ -365,7 +365,7 @@ export const BackupRestore: React.FC = () => {
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Collections à restaurer</label>
                     <div className="grid grid-cols-2 gap-3">
                       {selectedBackup.collections.map((col) => (
-                        <label key={col} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                        <label key={col} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
                           <span className="text-sm font-medium capitalize text-slate-700 dark:text-muted-foreground">{col}</span>
                           <Switch
                             checked={restoreForm.watch('collections').includes(col)}

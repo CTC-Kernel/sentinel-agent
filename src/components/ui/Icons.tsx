@@ -194,6 +194,9 @@ import {
   Disc,
   Cloud,
   CloudOff,
+  CloudRain,
+  CloudSnow,
+  CloudLightning,
   Plug,
   Keyboard,
 
@@ -472,6 +475,9 @@ export {
   Disc,
   Cloud,
   CloudOff,
+  CloudRain,
+  CloudSnow,
+  CloudLightning,
   Plug,
   Keyboard,
 

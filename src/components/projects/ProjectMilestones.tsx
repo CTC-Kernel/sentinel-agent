@@ -147,7 +147,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
             </div>
 
             {isEditing && (
-                <div className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/5 mb-6 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl shadow-lg">
+                <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-white/20 dark:border-white/5 mb-6 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl shadow-lg">
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <FloatingLabelInput
                             label="Titre du jalon"
@@ -211,7 +211,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                             <div className="flex-shrink-0 mr-4">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${milestone.status === 'achieved' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
                                     milestone.status === 'missed' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                                        'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                                        'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
                                     }`}>
                                     {index + 1}
                                 </div>

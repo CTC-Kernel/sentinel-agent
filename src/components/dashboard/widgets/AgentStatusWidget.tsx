@@ -27,17 +27,17 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
 
     // Status color based on agent health
     const getStatusColor = () => {
-        if (errorAgents > 0) return 'bg-red-500';
-        if (offlineAgents > 0) return 'bg-orange-500 animate-pulse';
-        if (activeAgents > 0) return 'bg-emerald-500';
-        return 'bg-slate-400';
+        if (errorAgents > 0) return 'bg-destructive';
+        if (offlineAgents > 0) return 'bg-warning animate-pulse';
+        if (activeAgents > 0) return 'bg-success';
+        return 'bg-muted-foreground';
     };
 
     const getStatusBgColor = () => {
-        if (errorAgents > 0) return 'bg-red-500/10';
-        if (offlineAgents > 0) return 'bg-orange-500/10';
-        if (activeAgents > 0) return 'bg-emerald-500/10';
-        return 'bg-slate-500/10';
+        if (errorAgents > 0) return 'bg-destructive/10';
+        if (offlineAgents > 0) return 'bg-warning/10';
+        if (activeAgents > 0) return 'bg-success/10';
+        return 'bg-muted/10';
     };
 
     const getStatusMessage = () => {
@@ -98,30 +98,30 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                         {/* Summary Stats */}
                         <div className="grid grid-cols-3 gap-2">
                             <CustomTooltip content={t('agents.widget.activeTooltip')} position="top">
-                                <div className="flex flex-col items-center p-3 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
-                                    <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mb-1" />
-                                    <span className="text-lg font-black text-emerald-700 dark:text-emerald-300">{activeAgents}</span>
-                                    <span className="text-[10px] font-semibold text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wide">
+                                <div className="flex flex-col items-center p-3 bg-success-bg/80 dark:bg-success/10 rounded-2xl border border-success-border dark:border-success/20">
+                                    <CheckCircle2 className="h-5 w-5 text-success-text dark:text-success mb-1" />
+                                    <span className="text-lg font-black text-success-text dark:text-success">{activeAgents}</span>
+                                    <span className="text-[10px] font-semibold text-success-text/70 dark:text-success/70 uppercase tracking-wide">
                                         {t('agents.status.active')}
                                     </span>
                                 </div>
                             </CustomTooltip>
 
                             <CustomTooltip content={t('agents.widget.offlineTooltip')} position="top">
-                                <div className="flex flex-col items-center p-3 bg-orange-50/80 dark:bg-orange-900/20 rounded-2xl border border-orange-100 dark:border-orange-900/30">
-                                    <WifiOff className="h-5 w-5 text-orange-600 dark:text-orange-400 mb-1" />
-                                    <span className="text-lg font-black text-orange-700 dark:text-orange-300">{offlineAgents}</span>
-                                    <span className="text-[10px] font-semibold text-orange-600/70 dark:text-orange-400/70 uppercase tracking-wide">
+                                <div className="flex flex-col items-center p-3 bg-warning-bg/80 dark:bg-warning/10 rounded-2xl border border-warning-border dark:border-warning/20">
+                                    <WifiOff className="h-5 w-5 text-warning-text dark:text-warning mb-1" />
+                                    <span className="text-lg font-black text-warning-text dark:text-warning">{offlineAgents}</span>
+                                    <span className="text-[10px] font-semibold text-warning-text/70 dark:text-warning/70 uppercase tracking-wide">
                                         {t('agents.status.offline')}
                                     </span>
                                 </div>
                             </CustomTooltip>
 
                             <CustomTooltip content={t('agents.widget.errorTooltip')} position="top">
-                                <div className="flex flex-col items-center p-3 bg-red-50/80 dark:bg-red-900/20 rounded-2xl border border-red-100 dark:border-red-900/30">
-                                    <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mb-1" />
-                                    <span className="text-lg font-black text-red-700 dark:text-red-300">{errorAgents}</span>
-                                    <span className="text-[10px] font-semibold text-red-600/70 dark:text-red-400/70 uppercase tracking-wide">
+                                <div className="flex flex-col items-center p-3 bg-error-bg/80 dark:bg-error/10 rounded-2xl border border-error-border dark:border-error/20">
+                                    <AlertTriangle className="h-5 w-5 text-error-text dark:text-error mb-1" />
+                                    <span className="text-lg font-black text-error-text dark:text-error">{errorAgents}</span>
+                                    <span className="text-[10px] font-semibold text-error-text/70 dark:text-error/70 uppercase tracking-wide">
                                         {t('agents.status.error')}
                                     </span>
                                 </div>
@@ -130,7 +130,7 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
 
                         {/* Compliance Score */}
                         {averageComplianceScore !== null && (
-                            <div className="p-4 bg-gradient-to-r from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 rounded-2xl border border-brand-100 dark:border-brand-900/30">
+                            <div className="p-4 bg-gradient-to-r from-brand-50 to-brand-100/50 dark:from-brand-900/20 dark:to-brand-900/10 rounded-2xl border border-brand-100 dark:border-brand-900/30">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <span className="text-xs font-semibold text-brand-600 dark:text-brand-400 uppercase tracking-wide">
@@ -150,10 +150,10 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                                             {t('agents.widget.checkResults')}
                                         </div>
                                         <div className="flex gap-2 text-xs font-semibold">
-                                            <span className="text-emerald-600 dark:text-emerald-400">
+                                            <span className="text-success-text dark:text-success">
                                                 {checkResultsSummary.pass} {t('agents.checks.pass')}
                                             </span>
-                                            <span className="text-red-600 dark:text-red-400">
+                                            <span className="text-error-text dark:text-error">
                                                 {checkResultsSummary.fail} {t('agents.checks.fail')}
                                             </span>
                                         </div>
@@ -172,21 +172,21 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                                         agent.status === 'active'
                                             ? "bg-white/80 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-700/30"
                                             : agent.status === 'offline'
-                                            ? "bg-orange-50/50 dark:bg-orange-900/10 border-orange-200/50 dark:border-orange-900/30"
-                                            : "bg-red-50/50 dark:bg-red-900/10 border-red-200/50 dark:border-red-900/30"
+                                            ? "bg-warning-bg/50 dark:bg-warning/5 border-warning-border/50 dark:border-warning/20"
+                                            : "bg-error-bg/50 dark:bg-error/5 border-error-border/50 dark:border-error/20"
                                     )}
                                 >
                                     <div className={cn(
                                         "w-8 h-8 rounded-lg flex items-center justify-center mr-3",
-                                        agent.os === 'windows' ? "bg-blue-100 dark:bg-blue-900/30" :
-                                        agent.os === 'darwin' ? "bg-slate-100 dark:bg-slate-800" :
-                                        "bg-orange-100 dark:bg-orange-900/30"
+                                        agent.os === 'windows' ? "bg-info-bg dark:bg-info/20" :
+                                        agent.os === 'darwin' ? "bg-muted dark:bg-muted/50" :
+                                        "bg-warning-bg dark:bg-warning/10"
                                     )}>
                                         <Monitor className={cn(
                                             "w-4 h-4",
-                                            agent.os === 'windows' ? "text-blue-600 dark:text-blue-400" :
-                                            agent.os === 'darwin' ? "text-slate-600 dark:text-slate-400" :
-                                            "text-orange-600 dark:text-orange-400"
+                                            agent.os === 'windows' ? "text-info-text dark:text-info" :
+                                            agent.os === 'darwin' ? "text-muted-foreground" :
+                                            "text-warning-text dark:text-warning"
                                         )} />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -202,18 +202,18 @@ export const AgentStatusWidget: React.FC<AgentStatusWidgetProps> = React.memo(({
                                         {agent.complianceScore !== null && agent.complianceScore !== undefined && (
                                             <span className={cn(
                                                 "text-sm font-bold",
-                                                agent.complianceScore >= 80 ? "text-emerald-600 dark:text-emerald-400" :
-                                                agent.complianceScore >= 60 ? "text-orange-600 dark:text-orange-400" :
-                                                "text-red-600 dark:text-red-400"
+                                                agent.complianceScore >= 80 ? "text-success-text dark:text-success" :
+                                                agent.complianceScore >= 60 ? "text-warning-text dark:text-warning" :
+                                                "text-error-text dark:text-error"
                                             )}>
                                                 {agent.complianceScore}%
                                             </span>
                                         )}
                                         <div className={cn(
                                             "w-2 h-2 rounded-full ml-auto mt-1",
-                                            agent.status === 'active' ? "bg-emerald-500" :
-                                            agent.status === 'offline' ? "bg-orange-500" :
-                                            "bg-red-500"
+                                            agent.status === 'active' ? "bg-success" :
+                                            agent.status === 'offline' ? "bg-warning" :
+                                            "bg-destructive"
                                         )} />
                                     </div>
                                 </div>

@@ -109,7 +109,7 @@ export const SystemSettings: React.FC = () => {
                     : JSON.stringify(details);
 
                 return (
-                    <span className="text-slate-500 dark:text-slate-400 text-xs truncate max-w-[200px] block" title={str}>
+                    <span className="text-slate-500 dark:text-muted-foreground text-xs truncate max-w-[200px] block" title={str}>
                         {str}
                     </span>
                 );
@@ -169,7 +169,7 @@ export const SystemSettings: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-blue-500/10 dark:bg-blue-500/20 rounded-xl text-blue-600 dark:text-blue-400 backdrop-blur-md shadow-sm">
+                            <div className="p-2.5 bg-info-500/10 dark:bg-info-500/20 rounded-xl text-info-600 dark:text-info-400 backdrop-blur-md shadow-sm">
                                 <Activity className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.activityHistory')}</h3>
@@ -225,17 +225,17 @@ export const SystemSettings: React.FC = () => {
             </GlassCard>
 
             {/* GDPR Personal Data Export - Always Available */}
-            <GlassCard className="p-8 rounded-5xl border border-emerald-500/30 dark:border-emerald-500/20 shadow-sm relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
+            <GlassCard className="p-8 rounded-5xl border border-success-500/30 dark:border-success-500/20 shadow-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-success-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 shrink-0 backdrop-blur-md">
+                        <div className="p-3 bg-success-500/10 dark:bg-success-500/20 rounded-2xl text-success-600 dark:text-success-400 shrink-0 backdrop-blur-md">
                             <Shield className="h-6 w-6" />
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
                                 {t('settings.systemPage.gdprExport') || 'Export RGPD (Données Personnelles)'}
-                                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">
+                                <span className="text-xs font-medium text-success-600 dark:text-success-400 bg-success-100 dark:bg-success-900/30 px-2 py-0.5 rounded-full">
                                     Art. 20 RGPD
                                 </span>
                             </h3>
@@ -246,7 +246,7 @@ export const SystemSettings: React.FC = () => {
                                 variant="outline"
                                 onClick={handleExportGDPRData}
                                 disabled={exportingGDPR}
-                                className="w-full sm:w-auto shadow-lg shadow-emerald-500/10 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+                                className="w-full sm:w-auto shadow-lg shadow-success-500/10 border-success-200 dark:border-success-800 text-success-700 dark:text-success-300 hover:bg-success-50 dark:hover:bg-success-900/30"
                             >
                                 {exportingGDPR ? (
                                     <>
@@ -267,18 +267,18 @@ export const SystemSettings: React.FC = () => {
 
             {/* Demo Zone - Visible only to demo user or in dev */}
             {(user?.email === 'demo@sentinel-grc.com' || import.meta.env.DEV) && (
-                <GlassCard className="p-8 rounded-5xl border border-indigo-500/30 dark:border-indigo-500/20 shadow-sm relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
+                <GlassCard className="p-8 rounded-5xl border border-violet-500/30 dark:border-violet-500/20 shadow-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
                     <div className="relative z-10">
                         <div className="flex items-start gap-4">
-                            <div className="p-3 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-2xl text-indigo-600 dark:text-indigo-400 shrink-0 backdrop-blur-md">
+                            <div className="p-3 bg-violet-500/10 dark:bg-violet-500/20 rounded-2xl text-violet-600 dark:text-violet-400 shrink-0 backdrop-blur-md">
                                 <Activity className="h-6 w-6" />
                             </div>
                             <div className="w-full">
-                                <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-400 mb-2 flex items-center gap-2">
+                                <h3 className="text-lg font-bold text-violet-900 dark:text-violet-400 mb-2 flex items-center gap-2">
                                     {t('settings.systemPage.demoZone')}
                                 </h3>
-                                <p className="text-sm text-indigo-700/80 dark:text-indigo-300/70 mb-6 leading-relaxed max-w-2xl">
+                                <p className="text-sm text-violet-700/80 dark:text-violet-300/70 mb-6 leading-relaxed max-w-2xl">
                                     {t('settings.systemPage.demoZoneDesc')}
                                 </p>
                                 <Button
@@ -297,7 +297,7 @@ export const SystemSettings: React.FC = () => {
                                         }
                                     }}
                                     disabled={exporting}
-                                    className="w-full sm:w-auto shadow-lg shadow-indigo-500/20 rounded-xl border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                                    className="w-full sm:w-auto shadow-lg shadow-violet-500/20 rounded-xl border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/30"
                                 >
                                     {exporting ? (
                                         <>

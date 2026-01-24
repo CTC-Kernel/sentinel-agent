@@ -127,19 +127,19 @@ interface DockItemProps {
 
 const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, badge, delay }) => {
     const colorStyles = {
-        purple: 'text-purple-600 dark:text-purple-400 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20',
-        red: 'text-red-600 dark:text-red-400 group-hover:bg-red-100 dark:group-hover:bg-red-500/20',
-        orange: 'text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20',
-        blue: 'text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20',
-        emerald: 'text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20'
+        purple: 'text-brand-600 dark:text-brand-400 group-hover:bg-brand-100 dark:group-hover:bg-brand-500/20',
+        red: 'text-destructive dark:text-destructive group-hover:bg-error-bg dark:group-hover:bg-destructive/20',
+        orange: 'text-warning-text dark:text-warning group-hover:bg-warning-bg dark:group-hover:bg-warning/20',
+        blue: 'text-info-text dark:text-info group-hover:bg-info-bg dark:group-hover:bg-info/20',
+        emerald: 'text-success-text dark:text-success group-hover:bg-success-bg dark:group-hover:bg-success/20'
     };
 
     const badgeColors = {
-        purple: 'bg-purple-500',
-        red: 'bg-red-500',
-        orange: 'bg-orange-500',
-        blue: 'bg-blue-500',
-        emerald: 'bg-emerald-500'
+        purple: 'bg-brand-500',
+        red: 'bg-destructive',
+        orange: 'bg-warning',
+        blue: 'bg-info',
+        emerald: 'bg-success'
     };
 
     return (

@@ -38,7 +38,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
   const getLineColor = (workshopNum: EbiosWorkshopNumber) => {
     const status = workshops[workshopNum].status;
     if (status === 'validated' || status === 'completed') {
-      return 'bg-emerald-500';
+      return 'bg-success';
     }
     return 'bg-slate-200 dark:bg-slate-700';
   };
@@ -72,8 +72,8 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 "border font-medium text-sm backdrop-blur-md",
                 locked && "opacity-40 cursor-not-allowed border-transparent bg-slate-100 dark:bg-slate-800 text-slate-400",
                 !locked && "cursor-pointer hover:scale-105 hover:bg-white/10 dark:hover:bg-white/5",
-                isActive && "ring-2 ring-offset-2 ring-blue-500 dark:ring-offset-slate-900 border-blue-500/50 bg-blue-500/10 text-blue-600 dark:text-blue-400",
-                (workshop.status === 'validated' || workshop.status === 'completed') && !isActive && "bg-emerald-500/10 border-emerald-500/50 text-emerald-600 dark:text-emerald-400",
+                isActive && "ring-2 ring-offset-2 ring-brand-500 dark:ring-offset-slate-900 border-brand-500/50 bg-brand-500/10 text-brand-600 dark:text-brand-400",
+                (workshop.status === 'validated' || workshop.status === 'completed') && !isActive && "bg-success/10 border-success/50 text-success-text",
               )}
               title={info.name[locale]}
             >
@@ -86,7 +86,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               )}
               {/* Active Indicator Dot */}
               {isActive && (
-                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500" />
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-500" />
               )}
             </button>
           );
@@ -133,8 +133,8 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                   "shadow-lg backdrop-blur-xl border border-white/20 dark:border-white/10",
                   locked && "opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400",
                   !locked && "cursor-pointer hover:-translate-y-1 hover:shadow-xl",
-                  isActive && "scale-110 ring-4 ring-blue-500/20 shadow-blue-500/30 bg-gradient-to-br from-blue-500 to-blue-600 text-white border-transparent",
-                  isDone && !isActive && "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-transparent shadow-emerald-500/30",
+                  isActive && "scale-110 ring-4 ring-brand-500/20 shadow-brand bg-gradient-to-br from-brand-500 to-brand-600 text-white border-transparent",
+                  isDone && !isActive && "bg-gradient-to-br from-success to-success text-success-foreground border-transparent shadow-success",
                   !isDone && !isActive && !locked && "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                 )}
               >
@@ -154,15 +154,15 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               )}>
                 <p className={cn(
                   "font-semibold text-sm leading-tight mb-1",
-                  isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300"
+                  isActive ? "text-brand-600 dark:text-brand-400" : "text-slate-700 dark:text-slate-300"
                 )}>
                   {info.shortName[locale]}
                 </p>
                 <div className="flex justify-center">
                   <span className={cn(
                     "text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full",
-                    isDone ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" :
-                      isActive ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" :
+                    isDone ? "bg-success-bg text-success-text" :
+                      isActive ? "bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400" :
                         "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                   )}>
                     {WORKSHOP_STATUS_LABELS[workshop.status][locale]}
@@ -194,14 +194,14 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
                 locked && "opacity-50 cursor-not-allowed bg-slate-50/50 dark:bg-slate-900/50 border-transparent",
                 !locked && "cursor-pointer active:scale-[0.98]",
                 isActive
-                  ? "border-blue-500/30 bg-blue-50/80 dark:bg-blue-900/20 shadow-lg shadow-blue-500/10"
+                  ? "border-brand-500/30 bg-brand-100/80 dark:bg-brand-900/20 shadow-lg shadow-brand"
                   : "border-white/10 bg-white/40 dark:bg-slate-800/40 hover:bg-white/60 dark:hover:bg-slate-800/60"
               )}
             >
               <div className={cn(
                 "flex items-center justify-center w-10 h-10 rounded-xl font-bold shadow-sm transition-colors",
-                isActive ? "bg-blue-500 text-white shadow-blue-500/30" :
-                  isDone ? "bg-emerald-500 text-white shadow-emerald-500/30" :
+                isActive ? "bg-brand-500 text-white shadow-brand" :
+                  isDone ? "bg-success text-success-foreground shadow-success" :
                     locked ? "bg-slate-200 dark:bg-slate-800 text-slate-400" :
                       "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300"
               )}>
@@ -217,15 +217,15 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               <div className="flex-1 text-left">
                 <p className={cn(
                   "font-semibold text-sm",
-                  isActive ? "text-blue-700 dark:text-blue-400" : "text-slate-700 dark:text-slate-300"
+                  isActive ? "text-brand-700 dark:text-brand-400" : "text-slate-700 dark:text-slate-300"
                 )}>
                   {info.name[locale]}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={cn(
                     "w-1.5 h-1.5 rounded-full",
-                    isDone ? "bg-emerald-500" :
-                      isActive ? "bg-blue-500" :
+                    isDone ? "bg-success" :
+                      isActive ? "bg-brand-500" :
                         "bg-slate-300 dark:bg-slate-600"
                   )} />
                   <p className="text-xs text-slate-500 dark:text-muted-foreground">
@@ -235,7 +235,7 @@ export const EbiosWorkshopStepper: React.FC<EbiosWorkshopStepperProps> = ({
               </div>
 
               {isActive && (
-                <div className="w-1.5 h-8 rounded-full bg-blue-500/50" />
+                <div className="w-1.5 h-8 rounded-full bg-brand-500/50" />
               )}
             </button>
           );

@@ -199,7 +199,7 @@ const LinkedControlItem = ({ control }: { control: Control }) => (
                 <span className="text-xs font-mono text-muted-foreground">{control.code}</span>
                 <h4 className="font-bold text-slate-900 dark:text-white">{control.name}</h4>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{control.description}</p>
+            <p className="text-sm text-slate-600 dark:text-muted-foreground line-clamp-2">{control.description}</p>
         </div>
     </div>
 );
@@ -284,7 +284,7 @@ const LinkedAuditItem = React.memo(({ audit, onClick }: { audit: Audit, onClick:
             <div className="flex justify-between items-start">
                 <div>
                     <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{audit.name}</h4>
-                    <p className="text-xs text-slate-500 mt-1">Ref: {audit.reference}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Ref: {audit.reference}</p>
                 </div>
                 <Badge status={audit.status === 'Validé' || audit.status === 'Terminé' ? 'success' : 'warning'}>{audit.status}</Badge>
             </div>

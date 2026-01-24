@@ -40,8 +40,8 @@ export const ComplianceDomainDetails: React.FC<ComplianceDomainDetailsProps> = (
                             </div>
                             <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-2 mb-2 overflow-hidden">
                                 <div
-                                    className={`h-2 rounded-full transition-all duration-1000 ease-out ${rate >= 80 ? 'bg-gradient-to-r from-emerald-500 to-green-600' :
-                                        rate >= 50 ? 'bg-amber-500' :
+                                    className={`h-2 rounded-full transition-all duration-1000 ease-out ${rate >= 80 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        rate >= 50 ? 'bg-yellow-500' :
                                             'bg-red-500'
                                         }`}
                                     style={{

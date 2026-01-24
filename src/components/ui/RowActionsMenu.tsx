@@ -54,8 +54,8 @@ function getItemStyles(variant: RowActionItem['variant'], active: boolean, disab
     return cn(
       baseStyles,
       active
-        ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
-        : 'text-rose-600 dark:text-rose-400'
+        ? 'bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400'
+        : 'text-error-600 dark:text-error-400'
     );
   }
 

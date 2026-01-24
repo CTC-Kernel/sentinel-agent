@@ -65,13 +65,13 @@ const formatCurrency = (value: number, currency: string = 'EUR'): string => {
 const getComplexityBadge = (level: FAIRModelConfig['complexityLevel']) => {
   switch (level) {
     case 'simple':
-      return { label: 'Simple', color: 'bg-green-100 text-green-700' };
+      return { label: 'Simple', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' };
     case 'standard':
-      return { label: 'Standard', color: 'bg-blue-100 text-blue-700' };
+      return { label: 'Standard', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' };
     case 'advanced':
-      return { label: 'Avancé', color: 'bg-purple-100 text-purple-700' };
+      return { label: 'Avancé', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' };
     default:
-      return { label: level, color: 'bg-slate-100 text-slate-700' };
+      return { label: level, color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' };
   }
 };
 

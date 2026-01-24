@@ -23,8 +23,8 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
     const isPDF = fileType === 'application/pdf';
 
     const getFileIcon = () => {
-        if (isImage) return <FileText className="h-12 w-12 text-blue-500" />;
-        if (isPDF) return <FileText className="h-12 w-12 text-red-500" />;
+        if (isImage) return <FileText className="h-12 w-12 text-brand-500" />;
+        if (isPDF) return <FileText className="h-12 w-12 text-error-500" />;
         return <File className="h-12 w-12 text-slate-600" />;
     };
 
@@ -48,7 +48,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                         {onDownload && (
                             <button
                                 onClick={onDownload}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 title="Télécharger"
                             >
                                 <Download className="h-5 w-5 text-slate-600 dark:text-slate-400" />
@@ -58,14 +58,14 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             title="Ouvrir dans un nouvel onglet"
                         >
                             <ExternalLink className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                         </a>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                             <X className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                         </button>
@@ -83,7 +83,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                             />
                             {loading && (
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-300 border-t-blue-600" />
+                                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-300 border-t-brand-600" />
                                 </div>
                             )}
                         </div>

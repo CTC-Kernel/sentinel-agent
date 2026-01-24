@@ -100,7 +100,7 @@ describe('RowActionsMenu', () => {
 
       await waitFor(() => {
         const deleteButton = screen.getByText('Supprimer').closest('button');
-        expect(deleteButton).toHaveClass('text-rose-600');
+        expect(deleteButton).toHaveClass('text-error-600');
       });
     });
 

@@ -96,10 +96,10 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'Débutant': return 'bg-green-100 text-green-700';
-      case 'Intermédiaire': return 'bg-yellow-100 text-yellow-700';
-      case 'Avancé': return 'bg-red-100 text-red-700';
-      default: return 'bg-slate-100 text-slate-700';
+      case 'Débutant': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+      case 'Intermédiaire': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
+      case 'Avancé': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+      default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
     }
   };
 

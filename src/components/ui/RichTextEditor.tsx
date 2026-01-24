@@ -24,7 +24,7 @@ const ToolbarButton = ({ onClick, isActive, disabled, children, title }: { onCli
         aria-label={title}
         aria-pressed={isActive}
         className={`p-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isActive
-            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+            ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
@@ -149,7 +149,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             link: {
                 openOnClick: false,
                 HTMLAttributes: {
-                    class: 'text-blue-500 hover:text-blue-700 underline',
+                    class: 'text-brand-500 hover:text-brand-700 underline',
                 },
             },
         }),
@@ -197,14 +197,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <div className={`
                 border rounded-xl bg-white dark:bg-slate-800 transition-all overflow-hidden
                 ${error
-                    ? 'border-red-500 ring-1 ring-red-500/20'
-                    : 'border-slate-200 dark:border-white/10 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20'
+                    ? 'border-error-500 ring-1 ring-error-500/20'
+                    : 'border-slate-200 dark:border-white/10 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20'
                 }
             `}>
                 {isEditable && <MenuBar editor={editor} />}
                 <EditorContent editor={editor} />
             </div>
-            {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
+            {error && <span className="text-xs text-error-500 font-medium">{error}</span>}
         </div>
     );
 };

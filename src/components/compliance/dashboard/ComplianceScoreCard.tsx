@@ -128,7 +128,7 @@ export const ComplianceScoreCard: React.FC<ComplianceScoreCardProps> = ({
                     <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
                         <div className="flex justify-between items-start mb-3">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">DORA</span>
-                            <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{Math.round(doraScore)}%</span>
+                            <span className="text-sm font-black text-green-600 dark:text-green-400">{Math.round(doraScore)}%</span>
                         </div>
                         <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                             <div className="h-full bg-success-text rounded-full transition-all duration-1000 ease-out" style={{ width: `${doraScore}%` }}></div>

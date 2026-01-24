@@ -509,7 +509,7 @@ const SMSITimeline: React.FC<SMSITimelineProps> = ({ milestones, program, onSele
     <GlassCard className="p-6">
       <h3 className="text-lg font-semibold text-foreground mb-6">Timeline du Programme SMSI</h3>
 
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         {phases.map((phase, phaseIndex) => {
           const config = PHASE_CONFIG[phase];
           const style = PHASE_STYLES[phase];

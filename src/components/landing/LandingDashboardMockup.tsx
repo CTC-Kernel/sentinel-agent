@@ -21,7 +21,7 @@ export const LandingDashboardMockup: React.FC = () => {
             {/* Sidebar Mockup */}
             <div className="w-16 sm:w-20 md:w-64 bg-slate-950/50 backdrop-blur-md flex flex-col border-r border-white/5 flex-shrink-0 relative">
                 <div className="p-4 md:p-6 flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-brand-500/30 flex-shrink-0 ring-1 ring-white/20">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-lg shadow-brand-500/30 flex-shrink-0 ring-1 ring-white/20">
                         <Lock className="h-4 w-4 text-white" />
                     </div>
                     <span className="font-bold text-lg hidden md:block tracking-tight">Sentinel</span>
@@ -52,7 +52,7 @@ export const LandingDashboardMockup: React.FC = () => {
                 {/* User Profile Snippet */}
                 <div className="p-4 border-t border-white/5 mt-auto">
                     <div className="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/5">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-500 border-2 border-slate-800"></div>
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-400 to-purple-500 border-2 border-slate-800"></div>
                         <div className="hidden md:block overflow-hidden">
                             <div className="font-bold text-slate-200 truncate">Thibault L.</div>
                             <div className="text-xs text-slate-500 truncate">Admin (RSSI)</div>
@@ -107,25 +107,25 @@ export const LandingDashboardMockup: React.FC = () => {
                         {/* Widget 1 */}
                         <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 ring-1 ring-emerald-500/20">
+                                <div className="p-2 bg-green-500/10 rounded-lg text-green-400 ring-1 ring-green-500/20">
                                     <Shield className="h-5 w-5" />
                                 </div>
-                                <span className="text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full ring-1 ring-emerald-500/20">+12%</span>
+                                <span className="text-green-400 text-xs font-bold bg-green-500/10 px-2 py-0.5 rounded-full ring-1 ring-green-500/20">+12%</span>
                             </div>
                             <div className="text-3xl font-bold text-white mb-1 tracking-tight">84%</div>
                             <div className="text-slate-500 text-xs font-medium">Score de Conformité</div>
                             <div className="mt-4 w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                                <div className="h-full bg-emerald-500 w-[84%] shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                                <div className="h-full bg-green-500 w-[84%] shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
                             </div>
                         </div>
 
                         {/* Widget 2 */}
                         <div className="bg-white/5 p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-colors group">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400 ring-1 ring-amber-500/20">
+                                <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-400 ring-1 ring-yellow-500/20">
                                     <AlertTriangle className="h-5 w-5" />
                                 </div>
-                                <span className="text-amber-400 text-xs font-bold bg-amber-500/10 px-2 py-0.5 rounded-full ring-1 ring-amber-500/20">-2</span>
+                                <span className="text-yellow-400 text-xs font-bold bg-yellow-500/10 px-2 py-0.5 rounded-full ring-1 ring-yellow-500/20">-2</span>
                             </div>
                             <div className="text-3xl font-bold text-white mb-1 tracking-tight">3</div>
                             <div className="text-slate-500 text-xs font-medium">Risques Critiques</div>
@@ -193,7 +193,7 @@ export const LandingDashboardMockup: React.FC = () => {
 
                             <h3 className="font-bold text-white mb-6 relative z-10">Répartition</h3>
                             <div className="flex-1 flex items-center justify-center relative scale-110">
-                                <div className="w-28 h-28 rounded-full border-[12px] border-emerald-500 border-r-brand-500 border-b-amber-500 border-l-slate-800 -rotate-45 shadow-[0_0_20px_-5px_rgba(0,0,0,0.5)]"></div>
+                                <div className="w-28 h-28 rounded-full border-[12px] border-green-500 border-r-brand-500 border-b-yellow-500 border-l-slate-800 -rotate-45 shadow-[0_0_20px_-5px_rgba(0,0,0,0.5)]"></div>
                                 <div className="absolute flex flex-col items-center">
                                     <span className="text-2xl font-bold text-white">124</span>
                                     <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Total</span>
@@ -205,7 +205,7 @@ export const LandingDashboardMockup: React.FC = () => {
                                     <span className="font-bold text-slate-200">45%</span>
                                 </div>
                                 <div className="flex justify-between text-xs items-center">
-                                    <span className="flex items-center gap-2 text-muted-foreground"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>Clôturé</span>
+                                    <span className="flex items-center gap-2 text-muted-foreground"><div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>Clôturé</span>
                                     <span className="font-bold text-slate-200">32%</span>
                                 </div>
                             </div>

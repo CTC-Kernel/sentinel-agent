@@ -209,12 +209,12 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                 <div className={`
                                     flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all
                                     ${idx === currentStep ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20 scale-110' :
-                                        idx < currentStep ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}
+                                        idx < currentStep ? 'bg-success-500 text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400'}
                                 `}>
                                     {idx < currentStep ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
                                 </div>
                                 {idx < STEPS.length - 1 && (
-                                    <div className={`w-8 h-0.5 mx-2 rounded-full transition-colors ${idx < currentStep ? 'bg-emerald-500' : 'bg-slate-100 dark:bg-white/10'}`} />
+                                    <div className={`w-8 h-0.5 mx-2 rounded-full transition-colors ${idx < currentStep ? 'bg-success-500' : 'bg-slate-100 dark:bg-white/10'}`} />
                                 )}
                             </div>
                         ))}
@@ -264,14 +264,14 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                             initialFile={initialFile}
                                         />
                                         {uploadedFileUrl && (
-                                            <div className="mt-4 flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
+                                            <div className="mt-4 flex items-center justify-between p-3 bg-success-50 dark:bg-success-900/20 rounded-xl border border-success-100 dark:border-success-800">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg text-emerald-600">
+                                                    <div className="p-2 bg-success-100 dark:bg-success-900/40 rounded-lg text-success-600">
                                                         <FileText className="w-5 h-5" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold text-emerald-900 dark:text-emerald-100">{fileName || 'Fichier téléversé'}</p>
-                                                        <p className="text-xs text-emerald-600 break-all">{uploadedFileUrl.split('/').pop()}</p>
+                                                        <p className="text-sm font-bold text-success-900 dark:text-success-100">{fileName || 'Fichier téléversé'}</p>
+                                                        <p className="text-xs text-success-600 dark:text-success-400 break-all">{uploadedFileUrl.split('/').pop()}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
@@ -331,7 +331,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     error={errors.title?.message}
                                     autoFocus
                                 />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <CustomSelect
                                         label="Dossier"
                                         options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
@@ -346,21 +346,21 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                         onChange={(val) => setValue('type', (typeof val === 'string' ? val : 'Politique') as DocumentFormData['type'])}
                                     />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <FloatingLabelInput
                                         label="Version"
                                         {...register('version')}
                                         error={errors.version?.message}
                                     />
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Statut</label>
+                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Statut</label>
                                         <div className="flex p-1 bg-slate-100 dark:bg-black/20 rounded-xl">
                                             {['Brouillon', 'Publié'].map((s) => (
                                                 <button
                                                     key={s}
                                                     type="button"
                                                     onClick={() => setValue('status', s as DocumentFormData['status'])}
-                                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${status === s ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-600' : 'text-slate-500 hover:text-slate-700'}`}
+                                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${status === s ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-600' : 'text-muted-foreground hover:text-foreground'}`}
                                                 >
                                                     {s}
                                                 </button>
@@ -369,7 +369,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Description / Résumé</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1">Description / Résumé</label>
                                     <Controller
                                         control={control}
                                         name="content"
@@ -442,7 +442,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                             <div className="space-y-6 animate-fade-in-right">
                                 <div className="text-center mb-8">
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <Controller
                                         control={control}
                                         name="reviewers"
@@ -477,7 +477,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                         {currentStep === 4 && (
                             <div className="space-y-8 animate-fade-in-right">
                                 <div className="text-center mb-6">
-                                    <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600">
+                                    <div className="w-16 h-16 bg-success-100 dark:bg-success-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-success-600">
                                         <CheckCircle2 className="w-8 h-8" />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">Prêt à valider ?</h3>
@@ -490,7 +490,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                             <p className="text-sm font-bold text-slate-900 dark:text-white">{getValues('title')}</p>
                                             <p className="text-xs text-slate-500">{docType} - v{getValues('version')}</p>
                                         </div>
-                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${status === 'Publié' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${status === 'Publié' ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400' : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'}`}>
                                             {status}
                                         </span>
                                     </div>
@@ -532,7 +532,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                         type="button"
                         variant="ghost"
                         onClick={currentStep === 0 ? onClose : prevStep}
-                        className="text-slate-500 hover:text-slate-700"
+                        className="text-muted-foreground hover:text-foreground"
                     >
                         {currentStep === 0 ? 'Annuler' : 'Précédent'}
                     </Button>

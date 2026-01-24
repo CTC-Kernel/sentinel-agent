@@ -88,7 +88,7 @@ export const UserActivityLog: React.FC = () => {
                 accessorKey: 'resource',
                 header: 'Module',
                 cell: ({ getValue }) => (
-                    <span className="font-medium text-slate-600 dark:text-slate-400 text-xs">
+                    <span className="font-medium text-slate-600 dark:text-muted-foreground text-xs">
                         {getValue() as string}
                     </span>
                 )

@@ -76,7 +76,7 @@ export const ReportConfigurationModal: React.FC<ReportConfigurationModalProps> =
                             <Dialog.Panel className="relative transform overflow-hidden rounded-4xl bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
                                 <div className="p-6">
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-                                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600">
+                                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 dark:text-purple-400">
                                             <FileText className="h-6 w-6" />
                                         </div>
                                         Configuration du Rapport

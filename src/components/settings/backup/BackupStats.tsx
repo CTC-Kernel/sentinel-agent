@@ -26,9 +26,9 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                 hoverEffect={true}
                 gradientOverlay={true}
             >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-info-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-info-500/20 transition-colors"></div>
                 <div className="flex items-center relative z-10">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl text-blue-600 dark:text-blue-400 mr-4 border border-blue-100 dark:border-blue-500/20">
+                    <div className="p-3 bg-info-50 dark:bg-info-900/20 rounded-2xl text-info-600 dark:text-info-400 mr-4 border border-info-100 dark:border-info-500/20">
                         <Database className="h-8 w-8" />
                     </div>
                     <div>
@@ -43,9 +43,9 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                 hoverEffect={true}
                 gradientOverlay={true}
             >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-colors"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-success-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-success-500/20 transition-colors"></div>
                 <div className="flex items-center relative z-10">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-emerald-600 dark:text-emerald-400 mr-4 border border-emerald-100 dark:border-emerald-500/20">
+                    <div className="p-3 bg-success-50 dark:bg-success-900/20 rounded-2xl text-success-600 dark:text-success-400 mr-4 border border-success-100 dark:border-success-500/20">
                         <HardDrive className="h-8 w-8" />
                     </div>
                     <div>
@@ -60,9 +60,9 @@ export const BackupStats: React.FC<BackupStatsProps> = ({ stats }) => {
                 hoverEffect={true}
                 gradientOverlay={true}
             >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/20 transition-colors"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-violet-500/20 transition-colors"></div>
                 <div className="flex items-center relative z-10">
-                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl text-purple-600 dark:text-purple-400 mr-4 border border-purple-100 dark:border-purple-500/20">
+                    <div className="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-2xl text-violet-600 dark:text-violet-400 mr-4 border border-violet-100 dark:border-violet-500/20">
                         <CalendarDays className="h-8 w-8" />
                     </div>
                     <div>

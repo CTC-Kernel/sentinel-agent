@@ -52,7 +52,7 @@ export class SettingsErrorBoundary extends Component<Props, State> {
                         Cette section est momentanément indisponible
                     </h3>
 
-                    <p className="text-slate-500 dark:text-slate-400 max-w-md mb-6">
+                    <p className="text-slate-500 dark:text-muted-foreground max-w-md mb-6">
                         Une erreur technique empêche l'affichage de cet onglet.
                         Vos données ne sont pas perdues.
                     </p>

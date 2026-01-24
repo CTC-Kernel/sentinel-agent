@@ -87,12 +87,12 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
 
   const getTypeColor = (type: SearchResult['type']) => {
     switch (type) {
-      case 'page': return 'text-blue-500';
-      case 'project': return 'text-green-500';
-      case 'risk': return 'text-red-500';
-      case 'asset': return 'text-purple-500';
-      case 'user': return 'text-orange-500';
-      case 'document': return 'text-indigo-500';
+      case 'page': return 'text-brand-500';
+      case 'project': return 'text-success-500';
+      case 'risk': return 'text-error-500';
+      case 'asset': return 'text-violet-500';
+      case 'user': return 'text-warning-500';
+      case 'document': return 'text-info-500';
       default: return 'text-slate-500';
     }
   };

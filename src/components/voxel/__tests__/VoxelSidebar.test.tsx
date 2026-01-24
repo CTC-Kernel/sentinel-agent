@@ -161,7 +161,7 @@ describe('VoxelSidebar', () => {
         it('highlights selected item', () => {
             const { container } = render(<VoxelSidebar {...defaultProps} selectedNodeId="asset-1" />);
 
-            const selectedItem = container.querySelector('.bg-indigo-500\\/20');
+            const selectedItem = container.querySelector('.bg-brand-500\\/20');
             expect(selectedItem).toBeInTheDocument();
         });
     });
@@ -190,8 +190,8 @@ describe('VoxelSidebar', () => {
         it('shows active state for active layers', () => {
             const { container } = render(<VoxelSidebar {...defaultProps} />);
 
-            // Active layer toggles have bg-indigo-500
-            const activeToggles = container.querySelectorAll('.bg-indigo-500');
+            // Active layer toggles have bg-brand-500
+            const activeToggles = container.querySelectorAll('.bg-brand-500');
             expect(activeToggles.length).toBeGreaterThan(0);
         });
 

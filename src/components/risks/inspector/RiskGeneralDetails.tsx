@@ -30,7 +30,7 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
     getOwnerName
 }) => {
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/20 pointer-events-none" />
@@ -45,9 +45,9 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                     </div>
                 </div>
                 <div className="p-6 bg-white/40 dark:bg-white/5 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-900/20 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-success-bg/50 to-transparent dark:from-success-bg/20 pointer-events-none" />
                     <div className="relative z-10">
-                        <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4 flex items-center gap-2">
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-success-text/80 mb-4 flex items-center gap-2">
                             <CheckCircle2 className="h-4 w-4" /> Risque Résiduel
                         </h4>
                         <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
@@ -58,21 +58,21 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                 </div>
             </div>
 
-            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Identification du Risque</h4>
+            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Identification du Risque</h4>
                 <div>
-                    <span className="text-[10px] uppercase text-slate-400 font-bold">Menace</span>
+                    <span className="text-[10px] uppercase text-muted-foreground font-bold">Menace</span>
                     <p className="text-sm font-medium text-slate-900 dark:text-white">{risk.threat}</p>
                 </div>
                 {risk.scenario && (
                     <div>
-                        <span className="text-[10px] uppercase text-slate-400 font-bold">Scénario</span>
+                        <span className="text-[10px] uppercase text-muted-foreground font-bold">Scénario</span>
                         <p className="text-sm text-slate-600 dark:text-muted-foreground">{risk.scenario}</p>
                     </div>
                 )}
                 {risk.vulnerability && (
                     <div>
-                        <span className="text-[10px] uppercase text-slate-400 font-bold">Vulnérabilité Exploitée</span>
+                        <span className="text-[10px] uppercase text-muted-foreground font-bold">Vulnérabilité Exploitée</span>
                         <SafeHTML content={risk.vulnerability} className="text-sm text-slate-600 dark:text-slate-300" />
                     </div>
                 )}
@@ -83,16 +83,16 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                 onUpdate={onAIAssistantUpdate}
             />
 
-            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stratégie de Traitement</h4>
+            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Stratégie de Traitement</h4>
                 <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.strategy}</div>
             </div>
-            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Propriétaire</h4>
+            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Propriétaire</h4>
                 <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{getOwnerName(risk.owner)}</div>
             </div>
-            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Statut Actuel</h4>
+            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">Statut Actuel</h4>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     {canEdit ? (
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
@@ -114,14 +114,14 @@ export const RiskGeneralDetails: React.FC<RiskGeneralDetailsProps> = ({
                             <button
                                 aria-label="Rejeter la demande"
                                 onClick={() => onStatusChange('Ouvert')} // Reject -> Back to Open
-                                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="px-4 py-2 bg-error-bg text-error-text rounded-xl text-xs font-bold hover:bg-error-bg/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 Rejeter
                             </button>
                             <button
                                 aria-label="Approuver le risque"
                                 onClick={() => onStatusChange('En cours')} // Approve -> In Progress
-                                className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="px-4 py-2 bg-success-bg text-success-text rounded-xl text-xs font-bold hover:bg-success-bg/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 Approuver
                             </button>

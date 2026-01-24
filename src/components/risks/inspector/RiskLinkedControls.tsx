@@ -28,13 +28,13 @@ function getControlStatusStyle(status: string): { icon: React.ReactNode; color: 
     if (isImplemented) {
         return {
             icon: <CheckCircle2 className="h-4 w-4" />,
-            color: 'text-emerald-500'
+            color: 'text-success-text'
         };
     }
     if (isPartial) {
         return {
             icon: <Clock className="h-4 w-4" />,
-            color: 'text-amber-500'
+            color: 'text-warning-text'
         };
     }
     return {
@@ -84,7 +84,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
 
     if (linkedControls.length === 0) {
         return (
-            <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
+            <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                     <Shield className="h-4 w-4 text-brand-500" />
                     Contrôles Liés
@@ -101,7 +101,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
     }
 
     return (
-        <div className="glass-panel p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-6">
+        <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -115,19 +115,19 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                 {/* Mitigation Coverage */}
                 <div className="sm:col-span-2 p-4 bg-white/50 dark:bg-black/20 rounded-xl border border-slate-200 dark:border-white/10">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                             Couverture de Mitigation
                         </span>
-                        <span className={`text-lg font-black ${mitigationCoverage >= 80 ? 'text-emerald-600' :
-                                mitigationCoverage >= 50 ? 'text-amber-600' : 'text-red-600'
+                        <span className={`text-lg font-black ${mitigationCoverage >= 80 ? 'text-success-text' :
+                                mitigationCoverage >= 50 ? 'text-warning-text' : 'text-error-text'
                             }`}>
                             {mitigationCoverage}%
                         </span>
                     </div>
                     <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div
-                            className={`h-full rounded-full transition-all ${mitigationCoverage >= 80 ? 'bg-emerald-500' :
-                                    mitigationCoverage >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                            className={`h-full rounded-full transition-all ${mitigationCoverage >= 80 ? 'bg-success-text' :
+                                    mitigationCoverage >= 50 ? 'bg-warning-text' : 'bg-error-text'
                                 }`}
                             style={{ width: `${mitigationCoverage}%` }}
                         />
@@ -138,24 +138,24 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                 </div>
 
                 {/* Status Counts */}
-                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-900/30 text-center">
-                    <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                <div className="p-4 bg-success-bg dark:bg-success-bg/20 rounded-xl border border-success-border dark:border-success-border/30 text-center">
+                    <div className="text-2xl font-black text-success-text dark:text-success-text">
                         {statusCounts.implemented}
                     </div>
-                    <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Implémentés</div>
+                    <div className="text-xs font-medium text-success-text dark:text-success-text/80">Implémentés</div>
                 </div>
 
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-900/30 text-center">
-                    <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
+                <div className="p-4 bg-warning-bg dark:bg-warning-bg/20 rounded-xl border border-warning-border dark:border-warning-border/30 text-center">
+                    <div className="text-2xl font-black text-warning-text dark:text-warning-text">
                         {statusCounts.partial + statusCounts.notStarted}
                     </div>
-                    <div className="text-xs font-medium text-amber-700 dark:text-amber-300">En attente</div>
+                    <div className="text-xs font-medium text-warning-text dark:text-warning-text/80">En attente</div>
                 </div>
             </div>
 
             {/* Controls List */}
             <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Détail des Contrôles
                 </h4>
                 <div className="space-y-2">
@@ -177,7 +177,7 @@ export const RiskLinkedControls: React.FC<RiskLinkedControlsProps> = ({
                                         </p>
                                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                             {ctrl.framework && (
-                                                <span className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                                <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
                                                     {ctrl.framework}
                                                 </span>
                                             )}

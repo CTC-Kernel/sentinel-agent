@@ -71,7 +71,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                        className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                     >
                         <X className="h-5 w-5" />
                     </button>

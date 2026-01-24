@@ -323,7 +323,7 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
             title={t('fair.title', 'Quantification des risques')}
             subtitle={t('fair.subtitle', 'Analyse FAIR et simulation Monte Carlo')}
             icon={
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-success-text to-brand-600 text-white">
                 <Calculator className="h-6 w-6" />
               </div>
             }
@@ -357,10 +357,10 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
 
       {/* Error State */}
       {error && (
-        <Card className="p-4 mb-6 bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
+        <Card className="p-4 mb-6 bg-error-bg border-error-border">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            <p className="text-red-800 dark:text-red-200">{error}</p>
+            <AlertTriangle className="h-5 w-5 text-error-text" />
+            <p className="text-error-text">{error}</p>
           </div>
         </Card>
       )}
@@ -381,7 +381,7 @@ export const FinancialRisk: React.FC<FinancialRiskProps> = ({ hideHeader = false
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5 text-emerald-600" />
+              <Calculator className="h-5 w-5 text-success-text" />
               {t('fair.create.title', 'Nouvelle analyse FAIR')}
             </DialogTitle>
             <DialogDescription>

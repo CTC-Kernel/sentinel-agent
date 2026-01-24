@@ -40,9 +40,9 @@ export const BackupList: React.FC<BackupListProps> = ({
     };
 
     return (
-        <div className="glass-premium p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
+        <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-indigo-500" /> Historique
+                <Clock className="h-5 w-5 text-brand-500" /> Historique
             </h2>
             <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                 {backups.length === 0 ? (
@@ -58,7 +58,7 @@ export const BackupList: React.FC<BackupListProps> = ({
                             animate={{ opacity: 1, scale: 1 }}
                             key={backup.id}
                             onClick={() => onSelect(backup)}
-                            className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-500/30 ring-1 ring-indigo-500/20' : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
+                            className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-brand-50 border-brand-200 dark:bg-brand-900/20 dark:border-brand-500/30 ring-1 ring-brand-500/20' : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
                         >
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-2">
@@ -98,13 +98,13 @@ export const BackupList: React.FC<BackupListProps> = ({
                             </div>
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="p-2.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
-                                    <Database className="h-5 w-5 text-indigo-500" />
+                                    <Database className="h-5 w-5 text-brand-500" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">
                                         {format(new Date(backup.createdAt), "d MMM yyyy", { locale: fr })}
                                     </p>
-                                    <p className="text-xs text-slate-500 font-medium">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                                         {format(new Date(backup.createdAt), "HH:mm", { locale: fr })} • {backup.collections.length} collections
                                     </p>
                                 </div>

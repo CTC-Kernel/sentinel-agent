@@ -189,7 +189,7 @@ export const ScheduleReportModal: React.FC<ScheduleReportModalProps> = ({
                                     </div>
                                     <button
                                         onClick={onClose}
-                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                        className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                     >
                                         <X className="h-5 w-5 text-slate-500" />
                                     </button>

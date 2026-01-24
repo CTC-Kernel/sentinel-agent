@@ -247,9 +247,9 @@ export const CalendarDashboard: React.FC = () => {
             <div className="flex flex-col xl:flex-row items-center justify-between mb-6 gap-4 animate-fade-in">
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
                     <div className="flex bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/10 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
-                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="h-5 w-5" /></button>
-                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-3 md:px-5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Aujourd'hui</button>
-                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="h-5 w-5" /></button>
+                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="h-5 w-5" /></button>
+                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Aujourd'hui</button>
+                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2.5 md:p-3 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="h-5 w-5" /></button>
                     </div>
                     {label()}
                 </div>
@@ -266,7 +266,7 @@ export const CalendarDashboard: React.FC = () => {
                                 aria-label={`Vue ${opt.l}`}
                                 aria-pressed={view === opt.v}
                                 onClick={() => { setView(opt.v); toolbar.onView(opt.v); }}
-                                className={`px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                                className={`px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-muted-foreground hover:text-foreground dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
                             >
                                 {opt.l}
                             </button>
@@ -325,7 +325,7 @@ export const CalendarDashboard: React.FC = () => {
                                         : key === 'maintenance' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20 shadow-emerald-500/10'
                                             : key === 'incident' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20 shadow-red-500/10'
                                                 : key === 'drill' ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:border-orange-500/20 shadow-orange-500/10'
-                                                    : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                                 : 'bg-transparent text-slate-500 border-slate-200 dark:text-slate-600 dark:border-white/5 grayscale opacity-60 hover:opacity-100 hover:grayscale-0'
                             }
                         `}
@@ -391,14 +391,14 @@ export const CalendarDashboard: React.FC = () => {
                 width="max-w-6xl"
             >
                 {selectedEvent && (
-                    <div className="p-8 space-y-8">
+                    <div className="p-8 space-y-6 sm:space-y-8">
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center justify-between">
                                 <span className={`text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border shadow-sm ${selectedEvent.type === 'audit' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20' :
                                     selectedEvent.type === 'project' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20' :
                                         selectedEvent.type === 'maintenance' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20' :
                                             selectedEvent.type === 'incident' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20' :
-                                                'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                                'bg-slate-50 dark:bg-slate-900 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                                     }`}>
                                     {selectedEvent.type}
                                 </span>
@@ -426,7 +426,7 @@ export const CalendarDashboard: React.FC = () => {
 
                         {selectedEvent.description && (
                             <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                     <FileText className="h-4 w-4" /> Description
                                 </div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed pl-6">
@@ -437,7 +437,7 @@ export const CalendarDashboard: React.FC = () => {
 
                         {selectedEvent.location && (
                             <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                     <MapPin className="h-4 w-4" /> Lieu
                                 </div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 pl-6 font-medium">

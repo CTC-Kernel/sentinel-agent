@@ -43,14 +43,14 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
         >
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5 relative z-10">
                 <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-                    <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+                    <div className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400">
                         <Server className="w-4 h-4" />
                     </div>
                     Actifs
                 </h3>
                 <button
                     onClick={() => navigate && navigate('/assets')}
-                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                     Voir tout
                 </button>
@@ -63,20 +63,20 @@ export const AssetStatsWidget: React.FC<AssetStatsWidgetProps> = ({ navigate }) 
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 flex flex-col">
-                        <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 mb-1">
+                    <div className="p-3 rounded-xl bg-error-bg/50 dark:bg-error/5 border border-error-border dark:border-error/10 flex flex-col">
+                        <div className="flex items-center gap-1.5 text-error-text dark:text-error mb-1">
                             <ShieldAlert className="w-3.5 h-3.5" />
                             <span className="text-[10px] uppercase font-bold tracking-wider">Critiques</span>
                         </div>
-                        <span className="text-xl font-bold text-red-700 dark:text-red-300">{stats.critical}</span>
+                        <span className="text-xl font-bold text-error-text dark:text-error">{stats.critical}</span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 flex flex-col">
-                        <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 mb-1">
+                    <div className="p-3 rounded-xl bg-warning-bg/50 dark:bg-warning/5 border border-warning-border dark:border-warning/10 flex flex-col">
+                        <div className="flex items-center gap-1.5 text-warning-text dark:text-warning mb-1">
                             <ShieldCheck className="w-3.5 h-3.5" />
                             <span className="text-[10px] uppercase font-bold tracking-wider">Elevés</span>
                         </div>
-                        <span className="text-xl font-bold text-amber-700 dark:text-amber-300">{stats.high}</span>
+                        <span className="text-xl font-bold text-warning-text dark:text-warning">{stats.high}</span>
                     </div>
                 </div>
             </div>

@@ -28,7 +28,6 @@ import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
 import { RiskFormData } from '../schemas/riskSchema';
 import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
-import { RiskStatsWidget } from '../components/risks/RiskStatsWidget';
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { RiskContextManager } from '../components/risks/context/RiskContextManager';
 import { FinancialRisk } from './FinancialRisk';
@@ -43,6 +42,7 @@ import { useAuth } from '../hooks/useAuth';
 import { RiskDashboardSkeleton, RiskMatrixSkeleton, RiskListSkeleton, RiskContextSkeleton } from '../components/risks/RiskSkeletons';
 
 // Lazy Loading Heavy Components
+const RiskIntelCard = React.lazy(() => import('../components/risks/dashboard/RiskIntelCard').then(m => ({ default: m.RiskIntelCard })));
 const RiskForm = React.lazy(() => import('../components/risks/RiskForm').then(m => ({ default: m.RiskForm })));
 const RiskInspector = React.lazy(() => import('../components/risks/RiskInspector').then(m => ({ default: m.RiskInspector })));
 const RiskMatrix = React.lazy(() => import('../components/risks/RiskMatrix').then(m => ({ default: m.RiskMatrix })));
@@ -385,7 +385,7 @@ export const Risks: React.FC = () => {
 
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10 pb-24 rounded-5xl">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24 rounded-5xl">
             <MasterpieceBackground />
             <PageHeader
                 title={risksTitle}
@@ -394,7 +394,9 @@ export const Risks: React.FC = () => {
                 trustType="integrity"
             />
 
-            <RiskStatsWidget risks={filteredRisks} />
+            <React.Suspense fallback={<RiskDashboardSkeleton />}>
+                <RiskIntelCard risks={filteredRisks} />
+            </React.Suspense>
 
             <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as RiskTab)} />
 

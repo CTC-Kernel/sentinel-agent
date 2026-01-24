@@ -125,7 +125,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
                     {/* ProgressBar */}
                     <div className="absolute bottom-0 left-0 h-1 bg-slate-100 dark:bg-slate-800 w-full">
                         <motion.div
-                            className="h-full bg-blue-500 dark:bg-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                            className="h-full bg-brand-500 dark:bg-brand-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                             initial={{ width: 0 }}
                             animate={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
                             transition={{ duration: 0.3 }}

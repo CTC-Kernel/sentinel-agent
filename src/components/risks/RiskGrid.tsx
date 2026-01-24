@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RiskCalculator } from '../../utils/RiskCalculator';
 
 import { Server, TrendingDown, TrendingUp, ArrowRight, Clock, LucideIcon, ShieldAlert, Edit, Trash2 } from '../ui/Icons';
@@ -27,10 +28,12 @@ interface RiskGridProps {
     searchQuery?: string;
 }
 
+
 export const RiskGrid: React.FC<RiskGridProps> = ({
     risks, loading, onSelect, assets, emptyStateIcon, emptyStateTitle, emptyStateDescription, onEmptyStateAction, emptyStateActionLabel,
     onEdit, onDelete, canEdit, searchQuery = ''
 }) => {
+    const { t } = useTranslation();
     const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
     const handleDelete = React.useCallback(async (e: React.MouseEvent, id: string, name: string) => {
@@ -49,7 +52,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
         }
     }, [deletingIds, onDelete]);
 
-    const getAssetName = (id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu';
+    const getAssetName = (id?: string) => assets.find(a => a.id === id)?.name || t('common.unknown');
 
     const isReviewOverdue = (risk: Risk) => {
         const oneYearAgo = new Date();
@@ -78,8 +81,8 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
             <div className="col-span-full animate-fade-in">
                 <EmptyState
                     icon={emptyStateIcon || ShieldAlert}
-                    title={emptyStateTitle || "Aucun risque identifié"}
-                    description={emptyStateDescription || "Identifiez et évaluez les risques pour protéger votre organisation."}
+                    title={emptyStateTitle || t('common.noResults')}
+                    description={emptyStateDescription || t('common.emptyChart.addData')}
                     actionLabel={emptyStateActionLabel}
                     onAction={onEmptyStateAction}
                 />
@@ -163,7 +166,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     <TextHighlight text={risk.threat} query={searchQuery || ''} />
                                 </h4>
                                 <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-500/5 dark:bg-white/5 p-3 rounded-2xl inline-block w-full border border-slate-200/50 dark:border-white/5">
-                                    <span className="font-bold text-xs uppercase text-slate-500 block mb-1">Vulnérabilité</span>
+                                    <span className="font-bold text-xs uppercase text-slate-500 block mb-1">{t('common.vulnerability')}</span>
                                     <TextHighlight text={risk.vulnerability || ''} query={searchQuery || ''} isHtml className="line-clamp-3" />
                                 </div>
                             </div>
@@ -183,9 +186,9 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :
-                                                risk.treatment.slaStatus === 'At Risk' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                                                    'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-error-bg text-error-text border-error-border' :
+                                                risk.treatment.slaStatus === 'At Risk' ? 'bg-warning-bg text-warning-text border-warning-border' :
+                                                    'bg-success-bg text-success-text border-success-border'
                                                 }`}>
                                                 SLA: {risk.treatment.slaStatus}
                                             </span>
@@ -200,7 +203,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 </div>
                                 {isReviewOverdue(risk) && (
                                     <div className="flex items-center justify-between">
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-warning-bg dark:bg-warning-bg/20 text-warning-text dark:text-warning-text border border-warning-border dark:border-warning-border/50 text-[10px] font-bold">
                                             <Clock className="h-3 w-3 mr-1" /> Revue en retard
                                         </span>
                                     </div>

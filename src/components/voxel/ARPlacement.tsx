@@ -259,7 +259,7 @@ export const PlacementControls: React.FC<PlacementControlsProps> = ({
           <div className="bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-white text-sm font-medium">Scale</span>
-              <span className="text-slate-400 text-xs font-mono">
+              <span className="text-muted-foreground text-xs font-mono">
                 {(scale * 100).toFixed(0)}%
               </span>
             </div>

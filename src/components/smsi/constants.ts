@@ -30,6 +30,7 @@ export const PHASE_CONFIG: Record<PDCAPhase, { label: string; color: string; ico
 };
 
 // Static color mappings for Tailwind JIT
+// Using muted, professional colors aligned with design tokens
 export const PHASE_STYLES: Record<PDCAPhase, {
     borderActive: string;
     bgActive: string;
@@ -41,44 +42,44 @@ export const PHASE_STYLES: Record<PDCAPhase, {
     text: string;
 }> = {
     plan: {
-        borderActive: 'border-blue-500',
-        bgActive: 'bg-blue-50 dark:bg-blue-900/20',
-        badge: 'bg-blue-500',
-        iconBg: 'bg-blue-100 dark:bg-blue-900/30',
-        iconText: 'text-blue-600 dark:text-blue-400',
-        textActive: 'text-blue-600 dark:text-blue-400',
-        cardBorder: 'border-blue-200 dark:border-blue-900',
-        text: 'text-blue-600 dark:text-blue-400'
+        borderActive: 'border-brand-400',
+        bgActive: 'bg-brand-50/50 dark:bg-brand-900/10',
+        badge: 'bg-brand-500',
+        iconBg: 'bg-brand-50 dark:bg-brand-900/20',
+        iconText: 'text-brand-600 dark:text-brand-400',
+        textActive: 'text-brand-600 dark:text-brand-400',
+        cardBorder: 'border-brand-200 dark:border-brand-800',
+        text: 'text-brand-600 dark:text-brand-400'
     },
     do: {
-        borderActive: 'border-emerald-500',
-        bgActive: 'bg-emerald-50 dark:bg-emerald-900/20',
-        badge: 'bg-emerald-500',
-        iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
-        iconText: 'text-emerald-600 dark:text-emerald-400',
-        textActive: 'text-emerald-600 dark:text-emerald-400',
-        cardBorder: 'border-emerald-200 dark:border-emerald-900',
-        text: 'text-emerald-600 dark:text-emerald-400'
+        borderActive: 'border-success/60',
+        bgActive: 'bg-success-bg dark:bg-success/10',
+        badge: 'bg-success',
+        iconBg: 'bg-success-bg dark:bg-success/20',
+        iconText: 'text-success-text dark:text-success',
+        textActive: 'text-success-text dark:text-success',
+        cardBorder: 'border-success-border dark:border-success/30',
+        text: 'text-success-text dark:text-success'
     },
     check: {
-        borderActive: 'border-amber-500',
-        bgActive: 'bg-amber-50 dark:bg-amber-900/20',
-        badge: 'bg-amber-500',
-        iconBg: 'bg-amber-100 dark:bg-amber-900/30',
-        iconText: 'text-amber-600 dark:text-amber-400',
-        textActive: 'text-amber-600 dark:text-amber-400',
-        cardBorder: 'border-amber-200 dark:border-amber-900',
-        text: 'text-amber-600 dark:text-amber-400'
+        borderActive: 'border-warning/60',
+        bgActive: 'bg-warning-bg dark:bg-warning/10',
+        badge: 'bg-warning',
+        iconBg: 'bg-warning-bg dark:bg-warning/20',
+        iconText: 'text-warning-text dark:text-warning',
+        textActive: 'text-warning-text dark:text-warning',
+        cardBorder: 'border-warning-border dark:border-warning/30',
+        text: 'text-warning-text dark:text-warning'
     },
     act: {
-        borderActive: 'border-purple-500',
-        bgActive: 'bg-purple-50 dark:bg-purple-900/20',
-        badge: 'bg-purple-500',
-        iconBg: 'bg-purple-100 dark:bg-purple-900/30',
-        iconText: 'text-purple-600 dark:text-purple-400',
-        textActive: 'text-purple-600 dark:text-purple-400',
-        cardBorder: 'border-purple-200 dark:border-purple-900',
-        text: 'text-purple-600 dark:text-purple-400'
+        borderActive: 'border-violet-400 dark:border-violet-500',
+        bgActive: 'bg-violet-50/50 dark:bg-violet-900/10',
+        badge: 'bg-violet-500',
+        iconBg: 'bg-violet-50 dark:bg-violet-900/20',
+        iconText: 'text-violet-600 dark:text-violet-400',
+        textActive: 'text-violet-600 dark:text-violet-400',
+        cardBorder: 'border-violet-200 dark:border-violet-800',
+        text: 'text-violet-600 dark:text-violet-400'
     },
 };
 
@@ -91,23 +92,23 @@ export const MILESTONE_STATUS_CONFIG = {
 
 export const MILESTONE_STATUS_STYLES = {
     pending: {
-        bg: 'bg-slate-100 dark:bg-slate-900/30',
-        text: 'text-slate-700 dark:text-slate-400',
+        bg: 'bg-slate-100 dark:bg-slate-800/50',
+        text: 'text-slate-600 dark:text-slate-400',
         button: 'bg-slate-500 hover:bg-slate-600'
     },
     in_progress: {
-        bg: 'bg-blue-100 dark:bg-blue-900/30',
-        text: 'text-blue-700 dark:text-blue-400',
-        button: 'bg-blue-500 hover:bg-blue-600'
+        bg: 'bg-info-bg dark:bg-info/15',
+        text: 'text-info-text dark:text-info',
+        button: 'bg-info hover:bg-info/90'
     },
     completed: {
-        bg: 'bg-emerald-100 dark:bg-emerald-900/30',
-        text: 'text-emerald-700 dark:text-emerald-400',
-        button: 'bg-emerald-500 hover:bg-emerald-600'
+        bg: 'bg-success-bg dark:bg-success/15',
+        text: 'text-success-text dark:text-success',
+        button: 'bg-success hover:bg-success/90'
     },
     overdue: {
-        bg: 'bg-red-100 dark:bg-red-900/30',
-        text: 'text-red-700 dark:text-red-400',
-        button: 'bg-red-500 hover:bg-red-600' // Although overdue is usually auto, but just in case
+        bg: 'bg-error-bg dark:bg-error/15',
+        text: 'text-error-text dark:text-error',
+        button: 'bg-error hover:bg-error/90'
     }
 };

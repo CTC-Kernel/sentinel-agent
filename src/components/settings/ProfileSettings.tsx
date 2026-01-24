@@ -227,7 +227,7 @@ export const ProfileSettings: React.FC = () => {
                     </div>
 
                     {/* Form Section */}
-                    <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="flex-1 w-full space-y-8">
+                    <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="flex-1 w-full space-y-6 sm:space-y-8">
                         {/* Hidden username field for accessibility/password managers (API keys are password fields) */}
                         <input
                             type="text"
@@ -244,7 +244,7 @@ export const ProfileSettings: React.FC = () => {
                                 <p className="text-sm text-slate-500 dark:text-muted-foreground">{t('settings.personalInfoDesc')}</p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <FloatingLabelInput
                                     label={t('settings.displayName')}
                                     {...profileForm.register('displayName')}
@@ -287,7 +287,7 @@ export const ProfileSettings: React.FC = () => {
                                     autoComplete="organization-title"
                                 />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
                                 <CustomSelect
                                     label={t('common.language')}
                                     options={[

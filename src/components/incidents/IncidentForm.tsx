@@ -98,7 +98,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                 />
 
                 {/* NIS 2 Section */}
-                <div className="glass-panel p-6 rounded-4xl border border-red-100 dark:border-red-900/30 space-y-4 relative overflow-hidden group">
+                <div className="glass-panel p-4 sm:p-6 rounded-4xl border border-red-100 dark:border-red-900/30 space-y-4 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/10 pointer-events-none" />
                     <div className="relative z-10">
                         <div className="flex items-center space-x-3">
@@ -173,7 +173,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <Controller
                         name="category"
                         control={control}
@@ -201,7 +201,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <Controller
                         name="status"
                         control={control}
@@ -248,7 +248,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <Controller
                         name="relatedRiskId"
                         control={control}

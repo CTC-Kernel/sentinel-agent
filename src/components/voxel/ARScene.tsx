@@ -252,7 +252,7 @@ const ARNodeInfoPanel: React.FC<ARNodeInfoPanelProps> = ({
 
         {/* Description */}
         {description && (
-          <p className="text-slate-400 text-xs mb-2 line-clamp-2">{description}</p>
+          <p className="text-muted-foreground text-xs mb-2 line-clamp-2">{description}</p>
         )}
 
         {/* Details */}
@@ -572,7 +572,7 @@ export const ARScene: React.FC<ARSceneProps> = ({
           </svg>
           <span className="text-white text-sm font-medium">AR Preview</span>
         </div>
-        <p className="text-slate-400 text-xs mt-1">
+        <p className="text-muted-foreground text-xs mt-1">
           Tap the button below to place in your environment
         </p>
       </div>

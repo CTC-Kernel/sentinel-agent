@@ -190,7 +190,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date de début</label>
                             <div className="flex gap-2">
@@ -262,7 +262,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
 
                     {/* Type Specific Fields */}
                     {eventType === 'audit' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div>
                                 <Controller
                                     name="subType"
@@ -298,7 +298,7 @@ export const CreateEventDrawer: React.FC<CreateEventDrawerProps> = ({ isOpen, on
                     )}
 
                     {eventType === 'maintenance' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div>
                                 <Controller
                                     name="subType"

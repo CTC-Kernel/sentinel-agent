@@ -77,14 +77,14 @@ describe('WorkflowStatusBadge', () => {
             render(<WorkflowStatusBadge status="Brouillon" workflowStatus="Review" />);
 
             const badge = screen.getByText('En Revue Peer');
-            expect(badge).toHaveClass('bg-amber-100');
+            expect(badge).toHaveClass('bg-warning-100');
         });
 
         it('applies correct styles for Approved status', () => {
             render(<WorkflowStatusBadge status="Brouillon" workflowStatus="Approved" />);
 
             const badge = screen.getByText('Validé');
-            expect(badge).toHaveClass('bg-emerald-100');
+            expect(badge).toHaveClass('bg-success-100');
         });
 
         it('applies correct styles for Rejected status', () => {

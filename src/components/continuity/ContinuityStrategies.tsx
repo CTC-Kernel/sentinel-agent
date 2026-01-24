@@ -66,9 +66,9 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {strategies.map((strategy: Strategy) => (
-                    <div key={strategy.id} className="glass-panel p-6 rounded-2xl relative group hover:border-brand-500/30">
+                    <div key={strategy.id} className="glass-panel p-4 sm:p-6 rounded-2xl relative group hover:border-brand-500/30">
                         {canManage && (
                             <Button
                                 variant="ghost"

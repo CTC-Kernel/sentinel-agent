@@ -159,7 +159,7 @@ export const CertifierDashboard: React.FC = () => {
                                                 <div className="flex items-center gap-4">
                                                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${audit.status === 'Validé' ? 'bg-green-50 text-green-700 border-green-200' :
                                                         audit.status === 'En cours' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                            'bg-slate-100 text-slate-600 border-slate-200'
+                                                            'bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200'
                                                         }`}>
                                                         {audit.status}
                                                     </span>

@@ -68,7 +68,7 @@ export const AuditLogList: React.FC = () => {
         <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <input
                         type="text"
                         placeholder="Search logs (Actor, Action, ID)..."

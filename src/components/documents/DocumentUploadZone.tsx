@@ -63,7 +63,7 @@ export const DocumentUploadZone: React.FC<DocumentUploadZoneProps> = ({
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 ]}
             />
-            <p className="text-xs text-slate-500 mt-1">PDF, Word, Excel, Images (Max {maxSizeMB}Mo)</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">PDF, Word, Excel, Images (Max {maxSizeMB}Mo)</p>
         </div>
     );
 };

@@ -250,7 +250,7 @@ export const ThreatIntelligence: React.FC = () => {
     const filterOptions = React.useMemo(() => ['All', 'Ransomware', 'Vulnerability', 'Malware'], []);
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-10 pb-24">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24">
             <MasterpieceBackground />
             <SEO title="Threat Intelligence Collaboratif" description="Carte des menaces en temps réel et flux collaboratif." />
 
@@ -362,7 +362,7 @@ export const ThreatIntelligence: React.FC = () => {
                                 {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
                                 {viewMode === '2d' ? 'Vue 3D' : 'Vue 2D'}
                             </button>
-                            <div className="bg-red-500/90 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center shadow-lg shadow-red-500/20 animate-pulse">
+                            <div className="bg-error-text/90 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center shadow-lg shadow-error-bg/50 animate-pulse">
                                 <Activity className="h-3 w-3 mr-2" /> LIVE
                             </div>
                         </div>
@@ -418,7 +418,7 @@ export const ThreatIntelligence: React.FC = () => {
             {
                 activeTab === 'community' && (
                     <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-gradient-to-br from-brand-900 to-purple-900 rounded-5xl p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
+                        <div className="bg-gradient-to-br from-brand-900 to-violet-900 rounded-5xl p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
                             <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
 
                             <div className="relative z-10">
@@ -438,7 +438,7 @@ export const ThreatIntelligence: React.FC = () => {
                                     </div>
                                     <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Shield className="h-5 w-5 text-emerald-300" />
+                                            <Shield className="h-5 w-5 text-success-text" />
                                             <div className="text-xs uppercase tracking-wider opacity-70">Mitigations</div>
                                         </div>
                                         <div className="text-4xl font-black tracking-tight">850<span className="text-lg opacity-60">/j</span></div>
@@ -463,9 +463,9 @@ export const ThreatIntelligence: React.FC = () => {
                                         onClick={() => handleHunterClick({ ...c, rank: i + 1 })}
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg text-lg transform transition-transform group-hover:scale-110 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-800' : 'bg-brand-500'}`}>
+                                            <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg text-lg transform transition-transform group-hover:scale-110 ${i === 0 ? 'bg-gradient-to-br from-warning-text to-warning-text/80' : i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' : i === 2 ? 'bg-gradient-to-br from-warning-text/70 to-warning-text' : 'bg-brand-500'}`}>
                                                 {i < 3 ? i + 1 : c.name.charAt(0)}
-                                                {i < 3 && <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-900 rounded-full p-0.5"><Shield className={`h-3 w-3 ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-slate-400' : 'text-orange-700'}`} /></div>}
+                                                {i < 3 && <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-900 rounded-full p-0.5"><Shield className={`h-3 w-3 ${i === 0 ? 'text-warning-text' : i === 1 ? 'text-slate-400' : 'text-warning-text/80'}`} /></div>}
                                             </div>
                                             <div>
                                                 <div className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
@@ -516,7 +516,7 @@ const ThreatCard = React.memo(({
             </div>
 
             <div className="flex gap-5">
-                <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 'bg-blue-50 text-blue-500 dark:bg-blue-900/20'}`}>
+                <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-error-bg text-error-text' : 'bg-brand-50 text-brand-500 dark:bg-brand-900/20'}`}>
                     <AlertOctagon className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
@@ -530,14 +530,14 @@ const ThreatCard = React.memo(({
                         <button aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" title="Confirm sighting">
                             <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
                         </button>
-                        <button aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors" title="View discussions">
+                        <button aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" title="View discussions">
                             <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
                         </button>
                         <div className="ml-auto flex gap-2">
-                            <button aria-label="Download SIGMA rule" onClick={(e) => onDownloadRule(e, threat)} className="text-xs font-bold text-emerald-600 hover:text-emerald-500 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-colors" title="Download SIGMA rule">
+                            <button aria-label="Download SIGMA rule" onClick={(e) => onDownloadRule(e, threat)} className="text-xs font-bold text-success-text px-3 py-1 bg-success-bg rounded-lg transition-colors" title="Download SIGMA rule">
                                 SIGMA Rule
                             </button>
-                            <button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); onCreateRisk(threat); }} className="text-xs font-bold text-orange-600 hover:text-orange-500 px-3 py-1 bg-orange-50 dark:bg-orange-900/10 rounded-lg transition-colors" title="Create risk from threat">
+                            <button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); onCreateRisk(threat); }} className="text-xs font-bold text-warning-text px-3 py-1 bg-warning-bg rounded-lg transition-colors" title="Create risk from threat">
                                 Créer Risque
                             </button>
                         </div>

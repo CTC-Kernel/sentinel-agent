@@ -351,7 +351,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
           <button
             onClick={onToggleVisibility}
             className={`w-10 h-5 rounded-full transition-colors relative ${
-              annotationsVisible ? 'bg-blue-500' : 'bg-slate-600'
+              annotationsVisible ? 'bg-brand-500' : 'bg-slate-600'
             }`}
           >
             <span
@@ -375,7 +375,7 @@ export const AnnotationFilterPanel: React.FC<AnnotationFilterPanelProps> = ({
                   onClick={() => onToggleType(type)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     activeTypes.includes(type)
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50'
+                      ? 'bg-brand-500/20 text-brand-400 border border-brand-500/50'
                       : 'bg-slate-800/50 text-slate-400 border border-transparent hover:bg-slate-700/50'
                   }`}
                 >

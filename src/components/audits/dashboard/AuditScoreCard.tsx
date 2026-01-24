@@ -92,7 +92,7 @@ export const AuditScoreCard: React.FC<AuditScoreCardProps> = ({
             </div>
 
             {/* Alerts/Status */}
-            <div className="flex flex-col gap-3 min-w-[200px] relative z-10">
+            <div className="flex flex-col gap-3 min-w-0 sm:min-w-[200px] relative z-10">
                 {openFindings > 0 && (
                     <div className="flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-red-100/50 dark:bg-red-500/10 px-4 py-3 rounded-lg border border-red-200 dark:border-red-500/20 backdrop-blur-md animate-pulse-slow">
                         <AlertTriangle className="h-4 w-4 shrink-0" />

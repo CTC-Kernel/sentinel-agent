@@ -19,7 +19,7 @@ export const DashboardSkeleton: React.FC = () => {
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={`panel-${i}`} className="glass-panel p-6 rounded-2xl flex flex-col gap-2">
+                    <div key={`panel-${i}`} className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col gap-2">
                         <Skeleton variant="text" className="w-24 bg-slate-200 dark:bg-slate-800" />
                         <Skeleton className="h-8 w-16 bg-slate-200 dark:bg-slate-800" />
                     </div>

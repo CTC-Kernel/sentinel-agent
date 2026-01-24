@@ -234,13 +234,13 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                         description="Ajoutez un fournisseur type ou laissez l'IA le qualifier."
                     />
                 )}
-                <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <Building2 className="w-5 h-5 mr-2 text-indigo-500" />
                         Informations Générales
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="col-span-1 md:col-span-2 relative">
                             <Controller
                                 name="name"
@@ -428,13 +428,13 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 </div>
 
                 {/* DORA Compliance Card */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm bg-indigo-50/30 dark:bg-slate-900/10">
+                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm bg-indigo-50/30 dark:bg-slate-900/10">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <ShieldAlert className="w-5 h-5 mr-2 text-indigo-600" />
                         Conformité DORA
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
                             <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-brand-600 focus-visible:ring-brand-500 border-slate-300" {...register('isICTProvider')} />
                             <label className="text-sm font-bold text-slate-700 dark:text-muted-foreground">Prestataire TIC Critique</label>
@@ -476,7 +476,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 </div>
 
                 {/* Relations Card */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <LinkIcon className="w-5 h-5 mr-2 text-indigo-500" />
                         Relations & Dépendances
@@ -500,7 +500,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Actifs Liés</label>
                                 {/* This button seems to be misplaced or part of a different context, adding it as requested */}
@@ -540,13 +540,13 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 </div>
 
                 {/* Contract & Contact Card */}
-                <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <FileText className="w-5 h-5 mr-2 text-indigo-500" />
                         Contrat & Contact
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <Controller
                             name="contactName"
                             control={control}

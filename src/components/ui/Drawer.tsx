@@ -50,7 +50,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
                 <div className="fixed inset-0 overflow-hidden">
                     <div className="absolute inset-0 overflow-hidden">
-                        <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                        <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10">
                             <Transition.Child
                                 as={React.Fragment}
                                 enter="transform duration-500"
@@ -66,7 +66,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                 >
                                     <div className="flex h-full flex-col glass-premium border-t-0 border-b-0 border-r-0 rounded-l-2xl shadow-xl">
                                         {/* Header */}
-                                        <div className="px-6 py-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">
+                                        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">
                                             <div className="flex-1 min-w-0 mr-4">
                                                 {title && <Dialog.Title className="text-xl font-bold font-display text-slate-900 dark:text-white leading-tight tracking-tight truncate filter drop-shadow-sm">{title}</Dialog.Title>}
                                                 {subtitle && <div className="text-sm text-slate-500 dark:text-muted-foreground mt-1.5">{subtitle}</div>}

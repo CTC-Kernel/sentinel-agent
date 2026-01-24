@@ -429,9 +429,9 @@ export const EbiosAnalysisDetail: React.FC = () => {
         </div>
 
         {/* Skeleton Body */}
-        <main className="flex-1 max-w-7xl mx-auto px-4 w-full py-8 space-y-8">
+        <main className="flex-1 max-w-7xl mx-auto px-4 w-full py-8 space-y-6 sm:space-y-8">
           <div className="w-full h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="w-full h-80 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
             <div className="w-full h-80 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
           </div>

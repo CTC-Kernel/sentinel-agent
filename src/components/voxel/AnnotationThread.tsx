@@ -111,7 +111,7 @@ const ReplyItem: React.FC<{
     >
       <div className="flex items-start gap-3">
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-violet-500 flex items-center justify-center flex-shrink-0">
           <span className="text-xs font-bold text-white">
             {reply.author.displayName.charAt(0).toUpperCase()}
           </span>
@@ -141,7 +141,7 @@ const ReplyItem: React.FC<{
               {reply.mentions.map((mention, idx) => (
                 <span
                   key={idx}
-                  className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded"
+                  className="px-1.5 py-0.5 bg-brand-500/20 text-brand-400 text-xs rounded"
                 >
                   @{mention}
                 </span>
@@ -245,7 +245,7 @@ const ReplyForm: React.FC<{
           onClick={handleSubmit}
           disabled={!content.trim() || isSubmitting}
           className={`p-3 rounded-xl transition-all ${content.trim() && !isSubmitting
-              ? 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25'
+              ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-lg shadow-brand-500/25'
               : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
             }`}
         >
@@ -436,7 +436,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowActions(!showActions)}
-                className="p-2 rounded-xl hover:bg-slate-700/50 text-slate-400 transition-colors"
+                className="p-2 rounded-xl hover:bg-slate-700/50 text-muted-foreground transition-colors"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
@@ -482,7 +482,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl hover:bg-slate-700/50 text-slate-400 transition-colors"
+              className="p-2 rounded-xl hover:bg-slate-700/50 text-muted-foreground transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -495,7 +495,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
           <div className="p-5 border-b border-slate-700/50">
             {/* Author info */}
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-violet-500 flex items-center justify-center">
                 <span className="text-sm font-bold text-white">
                   {annotation.author.displayName.charAt(0).toUpperCase()}
                 </span>
@@ -528,7 +528,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                 {annotation.mentions.map((mention, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-lg"
+                    className="px-2 py-1 bg-brand-500/20 text-brand-400 text-xs rounded-lg"
                   >
                     @{mention}
                   </span>
@@ -613,7 +613,7 @@ export const AnnotationThread: React.FC<AnnotationThreadProps> = ({
                 >
                   {isLoadingReplies ? (
                     <div className="flex items-center justify-center py-8">
-                      <div className="w-6 h-6 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-brand-400/30 border-t-brand-400 rounded-full animate-spin" />
                     </div>
                   ) : replies.length === 0 ? (
                     <div className="py-8 text-center text-sm text-slate-500">

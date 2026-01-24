@@ -247,7 +247,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={onToggleRotate}
-            className={`p-2 rounded-lg transition-colors ${isRotating ? 'bg-blue-500/50 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
+            className={`p-2 rounded-lg transition-colors ${isRotating ? 'bg-brand-500/50 text-white' : 'bg-white/10 hover:bg-white/20 text-white'
               }`}
             title="Toggle Auto-Rotate (R)"
           >
@@ -272,7 +272,7 @@ const PresentationControls: React.FC<PresentationControlsProps> = ({
       {/* Progress bar */}
       <div className="h-1 bg-white/10">
         <div
-          className="h-full bg-blue-500 transition-all duration-300"
+          className="h-full bg-brand-500 transition-all duration-300"
           style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}
         />
       </div>

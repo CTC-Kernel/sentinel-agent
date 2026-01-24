@@ -15,7 +15,26 @@ import {
     Cpu,
     Monitor,
     Copy,
-    Loader2
+    Loader2,
+    ExternalLink,
+    FileText,
+    Package,
+    Calendar,
+    HelpCircle,
+    AlertTriangle,
+    Lock,
+    Zap,
+    Settings,
+    ChevronDown,
+    ChevronUp,
+    BookOpen,
+    Headset,
+    Bug,
+    RefreshCw,
+    Shield,
+    Activity,
+    HardDrive,
+    Network
 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/Badge';
@@ -31,11 +50,15 @@ interface PlatformInfo {
     available: boolean;
     downloadUrl: string;
     directUrl: string | null;
+    checksum?: string;
+    fileSize?: string;
 }
 
 interface ReleaseInfo {
     product: string;
     currentVersion: string;
+    releaseDate?: string;
+    changelogUrl?: string;
     platforms: Record<string, PlatformInfo>;
     mobile?: {
         ios: { available: boolean; appStoreUrl: string; comingSoon: boolean };
@@ -54,6 +77,44 @@ interface DownloadButtonProps {
     available?: boolean;
     loading?: boolean;
 }
+
+// FAQ Item Component
+interface FAQItemProps {
+    question: string;
+    answer: string;
+    isOpen: boolean;
+    onToggle: () => void;
+}
+
+const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle }) => (
+    <div className="border-b border-slate-100 dark:border-white/5 last:border-b-0">
+        <button
+            onClick={onToggle}
+            className="w-full flex items-center justify-between py-3 text-left group"
+        >
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                {question}
+            </span>
+            {isOpen ? (
+                <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            ) : (
+                <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            )}
+        </button>
+        {isOpen && (
+            <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="pb-3"
+            >
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                    {answer}
+                </p>
+            </motion.div>
+        )}
+    </div>
+);
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, available = true, loading = false }) => {
     const handleDownload = () => {
@@ -105,6 +166,43 @@ export const AgentManagement: React.FC = () => {
     const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
     const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
     const [loadingReleases, setLoadingReleases] = useState(true);
+    const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+    const [activeTab, setActiveTab] = useState<'download' | 'docs' | 'faq' | 'support'>('download');
+
+    // FAQ Data
+    const faqItems = [
+        {
+            question: "Quelles données l'agent collecte-t-il ?",
+            answer: "L'agent collecte uniquement des métadonnées de conformité : état du pare-feu, chiffrement disque, mises à jour système, antivirus actif. Aucune donnée personnelle, fichier ou historique de navigation n'est collecté."
+        },
+        {
+            question: "L'agent ralentit-il mon ordinateur ?",
+            answer: "Non. L'agent utilise moins de 1% du CPU et environ 50 Mo de RAM. Il effectue des vérifications périodiques (toutes les 15 minutes par défaut) et reste inactif le reste du temps."
+        },
+        {
+            question: "Comment désinstaller l'agent ?",
+            answer: "Windows : Panneau de configuration → Programmes → Désinstaller. macOS : Glissez l'application dans la Corbeille ou utilisez 'sentinel-agent uninstall'. Linux : 'sudo apt remove sentinel-agent' ou 'sudo rpm -e sentinel-agent'."
+        },
+        {
+            question: "L'agent fonctionne-t-il hors connexion ?",
+            answer: "Oui, l'agent continue de fonctionner et de collecter les données de conformité. Dès que la connexion est rétablie, les données sont synchronisées automatiquement avec le serveur."
+        },
+        {
+            question: "Comment mettre à jour l'agent ?",
+            answer: "Les mises à jour sont automatiques par défaut. Vous pouvez aussi forcer une mise à jour via 'sentinel-agent update' ou désactiver les mises à jour auto dans les paramètres."
+        },
+        {
+            question: "L'agent est-il compatible avec mon VPN ?",
+            answer: "Oui, l'agent fonctionne parfaitement avec tous les VPN du marché. Il utilise des connexions HTTPS standards sur le port 443."
+        }
+    ];
+
+    // System Requirements
+    const systemRequirements = {
+        windows: { os: "Windows 10/11 (64-bit)", ram: "50 Mo", disk: "100 Mo", other: ".NET Framework 4.7.2+" },
+        macos: { os: "macOS 11 Big Sur+", ram: "50 Mo", disk: "80 Mo", other: "Apple Silicon ou Intel" },
+        linux: { os: "Ubuntu 20.04+, Debian 11+, RHEL 8+", ram: "40 Mo", disk: "60 Mo", other: "glibc 2.31+" }
+    };
 
     // Fetch available releases on mount
     useEffect(() => {
@@ -119,11 +217,14 @@ export const AgentManagement: React.FC = () => {
                 setReleaseInfo({
                     product: 'agent',
                     currentVersion: '1.0.0',
+                    releaseDate: undefined,
+                    changelogUrl: 'https://github.com/sentinel/agent/releases',
                     platforms: {
                         windows: { displayName: 'Windows (MSI)', available: false, downloadUrl: '', directUrl: null },
                         macos: { displayName: 'macOS (DMG)', available: false, downloadUrl: '', directUrl: null },
                         linux_deb: { displayName: 'Linux (DEB)', available: false, downloadUrl: '', directUrl: null },
                         linux_rpm: { displayName: 'Linux (RPM)', available: false, downloadUrl: '', directUrl: null },
+                        linux_appimage: { displayName: 'Linux (AppImage)', available: false, downloadUrl: '', directUrl: null },
                     },
                     mobile: {
                         ios: { available: true, appStoreUrl: '#', comingSoon: true },
@@ -220,9 +321,9 @@ export const AgentManagement: React.FC = () => {
         switch (status) {
             case 'active':
                 return {
-                    badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-                    icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
-                    bg: 'bg-emerald-500'
+                    badge: 'bg-success-500/10 text-success-600 dark:text-success-400 border-success-500/20',
+                    icon: <CheckCircle2 className="w-4 h-4 text-success-500" />,
+                    bg: 'bg-success-500'
                 };
             case 'offline':
                 return {
@@ -269,7 +370,7 @@ export const AgentManagement: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <div className="w-2 h-2 rounded-full bg-success-500 animate-pulse" />
                         Temps réel
                     </div>
                     <Button
@@ -284,8 +385,8 @@ export const AgentManagement: React.FC = () => {
             {/* Quick Actions / Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="glass-panel p-4 rounded-3xl border border-white/60 dark:border-white/10 flex items-center gap-4">
-                    <div className="p-3 bg-emerald-500/10 rounded-2xl">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    <div className="p-3 bg-success-500/10 rounded-2xl">
+                        <CheckCircle2 className="w-5 h-5 text-success-500" />
                     </div>
                     <div>
                         <div className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -327,10 +428,10 @@ export const AgentManagement: React.FC = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-slate-200 dark:border-white/10">
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Agent</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Système</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">État</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Dernier Signe</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Agent</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Système</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">État</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Dernier Signe</th>
                                         <th className="px-6 py-4 text-right"></th>
                                     </tr>
                                 </thead>
@@ -387,7 +488,7 @@ export const AgentManagement: React.FC = () => {
                                                             {agent.status.toUpperCase()}
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-5 text-xs text-slate-500 font-medium">
+                                                    <td className="px-6 py-5 text-xs text-slate-500 dark:text-slate-400 font-medium">
                                                         {new Date(agent.lastHeartbeat).toLocaleString()}
                                                     </td>
                                                     <td className="px-6 py-5 text-right">
@@ -416,7 +517,7 @@ export const AgentManagement: React.FC = () => {
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="glass-panel p-6 rounded-5xl border border-brand-500/30 bg-brand-500/5 relative overflow-hidden"
+                            className="glass-panel p-4 sm:p-6 rounded-5xl border border-brand-500/30 bg-brand-500/5 relative overflow-hidden"
                         >
                             <div className="relative z-10">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
@@ -432,7 +533,7 @@ export const AgentManagement: React.FC = () => {
                                             navigator.clipboard.writeText(enrollmentToken || '');
                                             toast.success("Token copié !");
                                         }}
-                                        className="p-2 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-lg transition-colors flex-shrink-0"
+                                        className="p-2.5 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-lg transition-colors flex-shrink-0"
                                         title="Copier le token"
                                     >
                                         <Copy className="w-4 h-4" />
@@ -440,7 +541,7 @@ export const AgentManagement: React.FC = () => {
                                 </div>
                                 {/* Installation instructions */}
                                 <div className="mt-4 space-y-3">
-                                    <p className="text-xs text-slate-500 font-medium">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                                         Utilisez ce token lors de l'installation. Expire dans 24h.
                                     </p>
 
@@ -449,7 +550,7 @@ export const AgentManagement: React.FC = () => {
                                             Commande d'enrôlement :
                                         </p>
                                         <div className="relative">
-                                            <pre className="p-3 bg-slate-900 dark:bg-black/50 rounded-xl text-[11px] text-emerald-400 overflow-x-auto">
+                                            <pre className="p-3 bg-slate-900 dark:bg-black/50 rounded-xl text-[11px] text-success-400 overflow-x-auto">
                                                 <code>sentinel-agent enroll --token {enrollmentToken?.substring(0, 8)}...</code>
                                             </pre>
                                             <button
@@ -465,7 +566,7 @@ export const AgentManagement: React.FC = () => {
                                     </div>
 
                                     <div className="pt-2 border-t border-slate-200 dark:border-white/10">
-                                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                                        <p className="text-[11px] text-muted-foreground leading-relaxed">
                                             <strong>macOS :</strong> Ouvrez le Terminal après installation<br />
                                             <strong>Windows :</strong> Ouvrez PowerShell en admin<br />
                                             <strong>Linux :</strong> Ouvrez un terminal
@@ -484,9 +585,9 @@ export const AgentManagement: React.FC = () => {
                     )}
 
                     {/* What is the Agent? */}
-                    <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 space-y-4">
+                    <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-600">
+                            <div className="p-2.5 bg-success-500/10 rounded-xl text-success-600 dark:text-success-400">
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Qu'est-ce que l'Agent ?</h3>
@@ -497,128 +598,549 @@ export const AgentManagement: React.FC = () => {
                             </p>
                             <div className="space-y-2">
                                 <div className="flex items-start gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <CheckCircle2 className="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0" />
                                     <span>Vérifie la conformité de sécurité</span>
                                 </div>
                                 <div className="flex items-start gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <CheckCircle2 className="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0" />
                                     <span>Fonctionne silencieusement ({"<"}1% CPU)</span>
                                 </div>
                                 <div className="flex items-start gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <CheckCircle2 className="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0" />
                                     <span>Ne collecte pas vos données personnelles</span>
                                 </div>
                                 <div className="flex items-start gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <CheckCircle2 className="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0" />
                                     <span>Communications chiffrées (TLS 1.3)</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Documentation / Downloads */}
-                    <div className="glass-panel p-6 rounded-5xl border border-white/60 dark:border-white/10 space-y-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-brand-500/10 rounded-xl text-brand-600">
-                                <Download className="w-5 h-5" />
-                            </div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Téléchargements</h3>
-                        </div>
-
-                        {/* Desktop Downloads */}
-                        <div className="grid grid-cols-1 gap-3">
-                            <DownloadButton
-                                platform="windows"
-                                label="Windows"
-                                sublabel="Installateur .MSI"
-                                icon={<Monitor className="w-5 h-5 text-blue-500" />}
-                                available={releaseInfo?.platforms?.windows?.available ?? false}
-                                loading={loadingReleases}
-                            />
-                            <DownloadButton
-                                platform="macos"
-                                label="macOS"
-                                sublabel="Apple Silicon & Intel"
-                                icon={<Cpu className="w-5 h-5 text-slate-600" />}
-                                available={releaseInfo?.platforms?.macos?.available ?? false}
-                                loading={loadingReleases}
-                            />
-                            <DownloadButton
-                                platform="linux_deb"
-                                label="Linux DEB"
-                                sublabel="Debian / Ubuntu"
-                                icon={<Terminal className="w-5 h-5 text-orange-500" />}
-                                available={releaseInfo?.platforms?.linux_deb?.available ?? false}
-                                loading={loadingReleases}
-                            />
-                            <DownloadButton
-                                platform="linux_rpm"
-                                label="Linux RPM"
-                                sublabel="RHEL / Fedora"
-                                icon={<Terminal className="w-5 h-5 text-red-500" />}
-                                available={releaseInfo?.platforms?.linux_rpm?.available ?? false}
-                                loading={loadingReleases}
-                            />
-                        </div>
-
-                        {/* Mobile Apps */}
-                        <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Applications Mobiles</h4>
-                            <div className="grid grid-cols-2 gap-3">
-                                <a
-                                    href={releaseInfo?.mobile?.ios?.appStoreUrl || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
-                                >
-                                    <Cpu className="w-6 h-6 text-slate-600 mb-2" />
-                                    <div className="text-sm font-bold text-slate-900 dark:text-white">iOS</div>
-                                    <div className="text-[11px] text-slate-500">App Store</div>
-                                    {releaseInfo?.mobile?.ios?.comingSoon && (
-                                        <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
-                                            Bientôt
-                                        </Badge>
+                    {/* Tabbed Resources Section */}
+                    <div className="glass-panel p-4 sm:p-6 rounded-5xl border border-white/60 dark:border-white/10 space-y-6">
+                        {/* Tab Navigation */}
+                        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl">
+                            {[
+                                { id: 'download' as const, label: 'Télécharger', icon: Download },
+                                { id: 'docs' as const, label: 'Documentation', icon: BookOpen },
+                                { id: 'faq' as const, label: 'FAQ', icon: HelpCircle },
+                                { id: 'support' as const, label: 'Support', icon: Headset },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={cn(
+                                        "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all",
+                                        activeTab === tab.id
+                                            ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm"
+                                            : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                                     )}
-                                </a>
-                                <a
-                                    href={releaseInfo?.mobile?.android?.playStoreUrl || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
                                 >
-                                    <Server className="w-6 h-6 text-emerald-500 mb-2" />
-                                    <div className="text-sm font-bold text-slate-900 dark:text-white">Android</div>
-                                    <div className="text-[11px] text-slate-500">Play Store</div>
-                                    {releaseInfo?.mobile?.android?.comingSoon && (
-                                        <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
-                                            Bientôt
-                                        </Badge>
-                                    )}
-                                </a>
-                            </div>
+                                    <tab.icon className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">{tab.label}</span>
+                                </button>
+                            ))}
                         </div>
 
-                        <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Installation rapide</h4>
-                            <ol className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-brand-500">1.</span>
-                                    Téléchargez l'installateur pour votre système
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-brand-500">2.</span>
-                                    Lancez l'installation (admin requis)
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-brand-500">3.</span>
-                                    Générez un token ci-dessus et configurez l'agent
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-brand-500">4.</span>
-                                    L'agent apparaît dans la barre système
-                                </li>
-                            </ol>
-                        </div>
+                        {/* Download Tab */}
+                        {activeTab === 'download' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Téléchargements</h3>
+                                        {releaseInfo?.currentVersion && (
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <Badge variant="outline" className="text-[10px] bg-brand-500/10 border-brand-500/30 text-brand-600">
+                                                    v{releaseInfo.currentVersion}
+                                                </Badge>
+                                                {releaseInfo.releaseDate && (
+                                                    <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {new Date(releaseInfo.releaseDate).toLocaleDateString('fr-FR')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {releaseInfo?.changelogUrl && (
+                                        <a
+                                            href={releaseInfo.changelogUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 transition-colors"
+                                        >
+                                            <FileText className="w-3.5 h-3.5" />
+                                            Changelog
+                                            <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                    )}
+                                </div>
+
+                                {/* Desktop Downloads */}
+                                <div className="grid grid-cols-1 gap-3">
+                                    <DownloadButton
+                                        platform="windows"
+                                        label="Windows"
+                                        sublabel="Installateur .MSI"
+                                        icon={<Monitor className="w-5 h-5 text-blue-500" />}
+                                        available={releaseInfo?.platforms?.windows?.available ?? false}
+                                        loading={loadingReleases}
+                                    />
+                                    <DownloadButton
+                                        platform="macos"
+                                        label="macOS"
+                                        sublabel="Apple Silicon & Intel"
+                                        icon={<Cpu className="w-5 h-5 text-slate-600" />}
+                                        available={releaseInfo?.platforms?.macos?.available ?? false}
+                                        loading={loadingReleases}
+                                    />
+                                    <DownloadButton
+                                        platform="linux_deb"
+                                        label="Linux DEB"
+                                        sublabel="Debian / Ubuntu"
+                                        icon={<Terminal className="w-5 h-5 text-orange-500" />}
+                                        available={releaseInfo?.platforms?.linux_deb?.available ?? false}
+                                        loading={loadingReleases}
+                                    />
+                                    <DownloadButton
+                                        platform="linux_rpm"
+                                        label="Linux RPM"
+                                        sublabel="RHEL / Fedora"
+                                        icon={<Terminal className="w-5 h-5 text-red-500" />}
+                                        available={releaseInfo?.platforms?.linux_rpm?.available ?? false}
+                                        loading={loadingReleases}
+                                    />
+                                    <DownloadButton
+                                        platform="linux_appimage"
+                                        label="Linux AppImage"
+                                        sublabel="Portable / Universel"
+                                        icon={<Package className="w-5 h-5 text-purple-500" />}
+                                        available={releaseInfo?.platforms?.linux_appimage?.available ?? false}
+                                        loading={loadingReleases}
+                                    />
+                                </div>
+
+                                {/* Mobile Apps */}
+                                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Applications Mobiles</h4>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <a
+                                            href={releaseInfo?.mobile?.ios?.appStoreUrl || '#'}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
+                                        >
+                                            <Cpu className="w-6 h-6 text-slate-600 mb-2" />
+                                            <div className="text-sm font-bold text-slate-900 dark:text-white">iOS</div>
+                                            <div className="text-[11px] text-slate-500">App Store</div>
+                                            {releaseInfo?.mobile?.ios?.comingSoon && (
+                                                <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
+                                                    Bientôt
+                                                </Badge>
+                                            )}
+                                        </a>
+                                        <a
+                                            href={releaseInfo?.mobile?.android?.playStoreUrl || '#'}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-center"
+                                        >
+                                            <Server className="w-6 h-6 text-success-500 mb-2" />
+                                            <div className="text-sm font-bold text-slate-900 dark:text-white">Android</div>
+                                            <div className="text-[11px] text-slate-500">Play Store</div>
+                                            {releaseInfo?.mobile?.android?.comingSoon && (
+                                                <Badge variant="outline" className="mt-2 text-[10px] border-amber-500/30 text-amber-600">
+                                                    Bientôt
+                                                </Badge>
+                                            )}
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {/* Quick Install */}
+                                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Installation rapide</h4>
+                                    <ol className="space-y-2 text-sm text-slate-600 dark:text-muted-foreground">
+                                        <li className="flex gap-2">
+                                            <span className="font-bold text-brand-500">1.</span>
+                                            Téléchargez l'installateur pour votre système
+                                        </li>
+                                        <li className="flex gap-2">
+                                            <span className="font-bold text-brand-500">2.</span>
+                                            Lancez l'installation (admin requis)
+                                        </li>
+                                        <li className="flex gap-2">
+                                            <span className="font-bold text-brand-500">3.</span>
+                                            Générez un token ci-dessus et configurez l'agent
+                                        </li>
+                                        <li className="flex gap-2">
+                                            <span className="font-bold text-brand-500">4.</span>
+                                            L'agent apparaît dans la barre système
+                                        </li>
+                                    </ol>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Documentation Tab */}
+                        {activeTab === 'docs' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Documentation</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Guides et références techniques pour l'agent Sentinel.</p>
+                                </div>
+
+                                {/* Quick Links */}
+                                <div className="space-y-2">
+                                    <a
+                                        href="https://docs.sentinel-grc.com/agent/quickstart"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <Zap className="w-4 h-4 text-amber-500" />
+                                            <div>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Guide de démarrage rapide</span>
+                                                <span className="text-[11px] text-slate-500">Installation en 5 minutes</span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                                    </a>
+                                    <a
+                                        href="https://docs.sentinel-grc.com/agent/configuration"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <Settings className="w-4 h-4 text-slate-500" />
+                                            <div>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Configuration avancée</span>
+                                                <span className="text-[11px] text-slate-500">Paramètres et personnalisation</span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                                    </a>
+                                    <a
+                                        href="https://docs.sentinel-grc.com/agent/security"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <Shield className="w-4 h-4 text-success-500" />
+                                            <div>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Sécurité et confidentialité</span>
+                                                <span className="text-[11px] text-slate-500">Données collectées et chiffrement</span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                                    </a>
+                                    <a
+                                        href="https://docs.sentinel-grc.com/agent/troubleshooting"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                                            <div>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Dépannage</span>
+                                                <span className="text-[11px] text-slate-500">Résolution des problèmes courants</span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                                    </a>
+                                    <a
+                                        href="https://docs.sentinel-grc.com/agent/api"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <Network className="w-4 h-4 text-brand-500" />
+                                            <div>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block">API Reference</span>
+                                                <span className="text-[11px] text-slate-500">Intégration et automatisation</span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                                    </a>
+                                </div>
+
+                                {/* System Requirements */}
+                                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                        <HardDrive className="w-3.5 h-3.5" />
+                                        Configuration requise
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {Object.entries(systemRequirements).map(([os, req]) => (
+                                            <div key={os} className="p-3 rounded-xl bg-slate-50 dark:bg-white/5">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    {os === 'windows' && <Monitor className="w-4 h-4 text-blue-500" />}
+                                                    {os === 'macos' && <Cpu className="w-4 h-4 text-slate-600" />}
+                                                    {os === 'linux' && <Terminal className="w-4 h-4 text-orange-500" />}
+                                                    <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{os}</span>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                                    <div>
+                                                        <span className="text-slate-500">OS:</span>
+                                                        <span className="ml-1 text-slate-700 dark:text-slate-300">{req.os}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-slate-500">RAM:</span>
+                                                        <span className="ml-1 text-slate-700 dark:text-slate-300">{req.ram}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-slate-500">Disque:</span>
+                                                        <span className="ml-1 text-slate-700 dark:text-slate-300">{req.disk}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-slate-500">Autre:</span>
+                                                        <span className="ml-1 text-slate-700 dark:text-slate-300">{req.other}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* GitHub */}
+                                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <a
+                                        href="https://github.com/sentinel/agent/releases"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-3 rounded-xl bg-slate-900 dark:bg-black/50 hover:bg-slate-800 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <Package className="w-4 h-4 text-white" />
+                                            <span className="text-sm font-medium text-white">Releases GitHub</span>
+                                        </div>
+                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
+                                    </a>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* FAQ Tab */}
+                        {activeTab === 'faq' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-4"
+                            >
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Questions fréquentes</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Trouvez rapidement des réponses à vos questions.</p>
+                                </div>
+
+                                <div className="space-y-0">
+                                    {faqItems.map((item, index) => (
+                                        <FAQItem
+                                            key={index}
+                                            question={item.question}
+                                            answer={item.answer}
+                                            isOpen={openFAQ === index}
+                                            onToggle={() => setOpenFAQ(openFAQ === index ? null : index)}
+                                        />
+                                    ))}
+                                </div>
+
+                                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <div className="p-4 rounded-2xl bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/20">
+                                        <div className="flex items-start gap-3">
+                                            <HelpCircle className="w-5 h-5 text-brand-500 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                                    Vous ne trouvez pas votre réponse ?
+                                                </p>
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                                    Consultez notre documentation complète ou contactez le support.
+                                                </p>
+                                                <div className="flex gap-2 mt-3">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs rounded-lg"
+                                                        onClick={() => setActiveTab('docs')}
+                                                    >
+                                                        <BookOpen className="w-3 h-3 mr-1" />
+                                                        Documentation
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-xs rounded-lg"
+                                                        onClick={() => setActiveTab('support')}
+                                                    >
+                                                        <Headset className="w-3 h-3 mr-1" />
+                                                        Support
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Support Tab */}
+                        {activeTab === 'support' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Support technique</h3>
+                                    <p className="text-sm text-slate-500 mt-1">Besoin d'aide ? Nous sommes là pour vous.</p>
+                                </div>
+
+                                {/* Support Options */}
+                                <div className="grid grid-cols-1 gap-3">
+                                    <a
+                                        href="mailto:support@sentinel-grc.com"
+                                        className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2.5 bg-brand-500/10 rounded-xl">
+                                                <Headset className="w-5 h-5 text-brand-500" />
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white block">Support par email</span>
+                                                <span className="text-[11px] text-slate-500">support@sentinel-grc.com</span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                                    </a>
+
+                                    <a
+                                        href="https://github.com/sentinel/agent/issues/new"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2.5 bg-red-500/10 rounded-xl">
+                                                <Bug className="w-5 h-5 text-red-500" />
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white block">Signaler un bug</span>
+                                                <span className="text-[11px] text-slate-500">GitHub Issues</span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                                    </a>
+
+                                    <a
+                                        href="https://community.sentinel-grc.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2.5 bg-purple-500/10 rounded-xl">
+                                                <Activity className="w-5 h-5 text-purple-500" />
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white block">Communauté</span>
+                                                <span className="text-[11px] text-slate-500">Forum et discussions</span>
+                                            </div>
+                                        </div>
+                                        <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" />
+                                    </a>
+                                </div>
+
+                                {/* Agent Status Check */}
+                                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                                        Diagnostic rapide
+                                    </h4>
+                                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 space-y-3">
+                                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                                            Exécutez cette commande pour vérifier l'état de l'agent :
+                                        </p>
+                                        <div className="relative">
+                                            <pre className="p-3 bg-slate-900 dark:bg-black/50 rounded-xl text-[11px] text-success-400 overflow-x-auto">
+                                                <code>sentinel-agent status --verbose</code>
+                                            </pre>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText('sentinel-agent status --verbose');
+                                                    toast.success("Commande copiée !");
+                                                }}
+                                                className="absolute right-2 top-2 p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                                            >
+                                                <Copy className="w-3 h-3 text-muted-foreground" />
+                                            </button>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full rounded-xl text-xs"
+                                            onClick={() => {
+                                                toast.info("Vérification des agents en cours...");
+                                            }}
+                                        >
+                                            <RefreshCw className="w-3 h-3 mr-1.5" />
+                                            Rafraîchir le statut des agents
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Response Times */}
+                                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                                        Temps de réponse
+                                    </h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-600 dark:text-slate-400">Critique (P1)</span>
+                                            <Badge className="bg-red-500/10 text-red-600 border-red-500/20">{"<"} 1h</Badge>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-600 dark:text-slate-400">Important (P2)</span>
+                                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">{"<"} 4h</Badge>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-600 dark:text-slate-400">Normal (P3)</span>
+                                            <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">{"<"} 24h</Badge>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-600 dark:text-slate-400">Demande (P4)</span>
+                                            <Badge className="bg-slate-500/10 text-slate-600 border-slate-500/20">{"<"} 72h</Badge>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Security Notice */}
+                                <div className="p-4 rounded-2xl bg-success-50 dark:bg-success-500/10 border border-success-200 dark:border-success-500/20">
+                                    <div className="flex items-start gap-3">
+                                        <Lock className="w-5 h-5 text-success-600 dark:text-success-400 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                                Sécurité des communications
+                                            </p>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                                Ne partagez jamais vos tokens d'enrôlement par des canaux non sécurisés. Utilisez uniquement les canaux officiels pour contacter le support.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
                     </div>
                 </div>
             </div>

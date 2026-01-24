@@ -68,7 +68,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 {/* Charts Skeleton */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="glass-panel p-6 rounded-5xl h-[350px]">
+                        <div key={i} className="glass-panel p-4 sm:p-6 rounded-5xl h-[350px]">
                             <Skeleton className="h-6 w-48 mb-6" />
                             <Skeleton className="h-full w-full rounded-2xl" />
                         </div>

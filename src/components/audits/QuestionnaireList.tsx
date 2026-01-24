@@ -104,14 +104,14 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                                 <FileText className="w-6 h-6" />
                             </div>
                             <div className="flex gap-2">
-                                <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${q.status === 'Published' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
+                                <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${q.status === 'Published' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
                                     {q.status === 'Published' ? 'Publié' : 'Brouillon'}
                                 </span>
                             </div>
                         </div>
 
                         <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{q.title}</h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-6 h-10">
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground line-clamp-2 mb-6 h-10">
                             {q.description || "Pas de description"}
                         </p>
 

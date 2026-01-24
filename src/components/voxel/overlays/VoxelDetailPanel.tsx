@@ -97,7 +97,7 @@ const TYPE_CONFIG: Record<VoxelNodeType, { icon: React.ReactNode; label: string;
     icon: <Building2 className="w-4 h-4" />,
     label: 'Fournisseur',
     color: '#6366F1',
-    gradient: 'from-indigo-500/20 to-indigo-600/10',
+    gradient: 'from-brand-500/20 to-brand-600/10',
   },
 };
 

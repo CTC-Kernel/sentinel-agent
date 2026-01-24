@@ -109,7 +109,7 @@ export const AdminDashboard: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="flex flex-col gap-10"
+            className="flex flex-col gap-6 sm:gap-8 lg:gap-10"
         >
             <MasterpieceBackground />
             <SEO title="Super Admin Dashboard" description="Vue globale de l'instance Sentinel GRC" />
@@ -128,9 +128,9 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Stats Cards */}
             <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="glass-premium p-6 rounded-2xl border border-white/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600">
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
                             <Building className="h-6 w-6" />
                         </div>
                         <div>
@@ -139,9 +139,9 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="glass-premium p-6 rounded-2xl border border-white/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600">
+                        <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400">
                             <Users className="h-6 w-6" />
                         </div>
                         <div>
@@ -150,9 +150,9 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="glass-premium p-6 rounded-2xl border border-white/10">
+                <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600">
+                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 dark:text-purple-400">
                             <Activity className="h-6 w-6" />
                         </div>
                         <div>
@@ -168,7 +168,7 @@ export const AdminDashboard: React.FC = () => {
                 {/* Search Bar - Premium Glass Design */}
                 <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-slate-950/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
                     <div className="relative flex-1 min-w-0 group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-500 transition-colors" />
                         <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                             aria-label={t('admin.orgs.searchPlaceholder')}
                             type="text"
@@ -186,10 +186,10 @@ export const AdminDashboard: React.FC = () => {
                         <table className="w-full">
                             <thead className="bg-slate-50 dark:bg-slate-800/50">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('admin.orgs.name')}</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('admin.orgs.plan')}</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('admin.orgs.created')}</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">{t('admin.orgs.actions')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('admin.orgs.name')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('admin.orgs.plan')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('admin.orgs.created')}</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('admin.orgs.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -199,7 +199,7 @@ export const AdminDashboard: React.FC = () => {
                                         <td className="px-6 py-4">
                                             <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30' :
                                                 org.planId === 'professional' ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30' :
-                                                    'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-700/50 dark:text-slate-400 dark:border-slate-600'
+                                                    'bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200 dark:bg-slate-700/50 dark:text-slate-400 dark:border-slate-600'
                                                 } `}>
                                                 {org.planId || 'discovery'}
                                             </span>

@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Controller } from 'react-hook-form';
 import { FileText, BookOpen } from '../../ui/Icons';
 import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
@@ -20,33 +21,35 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
     setValue,
     setShowLibraryModal,
 }) => {
+    const { t } = useTranslation();
+
     return (
-        <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+        <div className="space-y-6 glass-panel p-4 sm:p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <FileText className="h-5 w-5 text-brand-500" /> Identification de la Menace
+                <FileText className="h-5 w-5 text-brand-500" /> {t('risks.tabs.identification')}
             </h3>
             <div className="relative">
                 <FloatingLabelInput
-                    label="Menace (Cause Potentielle)"
+                    label={t('common.threat') || "Menace (Cause Potentielle)"}
                     {...control.register('threat')}
                     list="threatsList"
                     required
                     error={errors.threat?.message}
-                    placeholder="Ex: Attaque par ingénierie sociale..."
+                    placeholder={t('risks.searchPlaceholder') || "Ex: Attaque par ingénierie sociale..."}
                 // icon={Search} - Search icon usage was incorrect for this component variant or passed incorrectly
                 />
                 <div className="absolute right-2 top-2 z-10 flex gap-2">
                     <button
                         type="button"
                         onClick={() => setShowLibraryModal(true)}
-                        className="p-1 px-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg text-xs font-bold transition-colors flex items-center border border-purple-200"
+                        className="p-1 px-2 bg-violet-50 hover:bg-violet-100 text-violet-600 rounded-lg text-xs font-bold transition-colors flex items-center border border-violet-200"
                     >
-                        <BookOpen className="h-3 w-3 mr-1" /> Biblio
+                        <BookOpen className="h-3 w-3 mr-1" /> {t('common.library') || "Biblio"}
                     </button>
                     <AIAssistButton
                         context={{ asset: assets.find(a => a.id === getValues('assetId')), existingThreats: STANDARD_THREATS }}
-                        fieldName="Menace"
-                        prompt="Suggère une menace de sécurité pertinente pour cet actif. Réponds uniquement par le titre."
+                        fieldName={t('common.threat')}
+                        prompt={t('ai.prompts.default') || "Suggère une menace de sécurité pertinente pour cet actif."}
                         onSuggest={(val: string) => setValue('threat', val, { shouldDirty: true })}
                     />
                 </div>
@@ -61,7 +64,7 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
                     name="vulnerability"
                     render={({ field }) => (
                         <RichTextEditor
-                            label="Vulnérabilité (Faiblesse)"
+                            label={t('common.vulnerability') || "Vulnérabilité (Faiblesse)"}
                             value={field.value}
                             onChange={field.onChange}
                             error={errors.vulnerability?.message}
@@ -71,15 +74,15 @@ export const RiskFormIdentificationTab: React.FC<RiskFormIdentificationTabProps>
                 <div className="absolute right-2 top-2 z-10">
                     <AIAssistButton
                         context={{ asset: assets.find(a => a.id === getValues('assetId')), threat: getValues('threat') }}
-                        fieldName="Vulnérabilité"
-                        prompt="Décris une vulnérabilité qui permettrait cette menace. Sois concis."
+                        fieldName={t('common.vulnerability')}
+                        prompt={t('ai.prompts.default') || "Décris une vulnérabilité qui permettrait cette menace."}
                         onSuggest={(val: string) => setValue('vulnerability', val, { shouldDirty: true })}
                     />
                 </div>
             </div>
 
             <FloatingLabelInput
-                label="Scénario de Risque & Conséquences"
+                label={t('risks.scenario') || "Scénario de Risque & Conséquences"}
                 {...control.register('scenario')}
                 textarea
                 rows={4}

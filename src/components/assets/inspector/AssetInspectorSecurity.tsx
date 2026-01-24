@@ -44,7 +44,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
     }, [navigate, selectedAsset.id, selectedAsset.name]);
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             <div className="flex gap-4">
                 <CustomTooltip content="Scanner l'actif avec Shodan.io">
                     <button
@@ -118,7 +118,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
 
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center">
                         <ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})
                     </h3>
                     <button
@@ -150,7 +150,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
 
             <div className="mt-8">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center">
                         <Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})
                     </h3>
                     <button

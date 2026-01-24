@@ -160,7 +160,7 @@ const MetricRow: React.FC<{
 
   return (
     <div className="flex justify-between items-center py-0.5">
-      <span className="text-slate-400 text-xs">{label}</span>
+      <span className="text-muted-foreground text-xs">{label}</span>
       <span className={`font-mono text-xs ${color}`}>
         {value}
         {unit && <span className="text-slate-500 ml-1">{unit}</span>}

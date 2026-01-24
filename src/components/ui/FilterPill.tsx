@@ -6,7 +6,7 @@ interface FilterPillProps {
     label: string;
     value: string;
     onRemove: () => void;
-    color?: 'brand' | 'amber' | 'emerald' | 'rose' | 'slate';
+    color?: 'brand' | 'warning' | 'success' | 'error' | 'slate';
 }
 
 export const FilterPill: React.FC<FilterPillProps> = ({
@@ -17,10 +17,10 @@ export const FilterPill: React.FC<FilterPillProps> = ({
 }) => {
     const colorStyles = {
         brand: 'bg-brand-50 text-brand-700 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-800/50',
-        amber: 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50',
-        emerald: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50',
-        rose: 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800/50',
-        slate: 'bg-slate-50 text-slate-700 border-slate-100 dark:bg-white/5 dark:text-slate-400 dark:border-white/10'
+        warning: 'bg-warning-50 text-warning-700 border-warning-100 dark:bg-warning-900/20 dark:text-warning-400 dark:border-warning-800/50',
+        success: 'bg-success-50 text-success-700 border-success-100 dark:bg-success-900/20 dark:text-success-400 dark:border-success-800/50',
+        error: 'bg-error-50 text-error-700 border-error-100 dark:bg-error-900/20 dark:text-error-400 dark:border-error-800/50',
+        slate: 'bg-slate-50 dark:bg-slate-900 text-slate-700 border-slate-100 dark:bg-white/5 dark:text-slate-400 dark:border-white/10'
     };
 
     return (

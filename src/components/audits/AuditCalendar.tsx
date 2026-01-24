@@ -35,7 +35,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
     };
 
     return (
-        <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-4xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl overflow-hidden min-h-[600px] flex flex-col">
+        <motion.div variants={slideUpVariants} className="glass-panel p-4 sm:p-6 rounded-4xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl overflow-hidden min-h-[600px] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
@@ -65,7 +65,7 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
             <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
                 {/* Weekdays */}
                 {[0, 1, 2, 3, 4, 5, 6].map(d => (
-                    <div key={d} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <div key={d} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         {new Date(2024, 0, d).toLocaleString(i18n.language, { weekday: 'short' })}
                     </div>
                 ))}

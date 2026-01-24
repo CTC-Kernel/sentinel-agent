@@ -35,15 +35,15 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = React.memo(({
             expandable={true}
             headerAction={
                 <CustomTooltip content={healthIssues.length > 0 ? t('dashboard.actionsRequired') : t('dashboard.systemHealthy')} position="left">
-                    <div className={`p-1.5 rounded-lg relative ${healthIssues.length > 0 ? 'bg-orange-500/10' : 'bg-emerald-500/10'}`}>
+                    <div className={`p-1.5 rounded-lg relative ${healthIssues.length > 0 ? 'bg-warning/10' : 'bg-success/10'}`}>
                         {/* Heartbeat rings */}
                         {healthIssues.length > 0 && (
                             <>
-                                <div className="absolute inset-0 rounded-lg bg-orange-500/20 animate-ping" style={{ animationDuration: '1.5s' }} />
-                                <div className="absolute inset-0 rounded-lg bg-orange-500/10 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
+                                <div className="absolute inset-0 rounded-lg bg-warning/20 animate-ping" style={{ animationDuration: '1.5s' }} />
+                                <div className="absolute inset-0 rounded-lg bg-warning/10 animate-ping" style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
                             </>
                         )}
-                        <div className={`relative w-2 h-2 rounded-full ${healthIssues.length > 0 ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                        <div className={`relative w-2 h-2 rounded-full ${healthIssues.length > 0 ? 'bg-warning' : 'bg-success'}`}
                             style={healthIssues.length > 0 ? { animation: 'heartbeat 1s ease-in-out infinite' } : undefined} />
                     </div>
                 </CustomTooltip>
@@ -51,11 +51,11 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = React.memo(({
         >
             <div className="p-4 h-full overflow-y-auto custom-scrollbar">
                 {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? (
-                    <div className="flex items-center p-5 bg-emerald-100/50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200/50 dark:border-emerald-900/30 backdrop-blur-sm">
-                        <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-500 mr-4 flex-shrink-0" />
+                    <div className="flex items-center p-5 bg-success-bg/50 dark:bg-success/10 rounded-2xl border border-success-border/50 dark:border-success/20 backdrop-blur-sm">
+                        <CheckCircle2 className="h-6 w-6 text-success-text dark:text-success mr-4 flex-shrink-0" />
                         <div>
-                            <span className="text-sm font-bold text-slate-800 dark:text-emerald-300 block">{t('dashboard.noAnomalies')}</span>
-                            <span className="text-xs font-semibold text-slate-600 dark:text-emerald-400">{t('dashboard.systemsNominal')}</span>
+                            <span className="text-sm font-bold text-foreground dark:text-success block">{t('dashboard.noAnomalies')}</span>
+                            <span className="text-xs font-semibold text-muted-foreground dark:text-success/80">{t('dashboard.systemsNominal')}</span>
                         </div>
                     </div>
                 ) : (
@@ -76,12 +76,12 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = React.memo(({
                                             if (safeUrl) navigate(safeUrl); // validateUrl checked
                                         }
                                     }}
-                                    className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md hover:shadow-red-500/5' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 hover:shadow-md hover:shadow-orange-500/5'}`}
+                                    className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-error-bg/80 dark:bg-error/5 border-error-border dark:border-error/20 hover:shadow-md hover:shadow-destructive/5' : 'bg-warning-bg/80 dark:bg-warning/5 border-warning-border dark:border-warning/20 hover:shadow-md hover:shadow-warning/5'}`}
                                 >
-                                    <AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} />
+                                    <AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-destructive' : 'text-warning'}`} />
                                     <div>
-                                        <p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p>
-                                        <span className={`text-xs font-bold mt-1 block ${issue.type === 'danger' ? 'text-red-600/70 dark:text-red-400' : 'text-orange-600/70 dark:text-orange-400'}`}>{issue.count} {t('dashboard.itemsAffected')}</span>
+                                        <p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-error-text dark:text-error' : 'text-warning-text dark:text-warning'}`}>{issue.message}</p>
+                                        <span className={`text-xs font-bold mt-1 block ${issue.type === 'danger' ? 'text-error-text/70 dark:text-error/70' : 'text-warning-text/70 dark:text-warning/70'}`}>{issue.count} {t('dashboard.itemsAffected')}</span>
                                     </div>
                                 </div>
                             </CustomTooltip>

@@ -54,7 +54,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
             header: 'Action',
             cell: ({ row }) => {
                 const action = row.original.action;
-                let colorClass = "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
+                let colorClass = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
 
                 if (['create', 'add', 'upload'].some(k => action.toLowerCase().includes(k))) {
                     colorClass = "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";

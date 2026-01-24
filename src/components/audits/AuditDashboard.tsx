@@ -63,13 +63,13 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                 className="space-y-6"
             >
                 {/* Skeleton for AuditScoreCard */}
-                <div className="glass-premium p-6 rounded-5xl animate-pulse">
+                <div className="glass-premium p-4 sm:p-6 rounded-5xl animate-pulse">
                     <div className="h-40 bg-slate-200 dark:bg-slate-700/50 rounded-2xl"></div>
                 </div>
                 {/* Skeleton for AuditCharts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="glass-panel p-6 rounded-4xl h-[300px] animate-pulse bg-slate-100 dark:bg-white/5"></div>
-                    <div className="glass-panel p-6 rounded-4xl h-[300px] animate-pulse bg-slate-100 dark:bg-white/5"></div>
+                    <div className="glass-panel p-4 sm:p-6 rounded-4xl h-[300px] animate-pulse bg-slate-100 dark:bg-white/5"></div>
+                    <div className="glass-panel p-4 sm:p-6 rounded-4xl h-[300px] animate-pulse bg-slate-100 dark:bg-white/5"></div>
                 </div>
             </motion.div>
         );

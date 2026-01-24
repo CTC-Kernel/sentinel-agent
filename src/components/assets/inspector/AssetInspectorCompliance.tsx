@@ -15,8 +15,8 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
     processes
 }) => {
     return (
-        <div className="space-y-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
+        <div className="space-y-6 sm:space-y-8">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center">
                 <Shield className="h-4 w-4 mr-2" /> Contrôles de Sécurité ({linkedControls.length})
             </h3>
             {linkedControls.length === 0 ? (
@@ -29,7 +29,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
                                 <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     {ctrl.code}
                                 </span>
-                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${ctrl.status === 'Implémenté' ? 'bg-green-100 text-green-700' : ctrl.status === 'Partiel' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${ctrl.status === 'Implémenté' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : ctrl.status === 'Partiel' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
                                     {ctrl.status}
                                 </span>
                             </div>
@@ -43,7 +43,7 @@ export const AssetInspectorCompliance: React.FC<AssetInspectorComplianceProps> =
 
             {/* Supported Processes */}
             <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center">
                     <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
                 </h3>
                 {(() => {

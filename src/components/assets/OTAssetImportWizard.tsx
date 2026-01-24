@@ -271,7 +271,7 @@ export const OTAssetImportWizard: React.FC<OTAssetImportWizardProps> = ({
               'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
               isActive && 'bg-blue-100 text-blue-700',
               isPast && 'bg-green-100 text-green-700',
-              !isActive && !isPast && 'bg-slate-100 text-slate-500'
+              !isActive && !isPast && 'bg-slate-100 dark:bg-slate-800 text-slate-500'
             )}>
               {isPast ? (
                 <Check className="h-4 w-4" />

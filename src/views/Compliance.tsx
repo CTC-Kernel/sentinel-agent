@@ -352,8 +352,8 @@ export const Compliance: React.FC = () => {
             <MasterpieceBackground />
             <SEO title={`${t('compliance.title')} ${currentFramework} - Sentinel GRC`} description={t('compliance.subtitle')} />
 
-            <div className="relative z-10 p-4 md:p-6 flex flex-col gap-10 w-full max-w-full overflow-x-hidden pb-24">
-                <div className="max-w-[1920px] mx-auto flex flex-col gap-10">
+            <div className="relative z-10 p-4 md:p-6 flex flex-col gap-6 sm:gap-8 lg:gap-10 w-full max-w-full overflow-x-hidden pb-24">
+                <div className="max-w-[1920px] mx-auto flex flex-col gap-6 sm:gap-8 lg:gap-10">
 
 
                     <PageHeader
@@ -525,7 +525,7 @@ export const Compliance: React.FC = () => {
                     )}
 
                     {activeTab === 'efficiency' && (
-                        <div className="animate-fade-in space-y-8">
+                        <div className="animate-fade-in space-y-6 sm:space-y-8">
                             <ControlEffectivenessDashboard
                                 onAssessClick={() => handleOpenAssessment(undefined)}
                             />

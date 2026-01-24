@@ -248,7 +248,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             )}
             <fieldset disabled={readOnly} className="space-y-8 group-disabled:opacity-80">
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Informations Principales</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Informations Principales</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="col-span-1 md:col-span-2">
                             <div className="relative">
@@ -354,8 +354,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 {/* Specialized Fields based on Type */}
                 {watch('type') === 'Matériel' && (
                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Matériel</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Détails Matériel</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
                                 name="ipAddress"
                                 control={control}
@@ -375,8 +375,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
                 {watch('type') === 'Logiciel' && (
                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Logiciel</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Détails Logiciel</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
                                 name="version"
                                 control={control}
@@ -410,8 +410,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
                 {watch('type') === 'Humain' && (
                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Collaborateur</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Détails Collaborateur</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
                                 name="email"
                                 control={control}
@@ -457,8 +457,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
                 {watch('type') === 'Service' && (
                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Service / SaaS</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Détails Service / SaaS</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
                                 name="serviceDetails.providerUrl"
                                 control={control}
@@ -517,8 +517,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
                 {watch('type') === 'Données' && (
                     <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Données</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Détails Données</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <Controller
                                 name="dataDetails.format"
                                 control={control}
@@ -621,7 +621,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 </div>
 
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6 flex items-center">
                         <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
                     </h3>
                     <div className="flex flex-wrap gap-3">
@@ -657,8 +657,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 </div>
 
                 <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Cycle de Vie</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6">Cycle de Vie</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
                             <Controller
                                 name="lifecycleStatus"

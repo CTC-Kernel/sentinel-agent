@@ -295,7 +295,7 @@ export const ImportFromInventoryModal: React.FC<ImportFromInventoryModalProps> =
                 'px-5 py-2 rounded-xl font-medium transition-colors',
                 selectedAssetIds.size > 0
                   ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                  : 'bg-slate-100 dark:bg-slate-800 text-muted-foreground cursor-not-allowed'
               )}
             >
               {t('ebios.workshop1.importSelected', 'Importer')} ({selectedAssetIds.size})
