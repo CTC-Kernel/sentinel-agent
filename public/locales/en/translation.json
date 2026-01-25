@@ -3761,5 +3761,34 @@
       "requirementsDrivers": "Up-to-date graphics drivers",
       "useAlternative": "Use Alternative View"
     }
+  },
+  "roleManagement": {
+    "title": "Role & Permission Management",
+    "subtitle": "Manage user roles and permissions in your organization",
+    "accessRestricted": "Access Restricted",
+    "noPermission": "You do not have the necessary permissions to manage roles.",
+    "noUsersFound": "No users found in your organization.",
+    "importantNote": "Important Note",
+    "noteDescription": "Role changes take effect immediately. Users may need to log out and back in to see the changes.",
+    "columns": {
+      "user": "User",
+      "email": "Email",
+      "currentRole": "Current Role",
+      "lastLogin": "Last Login",
+      "actions": "Actions"
+    },
+    "errors": {
+      "updateFailed": "Error updating role"
+    }
+  },
+  "errorBoundary": {
+    "title": "An error occurred",
+    "defaultMessage": "An unexpected error occurred.",
+    "errorDetails": "Error Details",
+    "type": "Type",
+    "message": "Message",
+    "technicalInfo": "Technical Information",
+    "unknownError": "Unknown error",
+    "retry": "Retry"
   }
 }

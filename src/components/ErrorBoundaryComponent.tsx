@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import i18n from '../i18n';
 
 interface ErrorBoundaryState {
     hasError: boolean;
@@ -62,6 +63,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             }
             
             // Default error UI
+            const t = (key: string) => i18n.t(key);
             return (
                 <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
                     <div className="text-center p-8">
@@ -73,22 +75,22 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                             </div>
                         </div>
                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                            Une erreur est survenue
+                            {t('errorBoundary.title')}
                         </h1>
                         <p className="text-slate-600 dark:text-muted-foreground mb-4">
-                            {this.state.error?.message || 'Une erreur inattendue est survenue.'}
+                            {this.state.error?.message || t('errorBoundary.defaultMessage')}
                         </p>
                         <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-md mx-auto">
                             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                                Détails de l'erreur
+                                {t('errorBoundary.errorDetails')}
                             </h2>
                             <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
-                                <p><strong>Type:</strong> {this.state.error?.name || 'Erreur inconnue'}</p>
-                                <p><strong>Message:</strong> {this.state.error?.message}</p>
+                                <p><strong>{t('errorBoundary.type')}:</strong> {this.state.error?.name || t('errorBoundary.unknownError')}</p>
+                                <p><strong>{t('errorBoundary.message')}:</strong> {this.state.error?.message}</p>
                                 {this.state.errorInfo && (
                                     <details className="mt-4">
                                         <summary className="cursor-pointer text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200">
-                                            Informations techniques
+                                            {t('errorBoundary.technicalInfo')}
                                         </summary>
                                         <pre className="mt-2 text-xs bg-slate-100 dark:bg-slate-900 p-4 rounded overflow-auto">
                                             {JSON.stringify(this.state.errorInfo, null, 2)}
@@ -101,7 +103,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                             onClick={this.resetError}
                             className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
-                            Réessayer
+                            {t('errorBoundary.retry')}
                         </button>
                     </div>
                 </div>

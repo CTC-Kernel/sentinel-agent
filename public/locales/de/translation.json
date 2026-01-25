@@ -1304,5 +1304,34 @@
       "requirementsDrivers": "Aktuelle Grafiktreiber",
       "useAlternative": "Alternative Ansicht verwenden"
     }
+  },
+  "roleManagement": {
+    "title": "Rollen- und Berechtigungsverwaltung",
+    "subtitle": "Verwalten Sie Benutzerrollen und -berechtigungen in Ihrer Organisation",
+    "accessRestricted": "Zugriff eingeschränkt",
+    "noPermission": "Sie haben nicht die erforderlichen Berechtigungen zur Rollenverwaltung.",
+    "noUsersFound": "Keine Benutzer in Ihrer Organisation gefunden.",
+    "importantNote": "Wichtiger Hinweis",
+    "noteDescription": "Rollenänderungen werden sofort wirksam. Benutzer müssen sich möglicherweise ab- und wieder anmelden, um die Änderungen zu sehen.",
+    "columns": {
+      "user": "Benutzer",
+      "email": "E-Mail",
+      "currentRole": "Aktuelle Rolle",
+      "lastLogin": "Letzte Anmeldung",
+      "actions": "Aktionen"
+    },
+    "errors": {
+      "updateFailed": "Fehler beim Aktualisieren der Rolle"
+    }
+  },
+  "errorBoundary": {
+    "title": "Ein Fehler ist aufgetreten",
+    "defaultMessage": "Ein unerwarteter Fehler ist aufgetreten.",
+    "errorDetails": "Fehlerdetails",
+    "type": "Typ",
+    "message": "Nachricht",
+    "technicalInfo": "Technische Informationen",
+    "unknownError": "Unbekannter Fehler",
+    "retry": "Erneut versuchen"
   }
 }

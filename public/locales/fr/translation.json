@@ -4025,5 +4025,34 @@
       "requirementsDrivers": "Pilotes graphiques à jour",
       "useAlternative": "Utiliser la vue alternative"
     }
+  },
+  "roleManagement": {
+    "title": "Gestion des Rôles et Permissions",
+    "subtitle": "Gérez les rôles et permissions des utilisateurs de votre organisation",
+    "accessRestricted": "Accès Restreint",
+    "noPermission": "Vous n'avez pas les permissions nécessaires pour gérer les rôles.",
+    "noUsersFound": "Aucun utilisateur trouvé dans votre organisation.",
+    "importantNote": "Note importante",
+    "noteDescription": "Les modifications de rôles prennent effet immédiatement. Les utilisateurs devront peut-être se reconnecter pour voir les changements appliqués.",
+    "columns": {
+      "user": "Utilisateur",
+      "email": "Email",
+      "currentRole": "Rôle Actuel",
+      "lastLogin": "Dernière Connexion",
+      "actions": "Actions"
+    },
+    "errors": {
+      "updateFailed": "Erreur lors de la mise à jour du rôle"
+    }
+  },
+  "errorBoundary": {
+    "title": "Une erreur est survenue",
+    "defaultMessage": "Une erreur inattendue est survenue.",
+    "errorDetails": "Détails de l'erreur",
+    "type": "Type",
+    "message": "Message",
+    "technicalInfo": "Informations techniques",
+    "unknownError": "Erreur inconnue",
+    "retry": "Réessayer"
   }
 }

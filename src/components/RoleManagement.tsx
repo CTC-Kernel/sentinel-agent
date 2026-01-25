@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../store';
 import { UserProfile } from '../types';
 import { useTeamData } from '../hooks/team/useTeamData';
@@ -17,6 +18,7 @@ import { RoleCard } from './roles/RoleCard';
 import { UserRow } from './roles/UserRow';
 
 export const RoleManagement: React.FC = () => {
+    const { t } = useTranslation();
     const { user, addToast } = useStore();
     const { users: teamUsers, loading, updateUser } = useTeamData();
     const [users, setUsers] = useState<UserProfile[]>(teamUsers);
@@ -40,7 +42,7 @@ export const RoleManagement: React.FC = () => {
             setEditingUser(null);
         } catch (error) {
             ErrorLogger.error(error, 'RoleManagement.handleUpdateRole');
-            addToast('Erreur lors de la mise à jour du rôle', 'error');
+            addToast(t('roleManagement.errors.updateFailed'), 'error');
         }
     };
 
@@ -51,10 +53,10 @@ export const RoleManagement: React.FC = () => {
             <div className="p-8 text-center">
                 <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-foreground mb-2">
-                    Accès Restreint
+                    {t('roleManagement.accessRestricted')}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                    Vous n'avez pas les permissions nécessaires pour gérer les rôles.
+                    {t('roleManagement.noPermission')}
                 </p>
             </div>
         );
@@ -76,10 +78,10 @@ export const RoleManagement: React.FC = () => {
                 <div>
                     <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <ShieldCheck className="h-7 w-7 text-primary" />
-                        Gestion des Rôles et Permissions
+                        {t('roleManagement.title')}
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Gerez les rôles et permissions des utilisateurs de votre organisation
+                        {t('roleManagement.subtitle')}
                     </p>
                 </div>
             </div>
@@ -100,7 +102,7 @@ export const RoleManagement: React.FC = () => {
                 {users.length === 0 ? (
                     <div className="text-center py-12">
                         <Info className="h-12 w-12 mx-auto text-slate-400 dark:text-slate-600 mb-4" />
-                        <p className="text-slate-600 dark:text-muted-foreground">Aucun utilisateur trouvé dans votre organisation.</p>
+                        <p className="text-slate-600 dark:text-muted-foreground">{t('roleManagement.noUsersFound')}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -108,19 +110,19 @@ export const RoleManagement: React.FC = () => {
                             <thead className="bg-muted/30 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/10">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        Utilisateur
+                                        {t('roleManagement.columns.user')}
                                     </th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        Email
+                                        {t('roleManagement.columns.email')}
                                     </th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        Rôle Actuel
+                                        {t('roleManagement.columns.currentRole')}
                                     </th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        Dernière Connexion
+                                        {t('roleManagement.columns.lastLogin')}
                                     </th>
                                     <th className="px-6 py-4 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        Actions
+                                        {t('roleManagement.columns.actions')}
                                     </th>
                                 </tr>
                             </thead>
@@ -152,9 +154,9 @@ export const RoleManagement: React.FC = () => {
                 <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-foreground">
-                        <p className="font-bold mb-1">Note importante</p>
+                        <p className="font-bold mb-1">{t('roleManagement.importantNote')}</p>
                         <p className="text-muted-foreground">
-                            Les modifications de rôles prennent effet immédiatement. Les utilisateurs devront peut-être se reconnecter pour voir les changements appliqués.
+                            {t('roleManagement.noteDescription')}
                         </p>
                     </div>
                 </div>
