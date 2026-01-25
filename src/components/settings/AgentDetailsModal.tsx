@@ -59,17 +59,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
     const [updating, setUpdating] = useState(false);
     const [configForm, setConfigForm] = useState<Partial<AgentConfig>>({});
 
-    // Reset state when modal opens/changes agent
-    useEffect(() => {
-        if (isOpen && agentId && user?.organizationId) {
-            loadAgentDetails();
-        } else {
-            setAgentDetails(null);
-            setLoading(false);
-        }
-    }, [isOpen, agentId, user?.organizationId]);
-
-    const loadAgentDetails = async () => {
+    const loadAgentDetails = React.useCallback(async () => {
         if (!agentId || !user?.organizationId) return;
         setLoading(true);
         try {
@@ -83,13 +73,23 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
             toast.error("Erreur lors du chargement des détails de l'agent");
             // Fallback to initial data if available for basic display
             if (initialAgent) {
-                // @ts-ignore - casting to AgentDetails for basic display
+                // casting to AgentDetails for basic display
                 setAgentDetails({ ...initialAgent, resultsSummary: { total: 0, pass: 0, fail: 0, error: 0, not_applicable: 0 }, pendingCommandsCount: 0 });
             }
         } finally {
             setLoading(false);
         }
-    };
+    }, [agentId, user?.organizationId, initialAgent]);
+
+    // Reset state when modal opens/changes agent
+    useEffect(() => {
+        if (isOpen && agentId && user?.organizationId) {
+            loadAgentDetails();
+        } else {
+            setAgentDetails(null);
+            setLoading(false);
+        }
+    }, [isOpen, agentId, user?.organizationId, loadAgentDetails]);
 
     const handleSaveConfig = async () => {
         if (!agentId || !user?.organizationId) return;
@@ -180,7 +180,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                         ].map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
+                                onClick={() => setActiveTab(tab.id as 'overview' | 'compliance' | 'config' | 'logs')}
                                 className={cn(
                                     "pb-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors",
                                     activeTab === tab.id
@@ -213,7 +213,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                     {/* Stats Grid */}
                                     <div className="grid grid-cols-3 gap-4">
                                         {STAT_ITEMS.map((item, i) => {
-                                            // @ts-ignore
+                                            // @ts-expect-error - key access on AgentDetails
                                             const val = item.key === 'memoryBytes' ? formatMemory(agentDetails[item.key]) : (agentDetails[item.key] || 0);
                                             return (
                                                 <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
@@ -312,7 +312,6 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                                             paddingAngle={5}
                                                             dataKey="value"
                                                         >
-                                                            {/* @ts-ignore */}
                                                             {[
                                                                 { name: 'Pass', value: agentDetails.resultsSummary?.pass || 0, color: SENTINEL_PALETTE.success },
                                                                 { name: 'Fail', value: agentDetails.resultsSummary?.fail || 0, color: SENTINEL_PALETTE.danger },

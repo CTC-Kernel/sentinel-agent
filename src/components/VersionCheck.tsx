@@ -87,7 +87,7 @@ export const VersionCheck = () => {
             clearInterval(interval);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, []);
+    }, [currentVersion]);
 
     return null;
 };
