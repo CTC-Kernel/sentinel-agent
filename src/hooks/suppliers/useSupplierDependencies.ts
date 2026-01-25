@@ -41,52 +41,57 @@ export const useSupplierDependencies = (options: UseSupplierDependenciesOptions 
         responses: SupplierQuestionnaireResponse[];
     } | null>(null);
 
+    // Memoize constraint
+    const orgConstraint = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId)] : undefined;
+    }, [organizationId]);
+
     // Queries
     const { data: usersRaw, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
-        shouldFetchUsers ? [where('organizationId', '==', organizationId)] : undefined,
+        shouldFetchUsers ? orgConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetchUsers }
     );
 
     const { data: documentsRaw, loading: loadingDocuments } = useFirestoreCollection<Document>(
         'documents',
-        shouldFetchDocuments ? [where('organizationId', '==', organizationId)] : undefined,
+        shouldFetchDocuments ? orgConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetchDocuments }
     );
 
     const { data: processesRaw, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
-        shouldFetchProcesses ? [where('organizationId', '==', organizationId)] : undefined,
+        shouldFetchProcesses ? orgConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetchProcesses }
     );
 
     const { data: assetsRaw, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
-        shouldFetchAssets ? [where('organizationId', '==', organizationId)] : undefined,
+        shouldFetchAssets ? orgConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetchAssets }
     );
 
     const { data: risksRaw, loading: loadingRisks } = useFirestoreCollection<Risk>(
         'risks',
-        shouldFetchRisks ? [where('organizationId', '==', organizationId)] : undefined,
+        shouldFetchRisks ? orgConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetchRisks }
     );
 
     const { data: projectsRaw, loading: loadingProjects } = useFirestoreCollection<Project>(
         'projects',
-        shouldFetchProjects ? [where('organizationId', '==', organizationId)] : undefined,
+        shouldFetchProjects ? orgConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetchProjects }
     );
 
     const { data: templatesRaw, loading: loadingTemplates, add: addTemplateRaw, update: updateTemplateRaw, remove: removeTemplate } = useFirestoreCollection<QuestionnaireTemplate>(
         'questionnaire_templates',
-        shouldFetchTemplates ? [where('organizationId', '==', organizationId)] : undefined,
+        shouldFetchTemplates ? orgConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetchTemplates }
     );
 
     const { data: assessmentsRaw, loading: loadingAssessments, add: addAssessmentRaw, update: updateAssessmentRaw, remove: removeAssessment } = useFirestoreCollection<SupplierQuestionnaireResponse>(
         'questionnaire_responses',
-        shouldFetchAssessments ? [where('organizationId', '==', organizationId)] : undefined,
+        shouldFetchAssessments ? orgConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetchAssessments }
     );
 

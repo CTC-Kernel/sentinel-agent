@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import {
     collection,
     addDoc,
@@ -21,10 +21,15 @@ export const useSupplierLogic = () => {
     const { user, t, addToast, demoMode } = useStore();
     const [mockSuppliers, setMockSuppliers] = useState<Supplier[]>([]);
 
+    const organizationId = user?.organizationId;
+    const constraints = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId)] : undefined;
+    }, [organizationId]);
+
     const { data: suppliersRaw, loading: loadingSuppliers, error } = useFirestoreCollection<Supplier>(
         'suppliers',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, realtime: true, enabled: !!user?.organizationId && !demoMode }
+        constraints,
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
     );
 
     // Mock Data Effect

@@ -55,34 +55,50 @@ export const useProjectDependencies = (options: UseProjectDependenciesOptions = 
     }, [demoMode, mockData]);
 
     // Firestore Collections - Only fetch if requested
+    const organizationId = user?.organizationId;
+
+    // Memoize constraints
+    const orgConstraint = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId), limit(500)] : undefined;
+    }, [organizationId]);
+
+    const controlConstraint = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId), limit(1000)] : undefined;
+    }, [organizationId]);
+
+    const userConstraint = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId), limit(100)] : undefined;
+    }, [organizationId]);
+
+    // Firestore Collections - Only fetch if requested
     const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
         'risks',
-        shouldFetchRisks ? [where('organizationId', '==', user?.organizationId), limit(500)] : undefined,
-        { logError: true, realtime: true }
+        shouldFetchRisks ? orgConstraint : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchRisks }
     );
 
     const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
         'controls',
-        shouldFetchControls ? [where('organizationId', '==', user?.organizationId), limit(1000)] : undefined,
-        { logError: true, realtime: true }
+        shouldFetchControls ? controlConstraint : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchControls }
     );
 
     const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
-        shouldFetchAssets ? [where('organizationId', '==', user?.organizationId), limit(500)] : undefined,
-        { logError: true, realtime: true }
+        shouldFetchAssets ? orgConstraint : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchAssets }
     );
 
     const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>(
         'audits',
-        shouldFetchAudits ? [where('organizationId', '==', user?.organizationId), limit(500)] : undefined,
-        { logError: true, realtime: true }
+        shouldFetchAudits ? orgConstraint : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchAudits }
     );
 
     const { data: rawUsers, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
-        shouldFetchUsers ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
-        { logError: true, realtime: true }
+        shouldFetchUsers ? userConstraint : undefined,
+        { logError: true, realtime: true, enabled: shouldFetchUsers }
     );
 
     // Processed Data

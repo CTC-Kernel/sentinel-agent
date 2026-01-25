@@ -30,7 +30,17 @@ export const useProjectLogic = () => {
 
     // Data Fetching
     // Data Fetching
-    const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
+    // Data Fetching
+    const organizationId = user?.organizationId;
+    const constraints = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId), limit(500)] : undefined;
+    }, [organizationId]);
+
+    const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>(
+        'projects',
+        constraints,
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+    );
 
     // Mock Data Effect
     useEffect(() => {
