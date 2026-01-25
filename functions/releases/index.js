@@ -15,7 +15,7 @@ if (!admin.apps.length) {
     admin.initializeApp();
 }
 
-const bucket = getStorage().bucket();
+const bucket = getStorage().bucket('sentinel-grc-a8701.appspot.com');
 
 // Release metadata configuration
 const RELEASE_CONFIG = {
