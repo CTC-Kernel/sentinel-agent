@@ -349,7 +349,6 @@ jobs:
             -output target/release/agent-core
 
       - name: Import Code Signing Certificate
-        if: env.APPLE_CERTIFICATE_P12 != ''
         env:
           APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -366,23 +365,87 @@ jobs:
           # Import certificate
           echo "$APPLE_CERTIFICATE_P12" | base64 --decode > $RUNNER_TEMP/certificate.p12
           security import $RUNNER_TEMP/certificate.p12 -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          # Add to search list (prepend to existing)
+          security list-keychain -d user -s "$KEYCHAIN_PATH" $(security list-keychain -d user | tr -d '"')
 
           # Allow codesign to access keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
+          # Verify certificate is available
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning
+
           rm $RUNNER_TEMP/certificate.p12
 
-      - name: Build and Sign DMG
+      - name: Create App Bundle and Sign
         env:
-          APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          chmod +x scripts/build-macos.sh
-          ./scripts/build-macos.sh
+          APP_NAME="Sentinel Agent"
+          APP_BUNDLE="target/release/$APP_NAME.app"
+          VERSION="1.0.0"
+
+          echo "=== Creating app bundle ==="
+          rm -rf "$APP_BUNDLE"
+          mkdir -p "$APP_BUNDLE/Contents/MacOS"
+          mkdir -p "$APP_BUNDLE/Contents/Resources"
+
+          # Copy binary
+          cp target/release/agent-core "$APP_BUNDLE/Contents/MacOS/sentinel-agent"
+          chmod +x "$APP_BUNDLE/Contents/MacOS/sentinel-agent"
+
+          # Copy Info.plist
+          cp macos/Info.plist "$APP_BUNDLE/Contents/"
+
+          # Copy icon if exists
+          if [ -f "assets/icons/sentinel-agent.icns" ]; then
+            cp "assets/icons/sentinel-agent.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+          fi
+
+          # Create PkgInfo
+          echo "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
+
+          echo "=== Code signing ==="
+          # Find Developer ID certificate
+          IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+
+          if [ -n "$IDENTITY" ]; then
+            echo "Signing with: $IDENTITY"
+            codesign --force --deep --options runtime \
+              --entitlements macos/entitlements.plist \
+              --sign "$IDENTITY" \
+              "$APP_BUNDLE"
+
+            # Verify signature
+            codesign --verify --verbose=2 "$APP_BUNDLE"
+            echo "Code signing successful!"
+          else
+            echo "::error::No Developer ID Application certificate found!"
+            security find-identity -v -p codesigning
+            exit 1
+          fi
+
+          echo "=== Creating DMG ==="
+          DMG_PATH="target/release/SentinelAgent-$VERSION.dmg"
+          DMG_TEMP="target/release/dmg-temp"
+          rm -rf "$DMG_TEMP"
+          mkdir -p "$DMG_TEMP"
+
+          # Copy app
+          cp -R "$APP_BUNDLE" "$DMG_TEMP/"
+          ln -s /Applications "$DMG_TEMP/Applications"
+
+          # Create DMG
+          hdiutil create -volname "$APP_NAME" \
+            -srcfolder "$DMG_TEMP" \
+            -ov -format UDZO \
+            "$DMG_PATH"
+
+          rm -rf "$DMG_TEMP"
+          echo "DMG created: $DMG_PATH"
 
       - name: Notarize DMG
-        if: env.APPLE_ID != '' && env.APPLE_APP_PASSWORD != ''
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
