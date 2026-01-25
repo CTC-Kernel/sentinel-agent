@@ -50,7 +50,7 @@ export const CertifierDashboard: React.FC = () => {
         };
 
         loadDashboard();
-    }, [navigate]);
+    }, [navigate, t]);
 
     const handleLogout = async () => {
         await signOut(auth);

@@ -48,7 +48,7 @@ export const Integrations: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [user?.organizationId]);
+    }, [user?.organizationId, t]);
 
     useEffect(() => {
         if (user?.organizationId) {

@@ -231,10 +231,7 @@ describe('CertifierLogin', () => {
             fireEvent.click(submitButton);
 
             await waitFor(() => {
-                expect(mockToastError).toHaveBeenCalledWith(
-                    'Erreur',
-                    'Identifiants invalides ou erreur de connexion'
-                );
+                expect(mockToastError).toHaveBeenCalledWith('auth.errors.invalid');
             });
         });
     });

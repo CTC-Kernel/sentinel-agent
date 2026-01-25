@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+
 import { useStore } from '../store';
 import { Control, Framework } from '../types';
 

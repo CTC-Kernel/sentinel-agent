@@ -357,7 +357,7 @@ describe('CertifierDashboard', () => {
             renderWithRouter(<CertifierDashboard />);
 
             await waitFor(() => {
-                expect(mockToastError).toHaveBeenCalledWith('Impossible de charger le tableau de bord');
+                expect(mockToastError).toHaveBeenCalledWith('common.errors.loading');
             });
         });
     });
