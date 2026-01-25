@@ -56,13 +56,55 @@ export const useAssetLogic = () => {
         { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
     );
 
+    // Fetch Agents for Real-time Discovery
+    const [agents, setAgents] = useState<any[]>([]);
+    useEffect(() => {
+        if (!organizationId || demoMode) return;
+        const { AgentService } = require('../../services/AgentService');
+
+        const unsubscribe = AgentService.subscribeToAgents(
+            organizationId,
+            (newAgents: any[]) => {
+                setAgents(newAgents);
+            },
+            (error: any) => {
+                // Silent fail for agents to not break asset flow
+                console.warn('Failed to subscribe to agents', error);
+            }
+        );
+        return () => unsubscribe();
+    }, [organizationId, demoMode]);
+
     const assets = useMemo(() => {
         const source = (demoMode && mockData ? mockData.assets : (rawAssets || [])) as Asset[];
-        return source.map(a => ({
+
+        // Map agents to virtual assets if they don't exist
+        const agentAssets = agents.filter(agent =>
+            !source.some(asset => asset.name === agent.hostname || asset.ipAddress === agent.ipAddress || asset.name === agent.name)
+        ).map(agent => ({
+            id: `agent-${agent.id}`, // Virtual ID
+            organizationId: agent.organizationId,
+            name: agent.hostname || agent.name || 'Unknown Agent',
+            type: 'Matériel',
+            owner: 'Système',
+            confidentiality: 'Moyen',
+            integrity: 'Moyen',
+            availability: 'Moyen',
+            location: 'Unknown',
+            createdAt: agent.enrolledAt || new Date().toISOString(),
+            updatedAt: agent.lastHeartbeat,
+            lifecycleStatus: 'En service',
+            ipAddress: agent.ipAddress,
+            hostname: agent.hostname,
+            os: agent.os,
+            isAgent: true // Flag to identify virtual assets
+        } as unknown as Asset));
+
+        return [...source, ...agentAssets].map(a => ({
             ...a,
             currentValue: AssetService.calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
         })).sort((a, b) => a.name.localeCompare(b.name));
-    }, [rawAssets, demoMode, mockData]);
+    }, [rawAssets, demoMode, mockData, agents]);
 
     const loading = demoMode ? mockLoading : assetsLoading;
 
