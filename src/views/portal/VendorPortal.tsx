@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ErrorLogger } from '../../services/errorLogger';
 import { VendorPortalService } from '../../services/VendorPortalService';
 import {
   VendorPortalAccess,

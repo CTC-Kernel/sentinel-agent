@@ -39,7 +39,7 @@ export const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ 
             const loadPromise = (async () => {
                 try {
                     const url = MODEL_URLS[type];
-                    console.log(`[3D Models] Loading ${type} model...`);
+                    // Model loading: ${type}
                     const model = await loadSafe(url);
 
                     modelCache[type] = model;
@@ -49,7 +49,7 @@ export const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ 
                         setLoadingStates(prev => ({ ...prev, [type]: false }));
                     }
 
-                    console.log(`[3D Models] Loaded ${type} model`);
+                    // Model loaded successfully
                     return model;
                 } catch {
                     if (mountedRef.current) {
@@ -86,7 +86,7 @@ export const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const loadPromise = (async () => {
             try {
                 const url = MODEL_URLS[type];
-                console.log(`[3D Models] Loading ${type} model...`);
+                // Model loading: ${type}
                 const model = await loadSafe(url);
 
                 // Cache the loaded model
@@ -97,7 +97,7 @@ export const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     setLoadingStates(prev => ({ ...prev, [type]: false }));
                 }
 
-                console.log(`[3D Models] Loaded ${type} model`);
+                // Model loaded successfully
                 return model;
             } catch {
                 if (mountedRef.current) {

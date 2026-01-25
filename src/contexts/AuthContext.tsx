@@ -203,7 +203,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const lastUpdate = sessionStorage.getItem(lastLoginKey);
                 const now = Date.now();
 
-                if (!lastUpdate || now - parseInt(lastUpdate) > 3600000) {
+                if (!lastUpdate || now - parseInt(lastUpdate, 10) > 3600000) {
                     const userRef = doc(db, 'users', u.uid);
                     // Fire and forget - don't await this to block profile loading
                     updateDoc(userRef, {

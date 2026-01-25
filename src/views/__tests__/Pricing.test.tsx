@@ -24,7 +24,23 @@ vi.mock('framer-motion', () => ({
 // Mock i18n
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, fallback?: string) => fallback || key
+        t: (key: string, fallback?: string) => {
+            const translations: Record<string, string> = {
+                'common.pricingTitle': 'Tarification transparente',
+                'common.pricingSubtitle': 'Des solutions flexibles',
+                'pricing.faq': 'FAQ',
+                'pricing.faqDesc': 'Questions fréquentes',
+                'pricing.detailed_comparison': 'Comparaison Détaillée',
+                'pricing.contact_us': 'Contactez-nous',
+                'common.pilotage': 'Pilotage',
+                'common.operations': 'Opérations',
+                'pricing.faq1_q': 'Question 1',
+                'pricing.faq2_q': 'Question 2',
+                'pricing.faq3_q': 'Question 3',
+                // Add keys used in component
+            };
+            return translations[key] || fallback || key;
+        }
     })
 }));
 
@@ -140,7 +156,7 @@ describe('Pricing', () => {
     it('should render pricing title', () => {
         renderComponent();
 
-        expect(screen.getByText('common.pricingTitle')).toBeInTheDocument();
+        expect(screen.getByText('Tarification transparente')).toBeInTheDocument();
     });
 
     it('should render all plan names', () => {
@@ -234,8 +250,8 @@ describe('Pricing', () => {
     it('should render feature categories', () => {
         renderComponent();
 
-        expect(screen.getByText('common.pilotage')).toBeInTheDocument();
-        expect(screen.getByText('common.operations')).toBeInTheDocument();
+        expect(screen.getByText('Pilotage')).toBeInTheDocument();
+        expect(screen.getByText('Opérations')).toBeInTheDocument();
     });
 
     it('should toggle feature category expansion', () => {
@@ -243,7 +259,7 @@ describe('Pricing', () => {
 
         // Categories start expanded, clicking should collapse
         const categoryButton = screen.getAllByRole('button').find(
-            btn => btn.textContent?.includes('common.pilotage')
+            btn => btn.textContent?.includes('Pilotage')
         );
 
         if (categoryButton) {

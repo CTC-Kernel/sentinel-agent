@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ErrorLogger } from '../services/errorLogger';
 import { useNavigate } from 'react-router-dom';
 import { Check, X, HelpCircle, Globe, ChevronDown, LayoutDashboard, FolderKanban, FileText, Calendar, Siren, Bug, Box, ShieldAlert, Activity, HeartPulse, Fingerprint, Server, Building, Briefcase, Users, Gauge, Save, Brain, Database, Headset, Info, Sparkles, Crown, Star, Building2, ArrowRight, type LucideIcon } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
@@ -134,8 +135,8 @@ const Pricing = () => {
           isAnnual ? 'year' : 'month'
         );
       } catch (error) {
-        console.error('Failed to start subscription:', error);
-        toast.error("Erreur lors de l'initialisation du paiement. Veuillez réessayer.");
+        ErrorLogger.error(error, 'Pricing.handleSubscribe');
+        toast.error(t('pricing.subscriptionError'));
         setIsLoading(null);
       }
     } else {

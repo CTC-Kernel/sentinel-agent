@@ -93,7 +93,13 @@ export const useVoxelStore = create<VoxelStore>()(
             getItem: (name) => {
               const str = localStorage.getItem(name);
               if (!str) return null;
-              return JSON.parse(str);
+              try {
+                return JSON.parse(str);
+              } catch {
+                // If corrupted, clear and return null
+                localStorage.removeItem(name);
+                return null;
+              }
             },
             setItem: (name, value) => {
               localStorage.setItem(name, JSON.stringify(value));

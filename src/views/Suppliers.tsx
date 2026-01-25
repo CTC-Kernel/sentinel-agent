@@ -267,7 +267,6 @@ export const Suppliers: React.FC = () => {
     }, [t, deleteSupplier, isSubmitting]);
 
     const handleCardClick = useCallback((supplier: Supplier) => {
-        console.log('Supplier clicked', supplier);
         setSelectedSupplier(supplier);
     }, []);
 

@@ -310,8 +310,8 @@ export const Audits: React.FC = () => {
                 activeTab === 'methods' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
                         <AuditMethodsWorkshops
-                            onStartWorkshop={(templateId) => {
-                                console.log('Starting workshop:', templateId);
+                            onStartWorkshop={(_templateId) => {
+                                // TODO: Implement workshop start functionality
                             }}
                         />
                     </motion.div>

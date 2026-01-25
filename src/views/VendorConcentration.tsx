@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ErrorLogger } from '../services/errorLogger';
 import {
   Building2,
   AlertTriangle,
@@ -240,7 +241,7 @@ export const VendorConcentration: React.FC = () => {
       setTrends(trendsData);
       setDependencyMatrix(matrixData);
     } catch (error) {
-      console.error('Failed to load concentration data:', error);
+      ErrorLogger.error(error, 'VendorConcentration.loadData');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
