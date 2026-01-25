@@ -31,7 +31,8 @@ export const useRiskDependencies = (options: UseRiskDependenciesOptions = {}) =>
     } = options;
 
     // Conditions for fetching
-    const shouldFetch = (flag: boolean) => flag && !!user?.organizationId && !demoMode;
+    const organizationId = user?.organizationId;
+    const shouldFetch = (flag: boolean) => flag && !!organizationId && !demoMode;
 
     // Mock Data State
     const [mockData, setMockData] = useState<{
@@ -67,20 +68,20 @@ export const useRiskDependencies = (options: UseRiskDependenciesOptions = {}) =>
 
 
     const assetConstraint = useMemo(() => {
-        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(500)] : undefined;
-    }, [user?.organizationId]);
+        return organizationId ? [where('organizationId', '==', organizationId), limit(500)] : undefined;
+    }, [organizationId]);
 
     const controlConstraint = useMemo(() => {
-        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(1000)] : undefined;
-    }, [user?.organizationId]);
+        return organizationId ? [where('organizationId', '==', organizationId), limit(1000)] : undefined;
+    }, [organizationId]);
 
     const subConstraint = useMemo(() => {
-        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(200)] : undefined;
-    }, [user?.organizationId]);
+        return organizationId ? [where('organizationId', '==', organizationId), limit(200)] : undefined;
+    }, [organizationId]);
 
     const smallConstraint = useMemo(() => {
-        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(100)] : undefined;
-    }, [user?.organizationId]);
+        return organizationId ? [where('organizationId', '==', organizationId), limit(100)] : undefined;
+    }, [organizationId]);
 
 
     const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(

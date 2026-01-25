@@ -4,14 +4,14 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, serverTimestamp } from 'firebase/firestore';
 import { useStore } from '../../store';
 import type { ControlEffectivenessAssessment, DomainMaturityScore } from '../../types/ebios';
 import { ISO_DOMAINS } from '../../data/complianceData';
 import { useFirestoreCollection } from '../useFirestore';
 
 // ISO 27002 Domain maturity level thresholds
-const MATURITY_THRESHOLDS = {
+export const MATURITY_THRESHOLDS = {
   1: { min: 0, max: 20, label: 'Initial', description: 'Pratiques ad-hoc, non formalisées' },
   2: { min: 20, max: 40, label: 'Géré', description: 'Processus documentés mais non systématiques' },
   3: { min: 40, max: 60, label: 'Défini', description: 'Processus standardisés et systématiques' },
@@ -75,28 +75,26 @@ function calculateMaturityLevel(score: number): 1 | 2 | 3 | 4 | 5 {
 export function useControlEffectiveness(): UseControlEffectivenessReturn {
   const { user } = useStore();
   const organizationId = user?.organizationId;
-
-  // FIXME: The original code used a subcollection: `organizations/${org}/controlAssessments`.
-  // My useFirestoreCollection implementation uses `collection(db, collectionName)`.
-  // If I pass a path "organizations/123/controlAssessments", Firestore JS SDK `collection(db, path)` DOES work.
+  const uid = user?.uid;
 
   const path = organizationId ? `organizations/${organizationId}/controlAssessments` : '';
 
   const {
-    data: assessments,
+    data: assessmentsRaw,
     loading,
     error: firestoreError,
-    add: addAssessment,
+    add: addAssessmentDoc,
     update: updateAssessmentDoc,
     remove: removeAssessmentDoc,
     refresh
   } = useFirestoreCollection<ControlEffectivenessAssessment>(
     path,
-    [], // No query constraints needed for the whole subcollection
+    undefined, // No query constraints needed for the whole subcollection
     { enabled: !!organizationId, realtime: true, logError: true }
   );
 
   const error = firestoreError ? firestoreError.message : null;
+  const assessments = assessmentsRaw || [];
 
   // Calculate domain maturity scores
   const domainScores = useMemo((): DomainMaturityScore[] => {
@@ -132,63 +130,68 @@ export function useControlEffectiveness(): UseControlEffectivenessReturn {
 
   // Create
   const createAssessment = useCallback(async (data: ControlAssessmentInput): Promise<ControlEffectivenessAssessment | null> => {
-    if (!organizationId || !user?.uid) return null;
-    try {
-      // NOTE: Original used setDoc with UUID. useFirestoreCollection.add uses addDoc (auto-id).
-      // But addDoc allows data. We can pre-generate ID if we use useMutation directly, but useFirestoreCollection.add returns ID.
-      // However, the original defined specific fields.
+    if (!organizationId || !uid) return null;
 
-      // Let's verify if we need to set the ID manually or if auto-ID is fine.
-      // Original: const id = crypto.randomUUID(); setDoc(..., id)
-      // If we switch to addDoc, we get auto-ID. This is usually cleaner.
+    try {
+      // NOTE: useFirestoreCollection.add uses addDoc (auto-id).
 
       const now = new Date().toISOString();
+      // We manually construct the object to satisfy TypeScript, as addAssessmentDoc handles the DB write.
+      // But notice addAssessmentDoc signature usually takes Omit<T, 'id'>.
+
       const assessmentData = {
         controlId: data.controlCode, // Using code as ID link
-        organizationId, // Redundant if in subcollection? But good for data shape consistency
+        // organizationId, // Not needed in data if in subcollection? Logic usually keeps it.
+        organizationId: organizationId,
         effectivenessScore: data.effectivenessScore,
         assessmentDate: now,
         assessmentMethod: data.assessmentMethod,
-        assessedBy: user.uid,
-        evidence: data.evidence,
-        notes: data.notes,
+        assessedBy: uid,
+        evidence: data.evidence || [],
+        notes: data.notes || '',
         nextAssessmentDate: data.nextAssessmentDate,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
 
-      const id = await addAssessment(assessmentData);
-      return { id, ...assessmentData } as ControlEffectivenessAssessment;
-    } catch (err) {
-      console.error('Error creating assessment:', err);
+      const newId = await addAssessmentDoc(assessmentData as unknown as ControlEffectivenessAssessment);
+
+      if (newId) {
+        return { ...assessmentData, id: newId } as unknown as ControlEffectivenessAssessment;
+      }
+      return null;
+    } catch (e) {
+      console.error(e);
       return null;
     }
-  }, [addAssessment, organizationId, user?.uid]);
+  }, [addAssessmentDoc, organizationId, uid]);
 
   // Update
   const updateAssessment = useCallback(async (id: string, data: Partial<ControlAssessmentInput>): Promise<void> => {
+    if (!updateAssessmentDoc || !uid) return;
     await updateAssessmentDoc(id, {
       ...data,
-      updatedAt: Timestamp.now()
-    });
-  }, [updateAssessmentDoc]);
+      updatedBy: uid,
+      updatedAt: serverTimestamp()
+    } as unknown as Partial<ControlEffectivenessAssessment>);
+  }, [updateAssessmentDoc, uid]);
 
   // Delete
   const deleteAssessment = useCallback(async (id: string): Promise<void> => {
+    if (!removeAssessmentDoc) return;
     await removeAssessmentDoc(id);
   }, [removeAssessmentDoc]);
 
-  // Get assessments for a specific control
+
+  // Helper functions
   const getAssessmentsByControl = useCallback((controlId: string): ControlEffectivenessAssessment[] => {
     return assessments.filter(a => a.controlId === controlId);
   }, [assessments]);
 
-  // Get assessments by domain
   const getAssessmentsByDomain = useCallback((domain: string): ControlEffectivenessAssessment[] => {
     return assessments.filter(a => extractDomain(a.controlId) === domain);
   }, [assessments]);
 
-  // Get latest assessment for a control
   const getLatestAssessment = useCallback((controlId: string): ControlEffectivenessAssessment | undefined => {
     const controlAssessments = getAssessmentsByControl(controlId);
     if (controlAssessments.length === 0) return undefined;
@@ -198,7 +201,6 @@ export function useControlEffectiveness(): UseControlEffectivenessReturn {
     )[0];
   }, [getAssessmentsByControl]);
 
-  // Calculate overall maturity
   const getOverallMaturity = useCallback((): { score: number; level: 1 | 2 | 3 | 4 | 5 } => {
     if (assessments.length === 0) {
       return { score: 0, level: 1 };
@@ -211,12 +213,10 @@ export function useControlEffectiveness(): UseControlEffectivenessReturn {
     };
   }, [assessments]);
 
-  // Get controls with low effectiveness
   const getLowEffectivenessControls = useCallback((threshold = 40): ControlEffectivenessAssessment[] => {
     return assessments.filter(a => a.effectivenessScore < threshold);
   }, [assessments]);
 
-  // Get assessments due for review
   const getAssessmentsDueForReview = useCallback((): ControlEffectivenessAssessment[] => {
     const now = new Date();
     return assessments.filter(a => {
@@ -225,8 +225,6 @@ export function useControlEffectiveness(): UseControlEffectivenessReturn {
     });
   }, [assessments]);
 
-  // Refresh -> useFirestoreCollection.refresh
-  const refreshAssessments = refresh;
 
   return {
     assessments,
@@ -242,9 +240,8 @@ export function useControlEffectiveness(): UseControlEffectivenessReturn {
     getOverallMaturity,
     getLowEffectivenessControls,
     getAssessmentsDueForReview,
-    refreshAssessments
+    refreshAssessments: refresh
   };
 }
 
-export { MATURITY_THRESHOLDS };
 export default useControlEffectiveness;
