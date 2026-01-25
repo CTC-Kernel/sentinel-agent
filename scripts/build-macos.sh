@@ -56,18 +56,37 @@ echo "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
 # Sign the app (if certificate available)
 echo ""
 echo "4. Code signing..."
+
+# Check for Developer ID in keychain
+IDENTITY=""
 if security find-identity -v -p codesigning 2>/dev/null | grep -q "Developer ID Application"; then
     IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
-    echo "Signing with: $IDENTITY"
-    codesign --force --deep --sign "$IDENTITY" "$APP_BUNDLE"
-    codesign --verify --verbose "$APP_BUNDLE"
+fi
+
+if [ -n "$IDENTITY" ]; then
+    echo "Signing with Developer ID: $IDENTITY"
+
+    # Sign with hardened runtime (required for notarization)
+    ENTITLEMENTS="$PROJECT_DIR/macos/entitlements.plist"
+    if [ -f "$ENTITLEMENTS" ]; then
+        codesign --force --deep --options runtime \
+            --entitlements "$ENTITLEMENTS" \
+            --sign "$IDENTITY" \
+            "$APP_BUNDLE"
+    else
+        codesign --force --deep --options runtime \
+            --sign "$IDENTITY" \
+            "$APP_BUNDLE"
+    fi
+
+    # Verify signature
+    codesign --verify --verbose=2 "$APP_BUNDLE"
+    echo "Code signing successful!"
 else
     echo "No Developer ID found, using ad-hoc signing"
-    echo "Note: For full Gatekeeper compliance, sign with a Developer ID certificate"
-    # Ad-hoc signing allows the app to run without the "damaged" error
-    # Users may still need to allow the app in System Preferences > Security
+    echo "WARNING: Ad-hoc signed apps will show 'damaged' warning when downloaded"
+    echo "For distribution, add APPLE_CERTIFICATE_P12 secret to GitHub Actions"
     codesign --force --deep --sign - "$APP_BUNDLE"
-    codesign --verify --verbose "$APP_BUNDLE" || echo "Ad-hoc signed (verification may show warnings)"
 fi
 
 # Create DMG
