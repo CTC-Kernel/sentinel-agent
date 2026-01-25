@@ -249,7 +249,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                 label="Catégorie"
                                 value={c}
                                 onRemove={() => onClearFilter('category', c)}
-                                color="emerald"
+                                color="success"
                             />
                         ))}
                         {activeFilters.criticality?.map(crit => (
@@ -258,7 +258,7 @@ export const RisksToolbar: React.FC<RisksToolbarProps> = ({
                                 label="Criticité"
                                 value={crit}
                                 onRemove={() => onClearFilter('criticality', crit)}
-                                color="amber"
+                                color="warning"
                             />
                         ))}
                     </div>
