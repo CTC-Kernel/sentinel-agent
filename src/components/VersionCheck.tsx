@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { toast } from '@/lib/toast';
+import { BUILD_VERSION } from '../config/version';
 
 interface VersionInfo {
     version: string;
@@ -9,7 +10,8 @@ interface VersionInfo {
 import { ErrorLogger } from '../services/errorLogger';
 
 export const VersionCheck = () => {
-    const [currentVersion, setCurrentVersion] = useState<string | null>(null);
+    // Use the build-time version as the source of truth
+    const currentVersion = BUILD_VERSION;
 
     useEffect(() => {
         const checkVersion = async () => {
@@ -20,9 +22,7 @@ export const VersionCheck = () => {
 
                 const data: VersionInfo = await response.json();
 
-                if (!currentVersion) {
-                    setCurrentVersion(data.version);
-                } else if (currentVersion !== data.version) {
+                if (currentVersion !== data.version) {
                     // New version detected
                     console.info('New version detected:', data.version, 'Current:', currentVersion);
 
@@ -87,7 +87,7 @@ export const VersionCheck = () => {
             clearInterval(interval);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [currentVersion]);
+    }, []);
 
     return null;
 };

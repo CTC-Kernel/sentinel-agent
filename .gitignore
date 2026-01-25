@@ -58,3 +58,6 @@ functions/*.secrets
 # Test artifacts
 test-results/
 playwright-report/
+
+# Generated config
+src/config/version.ts

@@ -154,25 +154,10 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, onToggle })
 );
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, available = true, loading = false }) => {
-    const handleDownload = () => {
-        if (loading) return;
-        if (!available) {
-            toast.info("Cette version sera disponible prochainement");
-            return;
-        }
-        window.location.href = `${RELEASE_API_URL}/agent/${platform}/latest`;
-    };
+    const downloadUrl = `${RELEASE_API_URL}/agent/${platform}/latest`;
 
-    return (
-        <button
-            onClick={handleDownload}
-            disabled={loading}
-            className={cn(
-                "flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full",
-                !available && !loading && "opacity-60",
-                loading && "opacity-50 cursor-wait"
-            )}
-        >
+    const content = (
+        <>
             <div className="flex items-center gap-3">
                 {icon}
                 <div>
@@ -189,6 +174,38 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
                     Bientôt
                 </Badge>
             )}
+        </>
+    );
+
+    const baseClasses = cn(
+        "flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group text-left w-full",
+        !available && !loading && "opacity-60",
+        loading && "opacity-50 cursor-wait"
+    );
+
+    if (available && !loading) {
+        return (
+            <a
+                href={downloadUrl}
+                className={baseClasses}
+                target="_blank"
+                rel="noopener noreferrer" // Best practice for downloads from external domains
+                download // Hint to browser
+            >
+                {content}
+            </a>
+        );
+    }
+
+    return (
+        <button
+            disabled={true} // Always disabled if not available or loading (we don't want click events)
+            className={baseClasses}
+            onClick={() => {
+                if (!available) toast.info("Cette version sera disponible prochainement");
+            }}
+        >
+            {content}
         </button>
     );
 };

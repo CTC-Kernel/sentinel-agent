@@ -96,7 +96,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                 </div>
                 <div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-sm">Assistant IA Sentinel</h3>
-                    <p className="text-xs text-muted-foreground">Analyse et rapports intelligents</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Analyse et rapports intelligents</p>
                 </div>
             </div>
 

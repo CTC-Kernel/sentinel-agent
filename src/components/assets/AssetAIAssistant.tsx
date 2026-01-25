@@ -176,8 +176,8 @@ export const AssetAIAssistant: React.FC<AssetAIAssistantProps> = ({ asset, onUpd
                     <Sparkles className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-foreground text-sm">Assistant IA Sentinel</h3>
-                    <p className="text-xs text-muted-foreground">Analyse et suggestions intelligentes</p>
+                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">Assistant IA Sentinel</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Analyse et suggestions intelligentes</p>
                 </div>
             </div>
 
