@@ -206,7 +206,7 @@ export const useFirestoreCollection = <T = DocumentData>(
                 }
             );
         } catch (err) {
-            console.error("Error setting up snapshot listener:", err);
+            if (logError) ErrorLogger.error(err, `useFirestoreCollection.setup.${collectionName}`);
             if (isMounted) {
                 setRealtimeFailed(true);
                 setRealtimeLoading(false);
@@ -218,8 +218,8 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (timeoutId !== null) window.clearTimeout(timeoutId);
             try {
                 unsubscribe();
-            } catch (e) {
-                console.warn("Error unsubscribing from snapshot:", e);
+            } catch (_e) {
+                // Silently ignore unsubscribe errors
             }
         };
     }, [collectionName, constraintsKey, stableConstraints, shouldUseRealtime, isEnabled, logError, demoMode]);
@@ -449,7 +449,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
                     }
                 );
             } catch (err) {
-                console.error("Error setting up document listener:", err);
+                if (logError) ErrorLogger.error(err, `useFirestoreDocument.setup.${collectionName}.${docId}`);
                 if (isMounted) setRealtimeLoading(false);
             }
 
@@ -458,8 +458,8 @@ export const useFirestoreDocument = <T extends { id: string }>(
                 timeouts.forEach(window.clearTimeout);
                 try {
                     unsubscribe();
-                } catch (e) {
-                    console.warn("Error unsubscribing from document snapshot:", e);
+                } catch (_e) {
+                    // Silently ignore unsubscribe errors
                 }
             };
         }

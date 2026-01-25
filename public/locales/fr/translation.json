@@ -1051,6 +1051,7 @@
     "billedYearly": "Facturé annuellement (-20%)",
     "discount": "-20%",
     "compare": "Comparer les plans",
+    "subscriptionError": "Erreur lors de l'initialisation du paiement. Veuillez réessayer.",
     "faq": "FAQ",
     "faqDesc": "Questions fréquentes",
     "faq1_q": "Puis-je changer de plan plus tard ?",

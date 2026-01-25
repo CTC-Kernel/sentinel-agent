@@ -10,6 +10,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useStore } from '../store';
 import { useAuth } from './useAuth';
 import { FAIRService } from '../services/FAIRService';
+import { ErrorLogger } from '../services/errorLogger';
 import { MonteCarloService } from '../services/MonteCarloService';
 import type {
   FAIRModelConfig,
@@ -74,7 +75,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
         : await FAIRService.getConfigurations(organization.id);
       setConfigurations(configs);
     } catch (err) {
-      console.error('Error loading FAIR configurations:', err);
+      ErrorLogger.error(err, 'useFAIR.loadConfigurations');
       setError('Failed to load configurations');
     } finally {
       setLoading(false);
@@ -105,7 +106,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
           setSimulationResults(null);
         }
       } catch (err) {
-        console.error('Error loading configuration:', err);
+        ErrorLogger.error(err, 'useFAIR.selectConfiguration');
         setError('Failed to load configuration');
       } finally {
         setLoading(false);
@@ -135,7 +136,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
         await selectConfiguration(configId);
         return configId;
       } catch (err) {
-        console.error('Error creating configuration:', err);
+        ErrorLogger.error(err, 'useFAIR.createConfiguration');
         setError('Failed to create configuration');
         throw err;
       } finally {
@@ -166,7 +167,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
         await selectConfiguration(configId);
         return configId;
       } catch (err) {
-        console.error('Error creating configuration:', err);
+        ErrorLogger.error(err, 'useFAIR.createConfiguration');
         setError('Failed to create configuration');
         throw err;
       } finally {
@@ -197,7 +198,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
         await selectConfiguration(configId);
         return configId;
       } catch (err) {
-        console.error('Error creating configuration:', err);
+        ErrorLogger.error(err, 'useFAIR.createConfiguration');
         setError('Failed to create configuration');
         throw err;
       } finally {
@@ -229,7 +230,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
         await selectConfiguration(configId);
         return configId;
       } catch (err) {
-        console.error('Error creating from preset:', err);
+        ErrorLogger.error(err, 'useFAIR.createFromPreset');
         setError('Failed to create from preset');
         throw err;
       } finally {
@@ -256,7 +257,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
           await selectConfiguration(configId);
         }
       } catch (err) {
-        console.error('Error updating configuration:', err);
+        ErrorLogger.error(err, 'useFAIR.updateConfiguration');
         setError('Failed to update configuration');
         throw err;
       } finally {
@@ -284,7 +285,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
         }
         await loadConfigurations();
       } catch (err) {
-        console.error('Error deleting configuration:', err);
+        ErrorLogger.error(err, 'useFAIR.deleteConfiguration');
         setError('Failed to delete configuration');
         throw err;
       } finally {
@@ -313,7 +314,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
         await loadConfigurations();
         return newConfigId;
       } catch (err) {
-        console.error('Error duplicating configuration:', err);
+        ErrorLogger.error(err, 'useFAIR.duplicateConfiguration');
         setError('Failed to duplicate configuration');
         throw err;
       } finally {
@@ -355,7 +356,7 @@ export function useFAIR(options: UseFAIROptions = {}): UseFAIRReturn {
 
         return savedResults;
       } catch (err) {
-        console.error('Error running simulation:', err);
+        ErrorLogger.error(err, 'useFAIR.runSimulation');
         setError('Failed to run simulation');
         throw err;
       } finally {

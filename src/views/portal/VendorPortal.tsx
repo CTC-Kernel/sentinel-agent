@@ -68,7 +68,7 @@ export const VendorPortal: React.FC = () => {
           setState('questionnaire');
         }
       } catch (err) {
-        console.error('Token validation error:', err);
+        ErrorLogger.error(err, 'VendorPortal.validateToken');
         setError('invalid_token');
         setState('error');
       }
@@ -103,7 +103,7 @@ export const VendorPortal: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error('Failed to load assessment:', err);
+      ErrorLogger.error(err, 'VendorPortal.loadAssessmentData');
       setError('invalid_token');
       setState('error');
     }
@@ -117,7 +117,7 @@ export const VendorPortal: React.FC = () => {
       await loadAssessmentData(access);
       setState('questionnaire');
     } catch (err) {
-      console.error('Failed to load after auth:', err);
+      ErrorLogger.error(err, 'VendorPortal.handleAuthSuccess');
       setError('invalid_token');
       setState('error');
     }

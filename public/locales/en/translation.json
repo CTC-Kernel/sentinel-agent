@@ -1865,6 +1865,7 @@
     "billedYearly": "Billed {price}€ excl. tax per year",
     "free": "Free",
     "compare": "Detailed Comparison",
+    "subscriptionError": "Error initializing payment. Please try again.",
     "compareDesc": "Analyze features in detail.",
     "features": "Features",
     "faq": "FAQ",

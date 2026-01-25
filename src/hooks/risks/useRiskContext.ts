@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { EbiosService } from '../../services/ebiosService';
+import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import type { RiskContext, ApplicableRegulation, ScaleDefinition } from '../../types/ebios';
 
@@ -90,7 +91,7 @@ export function useRiskContext(): UseRiskContextReturn {
         setError(null);
       } catch (err) {
         setError('Erreur lors du chargement du contexte de risque');
-        console.error('Error fetching risk context:', err);
+        ErrorLogger.error(err, 'useRiskContext.fetchContext');
       } finally {
         setLoading(false);
       }
@@ -102,7 +103,7 @@ export function useRiskContext(): UseRiskContextReturn {
   // Initialize context with defaults
   const initializeContext = useCallback(async (): Promise<RiskContext | null> => {
     if (!organizationId) {
-      console.error('Impossible d\'initialiser le contexte: OrganizationID manquant');
+      ErrorLogger.warn('Missing organizationId for context init', 'useRiskContext.initializeContext');
       setError('Impossible d\'initialiser le contexte: Organisation non identifiée');
       return null;
     }
@@ -131,7 +132,7 @@ export function useRiskContext(): UseRiskContextReturn {
       return newContext;
     } catch (err) {
       setError('Erreur lors de l\'initialisation du contexte');
-      console.error('Error initializing risk context:', err);
+      ErrorLogger.error(err, 'useRiskContext.initializeContext');
       return null;
     } finally {
       setLoading(false);
@@ -153,7 +154,7 @@ export function useRiskContext(): UseRiskContextReturn {
       setError(null);
     } catch (err) {
       setError('Erreur lors de la sauvegarde');
-      console.error('Error saving risk context:', err);
+      ErrorLogger.error(err, 'useRiskContext.saveContext');
       throw err;
     }
   }, [organizationId, riskContext]);
@@ -245,7 +246,7 @@ export function useRiskContext(): UseRiskContextReturn {
       setError(null);
     } catch (err) {
       setError('Erreur lors du rafraîchissement');
-      console.error('Error refreshing risk context:', err);
+      ErrorLogger.error(err, 'useRiskContext.refreshContext');
     } finally {
       setLoading(false);
     }

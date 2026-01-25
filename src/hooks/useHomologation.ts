@@ -10,6 +10,7 @@ import { useFirestoreCollection } from './useFirestore';
 import { useStore } from '../store';
 import { useAuth } from './useAuth';
 import { HomologationService } from '../services/HomologationService';
+import { ErrorLogger } from '../services/errorLogger';
 import type {
   HomologationDossier,
   HomologationLevel,
@@ -175,7 +176,7 @@ export const useHomologation = (
         );
         return dossier.id;
       } catch (error) {
-        console.error('Error creating dossier:', error);
+        ErrorLogger.error(error, 'useHomologation.createDossier');
         throw error;
       }
     },

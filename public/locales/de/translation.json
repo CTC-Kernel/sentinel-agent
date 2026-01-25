@@ -1348,6 +1348,7 @@
     "billedYearly": "Abrechnung {price}€ zzgl. MwSt. pro Jahr",
     "free": "Kostenlos",
     "compare": "Detaillierter Vergleich",
+    "subscriptionError": "Fehler beim Initialisieren der Zahlung. Bitte versuchen Sie es erneut.",
     "compareDesc": "Funktionen im Detail analysieren.",
     "features": "Funktionen",
     "faq": "FAQ",

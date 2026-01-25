@@ -6,6 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { serverTimestamp } from 'firebase/firestore';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 import type { ControlEffectivenessAssessment, DomainMaturityScore } from '../../types/ebios';
 import { ISO_DOMAINS } from '../../data/complianceData';
 import { useFirestoreCollection } from '../useFirestore';
@@ -161,7 +162,7 @@ export function useControlEffectiveness(): UseControlEffectivenessReturn {
       }
       return null;
     } catch (e) {
-      console.error(e);
+      ErrorLogger.error(e, 'useControlEffectiveness.createAssessment');
       return null;
     }
   }, [addAssessmentDoc, organizationId, uid]);
