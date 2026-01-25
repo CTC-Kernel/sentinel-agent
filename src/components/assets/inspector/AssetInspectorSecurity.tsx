@@ -135,7 +135,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                 ) : (
                     <div className="grid gap-4">
                         {linkedRisks.map(risk => (
-                            <div key={risk.id} className="p-5 glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
+                            <div key={risk.id} className="p-5 glass-panel-lite rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
                                     <span className={`text-[10px] px-2 py-1 rounded-lg font-bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'}`}>Score {risk.score}</span>
@@ -167,7 +167,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                 ) : (
                     <div className="grid gap-4">
                         {linkedIncidents.map(inc => (
-                            <div key={inc.id} className="p-5 glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
+                            <div key={inc.id} className="p-5 glass-panel-lite rounded-3xl border border-white/60 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span>
                                     <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{inc.status}</span>

@@ -63,6 +63,7 @@ import {
 } from 'recharts';
 import { SENTINEL_PALETTE, CHART_STYLES } from '../../theme/chartTheme';
 import { EnrollAgentModal } from './EnrollAgentModal';
+import { AgentDetailsModal } from './AgentDetailsModal';
 
 // Types for release info
 interface PlatformInfo {
@@ -290,6 +291,7 @@ export const AgentManagement: React.FC = () => {
     const [agents, setAgents] = useState<SentinelAgent[]>([]);
     const [loading, setLoading] = useState(true);
     const [showEnrollment, setShowEnrollment] = useState(false);
+    const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
     const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
     const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
     const [loadingReleases, setLoadingReleases] = useState(true);
@@ -979,7 +981,11 @@ export const AgentManagement: React.FC = () => {
                                         agents.map((agent) => {
                                             const styles = getStatusStyles(agent.status);
                                             return (
-                                                <tr key={agent.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                                <tr
+                                                    key={agent.id}
+                                                    onClick={() => setSelectedAgentId(agent.id)}
+                                                    className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                                >
                                                     <td className="px-6 py-5">
                                                         <div className="flex items-center gap-3">
                                                             <div className={cn("w-2 h-2 rounded-full", styles.bg)} />
@@ -1010,7 +1016,10 @@ export const AgentManagement: React.FC = () => {
                                                     </td>
                                                     <td className="px-6 py-5 text-right">
                                                         <button
-                                                            onClick={() => handleDelete(agent.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDelete(agent.id);
+                                                            }}
                                                             aria-label="Supprimer"
                                                             className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                                         >
@@ -1616,6 +1625,16 @@ export const AgentManagement: React.FC = () => {
                 enrollmentToken={enrollmentToken}
                 releaseInfo={releaseInfo}
                 loadingReleases={loadingReleases}
+            />
+
+            <AgentDetailsModal
+                isOpen={!!selectedAgentId}
+                onClose={() => setSelectedAgentId(null)}
+                agentId={selectedAgentId}
+                initialAgent={agents.find(a => a.id === selectedAgentId)}
+                onAgentUpdated={() => {
+                    // Refresh via subscription
+                }}
             />
         </div>
 

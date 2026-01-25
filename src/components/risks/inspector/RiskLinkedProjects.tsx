@@ -29,7 +29,7 @@ export const RiskLinkedProjects: React.FC<RiskLinkedProjectsProps> = ({
             </div>
             <div className="grid gap-4">
                 {linkedProjects.length === 0 ? <p className="text-sm text-slate-500 italic">Aucun projet.</p> : linkedProjects.map(p => (
-                    <div key={p.id} className="glass-panel p-4">{p.name}</div>
+                    <div key={p.id} className="glass-panel-lite p-4">{p.name}</div>
                 ))}
             </div>
         </div>
