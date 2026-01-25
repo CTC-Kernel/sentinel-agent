@@ -5,7 +5,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SignatureService } from '../signatureService';
-import type { SignatureRequest, SignerInfo } from '../../types/signature';
 import { Timestamp } from 'firebase/firestore';
 
 // Mock Firebase
@@ -34,7 +33,7 @@ vi.mock('firebase/firestore', () => ({
     query: vi.fn(),
     where: vi.fn(),
     orderBy: vi.fn(),
-    onSnapshot: vi.fn(() => () => {}),
+    onSnapshot: vi.fn(() => () => { }),
 }));
 
 vi.mock('firebase/functions', () => ({

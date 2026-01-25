@@ -246,6 +246,23 @@
     },
     "emptyState": {
       "noComments": "Aucun commentaire pour le moment."
+    },
+    "errors": {
+      "generic": "Une erreur est survenue",
+      "loading": "Erreur lors du chargement",
+      "saving": "Erreur lors de la sauvegarde",
+      "deleting": "Erreur lors de la suppression",
+      "creating": "Erreur lors de la création",
+      "updating": "Erreur lors de la mise à jour",
+      "connecting": "Erreur de connexion",
+      "permissionDenied": "Permission refusée",
+      "notFound": "Élément non trouvé",
+      "invalidData": "Données invalides",
+      "networkError": "Erreur réseau",
+      "timeout": "Délai d'attente dépassé",
+      "unauthorized": "Non autorisé",
+      "serverError": "Erreur serveur",
+      "missingOrgId": "ID d'organisation manquant"
     }
   },
   "admin": {

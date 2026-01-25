@@ -27,6 +27,8 @@ export interface RiskActiveFilters {
 /** Matrix cell selection filter */
 export type RiskMatrixFilter = { p: number; i: number } | null;
 
+type RiskTabType = 'overview' | 'context' | 'financial' | 'ebios' | 'list' | 'matrix';
+
 interface RiskTabsContentProps {
     activeTab: string;
     loading: boolean;
@@ -137,7 +139,7 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
                     onSearchChange={(q) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, query: q }))}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    activeTab={activeTab as any}
+                    activeTab={activeTab as RiskTabType}
                     frameworkFilter={frameworkFilter}
                     setFrameworkFilter={setFrameworkFilter}
                     showAdvancedSearch={showAdvancedSearch}
