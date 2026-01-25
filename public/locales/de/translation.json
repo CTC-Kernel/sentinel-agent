@@ -1333,5 +1333,186 @@
     "technicalInfo": "Technische Informationen",
     "unknownError": "Unbekannter Fehler",
     "retry": "Erneut versuchen"
+  },
+  "pricing": {
+    "title": "Abonnement",
+    "subtitle": "Leistungsstarke Tools für Ihre Compliance, angepasst an Ihr Wachstum.",
+    "monthly": "Monatlich",
+    "annual": "Jährlich",
+    "discount": "-20%",
+    "popular": "Beliebt",
+    "startFree": "Kostenlos starten",
+    "choose": "Diesen Plan wählen",
+    "included": "Enthält:",
+    "htMonth": "zzgl. MwSt./Monat",
+    "billedYearly": "Abrechnung {price}€ zzgl. MwSt. pro Jahr",
+    "free": "Kostenlos",
+    "compare": "Detaillierter Vergleich",
+    "compareDesc": "Funktionen im Detail analysieren.",
+    "features": "Funktionen",
+    "faq": "FAQ",
+    "faqDesc": "Häufig gestellte Fragen",
+    "faq1_q": "Kann ich später den Plan wechseln?",
+    "faq1_a": "Absolut. Sie können Ihren Plan jederzeit über Ihre Admin-Oberfläche upgraden oder downgraden. Änderungen werden sofort wirksam.",
+    "faq2_q": "Welche Zahlungsmethoden werden akzeptiert?",
+    "faq2_a": "Wir akzeptieren alle gängigen Kreditkarten (Visa, Mastercard, Amex) und SEPA-Überweisungen für Jahrespläne.",
+    "faq3_q": "Sind meine Daten sicher?",
+    "faq3_a": "Ja, Sicherheit ist unsere Priorität. Alle Daten sind während der Übertragung und im Ruhezustand verschlüsselt. Wir werden auf ISO 27001 und SecNumCloud zertifizierter Infrastruktur gehostet.",
+    "contact": {
+      "text": "Benötigen Sie weitere Informationen?",
+      "link": "Kontaktieren Sie uns"
+    },
+    "plans": {
+      "discovery": "Entdeckung",
+      "discoveryDesc": "Starten Sie Ihre ISO 27001-Compliance kostenlos.",
+      "professional": "Professionell",
+      "professionalDesc": "Professionelle Funktionen für wachsende Teams.",
+      "enterprise": "Enterprise",
+      "enterpriseDesc": "Unbegrenzte Leistung für große Organisationen."
+    },
+    "noFeatures": "Keine Funktionen verfügbar",
+    "mobileWarning": "Die Abonnementverwaltung ist nur in der Web-Version von Sentinel GRC verfügbar.",
+    "unlimited": "Unbegrenzt",
+    "featuresList": {
+      "users": "Enthaltene Benutzer",
+      "users_tooltip": "Anzahl der Benutzerkonten, die auf die Plattform zugreifen können.",
+      "assets": "Verwaltete Assets",
+      "assets_tooltip": "Gesamtzahl der Assets (Server, Apps, Personen usw.) im Inventar.",
+      "projects": "Parallele Projekte",
+      "projects_tooltip": "Anzahl der parallel aktiven Compliance- oder Audit-Projekte.",
+      "storage": "Sicherer Speicher",
+      "storage_tooltip": "Speicherplatz für Ihre Richtlinien, Verfahren und Auditnachweise.",
+      "iso27005": "ISO 27005 Methode",
+      "iso27005_tooltip": "Vollständige Risikoanalyse: Bedrohungen, Schwachstellen, Szenarien, Auswirkung/Wahrscheinlichkeit.",
+      "threats": "Bedrohungsbibliothek",
+      "threats_tooltip": "Vorgefüllter Katalog mit Standardbedrohungen und Schwachstellen.",
+      "riskCalc": "Risikoberechnung",
+      "riskCalc_tooltip": "Automatische Berechnung von Brutto- und Restrisiko.",
+      "rtp": "Risikobehandlungsplan (RTP)",
+      "rtp_tooltip": "Verfolgung von Aktionsplänen zur Risikominderung.",
+      "iso27001": "ISO 27001:2022 Compliance",
+      "iso27001_tooltip": "Vollständige Annex A-Verfolgung und SoA-Generierung.",
+      "ai": "KI-Assistent (Sentinel)",
+      "ai_tooltip": "Hilfe beim Schreiben von Richtlinien und Vorschlagen von Sicherheitsmaßnahmen.",
+      "docs": "Dokumentenmanagement",
+      "docs_tooltip": "Dokumentenlebenszyklus, Versionierung und Genehmigung.",
+      "pdfstd": "Standard-PDF-Berichte",
+      "pdfstd_tooltip": "Export von Auditberichten und SoA im PDF-Format.",
+      "pdfwhite": "White-Label-Berichte",
+      "pdfwhite_tooltip": "Entfernen des Sentinel GRC-Logos und Anpassung mit Ihrem Logo.",
+      "templates": "Anpassbare Vorlagen",
+      "templates_tooltip": "Erstellen Sie Ihre eigenen Dokument- und Risikovorlagen.",
+      "support": "E-Mail-Support",
+      "api": "REST-API",
+      "api_tooltip": "Vollständiger API-Zugriff für Automatisierung und Integration.",
+      "sso": "SSO (SAML / OIDC)",
+      "sso_tooltip": "Single Sign-On mit Ihrem Unternehmens-Identitätsanbieter.",
+      "auditLogs": "Erweiterte Audit-Protokolle",
+      "auditLogs_tooltip": "Vollständige Rückverfolgbarkeit von Benutzeraktionen für Compliance.",
+      "onboarding": "Begleitetes Onboarding",
+      "onboarding_tooltip": "Persönliche Unterstützung bei der Ersteinrichtung."
+    }
+  },
+  "team": {
+    "title": "Team",
+    "subtitle": "Verwalten Sie die Mitglieder von {org}.",
+    "tabs": {
+      "members": "Mitglieder",
+      "roles": "Rollen & Berechtigungen",
+      "groups": "Gruppen"
+    },
+    "stats": {
+      "activityRate": "Aktivitätsrate",
+      "activityDesc": "Aktive Benutzer in den letzten 30 Tagen.",
+      "total": "Gesamt",
+      "active": "Aktiv",
+      "admins": "Admins",
+      "guests": "Gäste",
+      "requests": "Anfragen",
+      "pending": "Ausstehend"
+    },
+    "actions": {
+      "exportCsv": "CSV exportieren",
+      "importCsv": "CSV importieren",
+      "invite": "Mitglied einladen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "cancel": "Abbrechen"
+    },
+    "invite": {
+      "title": "Mitarbeiter einladen",
+      "subtitle": "Er wird {org} beitreten.",
+      "email": "E-Mail-Adresse",
+      "emailPlaceholder": "mitarbeiter@firma.de",
+      "role": "Zugewiesene Rolle",
+      "selectRole": "Rolle auswählen...",
+      "send": "Einladung senden",
+      "success": "Einladung gesendet",
+      "error": "Fehler beim Senden der Einladung"
+    },
+    "columns": {
+      "member": "Mitglied",
+      "email": "E-Mail",
+      "role": "Rolle",
+      "status": "Status",
+      "lastActivity": "Letzte Aktivität",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "pending": "Ausstehend"
+    },
+    "delete": {
+      "title": "Mitglied entfernen?",
+      "message": "Sind Sie sicher, dass Sie dieses Mitglied aus der Organisation entfernen möchten?",
+      "success": "Mitglied entfernt",
+      "error": "Fehler beim Entfernen"
+    },
+    "empty": {
+      "title": "Keine Mitglieder",
+      "description": "Laden Sie Ihr Team ein, um zusammenzuarbeiten."
+    }
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "subtitle": "Bleiben Sie über wichtige Aktivitäten informiert.",
+    "markAll": "Alle als gelesen markieren",
+    "searchPlaceholder": "Benachrichtigungen suchen...",
+    "filter": {
+      "all": "Alle",
+      "unread": "Ungelesen"
+    },
+    "empty": {
+      "title": "Keine Benachrichtigungen",
+      "desc": "Sie sind auf dem neuesten Stand! Keine neuen Aktivitäten zu melden.",
+      "descSearch": "Keine Ergebnisse für Ihre Suche."
+    },
+    "viewDetails": "Details anzeigen"
+  },
+  "activity": {
+    "title": "Aktivitätsprotokoll",
+    "subtitle": "Vollständige Rückverfolgbarkeit der Benutzer- und Systemaktionen.",
+    "searchPlaceholder": "Aktivitäten suchen...",
+    "filters": {
+      "all": "Alle Aktionen",
+      "create": "Erstellung",
+      "update": "Änderung",
+      "delete": "Löschung",
+      "login": "Anmeldung"
+    },
+    "columns": {
+      "date": "Datum",
+      "user": "Benutzer",
+      "action": "Aktion",
+      "resource": "Ressource",
+      "details": "Details"
+    },
+    "empty": {
+      "title": "Keine Aktivitäten",
+      "description": "Es wurden noch keine Aktivitäten aufgezeichnet."
+    }
   }
 }

@@ -1,5 +1,5 @@
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants } from '../../ui/animationVariants';
 import { RiskDashboardSkeleton, RiskListSkeleton, RiskMatrixSkeleton, RiskContextSkeleton } from '../RiskSkeletons';
