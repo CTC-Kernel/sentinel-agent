@@ -429,7 +429,7 @@ const ThreatRegistryCard = React.memo(({
                 </div>
 
                 <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/10' : 'bg-purple-50 text-purple-500 dark:bg-purple-500/10'}`}>
+                    <div className={`p-3 rounded-xl ${threat.source === 'Standard' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10' : 'bg-purple-50 text-purple-700 dark:bg-purple-500/10'}`}>
                         <Shield className="h-6 w-6" />
                     </div>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10 px-2 py-1 rounded-full">

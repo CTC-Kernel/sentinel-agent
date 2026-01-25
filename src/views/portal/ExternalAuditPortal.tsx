@@ -242,7 +242,7 @@ export const ExternalAuditPortal: React.FC = () => {
                                     auditData.documents.map(doc => (
                                         <div key={doc.id} className="p-4 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors group">
                                             <div className="flex items-start justify-between mb-2">
-                                                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                                <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
                                                     <FileText className="w-5 h-5" />
                                                 </div>
                                                 <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 px-2 py-1 rounded">{doc.type}</span>

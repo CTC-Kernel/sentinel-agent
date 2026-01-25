@@ -58,7 +58,7 @@ const getStrategyStyles = (strategy: string) => {
         case 'Atténuer':
             return {
                 icon: ShieldCheck,
-                color: 'text-blue-600 dark:text-blue-400',
+                color: 'text-blue-700 dark:text-blue-400',
                 bg: 'bg-blue-50 dark:bg-blue-900/20',
                 border: 'border-blue-100 dark:border-blue-800/50',
                 badge: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-100 dark:border-blue-800'

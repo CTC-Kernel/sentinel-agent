@@ -130,7 +130,7 @@ export const AdminDashboard: React.FC = () => {
             <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-700 dark:text-blue-400">
                             <Building className="h-6 w-6" />
                         </div>
                         <div>
@@ -141,7 +141,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400">
+                        <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-700 dark:text-emerald-400">
                             <Users className="h-6 w-6" />
                         </div>
                         <div>
@@ -152,7 +152,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="glass-premium p-4 sm:p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 dark:text-purple-400">
+                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-700 dark:text-purple-400">
                             <Activity className="h-6 w-6" />
                         </div>
                         <div>
