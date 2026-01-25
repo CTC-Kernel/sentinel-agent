@@ -221,18 +221,15 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       className={({ isActive }) => `
                          group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight 
                          transition-all duration-200 active:duration-75 active:scale-95 ease-out
-                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 overflow-hidden
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 overflow-hidden
                          ${isActive
-                          ? 'bg-primary/10 text-primary font-bold border border-primary/10 shadow-sm backdrop-blur-md'
+                          ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25'
                           : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:translate-x-1 active:bg-slate-100/50 dark:active:bg-white/5'}
                        `}
                     >
                       {({ isActive }) => (
                         <>
-                          {/* Active Indicator Glow */}
-                          {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary shadow-[0_0_10px_2px_hsl(var(--primary)/0.3)]" />}
-
-                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-primary bg-primary/10' : `${groupIconColor} group-hover:text-foreground`}`}>
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white bg-white/20' : `${groupIconColor} group-hover:text-foreground`}`}>
                             <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                           </span>
                           <span className="flex-1 truncate relative z-10">{item.name}</span>

@@ -182,7 +182,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
         <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-gradient-to-r from-brand-50 to-brand-100 dark:bg-slate-950/95 dark:from-transparent dark:to-transparent backdrop-blur-xl p-6 rounded-t-2xl rounded-b-none border border-brand-200/50 dark:border-brand-700/50 border-b-0 shadow-[0_-10px_40px_-15px_rgba(59,130,246,0.15)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-brand-500/10 to-brand-600/10 rounded-xl text-brand-600 dark:text-brand-400 shadow-lg border border-brand-200/20">
+                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 shadow-lg border border-slate-200/50 dark:border-slate-700/50">
                         <Rocket className="h-5 w-5" />
                     </div>
                     <div>

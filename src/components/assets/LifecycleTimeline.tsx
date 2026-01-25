@@ -56,7 +56,7 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
                                 w-10 h-10 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10
                                 ${isCompleted
                                     ? 'bg-brand-500 border-brand-100 dark:border-brand-900 text-white'
-                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-300'
+                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-400'
                                 }
                                 ${isCurrent ? 'scale-110 shadow-lg shadow-brand-500/30' : ''}
                             `}>

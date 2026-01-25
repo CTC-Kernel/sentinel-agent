@@ -106,8 +106,8 @@ export const SecuritySettings: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fade-in-up">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 col-span-1 md:col-span-2">{t('settings.security')}</h2>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
-                <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-brand-100 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
+                <div className="p-6 border-b border-brand-100/50 dark:border-slate-700/50 bg-brand-50/30 dark:bg-brand-900/10">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-lg text-brand-600 dark:text-brand-400">
                             <Key className="w-5 h-5" />
@@ -143,8 +143,8 @@ export const SecuritySettings: React.FC = () => {
             </div>
 
             {/* MFA Settings */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
-                <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-brand-100 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
+                <div className="p-6 border-b border-brand-100/50 dark:border-slate-700/50 bg-brand-50/30 dark:bg-brand-900/10">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-success-100 dark:bg-success-900/30 rounded-lg text-success-600 dark:text-success-400">
                             <ShieldAlert className="w-5 h-5" />

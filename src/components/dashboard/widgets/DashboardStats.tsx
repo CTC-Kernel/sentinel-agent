@@ -91,7 +91,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
                 {/* Premium AI Background Image */}
                 <div className="absolute right-0 top-0 h-full w-1/2 pointer-events-none z-0 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-white/95 dark:to-slate-900/95 z-10" />
+
                     <img
                         src="/images/IA.png"
                         alt=""
@@ -102,14 +102,14 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 <div className="p-6 h-full flex flex-col justify-between">
                     <div className="flex items-start justify-between mb-4 relative z-10">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 shadow-sm shadow-brand-500/10">
-                                <BrainCircuit className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+                            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                                <BrainCircuit className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
                                     Sentinel AI Analysis
                                 </h3>
-                                <p className="text-xs font-medium text-brand-700 dark:text-brand-300">
+                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                                     Synthèse de posture temps réel
                                 </p>
                             </div>

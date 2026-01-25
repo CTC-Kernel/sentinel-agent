@@ -78,24 +78,17 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         className={cn(
                                             "group flex items-center w-full px-4 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset",
                                             isActive
-                                                ? "bg-brand-500/10 text-brand-700 dark:text-brand-300 shadow-sm border border-brand-500/10"
+                                                ? "bg-brand-500 text-white shadow-md shadow-brand-500/20"
                                                 : "text-slate-500 dark:text-slate-400 hover:bg-slate-50/80 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
                                         <tab.icon className={cn(
                                             "w-5 h-5 mr-3 transition-colors",
                                             isActive
-                                                ? "text-brand-600 dark:text-brand-400"
+                                                ? "text-white"
                                                 : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
                                         )} />
                                         <span className="flex-1">{tab.label}</span>
-                                        {isActive && (
-                                            <motion.div
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                className="bg-brand-600 w-1.5 h-1.5 rounded-full"
-                                            />
-                                        )}
                                         {!isActive && (
                                             <ChevronRight className="w-4 h-4 text-muted-foreground -ml-4 opacity-0 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" />
                                         )}

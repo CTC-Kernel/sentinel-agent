@@ -201,7 +201,7 @@ export const Search: React.FC = () => {
                                             Score: {result.score}
                                         </span>
                                     )}
-                                    <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-brand-500 group-hover:translate-x-1 transition-all" />
+                                    <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-brand-500 group-hover:translate-x-1 transition-all" />
                                 </div>
                             </div>
                         </div>

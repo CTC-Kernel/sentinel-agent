@@ -316,8 +316,8 @@ export const ProfileSettings: React.FC = () => {
                                 </p>
                             </div>
 
-                            <div className={`flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 ${user?.mfaEnabled ? 'bg-success-bg border-success-border/30 shadow-sm' : 'bg-slate-50 dark:bg-white/5 border-border/50'}`}>
-                                <div className={`p-3 rounded-2xl shadow-sm ${user?.mfaEnabled ? 'bg-success-bg text-success-text' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                            <div className={`flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 ${user?.mfaEnabled ? 'bg-success-bg border-success-border/30 shadow-sm' : 'bg-brand-50/30 dark:bg-white/5 border-brand-200/50 dark:border-white/10'}`}>
+                                <div className={`p-3 rounded-2xl shadow-sm ${user?.mfaEnabled ? 'bg-success-bg text-success-text' : 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400'}`}>
                                     <ShieldCheck className="w-6 h-6" />
                                 </div>
                                 <div className="flex-1">
@@ -351,8 +351,8 @@ export const ProfileSettings: React.FC = () => {
                                     { key: 'tasks', label: t('common.tasks') },
                                     { key: 'system', label: t('common.system') }
                                 ] as const).map((category) => (
-                                    <div key={category.key} className="p-5 rounded-3xl bg-slate-50/50 dark:bg-white/5 border border-border/50 shadow-apple-sm group/notif hover:bg-white dark:hover:bg-slate-900 transition-all">
-                                        <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 group-hover/notif:text-brand-500 transition-colors">{category.label}</h4>
+                                    <div key={category.key} className="p-5 rounded-3xl bg-brand-50/30 dark:bg-white/5 border border-brand-200/50 dark:border-white/10 shadow-sm group/notif hover:bg-brand-50/50 dark:hover:bg-white/10 transition-all">
+                                        <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 group-hover/notif:text-brand-600 transition-colors">{category.label}</h4>
                                         <div className="flex gap-6 flex-wrap">
                                             <Controller
                                                 name={`notificationPreferences.${category.key}.email`}
@@ -400,7 +400,7 @@ export const ProfileSettings: React.FC = () => {
                                     Activez le mode démo pour explorer l'application avec des données fictives complètes.
                                 </p>
                             </div>
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-brand-50/30 dark:bg-white/5 border border-brand-200/50 dark:border-white/10">
                                 <Switch
                                     checked={demoMode}
                                     onChange={() => {

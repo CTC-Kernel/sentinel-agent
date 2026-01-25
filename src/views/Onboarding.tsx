@@ -507,7 +507,7 @@ export const Onboarding: React.FC = () => {
                                         <input value={searchQuery}
                                             aria-label={t('onboarding.actions.search')}
                                             type="text"
-                                            className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus-visible:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500"
+                                            className="w-full pl-12 pr-4 py-3.5 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl focus:ring-2 focus-visible:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500 shadow-inner"
                                             placeholder={t('onboarding.actions.search') + "..."}
                                             onChange={e => setSearchQuery(e.target.value)}
                                         />
@@ -525,7 +525,7 @@ export const Onboarding: React.FC = () => {
                                     {/* Results Logic */}
                                     <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
                                         {searchResults.map(org => (
-                                            <div key={org.id} className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                                            <div key={org.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/5 backdrop-blur-sm">
                                                 <div>
                                                     <h4 className="font-bold text-slate-900 dark:text-white">{org.name}</h4>
                                                     <p className="text-xs text-slate-600">{org.industry || 'Non spécifié'}</p>
@@ -561,7 +561,7 @@ export const Onboarding: React.FC = () => {
                                         aria-label={t('onboarding.actions.home')}
                                         onClick={() => window.location.reload()}
                                         variant="outline"
-                                        className="mt-8 px-6 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors h-auto"
+                                        className="mt-8 px-6 py-3 bg-white/40 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl font-bold text-sm hover:bg-white/60 dark:hover:bg-white/20 transition-colors h-auto border-white/20"
                                     >
                                         {t('onboarding.actions.home')}
                                     </Button>
@@ -572,7 +572,7 @@ export const Onboarding: React.FC = () => {
                                     variant="ghost"
                                     aria-label={t('onboarding.actions.back')}
                                     onClick={() => setMode('select')}
-                                    className="w-full py-4 text-muted-foreground hover:text-foreground dark:hover:text-slate-300 font-bold transition-colors h-auto"
+                                    className="w-full py-4 text-muted-foreground hover:text-foreground dark:hover:text-slate-300 font-bold transition-colors h-auto hover:bg-white/20 dark:hover:bg-white/5 rounded-2xl"
                                 >
                                     {t('onboarding.actions.back')}
                                 </Button>
@@ -679,7 +679,7 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     )}
 
-                                    <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <div className="flex items-start gap-3 p-4 bg-white/40 dark:bg-white/5 rounded-2xl border border-white/20 dark:border-white/5 shadow-inner">
                                         <div className="flex items-center h-5 mt-0.5">
                                             <input
                                                 aria-label={t('onboarding.form.terms')}
@@ -702,7 +702,7 @@ export const Onboarding: React.FC = () => {
                                                 aria-label="Retour à l'étape précédente"
                                                 type="button"
                                                 onClick={() => setMode('select')}
-                                                className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto"
+                                                className="w-1/3 py-4 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-white/20 dark:hover:bg-white/5 transition-colors h-auto border border-transparent hover:border-white/20"
                                             >
                                                 {t('onboarding.actions.back')}
                                             </Button>
@@ -790,7 +790,7 @@ export const Onboarding: React.FC = () => {
                                                 aria-label="Retour à l'étape 1"
                                                 onClick={() => setStep(1)}
                                                 variant="ghost"
-                                                className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto"
+                                                className="w-1/3 py-4 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-white/20 dark:hover:bg-white/5 transition-colors h-auto border border-transparent hover:border-white/20"
                                             >
                                                 {t('onboarding.actions.back')}
                                             </Button>

@@ -487,7 +487,7 @@ export const OrganizationSettings: React.FC = () => {
                                 placeholder={t('settings.searchMembers')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-2 bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-500/20 w-48 transition-all focus:w-64"
+                                className="pl-9 pr-4 py-2 bg-brand-50/50 dark:bg-white/5 border border-brand-200/50 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus-visible:ring-brand-500/20 w-48 transition-all focus:w-64 placeholder:text-slate-400"
                             />
                         </div>
                     </div>

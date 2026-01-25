@@ -133,11 +133,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         if (!weather) return <Sun className={`${baseClass} text-amber-400`} />;
         switch (weather.icon) {
             case 'sun': return <Sun className={`${baseClass} text-amber-400 animate-pulse-slow`} />;
-            case 'cloud': return <Cloud className={`${baseClass} text-slate-400`} />;
-            case 'rain': return <CloudRain className={`${baseClass} text-blue-400`} />;
-            case 'snow': return <CloudSnow className={`${baseClass} text-sky-300`} />;
-            case 'storm': return <CloudLightning className={`${baseClass} text-purple-400`} />;
-            default: return <Sun className={`${baseClass} text-amber-400`} />;
+            case 'cloud': return <Cloud className={`${baseClass} text-slate-500`} />;
+            case 'rain': return <CloudRain className={`${baseClass} text-blue-500`} />;
+            case 'snow': return <CloudSnow className={`${baseClass} text-sky-500`} />;
+            case 'storm': return <CloudLightning className={`${baseClass} text-purple-500`} />;
+            default: return <Sun className={`${baseClass} text-amber-500`} />;
         }
     };
 
@@ -198,10 +198,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             iconText: 'text-success-text'
         },
         purple: {
-            bg: 'bg-brand-500/10',
-            bgHover: 'group-hover/card:bg-brand-500/20',
-            iconBg: 'bg-brand-500/10 shadow-sm ring-1 ring-inset ring-brand-500/30',
-            iconText: 'text-brand-600 dark:text-brand-400'
+            bg: 'bg-slate-100 dark:bg-slate-800',
+            bgHover: 'group-hover/card:bg-slate-200 dark:group-hover/card:bg-slate-700',
+            iconBg: 'bg-slate-100 dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-200 dark:ring-slate-700',
+            iconText: 'text-slate-600 dark:text-slate-400'
         }
     };
 
@@ -375,7 +375,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <span className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
                                             {currentTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                                         </span>
-                                        <span className="text-lg font-bold text-slate-400 dark:text-slate-500 tabular-nums">
+                                        <span className="text-lg font-bold text-slate-500 dark:text-slate-500 tabular-nums">
                                             {currentTime.toLocaleTimeString(undefined, { second: '2-digit' }).slice(-2)}
                                         </span>
                                     </div>
@@ -411,7 +411,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                                 className={`p-2.5 rounded-xl transition-all duration-300 ${isEditing
                                                     ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30'
                                                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50'
-                                                }`}
+                                                    }`}
                                                 aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
                                             >
                                                 {isEditing ? <Check className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
