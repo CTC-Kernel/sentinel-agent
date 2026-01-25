@@ -446,6 +446,8 @@ jobs:
           echo "DMG created: $DMG_PATH"
 
       - name: Notarize DMG
+        continue-on-error: true
+        timeout-minutes: 15
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
@@ -454,17 +456,20 @@ jobs:
           DMG_PATH=$(ls target/release/*.dmg | head -1)
           echo "Notarizing $DMG_PATH..."
 
-          # Submit for notarization
-          xcrun notarytool submit "$DMG_PATH" \
+          # Submit for notarization with timeout
+          if xcrun notarytool submit "$DMG_PATH" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_APP_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
-            --wait
+            --wait --timeout 10m; then
 
-          # Staple the ticket
-          xcrun stapler staple "$DMG_PATH"
-
-          echo "Notarization complete!"
+            # Staple the ticket
+            xcrun stapler staple "$DMG_PATH"
+            echo "Notarization complete!"
+          else
+            echo "::warning::Notarization failed or timed out. DMG is still signed and usable."
+            echo "Users may see a warning on first launch. Run 'xcrun stapler staple' manually after notarization completes."
+          fi
 
       - name: Generate checksum
         run: |
