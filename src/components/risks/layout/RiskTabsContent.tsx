@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants } from '../../ui/animationVariants';
 import { RiskDashboardSkeleton, RiskListSkeleton, RiskMatrixSkeleton, RiskContextSkeleton } from '../RiskSkeletons';
@@ -24,14 +24,8 @@ export interface RiskActiveFilters {
     criticality: string[] | null;
 }
 
-/** Matrix-specific filter options */
-export interface RiskMatrixFilter {
-    showInherent: boolean;
-    showResidual: boolean;
-    highlightTreatment: boolean;
-}
-
-type RiskTabType = 'overview' | 'context' | 'financial' | 'ebios' | 'list' | 'matrix';
+/** Matrix cell selection filter */
+export type RiskMatrixFilter = { p: number; i: number } | null;
 
 interface RiskTabsContentProps {
     activeTab: string;
@@ -114,9 +108,9 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
             case 'ebios':
                 return (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="ebios-tab" role="tabpanel">
-                        <React.Suspense fallback={<RiskListSkeleton />}>
+                        <Suspense fallback={<RiskListSkeleton />}>
                             <EbiosAnalyses />
-                        </React.Suspense>
+                        </Suspense>
                     </motion.div>
                 );
             default:
@@ -143,7 +137,7 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
                     onSearchChange={(q) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, query: q }))}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    activeTab={activeTab as RiskTabType}
+                    activeTab={activeTab as any}
                     frameworkFilter={frameworkFilter}
                     setFrameworkFilter={setFrameworkFilter}
                     showAdvancedSearch={showAdvancedSearch}
@@ -203,14 +197,14 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
 
             {activeTab === 'matrix' && (
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1 focus:outline-none" role="tabpanel">
-                    <React.Suspense fallback={<RiskMatrixSkeleton />}>
+                    <Suspense fallback={<RiskMatrixSkeleton />}>
                         <RiskMatrix
                             risks={filteredRisks}
                             matrixFilter={matrixFilter}
                             setMatrixFilter={setMatrixFilter}
                             frameworkFilter={frameworkFilter}
                         />
-                    </React.Suspense>
+                    </Suspense>
                 </motion.div>
             )}
         </div>

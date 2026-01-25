@@ -29,7 +29,7 @@ interface RisksToolbarProps {
 
     viewMode: 'list' | 'grid' | 'matrix';
     onViewModeChange: (mode: 'list' | 'grid' | 'matrix') => void;
-    activeTab: 'overview' | 'list' | 'matrix' | 'context' | 'financial';
+    activeTab: 'overview' | 'list' | 'matrix' | 'context' | 'financial' | 'ebios';
 
     frameworkFilter: string;
     setFrameworkFilter: (value: string) => void;

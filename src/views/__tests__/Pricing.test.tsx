@@ -156,7 +156,7 @@ describe('Pricing', () => {
     it('should render pricing title', () => {
         renderComponent();
 
-        expect(screen.getByText('Tarification transparente')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Tarification transparente', level: 1 })).toBeInTheDocument();
     });
 
     it('should render all plan names', () => {
