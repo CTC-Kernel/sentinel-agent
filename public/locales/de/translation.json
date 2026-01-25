@@ -30,6 +30,7 @@
     "adminShort": "Admin",
     "darkMode": "Dunkelmodus",
     "lightMode": "Hellmodus",
+    "projects": "Projekte",
     "mandatory": "Pflicht",
     "settings": {
       "title": "Einstellungen",
@@ -831,7 +832,9 @@
     "createSuccess": "Dokument erfolgreich erstellt",
     "updateSuccess": "Dokument erfolgreich aktualisiert",
     "searchPlaceholder": "Dokumente suchen...",
-    "totalDocuments": "Gesamte Dokumente"
+    "totalDocuments": "Gesamte Dokumente",
+    "overview": "Übersicht",
+    "list": "Liste"
   },
   "projects": {
     "title": "Projekte",

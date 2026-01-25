@@ -40,6 +40,7 @@
     "compliance": "Conformité",
     "smsi": "SMSI",
     "continuity": "Continuité",
+    "projects": "Projets",
     "settings": {
       "title": "Paramètres",
       "organization": "Organisation",
@@ -1498,7 +1499,9 @@
       "evidence": "Preuve",
       "contract": "Contrat"
     },
-    "digitalSafe": "Coffre-fort Numérique"
+    "digitalSafe": "Coffre-fort Numérique",
+    "overview": "Vue d'ensemble",
+    "list": "Liste"
   },
   "incidents": {
     "title": "Gestion des Incidents",

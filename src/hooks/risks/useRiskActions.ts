@@ -17,6 +17,7 @@ import { sanitizeData } from '../../utils/dataSanitizer';
 import { canEditResource } from '../../utils/permissions';
 import { UserProfile } from '../../types';
 import { createRiskDraftSchema, RISK_DRAFT_STATUS, RISK_PUBLISHED_STATUS } from '../../utils/riskDraftSchema';
+import { RiskService } from '../../services/RiskService';
 
 export const useRiskActions = (onRefresh: () => void) => {
     const { t } = useStore();
@@ -47,62 +48,20 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const createRisk = async (data: Partial<Risk>) => {
-        if (!user?.organizationId) return false;
-        if (!canEditResource(user as UserProfile, 'Risk')) {
-            toast.error(t('common.accessDenied'));
-            return false;
-        }
+        if (!user) return false;
 
         setSubmitting(true);
         try {
-            // Business Logic Validation
-            const logicCheck = validateRiskLogic(data);
-            if (!logicCheck.valid) {
-                toast.error(logicCheck.error || t('common.invalidData'));
+            const result = await RiskService.createRisk(user as UserProfile, data);
+
+            if (result.success) {
+                toast.success(t('common.riskCreated'));
+                onRefresh();
+                return true;
+            } else {
+                toast.error(result.error || t('common.error'));
                 return false;
             }
-
-            // Validation Zod
-            const validationResult = riskSchema.safeParse(data);
-            if (!validationResult.success) {
-                const errorMessage = validationResult.error.issues[0]?.message || t('common.invalidData');
-                toast.error(errorMessage);
-                ErrorLogger.warn('Risk validation failed', 'useRiskActions.createRisk', {
-                    metadata: { issues: validationResult.error.issues }
-                });
-                return false;
-            }
-
-            const riskData = sanitizeData({
-                ...data,
-                organizationId: user.organizationId,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                status: data.status || 'Ouvert',
-                owner: user.uid,
-                history: [{
-                    date: new Date().toISOString(),
-                    user: user.displayName || user.email,
-                    action: 'Création du risque',
-                    changes: 'Initialisation',
-                    previousScore: 0,
-                    newScore: 0,
-                    changedBy: user.uid
-                }]
-            });
-
-            await addDoc(collection(db, 'risks'), riskData);
-            toast.success(t('common.riskCreated'));
-            onRefresh();
-            if (user) {
-                logAction(user, 'CREATE_RISK', 'Risk', 'Risque créé');
-            }
-
-            // Notify owner if different from creator
-            if (riskData.owner && riskData.owner !== user.uid) {
-                await NotificationService.notifyRiskAssigned(riskData as unknown as Risk, riskData.owner, user.displayName || user.email || 'Admin');
-            }
-            return true;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.createRisk', 'CREATE_FAILED');
             return false;
@@ -291,59 +250,19 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const updateRisk = async (id: string, data: Partial<Risk>, currentRisk?: Risk) => {
-        if (!canEditResource(user as UserProfile, 'Risk')) return false;
-
-        // SECURITY: IDOR protection - verify risk belongs to user's organization
-        if (currentRisk?.organizationId && currentRisk.organizationId !== user?.organizationId) {
-            ErrorLogger.warn('IDOR attempt: risk update across organizations', 'useRiskActions.updateRisk', {
-                metadata: { attemptedBy: user?.uid, targetRisk: id, targetOrg: currentRisk.organizationId, callerOrg: user?.organizationId }
-            });
-            toast.error('Risque non trouvé');
-            return false;
-        }
-
+        if (!user) return false;
         setSubmitting(true);
         try {
-            // Business Logic Validation
-            const logicCheck = validateRiskLogic({ ...currentRisk, ...data });
-            if (!logicCheck.valid) {
-                toast.error(logicCheck.error || t('common.invalidData'));
+            const result = await RiskService.updateRisk(user as UserProfile, id, data, currentRisk);
+
+            if (result.success) {
+                toast.success(t('common.riskUpdated'));
+                onRefresh();
+                return true;
+            } else {
+                toast.error(result.error || t('common.error'));
                 return false;
             }
-
-            // Validation Zod (Partial for updates)
-            const validationResult = riskSchema.partial().safeParse(data);
-            if (!validationResult.success) {
-                const errorMessage = validationResult.error.issues[0]?.message || t('common.invalidData');
-                toast.error(errorMessage);
-                return false;
-            }
-
-            const riskRef = doc(db, 'risks', id);
-            await updateDoc(riskRef, sanitizeData({
-                ...data,
-                updatedAt: serverTimestamp()
-            }));
-
-            if (user) {
-                // Calculate diffs if currentRisk provided
-                const changes = currentRisk ? getDiff(data, currentRisk as unknown as Record<string, unknown>) : [];
-
-                logAction(
-                    user,
-                    'UPDATE_RISK',
-                    'Risk',
-                    changes.length > 0 ? `Updated ${changes.length} fields` : `Risk updated`,
-                    undefined,
-                    id,
-                    undefined,
-                    changes
-                );
-            }
-
-            toast.success(t('common.riskUpdated'));
-            onRefresh();
-            return true;
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.updateRisk', 'UPDATE_FAILED');
             return false;
@@ -364,40 +283,26 @@ export const useRiskActions = (onRefresh: () => void) => {
         };
     };
 
-    const deleteRisk = async (id: string, name?: string, riskOrganizationId?: string) => {
-        if (!canEditResource(user as UserProfile, 'Risk')) return false;
-
-        // SECURITY: IDOR protection - verify risk belongs to user's organization
-        if (riskOrganizationId && riskOrganizationId !== user?.organizationId) {
-            ErrorLogger.warn('IDOR attempt: risk deletion across organizations', 'useRiskActions.deleteRisk', {
-                metadata: { attemptedBy: user?.uid, targetRisk: id, targetOrg: riskOrganizationId, callerOrg: user?.organizationId }
-            });
-            toast.error('Risque non trouvé');
-            return false;
-        }
-
+    const deleteRisk = async (id: string, _name?: string, riskOrganizationId?: string) => {
+        if (!user) return false;
         setSubmitting(true);
         try {
-            // Secure Deletion (Backend enforces integrity)
-            await FunctionsService.deleteResource('risks', id);
+            // Need a proper risk object for verification, creating a shim if only ID provided
+            // ideally we pass the full risk object, but for backward compatibility we handle id
+            const riskVerify = riskOrganizationId ? { organizationId: riskOrganizationId } as Risk : undefined;
 
-            if (user) {
-                logAction(user, 'DELETE_RISK', 'Risk', `Suppression risque: ${name || id}`);
+            const result = await RiskService.deleteRisk(user as UserProfile, id, riskVerify);
+
+            if (result.success) {
+                toast.success(t('common.riskDeleted'));
+                onRefresh();
+                return true;
+            } else {
+                toast.error(result.error || t('common.error'));
+                return false;
             }
-
-            toast.success(t('common.riskDeleted'));
-            onRefresh();
-            return true;
         } catch (error) {
-            // FunctionsService already handles detailed error messages
-            const err = error as Error;
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.deleteRisk', 'DELETE_FAILED');
-            // If it's a precondition error (dependencies), the toast from ErrorLogger/Service should show it?
-            // FunctionsService throws with message. ErrorLogger might swallow it if generic.
-            // Let's rely on FunctionsService behaving correctly or ErrorLogger showing message.
-            if (err.message.includes('Impossible de supprimer')) {
-                toast.error(err.message);
-            }
             return false;
         } finally {
             setSubmitting(false);

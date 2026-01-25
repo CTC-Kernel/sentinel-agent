@@ -30,6 +30,7 @@
     "adminShort": "Admin",
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
+    "projects": "Projects",
     "settings": {
       "title": "Settings",
       "organization": "Organization",
@@ -1000,7 +1001,9 @@
     },
     "emptyTitle": "No documents found",
     "emptyDesc": "Start by adding a document to populate your repository.",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "overview": "Overview",
+    "list": "List"
   },
   "compliance": {
     "title": "Compliance",
