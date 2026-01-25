@@ -237,30 +237,27 @@ export const AssetList = React.memo<AssetListProps>(({
 
     if (viewMode === 'list') {
         return (
-            <div className="glass-panel w-full max-w-full rounded-5xl overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                <div className="relative z-10">
-                    <DataTable
-                        columns={columns}
-                        data={assets}
-                        selectable={canDelete}
-                        onRowClick={(asset) => onEdit(asset)}
-                        searchable={false}
-                        exportable={false}
-                        loading={loading}
-                        pageSize={12}
-                        onBulkDelete={onBulkDelete}
-                        emptyState={
-                            <EmptyState
-                                icon={Server}
-                                title={t('assets.emptyTitle')}
-                                description={activeFiltersQuery ? t('assets.emptyDescSearch') : t('assets.emptyDesc')}
-                                actionLabel={activeFiltersQuery || !canEdit ? undefined : t('assets.createAsset')}
-                                onAction={activeFiltersQuery || !canEdit ? undefined : () => onEdit({} as Asset)}
-                            />
-                        }
-                    />
-                </div>
+            <div className="w-full max-w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                <DataTable
+                    columns={columns}
+                    data={assets}
+                    selectable={canDelete}
+                    onRowClick={(asset) => onEdit(asset)}
+                    searchable={false}
+                    exportable={false}
+                    loading={loading}
+                    pageSize={12}
+                    onBulkDelete={onBulkDelete}
+                    emptyState={
+                        <EmptyState
+                            icon={Server}
+                            title={t('assets.emptyTitle')}
+                            description={activeFiltersQuery ? t('assets.emptyDescSearch') : t('assets.emptyDesc')}
+                            actionLabel={activeFiltersQuery || !canEdit ? undefined : t('assets.createAsset')}
+                            onAction={activeFiltersQuery || !canEdit ? undefined : () => onEdit({} as Asset)}
+                        />
+                    }
+                />
             </div>
         );
     }
