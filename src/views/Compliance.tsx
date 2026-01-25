@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../store';
 import { Control, Framework } from '../types';
 
@@ -595,7 +596,7 @@ export const Compliance: React.FC = () => {
                             setUploadWizardOpen(false);
                         }
                     } catch {
-                        toast.error("Erreur critique lors de la création du document");
+                        toast.error(t('common.errors.creating'));
                     }
                 }}
                 users={usersList}

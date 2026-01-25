@@ -52,7 +52,7 @@ export const CertifierRegister: React.FC = () => {
             if (firebaseError?.code === 'auth/email-already-in-use') {
                 toast.error('Cet email est déjà utilisé');
             } else {
-                toast.error("Erreur lors de l'inscription");
+                toast.error(t('common.errors.creating'));
             }
         } finally {
             setIsLoading(false);

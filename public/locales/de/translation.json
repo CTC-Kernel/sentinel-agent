@@ -178,6 +178,23 @@
     "val_dedicated": "Dediziert",
     "emptyState": {
       "noComments": "Noch keine Kommentare."
+    },
+    "errors": {
+      "generic": "Ein Fehler ist aufgetreten",
+      "loading": "Fehler beim Laden",
+      "saving": "Fehler beim Speichern",
+      "deleting": "Fehler beim Löschen",
+      "creating": "Fehler beim Erstellen",
+      "updating": "Fehler beim Aktualisieren",
+      "connecting": "Verbindungsfehler",
+      "permissionDenied": "Berechtigung verweigert",
+      "notFound": "Element nicht gefunden",
+      "invalidData": "Ungültige Daten",
+      "networkError": "Netzwerkfehler",
+      "timeout": "Zeitüberschreitung",
+      "unauthorized": "Nicht autorisiert",
+      "serverError": "Serverfehler",
+      "missingOrgId": "Organisations-ID fehlt"
     }
   },
   "validation": {

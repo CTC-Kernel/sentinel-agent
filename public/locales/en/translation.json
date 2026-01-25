@@ -177,6 +177,23 @@
     "val_dedicated": "Dedicated",
     "emptyState": {
       "noComments": "No comments yet."
+    },
+    "errors": {
+      "generic": "An error occurred",
+      "loading": "Error loading data",
+      "saving": "Error saving data",
+      "deleting": "Error deleting item",
+      "creating": "Error creating item",
+      "updating": "Error updating item",
+      "connecting": "Connection error",
+      "permissionDenied": "Permission denied",
+      "notFound": "Item not found",
+      "invalidData": "Invalid data",
+      "networkError": "Network error",
+      "timeout": "Request timeout",
+      "unauthorized": "Unauthorized",
+      "serverError": "Server error",
+      "missingOrgId": "Missing organization ID"
     }
   },
   "validation": {

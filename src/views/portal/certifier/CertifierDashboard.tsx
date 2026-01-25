@@ -43,7 +43,7 @@ export const CertifierDashboard: React.FC = () => {
                 const result = await getDashboardFn();
                 setData(result.data as { clients: Client[], assignments: AssignedAudit[] });
             } catch {
-                toast.error('Impossible de charger le tableau de bord');
+                toast.error(t('common.errors.loading'));
             } finally {
                 setLoading(false);
             }

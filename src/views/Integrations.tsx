@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { hasPermission } from '../utils/permissions';
 import { motion } from 'framer-motion';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
@@ -21,6 +22,7 @@ import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { ScannerJobs } from '../components/integrations/ScannerJobs';
 
 export const Integrations: React.FC = () => {
+    const { t } = useTranslation();
     const { user, demoMode } = useStore();
     const [providers, setProviders] = useState<IntegrationProvider[]>([]);
     const [loading, setLoading] = useState(true);
@@ -42,7 +44,7 @@ export const Integrations: React.FC = () => {
             const data = await integrationService.getProviders(user.organizationId);
             setProviders(data);
         } catch {
-            toast.error('Erreur lors du chargement des intégrations');
+            toast.error(t('common.errors.loading'));
         } finally {
             setLoading(false);
         }
@@ -56,7 +58,7 @@ export const Integrations: React.FC = () => {
 
     const handleConnect = async (provider: IntegrationProvider) => {
         if (!user?.organizationId) {
-            toast.error("Impossible de connecter : ID d'organisation manquant.");
+            toast.error(t('common.errors.missingOrgId'));
             return;
         }
 
@@ -71,7 +73,7 @@ export const Integrations: React.FC = () => {
                 ));
                 toast.success(`Connecté à ${provider.name} (Démo)`);
             } catch {
-                toast.error("Erreur de connexion simulée");
+                toast.error(t('common.errors.connecting'));
             } finally {
                 setConnectingId(null);
             }

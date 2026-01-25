@@ -35,7 +35,7 @@ export const CertifierLogin: React.FC = () => {
             navigate('/portal/dashboard');
         } catch (error) {
             ErrorLogger.error(error, 'CertifierLogin.handleLogin');
-            toast.error('Erreur', 'Identifiants invalides ou erreur de connexion');
+            toast.error(t('auth.errors.invalid'));
         } finally {
             setIsLoading(false);
         }
