@@ -295,6 +295,7 @@ export const AgentManagement: React.FC = () => {
     const [enrollmentToken, setEnrollmentToken] = useState<string | null>(null);
     const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>(null);
     const [loadingReleases, setLoadingReleases] = useState(true);
+    const [generatingToken, setGeneratingToken] = useState(false);
     const [openFAQ, setOpenFAQ] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<'download' | 'docs' | 'faq' | 'support'>('download');
     const [activeStatusIndex, setActiveStatusIndex] = useState(0);
@@ -501,12 +502,15 @@ export const AgentManagement: React.FC = () => {
 
     const handleGenerateToken = async () => {
         if (!user?.organizationId) return;
+        setGeneratingToken(true);
         try {
             const result = await AgentService.generateEnrollmentToken(user.organizationId);
             setEnrollmentToken(result.token || null);
             setShowEnrollment(true);
         } catch {
             toast.error("Erreur lors de la génération du token");
+        } finally {
+            setGeneratingToken(false);
         }
     };
 
@@ -593,9 +597,11 @@ export const AgentManagement: React.FC = () => {
                     </div>
                     <Button
                         onClick={handleGenerateToken}
+                        disabled={generatingToken}
                         className="rounded-xl bg-brand-500 dark:bg-brand-600 shadow-lg shadow-brand-500/20"
                     >
-                        Enrôler un Agent
+                        {generatingToken ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                        {generatingToken ? 'Génération...' : 'Enrôler un Agent'}
                     </Button>
                 </div>
             </div>
