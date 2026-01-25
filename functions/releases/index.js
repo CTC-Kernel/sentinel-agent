@@ -32,11 +32,11 @@ const RELEASE_CONFIG = {
                 displayName: 'Windows (ZIP)',
             },
             macos: {
-                filename: 'SentinelAgent-{version}.dmg',
-                latestFilename: 'SentinelAgent-latest.dmg',
-                checksumFilename: 'SentinelAgent-{version}.dmg.sha256',
-                contentType: 'application/x-apple-diskimage',
-                displayName: 'macOS (DMG)',
+                filename: 'SentinelAgent-macOS-{version}.zip',
+                latestFilename: 'SentinelAgent-macOS-1.0.0.zip',
+                checksumFilename: 'SentinelAgent-macOS-{version}.zip.sha256',
+                contentType: 'application/zip',
+                displayName: 'macOS (ZIP)',
             },
             linux_deb: {
                 filename: 'sentinel-agent_{version}_amd64.deb',
