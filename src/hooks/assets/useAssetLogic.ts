@@ -14,6 +14,8 @@ import { AssetFormData } from '../../schemas/assetSchema';
 import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
 import { ErrorLogger } from '../../services/errorLogger';
+import { AgentService } from '../../services/AgentService';
+import { SentinelAgent } from '../../types/agent';
 
 export const useAssetLogic = () => {
     const { user } = useAuth();
@@ -57,17 +59,17 @@ export const useAssetLogic = () => {
     );
 
     // Fetch Agents for Real-time Discovery
-    const [agents, setAgents] = useState<any[]>([]);
+    // Fetch Agents for Real-time Discovery
+    const [agents, setAgents] = useState<SentinelAgent[]>([]);
     useEffect(() => {
         if (!organizationId || demoMode) return;
-        const { AgentService } = require('../../services/AgentService');
 
         const unsubscribe = AgentService.subscribeToAgents(
             organizationId,
-            (newAgents: any[]) => {
+            (newAgents: SentinelAgent[]) => {
                 setAgents(newAgents);
             },
-            (error: any) => {
+            (error: Error) => {
                 // Silent fail for agents to not break asset flow
                 console.warn('Failed to subscribe to agents', error);
             }
