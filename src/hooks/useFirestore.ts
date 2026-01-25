@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { MockDataService } from '../services/mockDataService';
 
 interface UseFirestoreOptions {
@@ -224,51 +224,80 @@ export const useFirestoreCollection = <T = DocumentData>(
         };
     }, [collectionName, constraintsKey, stableConstraints, shouldUseRealtime, isEnabled, logError, demoMode]);
 
-    const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
-        if (demoMode) return "mock-id-" + Date.now();
-        // ... (existing add) ...
-        try {
-            const docRef = await addDoc(collection(db, collectionName), newData);
-            if (!realtime) {
-                await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
-            }
-            return docRef.id;
-        } catch (_err: unknown) {
-            const errorObj = _err instanceof Error ? _err : new Error(String(_err));
-            if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
-            throw errorObj;
-        }
-    }, [collectionName, logError, queryClient, realtime, demoMode]);
+    // Mutation implementation for Global Loading Feedback
 
-    const update = useCallback(async (id: string, updateData: UpdateData<DocumentData>) => {
-        if (demoMode) return;
-        try {
-            const docRef = doc(db, collectionName, id);
-            await updateDoc(docRef, updateData);
+    const addMutation = useMutation({
+        mutationKey: ['firestore', 'add', collectionName],
+        mutationFn: async (newData: WithFieldValue<DocumentData>) => {
+            if (demoMode) return "mock-id-" + Date.now();
+            try {
+                const docRef = await addDoc(collection(db, collectionName), newData);
+                return docRef.id;
+            } catch (_err) {
+                const errorObj = _err instanceof Error ? _err : new Error(String(_err));
+                if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
+                throw errorObj;
+            }
+        },
+        onSuccess: async () => {
             if (!realtime) {
                 await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
             }
-        } catch (_err: unknown) {
-            const errorObj = _err instanceof Error ? _err : new Error(String(_err));
-            if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
-            throw errorObj;
         }
-    }, [collectionName, logError, queryClient, realtime, demoMode]);
+    });
+
+    const updateMutation = useMutation({
+        mutationKey: ['firestore', 'update', collectionName],
+        mutationFn: async ({ id, data }: { id: string, data: UpdateData<DocumentData> }) => {
+            if (demoMode) return;
+            try {
+                const docRef = doc(db, collectionName, id);
+                await updateDoc(docRef, data);
+            } catch (_err) {
+                const errorObj = _err instanceof Error ? _err : new Error(String(_err));
+                if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
+                throw errorObj;
+            }
+        },
+        onSuccess: async () => {
+            if (!realtime) {
+                await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
+            }
+        }
+    });
+
+    const removeMutation = useMutation({
+        mutationKey: ['firestore', 'remove', collectionName],
+        mutationFn: async (id: string) => {
+            if (demoMode) return;
+            try {
+                const docRef = doc(db, collectionName, id);
+                await deleteDoc(docRef);
+            } catch (_err) {
+                const errorObj = _err instanceof Error ? _err : new Error(String(_err));
+                if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
+                throw errorObj;
+            }
+        },
+        onSuccess: async () => {
+            if (!realtime) {
+                await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
+            }
+        }
+    });
+
+    // Wrapper functions to maintain API compatibility
+    const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
+        return await addMutation.mutateAsync(newData);
+    }, [addMutation]);
+
+    const update = useCallback(async (id: string, data: UpdateData<DocumentData>) => {
+        await updateMutation.mutateAsync({ id, data });
+    }, [updateMutation]);
 
     const remove = useCallback(async (id: string) => {
-        if (demoMode) return;
-        try {
-            const docRef = doc(db, collectionName, id);
-            await deleteDoc(docRef);
-            if (!realtime) {
-                await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
-            }
-        } catch (_err: unknown) {
-            const errorObj = _err instanceof Error ? _err : new Error(String(_err));
-            if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
-            throw errorObj;
-        }
-    }, [collectionName, logError, queryClient, realtime, demoMode]);
+        await removeMutation.mutateAsync(id);
+    }, [removeMutation]);
 
     // Stable refresh function
     const refresh = useCallback(async () => {

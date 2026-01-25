@@ -21,22 +21,27 @@ export const useDocumentsData = (organizationId?: string) => {
         folders: DocumentFolder[];
     } | null>(null);
 
+    // Memoize constraints
+    const constraints = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId)] : undefined;
+    }, [organizationId]);
+
     // Queries (Disabled in Demo Mode)
     const { data: rawDocuments, loading: loadingDocuments } = useFirestoreCollection<Document>(
         'documents',
-        [where('organizationId', '==', organizationId)],
+        constraints,
         { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
     );
 
     const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
-        [where('organizationId', '==', organizationId)],
+        constraints,
         { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
     );
 
     const { data: rawFolders, loading: loadingFolders } = useFirestoreCollection<DocumentFolder>(
         'document_folders',
-        [where('organizationId', '==', organizationId)],
+        constraints,
         { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
     );
 

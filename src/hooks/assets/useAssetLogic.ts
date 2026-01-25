@@ -42,12 +42,18 @@ export const useAssetLogic = () => {
         }
     }, [demoMode]);
 
+    const organizationId = user?.organizationId;
+
+    const constraints = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId), limit(1000)] : undefined;
+    }, [organizationId]);
+
     // Fetch ONLY Assets (Lightweight)
     // We keep limit(1000) for now until pagination is fully implemented in UI
     const { data: rawAssets, loading: assetsLoading, refresh: refreshFirestoreAssets } = useFirestoreCollection<Asset>(
         'assets',
-        [where('organizationId', '==', user?.organizationId || 'ignore'), limit(1000)],
-        { logError: true, realtime: true, enabled: !!user?.organizationId && !demoMode }
+        constraints,
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
     );
 
     const assets = useMemo(() => {
@@ -114,7 +120,7 @@ export const useAssetLogic = () => {
 
         setIsSubmitting(true);
         try {
-            await AssetService.update(id, data, user as UserProfile, oldData as Record<string, unknown>);
+            await AssetService.update(id, data, user as UserProfile, oldData as unknown as Record<string, unknown>);
             refreshAssets();
             return { success: true };
         } catch (e) {

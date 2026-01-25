@@ -34,15 +34,17 @@ export const useRiskLogic = () => {
         }
     }, [demoMode]);
 
+    const organizationId = user?.organizationId;
+
+    const constraints = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId), limit(1000)] : undefined;
+    }, [organizationId]);
+
     // Fetch ONLY Risks (Lightweight)
     const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
         'risks',
-        [
-            where('organizationId', '==', user?.organizationId || 'ignore'),
-            // orderBy('updatedAt', 'desc'), // Requires index, safer to sort client side for now if index missing
-            limit(1000)
-        ],
-        { logError: true, realtime: true, enabled: !!user?.organizationId && !demoMode }
+        constraints,
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
     );
 
     const risks = useMemo(() => {

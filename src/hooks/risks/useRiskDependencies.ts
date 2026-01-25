@@ -63,51 +63,71 @@ export const useRiskDependencies = (options: UseRiskDependenciesOptions = {}) =>
         }
     }, [demoMode, mockData]);
 
+    // Memoize constraints
+
+
+    const assetConstraint = useMemo(() => {
+        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(500)] : undefined;
+    }, [user?.organizationId]);
+
+    const controlConstraint = useMemo(() => {
+        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(1000)] : undefined;
+    }, [user?.organizationId]);
+
+    const subConstraint = useMemo(() => {
+        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(200)] : undefined;
+    }, [user?.organizationId]);
+
+    const smallConstraint = useMemo(() => {
+        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(100)] : undefined;
+    }, [user?.organizationId]);
+
+
     const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
-        shouldFetch(fetchAssets) ? [where('organizationId', '==', user?.organizationId), limit(500)] : undefined,
+        shouldFetch(fetchAssets) ? assetConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchAssets) }
     );
 
     const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
         'controls',
-        shouldFetch(fetchControls) ? [where('organizationId', '==', user?.organizationId), limit(1000)] : undefined,
+        shouldFetch(fetchControls) ? controlConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchControls) }
     );
 
     const { data: rawProcesses, loading: loadingProcesses } = useFirestoreCollection<Process>(
         'business_processes',
-        shouldFetch(fetchProcesses) ? [where('organizationId', '==', user?.organizationId), limit(200)] : undefined,
+        shouldFetch(fetchProcesses) ? subConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchProcesses) }
     );
 
     const { data: rawSuppliers, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
         'suppliers',
-        shouldFetch(fetchSuppliers) ? [where('organizationId', '==', user?.organizationId), limit(200)] : undefined,
+        shouldFetch(fetchSuppliers) ? subConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchSuppliers) }
     );
 
     const { data: rawIncidents, loading: loadingIncidents } = useFirestoreCollection<Incident>(
         'incidents',
-        shouldFetch(fetchIncidents) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
+        shouldFetch(fetchIncidents) ? smallConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchIncidents) }
     );
 
     const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>(
         'audits',
-        shouldFetch(fetchAudits) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
+        shouldFetch(fetchAudits) ? smallConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchAudits) }
     );
 
     const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>(
         'projects',
-        shouldFetch(fetchProjects) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
+        shouldFetch(fetchProjects) ? smallConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchProjects) }
     );
 
     const { data: rawUsers, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
-        shouldFetch(fetchUsers) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
+        shouldFetch(fetchUsers) ? smallConstraint : undefined,
         { logError: true, realtime: true, enabled: shouldFetch(fetchUsers) }
     );
 

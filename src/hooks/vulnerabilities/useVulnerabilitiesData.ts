@@ -6,27 +6,32 @@ import { Vulnerability, Asset, Project, UserProfile } from '../../types';
 export const useVulnerabilitiesData = (organizationId?: string) => {
     // Queries
     // Note: Vulnerabilities likely large list so we might want to paginate later, but consistent with others now.
+    // Memoize constraints
+    const constraints = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId)] : undefined;
+    }, [organizationId]);
+
     const { data: rawVulnerabilities, loading: loadingVulnerabilities } = useFirestoreCollection<Vulnerability>(
         'vulnerabilities',
-        [where('organizationId', '==', organizationId)],
+        constraints,
         { logError: true, enabled: !!organizationId, realtime: true }
     );
 
     const { data: assets, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
-        [where('organizationId', '==', organizationId)],
+        constraints,
         { logError: true, enabled: !!organizationId, realtime: true }
     );
 
     const { data: projects, loading: loadingProjects } = useFirestoreCollection<Project>(
         'projects',
-        [where('organizationId', '==', organizationId)],
+        constraints,
         { logError: true, enabled: !!organizationId, realtime: true }
     );
 
     const { data: users, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
-        [where('organizationId', '==', organizationId)],
+        constraints,
         { logError: true, enabled: !!organizationId, realtime: true }
     );
 

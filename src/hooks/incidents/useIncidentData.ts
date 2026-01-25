@@ -25,10 +25,15 @@ export const useIncidentData = (organizationId?: string) => {
         }
     }, [demoMode]);
 
+    // Memoize constraints to ensure stable key generation in useFirestoreCollection
+    const constraints = useMemo(() => {
+        return organizationId ? [where('organizationId', '==', organizationId)] : undefined;
+    }, [organizationId]);
+
     // Query ONLY Incidents
     const { data: rawIncidents, loading: loadingIncidents, refresh: refreshIncidents } = useFirestoreCollection<Incident>(
         'incidents',
-        organizationId ? [where('organizationId', '==', organizationId)] : undefined,
+        constraints,
         { logError: true, enabled: !!organizationId && !demoMode, realtime: true }
     );
 

@@ -43,21 +43,30 @@ export const useAssetDependencies = (options: UseAssetDependenciesOptions = {}) 
         }
     }, [demoMode, mockData]);
 
+    // Memoize constraints
+    const smallConstraint = useMemo(() => {
+        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(100)] : undefined;
+    }, [user?.organizationId]);
+
+    const mediumConstraint = useMemo(() => {
+        return user?.organizationId ? [where('organizationId', '==', user.organizationId), limit(200)] : undefined;
+    }, [user?.organizationId]);
+
     const { data: rawUsers, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
-        shouldFetch(fetchUsers) ? [where('organizationId', '==', user?.organizationId), limit(100)] : undefined,
+        shouldFetch(fetchUsers) ? smallConstraint : undefined,
         { logError: true, realtime: true }
     );
 
     const { data: rawSuppliers, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
         'suppliers',
-        shouldFetch(fetchSuppliers) ? [where('organizationId', '==', user?.organizationId), limit(200)] : undefined,
+        shouldFetch(fetchSuppliers) ? mediumConstraint : undefined,
         { logError: true, realtime: true }
     );
 
     const { data: rawProcesses, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
-        shouldFetch(fetchProcesses) ? [where('organizationId', '==', user?.organizationId), limit(200)] : undefined,
+        shouldFetch(fetchProcesses) ? mediumConstraint : undefined,
         { logError: true, realtime: true }
     );
 
