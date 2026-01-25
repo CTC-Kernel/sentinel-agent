@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { formatDistanceToNow, format, isValid, parseISO } from 'date-fns';
+import { formatDistanceToNow, format, isValid, parseISO, type Locale } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Tooltip } from './Tooltip';
 import { cn } from '../../lib/utils';

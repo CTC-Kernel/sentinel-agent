@@ -60,19 +60,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 // Custom active shape for interactive pie chart
-const renderActiveShape = (props: {
-    cx: number;
-    cy: number;
-    midAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-    startAngle: number;
-    endAngle: number;
-    fill: string;
-    payload: { name: string; value: number; percent: number };
-    percent: number;
-    value: number;
-}) => {
+const renderActiveShape = (props: any) => {
     const RADIAN = Math.PI / 180;
     const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
     const sin = Math.sin(-RADIAN * midAngle);

@@ -90,7 +90,7 @@ describe('TopBar', () => {
     const renderTopBar = () => {
         return render(
             <BrowserRouter>
-                <TopBar setMobileOpen={mockSetMobileOpen} />
+                <TopBar setMobileOpen={mockSetMobileOpen} mobileOpen={false} />
             </BrowserRouter>
         );
     };

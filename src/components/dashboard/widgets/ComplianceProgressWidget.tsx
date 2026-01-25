@@ -37,7 +37,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
         const totalControls = controls.length;
         const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
         const inProgressControls = controls.filter(c => c.status === 'Partiel').length;
-        const notImplementedControls = controls.filter(c => c.status === 'Non Implémenté' || !c.status).length;
+        const notImplementedControls = controls.filter(c => c.status === 'Non commencé' || !c.status).length;
         const complianceRate = totalControls > 0 ? Math.round((implementedControls / totalControls) * 100) : 0;
 
         return {
@@ -54,7 +54,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
         name: 'Conformité',
         value: stats.complianceRate,
         fill: stats.complianceRate >= 80 ? SENTINEL_PALETTE.success :
-              stats.complianceRate >= 50 ? SENTINEL_PALETTE.warning : SENTINEL_PALETTE.danger
+            stats.complianceRate >= 50 ? SENTINEL_PALETTE.warning : SENTINEL_PALETTE.danger
     }], [stats.complianceRate]);
 
     if (loading) {
@@ -190,12 +190,12 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                             stats.complianceRate >= 80
                                 ? "bg-success-500/10 text-success-600 dark:text-success-400 border-success-500/20"
                                 : stats.complianceRate >= 50
-                                ? "bg-warning-500/10 text-warning-600 dark:text-warning-400 border-warning-500/20"
-                                : "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
+                                    ? "bg-warning-500/10 text-warning-600 dark:text-warning-400 border-warning-500/20"
+                                    : "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
                         )}>
                             <TrendingUp className="w-3 h-3" />
                             {stats.complianceRate >= 80 ? 'Excellent' :
-                             stats.complianceRate >= 50 ? 'En progrès' : 'À améliorer'}
+                                stats.complianceRate >= 50 ? 'En progrès' : 'À améliorer'}
                         </div>
                     </div>
                 </div>
