@@ -157,7 +157,7 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="min-h-screen relative font-inter bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pb-20">
+    <div className="min-h-screen relative font-inter text-slate-900 dark:text-white pb-20">
       <MasterpieceBackground />
       <SEO title="Tarifs | Sentinel GRC" description="Des solutions flexibles pour sécuriser votre entreprise, de la startup au grand groupe." />
 
