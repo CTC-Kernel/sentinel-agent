@@ -15,7 +15,7 @@ if (!admin.apps.length) {
     admin.initializeApp();
 }
 
-const bucket = getStorage().bucket('sentinel-grc-a8701.appspot.com');
+const bucket = getStorage().bucket('sentinel-grc-a8701.firebasestorage.app');
 
 // Release metadata configuration
 const RELEASE_CONFIG = {
@@ -25,11 +25,11 @@ const RELEASE_CONFIG = {
         changelogUrl: 'https://github.com/sentinel/agent/releases',
         platforms: {
             windows: {
-                filename: 'SentinelAgentSetup-{version}.msi',
-                latestFilename: 'SentinelAgentSetup-latest.msi',
-                checksumFilename: 'SentinelAgentSetup-{version}.msi.sha256',
-                contentType: 'application/x-msi',
-                displayName: 'Windows (MSI)',
+                filename: 'SentinelAgent-Windows-{version}.zip',
+                latestFilename: 'SentinelAgent-Windows-1.0.0.zip',
+                checksumFilename: 'SentinelAgent-Windows-{version}.zip.sha256',
+                contentType: 'application/zip',
+                displayName: 'Windows (ZIP)',
             },
             macos: {
                 filename: 'SentinelAgent-{version}.dmg',
@@ -96,7 +96,7 @@ async function getDownloadUrl(product, platform, version = 'latest') {
         ? platformConfig.latestFilename
         : platformConfig.filename.replace('{version}', version);
 
-    const filePath = `releases/${product}/${filename}`;
+    const filePath = `releases/${product}/${platform}/${filename}`;
     const file = bucket.file(filePath);
 
     // Check if file exists
@@ -266,7 +266,7 @@ async function getChecksum(product, platform, version = 'latest') {
         ? platformConfig.checksumFilename.replace('{version}', config.currentVersion)
         : platformConfig.checksumFilename.replace('{version}', version);
 
-    const filePath = `releases/${product}/${checksumFilename}`;
+    const filePath = `releases/${product}/${platform}/${checksumFilename}`;
     const file = bucket.file(filePath);
 
     try {
@@ -292,7 +292,7 @@ async function getFileSize(product, platform, version = 'latest') {
         ? platformConfig.latestFilename
         : platformConfig.filename.replace('{version}', version);
 
-    const filePath = `releases/${product}/${filename}`;
+    const filePath = `releases/${product}/${platform}/${filename}`;
     const file = bucket.file(filePath);
 
     try {
@@ -409,7 +409,7 @@ const uploadRelease = onCall({
     // Generate upload URL if not provided
     if (!signedUploadUrl) {
         const filename = platformConfig.filename.replace('{version}', version);
-        const filePath = `releases/${product}/${filename}`;
+        const filePath = `releases/${product}/${platform}/${filename}`;
         const file = bucket.file(filePath);
 
         const [url] = await file.getSignedUrl({
