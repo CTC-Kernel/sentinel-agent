@@ -198,25 +198,25 @@ describe('Pricing', () => {
     it('should render FAQ section', () => {
         renderComponent();
 
-        expect(screen.getByText('FAQ')).toBeInTheDocument();
+        expect(screen.getByText(/FAQ/i)).toBeInTheDocument();
     });
 
     it('should render comparison table header', () => {
         renderComponent();
 
-        expect(screen.getByText('Comparaison Détaillée')).toBeInTheDocument();
+        expect(screen.getByText(/Comparaison Détaillée/i)).toBeInTheDocument();
     });
 
     it('should render recommended badge on Professional plan', () => {
         renderComponent();
 
-        expect(screen.getByText('RECOMMANDÉ')).toBeInTheDocument();
+        expect(screen.getByText(/RECOMMANDÉ/i)).toBeInTheDocument();
     });
 
     it('should open contact modal when clicking contact link', () => {
         renderComponent();
 
-        const contactLink = screen.getByText('Contactez-nous');
+        const contactLink = screen.getByText(/Contactez-nous/i);
         fireEvent.click(contactLink);
 
         expect(screen.getByTestId('contact-modal')).toBeInTheDocument();

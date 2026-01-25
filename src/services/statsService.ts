@@ -36,13 +36,15 @@ export class StatsService {
                 return; // Already snapped today
             }
 
-            // Fetch current data counts
+            // Fetch current data counts with limits to prevent memory issues
+            // Note: For accurate counts in large organizations, consider using getCountFromServer()
+            const MAX_DOCS_PER_COLLECTION = 10000;
             const [risksSnap, incidentsSnap, controlsSnap, assetsSnap, projectsSnap] = await Promise.all([
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId))),
-                getDocs(query(collection(db, 'incidents'), where('organizationId', '==', organizationId))),
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', organizationId))),
-                getDocs(query(collection(db, 'projects'), where('organizationId', '==', organizationId)))
+                getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), limit(MAX_DOCS_PER_COLLECTION))),
+                getDocs(query(collection(db, 'incidents'), where('organizationId', '==', organizationId), limit(MAX_DOCS_PER_COLLECTION))),
+                getDocs(query(collection(db, 'controls'), where('organizationId', '==', organizationId), limit(MAX_DOCS_PER_COLLECTION))),
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', organizationId), limit(MAX_DOCS_PER_COLLECTION))),
+                getDocs(query(collection(db, 'projects'), where('organizationId', '==', organizationId), limit(MAX_DOCS_PER_COLLECTION)))
             ]);
 
             const risks = risksSnap.docs.map(d => d.data() as Risk);

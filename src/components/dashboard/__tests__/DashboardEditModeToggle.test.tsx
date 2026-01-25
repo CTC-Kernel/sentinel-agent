@@ -21,6 +21,7 @@ vi.mock('react-i18next', () => ({
         'dashboard.resetConfirm': 'Réinitialiser votre dashboard aux paramètres par défaut ?',
         'common.cancel': 'Annuler',
         'common.loading': 'Chargement...',
+        'common.saving': 'Enregistrement...',
       };
       return translations[key] || key;
     },
@@ -43,6 +44,7 @@ describe('DashboardEditModeToggle', () => {
     render(<DashboardEditModeToggle {...defaultProps} />);
 
     expect(screen.getByRole('button', { name: /personnaliser/i })).toBeInTheDocument();
+    // 'Mode édition' is an aria-label on the toolbar, not visible text
     expect(screen.queryByText('Mode édition')).not.toBeInTheDocument();
   });
 
@@ -50,7 +52,8 @@ describe('DashboardEditModeToggle', () => {
     render(<DashboardEditModeToggle {...defaultProps} isEditing={true} />);
 
     expect(screen.getByRole('button', { name: /terminer/i })).toBeInTheDocument();
-    expect(screen.getByText('Mode édition')).toBeInTheDocument();
+    // Check for aria-label since it's not visible text
+    expect(screen.getByRole('toolbar', { name: 'Mode édition' })).toBeInTheDocument();
   });
 
   it('should call onEditModeChange when clicking customize button', async () => {
@@ -204,11 +207,12 @@ describe('DashboardEditModeToggle', () => {
     render(
       <DashboardEditModeToggle
         {...defaultProps}
+        isEditing={true} // Must be editing to see sync indicator
         isSyncing={true}
       />
     );
 
-    expect(screen.getByText('Chargement...')).toBeInTheDocument();
+    expect(screen.getByText('Enregistrement...')).toBeInTheDocument();
   });
 
   it('should have proper aria-pressed attribute on toggle button', () => {

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants } from '../../ui/animationVariants';
 import { RiskDashboardSkeleton, RiskListSkeleton, RiskMatrixSkeleton, RiskContextSkeleton } from '../RiskSkeletons';
@@ -16,12 +16,29 @@ import { RiskGrid } from '../RiskGrid';
 import { ShieldAlert } from '../../ui/Icons';
 import { Risk, Asset } from '../../../types';
 
+/** Active filters for risk list/matrix views */
+export interface RiskActiveFilters {
+    query: string;
+    status: string[] | null;
+    category: string[] | null;
+    criticality: string[] | null;
+}
+
+/** Matrix-specific filter options */
+export interface RiskMatrixFilter {
+    showInherent: boolean;
+    showResidual: boolean;
+    highlightTreatment: boolean;
+}
+
+type RiskTabType = 'overview' | 'context' | 'financial' | 'ebios' | 'list' | 'matrix';
+
 interface RiskTabsContentProps {
     activeTab: string;
     loading: boolean;
     filteredRisks: Risk[];
-    activeFilters: any;
-    setActiveFilters: (filters: any) => void;
+    activeFilters: RiskActiveFilters;
+    setActiveFilters: (filters: RiskActiveFilters | ((prev: RiskActiveFilters) => RiskActiveFilters)) => void;
     savedViews: SavedView[];
     activeViewId: string;
     handleViewSelect: (view: SavedView) => void;
@@ -43,8 +60,8 @@ interface RiskTabsContentProps {
     canEdit: boolean;
     isAnalyzing: boolean;
     availableCategories: string[];
-    matrixFilter: any;
-    setMatrixFilter: (f: any) => void;
+    matrixFilter: RiskMatrixFilter;
+    setMatrixFilter: (f: RiskMatrixFilter | ((prev: RiskMatrixFilter) => RiskMatrixFilter)) => void;
     handleEdit: (risk: Risk) => void;
     handleDeleteRiskItem: (id: string) => void;
     handleDuplicateRisk: (risk: Risk) => void;
@@ -123,10 +140,10 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
             <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
                 <RisksToolbar
                     searchQuery={activeFilters.query}
-                    onSearchChange={(q) => setActiveFilters((prev: any) => ({ ...prev, query: q }))}
+                    onSearchChange={(q) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, query: q }))}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    activeTab={activeTab as any}
+                    activeTab={activeTab as RiskTabType}
                     frameworkFilter={frameworkFilter}
                     setFrameworkFilter={setFrameworkFilter}
                     showAdvancedSearch={showAdvancedSearch}
@@ -147,9 +164,9 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
                         category: activeFilters.category || null,
                         criticality: activeFilters.criticality || null
                     }}
-                    onClearFilter={(key, value) => setActiveFilters((prev: any) => ({
+                    onClearFilter={(key, value) => setActiveFilters((prev: RiskActiveFilters) => ({
                         ...prev,
-                        [key]: (prev[key] as string[])?.filter(v => v !== value) || null
+                        [key]: (prev[key as keyof RiskActiveFilters] as string[] | null)?.filter(v => v !== value) || null
                     }))}
                     onClearAll={() => setActiveFilters({ query: '', status: null, category: null, criticality: null })}
                 />
@@ -160,11 +177,11 @@ export const RiskTabsContent: React.FC<RiskTabsContentProps> = ({
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                         <RiskAdvancedFilters
                             statusFilter={activeFilters.status || []}
-                            onStatusFilterChange={(status) => setActiveFilters((prev: any) => ({ ...prev, status: status.length > 0 ? status : null }))}
+                            onStatusFilterChange={(status) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, status: status.length > 0 ? status : null }))}
                             categoryFilter={activeFilters.category || []}
-                            onCategoryFilterChange={(category) => setActiveFilters((prev: any) => ({ ...prev, category: category.length > 0 ? category : null }))}
+                            onCategoryFilterChange={(category) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, category: category.length > 0 ? category : null }))}
                             criticalityFilter={activeFilters.criticality || []}
-                            onCriticalityFilterChange={(criticality) => setActiveFilters((prev: any) => ({ ...prev, criticality: criticality.length > 0 ? criticality : null }))}
+                            onCriticalityFilterChange={(criticality) => setActiveFilters((prev: RiskActiveFilters) => ({ ...prev, criticality: criticality.length > 0 ? criticality : null }))}
                             availableCategories={availableCategories.filter((c): c is string => !!c)}
                             onClose={() => setShowAdvancedSearch(false)}
                         />
