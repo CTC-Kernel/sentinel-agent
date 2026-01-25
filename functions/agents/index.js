@@ -19,11 +19,16 @@ const {
   revokeEnrollmentToken
 } = require('./tokens');
 const { listAgents, deleteAgent, getAgentDetails } = require('./management');
+const { onAgentCreated, onResultUploaded } = require('./sync');
 const { agentApi } = require('./api');
 
 module.exports = {
   // Agent REST API (for agent communication)
   agentApi,
+
+  // Synchronization Triggers (CTC Engine)
+  onAgentCreated,
+  onResultUploaded,
 
   // Enrollment
   enrollAgent,
