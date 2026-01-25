@@ -151,53 +151,38 @@ export function DashboardEditModeToggle({
         role="toolbar"
         aria-label={t('dashboard.editMode')}
       >
-        {/* Edit mode indicator */}
-        {isEditing && (
-          <span
-            className={cn(
-              'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-              'bg-primary/10 text-primary',
-              'animate-pulse'
-            )}
-            aria-live="polite"
-          >
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            {t('dashboard.editMode')}
-          </span>
-        )}
-
-        {/* Sync indicator */}
-        {isSyncing && (
-          <span
-            className={cn(
-              'flex items-center gap-1 px-2 py-1 rounded-full text-xs',
-              'text-muted-foreground'
-            )}
-            aria-live="polite"
-          >
-            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            {t('common.loading')}
-          </span>
-        )}
-
         {/* Reset button - only show in edit mode and if customized */}
         {isEditing && isCustomized && (
           <button
             type="button"
             onClick={() => setShowResetConfirm(true)}
             className={cn(
-              'inline-flex items-center rounded-lg font-medium transition-all',
-              'text-warning',
-              'bg-warning/10',
-              'hover:bg-warning/20',
-              'focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2',
+              'inline-flex items-center rounded-full font-medium transition-all duration-200',
+              'text-slate-500 hover:text-slate-900 hover:bg-slate-100',
+              'dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10',
+              'focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2',
               sizeClasses[size]
             )}
             aria-label={t('dashboard.resetToDefaults')}
           >
-            <RotateCcw className={iconSize} aria-hidden="true" />
+            <RotateCcw className={cn(iconSize, "transition-transform group-hover:-rotate-180")} aria-hidden="true" />
             <span className="hidden sm:inline">{t('dashboard.resetToDefaults')}</span>
           </button>
+        )}
+
+        {/* Sync indicator */}
+        {isEditing && isSyncing && (
+          <span
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
+              'bg-slate-100 text-slate-500',
+              'dark:bg-white/5 dark:text-slate-400'
+            )}
+            aria-live="polite"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            <span className="hidden sm:inline">{t('common.saving')}</span>
+          </span>
         )}
 
         {/* Main toggle button */}
@@ -205,18 +190,20 @@ export function DashboardEditModeToggle({
           type="button"
           onClick={() => onEditModeChange(!isEditing)}
           className={cn(
-            'inline-flex items-center rounded-lg font-medium transition-all',
+            'group inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-200 border',
             isEditing
               ? [
-                  'text-white bg-success hover:bg-success',
-                  'focus:ring-green-500',
-                ]
+                'border-blue-500/20 bg-blue-500/10 text-blue-600',
+                'dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-400',
+                'hover:bg-blue-500/20 dark:hover:bg-blue-400/20',
+                'focus:ring-blue-500',
+              ]
               : [
-                  'text-foreground',
-                  'bg-muted',
-                  'hover:bg-muted/80',
-                  'focus:ring-slate-500',
-                ],
+                'border-slate-200 bg-white text-slate-700 shadow-sm',
+                'dark:border-white/10 dark:bg-white/5 dark:text-slate-200',
+                'hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20',
+                'focus:ring-slate-500',
+              ],
             'focus:outline-none focus:ring-2 focus:ring-offset-2',
             sizeClasses[size]
           )}
@@ -227,12 +214,12 @@ export function DashboardEditModeToggle({
         >
           {isEditing ? (
             <>
-              <Check className={iconSize} aria-hidden="true" />
+              <Check className={iconSize} strokeWidth={2.5} aria-hidden="true" />
               <span>{t('dashboard.doneEditing')}</span>
             </>
           ) : (
             <>
-              <Pencil className={iconSize} aria-hidden="true" />
+              <Pencil className={cn(iconSize, "text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-colors")} aria-hidden="true" />
               <span>{t('dashboard.customize')}</span>
             </>
           )}

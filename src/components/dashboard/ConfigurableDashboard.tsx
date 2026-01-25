@@ -153,14 +153,13 @@ export function ConfigurableDashboard({
               type="button"
               onClick={() => setShowAddWidgetModal(true)}
               className={cn(
-                'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
-                'text-primary',
-                'bg-primary/10 dark:bg-blue-900/20',
-                'hover:bg-blue-100 dark:hover:bg-blue-900/30',
-                'transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus:ring-offset-2'
+                'group inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm transition-all duration-200',
+                'text-white bg-slate-900 hover:bg-slate-800 hover:scale-[1.02] active:scale-95',
+                'dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2'
               )}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" strokeWidth={2.5} />
               {t('dashboard.addWidget')}
             </button>
           )}

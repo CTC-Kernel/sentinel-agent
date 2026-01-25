@@ -6,25 +6,10 @@
  * Returns the default avatar URL for users without a photo, optionally based on role
  */
 export const getDefaultAvatarUrl = (role?: string): string => {
-  if (!role) return '/avatar_user.png';
-
-  const normalizedRole = role.toLowerCase();
-
-  switch (normalizedRole) {
-    case 'admin':
-      return '/avatar_admin.png';
-    case 'auditor':
-      return '/avatar_auditor.png';
-    case 'rssi':
-      return '/avatar_rssi.png';
-    case 'project_manager':
-      return '/avatar_project_manager.png';
-    case 'direction':
-      return '/avatar_direction.png';
-    case 'user':
-    default:
-      return '/avatar_user.png';
-  }
+  const name = role ? role.toUpperCase() : 'USER';
+  // Apple-like neutral style: Light gray background, dark gray text, sleek look
+  // Using ui-avatars.com service
+  return `https://ui-avatars.com/api/?name=${name}&background=f1f5f9&color=475569&bold=true&font-size=0.45&length=2`;
 };
 
 /**
