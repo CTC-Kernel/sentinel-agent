@@ -151,9 +151,9 @@ const Pricing = () => {
   };
 
   const faqs = [
-    { q: t('pricing.faq1_q', "Puis-je changer de plan plus tard ?"), a: t('pricing.faq1_a', "Absolument. Vous pouvez upgrader ou downgrader votre plan à tout moment depuis votre espace d'administration. Le changement sera effectif immédiatement.") },
-    { q: t('pricing.faq2_q', "Quels sont les modes de paiement ?"), a: t('pricing.faq2_a', "Nous acceptons toutes les cartes bancaires majeures (Visa, Mastercard, Amex) ainsi que les prélèvements SEPA pour les plans annuels.") },
-    { q: t('pricing.faq3_q', "Les données sont-elles sécurisées ?"), a: t('pricing.faq3_a', "Oui, la sécurité est notre priorité. Toutes vos données sont chiffrées en transit et au repos. Nous sommes hébergés sur des infrastructures certifiées ISO 27001 et SecNumCloud.") },
+    { q: t('pricing.faq1_q'), a: t('pricing.faq1_a') },
+    { q: t('pricing.faq2_q'), a: t('pricing.faq2_a') },
+    { q: t('pricing.faq3_q'), a: t('pricing.faq3_a') },
   ];
 
   return (
@@ -334,6 +334,7 @@ const Pricing = () => {
           })}
         </div>
 
+
         {/* Detailed Comparison Table */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -342,8 +343,8 @@ const Pricing = () => {
           className="max-w-7xl mx-auto mb-20"
         >
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Comparaison Détaillée</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Tout ce qui est inclus dans chaque plan</p>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">{t('pricing.detailed_comparison')}</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">{t('pricing.features_intro')}</p>
           </div>
 
           <div className="glass-premium rounded-4xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl relative">
@@ -352,7 +353,7 @@ const Pricing = () => {
 
             {/* Table Header - Sticky */}
             <div className="grid grid-cols-4 p-6 border-b border-slate-200/50 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-20">
-              <div className="col-span-1 p-2 font-black text-slate-500 uppercase text-xs tracking-wider">Fonctionnalités</div>
+              <div className="col-span-1 p-2 font-black text-slate-500 uppercase text-xs tracking-wider">{t('pricing.features_header')}</div>
               <div className="col-span-1 p-2 text-center">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800">
                   <Star className="w-4 h-4 text-slate-500" />
@@ -444,8 +445,8 @@ const Pricing = () => {
 
             <div className="px-8 lg:px-10 pt-8 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100/50 dark:border-white/5 flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{t('pricing.faq', 'FAQ')}</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc', 'Questions fréquentes')}</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{t('pricing.faq')}</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc')}</p>
               </div>
               <div className="p-3 bg-gradient-to-br from-brand-500/10 to-violet-500/10 rounded-2xl border border-brand-500/20">
                 <HelpCircle className="w-6 h-6 text-brand-500" />
@@ -503,10 +504,10 @@ const Pricing = () => {
 
             <div className="relative z-10">
               <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
-                Besoin d'une solution sur mesure ?
+                {t('pricing.custom_solution_title')}
               </h3>
               <p className="text-slate-600 dark:text-slate-400 font-medium mb-8 max-w-lg mx-auto">
-                Notre équipe peut vous accompagner dans la définition de vos besoins et vous proposer une offre adaptée.
+                {t('pricing.custom_solution_desc')}
               </p>
               <Button
                 onClick={() => setIsContactOpen(true)}
@@ -514,7 +515,7 @@ const Pricing = () => {
               >
                 <span className="flex items-center gap-2">
                   <Headset className="w-5 h-5" />
-                  Contactez-nous
+                  {t('pricing.contact_us')}
                 </span>
               </Button>
             </div>
