@@ -54,6 +54,13 @@ vi.mock('../../hooks/useFirestore', () => ({
     useFirestoreCollection: vi.fn(),
 }));
 
+vi.mock('../../services/AgentService', () => ({
+    AgentService: {
+        subscribeToAgents: vi.fn(() => vi.fn()),
+        calculateDepreciation: vi.fn((price) => price),
+    }
+}));
+
 // Mock Firebase
 vi.mock('firebase/auth', () => ({
     getAuth: vi.fn(),
@@ -76,6 +83,9 @@ vi.mock('firebase/firestore', () => ({
     addDoc: vi.fn(),
     writeBatch: vi.fn(),
     limit: vi.fn(),
+    query: vi.fn(),
+    orderBy: vi.fn(),
+    getCountFromServer: vi.fn(() => Promise.resolve({ data: () => ({ count: 0 }) })),
 }));
 
 vi.mock('firebase/functions', () => ({
@@ -120,7 +130,7 @@ vi.mock('../../hooks/usePersistedState', () => ({
     usePersistedState: (key: string, defaultVal: unknown) => {
         const [assetsTab] = React.useState<string>('assets');
         const [defaultState] = React.useState(defaultVal);
-        
+
         if (key === 'assets-active-tab') {
             return [assetsTab, vi.fn()];
         }
