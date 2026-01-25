@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { Timestamp, serverTimestamp } from 'firebase/firestore';
+import { serverTimestamp } from 'firebase/firestore';
 import { useStore } from '../../store';
 import type { ControlEffectivenessAssessment, DomainMaturityScore } from '../../types/ebios';
 import { ISO_DOMAINS } from '../../data/complianceData';
@@ -94,7 +94,7 @@ export function useControlEffectiveness(): UseControlEffectivenessReturn {
   );
 
   const error = firestoreError ? firestoreError.message : null;
-  const assessments = assessmentsRaw || [];
+  const assessments = useMemo(() => assessmentsRaw || [], [assessmentsRaw]);
 
   // Calculate domain maturity scores
   const domainScores = useMemo((): DomainMaturityScore[] => {

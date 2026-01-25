@@ -3,7 +3,6 @@
  * Epic 14-1: Test Coverage Improvement
  */
 
-import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -26,15 +25,21 @@ vi.mock('nprogress', () => ({
 vi.mock('nprogress/nprogress.css', () => ({}));
 
 import { RouteProgressBar } from '../RouteProgressBar';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const renderWithRouter = (initialRoute: string) => {
-    return render(
-        React.createElement(MemoryRouter, {
-            initialEntries: [initialRoute],
-            future: { v7_startTransition: true, v7_relativeSplatPath: true }
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: { retry: false },
         },
-            React.createElement(RouteProgressBar)
-        )
+    });
+
+    return render(
+        <QueryClientProvider client={queryClient}>
+            <MemoryRouter initialEntries={[initialRoute]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <RouteProgressBar />
+            </MemoryRouter>
+        </QueryClientProvider>
     );
 };
 
