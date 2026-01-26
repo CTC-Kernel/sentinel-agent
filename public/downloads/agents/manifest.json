@@ -2,9 +2,8 @@
   "agents": {
     "macos": {
       "version": "1.0.1",
-      "filename": "SentinelAgent-macOS-1.0.1.zip",
-      "size": 6184557,
-      "sha256": "02920fc4ef3d28c787db67734ed1495da8a6fce342a185b09faef22479b25cc2",
+      "filename": "SentinelAgent-latest.dmg",
+      "format": "dmg",
       "minOsVersion": "10.15",
       "architecture": "universal",
       "releaseDate": "2026-01-26",
@@ -15,13 +14,12 @@
       ]
     },
     "windows": {
-      "version": "1.0.0",
-      "filename": "SentinelAgent-Windows-1.0.0.zip",
-      "size": 11919529,
-      "sha256": "1187926a8c73e9da3d316a91c33608c71b206c42d09c9b781c136c74aa491138",
+      "version": "1.0.1",
+      "filename": "SentinelAgentSetup-latest.msi",
+      "format": "msi",
       "minOsVersion": "10",
       "architecture": "x64",
-      "releaseDate": "2026-01-25",
+      "releaseDate": "2026-01-26",
       "changelog": [
         "Initial release with compliance checks",
         "Real-time system monitoring",
@@ -31,7 +29,7 @@
   },
   "latestVersions": {
     "macos": "1.0.1",
-    "windows": "1.0.0"
+    "windows": "1.0.1"
   },
-  "downloadBaseUrl": "/downloads/agents/"
+  "downloadBaseUrl": "/releases/agent/"
 }

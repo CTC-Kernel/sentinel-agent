@@ -25,18 +25,18 @@ const RELEASE_CONFIG = {
         changelogUrl: 'https://github.com/sentinel/agent/releases',
         platforms: {
             windows: {
-                filename: 'SentinelAgent-Windows-{version}.zip',
-                latestFilename: 'SentinelAgent-Windows-1.0.1.zip',
-                checksumFilename: 'SentinelAgent-Windows-{version}.zip.sha256',
-                contentType: 'application/zip',
-                displayName: 'Windows (ZIP)',
+                filename: 'SentinelAgentSetup-{version}.msi',
+                latestFilename: 'SentinelAgentSetup-latest.msi',
+                checksumFilename: 'SentinelAgentSetup-{version}.msi.sha256',
+                contentType: 'application/x-msi',
+                displayName: 'Windows (MSI)',
             },
             macos: {
-                filename: 'SentinelAgent-macOS-{version}.zip',
-                latestFilename: 'SentinelAgent-macOS-1.0.1.zip',
-                checksumFilename: 'SentinelAgent-macOS-{version}.zip.sha256',
-                contentType: 'application/zip',
-                displayName: 'macOS (ZIP)',
+                filename: 'SentinelAgent-{version}.dmg',
+                latestFilename: 'SentinelAgent-latest.dmg',
+                checksumFilename: 'SentinelAgent-{version}.dmg.sha256',
+                contentType: 'application/x-apple-diskimage',
+                displayName: 'macOS (DMG)',
             },
             linux_deb: {
                 filename: 'sentinel-agent_{version}_amd64.deb',
