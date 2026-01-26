@@ -1,35 +1,39 @@
 {
   "agents": {
     "macos": {
-      "version": "1.0.1",
+      "version": "1.0.2",
       "filename": "SentinelAgent-latest.dmg",
       "format": "dmg",
       "minOsVersion": "10.15",
       "architecture": "universal",
       "releaseDate": "2026-01-26",
       "changelog": [
-        "Initial release with compliance checks",
-        "Real-time system monitoring",
-        "Secure communication with Firebase"
+        "Fixed high CPU usage (80% -> 0%)",
+        "Optimized event loop polling interval",
+        "Improved resource monitoring thresholds",
+        "Added rate-limiting for resource warnings",
+        "Enhanced database encryption stability"
       ]
     },
     "windows": {
-      "version": "1.0.1",
+      "version": "1.0.2",
       "filename": "SentinelAgentSetup-latest.zip",
       "format": "zip",
       "minOsVersion": "10",
       "architecture": "x64",
       "releaseDate": "2026-01-26",
       "changelog": [
-        "Initial release with compliance checks",
-        "Real-time system monitoring",
-        "Secure communication with Firebase"
+        "Fixed high CPU usage (80% -> 0%)",
+        "Optimized event loop polling interval",
+        "Improved resource monitoring thresholds",
+        "Added rate-limiting for resource warnings",
+        "Enhanced database encryption stability"
       ]
     }
   },
   "latestVersions": {
-    "macos": "1.0.1",
-    "windows": "1.0.1"
+    "macos": "1.0.2",
+    "windows": "1.0.2"
   },
   "downloadBaseUrl": "/releases/agent/"
 }
