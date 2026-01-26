@@ -374,6 +374,7 @@ exports.deleteResource = onCall({
 
 /**
  * Submit Kiosk Asset (public terminal intake)
+ * SECURITY: Requires organization to have kiosk mode enabled
  */
 exports.submitKioskAsset = onCall({
     memory: '256MiB',
@@ -381,7 +382,7 @@ exports.submitKioskAsset = onCall({
     region: 'europe-west1'
 }, async (request) => {
     const data = request.data;
-    const { orgId, name, serialNumber, hardwareType, hardware, notes, userId, projectId } = data;
+    const { orgId, name, serialNumber, hardwareType, hardware, notes, userId, projectId, kioskToken } = data;
 
     if (!orgId || !name || !serialNumber) {
         throw new HttpsError('invalid-argument', 'Missing required fields (orgId, name, serialNumber).');
@@ -393,6 +394,20 @@ exports.submitKioskAsset = onCall({
 
     if (!orgDoc.exists) {
         throw new HttpsError('not-found', 'Organization not found.');
+    }
+
+    const orgData = orgDoc.data();
+
+    // SECURITY: Verify kiosk mode is enabled for this organization
+    if (!orgData.kioskModeEnabled) {
+        logger.warn(`Kiosk submission rejected: org ${orgId} does not have kiosk mode enabled`);
+        throw new HttpsError('permission-denied', 'Kiosk mode is not enabled for this organization.');
+    }
+
+    // SECURITY: Validate kiosk token if configured
+    if (orgData.kioskToken && orgData.kioskToken !== kioskToken) {
+        logger.warn(`Kiosk submission rejected: invalid token for org ${orgId}`);
+        throw new HttpsError('permission-denied', 'Invalid kiosk token.');
     }
 
     const assetData = {

@@ -37,16 +37,36 @@ const checkTokenRateLimit = async (clientIp) => {
     }
 };
 
+// FIXED: Rate limiter now properly resets after window expires
 const recordFailedTokenAttempt = async (clientIp) => {
     if (!clientIp) return;
 
     const db = admin.firestore();
     const rateLimitRef = db.collection('rate_limits').doc(`portal_token_${clientIp.replace(/\./g, '_')}`);
 
-    await rateLimitRef.set({
-        attempts: admin.firestore.FieldValue.increment(1),
-        lastAttempt: Date.now()
-    }, { merge: true });
+    try {
+        const doc = await rateLimitRef.get();
+        const now = Date.now();
+        const windowStart = now - RATE_LIMIT_WINDOW_MS;
+
+        if (!doc.exists || doc.data().lastAttempt < windowStart) {
+            // Window expired or new entry - reset counter to 1
+            await rateLimitRef.set({
+                attempts: 1,
+                lastAttempt: now,
+                windowStart: now
+            });
+        } else {
+            // Within window - increment counter
+            await rateLimitRef.update({
+                attempts: admin.firestore.FieldValue.increment(1),
+                lastAttempt: now
+            });
+        }
+    } catch (error) {
+        logger.warn('Failed to record rate limit attempt:', error);
+        // Fail-open for availability
+    }
 };
 
 // Helper to validate token with rate limiting

@@ -77,16 +77,37 @@ app.get("/v1/proxy/threat-feed", async (req, res) => {
         }
 
         // Security Whitelist - Prevent Open Proxy Abuse
-        const ALLOWED_DOMAINS = [
-            'https://www.cisa.gov',
-            'https://urlhaus-api.abuse.ch'
+        // FIXED: Use URL parsing to prevent bypass attacks like https://www.cisa.gov.attacker.com
+        const ALLOWED_HOSTNAMES = [
+            'www.cisa.gov',
+            'cisa.gov',
+            'urlhaus-api.abuse.ch'
         ];
 
         const targetUrl = decodeURIComponent(url);
-        const isAllowed = ALLOWED_DOMAINS.some(domain => targetUrl.startsWith(domain));
+
+        // Parse URL to extract hostname safely
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(targetUrl);
+        } catch (e) {
+            logger.warn(`Invalid URL format: ${targetUrl} by user ${uid}`);
+            res.status(400).json({ success: false, error: "Invalid URL format" });
+            return;
+        }
+
+        // Validate protocol (only HTTPS allowed)
+        if (parsedUrl.protocol !== 'https:') {
+            logger.warn(`Non-HTTPS URL rejected: ${targetUrl} by user ${uid}`);
+            res.status(403).json({ success: false, error: "Only HTTPS URLs allowed" });
+            return;
+        }
+
+        // Validate hostname exactly matches whitelist
+        const isAllowed = ALLOWED_HOSTNAMES.includes(parsedUrl.hostname);
 
         if (!isAllowed) {
-            logger.warn(`Blocked proxy attempt to unauthorized URL: ${targetUrl} by user ${uid}`);
+            logger.warn(`Blocked proxy attempt to unauthorized URL: ${targetUrl} (hostname: ${parsedUrl.hostname}) by user ${uid}`);
             res.status(403).json({ success: false, error: "URL not allowed" });
             return;
         }
