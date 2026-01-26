@@ -5,88 +5,144 @@ use crate::error::ScannerResult;
 use std::collections::HashSet;
 use tracing::{debug, warn};
 
-/// Known suspicious process names (lowercase).
-const SUSPICIOUS_PROCESSES: &[(&str, &str, IncidentType)] = &[
-    // Crypto miners
-    ("xmrig", "XMRig crypto miner", IncidentType::CryptoMiner),
-    ("minerd", "CPU miner", IncidentType::CryptoMiner),
-    ("cgminer", "ASIC/GPU miner", IncidentType::CryptoMiner),
-    ("bfgminer", "ASIC/GPU miner", IncidentType::CryptoMiner),
-    ("cpuminer", "CPU miner", IncidentType::CryptoMiner),
-    ("ethminer", "Ethereum miner", IncidentType::CryptoMiner),
-    ("xmr-stak", "Monero miner", IncidentType::CryptoMiner),
-    ("t-rex", "T-Rex GPU miner", IncidentType::CryptoMiner),
-    ("nbminer", "NBMiner", IncidentType::CryptoMiner),
-    ("phoenixminer", "Phoenix miner", IncidentType::CryptoMiner),
-    ("lolminer", "lolMiner", IncidentType::CryptoMiner),
-    ("gminer", "GMiner", IncidentType::CryptoMiner),
-    // Reverse shells / network tools (in suspicious context)
+/// Known suspicious process names - exact matches required.
+/// The bool indicates if exact match is required (true) or contains match (false).
+const SUSPICIOUS_PROCESSES: &[(&str, &str, IncidentType, bool)] = &[
+    // Crypto miners - use contains match as they may have version suffixes
+    (
+        "xmrig",
+        "XMRig crypto miner",
+        IncidentType::CryptoMiner,
+        false,
+    ),
+    ("minerd", "CPU miner", IncidentType::CryptoMiner, true),
+    ("cgminer", "ASIC/GPU miner", IncidentType::CryptoMiner, true),
+    (
+        "bfgminer",
+        "ASIC/GPU miner",
+        IncidentType::CryptoMiner,
+        true,
+    ),
+    ("cpuminer", "CPU miner", IncidentType::CryptoMiner, false),
+    (
+        "ethminer",
+        "Ethereum miner",
+        IncidentType::CryptoMiner,
+        true,
+    ),
+    ("xmr-stak", "Monero miner", IncidentType::CryptoMiner, false),
+    ("t-rex", "T-Rex GPU miner", IncidentType::CryptoMiner, true),
+    ("nbminer", "NBMiner", IncidentType::CryptoMiner, true),
+    (
+        "phoenixminer",
+        "Phoenix miner",
+        IncidentType::CryptoMiner,
+        false,
+    ),
+    ("lolminer", "lolMiner", IncidentType::CryptoMiner, true),
+    ("gminer", "GMiner", IncidentType::CryptoMiner, true),
+    // Reverse shells / network tools - EXACT match only to avoid false positives
+    // (nc would match launchd, syncd, etc.)
     (
         "nc",
         "netcat - potential reverse shell",
         IncidentType::ReverseShell,
+        true,
     ),
     (
         "ncat",
         "ncat - potential reverse shell",
         IncidentType::ReverseShell,
+        true,
     ),
     (
         "netcat",
         "netcat - potential reverse shell",
         IncidentType::ReverseShell,
+        true,
     ),
     (
         "socat",
         "socat - potential tunnel",
         IncidentType::ReverseShell,
+        true,
     ),
-    // Credential theft tools
+    // Credential theft tools - exact match
     (
         "mimikatz",
         "Mimikatz credential stealer",
         IncidentType::CredentialTheft,
+        false,
     ),
     (
         "lazagne",
         "LaZagne credential stealer",
         IncidentType::CredentialTheft,
+        false,
     ),
     (
         "secretsdump",
         "Impacket secretsdump",
         IncidentType::CredentialTheft,
+        false,
     ),
     (
         "procdump",
         "ProcDump (may dump credentials)",
         IncidentType::CredentialTheft,
+        true,
     ),
     (
         "gsecdump",
         "Credential dump tool",
         IncidentType::CredentialTheft,
+        true,
     ),
     (
-        "wce",
+        "wce.exe",
         "Windows Credential Editor",
         IncidentType::CredentialTheft,
+        true,
     ),
-    // Post-exploitation
-    ("meterpreter", "Metasploit payload", IncidentType::Malware),
-    ("beacon", "Cobalt Strike beacon", IncidentType::Malware),
-    ("empire", "PowerShell Empire", IncidentType::Malware),
-    ("covenant", "Covenant C2", IncidentType::Malware),
-    // Privilege escalation
+    // Post-exploitation - exact match to avoid false positives
+    // (beacon would match findmybeaconingd, empire would match empirestate, etc.)
+    (
+        "meterpreter",
+        "Metasploit payload",
+        IncidentType::Malware,
+        false,
+    ),
+    (
+        "beacon.exe",
+        "Cobalt Strike beacon",
+        IncidentType::Malware,
+        true,
+    ),
+    (
+        "empire.exe",
+        "PowerShell Empire",
+        IncidentType::Malware,
+        true,
+    ),
+    ("covenant", "Covenant C2", IncidentType::Malware, true),
+    // Privilege escalation - exact match
     (
         "getsystem",
         "Privilege escalation",
         IncidentType::PrivilegeEscalation,
+        true,
     ),
     (
         "pspy",
         "Process spy - enumeration tool",
         IncidentType::PrivilegeEscalation,
+        true,
+    ),
+    (
+        "pspy64",
+        "Process spy - enumeration tool",
+        IncidentType::PrivilegeEscalation,
+        true,
     ),
 ];
 
@@ -275,10 +331,24 @@ impl ProcessMonitor {
     /// Analyze a process against known suspicious patterns.
     fn analyze_process(&self, proc: &ProcessInfo) -> Option<SecurityIncident> {
         let name_lower = proc.name.to_lowercase();
+        // Get just the executable name without path
+        let exe_name = name_lower
+            .rsplit('/')
+            .next()
+            .unwrap_or(&name_lower)
+            .to_string();
 
         // Check against known suspicious processes
-        for (pattern, description, incident_type) in SUSPICIOUS_PROCESSES {
-            if name_lower.contains(pattern) {
+        for (pattern, description, incident_type, exact_match) in SUSPICIOUS_PROCESSES {
+            let matches = if *exact_match {
+                // Exact match: process name must equal pattern exactly
+                exe_name == *pattern || name_lower == *pattern
+            } else {
+                // Contains match: pattern must be present in name
+                name_lower.contains(pattern)
+            };
+
+            if matches {
                 let severity = match incident_type {
                     IncidentType::CryptoMiner => IncidentSeverity::High,
                     IncidentType::Malware => IncidentSeverity::Critical,
@@ -487,5 +557,66 @@ mod tests {
 
         let incident = monitor.analyze_process(&proc);
         assert!(incident.is_some());
+    }
+
+    #[test]
+    fn test_no_false_positive_launchd() {
+        // launchd contains "nc" but should NOT trigger a reverse shell detection
+        let monitor = ProcessMonitor::new();
+        let proc = ProcessInfo {
+            pid: 1,
+            name: "launchd".to_string(),
+            path: Some("/sbin/launchd".to_string()),
+            cmdline: None,
+            ppid: Some(0),
+            user: Some("root".to_string()),
+        };
+
+        let incident = monitor.analyze_process(&proc);
+        assert!(
+            incident.is_none(),
+            "launchd should not be flagged as suspicious"
+        );
+    }
+
+    #[test]
+    fn test_no_false_positive_findmybeaconingd() {
+        // findmybeaconingd contains "beacon" but is Apple's Find My service
+        let monitor = ProcessMonitor::new();
+        let proc = ProcessInfo {
+            pid: 1234,
+            name: "findmybeaconingd".to_string(),
+            path: Some("/usr/libexec/findmybeaconingd".to_string()),
+            cmdline: None,
+            ppid: Some(1),
+            user: None,
+        };
+
+        let incident = monitor.analyze_process(&proc);
+        assert!(
+            incident.is_none(),
+            "findmybeaconingd should not be flagged as malware"
+        );
+    }
+
+    #[test]
+    fn test_exact_match_nc() {
+        // nc (exactly) should trigger detection
+        let monitor = ProcessMonitor::new();
+        let proc = ProcessInfo {
+            pid: 1234,
+            name: "nc".to_string(),
+            path: Some("/usr/bin/nc".to_string()),
+            cmdline: None,
+            ppid: Some(1),
+            user: None,
+        };
+
+        let incident = monitor.analyze_process(&proc);
+        assert!(
+            incident.is_some(),
+            "nc exact match should trigger detection"
+        );
+        assert_eq!(incident.unwrap().incident_type, IncidentType::ReverseShell);
     }
 }

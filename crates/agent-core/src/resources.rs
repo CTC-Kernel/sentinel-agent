@@ -32,8 +32,8 @@ impl Default for ResourceLimits {
     fn default() -> Self {
         Self {
             // Realistic limits - 0.5% idle is too strict for any real-world process
-            max_cpu_idle: 3.0,      // 3% idle is reasonable
-            max_cpu_active: 15.0,   // 15% during active scans
+            max_cpu_idle: 3.0,                   // 3% idle is reasonable
+            max_cpu_active: 15.0,                // 15% during active scans
             max_memory_bytes: 150 * 1024 * 1024, // 150 MB
             max_disk_iops: 50,
             max_startup_ms: 10000, // 10 seconds
