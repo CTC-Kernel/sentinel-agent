@@ -40,7 +40,8 @@ pub const DB_FILE_NAME: &str = "agent.db";
 pub const CONFIG_FILE_NAME: &str = "agent.json";
 
 /// Default server URL (Firebase Cloud Functions).
-pub const DEFAULT_SERVER_URL: &str = "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi";
+pub const DEFAULT_SERVER_URL: &str =
+    "https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi";
 
 /// Log file name.
 pub const LOG_FILE_NAME: &str = "agent.log";
