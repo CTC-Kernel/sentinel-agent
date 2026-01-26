@@ -17,7 +17,7 @@ use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::Duration;
-use sysinfo::System;
+use sysinfo::{Disks, System};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, warn};
@@ -176,6 +176,39 @@ impl HeartbeatService {
             sys.cpus().iter().map(|c| c.cpu_usage()).sum::<f32>() / sys.cpus().len().max(1) as f32;
 
         let memory_bytes = sys.used_memory();
+        let memory_total = sys.total_memory();
+        let memory_percent = if memory_total > 0 {
+            Some((memory_bytes as f32 / memory_total as f32) * 100.0)
+        } else {
+            None
+        };
+
+        // Calculate disk usage (root/main disk)
+        let (disk_percent, disk_used, disk_total) = {
+            let disks = Disks::new_with_refreshed_list();
+            let disk_list: Vec<_> = disks.iter().collect();
+            if let Some(disk) = disk_list
+                .iter()
+                .find(|d| {
+                    let mount = d.mount_point().to_string_lossy();
+                    mount == "/" || mount == "C:\\"
+                })
+                .copied()
+                .or_else(|| disk_list.first().copied())
+            {
+                let total = disk.total_space();
+                let available = disk.available_space();
+                let used = total.saturating_sub(available);
+                let percent = if total > 0 {
+                    (used as f32 / total as f32) * 100.0
+                } else {
+                    0.0
+                };
+                (Some(percent), Some(used), Some(total))
+            } else {
+                (None, None, None)
+            }
+        };
 
         let hostname = hostname::get()
             .map(|h| h.to_string_lossy().to_string())
@@ -197,6 +230,9 @@ impl HeartbeatService {
             result.take()
         };
 
+        // System uptime
+        let uptime_seconds = Some(System::uptime());
+
         HeartbeatRequest {
             timestamp: Utc::now(),
             agent_version: AGENT_VERSION.to_string(),
@@ -213,6 +249,12 @@ impl HeartbeatService {
             compliance_score: *self.compliance_score.read().await,
             pending_sync_count: self.pending_sync_count.load(Ordering::SeqCst),
             self_check_result,
+            memory_percent,
+            memory_total_bytes: Some(memory_total),
+            disk_percent,
+            disk_used_bytes: disk_used,
+            disk_total_bytes: disk_total,
+            uptime_seconds,
         }
     }
 
@@ -480,6 +522,10 @@ mod tests {
         // CPU and memory should have some value
         assert!(request.cpu_percent >= 0.0);
         assert!(request.memory_bytes > 0);
+        // Extended metrics
+        assert!(request.memory_percent.is_some());
+        assert!(request.memory_total_bytes.is_some());
+        assert!(request.uptime_seconds.is_some());
     }
 
     #[tokio::test]
