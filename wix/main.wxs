@@ -4,16 +4,17 @@
 
   Build with WiX v4:
     dotnet tool install -g wix
-    wix build -o sentinel-agent.msi main.wxs
+    wix build -o sentinel-agent.msi main.wxs -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
 
   Silent installation:
-    msiexec /i sentinel-agent.msi /qn
+    msiexec /i sentinel-agent.msi /qn ENROLLMENTTOKEN=xxx
 
   With custom properties:
     msiexec /i sentinel-agent.msi /qn SERVERURL=https://api.example.com ENROLLMENTTOKEN=xxx
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <!-- Product definition -->
   <Package
@@ -42,8 +43,48 @@
     <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
 
     <!-- Custom properties for configuration -->
-    <Property Id="SERVERURL" Value="https://app.cyber-threat-consulting.com" />
+    <Property Id="SERVERURL" Value="https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/agentApi" />
     <Property Id="ENROLLMENTTOKEN" Secure="yes" />
+
+    <!-- UI Extension for custom dialogs -->
+    <ui:WixUI Id="WixUI_InstallDirEnroll" />
+
+    <!-- Custom UI sequence to add enrollment dialog -->
+    <UI>
+      <Dialog Id="EnrollmentDlg" Width="370" Height="270" Title="Configuration de l'agent">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Configuration Sentinel Agent" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="320" Height="20" Transparent="yes" NoPrefix="yes" Text="Entrez le token d'enrollment fourni par votre administrateur." />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+
+        <Control Id="TokenLabel" Type="Text" X="20" Y="60" Width="100" Height="15" Text="Token d'enrollment:" />
+        <Control Id="TokenEdit" Type="Edit" X="20" Y="78" Width="330" Height="18" Property="ENROLLMENTTOKEN" />
+
+        <Control Id="ServerLabel" Type="Text" X="20" Y="110" Width="100" Height="15" Text="URL du serveur:" />
+        <Control Id="ServerEdit" Type="Edit" X="20" Y="128" Width="330" Height="18" Property="SERVERURL" />
+
+        <Control Id="AutoStartCheck" Type="CheckBox" X="20" Y="160" Width="330" Height="17" Property="AUTOSTART" CheckBoxValue="1" Text="Démarrer automatiquement avec Windows" />
+
+        <Control Id="Info" Type="Text" X="20" Y="190" Width="330" Height="30" Text="L'agent se connectera au serveur Sentinel GRC après l'installation pour vérifier la conformité de cet ordinateur." />
+
+        <Control Id="BottomLine" Type="Line" X="0" Y="224" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="237" Width="56" Height="17" Text="Retour">
+          <Publish Event="NewDialog" Value="InstallDirDlg" />
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="237" Width="56" Height="17" Default="yes" Text="Suivant">
+          <Publish Event="NewDialog" Value="VerifyReadyDlg" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="237" Width="56" Height="17" Cancel="yes" Text="Annuler">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <!-- Insert enrollment dialog in sequence -->
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="EnrollmentDlg" Order="4">1</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="EnrollmentDlg" Order="1">NOT Installed</Publish>
+    </UI>
+
+    <!-- Auto-start property default -->
+    <Property Id="AUTOSTART" Value="1" />
 
     <!-- Media definition -->
     <Media Id="1" Cabinet="sentinel.cab" EmbedCab="yes" />
@@ -200,9 +241,47 @@
                   Property="SERVERURL"
                   Value="[SERVERURL]" />
 
+    <!-- Create config file with enrollment token -->
+    <CustomAction Id="CreateConfigFile"
+                  Directory="ConfigDir"
+                  ExeCommand="cmd.exe /c echo {&quot;server_url&quot;:&quot;[SERVERURL]&quot;,&quot;enrollment_token&quot;:&quot;[ENROLLMENTTOKEN]&quot;,&quot;auto_start&quot;:[AUTOSTART]} > &quot;[ConfigDir]agent.json&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <!-- Run enrollment after install -->
+    <CustomAction Id="RunEnrollment"
+                  Directory="BinDir"
+                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; enroll --token &quot;[ENROLLMENTTOKEN]&quot; --server &quot;[SERVERURL]&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <!-- Set properties for deferred custom actions -->
+    <CustomAction Id="SetCreateConfigFileProps"
+                  Property="CreateConfigFile"
+                  Value="ConfigDir=[ConfigDir];SERVERURL=[SERVERURL];ENROLLMENTTOKEN=[ENROLLMENTTOKEN];AUTOSTART=[AUTOSTART]" />
+
+    <CustomAction Id="SetRunEnrollmentProps"
+                  Property="RunEnrollment"
+                  Value="BinDir=[BinDir];ENROLLMENTTOKEN=[ENROLLMENTTOKEN];SERVERURL=[SERVERURL]" />
+
+    <!-- Start service after enrollment -->
+    <CustomAction Id="StartServiceAfterEnroll"
+                  Directory="INSTALLDIR"
+                  ExeCommand="net start SentinelGRCAgent"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
     <!-- Installation sequence -->
     <InstallExecuteSequence>
       <Custom Action="SetServerUrl" After="InstallInitialize" Condition="NOT Installed" />
+      <Custom Action="SetCreateConfigFileProps" Before="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="CreateConfigFile" Before="InstallFinalize" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="SetRunEnrollmentProps" Before="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="RunEnrollment" After="CreateConfigFile" Condition="NOT Installed AND ENROLLMENTTOKEN" />
+      <Custom Action="StartServiceAfterEnroll" After="RunEnrollment" Condition="NOT Installed AND ENROLLMENTTOKEN" />
     </InstallExecuteSequence>
 
   </Package>
