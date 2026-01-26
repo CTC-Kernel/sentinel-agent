@@ -60,16 +60,21 @@ interface DownloadButtonProps {
     loading?: boolean;
 }
 
-const RELEASE_API_URL = 'https://europe-west1-sentinel-grc-a8701.cloudfunctions.net/downloadRelease';
-
-const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublabel, icon, available = true, loading = false }) => {
+const DownloadButton: React.FC<DownloadButtonProps & { downloadUrl?: string }> = ({ label, sublabel, icon, available = true, loading = false, downloadUrl }) => {
     const handleDownload = () => {
         if (loading) return;
         if (!available) {
             toast.info("Cette version sera disponible prochainement");
             return;
         }
-        window.location.href = `${RELEASE_API_URL}/agent/${platform}/latest`;
+        if (downloadUrl) {
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = downloadUrl.split('/').pop() || 'agent.zip';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     };
 
     return (
@@ -312,33 +317,46 @@ export const EnrollAgentModal: React.FC<EnrollAgentModalProps> = ({
                                         <DownloadButton
                                             platform="windows"
                                             label="Windows"
-                                            sublabel=".MSI (x64)"
+                                            sublabel="INSTALLATEUR .MSI"
                                             icon={<Monitor className="w-5 h-5 text-blue-500" />}
                                             available={releaseInfo?.platforms?.windows?.available ?? false}
+                                            downloadUrl={releaseInfo?.platforms?.windows?.downloadUrl}
                                             loading={loadingReleases}
                                         />
                                         <DownloadButton
                                             platform="macos"
                                             label="macOS"
-                                            sublabel="Universal (DMG)"
+                                            sublabel="APPLE SILICON & INTEL"
                                             icon={<Cpu className="w-5 h-5 text-slate-600 dark:text-slate-400" />}
                                             available={releaseInfo?.platforms?.macos?.available ?? false}
+                                            downloadUrl={releaseInfo?.platforms?.macos?.downloadUrl}
                                             loading={loadingReleases}
                                         />
                                         <DownloadButton
                                             platform="linux_deb"
                                             label="Linux DEB"
-                                            sublabel="Debian / Ubuntu"
+                                            sublabel="DEBIAN / UBUNTU"
                                             icon={<Terminal className="w-5 h-5 text-orange-500" />}
                                             available={releaseInfo?.platforms?.linux_deb?.available ?? false}
+                                            downloadUrl={releaseInfo?.platforms?.linux_deb?.downloadUrl}
                                             loading={loadingReleases}
                                         />
                                         <DownloadButton
                                             platform="linux_rpm"
                                             label="Linux RPM"
-                                            sublabel="RHEL / Fedora"
+                                            sublabel="RHEL / FEDORA"
                                             icon={<Terminal className="w-5 h-5 text-red-500" />}
                                             available={releaseInfo?.platforms?.linux_rpm?.available ?? false}
+                                            downloadUrl={releaseInfo?.platforms?.linux_rpm?.downloadUrl}
+                                            loading={loadingReleases}
+                                        />
+                                        <DownloadButton
+                                            platform="linux_appimage"
+                                            label="Linux AppImage"
+                                            sublabel="PORTABLE / UNIVERSEL"
+                                            icon={<Terminal className="w-5 h-5 text-green-500" />}
+                                            available={releaseInfo?.platforms?.linux_appimage?.available ?? false}
+                                            downloadUrl={releaseInfo?.platforms?.linux_appimage?.downloadUrl}
                                             loading={loadingReleases}
                                         />
                                     </div>

@@ -159,6 +159,9 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ platform, label, sublab
         switch (platform) {
             case 'windows': return '/downloads/agents/SentinelAgent-Windows-1.0.0.zip'; // Using zip as installer
             case 'macos': return '/downloads/agents/SentinelAgent-macOS-1.0.1.zip';
+            case 'linux_deb': return '/downloads/agents/SentinelAgent-Linux-1.0.0.deb';
+            case 'linux_rpm': return '/downloads/agents/SentinelAgent-Linux-1.0.0.rpm';
+            case 'linux_appimage': return '/downloads/agents/SentinelAgent-Linux-1.0.0.AppImage';
             // Fallback or placeholders for others until files exist
             default: return '#';
         }
@@ -432,9 +435,9 @@ export const AgentManagement: React.FC = () => {
                     platforms: {
                         windows: { displayName: 'Windows (MSI)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Windows-1.0.0.zip', directUrl: null },
                         macos: { displayName: 'macOS (DMG)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-macOS-1.0.1.zip', directUrl: null },
-                        linux_deb: { displayName: 'Linux (DEB)', available: false, downloadUrl: '#', directUrl: null },
-                        linux_rpm: { displayName: 'Linux (RPM)', available: false, downloadUrl: '#', directUrl: null },
-                        linux_appimage: { displayName: 'Linux (AppImage)', available: false, downloadUrl: '#', directUrl: null },
+                        linux_deb: { displayName: 'Linux (DEB)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Linux-1.0.0.deb', directUrl: null },
+                        linux_rpm: { displayName: 'Linux (RPM)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Linux-1.0.0.rpm', directUrl: null },
+                        linux_appimage: { displayName: 'Linux (AppImage)', available: true, downloadUrl: '/downloads/agents/SentinelAgent-Linux-1.0.0.AppImage', directUrl: null },
                     },
                     mobile: {
                         ios: { available: true, appStoreUrl: '#', comingSoon: true },
