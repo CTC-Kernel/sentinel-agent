@@ -709,7 +709,8 @@ impl AgentRuntime {
     /// Wait for shutdown signal.
     async fn wait_for_shutdown(&self) {
         while !self.is_shutdown_requested() {
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            // Check every second instead of 100ms to reduce CPU overhead
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     }
 }
