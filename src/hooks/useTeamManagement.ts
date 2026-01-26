@@ -156,6 +156,8 @@ export const useTeamManagement = () => {
                 html: htmlContent
             });
 
+            await logAction(user, 'INVITE', 'User', `Invitation envoyée à: ${data.email}`, undefined, undefined, { role: data.role });
+
             if (!silent) addToast("Invitation envoyée par email", "success");
             fetchUsers();
             return true;

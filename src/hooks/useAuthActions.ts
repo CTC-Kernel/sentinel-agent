@@ -12,6 +12,7 @@ import {
     TotpMultiFactorGenerator,
     MultiFactorResolver,
     MultiFactorError,
+    sendEmailVerification,
     // signOut removed
 } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
@@ -97,6 +98,17 @@ export const useAuthActions = () => {
                 });
             } else {
                 await createUserWithEmailAndPassword(auth, data.email, data.password);
+
+                // Trigger Email Verification immediately
+                if (auth.currentUser) {
+                    try {
+                        await sendEmailVerification(auth.currentUser);
+                    } catch (emailError) {
+                        ErrorLogger.warn((emailError as Error).message, 'Register.sendEmailVerification');
+                        // Non-blocking: user is created, they can resend email from UI
+                    }
+                }
+
                 addToast(t('auth.created'), "success");
                 safeLogAuthEvent({
                     provider: 'password',
