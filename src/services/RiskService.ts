@@ -9,8 +9,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { canEditResource } from '../utils/permissions';
 import { DependencyService } from './dependencyService';
 import { FunctionsService } from './FunctionsService';
-import { logAction } from './logger';
-import { getDiff } from '../utils/diffUtils';
+import { AuditLogService } from './auditLogService';
 import { NotificationService } from './notificationService';
 
 export class RiskService {
@@ -88,7 +87,17 @@ export class RiskService {
             const docRef = await addDoc(collection(db, 'risks'), riskData);
 
             // Async Log & Notify
-            logAction(user, 'CREATE_RISK', 'Risk', 'Risque créé', undefined, docRef.id);
+            if (user.organizationId) {
+                await AuditLogService.logCreate(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email, email: user.email },
+                    'risk',
+                    docRef.id,
+                    riskData,
+                    'Nouveau risque'
+                );
+            }
+
             if (riskData.owner && riskData.owner !== user.uid) {
                 NotificationService.notifyRiskAssigned(riskData as unknown as Risk, riskData.owner, user.displayName || user.email || 'Admin');
             }
@@ -126,9 +135,16 @@ export class RiskService {
             await updateDoc(doc(db, 'risks', id), updatePayload);
 
             // Log changes
-            if (currentRisk) {
-                const changes = getDiff(data, currentRisk as unknown as Record<string, unknown>);
-                logAction(user, 'UPDATE_RISK', 'Risk', 'Mise à jour risque', undefined, id, undefined, changes);
+            if (currentRisk && user.organizationId) {
+                await AuditLogService.logUpdate(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email, email: user.email },
+                    'risk',
+                    id,
+                    currentRisk as unknown as Record<string, unknown>,
+                    data as unknown as Record<string, unknown>,
+                    currentRisk.threat || 'Risque'
+                );
             }
 
             return { success: true };
@@ -150,7 +166,17 @@ export class RiskService {
 
         try {
             await FunctionsService.deleteResource('risks', id);
-            logAction(user, 'DELETE_RISK', 'Risk', `Suppression risque ${id}`);
+
+            if (user.organizationId) {
+                await AuditLogService.logDelete(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email, email: user.email },
+                    'risk',
+                    id,
+                    currentRisk ? (currentRisk as unknown as Record<string, unknown>) : { id },
+                    currentRisk?.threat || 'Risque'
+                );
+            }
             return { success: true };
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RiskService.deleteRisk', 'DELETE_FAILED');

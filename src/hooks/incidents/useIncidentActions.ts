@@ -141,8 +141,7 @@ export const useIncidentActions = () => {
             await IncidentService.deleteIncidentWithLog({
                 incidentId: id,
                 organizationId: user.organizationId,
-                userId: user.uid,
-                userEmail: user.email || 'unknown'
+                user // Pass full user object
             });
             addToast(t('incidents.toastDeleted'), "info");
         } catch (error) {
@@ -157,37 +156,15 @@ export const useIncidentActions = () => {
         if (!user?.organizationId || !user?.uid) return;
         setLoading(true);
 
-        let successCount = 0;
-        let blockedCount = 0;
-        const errors: string[] = [];
-
         try {
-            // Process sequentially or semi-parallel to track individual results
-            await Promise.all(ids.map(async (id) => {
-                try {
-                    // Use IncidentService for atomic deletion with audit logging
-                    await IncidentService.deleteIncidentWithLog({
-                        incidentId: id,
-                        organizationId: user.organizationId!,
-                        userId: user.uid,
-                        userEmail: user.email || 'unknown'
-                    });
-                    successCount++;
-                } catch (error: unknown) {
-                    blockedCount++;
-                    const errWithMsg = error as { message?: string } | null;
-                    if (errWithMsg?.message) errors.push(errWithMsg.message);
-                }
-            }));
+            // Use IncidentService for atomic deletion with audit logging
+            await IncidentService.bulkDeleteIncidents(
+                ids,
+                user.organizationId,
+                user // Pass full user object
+            );
 
-            if (successCount > 0) {
-                addToast(t('incidents.toastBulkDeleted', { count: successCount }) + (blockedCount > 0 ? ` (${blockedCount} échoués)` : ''), "success");
-            }
-
-            if (blockedCount > 0) {
-                const firstError = errors.length > 0 ? errors[0] : 'Erreur inconnue';
-                addToast(`Certains incidents n'ont pas pu être supprimés (${blockedCount}). Exemple: ${firstError}`, "error");
-            }
+            addToast(t('incidents.toastBulkDeleted', { count: ids.length }), "success");
 
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.deleteIncidentsBulk', 'DELETE_FAILED');
@@ -300,11 +277,10 @@ export const useIncidentActions = () => {
             const count = await IncidentService.importIncidentsFromCSV(
                 lines,
                 user.organizationId,
-                user.uid,
-                user.displayName || 'Utilisateur'
+                user
             );
 
-            await logAction(user, 'IMPORT', 'Incident', `Import CSV de ${count} incidents`);
+            // Audit log moved to Service
             addToast(t('incidents.toastImport', { count }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useIncidentActions.importIncidents');

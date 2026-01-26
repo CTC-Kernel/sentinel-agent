@@ -171,7 +171,7 @@ export const SupplierAssessmentDrawer: React.FC<Props> = ({
         reviewCycle: reviewCycle || undefined,
         customReviewPeriodDays: reviewCycle === 'custom' ? customReviewDays : undefined,
         respondentEmail: respondentEmail || undefined,
-      });
+      }, user ? { uid: user.uid, email: user.email, displayName: user.displayName } : undefined);
 
       toast.success(t('vendorAssessment.assessmentCreated', 'Assessment created successfully'));
       onAssessmentCreated(assessmentId);

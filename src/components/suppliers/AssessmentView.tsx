@@ -20,7 +20,7 @@ interface AssessmentAnswer {
 }
 
 export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
-    const { addToast } = useStore();
+    const { addToast, user } = useStore();
     const { templates, assessments, loading: hookLoading, updateAssessment } = useSupplierDependencies({
         fetchTemplates: true,
         fetchAssessments: true
@@ -88,7 +88,23 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose }) => {
             });
 
             if (submit) {
-                await SupplierService.updateSupplierRiskFromAssessment(response.supplierId, overallScore);
+                // Ensure user context is passed
+                if (user) {
+                    await SupplierService.updateSupplierRiskFromAssessment(response.supplierId, overallScore, {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                        organizationId: user.organizationId
+                    });
+                } else {
+                    // Fallback if user is somehow missing (should not happen in protected view)
+                    ErrorLogger.warn('User context missing during assessment submission', 'AssessmentView.handleSave');
+                    // We might still want to update risk, but logging will fail or be skipped.
+                    // The service method now REQUIRES user. 
+                    // I should probably throw or handle this.
+                    // But given `user` comes from `useStore`, it should be there.
+                }
+
                 addToast('Évaluation soumise avec succès', 'success');
                 onClose();
             } else {

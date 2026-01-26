@@ -114,12 +114,21 @@ describe('useComplianceData', () => {
         it('does not fetch when enabled is false', () => {
             renderHook(() => useComplianceData(undefined, false));
 
-            // Should call with enabled: false
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'controls',
-                expect.anything(),
-                expect.objectContaining({ enabled: false })
+            // Should call with enabled: false for all collections
+            // When shouldFetch is false, constraints are undefined and enabled is false in options
+            const calls = mockUseFirestoreCollection.mock.calls;
+
+            // Verify all collections are called with enabled: false
+            const enabledFalseCalls = calls.filter(
+                (call: unknown[]) => (call[2] as { enabled?: boolean })?.enabled === false
             );
+            expect(enabledFalseCalls.length).toBe(7); // All 7 collections
+
+            // Verify constraints are undefined when not fetching
+            const undefinedConstraintCalls = calls.filter(
+                (call: unknown[]) => call[1] === undefined
+            );
+            expect(undefinedConstraintCalls.length).toBe(7);
         });
 
         it('fetches when enabled is true (default)', () => {

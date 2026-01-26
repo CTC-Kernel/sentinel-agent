@@ -1,6 +1,7 @@
 import { db } from '../firebase';
 import { FunctionsService } from './FunctionsService';
 import { SupplierDoraSyncService } from './SupplierDoraSyncService';
+import { AuditLogService } from './auditLogService';
 import { Supplier, SupplierQuestionnaireResponse, QuestionnaireTemplate, Criticality } from '../types';
 import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, writeBatch, serverTimestamp, getDoc } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -115,25 +116,39 @@ export class SupplierService {
     /**
      * Updates the supplier's risk level based on the assessment score.
      */
-    static async updateSupplierRiskFromAssessment(supplierId: string, assessmentScore: number): Promise<void> {
+    static async updateSupplierRiskFromAssessment(
+        supplierId: string,
+        assessmentScore: number,
+        user: { uid: string; email: string; organizationId?: string; displayName?: string }
+    ): Promise<void> {
         try {
             const supplierRef = doc(db, 'suppliers', supplierId);
+            const supplierDoc = await getDoc(supplierRef);
+            const oldRiskLevel = supplierDoc.exists() ? supplierDoc.data()?.riskLevel || 'Unknown' : 'Unknown';
 
             let riskLevel: Supplier['riskLevel'] = 'Low';
             if (assessmentScore < 50) riskLevel = 'Critical';
             else if (assessmentScore < 70) riskLevel = 'High';
             else if (assessmentScore < 85) riskLevel = 'Medium';
 
-            // Also map to criticalities for the main status
-
             await updateDoc(supplierRef, sanitizeData({
                 securityScore: assessmentScore,
                 riskLevel: riskLevel,
-                // We might not want to overwrite criticality automatically if manually set, 
-                // but for dynamic VRM it makes sense to suggest it.
-                // keeping criticality sync optional or secondary.
                 updatedAt: serverTimestamp()
             }));
+
+            // Audit Log
+            if (user?.organizationId) {
+                await AuditLogService.logStatusChange(
+                    user.organizationId,
+                    { id: user.uid, name: user.displayName || user.email, email: user.email },
+                    'supplier',
+                    supplierId,
+                    supplierDoc.exists() ? (supplierDoc.data()?.name || 'Supplier') : 'Supplier',
+                    oldRiskLevel,
+                    riskLevel
+                );
+            }
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.updateSupplierRiskFromAssessment');
             throw error;
@@ -147,7 +162,8 @@ export class SupplierService {
         organizationId: string,
         supplierId: string,
         supplierName: string,
-        template: QuestionnaireTemplate
+        template: QuestionnaireTemplate,
+        user: { uid: string; email: string; displayName?: string }
     ): Promise<string> {
         try {
             const newResponse: Partial<SupplierQuestionnaireResponse> = {
@@ -162,6 +178,17 @@ export class SupplierService {
             };
 
             const res = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData(newResponse));
+
+            // Audit Log
+            await AuditLogService.logCreate(
+                organizationId,
+                { id: user.uid, name: user.displayName || user.email, email: user.email },
+                'audit', // Using 'audit' as entity type (mapped to existing types) or 'document'
+                res.id,
+                { ...newResponse, id: res.id },
+                `Assessment for ${supplierName}`
+            );
+
             return res.id;
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.createAssessment');
@@ -212,9 +239,16 @@ export class SupplierService {
     }
 
     static async deleteSupplierWithCascade(
-        supplierId: string
+        supplierId: string,
+        user: { uid: string; email: string; organizationId?: string; displayName?: string }
     ): Promise<void> {
+        if (!user.organizationId) throw new Error("Organization ID required");
+
         try {
+            // Fetch name for log
+            const supplierDoc = await getDoc(doc(db, 'suppliers', supplierId));
+            const supplierName = supplierDoc.exists() ? supplierDoc.data()?.name : supplierId;
+
             // 1. Attempt Secure Deletion (Blocks if dependencies exist in Risks/Controls/Projects)
             // This replaces the old behavior of automatically unlinking (arrayRemove), which is unsafe for Audit.
             await FunctionsService.deleteResource('suppliers', supplierId);
@@ -244,6 +278,16 @@ export class SupplierService {
             );
 
             await Promise.all([...deleteAssessments, ...deleteIncidents]);
+
+            // Audit Log
+            await AuditLogService.logDelete(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email, email: user.email },
+                'supplier',
+                supplierId,
+                { name: supplierName, deletedAt: new Date() },
+                supplierName || 'Unknown Supplier'
+            );
 
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.deleteSupplierWithCascade');
@@ -304,6 +348,16 @@ export class SupplierService {
             });
 
             await batch.commit();
+
+            // Audit Log
+            await AuditLogService.logImport(
+                organizationId,
+                { id: userId, name: userDisplayName || 'Unknown', email: 'batch-import' }, // approximate user info if not full profile
+                'supplier',
+                count,
+                'CSV'
+            );
+
             return count;
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.importSuppliersFromCSV');

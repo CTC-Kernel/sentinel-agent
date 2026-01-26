@@ -4,6 +4,7 @@
  * Story 37-1: Vendor Assessment Creation
  */
 
+import { AuditLogService } from './auditLogService';
 import { db } from '../firebase';
 import {
   collection,
@@ -195,7 +196,8 @@ export class VendorAssessmentService {
    */
   static async createAssessment(
     organizationId: string,
-    input: CreateAssessmentInput
+    input: CreateAssessmentInput,
+    user?: { uid: string; email: string; displayName?: string }
   ): Promise<string> {
     try {
       const now = new Date().toISOString();
@@ -221,7 +223,7 @@ export class VendorAssessmentService {
           fromStatus: 'Draft',
           toStatus: 'Draft',
           changedAt: now,
-          changedBy: 'system',
+          changedBy: user ? (user.displayName || user.email) : 'system',
           reason: 'Assessment created',
         }],
       };
@@ -230,6 +232,18 @@ export class VendorAssessmentService {
         collection(db, RESPONSES_COLLECTION),
         sanitizeData(newResponse)
       );
+
+      // Audit Log
+      if (user) {
+        await AuditLogService.logCreate(
+          organizationId,
+          { id: user.uid, name: user.displayName || user.email, email: user.email },
+          'audit',
+          res.id,
+          { ...newResponse, id: res.id },
+          `Assessment created for ${input.supplierName}`
+        );
+      }
 
       return res.id;
     } catch (error) {

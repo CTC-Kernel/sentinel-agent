@@ -1,14 +1,16 @@
-import { collection, doc, writeBatch, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { FunctionsService } from './FunctionsService';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { AuditLogService } from './auditLogService';
+import { UserProfile } from '../types'; // Ensure UserProfile is exported from types
+import { canDeleteResource, canEditResource } from '../utils/permissions';
 
 export interface DeleteIncidentOptions {
     incidentId: string;
     organizationId: string;
-    userId: string;
-    userEmail: string;
+    user: UserProfile;
 }
 
 type IncidentCsvRow = Record<string, string>;
@@ -18,26 +20,24 @@ export class IncidentService {
      * Delete an incident with atomic audit logging using writeBatch
      */
     static async deleteIncidentWithLog(options: DeleteIncidentOptions): Promise<void> {
-        const { incidentId, organizationId, userId, userEmail } = options;
+        const { incidentId, organizationId, user } = options;
+
+        if (!canDeleteResource(user, 'Incident')) throw new Error("Permission refusée");
+        if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
 
         try {
             // 1. Secure Deletion (Backend enforces integrity)
             await FunctionsService.deleteResource('incidents', incidentId);
 
-            // 2. Add Audit Log (Non-atomic but ensures trace)
-            // Ideally backend handles this, but we maintain parity with existing 'system_logs' requirement.
-            await addDoc(collection(db, 'system_logs'), {
+            // 2. Add Audit Log
+            await AuditLogService.logDelete(
                 organizationId,
-                timestamp: new Date().toISOString(),
-                action: 'DELETE',
-                resource: 'Incident',
-                userId,
-                userEmail,
-                details: `Deleted incident ID: ${incidentId}`,
-                metadata: { incidentId },
-                severity: 'critical',
-                source: 'Sentinel-Core'
-            });
+                { id: user.uid, name: user.displayName || user.email, email: user.email },
+                'incident',
+                incidentId,
+                { id: incidentId },
+                'Incident'
+            );
 
         } catch (error) {
             ErrorLogger.error(error, 'IncidentService.deleteIncidentWithLog');
@@ -51,8 +51,7 @@ export class IncidentService {
     static async bulkDeleteIncidents(
         incidentIds: string[],
         organizationId: string,
-        userId: string,
-        userEmail: string
+        user: UserProfile
     ): Promise<void> {
         try {
             // Execute deletions in parallel (each with its own atomic batch)
@@ -61,8 +60,7 @@ export class IncidentService {
                     this.deleteIncidentWithLog({
                         incidentId,
                         organizationId,
-                        userId,
-                        userEmail
+                        user
                     })
                 )
             );
@@ -78,9 +76,11 @@ export class IncidentService {
     static async importIncidentsFromCSV(
         data: IncidentCsvRow[],
         organizationId: string,
-        _userId: string,
-        userDisplayName: string
+        user: UserProfile
     ): Promise<number> {
+        if (!canEditResource(user, 'Incident')) throw new Error("Permission refusée");
+        if (user.organizationId !== organizationId) throw new Error("Tenant mismatch");
+
         try {
             const batch = writeBatch(db);
             let count = 0;
@@ -103,7 +103,7 @@ export class IncidentService {
                     status: row.Statut || row.status || 'Nouveau',
                     severity: severity, // Correct casing
                     category: row.Catégorie || row.Categorie || 'Social Engineering',
-                    reporter: row.Déclarant || row.declarant || userDisplayName,
+                    reporter: row.Déclarant || row.declarant || user.displayName || 'Utilisateur',
                     dateReported: serverTimestamp(),
                     dateAnalysis: serverTimestamp(), // Default to now to avoid filtering issues
                     financialImpact: 0,
@@ -119,6 +119,15 @@ export class IncidentService {
 
             if (count > 0) {
                 await batch.commit();
+
+                // Generate bulk audit log
+                await AuditLogService.logImport(
+                    organizationId,
+                    { id: user.uid, name: user.displayName || user.email, email: user.email },
+                    'incident',
+                    count,
+                    'CSV Import'
+                );
             }
 
             return count;

@@ -108,7 +108,7 @@ export const useSupplierLogic = () => {
         if (!user?.organizationId) return;
         try {
             // Use SupplierService for cascade deletion
-            await SupplierService.deleteSupplierWithCascade(id);
+            await SupplierService.deleteSupplierWithCascade(id, user);
 
             await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${name || id}`);
             addToast(t('suppliers.toastDeleted'), 'success');

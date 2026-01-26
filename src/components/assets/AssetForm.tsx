@@ -755,14 +755,13 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                         onClick={onCancel}
                         variant="ghost"
                         disabled={isLoading}
-                        className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                     >
                         Annuler
                     </Button>
                     <Button
                         type="submit"
                         isLoading={isLoading}
-                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
+                        variant="premium"
                     >
                         {isEditing ? 'Mettre à jour' : 'Créer l\'actif'}
                     </Button>

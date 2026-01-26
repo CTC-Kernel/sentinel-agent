@@ -9,8 +9,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { AssetFormData, assetSchema } from '../schemas/assetSchema';
-import { logAction } from './logger';
-import { getDiff } from '../utils/diffUtils';
+import { AuditLogService } from './auditLogService';
+import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 import { UserProfile, Risk, Incident, Project, Audit, Document, Control, SystemLog } from '../types';
@@ -26,6 +26,7 @@ export const AssetService = {
         preSelectedProjectId?: string | null
     ): Promise<string> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
+        if (!canEditResource(user, 'Asset')) throw new Error("Permission refusée");
 
         // Validate and sanitize
         const validatedData = assetSchema.parse(data);
@@ -61,7 +62,16 @@ export const AssetService = {
         }
 
         // Audit Log
-        await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name}`);
+        if (user.organizationId) {
+            await AuditLogService.logCreate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email, email: user.email },
+                'asset',
+                docRef.id,
+                cleanData,
+                cleanData.name
+            );
+        }
 
         return docRef.id;
     },
@@ -71,28 +81,27 @@ export const AssetService = {
      */
     async update(id: string, data: Partial<AssetFormData>, user: UserProfile, oldData?: Record<string, unknown>): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
+        if (!canEditResource(user, 'Asset')) throw new Error("Permission refusée");
 
         const validatedData = assetSchema.partial().parse(data);
         const cleanData = sanitizeData(validatedData);
-
-        // Calculate changes for Audit Trail using standard utility
-        const changes = oldData ? getDiff(cleanData as Record<string, unknown>, oldData) : [];
 
         await updateDoc(doc(db, 'assets', id), {
             ...cleanData,
             updatedAt: serverTimestamp()
         });
 
-        await logAction(
-            user,
-            'UPDATE',
-            'Asset',
-            `Mise à jour Actif: ${cleanData.name || oldData?.name || 'Inconnu'}`,
-            undefined,
-            id,
-            undefined,
-            changes.length > 0 ? changes : undefined
-        );
+        if (user.organizationId && oldData) {
+            await AuditLogService.logUpdate(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email, email: user.email },
+                'asset',
+                id,
+                oldData,
+                cleanData,
+                (cleanData.name as string) || (oldData.name as string) || 'Actif'
+            );
+        }
     },
 
     /**
@@ -100,9 +109,20 @@ export const AssetService = {
      */
     async delete(id: string, name: string, user: UserProfile): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
+        if (!canDeleteResource(user, 'Asset')) throw new Error("Permission refusée");
 
         await FunctionsService.deleteResource('assets', id);
-        await logAction(user, 'DELETE', 'Asset', `Suppression Actif: ${name}`);
+
+        if (user.organizationId) {
+            await AuditLogService.logDelete(
+                user.organizationId,
+                { id: user.uid, name: user.displayName || user.email, email: user.email },
+                'asset',
+                id,
+                { name },
+                name
+            );
+        }
     },
 
     /**
@@ -110,12 +130,31 @@ export const AssetService = {
      */
     async bulkDelete(ids: string[], user: UserProfile): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
+        if (!canDeleteResource(user, 'Asset')) throw new Error("Permission refusée");
 
         // Use sequential execution to prevent overwhelming the function instance
         for (const id of ids) {
             await FunctionsService.deleteResource('assets', id);
         }
-        await logAction(user, 'DELETE', 'Asset', `Suppression en masse de ${ids.length} actifs`);
+
+        if (user.organizationId) {
+            // Using logBatch for bulk logs would be ideal but we don't have individual names here easily without fetching.
+            // For now, logging a generic message is acceptable for bulk delete if we don't fetch first.
+            // But strict audit might require individual logs.
+            // Let's create individual logs with ID as fallback name to be safe.
+            const entries = ids.map(id => ({
+                organizationId: user.organizationId!,
+                userId: user.uid,
+                userName: user.displayName || user.email,
+                userEmail: user.email,
+                action: 'delete' as const,
+                entityType: 'asset' as const,
+                entityId: id,
+                details: 'Suppression en masse',
+                before: { id }
+            }));
+            await AuditLogService.logBatch(entries);
+        }
     },
 
     /**

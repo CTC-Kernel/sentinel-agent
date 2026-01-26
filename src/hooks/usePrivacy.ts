@@ -212,7 +212,7 @@ export function usePrivacy() {
                 try {
                     await PrivacyService.importActivities(toImport, user);
                     addToast(`${toImport.length} traitements importés`, "success");
-                } catch (_err) {
+                } catch {
                     addToast("Erreur import CSV", "error");
                 }
             }
