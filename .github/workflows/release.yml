@@ -73,6 +73,7 @@ jobs:
           VERSION: ${{ github.event.inputs.version || '1.0.0' }}
 
       - name: Notarize DMG
+        continue-on-error: true
         timeout-minutes: 35
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -83,20 +84,24 @@ jobs:
           echo "Notarizing $DMG_PATH..."
 
           # Submit and wait up to 30 minutes
-          xcrun notarytool submit "$DMG_PATH" \
+          if xcrun notarytool submit "$DMG_PATH" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_APP_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
-            --wait --timeout 30m
+            --wait --timeout 30m; then
 
-          # Staple the ticket
-          xcrun stapler staple "$DMG_PATH"
-          echo "Notarization complete!"
+            # Staple the ticket
+            xcrun stapler staple "$DMG_PATH"
+            echo "Notarization complete!"
 
-          # Also staple the latest copy
-          LATEST_DMG=$(ls target/release/*-latest.dmg 2>/dev/null || true)
-          if [ -n "$LATEST_DMG" ]; then
-            xcrun stapler staple "$LATEST_DMG"
+            # Also staple the latest copy
+            LATEST_DMG=$(ls target/release/*-latest.dmg 2>/dev/null || true)
+            if [ -n "$LATEST_DMG" ]; then
+              xcrun stapler staple "$LATEST_DMG"
+            fi
+          else
+            echo "::warning::Notarization timed out. DMG is signed but not notarized."
+            echo "Users can still install by right-clicking and selecting 'Open', then going to System Preferences > Security."
           fi
 
       - name: Generate checksums
@@ -291,25 +296,41 @@ jobs:
       - name: Upload to Firebase Storage
         run: |
           VERSION="${{ github.event.inputs.version || '1.0.0' }}"
-          BUCKET="gs://sentinel-grc-a8701.appspot.com/releases/agent"
+          BUCKET="gs://sentinel-grc-a8701.firebasestorage.app/releases/agent"
 
-          # Upload macOS DMG + checksum
-          gsutil cp artifacts/sentinel-agent-macos-dmg/*.dmg "$BUCKET/"
-          gsutil cp artifacts/sentinel-agent-macos-dmg/*.sha256 "$BUCKET/" 2>/dev/null || true
+          # Upload macOS DMG to correct path structure
+          for f in artifacts/sentinel-agent-macos-dmg/*.dmg; do
+            gsutil cp "$f" "$BUCKET/macos/"
+          done
+          for f in artifacts/sentinel-agent-macos-dmg/*.sha256; do
+            gsutil cp "$f" "$BUCKET/macos/" 2>/dev/null || true
+          done
 
-          # Upload Windows MSI + checksum
-          gsutil cp artifacts/sentinel-agent-windows-msi/*.msi "$BUCKET/"
-          gsutil cp artifacts/sentinel-agent-windows-msi/*.sha256 "$BUCKET/" 2>/dev/null || true
+          # Upload Windows MSI to correct path structure
+          for f in artifacts/sentinel-agent-windows-msi/*.msi; do
+            gsutil cp "$f" "$BUCKET/windows/"
+          done
+          for f in artifacts/sentinel-agent-windows-msi/*.sha256; do
+            gsutil cp "$f" "$BUCKET/windows/" 2>/dev/null || true
+          done
 
-          # Upload Linux DEB + checksum
-          gsutil cp artifacts/sentinel-agent-linux-deb/*.deb "$BUCKET/"
-          gsutil cp artifacts/sentinel-agent-linux-deb/*.sha256 "$BUCKET/" 2>/dev/null || true
+          # Upload Linux DEB to correct path structure
+          for f in artifacts/sentinel-agent-linux-deb/*.deb; do
+            gsutil cp "$f" "$BUCKET/linux_deb/"
+          done
+          for f in artifacts/sentinel-agent-linux-deb/*.sha256; do
+            gsutil cp "$f" "$BUCKET/linux_deb/" 2>/dev/null || true
+          done
 
-          # Upload Linux RPM + checksum
-          gsutil cp artifacts/sentinel-agent-linux-rpm/*.rpm "$BUCKET/"
-          gsutil cp artifacts/sentinel-agent-linux-rpm/*.sha256 "$BUCKET/" 2>/dev/null || true
+          # Upload Linux RPM to correct path structure
+          for f in artifacts/sentinel-agent-linux-rpm/*.rpm; do
+            gsutil cp "$f" "$BUCKET/linux_rpm/"
+          done
+          for f in artifacts/sentinel-agent-linux-rpm/*.sha256; do
+            gsutil cp "$f" "$BUCKET/linux_rpm/" 2>/dev/null || true
+          done
 
-          echo "All releases and checksums uploaded to Firebase Storage"
+          echo "All releases uploaded to Firebase Storage with correct path structure"
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')

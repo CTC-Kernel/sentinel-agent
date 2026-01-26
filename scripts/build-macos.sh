@@ -12,11 +12,15 @@ VERSION="${VERSION:-1.0.0}"  # Use VERSION env var or default to 1.0.0
 echo "=== Building Sentinel Agent for macOS ==="
 echo "Project dir: $PROJECT_DIR"
 
-# Build the release binary
+# Build the release binary (skip if already exists - e.g., universal binary from CI)
 echo ""
 echo "1. Building release binary..."
 cd "$PROJECT_DIR"
-cargo build --release --package agent-core
+if [ ! -f "$BUILD_DIR/agent-core" ]; then
+    cargo build --release --package agent-core
+else
+    echo "Binary already exists, skipping build (using pre-built binary)"
+fi
 
 # Generate icons if not present
 if [ ! -f "$PROJECT_DIR/assets/icons/sentinel-agent.icns" ]; then
