@@ -10,7 +10,7 @@
  */
 
 const { enrollAgent } = require('./enrollment');
-const { agentHeartbeat, getAgentStatus } = require('./heartbeat');
+const { agentHeartbeat, getAgentStatus, getAgentMetricsHistory } = require('./heartbeat');
 const { uploadResults, getAgentResults } = require('./results');
 const { getAgentConfig, updateAgentConfig } = require('./config');
 const {
@@ -21,6 +21,35 @@ const {
 const { listAgents, deleteAgent, getAgentDetails } = require('./management');
 const { onAgentCreated, onResultUploaded } = require('./sync');
 const { agentApi } = require('./api');
+const {
+  uploadSoftwareInventory,
+  uploadCISResults,
+  getAuthorizedSoftware,
+  getCISBenchmarks,
+} = require('./software');
+const {
+  recalculateAgentBaseline,
+  runAnomalyDetection,
+  scheduledAnomalyDetection,
+  dailyBaselineRecalculation,
+  updateAnomalyStats,
+} = require('./anomalyDetection');
+const {
+  deployPolicy,
+  rollbackPolicy,
+  getEffectivePolicy,
+  autoAssignAgentsToGroups,
+  onAgentUpdated,
+  validatePolicyRules,
+} = require('./policies');
+const {
+  generateAgentReport,
+  fetchComplianceReportData,
+  fetchFleetHealthReportData,
+  fetchExecutiveSummaryData,
+  processScheduledReports,
+  cleanupExpiredReports,
+} = require('./reports');
 
 module.exports = {
   // Agent REST API (for agent communication)
@@ -36,6 +65,7 @@ module.exports = {
   // Heartbeat & Status
   agentHeartbeat,
   getAgentStatus,
+  getAgentMetricsHistory,
 
   // Results
   uploadResults,
@@ -54,4 +84,33 @@ module.exports = {
   listAgents,
   deleteAgent,
   getAgentDetails,
+
+  // Software Inventory & CIS Benchmarks
+  uploadSoftwareInventory,
+  uploadCISResults,
+  getAuthorizedSoftware,
+  getCISBenchmarks,
+
+  // Anomaly Detection
+  recalculateAgentBaseline,
+  runAnomalyDetection,
+  scheduledAnomalyDetection,
+  dailyBaselineRecalculation,
+  updateAnomalyStats,
+
+  // Policy Management (Sprint 9)
+  deployPolicy,
+  rollbackPolicy,
+  getEffectivePolicy,
+  autoAssignAgentsToGroups,
+  onAgentUpdated,
+  validatePolicyRules,
+
+  // Report Generation (Sprint 10)
+  generateAgentReport,
+  fetchComplianceReportData,
+  fetchFleetHealthReportData,
+  fetchExecutiveSummaryData,
+  processScheduledReports,
+  cleanupExpiredReports,
 };
