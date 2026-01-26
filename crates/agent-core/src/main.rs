@@ -493,19 +493,23 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     // Run the tao event loop (required for tray to work on macOS)
     // Note: event_loop.run() never returns - it exits the process directly
     event_loop.run(move |_event, _, control_flow| {
-        // Set to poll mode so we can check for menu events
-        *control_flow = ControlFlow::Poll;
-
-        // Check for menu events
-        if let Ok(event) = menu_channel.try_recv() {
-            agent_tray.handle_menu_event(&event);
-        }
-
-        // Check if shutdown was requested
+        // Check if shutdown was requested first
         if shutdown.load(Ordering::SeqCst) {
             info!("Shutdown requested, stopping agent...");
             *control_flow = ControlFlow::Exit;
+            return;
         }
+
+        // Check for menu events (non-blocking, drain all pending)
+        while let Ok(event) = menu_channel.try_recv() {
+            agent_tray.handle_menu_event(&event);
+        }
+
+        // Use WaitUntil with 1 second interval to check shutdown periodically
+        // This keeps CPU near 0% while still responding to Ctrl+C within 1s
+        *control_flow = ControlFlow::WaitUntil(
+            std::time::Instant::now() + std::time::Duration::from_secs(1)
+        );
     })
 }
 
