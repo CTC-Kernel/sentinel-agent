@@ -651,7 +651,7 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
     useEffect(() => {
         if (!organizationId) return;
 
-        setLoading(true);
+        // Note: loading is initialized to true, no need to set it here
 
         const unsubscribe = subscribeToPolicies(
             organizationId,

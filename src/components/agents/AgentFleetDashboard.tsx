@@ -170,6 +170,8 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
     // Mock trend data for demo (in production, this would come from historical data)
     const trendData = useMemo(() => {
         const now = new Date();
+        // Use deterministic variations based on index for pure render
+        const variations = [-3, 2, -1, 4, -2, 1, 0];
         return Array.from({ length: 7 }, (_, i) => {
             const date = new Date(now);
             date.setDate(date.getDate() - (6 - i));
@@ -177,7 +179,7 @@ export const AgentFleetDashboard: React.FC<AgentFleetDashboardProps> = ({ agents
                            i === 5 ? 'Hier' :
                            date.toLocaleDateString('fr-FR', { weekday: 'short' });
             // Simulated compliance trend (in production: real historical data)
-            const score = Math.max(60, Math.min(100, stats.avgScore + Math.random() * 10 - 5));
+            const score = Math.max(60, Math.min(100, stats.avgScore + variations[i]));
             return { day: dayLabel, score: Math.round(score) };
         });
     }, [stats.avgScore]);

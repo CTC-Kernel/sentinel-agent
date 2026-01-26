@@ -536,7 +536,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({
     useEffect(() => {
         if (!organizationId) return;
 
-        setLoading(true);
+        // Note: loading is initialized to true, no need to set it here
 
         const unsubscribe = subscribeToGroups(
             organizationId,

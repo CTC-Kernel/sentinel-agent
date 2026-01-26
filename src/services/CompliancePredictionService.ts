@@ -599,13 +599,15 @@ export async function generateRecommendedActions(
  * Rank actions by quick win score
  */
 export function rankActionsByQuickWin(actions: RecommendedAction[]): RecommendedAction[] {
-    return [...actions]
-        .map(action => ({
-            ...action,
-            _quickWinScore: calculateQuickWinScore(action),
-        }))
-        .sort((a, b) => (b as any)._quickWinScore - (a as any)._quickWinScore)
-        .map(({ ...action }) => action);
+    // Calculate quick win scores and sort
+    const actionsWithScores = actions.map(action => ({
+        action,
+        quickWinScore: calculateQuickWinScore(action),
+    }));
+
+    actionsWithScores.sort((a, b) => b.quickWinScore - a.quickWinScore);
+
+    return actionsWithScores.map(({ action }) => action);
 }
 
 /**

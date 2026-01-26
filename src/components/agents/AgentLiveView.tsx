@@ -115,32 +115,33 @@ export const AgentLiveView: React.FC<AgentLiveViewProps> = ({
     className
 }) => {
     const [activeTab, setActiveTab] = useState('metrics');
-    const [realtimeData, setRealtimeData] = useState<AgentRealtimeData | null>(null);
-    const [metricsHistory, setMetricsHistory] = useState<AgentRealtimeMetrics[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-
-    // Load initial data
-    useEffect(() => {
-        const data = generateMockRealtimeData(agent);
-        setRealtimeData(data);
-
+    const [realtimeData, setRealtimeData] = useState<AgentRealtimeData | null>(() => generateMockRealtimeData(agent));
+    const [metricsHistory, setMetricsHistory] = useState<AgentRealtimeMetrics[]>(() => {
         // Generate initial metrics history
         const now = new Date();
-        const history = Array.from({ length: 60 }, (_, i) => {
+        return Array.from({ length: 60 }, (_, i) => {
             const timestamp = new Date(now.getTime() - (59 - i) * 1000);
+            // Use deterministic variations based on index
+            const cpuVariation = ((i % 7) - 3) * 3;
+            const memVariation = ((i % 5) - 2) * 2;
             return {
-                cpuPercent: Math.max(0, Math.min(100, (agent.cpuPercent || 20) + (Math.random() - 0.5) * 20)),
-                memoryPercent: Math.max(0, Math.min(100, 45 + (Math.random() - 0.5) * 10)),
+                cpuPercent: Math.max(0, Math.min(100, (agent.cpuPercent || 20) + cpuVariation)),
+                memoryPercent: Math.max(0, Math.min(100, 45 + memVariation)),
                 memoryBytes: agent.memoryBytes || 4 * 1024 * 1024 * 1024,
-                diskPercent: 65 + (Math.random() - 0.5) * 5,
-                networkInBytes: Math.floor(Math.random() * 1024 * 1024),
-                networkOutBytes: Math.floor(Math.random() * 512 * 1024),
+                diskPercent: 65 + ((i % 3) - 1),
+                networkInBytes: (i * 17389) % (1024 * 1024),
+                networkOutBytes: (i * 8731) % (512 * 1024),
                 timestamp: timestamp.toISOString(),
             };
         });
-        setMetricsHistory(history);
-        setLoading(false);
+    });
+    const [loading, _setLoading] = useState(false);
+    void _setLoading; // Reserved for future use with real-time data loading
+    const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+    // Update data when agent changes
+    useEffect(() => {
+        setRealtimeData(generateMockRealtimeData(agent));
     }, [agent]);
 
     // Simulate real-time updates (in production: Firestore subscription)

@@ -301,7 +301,7 @@ export const AgentEvidencePanel: React.FC<AgentEvidencePanelProps> = ({
     useEffect(() => {
         if (!user?.organizationId) return;
 
-        setLoading(true);
+        // Note: loading is initialized to true, no need to set it here
 
         const unsubscribe = AgentEvidenceService.subscribeToControlEvidence(
             user.organizationId,
@@ -321,14 +321,24 @@ export const AgentEvidencePanel: React.FC<AgentEvidencePanelProps> = ({
 
     // Load summary
     useEffect(() => {
-        if (!user?.organizationId) return;
+        const organizationId = user?.organizationId;
+        if (!organizationId) return;
 
-        AgentEvidenceService.getControlEvidenceSummary(
-            user.organizationId,
-            controlId,
-            controlCode,
-            controlName
-        ).then(setSummary).catch(console.error);
+        const loadSummary = async () => {
+            try {
+                const summaryData = await AgentEvidenceService.getControlEvidenceSummary(
+                    organizationId,
+                    controlId,
+                    controlCode,
+                    controlName
+                );
+                setSummary(summaryData);
+            } catch (error) {
+                console.error('Failed to load evidence summary:', error);
+            }
+        };
+
+        loadSummary();
     }, [user?.organizationId, controlId, controlCode, controlName, evidence]);
 
     // Handle refresh

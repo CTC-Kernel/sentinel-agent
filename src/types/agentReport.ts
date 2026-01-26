@@ -833,12 +833,13 @@ export function calculateNextRunDate(schedule: ScheduledReport): Date {
             }
             break;
 
-        case 'quarterly':
+        case 'quarterly': {
             // Find next quarter start
             const quarterMonth = Math.floor(next.getMonth() / 3) * 3;
             next.setMonth(quarterMonth + 3);
             next.setDate(schedule.dayOfMonth || 1);
             break;
+        }
     }
 
     return next;
@@ -884,10 +885,11 @@ export function getDateRangeDates(preset: ReportDateRange['preset']): { start: D
             end.setDate(0); // Last day of previous month
             break;
 
-        case 'this_quarter':
+        case 'this_quarter': {
             const quarterStart = Math.floor(now.getMonth() / 3) * 3;
             start = new Date(now.getFullYear(), quarterStart, 1);
             break;
+        }
 
         default:
             // Custom - use provided dates

@@ -172,8 +172,18 @@ export const AgentPolicies: React.FC = () => {
 
     // Initialize defaults if needed
     useEffect(() => {
-        const initDefaults = async () => {
-            if (!user?.organizationId || isInitialized || loading) return;
+        if (loading || isInitialized) return;
+
+        // Async function to handle initialization
+        const initializeIfNeeded = async () => {
+            // If we have data, mark as initialized
+            if (groups.length > 0 || policies.length > 0) {
+                setIsInitialized(true);
+                return;
+            }
+
+            // Otherwise, initialize defaults
+            if (!user?.organizationId) return;
 
             try {
                 await AgentPolicyService.initializeDefaultsIfNeeded(user.organizationId, user.uid);
@@ -183,12 +193,8 @@ export const AgentPolicies: React.FC = () => {
             }
         };
 
-        if (!loading && groups.length === 0 && policies.length === 0) {
-            initDefaults();
-        } else if (!loading) {
-            setIsInitialized(true);
-        }
-    }, [user?.organizationId, loading, groups.length, policies.length, isInitialized]);
+        initializeIfNeeded();
+    }, [user?.organizationId, user?.uid, loading, groups.length, policies.length, isInitialized]);
 
     // Detect policy conflicts
     useEffect(() => {

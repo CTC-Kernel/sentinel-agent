@@ -484,7 +484,7 @@ export const AnomalyAlerts: React.FC<AnomalyAlertsProps> = ({
     useEffect(() => {
         if (!organizationId) return;
 
-        setLoading(true);
+        // Note: loading is initialized to true, no need to set it here
 
         const unsubscribe = subscribeToAgentAnomalies(
             organizationId,

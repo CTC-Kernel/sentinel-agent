@@ -8,14 +8,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { DashboardHeader } from '../DashboardHeader';
 
 // Mock framer-motion - create a handler that returns a passthrough component for any element
-vi.mock('framer-motion', () => {
+vi.mock('framer-motion', async () => {
+    const React = await import('react');
+
     const createMotionComponent = (element: string) => {
         return ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => {
             // Filter out framer-motion specific props
             const { initial: _initial, animate: _animate, exit: _exit, transition: _transition, whileHover: _whileHover, whileTap: _whileTap, variants: _variants, ...htmlProps } = props;
-            // Use createElement to avoid JSX type issues with custom elements
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const React = require('react');
             return React.createElement(element, htmlProps, children);
         };
     };
@@ -24,7 +23,7 @@ vi.mock('framer-motion', () => {
         motion: new Proxy({}, {
             get: (_target, prop: string) => createMotionComponent(prop)
         }),
-        AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
+        AnimatePresence: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
     };
 });
 

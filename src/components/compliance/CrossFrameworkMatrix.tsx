@@ -357,13 +357,20 @@ export const CrossFrameworkMatrix: React.FC<CrossFrameworkMatrixProps> = ({
         const organizationId = user?.organizationId;
         if (!organizationId) return;
 
-        setLoading(true);
-        setError(null);
+        // Note: loading is initialized to true, error is initialized to null
 
-        AutoPopulationService.getCrossFrameworkMatrix(organizationId)
-            .then(setEntries)
-            .catch((err) => setError((err as Error).message))
-            .finally(() => setLoading(false));
+        const loadMatrix = async () => {
+            try {
+                const data = await AutoPopulationService.getCrossFrameworkMatrix(organizationId);
+                setEntries(data);
+            } catch (err) {
+                setError((err as Error).message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadMatrix();
     }, [user?.organizationId]);
 
     // Get unique framework codes from entries
