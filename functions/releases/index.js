@@ -20,7 +20,7 @@ const bucket = getStorage().bucket('sentinel-grc-a8701.firebasestorage.app');
 // Release metadata configuration
 const RELEASE_CONFIG = {
     agent: {
-        currentVersion: '1.0.1',
+        currentVersion: '1.0.2',
         releaseDate: '2026-01-26',
         changelogUrl: 'https://github.com/sentinel/agent/releases',
         platforms: {
