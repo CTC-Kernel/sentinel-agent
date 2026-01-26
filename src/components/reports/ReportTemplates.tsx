@@ -71,7 +71,7 @@ export const ReportTemplates: React.FC = () => {
                         className="group relative p-6 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/5 hover:border-brand-500/30 transition-all hover:shadow-xl"
                     >
                         <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-lg bg-slate-100 dark:bg-white/5 group-hover:bg-brand-500/10 text-slate-500 group-hover:text-brand-500 transition-colors">
+                            <div className="p-3 rounded-lg bg-slate-100 dark:bg-white/5 group-hover:bg-brand-500/10 text-slate-500 group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors">
                                 <FileSpreadsheet className="w-6 h-6" />
                             </div>
                             {template.isPremium && (
@@ -82,7 +82,7 @@ export const ReportTemplates: React.FC = () => {
                             )}
                         </div>
 
-                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-500 transition-colors">
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors">
                             {template.name}
                         </h4>
                         <p className="text-sm text-slate-500 dark:text-muted-foreground mb-6 h-10 line-clamp-2">
@@ -93,7 +93,7 @@ export const ReportTemplates: React.FC = () => {
                             <Badge variant="soft" status="neutral">
                                 {template.category}
                             </Badge>
-                            <Button variant="ghost" size="sm" className="hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600">
+                            <Button variant="ghost" size="sm" className="hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-800 dark:hover:text-brand-300">
                                 Utiliser
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>

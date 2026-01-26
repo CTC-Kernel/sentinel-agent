@@ -67,7 +67,7 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                 {/* LEFT: Vital Signs (Vertical Stack) */}
                 <div className="lg:col-span-4 flex flex-col justify-between gap-6 border-r border-slate-200/50 dark:border-white/5 pr-0 lg:pr-8">
                     <div>
-                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 flex items-center gap-3">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                             <Activity className="text-brand-500 w-6 h-6" />
                             Global Risk Intel
                         </h2>
@@ -83,8 +83,8 @@ export const RiskIntelCard: React.FC<RiskIntelCardProps> = ({ risks }) => {
                             transition={{ delay: 0.1 }}
                             className="bg-white/50 dark:bg-black/20 p-4 rounded-2xl border border-white/40 dark:border-white/5 shadow-sm"
                         >
-                            <p className="text-sm text-slate-500 font-medium mb-1">Total Risques</p>
-                            <div className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
+                            <p className="text-sm text-slate-700 dark:text-slate-300 font-medium mb-1">Total Risques</p>
+                            <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {metrics.total}
                             </div>
                         </motion.div>

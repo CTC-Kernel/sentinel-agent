@@ -220,7 +220,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {/* Strategy */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Stratégie</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 ml-1">Stratégie</label>
                         <div className="relative group">
                             <select
                                 value={treatment.strategy}

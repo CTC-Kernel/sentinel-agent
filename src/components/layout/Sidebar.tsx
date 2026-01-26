@@ -279,7 +279,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400' : 'bg-slate-100/80 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100/80 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
                   <Settings className="h-4 w-4" strokeWidth={2} />
                 </span>
                 <span className="flex-1">{t('sidebar.settings')}</span>

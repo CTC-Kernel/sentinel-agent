@@ -161,7 +161,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
             <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                 <div
-                    className={`flex items-center py-2 px-3 rounded-lg cursor-pointer mb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${selectedFolderId === null ? 'bg-brand-500/10 dark:bg-brand-500/20 text-brand-700 dark:text-white font-medium' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
+                    className={`flex items-center py-2 px-3 rounded-lg cursor-pointer mb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${selectedFolderId === null ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold ring-1 ring-slate-200 dark:ring-slate-700' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
                     onClick={handleSelectAll}
                     tabIndex={0}
                     onKeyDown={handleSelectAllKeyDown}
@@ -358,7 +358,7 @@ const FolderNode = React.memo(({
     return (
         <div className="select-none">
             <div
-                className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected ? 'bg-brand-500/10 dark:bg-brand-500/20 text-brand-700 dark:text-white font-medium' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
+                className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
                 style={{ paddingLeft: `${depth * 16 + 12}px` }}
                 onClick={handleSelectClick}
                 tabIndex={0}

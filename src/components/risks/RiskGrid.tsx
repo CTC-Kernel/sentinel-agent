@@ -159,21 +159,21 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                             </div>
                             <div className="mb-4 flex-1">
                                 <div className="flex items-center mb-3">
-                                    <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
-                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
+                                    <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
+                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
                                 </div>
                                 <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">
                                     <TextHighlight text={risk.threat} query={searchQuery || ''} />
                                 </h4>
-                                <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-500/5 dark:bg-white/5 p-3 rounded-2xl inline-block w-full border border-slate-200/50 dark:border-white/5">
-                                    <span className="font-bold text-xs uppercase text-slate-500 block mb-1">{t('common.vulnerability')}</span>
+                                <div className="text-sm text-slate-900 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl inline-block w-full border border-slate-200 dark:border-white/10">
+                                    <span className="font-bold text-xs uppercase text-slate-700 dark:text-slate-400 block mb-1">{t('common.vulnerability')}</span>
                                     <TextHighlight text={risk.vulnerability || ''} query={searchQuery || ''} isHtml className="line-clamp-3" />
                                 </div>
                             </div>
                             <div className="space-y-3 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
                                 <div className="flex items-center justify-between">
                                     <div className="flex flex-col gap-1.5 items-start">
-                                        <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
+                                        <span className="text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">{risk.strategy}</span>
                                         {(() => {
                                             const sla = getSLAStatus(risk);
                                             if (sla) return (

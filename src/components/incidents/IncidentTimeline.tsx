@@ -83,7 +83,7 @@ export const IncidentTimeline: React.FC<IncidentTimelineProps> = ({ selectedInci
 
                             <div className={`flex flex-col ${isCompleted || isCurrent ? 'opacity-100' : 'opacity-50'}`}>
                                 <div className="flex items-center justify-between">
-                                    <span className={`text-sm font-bold ${isCurrent ? 'text-brand-600' : 'text-slate-900 dark:text-white'}`}>
+                                    <span className={`text-sm font-bold ${isCurrent ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
                                         {step.label}
                                     </span>
                                     {step.date && (
