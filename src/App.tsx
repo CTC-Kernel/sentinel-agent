@@ -86,16 +86,11 @@ const GlobalShortcutsWrapper: React.FC = () => {
 
 const AppLayout: React.FC = () => {
 
-    const { theme, user } = useStore();
+    const { user } = useStore();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-    // Effect for Theme
-    useEffect(() => {
-        if (theme === 'dark') document.documentElement.classList.add('dark');
-        else document.documentElement.classList.remove('dark');
-    }, [theme]);
 
     // Effect for Online Status
     useEffect(() => {

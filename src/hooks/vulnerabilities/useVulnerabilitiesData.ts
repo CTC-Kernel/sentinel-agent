@@ -3,7 +3,7 @@ import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { Vulnerability, Asset, Project, UserProfile } from '../../types';
 
-export const useVulnerabilitiesData = (organizationId?: string) => {
+export const useVulnerabilitiesData = (organizationId?: string, enabled = true) => {
     // Queries
     // Note: Vulnerabilities likely large list so we might want to paginate later, but consistent with others now.
     // Memoize constraints
@@ -14,25 +14,25 @@ export const useVulnerabilitiesData = (organizationId?: string) => {
     const { data: rawVulnerabilities, loading: loadingVulnerabilities } = useFirestoreCollection<Vulnerability>(
         'vulnerabilities',
         constraints,
-        { logError: true, enabled: !!organizationId, realtime: true }
+        { logError: true, enabled: !!organizationId && enabled, realtime: true }
     );
 
     const { data: assets, loading: loadingAssets } = useFirestoreCollection<Asset>(
         'assets',
         constraints,
-        { logError: true, enabled: !!organizationId, realtime: true }
+        { logError: true, enabled: !!organizationId && enabled, realtime: true }
     );
 
     const { data: projects, loading: loadingProjects } = useFirestoreCollection<Project>(
         'projects',
         constraints,
-        { logError: true, enabled: !!organizationId, realtime: true }
+        { logError: true, enabled: !!organizationId && enabled, realtime: true }
     );
 
     const { data: users, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
         constraints,
-        { logError: true, enabled: !!organizationId, realtime: true }
+        { logError: true, enabled: !!organizationId && enabled, realtime: true }
     );
 
     // Derived Data

@@ -4,6 +4,7 @@ import { useZodForm } from '../../hooks/useZodForm';
 import { treatmentActionSchema, TreatmentActionFormData } from '../../schemas/treatmentActionSchema';
 import { Calendar, User, X, Check } from '../ui/Icons';
 import { Button } from '../ui/button';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 
 interface TreatmentActionFormProps {
     action?: TreatmentAction; // If provided, editing mode
@@ -18,7 +19,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
     onSave,
     onCancel
 }) => {
-    const { register, handleSubmit, formState: { errors } } = useZodForm<typeof treatmentActionSchema>({
+    const { register, handleSubmit, watch, reset, formState: { errors } } = useZodForm<typeof treatmentActionSchema>({
         schema: treatmentActionSchema,
         mode: 'onChange',
         defaultValues: {
@@ -30,6 +31,14 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
         }
     });
 
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<TreatmentActionFormData>('sentinel_treatment_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: !action
+    });
+
     const onSubmit = (data: TreatmentActionFormData) => {
         onSave({
             id: action?.id,
@@ -37,6 +46,7 @@ export const TreatmentActionForm: React.FC<TreatmentActionFormProps> = ({
             updatedAt: new Date().toISOString(),
             completedAt: data.status === 'Terminé' ? new Date().toISOString() : action?.completedAt
         });
+        clearDraft();
     };
 
     return (

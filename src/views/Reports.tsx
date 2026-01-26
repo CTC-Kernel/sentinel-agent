@@ -44,7 +44,7 @@ import {
 } from '../types/reports';
 
 export const Reports: React.FC = () => {
-    const { user, t, organization, addToast } = useStore();
+    const { user, t, organization, addToast, activeFramework } = useStore();
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
     const [showConfigModal, setShowConfigModal] = useState(false);
@@ -312,7 +312,6 @@ export const Reports: React.FC = () => {
                             className="w-full h-full object-contain"
                         />
                     }
-
                 />
             </motion.div>
 
@@ -333,7 +332,7 @@ export const Reports: React.FC = () => {
                             {t('reports.categories.compliance')}
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/10 hover:border-brand-500 transition-all group relative overflow-hidden">
+                            <div className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all group relative overflow-hidden ${activeFramework?.toUpperCase() === 'ISO27001' ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-white/10 hover:border-brand-500'}`}>
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -342,9 +341,11 @@ export const Reports: React.FC = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.iso27001.title')}</h3>
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-bg text-success-text mt-1">
-                                                {t('reports.badges.recommended')}
-                                            </span>
+                                            {(activeFramework?.toUpperCase() === 'ISO27001' || !activeFramework) && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-bg text-success-text mt-1">
+                                                    {t('reports.badges.recommended')}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 min-h-[40px]">
@@ -370,7 +371,7 @@ export const Reports: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="glass-premium p-4 sm:p-6 rounded-3xl border border-white/10 hover:border-brand-500 transition-all group relative overflow-hidden">
+                            <div className={`glass-premium p-4 sm:p-6 rounded-3xl border transition-all group relative overflow-hidden ${activeFramework?.toUpperCase() === 'GDPR' ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-white/10 hover:border-brand-500'}`}>
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors"></div>
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-4 mb-4">
@@ -379,6 +380,11 @@ export const Reports: React.FC = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.gdpr.title')}</h3>
+                                            {activeFramework?.toUpperCase() === 'GDPR' && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-bg text-success-text mt-1">
+                                                    {t('reports.badges.recommended')}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <p className="text-sm text-slate-600 dark:text-muted-foreground mb-6 min-h-[40px]">

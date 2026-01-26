@@ -80,11 +80,11 @@ const Settings: React.FC = () => {
 
             <PageHeader
                 title={t('settings.title')}
-                subtitle="Gérez vos préférences et configuration"
+                subtitle="Gerez vos préférences et configuration"
                 icon={
                     <img
-                        src="/images/support.png"
-                        alt="SUPPORT"
+                        src="/images/administration.png"
+                        alt="ADMINISTRATION"
                         className="w-full h-full object-contain"
                     />
                 }

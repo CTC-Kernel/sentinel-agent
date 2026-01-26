@@ -229,8 +229,8 @@ export const SMSIProgramView: React.FC = () => {
           subtitle={t('smsi.subtitle')}
           icon={
             <img
-              src="/images/gouvernance.png"
-              alt="SMSI"
+              src="/images/pilotage.png"
+              alt="PILOTAGE"
               className="w-full h-full object-contain"
             />
           }
@@ -269,8 +269,8 @@ export const SMSIProgramView: React.FC = () => {
         subtitle={`${t('smsi.title')} - ${t('smsi.pdcaCycle')}`}
         icon={
           <img
-            src="/images/gouvernance.png"
-            alt="SMSI"
+            src="/images/pilotage.png"
+            alt="PILOTAGE"
             className="w-full h-full object-contain"
           />
         }

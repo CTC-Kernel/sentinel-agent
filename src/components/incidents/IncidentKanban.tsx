@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Incident, Criticality } from '../../types';
 import { Badge } from '../ui/Badge';
@@ -6,19 +5,8 @@ import { Edit, Trash2, Bot } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { EmptyState } from '../ui/EmptyState';
 import { ShieldAlert } from '../ui/Icons';
-
-// Columns definition
-const COLUMNS = [
-    { id: 'Nouveau', title: 'Nouveau', color: 'bg-indigo-500' },
-    { id: 'Analyse', title: 'Analyse', color: 'bg-blue-500' },
-    { id: 'Contenu', title: 'Contenu', color: 'bg-amber-500' },
-    { id: 'Résolu', title: 'Résolu', color: 'bg-emerald-500' },
-    { id: 'Fermé', title: 'Fermé', color: 'bg-slate-500' }
-] as const;
-
+import { useStore } from '../../store';
 import { Skeleton } from '../ui/Skeleton';
-
-// ... existing imports
 
 interface IncidentKanbanProps {
     incidents: Incident[];
@@ -30,11 +18,17 @@ interface IncidentKanbanProps {
 }
 
 export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incidents, onSelect, onEdit, onDelete, canEdit, loading }) => {
+    const { t } = useStore();
 
     // Group incidents by status
     const groupedIncidents = React.useMemo(() => {
-        const groups: Record<string, Incident[]> = {};
-        COLUMNS.forEach(col => groups[col.id] = []);
+        const groups: Record<string, Incident[]> = {
+            'Nouveau': [],
+            'Analyse': [],
+            'Contenu': [],
+            'Résolu': [],
+            'Fermé': []
+        };
 
         incidents.forEach(inc => {
             if (groups[inc.status]) {
@@ -47,6 +41,25 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
         });
         return groups;
     }, [incidents]);
+
+    // Columns definition
+    const COLUMNS = React.useMemo(() => [
+        { id: 'Nouveau', title: t('incidents.status.new'), color: 'bg-indigo-500' },
+        { id: 'Analyse', title: t('incidents.status.analysis'), color: 'bg-blue-500' },
+        { id: 'Contenu', title: t('incidents.status.containment'), color: 'bg-amber-500' },
+        { id: 'Résolu', title: t('incidents.status.resolved'), color: 'bg-emerald-500' },
+        { id: 'Fermé', title: t('incidents.status.closed'), color: 'bg-slate-500' }
+    ], [t]);
+
+    const getSeverityLabel = (s: Criticality) => {
+        switch (s) {
+            case Criticality.CRITICAL: return t('incidents.severity.critical');
+            case Criticality.HIGH: return t('incidents.severity.high');
+            case Criticality.MEDIUM: return t('incidents.severity.medium');
+            case Criticality.LOW: return t('incidents.severity.low');
+            default: return s;
+        }
+    };
 
     return (
         <div className="flex h-full gap-6 overflow-x-auto pb-6">
@@ -81,13 +94,12 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                 </div>
                             ))
                         ) : groupedIncidents[column.id]?.length === 0 ? (
-
                             <div className="h-32 flex items-center justify-center">
                                 <EmptyState
                                     compact
                                     icon={ShieldAlert}
-                                    title="Aucun incident"
-                                    description="Tout est calme pour le moment."
+                                    title={t('incidents.empty.title')}
+                                    description={t('incidents.empty.desc')}
                                     color="slate"
                                 />
                             </div>
@@ -101,9 +113,9 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                     {/* Actions Overlay */}
                                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                         {canEdit && onEdit && (
-                                            <CustomTooltip content="Modifier">
+                                            <CustomTooltip content={t('common.edit')}>
                                                 <button
-                                                    aria-label={`Modifier l'incident ${incident.title}`}
+                                                    aria-label={`${t('common.edit')} l'incident ${incident.title}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         onEdit(incident);
@@ -115,9 +127,9 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                             </CustomTooltip>
                                         )}
                                         {canEdit && onDelete && (
-                                            <CustomTooltip content="Supprimer">
+                                            <CustomTooltip content={t('common.delete')}>
                                                 <button
-                                                    aria-label={`Supprimer l'incident ${incident.title}`}
+                                                    aria-label={`${t('common.delete')} l'incident ${incident.title}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         onDelete(incident.id);
@@ -139,7 +151,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                             }
                                             size="sm"
                                         >
-                                            {incident.severity}
+                                            {getSeverityLabel(incident.severity)}
                                         </Badge>
                                         <span className="text-[10px] text-muted-foreground font-mono">
                                             {new Date(incident.dateReported).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -157,7 +169,7 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = React.memo(({ incid
                                                     <div className="w-5 h-5 rounded-full bg-brand-500/10 flex items-center justify-center">
                                                         <Bot className="w-3 h-3 text-brand-600" />
                                                     </div>
-                                                    <span className="text-brand-600 font-medium">Agent</span>
+                                                    <span className="text-brand-600 font-medium">{t('onboarding.autoScan')}</span>
                                                 </>
                                             ) : (
                                                 <>

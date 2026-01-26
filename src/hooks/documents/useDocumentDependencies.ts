@@ -5,7 +5,10 @@ import { where } from 'firebase/firestore';
 import { useStore } from '../../store';
 import { MockDataService } from '../../services/mockDataService';
 
-export const useDocumentDependencies = (organizationId?: string) => {
+import { useAuth } from '../useAuth';
+
+export const useDocumentDependencies = (organizationId?: string, enabled = true) => {
+    const { claimsSynced } = useAuth();
     const { demoMode } = useStore();
     const [shouldFetch, setShouldFetch] = useState(false);
 
@@ -38,8 +41,8 @@ export const useDocumentDependencies = (organizationId?: string) => {
     const queryConstraints = organizationId ? [where('organizationId', '==', organizationId)] : undefined;
     const options = {
         logError: true,
-        enabled: shouldFetch && !!organizationId && !demoMode,
-        realtime: false // Dependencies don't need realtime updates usually, optimizing for perf
+        enabled: shouldFetch && !!organizationId && !demoMode && claimsSynced && enabled,
+        realtime: false
     };
 
     const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>('controls', queryConstraints, options);

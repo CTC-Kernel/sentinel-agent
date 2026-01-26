@@ -452,8 +452,8 @@ export const Suppliers: React.FC = () => {
                     subtitle={suppliersSubtitle}
                     icon={
                         <img
-                            src="/images/referentiel.png"
-                            alt="RÉFÉRENTIEL"
+                            src="/images/operations.png"
+                            alt="OPÉRATIONS"
                             className="w-full h-full object-contain"
                         />
                     }

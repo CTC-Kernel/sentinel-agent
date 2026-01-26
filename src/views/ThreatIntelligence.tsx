@@ -342,7 +342,7 @@ export const ThreatIntelligence: React.FC = () => {
 
             {
                 activeTab === 'overview' && (
-                    <motion.div variants={slideUpVariants} className="space-y-6">
+                    <motion.div key="overview" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="space-y-6">
                         <ThreatDashboard threats={threats} />
                     </motion.div>
                 )
@@ -351,7 +351,7 @@ export const ThreatIntelligence: React.FC = () => {
             {/* MAP TAB */}
             {
                 activeTab === 'map' && (
-                    <motion.div variants={slideUpVariants} className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-5xl border border-white/10 shadow-2xl overflow-hidden">
+                    <motion.div key="map" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-5xl border border-white/10 shadow-2xl overflow-hidden">
                         <div className="absolute top-6 right-6 z-10 flex gap-3">
                             <button
                                 aria-label="Toggle 2D/3D view"
@@ -384,7 +384,7 @@ export const ThreatIntelligence: React.FC = () => {
             {/* FEED TAB */}
             {
                 activeTab === 'feed' && (
-                    <motion.div variants={slideUpVariants} className="space-y-6">
+                    <motion.div key="feed" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="space-y-6">
 
                         <div className="grid grid-cols-1 gap-4">
                             {threatsLoading ? (
@@ -417,7 +417,7 @@ export const ThreatIntelligence: React.FC = () => {
             {/* COMMUNITY TAB */}
             {
                 activeTab === 'community' && (
-                    <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <motion.div key="community" variants={slideUpVariants} initial="initial" animate="visible" exit="exit" className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="bg-gradient-to-br from-brand-900 to-violet-900 rounded-5xl p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
                             <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
 

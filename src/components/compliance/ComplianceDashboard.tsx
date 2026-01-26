@@ -117,27 +117,34 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     />
                 </>
             ) : (
-                <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="flex flex-col items-center justify-center space-y-4 py-8">
                     <EmptyChartState
                         variant="bar"
-                        message="Aucune donnée de conformité"
-                        description="Commencez par importer les contrôles standards pour visualiser les graphiques."
-                        className="glass-panel border-dashed p-12 w-full"
+                        message="Référentiel non initialisé"
+                        description={`Les contrôles pour ${currentFramework} ne sont pas encore chargés.`}
+                        className="glass-panel border-dashed p-12 w-full max-w-2xl mx-auto"
                     />
                     {onSeedData && (
                         <div className="flex gap-4">
-                            <Button onClick={onSeedData} variant="default" className="gap-2">
-                                <RefreshCw className="w-4 h-4" />
-                                Initialiser {currentFramework === 'ISO27001' ? 'ISO 27001 (Sécurité SI)' :
-                                    currentFramework === 'ISO22301' ? 'ISO 22301 (Continuité)' :
-                                        currentFramework === 'NIS2' ? 'NIS 2 (Cyber UE)' :
-                                            currentFramework === 'DORA' ? 'DORA (Résilience Fin.)' :
-                                                currentFramework === 'GDPR' ? 'RGPD (Données Personnelles)' :
-                                                    currentFramework === 'SOC2' ? 'SOC 2 (Trust Services)' :
-                                                        currentFramework === 'HDS' ? 'HDS (Données de Santé)' :
-                                                            currentFramework === 'PCI_DSS' ? 'PCI DSS (Paiement)' :
-                                                                currentFramework === 'NIST_CSF' ? 'NIST CSF' :
-                                                                    currentFramework} (Standard)
+                            <Button
+                                onClick={onSeedData}
+                                variant="premium"
+                                size="lg"
+                                className="gap-2 shadow-xl shadow-brand-500/20"
+                            >
+                                <RefreshCw className="w-5 h-5 animate-spin-slow" />
+                                <span>
+                                    Initialiser le référentiel {currentFramework === 'ISO27001' ? 'ISO 27001' :
+                                        currentFramework === 'ISO22301' ? 'ISO 22301' :
+                                            currentFramework === 'NIS2' ? 'NIS 2' :
+                                                currentFramework === 'DORA' ? 'DORA' :
+                                                    currentFramework === 'GDPR' ? 'RGPD' :
+                                                        currentFramework === 'SOC2' ? 'SOC 2' :
+                                                            currentFramework === 'HDS' ? 'HDS' :
+                                                                currentFramework === 'PCI_DSS' ? 'PCI DSS' :
+                                                                    currentFramework === 'NIST_CSF' ? 'NIST CSF' :
+                                                                        currentFramework}
+                                </span>
                             </Button>
                         </div>
                     )}

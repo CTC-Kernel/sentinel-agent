@@ -21,6 +21,7 @@ import { PROJECT_STATUSES } from '../../data/projectConstants';
 type ProjectStatus = typeof PROJECT_STATUSES[number];
 import { toast } from '@/lib/toast';
 import { Loader2 } from '../ui/Icons';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 
 type ProjectTemplate = BaseTemplate & { status: string; priority: string };
 
@@ -67,7 +68,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             label: u.displayName || u.email || 'Utilisateur'
         })), [usersList]);
 
-    const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useZodForm<typeof projectSchema>({
+    const { register, handleSubmit, reset, control, setValue, getValues, watch, formState: { errors } } = useZodForm<typeof projectSchema>({
         schema: projectSchema,
         mode: 'onChange',
         defaultValues: {
@@ -85,6 +86,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             members: initialData?.members || [],
             framework: initialData?.framework,
         }
+    });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<ProjectFormData>('sentinel_project_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: !existingProject && !initialData
     });
 
     const scrollToFirstError = (fieldErrors: FieldErrors<ProjectFormData>) => {
@@ -203,6 +212,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             ...data,
             manager: allManagers.find(m => m.value === data.managerId)?.label || data.manager
         });
+        clearDraft();
     };
 
     // ...

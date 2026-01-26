@@ -97,6 +97,18 @@ vi.mock('../../services/encryptionService', () => ({
     }
 }));
 
+// Mock useAuth
+vi.mock('../../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'test-user', organizationId: 'test-org', role: 'admin' },
+        firebaseUser: { uid: 'test-user', email: 'test@example.com', emailVerified: true },
+        loading: false,
+        error: null,
+        profileError: null,
+        claimsSynced: true,
+    })
+}));
+
 // Mock Child Components
 vi.mock('../../components/documents/DocumentInspector', () => ({
     DocumentInspector: () => <div data-testid="document-inspector" />

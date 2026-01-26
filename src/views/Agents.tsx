@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { OnboardingService } from '../services/onboardingService';
 import { SEO } from '../components/SEO';
 import { useStore } from '../store';
 import { motion } from 'framer-motion';
@@ -15,6 +16,7 @@ import { Input } from '../components/ui/input';
 import { Drawer } from '../components/ui/Drawer';
 import { AgentFleetDashboard } from '../components/agents/AgentFleetDashboard';
 import { AgentHealthGrid } from '../components/agents/AgentHealthGrid';
+import { PageHeader } from '../components/ui/PageHeader';
 import { AgentComplianceHeatmap } from '../components/agents/AgentComplianceHeatmap';
 import { AgentLiveView } from '../components/agents/AgentLiveView';
 import AgentPolicies from './AgentPolicies';
@@ -79,6 +81,14 @@ export const Agents: React.FC = () => {
         return unsubscribe;
     }, [user?.organizationId]);
 
+    // Start tour
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startAgentsTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
     // Filtered agents
     const filteredAgents = useMemo(() => {
         return agents.filter(agent => {
@@ -118,7 +128,7 @@ export const Agents: React.FC = () => {
             >
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <div className="flex justify-center mb-6">
-                        <TabsList className="bg-muted/50 p-1 rounded-xl">
+                        <TabsList className="bg-muted/50 p-1 rounded-xl" data-tour="agents-tabs">
                             <TabsTrigger value="overview" className="flex items-center gap-2">
                                 <Layers className="h-4 w-4" />
                                 <span>Supervision</span>
@@ -139,43 +149,48 @@ export const Agents: React.FC = () => {
                             variants={slideUpVariants}
                             className="flex flex-col gap-6 sm:gap-8"
                         >
-                            {/* Header */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground">
-                                        Agents
-                                    </h1>
-                                    <p className="text-muted-foreground text-sm mt-1">
-                                        Surveillez et gérez votre flotte d'agents Sentinel en temps réel
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2"
-                                        onClick={() => navigate('/settings?tab=agents')}
-                                    >
-                                        <Download className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Télécharger Agent</span>
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2"
-                                        onClick={() => navigate('/agent-policies')}
-                                    >
-                                        <Settings className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Configuration</span>
-                                    </Button>
-                                </div>
-                            </div>
+                            <PageHeader
+                                title="Sentinel Agents"
+                                subtitle="Gestion et déploiement de la flotte d'agents Sentinel"
+                                icon={
+                                    <img
+                                        src="/images/IA.png"
+                                        alt="IA"
+                                        className="w-full h-full object-contain"
+                                    />
+                                }
+                                actions={
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2"
+                                            onClick={() => navigate('/settings?tab=agents')}
+                                            data-tour="agents-download"
+                                        >
+                                            <Download className="h-4 w-4" />
+                                            <span className="hidden sm:inline">Télécharger Agent</span>
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2"
+                                            onClick={() => navigate('/agent-policies')}
+                                        >
+                                            <Settings className="h-4 w-4" />
+                                            <span className="hidden sm:inline">Configuration</span>
+                                        </Button>
+                                    </div>
+                                }
+                            />
 
                             {/* Fleet Dashboard with KPIs, OS Distribution, and Trends */}
-                            <AgentFleetDashboard agents={agents} loading={loading} />
+                            <div data-tour="agents-stats">
+                                <AgentFleetDashboard agents={agents} loading={loading} />
+                            </div>
 
                             {/* Search, Filters, and View Mode */}
-                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between" data-tour="agents-filters">
                                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
                                     <div className="relative flex-1 max-w-md">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -238,18 +253,20 @@ export const Agents: React.FC = () => {
                             </div>
 
                             {/* Agents Health Grid */}
-                            <AgentHealthGrid
-                                agents={filteredAgents}
-                                viewMode={viewMode}
-                                onAgentClick={handleAgentClick}
-                                onAgentAction={(agent, action) => {
-                                    if (action === 'view') {
-                                        handleAgentClick(agent);
-                                    }
-                                    // TODO: Handle other agent actions (configure, refresh, delete)
-                                    console.log('Agent action:', agent.id, action);
-                                }}
-                            />
+                            <div data-tour="agents-grid">
+                                <AgentHealthGrid
+                                    agents={filteredAgents}
+                                    viewMode={viewMode}
+                                    onAgentClick={handleAgentClick}
+                                    onAgentAction={(agent, action) => {
+                                        if (action === 'view') {
+                                            handleAgentClick(agent);
+                                        }
+                                        // TODO: Handle other agent actions (configure, refresh, delete)
+                                        console.log('Agent action:', agent.id, action);
+                                    }}
+                                />
+                            </div>
 
                             {/* Compliance Heatmap - Only show when we have agents */}
                             {agents.length > 0 && (

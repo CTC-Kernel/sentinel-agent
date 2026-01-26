@@ -41,6 +41,9 @@
     "smsi": "SMSI",
     "continuity": "Continuité",
     "projects": "Projets",
+    "operations": "Opérations",
+    "retry": "Réessayer",
+    "closeMenu": "Fermer le menu",
     "settings": {
       "title": "Paramètres",
       "organization": "Organisation",
@@ -169,7 +172,6 @@
     },
     "pricingTitle": "Planification & Tarifs",
     "pricingSubtitle": "Des solutions flexibles pour sécuriser votre entreprise, de la startup au grand groupe.",
-    "operations": "Opérations",
     "adminSec": "Admin & Sécurité",
     "feat_dashboard": "Tableaux de bord",
     "feat_projects": "Projets",
@@ -1486,7 +1488,14 @@
     "team": "Équipe",
     "superAdmin": "Super Admin",
     "settings": "Paramètres",
-    "vulnerabilities": "Vulnérabilités"
+    "vulnerabilities": "Vulnérabilités",
+    "reports": "Rapports",
+    "agents": "Agents",
+    "agentPolicies": "Politiques Agents",
+    "softwareInventory": "Inventaire Logiciels",
+    "threatIntel": "Threat Intel",
+    "smsi": "Programme SMSI",
+    "systemHealth": "État du Système"
   },
   "documents": {
     "title": "Base Documentaire",
@@ -1552,7 +1561,45 @@
     "toastImport": "Import SIEM réussi",
     "toastSim": "Simulation lancée",
     "confirmDelete": "Supprimer",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "status": {
+      "new": "Nouveau",
+      "analysis": "Analyse",
+      "containment": "Contenu",
+      "resolved": "Résolu",
+      "closed": "Fermé"
+    },
+    "severity": {
+      "critical": "Critique",
+      "high": "Élevé",
+      "medium": "Moyen",
+      "low": "Faible"
+    },
+    "seoDescription": "Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT).",
+    "seoKeywords": "Incidents, SOC, CSIRT, Cyberattaque, Réponse, Analyse, Playbooks, SIEM",
+    "uncategorized": "Non catégorisé",
+    "column": {
+      "incident": "Incident",
+      "severity": "Sévérité",
+      "status": "Statut",
+      "date": "Date",
+      "reporter": "Déclarant",
+      "category": "Catégorie"
+    },
+    "empty": {
+      "title": "Aucun incident signalé",
+      "desc": "Tout est calme. Aucun incident de sécurité n'a été rapporté pour le moment.",
+      "noResults": "Aucun incident ne correspond à votre recherche."
+    },
+    "playbook": "Playbook",
+    "open": "Ouvrir",
+    "inspector": {
+      "details": "Détails",
+      "playbook": "Playbook",
+      "timeline": "Timeline",
+      "aiAnalysis": "Analyse IA",
+      "titleFallback": "Détails de l'incident"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -1757,6 +1804,10 @@
     "verificationSent": "Email de vérification envoyé",
     "redirectingGoogle": "Redirection vers Google...",
     "redirectingApple": "Redirection vers Apple...",
+    "connectionError": "Erreur de connexion",
+    "profileLoadError": "Impossible de charger votre profil. Veuillez réessayer.",
+    "accessDeniedOtherOrg": "Vous n'avez pas accès aux ressources d'une autre organisation.",
+    "insufficientPermissions": "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
     "errors": {
       "invalid": "Identifiants invalides",
       "emailInUse": "Cet email est déjà utilisé",

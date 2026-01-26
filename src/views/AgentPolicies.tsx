@@ -15,6 +15,7 @@ import { Badge } from '../components/ui/Badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { GroupManager } from '../components/agents/GroupManager';
 import { PolicyEditor } from '../components/agents/PolicyEditor';
+import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 
 // Stats card component
@@ -259,19 +260,17 @@ export const AgentPolicies: React.FC = () => {
                 className="flex flex-col gap-6 sm:gap-8"
             >
                 {/* Header */}
-                <motion.div
-                    variants={slideUpVariants}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground">
-                            Politiques Agents
-                        </h1>
-                        <p className="text-muted-foreground text-sm mt-1">
-                            Configurez les groupes et politiques pour contrôler le comportement des agents
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
+                <PageHeader
+                    title="Politiques Agents"
+                    subtitle="Configurez les groupes et politiques pour contrôler le comportement des agents"
+                    icon={
+                        <img
+                            src="/images/IA.png"
+                            alt="IA"
+                            className="w-full h-full object-contain"
+                        />
+                    }
+                    actions={
                         <Button
                             variant="outline"
                             size="sm"
@@ -281,8 +280,8 @@ export const AgentPolicies: React.FC = () => {
                             <RefreshCw className="h-4 w-4" />
                             <span className="hidden sm:inline">Actualiser</span>
                         </Button>
-                    </div>
-                </motion.div>
+                    }
+                />
 
                 {/* Stats Cards */}
                 <motion.div

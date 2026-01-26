@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../hooks/useAuth';
 import { UserProfile, JoinRequest } from '../types';
 import { Users, Plus, User, FileSpreadsheet, Check, UserPlus, Timer } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
@@ -35,6 +36,7 @@ import { Upload } from '../components/ui/Icons';
 const Team: React.FC = () => {
     const { t } = useTranslation();
     const { user } = useStore();
+    const { claimsSynced, loading: authLoading } = useAuth();
     const [activeTab, setActiveTab] = usePersistedState<'members' | 'roles' | 'groups'>('team_active_tab', 'members');
     const [filter, setFilter] = useState('');
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -55,7 +57,7 @@ const Team: React.FC = () => {
         approveRequest,
         rejectRequest,
         importUsers
-    } = useTeamManagement();
+    } = useTeamManagement(claimsSynced);
 
     const [csvImportOpen, setCsvImportOpen] = useState(false);
 
@@ -208,7 +210,7 @@ const Team: React.FC = () => {
 
             <PageHeader
                 title={t('team.title')}
-                subtitle={t('team.subtitle', { org: user?.organizationName || t('common.settings.organization') })}
+                subtitle={t('team.subtitle')}
                 icon={
                     <img
                         src="/images/administration.png"
@@ -298,7 +300,7 @@ const Team: React.FC = () => {
                     aria-label={t('team.tabs.members')}
                     onClick={handleMembersTab}
                     className={`px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'members'
-                        ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-apple-sm'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-apple-sm'
                         : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'
                         }`}
                 >
@@ -398,7 +400,7 @@ const Team: React.FC = () => {
                             </div>
                         )}
 
-                        {loading ? (
+                        {loading || authLoading || !claimsSynced ? (
                             <div className="col-span-full"><CardSkeleton count={3} /></div>
                         ) : filteredUsers.length === 0 ? (
                             <div className="col-span-full">

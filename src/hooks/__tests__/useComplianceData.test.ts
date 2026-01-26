@@ -37,6 +37,18 @@ vi.mock('../../store', () => ({
     })
 }));
 
+// Mock useAuth
+vi.mock('../useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'user-1', organizationId: 'org-123', role: 'admin' },
+        firebaseUser: { uid: 'user-1', email: 'test@example.com', emailVerified: true },
+        loading: false,
+        error: null,
+        profileError: null,
+        claimsSynced: true,
+    })
+}));
+
 import { useComplianceData } from '../useComplianceData';
 
 describe('useComplianceData', () => {
@@ -44,23 +56,40 @@ describe('useComplianceData', () => {
         vi.clearAllMocks();
         mockUseFirestoreCollection.mockReturnValue({
             data: [],
-            loading: false
+            loading: false,
+            error: null
         });
     });
 
     describe('initialization', () => {
-        it('fetches controls by default', () => {
+        it('fetches all collections when enabled', () => {
             renderHook(() => useComplianceData());
 
-            // First call should be for controls (core data)
+            // Should call useFirestoreCollection for each collection
             expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
                 'controls',
                 expect.anything(),
                 expect.objectContaining({ enabled: true })
             );
+            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
+                'risks',
+                expect.anything(),
+                expect.objectContaining({ enabled: true })
+            );
+            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
+                'assets',
+                expect.anything(),
+                expect.objectContaining({ enabled: true })
+            );
         });
 
-        it('returns empty arrays for unfetched collections', () => {
+        it('returns empty arrays when data is null', () => {
+            mockUseFirestoreCollection.mockReturnValue({
+                data: null,
+                loading: false,
+                error: null
+            });
+
             const { result } = renderHook(() => useComplianceData());
 
             expect(result.current.controls).toEqual([]);
@@ -81,107 +110,66 @@ describe('useComplianceData', () => {
         });
     });
 
-    describe('optional collections', () => {
-        it('fetches risks when fetchRisks is true', () => {
-            renderHook(() => useComplianceData(undefined, { fetchRisks: true }));
+    describe('enabled parameter', () => {
+        it('does not fetch when enabled is false', () => {
+            renderHook(() => useComplianceData(undefined, false));
 
+            // Should call with enabled: false
             expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'risks',
+                'controls',
                 expect.anything(),
-                expect.objectContaining({ enabled: true })
+                expect.objectContaining({ enabled: false })
             );
         });
 
-        it('fetches assets when fetchAssets is true', () => {
-            renderHook(() => useComplianceData(undefined, { fetchAssets: true }));
-
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'assets',
-                expect.anything(),
-                expect.objectContaining({ enabled: true })
-            );
-        });
-
-        it('fetches documents when fetchDocuments is true', () => {
-            renderHook(() => useComplianceData(undefined, { fetchDocuments: true }));
-
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'documents',
-                expect.anything(),
-                expect.objectContaining({ enabled: true })
-            );
-        });
-
-        it('fetches users when fetchUsers is true', () => {
-            renderHook(() => useComplianceData(undefined, { fetchUsers: true }));
-
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'users',
-                expect.anything(),
-                expect.objectContaining({ enabled: true })
-            );
-        });
-
-        it('fetches suppliers when fetchSuppliers is true', () => {
-            renderHook(() => useComplianceData(undefined, { fetchSuppliers: true }));
-
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'suppliers',
-                expect.anything(),
-                expect.objectContaining({ enabled: true })
-            );
-        });
-
-        it('fetches projects when fetchProjects is true', () => {
-            renderHook(() => useComplianceData(undefined, { fetchProjects: true }));
-
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'projects',
-                expect.anything(),
-                expect.objectContaining({ enabled: true })
-            );
-        });
-
-        it('does not fetch optional collections by default', () => {
+        it('fetches when enabled is true (default)', () => {
             renderHook(() => useComplianceData());
 
-            // Risks should not be enabled
-            const risksCalls = mockUseFirestoreCollection.mock.calls.filter(
-                ([collection, , options]) => collection === 'risks' && options?.enabled === true
+            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
+                'controls',
+                expect.anything(),
+                expect.objectContaining({ enabled: true })
             );
-            expect(risksCalls.length).toBe(0);
         });
     });
 
     describe('framework filtering', () => {
-        it('filters controls by framework', () => {
-            mockUseFirestoreCollection.mockReturnValue({
-                data: [
-                    { id: 'ctrl-1', code: 'A.1.1', framework: 'ISO27001' },
-                    { id: 'ctrl-2', code: 'N.1.1', framework: 'NIS2' },
-                    { id: 'ctrl-3', code: 'A.1.2', framework: 'ISO27001' }
-                ],
-                loading: false
+        it('filters controls by framework when specified', () => {
+            const mockControls = [
+                { id: 'ctrl-1', code: 'A.1.1', title: 'Control 1', framework: 'ISO27001' },
+                { id: 'ctrl-2', code: 'A.1.2', title: 'Control 2', framework: 'NIS2' },
+                { id: 'ctrl-3', code: 'A.1.3', title: 'Control 3', framework: 'ISO27001' }
+            ];
+
+            mockUseFirestoreCollection.mockImplementation((collection) => {
+                if (collection === 'controls') {
+                    return { data: mockControls, loading: false, error: null };
+                }
+                return { data: [], loading: false, error: null };
             });
 
             const { result } = renderHook(() => useComplianceData('ISO27001'));
 
-            // Should filter to only ISO27001 controls
-            expect(result.current.filteredControls.length).toBe(2);
+            expect(result.current.filteredControls).toHaveLength(2);
+            expect(result.current.filteredControls.every(c => c.framework === 'ISO27001')).toBe(true);
         });
 
         it('returns all controls when no framework specified', () => {
-            mockUseFirestoreCollection.mockReturnValue({
-                data: [
-                    { id: 'ctrl-1', framework: 'ISO27001' },
-                    { id: 'ctrl-2', framework: 'NIS2' }
-                ],
-                loading: false
+            const mockControls = [
+                { id: 'ctrl-1', code: 'A.1.1', title: 'Control 1', framework: 'ISO27001' },
+                { id: 'ctrl-2', code: 'A.1.2', title: 'Control 2', framework: 'NIS2' }
+            ];
+
+            mockUseFirestoreCollection.mockImplementation((collection) => {
+                if (collection === 'controls') {
+                    return { data: mockControls, loading: false, error: null };
+                }
+                return { data: [], loading: false, error: null };
             });
 
             const { result } = renderHook(() => useComplianceData());
 
-            expect(result.current.filteredControls.length).toBe(2);
+            expect(result.current.filteredControls).toHaveLength(2);
         });
     });
 
@@ -189,7 +177,8 @@ describe('useComplianceData', () => {
         it('indicates loading when controls are loading', () => {
             mockUseFirestoreCollection.mockReturnValue({
                 data: [],
-                loading: true
+                loading: true,
+                error: null
             });
 
             const { result } = renderHook(() => useComplianceData());
@@ -197,19 +186,18 @@ describe('useComplianceData', () => {
             expect(result.current.loading).toBe(true);
         });
 
-        it('indicates loading when any enabled collection is loading', () => {
-            mockUseFirestoreCollection
-                .mockReturnValueOnce({ data: [], loading: false }) // controls
-                .mockReturnValueOnce({ data: [], loading: true })  // risks
-                .mockReturnValueOnce({ data: [], loading: false }) // assets
-                .mockReturnValueOnce({ data: [], loading: false }) // documents
-                .mockReturnValueOnce({ data: [], loading: false }) // users
-                .mockReturnValueOnce({ data: [], loading: false }) // suppliers
-                .mockReturnValueOnce({ data: [], loading: false }); // projects
+        it('indicates loading when any collection is loading', () => {
+            let callCount = 0;
+            mockUseFirestoreCollection.mockImplementation(() => {
+                callCount++;
+                // Make the second collection (risks) loading
+                if (callCount === 2) {
+                    return { data: [], loading: true, error: null };
+                }
+                return { data: [], loading: false, error: null };
+            });
 
-            const { result } = renderHook(() =>
-                useComplianceData(undefined, { fetchRisks: true })
-            );
+            const { result } = renderHook(() => useComplianceData());
 
             expect(result.current.loading).toBe(true);
         });
@@ -217,7 +205,8 @@ describe('useComplianceData', () => {
         it('not loading when all complete', () => {
             mockUseFirestoreCollection.mockReturnValue({
                 data: [],
-                loading: false
+                loading: false,
+                error: null
             });
 
             const { result } = renderHook(() => useComplianceData());
@@ -233,9 +222,11 @@ describe('useComplianceData', () => {
                 { id: 'ctrl-2', code: 'A.1.2', title: 'Control 2', framework: 'ISO27001' }
             ];
 
-            mockUseFirestoreCollection.mockReturnValue({
-                data: mockControls,
-                loading: false
+            mockUseFirestoreCollection.mockImplementation((collection) => {
+                if (collection === 'controls') {
+                    return { data: mockControls, loading: false, error: null };
+                }
+                return { data: [], loading: false, error: null };
             });
 
             const { result } = renderHook(() => useComplianceData());
@@ -248,39 +239,52 @@ describe('useComplianceData', () => {
 
             expect(result.current.findings).toEqual([]);
         });
+
+        it('maps all collection data correctly', () => {
+            const mockRisks = [{ id: 'risk-1', threat: 'Threat 1' }];
+            const mockAssets = [{ id: 'asset-1', name: 'Asset 1' }];
+            const mockDocuments = [{ id: 'doc-1', title: 'Doc 1' }];
+
+            mockUseFirestoreCollection.mockImplementation((collection) => {
+                if (collection === 'risks') return { data: mockRisks, loading: false, error: null };
+                if (collection === 'assets') return { data: mockAssets, loading: false, error: null };
+                if (collection === 'documents') return { data: mockDocuments, loading: false, error: null };
+                return { data: [], loading: false, error: null };
+            });
+
+            const { result } = renderHook(() => useComplianceData());
+
+            expect(result.current.risks).toEqual(mockRisks);
+            expect(result.current.assets).toEqual(mockAssets);
+            expect(result.current.documents).toEqual(mockDocuments);
+        });
     });
 
-    describe('multiple options', () => {
-        it('fetches multiple collections when requested', () => {
-            renderHook(() =>
-                useComplianceData(undefined, {
-                    fetchRisks: true,
-                    fetchAssets: true,
-                    fetchDocuments: true
-                })
-            );
+    describe('error handling', () => {
+        it('reports error when any collection has error', () => {
+            const mockError = new Error('Fetch failed');
+            mockUseFirestoreCollection.mockImplementation((collection) => {
+                if (collection === 'controls') {
+                    return { data: [], loading: false, error: mockError };
+                }
+                return { data: [], loading: false, error: null };
+            });
 
-            // Should make calls for controls, risks, assets, documents
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'controls',
-                expect.anything(),
-                expect.anything()
-            );
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'risks',
-                expect.anything(),
-                expect.anything()
-            );
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'assets',
-                expect.anything(),
-                expect.anything()
-            );
-            expect(mockUseFirestoreCollection).toHaveBeenCalledWith(
-                'documents',
-                expect.anything(),
-                expect.anything()
-            );
+            const { result } = renderHook(() => useComplianceData());
+
+            expect(result.current.error).toBe(mockError);
+        });
+
+        it('no error when all collections succeed', () => {
+            mockUseFirestoreCollection.mockReturnValue({
+                data: [],
+                loading: false,
+                error: null
+            });
+
+            const { result } = renderHook(() => useComplianceData());
+
+            expect(result.current.error).toBeNull();
         });
     });
 });

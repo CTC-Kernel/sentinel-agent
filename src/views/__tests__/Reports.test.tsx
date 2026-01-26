@@ -81,6 +81,18 @@ vi.mock('../../firebase', () => ({
     storage: {}
 }));
 
+// Mock useAuth
+vi.mock('../../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'test-user', organizationId: 'test-org', role: 'admin' },
+        firebaseUser: { uid: 'test-user', email: 'test@example.com', emailVerified: true },
+        loading: false,
+        error: null,
+        profileError: null,
+        claimsSynced: true,
+    })
+}));
+
 // Mock Services
 vi.mock('../../services/PdfService', () => ({
     PdfService: {

@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import {
     collection,
     addDoc,
@@ -143,15 +143,20 @@ export const useSupplierLogic = () => {
         }
     }, [user, addToast, t]);
 
-    // Auto-sync effect for ICT providers
+    // Auto-sync effect for ICT providers - runs once per session to avoid infinite loop
+    const hasSyncedRef = useRef(false);
     useEffect(() => {
         if (!user?.organizationId || loading || demoMode) return;
+        // Only sync once per session to prevent infinite loop
+        // (syncAllICTSuppliers modifies Firestore, which triggers realtime listener)
+        if (hasSyncedRef.current) return;
 
         const syncICTSuppliers = async () => {
             try {
                 // Sync all ICT suppliers in background
                 const ictSuppliers = suppliers.filter(s => s.isICTProvider);
                 if (ictSuppliers.length > 0 && user.organizationId) {
+                    hasSyncedRef.current = true;
                     await SupplierService.syncAllICTSuppliers(user.organizationId);
                 }
             } catch (error) {

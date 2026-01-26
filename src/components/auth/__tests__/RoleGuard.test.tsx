@@ -14,6 +14,20 @@ vi.mock('../../../store', () => ({
     useStore: () => mockUseStore()
 }));
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'auth.accessDeniedOtherOrg': 'Vous n\'avez pas accès aux ressources d\'une autre organisation.',
+                'auth.insufficientPermissions': 'Vous n\'avez pas les droits pour accéder à cette page.',
+            };
+            return translations[key] || key;
+        },
+        i18n: { language: 'fr' }
+    })
+}));
+
 vi.mock('../../ui/ContentBlockerError', () => ({
     ContentBlockerError: () => React.createElement('div', { 'data-testid': 'content-blocker-error' }, 'Access Denied')
 }));
@@ -85,7 +99,7 @@ describe('RoleGuard', () => {
         );
 
         expect(screen.getByTestId('content-blocker-error')).toBeInTheDocument();
-        expect(screen.getByText(/Vous n'avez pas les droits/)).toBeInTheDocument();
+        expect(screen.getByText(/Vous n'avez pas les droits pour accéder/)).toBeInTheDocument();
     });
 
     it('should use default role "user" when role is undefined', () => {

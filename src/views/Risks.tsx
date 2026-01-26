@@ -1,10 +1,10 @@
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { LayoutDashboard, List, Grid3x3, Target, Scale, Calculator } from '../components/ui/Icons';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
 import { DEFAULT_VIEWS, SavedView } from '../components/ui/SavedViewsBar';
+import { PageHeader } from '../components/ui/PageHeader';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '../store';
 import { exportRisksToExcel } from '../utils/riskExportUtils';
@@ -32,7 +32,6 @@ import { RiskDashboardSkeleton } from '../components/risks/RiskSkeletons';
 import { Loader } from '../components/ui/Icons';
 
 // Refactored Components
-import { RiskHeader } from '../components/risks/layout/RiskHeader';
 import { RiskTabsContent } from '../components/risks/layout/RiskTabsContent';
 
 // Lazy Loading Heavy Components
@@ -47,11 +46,11 @@ type RiskTab = 'overview' | 'list' | 'matrix' | 'context' | 'financial' | 'ebios
 
 export const Risks: React.FC = () => {
     // Hooks
-    const { user } = useAuth();
+    const { user, claimsSynced, loading: authLoading } = useAuth();
     const { demoMode, t } = useStore();
 
     // 1. Core Data (Always Fetch)
-    const { risks, loading: loadingRisks } = useRiskLogic();
+    const { risks, loading: loadingRisks } = useRiskLogic(claimsSynced);
 
     // Permissions
     const canEdit = canEditResource(user as UserProfile, 'Risk');
@@ -90,12 +89,13 @@ export const Risks: React.FC = () => {
         fetchProjects: shouldFetchDetails
     });
 
-    const loading = loadingRisks || (shouldFetchDetails && loadingDeps);
+    const loading = authLoading || !claimsSynced || loadingRisks || (shouldFetchDetails && loadingDeps);
 
     const {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
         exportCSV, setIsGeneratingReport,
         importRisks, checkDependencies,
+        bulkCreateRisks,
         submitting
     } = useRiskActions(() => { });
 
@@ -291,26 +291,12 @@ export const Risks: React.FC = () => {
     }, [filteredRisks.length, t]);
 
     const handleTemplateSelect = useCallback(async (template: { risks: Partial<Risk>[] }, ownerId: string) => {
-        const promises = template.risks.map((risk: Partial<Risk>) => {
-            const calculatedValues = RiskCalculator.parseRiskValues(risk);
-            return createRisk({
-                threat: risk.threat,
-                vulnerability: risk.vulnerability,
-                strategy: risk.strategy,
-                ...calculatedValues,
-                status: 'Ouvert',
-                framework: 'ISO27001',
-                owner: ownerId,
-            });
-        });
-        try {
-            await Promise.all(promises);
-            toast.success(t('risks.templateSuccess', { count: template.risks.length }));
-        } catch {
-            toast.error(t('risks.templateError'));
+        const risksToCreate = template.risks.map(r => ({ ...r, owner: ownerId }));
+        const success = await bulkCreateRisks(risksToCreate);
+        if (success) {
+            setIsTemplateModalOpen(false);
         }
-        setIsTemplateModalOpen(false);
-    }, [createRisk, t]);
+    }, [bulkCreateRisks]);
 
     const [duplicatingIds, setDuplicatingIds] = React.useState<Set<string>>(new Set());
 
@@ -361,7 +347,17 @@ export const Risks: React.FC = () => {
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24 rounded-5xl">
-            <RiskHeader role={user?.role || 'user'} />
+            <PageHeader
+                title={t('risks.title')}
+                subtitle={t('risks.subtitle')}
+                icon={
+                    <img
+                        src="/images/risques.png"
+                        alt="RISQUES"
+                        className="w-full h-full object-contain"
+                    />
+                }
+            />
 
             <React.Suspense fallback={<RiskDashboardSkeleton />}>
                 <RiskIntelCard risks={filteredRisks} />

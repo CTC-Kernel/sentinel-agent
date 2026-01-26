@@ -222,30 +222,51 @@ export function useOfflineMode(
   /**
    * Handle reconnection failure
    */
+  // FIXED: Track polling attempts to prevent infinite polling
+  const pollingAttemptsRef = useRef(0);
+  const MAX_POLLING_ATTEMPTS = 100; // Stop after ~50 minutes at 30s intervals
+
   /**
    * Start polling fallback mode
+   * FIXED: Added max polling attempts to prevent infinite resource consumption
    */
   const startPollingFallback = useCallback(() => {
     if (pollingIntervalRef.current) return;
 
     console.log('[OfflineMode] Starting polling fallback');
+    pollingAttemptsRef.current = 0;
 
     pollingIntervalRef.current = setInterval(async () => {
+      pollingAttemptsRef.current += 1;
+
+      // FIXED: Stop polling after max attempts to prevent memory leak
+      if (pollingAttemptsRef.current >= MAX_POLLING_ATTEMPTS) {
+        console.warn('[OfflineMode] Max polling attempts reached, stopping fallback');
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+        setIsPollingFallback(false);
+        setSyncStatus('offline');
+        return;
+      }
+
       try {
         // Attempt to reconnect
         await enableNetwork(db);
         setIsPollingFallback(false);
         setRetryCount(0);
         setSyncStatus('connected');
+        pollingAttemptsRef.current = 0;
 
-        // Stop polling
+        // Stop polling on success
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
           pollingIntervalRef.current = null;
         }
       } catch {
-        // Still offline, continue polling
-        console.log('[OfflineMode] Still offline, continuing poll');
+        // Still offline, continue polling (with attempt tracking)
+        console.log(`[OfflineMode] Still offline, poll attempt ${pollingAttemptsRef.current}/${MAX_POLLING_ATTEMPTS}`);
       }
     }, mergedConfig.pollingInterval);
   }, [mergedConfig.pollingInterval, setSyncStatus]);

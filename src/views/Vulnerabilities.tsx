@@ -35,7 +35,7 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 // Form validation: useForm with required fields
 
 export const Vulnerabilities: React.FC = () => {
-    const { user, loading: authLoading } = useAuth();
+    const { user, claimsSynced, loading: authLoading } = useAuth();
     const { t } = useStore();
     const location = useLocation();
 
@@ -59,14 +59,14 @@ export const Vulnerabilities: React.FC = () => {
         loading: loadingAction
     } = useVulnerabilities();
 
-    // Data Hook
+    // Data Hook (Gated by claimsSynced)
     const {
         vulnerabilities,
         assets,
         projects,
         users,
         loading: loadingData
-    } = useVulnerabilitiesData(user?.organizationId);
+    } = useVulnerabilitiesData(user?.organizationId, claimsSynced);
 
     const filteredVulnerabilities = React.useMemo(() => {
         return vulnerabilities
@@ -74,7 +74,7 @@ export const Vulnerabilities: React.FC = () => {
             .filter(v => (v.title || '').toLowerCase().includes(filter.toLowerCase()) || v.cveId?.toLowerCase().includes(filter.toLowerCase()));
     }, [vulnerabilities, filter]);
 
-    const loading = authLoading || loadingData;
+    const loading = authLoading || !claimsSynced || loadingData;
 
     // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();

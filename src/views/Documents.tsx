@@ -3,6 +3,7 @@ import { SEO } from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { Document, UserProfile } from '../types';
 import { getUserAvatarUrl } from '../utils/avatarUtils';
 import { canEditResource } from '../utils/permissions';
@@ -30,6 +31,7 @@ import { useDocumentWorkflow } from '../hooks/documents/useDocumentWorkflow';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
 import { useDocumentsData } from '../hooks/documents/useDocumentsData';
 import { useDocumentDependencies } from '../hooks/documents/useDocumentDependencies';
+import { useTeamManagement } from '../hooks/useTeamManagement';
 import { DocumentFormData } from '../schemas/documentSchema';
 // Form error handling: error states displayed via toast
 
@@ -70,7 +72,9 @@ const DocumentGridSkeleton = ({ count = 6 }) => (
 );
 
 export const Documents: React.FC = () => {
-    const { user, t } = useStore();
+    const { t } = useStore();
+    const { user, claimsSynced, loading: authLoading } = useAuth();
+    const { users: usersList } = useTeamManagement(claimsSynced);
     const location = useLocation();
 
     // DEBUG LOG
@@ -88,13 +92,12 @@ export const Documents: React.FC = () => {
     // --- Data Fetching ---
     const {
         documents,
-        usersList,
         folders,
-        loading
-    } = useDocumentsData(user?.organizationId);
+        loading: docsLoading
+    } = useDocumentsData(user?.organizationId, claimsSynced);
 
     // Optimized: Lazy load dependencies
-    const { dependencies, loadDependencies } = useDocumentDependencies(user?.organizationId);
+    const { dependencies, loadDependencies } = useDocumentDependencies(user?.organizationId, claimsSynced);
 
     // Destructure lazy dependencies (empty initially)
     const {
@@ -184,6 +187,8 @@ export const Documents: React.FC = () => {
     const deepLinkDocId = searchParams.get('id');
     const deepLinkAction = searchParams.get('action');
 
+    const loading = authLoading || !claimsSynced || docsLoading;
+
     React.useEffect(() => {
         if (loading) return;
 
@@ -201,21 +206,22 @@ export const Documents: React.FC = () => {
             setShowCreateModal(true);
             // Consume action immediately
             setSearchParams(params => {
-                params.delete('action');
-                return params;
+                const next = new URLSearchParams(params);
+                next.delete('action');
+                return next;
             }, { replace: true });
         }
     }, [loading, deepLinkDocId, deepLinkAction, documents, selectedDocument, setSelectedDocument, showCreateModal, setSearchParams, loadDependencies]);
 
     // Cleanup Effect
     React.useEffect(() => {
-        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
         if (!selectedDocument && deepLinkDocId) {
             setSearchParams(params => {
-                params.delete('id');
-                return params;
+                const next = new URLSearchParams(params);
+                next.delete('id');
+                return next;
             }, { replace: true });
         }
     }, [selectedDocument, deepLinkDocId, setSearchParams, loading]);
@@ -366,8 +372,32 @@ export const Documents: React.FC = () => {
                         className="w-full h-full object-contain"
                     />
                 }
-                trustType="storage"
-                actions={undefined}
+                trustType="integrity"
+                actions={canCreate && (
+                    <div className="flex items-center gap-2">
+                        <CustomTooltip content="Créer depuis un modèle">
+                            <Button
+                                aria-label="Créer depuis un modèle"
+                                onClick={handleOpenTemplateModal}
+                                variant="outline"
+                                className="gap-2"
+                            >
+                                <FileText className="h-4 w-4" />
+                                Modèles
+                            </Button>
+                        </CustomTooltip>
+                        <CustomTooltip content={t('documents.newDocument')}>
+                            <Button
+                                aria-label={t('documents.newDocument')}
+                                onClick={handleCreateClick}
+                                className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+                            >
+                                <Plus className="h-4 w-4" />
+                                {t('documents.newDocument')}
+                            </Button>
+                        </CustomTooltip>
+                    </div>
+                )}
             />
 
             {/* Tabs Navigation */}

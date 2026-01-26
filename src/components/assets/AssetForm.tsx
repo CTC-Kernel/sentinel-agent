@@ -129,7 +129,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     }, [initialData, reset]);
 
     // Use standardized persistence hook
-    // Use standardized persistence hook
     const { clearDraft } = useFormPersistence<AssetFormData>('sentinel_asset_draft_new', {
         watch,
         reset
@@ -619,7 +618,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                         <button
                             type="button"
                             onClick={handleAutoClassify}
-                            className="text-xs normal-case font-bold text-brand-700 dark:text-brand-300 hover:text-brand-800 flex items-center bg-brand-50 dark:bg-brand-900/30 px-3 py-1.5 rounded-lg transition-colors border border-brand-100 dark:border-brand-800/50"
+                            className="text-xs normal-case font-bold text-brand-600 dark:text-brand-400 hover:text-white hover:bg-brand-600 flex items-center bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg transition-all border border-brand-200 dark:border-brand-800 shadow-sm hover:shadow-md"
                         >
                             <Sparkles className="h-3 w-3 mr-1.5" /> Auto-Classifier (Règles)
                         </button>

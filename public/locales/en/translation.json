@@ -31,6 +31,9 @@
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
     "projects": "Projects",
+    "operations": "Operations",
+    "retry": "Retry",
+    "closeMenu": "Close menu",
     "settings": {
       "title": "Settings",
       "organization": "Organization",
@@ -138,7 +141,6 @@
     },
     "pricingTitle": "Plans & Pricing",
     "pricingSubtitle": "Flexible solutions to secure your business, from startups to large enterprises.",
-    "operations": "Operations",
     "adminSec": "Admin & Security",
     "feat_dashboard": "Dashboards",
     "feat_projects": "Projects",
@@ -288,7 +290,14 @@
     "team": "Team",
     "superAdmin": "Super Admin",
     "settings": "Settings",
-    "vulnerabilities": "Vulnerabilities"
+    "vulnerabilities": "Vulnerabilities",
+    "reports": "Reports",
+    "agents": "Agents",
+    "agentPolicies": "Agent Policies",
+    "softwareInventory": "Software Inventory",
+    "threatIntel": "Threat Intel",
+    "smsi": "ISMS Program",
+    "systemHealth": "System Health"
   },
   "frameworks": {
     "ISO27001": "ISO 27001 (IS Security)",
@@ -988,7 +997,45 @@
     "toastDeclared": "Incident declared (Alert sent)",
     "toastUpdated": "Incident updated",
     "toastDeleted": "Incident deleted",
-    "toastBulkDeleted": "{{count}} incidents deleted"
+    "toastBulkDeleted": "{{count}} incidents deleted",
+    "status": {
+      "new": "New",
+      "analysis": "Analysis",
+      "containment": "Containment",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "seoDescription": "Security incident detection, analysis and response (SOC/CSIRT).",
+    "seoKeywords": "Incidents, SOC, CSIRT, Cyberattack, Response, Analysis, Playbooks, SIEM",
+    "uncategorized": "Uncategorized",
+    "column": {
+      "incident": "Incident",
+      "severity": "Severity",
+      "status": "Status",
+      "date": "Date",
+      "reporter": "Reporter",
+      "category": "Category"
+    },
+    "empty": {
+      "title": "No reported incidents",
+      "desc": "Everything is quiet. No security incidents have been reported yet.",
+      "noResults": "No incidents match your search."
+    },
+    "playbook": "Playbook",
+    "open": "Open",
+    "inspector": {
+      "details": "Details",
+      "playbook": "Playbook",
+      "timeline": "Timeline",
+      "aiAnalysis": "AI Analysis",
+      "titleFallback": "Incident Details"
+    }
   },
   "documents": {
     "title": "Document Management",
@@ -1463,6 +1510,10 @@
     "redirectingApple": "Redirecting to Apple...",
     "redirectingGoogle": "Redirecting to Google...",
     "verificationSent": "Verification email sent",
+    "connectionError": "Connection Error",
+    "profileLoadError": "Unable to load your profile. Please try again.",
+    "accessDeniedOtherOrg": "You do not have access to resources from another organization.",
+    "insufficientPermissions": "You do not have the required permissions to access this page.",
     "reset": {
       "title": "Reset Password",
       "desc": "Enter your email to receive a reset link.",

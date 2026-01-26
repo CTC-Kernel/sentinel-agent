@@ -14,6 +14,7 @@ import { integrationService, CompanySearchResult } from '../../services/integrat
 import { Search, Loader2 } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { AIAssistantHeader, BaseTemplate } from '../ui/AIAssistantHeader';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 
 type SupplierTemplate = BaseTemplate & { category: string; criticality: Criticality };
 
@@ -64,7 +65,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []
     };
 
-    const { register, handleSubmit, control, setValue, formState: { errors }, getValues } = useZodForm<typeof supplierSchema>({
+    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors }, getValues } = useZodForm<typeof supplierSchema>({
         schema: supplierSchema,
         mode: 'onChange',
         shouldUnregister: true,
@@ -78,6 +79,20 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             status: initialData.status ?? 'Actif',
         } : defaultData
     });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<SupplierFormData>('sentinel_supplier_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: !isEditing && !initialData
+    });
+
+    const handleFormSubmit: SubmitHandler<SupplierFormData> = async (data) => {
+        await onSubmit(data);
+        clearDraft();
+    };
+
 
     const onInvalid = (errors: FieldErrors<SupplierFormData>) => {
         const missingFields = Object.keys(errors).join(', ');
@@ -222,7 +237,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-4 sm:p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
+        <form onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="p-4 sm:p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
             <fieldset disabled={readOnly} className="space-y-6 group-disabled:opacity-100">
                 {!isEditing && !readOnly && (
                     <AIAssistantHeader

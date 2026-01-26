@@ -30,7 +30,7 @@ import { useDeepLinkAction } from '../hooks/useDeepLinkAction';
 import { AuditPremiumStats } from '../components/audits/AuditPremiumStats';
 
 export const Audits: React.FC = () => {
-    const { user, t } = useStore();
+    const { t } = useStore();
 
     // Start module tour
     React.useEffect(() => {
@@ -183,11 +183,6 @@ export const Audits: React.FC = () => {
     }, [importAudits]);
 
     // Role-based Title
-    const role = user?.role || 'user';
-    let auditsTitle = t('audits.title');
-    let auditsSubtitle = t('audits.subtitle');
-    if (role === 'admin' || role === 'rssi') { auditsTitle = t('audits.title_admin'); auditsSubtitle = t('audits.subtitle_admin'); }
-    else if (role === 'direction') { auditsTitle = t('audits.title_exec'); auditsSubtitle = t('audits.subtitle_exec'); }
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="flex flex-col gap-6 sm:gap-8 lg:gap-10 pb-24">
@@ -195,12 +190,12 @@ export const Audits: React.FC = () => {
             <SEO title={t('audits.title')} description={t('audits.subtitle')} />
 
             <PageHeader
-                title={auditsTitle}
-                subtitle={auditsSubtitle}
+                title={t('audits.title')}
+                subtitle={t('audits.subtitle')}
                 icon={
                     <img
-                        src="/images/gouvernance.png"
-                        alt="GOUVERNANCE"
+                        src="/images/pilotage.png"
+                        alt="PILOTAGE"
                         className="w-full h-full object-contain"
                     />
                 }

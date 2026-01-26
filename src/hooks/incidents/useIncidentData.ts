@@ -5,7 +5,7 @@ import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { useStore } from '../../store';
 import { Incident } from '../../types';
 
-export const useIncidentData = (organizationId?: string) => {
+export const useIncidentData = (organizationId?: string, enabled = true) => {
     const { demoMode } = useStore();
 
     const [mockData, setMockData] = React.useState<{
@@ -34,7 +34,7 @@ export const useIncidentData = (organizationId?: string) => {
     const { data: rawIncidents, loading: loadingIncidents, refresh: refreshIncidents } = useFirestoreCollection<Incident>(
         'incidents',
         constraints,
-        { logError: true, enabled: !!organizationId && !demoMode, realtime: true }
+        { logError: true, enabled: !!organizationId && !demoMode && enabled, realtime: true }
     );
 
     // Derived Data

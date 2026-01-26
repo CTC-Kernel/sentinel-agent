@@ -322,8 +322,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                     {TABS.map((tab) => {
                         const Icon = tab.icon;
                         return (
-                            <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-muted-foreground hover:text-foreground dark:text-slate-400'}`}>
-                                <Icon className="h-4 w-4" />
+                            <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === tab.id ? 'border-brand-600 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+                                <Icon className={`h-4 w-4 ${activeTab === tab.id ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 group-hover:text-slate-500'}`} />
                                 {tab.label}
                             </button>
                         );

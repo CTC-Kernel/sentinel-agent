@@ -758,4 +758,59 @@ export class OnboardingService {
         });
         this.driverInstance.drive();
     }
+
+    /**
+     * Tour guidé pour le module Agents
+     */
+    static startAgentsTour() {
+        if (this.hasSeenModuleTour('agents')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('agents'),
+            steps: [
+                {
+                    element: '[data-tour="agents-tabs"]',
+                    popover: {
+                        title: "Gestion des Agents",
+                        description: "Naviguez entre la supervision de votre flotte, la configuration des politiques de sécurité et l'inventaire logiciel collecté.",
+                        side: 'bottom', align: 'center'
+                    }
+                },
+                {
+                    element: '[data-tour="agents-download"]',
+                    popover: {
+                        title: "Déploiement",
+                        description: "Téléchargez l'installateur Sentinel pour vos postes et serveurs (Windows, Linux, macOS). L'installation est silencieuse et automatique.",
+                        side: 'left', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="agents-stats"]',
+                    popover: {
+                        title: "État de la Flotte",
+                        description: "Visualisez en un coup d'œil la santé de votre parc : agents actifs, systèmes d'exploitation et alertes de sécurité en cours.",
+                        side: 'bottom', align: 'center'
+                    }
+                },
+                {
+                    element: '[data-tour="agents-filters"]',
+                    popover: {
+                        title: "Recherche & Filtres",
+                        description: "Retrouvez rapidement un agent spécifique par nom, IP ou statut. Basculez entre la vue grille et la vue liste selon vos préférences.",
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="agents-grid"]',
+                    popover: {
+                        title: "Détails & Actions",
+                        description: "Cliquez sur une carte pour voir les détails complets d'un agent : télémétrie en temps réel, vulnérabilités détectées et conformité.",
+                        side: 'top', align: 'center'
+                    }
+                }
+            ]
+        });
+        this.driverInstance.drive();
+    }
 }

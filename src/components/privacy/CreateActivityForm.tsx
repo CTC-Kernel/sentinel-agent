@@ -6,6 +6,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { useStore } from '../../store';
 import { toast } from '@/lib/toast';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface CreateActivityFormProps {
@@ -25,7 +26,12 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
 }) => {
     const { user } = useStore();
 
-    const { register, handleSubmit, control, setValue, formState: { errors } } = useZodForm<typeof processingActivitySchema>({
+    const handleFormSubmit = async (data: ProcessingActivityFormData) => {
+        await onSubmit(data);
+        clearDraft();
+    };
+
+    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useZodForm<typeof processingActivitySchema>({
         schema: processingActivitySchema,
         mode: 'onChange',
         defaultValues: {
@@ -44,6 +50,12 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
         }
     });
 
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<ProcessingActivityFormData>('sentinel_privacy_activity_draft_new', {
+        watch,
+        reset
+    });
+
     const [managerId, legalBasis, status, dataCategories, hasDPIA, relatedAssetIds, relatedRiskIds] = useWatch({
         control,
         name: ['managerId', 'legalBasis', 'status', 'dataCategories', 'hasDPIA', 'relatedAssetIds', 'relatedRiskIds']
@@ -55,7 +67,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-4 sm:p-8 space-y-6">
+        <form onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="p-4 sm:p-8 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                     <FloatingLabelInput label="Nom du traitement" {...register('name')} placeholder="ex: Gestion Paie" error={errors.name?.message} />

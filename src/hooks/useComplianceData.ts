@@ -4,94 +4,74 @@ import { useComplianceActions } from './useComplianceActions';
 import { Control, Risk, Finding, Framework, Document, UserProfile, Asset, Supplier, Project } from '../types';
 import { useFirestoreCollection } from './useFirestore';
 import { where, limit } from 'firebase/firestore';
+import { useAuth } from './useAuth';
 
-interface UseComplianceDataOptions {
-    fetchRisks?: boolean;
-    fetchAssets?: boolean;
-    fetchDocuments?: boolean;
-    fetchUsers?: boolean;
-    fetchSuppliers?: boolean;
-    fetchProjects?: boolean;
-}
+export const useComplianceData = (currentFramework?: Framework, enabled = true) => {
+    const { user, claimsSynced } = useAuth();
+    const { demoMode } = useStore();
 
-export const useComplianceData = (currentFramework?: Framework, options: UseComplianceDataOptions = {}) => {
-    const { user, demoMode } = useStore();
-    const {
-        fetchRisks = false,
-        fetchAssets = false,
-        fetchDocuments = false,
-        fetchUsers = false,
-        fetchSuppliers = false,
-        fetchProjects = false
-    } = options;
-
-    const shouldFetch = (flag: boolean) => !!user?.organizationId && !demoMode && flag;
-    const shouldFetchCore = !!user?.organizationId && !demoMode; // Controls are always fetched
+    const shouldFetch = !!user?.organizationId && !demoMode && claimsSynced && enabled;
 
     const organizationId = user?.organizationId;
 
     // Memoize constraints
     const constraints = useMemo(() => {
-        return organizationId ? [where('organizationId', '==', organizationId)] : undefined;
-    }, [organizationId]);
-
-    const assetsConstraints = useMemo(() => {
-        return organizationId ? [where('organizationId', '==', organizationId), limit(500)] : undefined;
+        return organizationId ? [where('organizationId', '==', organizationId), limit(1000)] : undefined;
     }, [organizationId]);
 
     // 1. Controls (Core - Always Fetched if not demo)
     const { data: rawControls, loading: loadingControls, error: errorControls } = useFirestoreCollection<Control>(
         'controls',
-        shouldFetchCore ? constraints : undefined,
-        { logError: true, realtime: true, enabled: shouldFetchCore }
+        shouldFetch ? constraints : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch }
     );
 
     // 2. Risks
     const { data: rawRisks, loading: loadingRisks, error: errorRisks } = useFirestoreCollection<Risk>(
         'risks',
-        shouldFetch(fetchRisks) ? constraints : undefined,
-        { logError: true, realtime: true, enabled: shouldFetch(fetchRisks) }
+        shouldFetch ? constraints : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch }
     );
 
     // 3. Assets
     const { data: rawAssets, loading: loadingAssets, error: errorAssets } = useFirestoreCollection<Asset>(
         'assets',
-        shouldFetch(fetchAssets) ? assetsConstraints : undefined,
-        { logError: true, realtime: true, enabled: shouldFetch(fetchAssets) }
+        shouldFetch ? constraints : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch }
     );
 
     // 4. Documents
     const { data: rawDocuments, loading: loadingDocuments, error: errorDocuments } = useFirestoreCollection<Document>(
         'documents',
-        shouldFetch(fetchDocuments) ? constraints : undefined,
-        { logError: true, realtime: true, enabled: shouldFetch(fetchDocuments) }
+        shouldFetch ? constraints : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch }
     );
 
     // 5. Users
     const { data: rawUsers, loading: loadingUsers, error: errorUsers } = useFirestoreCollection<UserProfile>(
         'users',
-        shouldFetch(fetchUsers) ? constraints : undefined,
-        { logError: true, realtime: true, enabled: shouldFetch(fetchUsers) }
+        shouldFetch ? constraints : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch }
     );
 
     // 6. Suppliers
     const { data: rawSuppliers, loading: loadingSuppliers, error: errorSuppliers } = useFirestoreCollection<Supplier>(
         'suppliers',
-        shouldFetch(fetchSuppliers) ? constraints : undefined,
-        { logError: true, realtime: true, enabled: shouldFetch(fetchSuppliers) }
+        shouldFetch ? constraints : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch }
     );
 
     // 7. Projects
     const { data: rawProjects, loading: loadingProjects, error: errorProjects } = useFirestoreCollection<Project>(
         'projects',
-        shouldFetch(fetchProjects) ? constraints : undefined,
-        { logError: true, realtime: true, enabled: shouldFetch(fetchProjects) }
+        shouldFetch ? constraints : undefined,
+        { logError: true, realtime: true, enabled: shouldFetch }
     );
 
     // Actions
     const complianceActions = useComplianceActions(user);
 
-    // Filter Controls by Framework (Simulated client-side filtering or framework specific logic)
+    // Filter Controls by Framework
     const filteredControls = useMemo(() => {
         if (!rawControls) return [];
         return currentFramework
@@ -99,13 +79,7 @@ export const useComplianceData = (currentFramework?: Framework, options: UseComp
             : rawControls;
     }, [rawControls, currentFramework]);
 
-    const loading = loadingControls ||
-        (fetchRisks && loadingRisks) ||
-        (fetchAssets && loadingAssets) ||
-        (fetchDocuments && loadingDocuments) ||
-        (fetchUsers && loadingUsers) ||
-        (fetchSuppliers && loadingSuppliers) ||
-        (fetchProjects && loadingProjects);
+    const loading = loadingControls || loadingRisks || loadingAssets || loadingDocuments || loadingUsers || loadingSuppliers || loadingProjects;
 
     // Default empty arrays if not fetched
     const error = errorControls || errorRisks || errorAssets || errorDocuments || errorUsers || errorSuppliers || errorProjects;

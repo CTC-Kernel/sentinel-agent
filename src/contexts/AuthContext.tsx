@@ -477,15 +477,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, []);
 
+    // Use selectors to ensure components re-render when store updates
+    const storeUser = useStore(s => s.user);
+    const storeIsAdmin = useStore(s => s.user?.role === 'admin');
+
     const value = {
-        user: useStore.getState().user,
+        user: storeUser,
         firebaseUser,
         loading,
         error,
         profileError,
         isBlocked,
         dismissBlockerError: () => setIsBlocked(false),
-        isAdmin: useStore.getState().user?.role === 'admin',
+        isAdmin: storeIsAdmin,
         refreshSession,
         logout,
         enrollMFA,

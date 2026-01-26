@@ -79,6 +79,17 @@ vi.mock('../../hooks/useComplianceDataSeeder', () => ({
     }),
 }));
 
+vi.mock('../../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'test-user', organizationId: 'test-org', role: 'rssi' },
+        firebaseUser: { uid: 'test-user', email: 'test@example.com', emailVerified: true },
+        loading: false,
+        error: null,
+        profileError: null,
+        claimsSynced: true,
+    })
+}));
+
 // Mock Firebase
 vi.mock('firebase/firestore', () => ({
     initializeFirestore: vi.fn(() => ({})),

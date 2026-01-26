@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { GlassCard } from '../ui/GlassCard';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Trash2, CalendarDays, Siren, ShieldAlert, Lock, Mail, HardDrive, WifiOff, Database } from '../ui/Icons';
@@ -64,7 +64,7 @@ const getIncidentCategoryStyles = (category: string) => {
 };
 
 export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, onBulkDelete, viewMode, filter, users }) => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const canDelete = !!user && hasPermission(user, 'Incident', 'delete');
 
     const filteredIncidents = useMemo(() => {
@@ -79,12 +79,12 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     // Memoized category data for pie chart
     const categoryData = useMemo(() => {
         const data = incidents.reduce((acc, inc) => {
-            const cat = inc.category || 'Non catégorisé';
+            const cat = inc.category || t('incidents.uncategorized');
             acc[cat] = (acc[cat] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
         return Object.entries(data).map(([name, value]) => ({ name, value }));
-    }, [incidents]);
+    }, [incidents, t]);
 
     // Memoized timeline data for bar chart
     const timelineData = useMemo(() => {
@@ -109,11 +109,33 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         return months.every(m => m.count === 0) ? [] : months;
     }, [incidents]);
 
+    // Helper for localizing status/severity labels - wrapped in useCallback for memoization stability
+    const getStatusLabel = useCallback((s: string) => {
+        switch (s) {
+            case 'Nouveau': return t('incidents.status.new');
+            case 'Analyse': return t('incidents.status.analysis');
+            case 'Contenu': return t('incidents.status.containment');
+            case 'Résolu': return t('incidents.status.resolved');
+            case 'Fermé': return t('incidents.status.closed');
+            default: return s;
+        }
+    }, [t]);
+
+    const getSeverityLabel = useCallback((s: Criticality) => {
+        switch (s) {
+            case Criticality.CRITICAL: return t('incidents.severity.critical');
+            case Criticality.HIGH: return t('incidents.severity.high');
+            case Criticality.MEDIUM: return t('incidents.severity.medium');
+            case Criticality.LOW: return t('incidents.severity.low');
+            default: return s;
+        }
+    }, [t]);
+
     // Metrics for Summary Card
     const columns = useMemo<ColumnDef<Incident>[]>(() => [
         {
             accessorKey: 'title',
-            header: 'Incident',
+            header: t('incidents.column.incident'),
             cell: ({ row }) => {
                 const styles = getIncidentCategoryStyles(row.original.category || '');
                 const CategoryIcon = styles.icon;
@@ -132,27 +154,27 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         },
         {
             accessorKey: 'severity',
-            header: 'Sévérité',
+            header: t('incidents.column.severity'),
             meta: { className: 'hidden sm:table-cell' },
             cell: ({ row }) => (
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getSeverityColor(row.original.severity)}`}>
-                    {row.original.severity}
+                    {getSeverityLabel(row.original.severity)}
                 </span>
             )
         },
         {
             accessorKey: 'status',
-            header: 'Statut',
+            header: t('incidents.column.status'),
             meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => (
                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(row.original.status)}`}>
-                    {row.original.status}
+                    {getStatusLabel(row.original.status)}
                 </span>
             )
         },
         {
             accessorKey: 'dateReported',
-            header: 'Date',
+            header: t('incidents.column.date'),
             meta: { className: 'hidden lg:table-cell' },
             cell: ({ row }) => (
                 <span className="text-slate-600 dark:text-muted-foreground font-medium">
@@ -162,7 +184,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         },
         {
             accessorKey: 'reporter',
-            header: 'Reporter',
+            header: t('incidents.column.reporter'),
             meta: { className: 'hidden xl:table-cell' },
             cell: ({ row }) => {
                 const reporterName = row.original.reporter;
@@ -187,7 +209,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         },
         {
             accessorKey: 'category',
-            header: 'Catégorie',
+            header: t('incidents.column.category'),
             meta: { className: 'hidden md:table-cell' },
             cell: ({ row }) => (
                 <span className="text-slate-600 dark:text-muted-foreground font-medium">
@@ -200,7 +222,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             cell: ({ row }) => (
                 <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()} role="presentation">
                     {canDelete && onDelete && (
-                        <CustomTooltip content="Supprimer l'incident">
+                        <CustomTooltip content={t('common.delete')}>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -215,7 +237,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 </div>
             )
         }
-    ], [canDelete, onDelete, users]);
+    ], [canDelete, onDelete, users, t, getSeverityLabel, getStatusLabel]);
 
     const totalIncidents = incidents.length;
     const openIncidents = incidents.filter(i => i.status !== 'Fermé').length;
@@ -261,9 +283,9 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                         <div className="col-span-full">
                             <EmptyState
                                 icon={Siren}
-                                title="Aucun incident signalé"
-                                description={filter ? "Aucun incident ne correspond à votre recherche." : "Tout est calme. Aucun incident de sécurité n'a été rapporté pour le moment."}
-                                actionLabel={filter || !hasPermission(user, 'Incident', 'create') ? undefined : "Déclarer un incident"}
+                                title={t('incidents.empty.title')}
+                                description={filter ? t('incidents.empty.noResults') : t('incidents.empty.desc')}
+                                actionLabel={filter || !hasPermission(user, 'Incident', 'create') ? undefined : t('incidents.declare')}
                                 onAction={filter || !hasPermission(user, 'Incident', 'create') ? undefined : onCreate}
                             />
                         </div>
@@ -299,10 +321,10 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         <div className="flex flex-col gap-1">
                                             <div className="flex gap-2">
                                                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getSeverityColor(inc.severity)}`}>
-                                                    {inc.severity}
+                                                    {getSeverityLabel(inc.severity)}
                                                 </span>
                                                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(inc.status)}`}>
-                                                    {inc.status}
+                                                    {getStatusLabel(inc.status)}
                                                 </span>
                                             </div>
                                             {inc.isSignificant && (
@@ -313,7 +335,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         </div>
                                     </div>
                                     {canDelete && onDelete && (
-                                        <CustomTooltip content="Supprimer l'incident">
+                                        <CustomTooltip content={t('common.delete')}>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -359,11 +381,11 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                                 }}
                                                 className="text-xs px-2 py-1 bg-brand-500 text-white rounded-lg hover:bg-brand-600 hover:scale-105 transition-all font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
-                                                Playbook
+                                                {t('incidents.playbook')}
                                             </button>
                                         )}
                                         <div className="text-xs text-brand-600 font-bold flex items-center group-hover:translate-x-1 transition-transform">
-                                            Ouvrir <ShieldAlert className="ml-1.5 h-3.5 w-3.5" />
+                                            {t('incidents.open')} <ShieldAlert className="ml-1.5 h-3.5 w-3.5" />
                                         </div>
                                     </div>
                                 </div>

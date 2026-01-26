@@ -19,6 +19,7 @@ import { AssetList } from '../components/assets/AssetList';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssetLogic } from '../hooks/assets/useAssetLogic';
+import { useAuth } from '../hooks/useAuth';
 import { useAssetDependencies } from '../hooks/assets/useAssetDependencies';
 import { FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, MoreVertical, List, LayoutGrid, Upload, LayoutDashboard } from '../components/ui/Icons';
 import { usePlanLimits } from '../hooks/usePlanLimits';
@@ -36,6 +37,7 @@ import { AnimatePresence } from 'framer-motion';
 
 const Assets: React.FC = () => {
     const { user, t } = useStore();
+    const { claimsSynced, loading: authLoading } = useAuth();
     const canEdit = canEditResource(user, 'Asset');
     // UI State
     const [activeTab, setActiveTab] = usePersistedState<string>('assets-active-tab', 'overview');
@@ -49,14 +51,14 @@ const Assets: React.FC = () => {
 
     // Dependencies and Loading Logic...
     // (Preserve existing lines 48-58)
-    const { assets, loading: assetsLoading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, checkDependencies } = useAssetLogic();
+    const { assets, loading: assetsLoading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, checkDependencies } = useAssetLogic(claimsSynced);
     const shouldLoadDependencies = inspectorOpen || importModalOpen;
     const { usersList, suppliers, processes, loading: depsLoading } = useAssetDependencies({
-        fetchUsers: shouldLoadDependencies || viewMode === 'list',
-        fetchSuppliers: shouldLoadDependencies,
-        fetchProcesses: shouldLoadDependencies
+        fetchUsers: (shouldLoadDependencies || viewMode === 'list') && claimsSynced,
+        fetchSuppliers: shouldLoadDependencies && claimsSynced,
+        fetchProcesses: shouldLoadDependencies && claimsSynced
     });
-    const loading = assetsLoading || (shouldLoadDependencies && depsLoading);
+    const loading = authLoading || !claimsSynced || assetsLoading || (shouldLoadDependencies && depsLoading);
     const { limits } = usePlanLimits();
     const reachedAssetLimit = assets.length >= limits.maxAssets;
 

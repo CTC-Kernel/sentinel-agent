@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot, Package, FileCode,
+  Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot,
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -86,19 +86,17 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       items: [
         { key: 'dashboard', name: t('sidebar.dashboard'), to: '/', icon: LayoutDashboard }, // No resource = visible to all
         { key: 'projects', name: t('sidebar.projects'), to: '/projects', icon: FolderKanban, resource: 'Project' },
-        { key: 'reports', name: 'Rapports', to: '/reports', icon: Printer, resource: 'Risk' }, // Often linked to Risk/Audit
+        { key: 'reports', name: t('sidebar.reports'), to: '/reports', icon: Printer, resource: 'Risk' }, // Often linked to Risk/Audit
         { key: 'calendar', name: t('common.calendar'), to: '/calendar', icon: Calendar },
       ]
     },
     {
-      title: "OPÉRATIONS",
+      title: t('common.operations'),
       items: [
         { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren, resource: 'Incident' },
-        { key: 'vulnerabilities', name: 'Vulnérabilités', to: '/vulnerabilities', icon: Bug, resource: 'Asset' },
-        { key: 'agents', name: 'Agents', to: '/agents', icon: Bot, resource: 'Agent' },
-        { key: 'agent-policies', name: 'Politiques Agents', to: '/agent-policies', icon: FileCode, resource: 'AgentPolicy', action: 'manage' },
-        { key: 'software-inventory', name: 'Inventaire Logiciels', to: '/software-inventory', icon: Package, resource: 'Asset' },
-        { key: 'threat-intelligence', name: 'Threat Intel', to: '/threat-intelligence', icon: Globe }, // Open feature
+        { key: 'vulnerabilities', name: t('sidebar.vulnerabilities'), to: '/vulnerabilities', icon: Bug, resource: 'Asset' },
+        { key: 'agents', name: t('sidebar.agents'), to: '/agents', icon: Bot, resource: 'Agent' },
+        { key: 'threat-intelligence', name: t('sidebar.threatIntel'), to: '/threat-intelligence', icon: Globe }, // Open feature
         { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Box, resource: 'CTCEngine' },
       ]
     },
@@ -106,7 +104,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.governance'),
       items: [
         { key: 'risks', name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert, resource: 'Risk' },
-        { key: 'smsi', name: 'Programme SMSI', to: '/smsi', icon: RefreshCcw, resource: 'Risk' }, // ISO 27003 PDCA
+        { key: 'smsi', name: t('sidebar.smsi'), to: '/smsi', icon: RefreshCcw, resource: 'Risk' }, // ISO 27003 PDCA
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText, resource: 'Audit' }, // Compliance often mapped to Audit roles
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
         { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP
@@ -125,7 +123,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.administration'),
       items: [
         { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users, resource: 'User' },
-        { key: 'system-health', name: 'État du Système', to: '/system-health', icon: Activity, resource: 'Organization', action: 'manage' },
+        { key: 'system-health', name: t('sidebar.systemHealth'), to: '/system-health', icon: Activity, resource: 'Organization', action: 'manage' },
         { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database, resource: 'Settings', action: 'manage' },
         { key: 'super_admin', name: t('sidebar.superAdmin'), to: '/admin_management', icon: Shield, superAdminOnly: true }
       ]
@@ -192,7 +190,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           </div>
           {/* Mobile Close Button */}
           <button
-            aria-label="Fermer le menu"
+            aria-label={t('common.closeMenu')}
             onClick={() => setMobileOpen(false)}
             className="lg:hidden p-2 -mr-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
           >

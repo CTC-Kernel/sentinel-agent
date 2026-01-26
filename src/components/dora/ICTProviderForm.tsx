@@ -9,6 +9,7 @@ import { Controller, useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { ictProviderSchema } from '../../schemas/doraSchema';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 import { ICTProviderFormData } from '../../types/dora';
 import {
     ICT_CRITICALITY_LEVELS,
@@ -94,11 +95,20 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
         control,
         handleSubmit,
         watch,
+        reset,
         formState: { errors }
     } = useForm<ICTProviderFormData>({
         resolver: zodResolver(ictProviderSchema) as never,
         defaultValues,
         mode: 'onChange'
+    });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<ICTProviderFormData>('sentinel_ict_provider_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: !isEditing && !initialData
     });
 
     const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
@@ -120,6 +130,7 @@ export const ICTProviderForm: React.FC<ICTProviderFormProps> = ({
 
     const handleFormSubmit = async (data: ICTProviderFormData) => {
         await onSubmit(data);
+        clearDraft();
     };
 
     return (

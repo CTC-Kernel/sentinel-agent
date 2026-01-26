@@ -8,6 +8,7 @@ import { FloatingLabelInput } from '../../ui/FloatingLabelInput';
 import { CustomSelect } from '../../ui/CustomSelect';
 import { DatePicker } from '../../ui/DatePicker';
 import { Loader2, ArrowRight } from '../../ui/Icons';
+import { useFormPersistence } from '../../../hooks/utils/useFormPersistence';
 
 interface TLPTFormProps {
     initialData?: TlptCampaign;
@@ -46,14 +47,23 @@ export const TLPTForm: React.FC<TLPTFormProps> = ({
         notes: ''
     };
 
-    const { control, handleSubmit, formState: { errors } } = useZodForm<typeof tlptSchema>({
+    const { control, handleSubmit, watch, reset, formState: { errors } } = useZodForm<typeof tlptSchema>({
         schema: tlptSchema,
         mode: 'onChange',
         defaultValues
     });
 
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<TlptFormData>('sentinel_tlpt_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: !isEditing && !initialData
+    });
+
     const handleFormSubmit: SubmitHandler<TlptFormData> = async (data) => {
         await onSubmit(data as unknown as Partial<TlptCampaign>);
+        clearDraft();
     };
 
     return (

@@ -24,6 +24,7 @@ interface AuditTemplate extends BaseTemplate {
 import { AUDIT_TYPES } from '../../data/auditConstants';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { DatePicker } from '../ui/DatePicker';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 
 interface AuditFormProps {
     onSubmit: import('react-hook-form').SubmitHandler<AuditFormData>;
@@ -62,13 +63,21 @@ export const AuditForm: React.FC<AuditFormProps> = ({
         { name: 'Review Accès Logiques', description: t('audits.form.templates.access', { defaultValue: 'Revue trimestrielle des comptes à privilèges.' }), type: 'Interne', standard: 'Interne', scope: 'IT / IAM' },
     ];
 
-    const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useZodForm<typeof auditSchema>({
+    const { register, handleSubmit, reset, control, setValue, getValues, watch, formState: { errors } } = useZodForm<typeof auditSchema>({
         schema: auditSchema,
         mode: 'onChange',
         shouldUnregister: true,
         defaultValues: {
             // ...
         }
+    });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<AuditFormData>('sentinel_audit_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: !existingAudit && !initialData
     });
 
     const onInvalid = (errors: FieldErrors<AuditFormData>) => {
@@ -182,7 +191,10 @@ export const AuditForm: React.FC<AuditFormProps> = ({
         <form
             onSubmit={(e) => {
                 e.preventDefault();
-                handleSubmit(onSubmit, onInvalid)(e);
+                handleSubmit((data) => {
+                    onSubmit(data);
+                    clearDraft();
+                }, onInvalid)(e);
             }}
             className="space-y-6 p-4 sm:p-6"
         >
@@ -199,183 +211,183 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             <div className="glass-premium p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10 space-y-6">
-                <FloatingLabelInput
-                    label={t('audits.form.name')}
-                    {...register('name')}
-                    placeholder={t('audits.form.namePlaceholder')}
-                    error={errors.name?.message}
-                    disabled={readOnly}
-                />
-
-                <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('audits.form.description')}</label>
-                    <textarea
-                        {...register('description')}
-                        rows={3}
+                    <FloatingLabelInput
+                        label={t('audits.form.name')}
+                        {...register('name')}
+                        placeholder={t('audits.form.namePlaceholder')}
+                        error={errors.name?.message}
                         disabled={readOnly}
-                        className="w-full px-4 py-3.5 glass-input border border-white/60 dark:border-white/10 rounded-2xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-brand-500/50 outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
-                        placeholder={t('audits.form.descriptionPlaceholder')}
-                    />
-                    {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <Controller
-                        name="type"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label={t('audits.form.typeLabel')}
-                                value={field.value}
-                                onChange={field.onChange}
-                                options={AUDIT_TYPES.map(t => ({ value: t, label: t }))}
-                                error={errors.type?.message}
-                                disabled={readOnly}
-                            />
-                        )}
                     />
 
-                    <div className="md:col-span-2">
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('audits.form.description')}</label>
+                        <textarea
+                            {...register('description')}
+                            rows={3}
+                            disabled={readOnly}
+                            className="w-full px-4 py-3.5 glass-input border border-white/60 dark:border-white/10 rounded-2xl focus-visible:ring-2 focus-visible:ring-brand-500 focus:border-brand-500/50 outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
+                            placeholder={t('audits.form.descriptionPlaceholder')}
+                        />
+                        {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <Controller
-                            name="framework"
+                            name="type"
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
-                                    label={t('audits.form.framework')}
-                                    value={field.value || ''}
-                                    onChange={(val) => field.onChange(val as Framework)}
-                                    options={FRAMEWORK_OPTIONS}
-                                    error={errors.framework?.message}
-                                    disabled={readOnly}
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div className="relative">
-                        <Controller
-                            control={control}
-                            name="dateScheduled"
-                            render={({ field }) => (
-                                <DatePicker
-                                    label={t('audits.form.dateScheduled')}
+                                    label={t('audits.form.typeLabel')}
                                     value={field.value}
                                     onChange={field.onChange}
-                                    error={errors.dateScheduled?.message}
+                                    options={AUDIT_TYPES.map(t => ({ value: t, label: t }))}
+                                    error={errors.type?.message}
                                     disabled={readOnly}
                                 />
                             )}
                         />
-                        {watchedDateScheduled && watchedName && (
-                            <div className="absolute right-2 top-2 z-10">
-                                <AddToCalendar
-                                    event={{
-                                        title: watchedName,
-                                        description: `Audit ${watchedType} - ${watchedScope} `,
-                                        start: new Date(watchedDateScheduled),
-                                        end: new Date(watchedDateScheduled),
-                                        location: 'Sentinel GRC'
-                                    }}
-                                    className="scale-75 origin-right"
-                                />
-                            </div>
-                        )}
+
+                        <div className="md:col-span-2">
+                            <Controller
+                                name="framework"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label={t('audits.form.framework')}
+                                        value={field.value || ''}
+                                        onChange={(val) => field.onChange(val as Framework)}
+                                        options={FRAMEWORK_OPTIONS}
+                                        error={errors.framework?.message}
+                                        disabled={readOnly}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        <div className="relative">
+                            <Controller
+                                control={control}
+                                name="dateScheduled"
+                                render={({ field }) => (
+                                    <DatePicker
+                                        label={t('audits.form.dateScheduled')}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={errors.dateScheduled?.message}
+                                        disabled={readOnly}
+                                    />
+                                )}
+                            />
+                            {watchedDateScheduled && watchedName && (
+                                <div className="absolute right-2 top-2 z-10">
+                                    <AddToCalendar
+                                        event={{
+                                            title: watchedName,
+                                            description: `Audit ${watchedType} - ${watchedScope} `,
+                                            start: new Date(watchedDateScheduled),
+                                            end: new Date(watchedDateScheduled),
+                                            location: 'Sentinel GRC'
+                                        }}
+                                        className="scale-75 origin-right"
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
 
-                <Controller
-                    name="auditor"
-                    control={control}
-                    render={({ field }) => (
-                        <CustomSelect
-                            label={t('audits.form.auditor')}
-                            value={field.value || ''}
-                            onChange={field.onChange}
-                            options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                            placeholder={t('audits.form.auditorPlaceholder')}
-                            error={errors.auditor?.message}
-                            disabled={readOnly}
+                    <Controller
+                        name="auditor"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label={t('audits.form.auditor')}
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                placeholder={t('audits.form.auditorPlaceholder')}
+                                error={errors.auditor?.message}
+                                disabled={readOnly}
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="scope"
+                        control={control}
+                        render={({ field }) => (
+                            <RichTextEditor
+                                label={t('audits.form.scope')}
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                error={errors.scope?.message}
+                                readOnly={readOnly}
+                            />
+                        )}
+                    />
+
+                    <div className="space-y-4">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('audits.form.scopeLabel')}</label>
+                        <Controller
+                            name="relatedAssetIds"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label={t('audits.form.assets')}
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                    options={assets.map(a => ({ value: a.id, label: a.name }))}
+                                    multiple
+                                    error={errors.relatedAssetIds?.message}
+                                    disabled={readOnly}
+                                />
+                            )}
                         />
-                    )}
-                />
-
-                <Controller
-                    name="scope"
-                    control={control}
-                    render={({ field }) => (
-                        <RichTextEditor
-                            label={t('audits.form.scope')}
-                            value={field.value || ''}
-                            onChange={field.onChange}
-                            error={errors.scope?.message}
-                            readOnly={readOnly}
+                        <Controller
+                            name="relatedControlIds"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label={t('audits.form.controls')}
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                    options={controls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
+                                    multiple
+                                    error={errors.relatedControlIds?.message}
+                                    disabled={readOnly}
+                                />
+                            )}
                         />
-                    )}
-                />
-
-                <div className="space-y-4">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('audits.form.scopeLabel')}</label>
-                    <Controller
-                        name="relatedAssetIds"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label={t('audits.form.assets')}
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                options={assets.map(a => ({ value: a.id, label: a.name }))}
-                                multiple
-                                error={errors.relatedAssetIds?.message}
-                                disabled={readOnly}
-                            />
-                        )}
-                    />
-                    <Controller
-                        name="relatedControlIds"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label={t('audits.form.controls')}
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                options={controls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
-                                multiple
-                                error={errors.relatedControlIds?.message}
-                                disabled={readOnly}
-                            />
-                        )}
-                    />
-                    <Controller
-                        name="relatedRiskIds"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label={t('audits.form.risks')}
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score} ` }))}
-                                multiple
-                                error={errors.relatedRiskIds?.message}
-                                disabled={readOnly}
-                            />
-                        )}
-                    />
-                    <Controller
-                        name="relatedProjectIds"
-                        control={control}
-                        render={({ field }) => (
-                            <CustomSelect
-                                label={t('audits.form.projects')}
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                options={projects.map(p => ({ value: p.id, label: p.name }))}
-                                multiple
-                                error={errors.relatedProjectIds?.message}
-                                disabled={readOnly}
-                            />
-                        )}
-                    />
-                </div>
+                        <Controller
+                            name="relatedRiskIds"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label={t('audits.form.risks')}
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                    options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score} ` }))}
+                                    multiple
+                                    error={errors.relatedRiskIds?.message}
+                                    disabled={readOnly}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="relatedProjectIds"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label={t('audits.form.projects')}
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                    options={projects.map(p => ({ value: p.id, label: p.name }))}
+                                    multiple
+                                    error={errors.relatedProjectIds?.message}
+                                    disabled={readOnly}
+                                />
+                            )}
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -10,9 +10,13 @@ interface UseAssetDependenciesOptions {
     fetchUsers?: boolean;
     fetchSuppliers?: boolean;
     fetchProcesses?: boolean;
+    enabled?: boolean;
 }
 
+import { useAuth } from '../../hooks/useAuth';
+
 export const useAssetDependencies = (options: UseAssetDependenciesOptions = {}) => {
+    const { claimsSynced } = useAuth();
     const { user, demoMode } = useStore();
     const {
         fetchUsers = false,
@@ -22,7 +26,7 @@ export const useAssetDependencies = (options: UseAssetDependenciesOptions = {}) 
 
     // Conditions for fetching
     const organizationId = user?.organizationId;
-    const shouldFetch = (flag: boolean) => flag && !!organizationId && !demoMode;
+    const shouldFetch = (flag: boolean) => flag && !!organizationId && !demoMode && claimsSynced && (options.enabled !== false);
 
     // Mock Data State
     const [mockData, setMockData] = useState<{

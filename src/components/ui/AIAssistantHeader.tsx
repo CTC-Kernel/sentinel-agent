@@ -26,17 +26,22 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
     readOnly = false
 }: AIAssistantHeaderProps<TTemplate>) => {
     return (
-        <div className="bg-brand-50/50 dark:bg-brand-900/10 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/20 mb-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                <Sparkles className="w-24 h-24 text-brand-500" />
+            </div>
+            <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center">
-                    <Sparkles className="h-4 w-4 mr-2 text-brand-500" />
+                    <div className="p-1.5 bg-brand-100 dark:bg-brand-900/50 rounded-lg mr-2">
+                        <Sparkles className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                    </div>
                     {title}
                 </h4>
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <select
                         onChange={(e) => onSelectTemplate(e.target.value)}
                         disabled={readOnly}
-                        className="flex-1 sm:flex-none text-xs font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors outline-none cursor-pointer h-9 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 sm:flex-none text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-colors outline-none cursor-pointer h-9 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <option value="">Choisir un modèle...</option>
                         {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
@@ -45,11 +50,10 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
                         type="button"
                         onClick={onAutoGenerate}
                         disabled={isGenerating || readOnly}
-                        variant="outline"
-                        className="flex-1 sm:flex-none text-xs font-bold bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 h-9"
+                        className="flex-1 sm:flex-none text-xs font-bold bg-brand-600 text-white hover:bg-brand-700 border-none flex items-center justify-center gap-2 h-9 shadow-md shadow-brand-500/20"
                     >
                         {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                        {isGenerating ? 'IA...' : 'Auto-complétion IA'}
+                        {isGenerating ? 'Génération...' : 'Auto-complétion IA'}
                     </Button>
                 </div>
             </div>

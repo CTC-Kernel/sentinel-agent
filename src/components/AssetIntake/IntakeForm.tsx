@@ -10,6 +10,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { IntakeService } from '../../services/intakeService';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 
 interface IntakeFormProps {
     hardwareInfo: HardwareInfo;
@@ -34,7 +35,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
     type IntakeFormData = z.infer<typeof intakeSchema>;
 
-    const { register, handleSubmit, setValue, watch, formState: { errors } } = useZodForm({
+    const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useZodForm({
         schema: intakeSchema,
         mode: 'onChange',
         defaultValues: {
@@ -45,6 +46,12 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
             notes: '',
             hardwareType: hardwareInfo.isMobile ? 'Mobile' : 'Laptop'
         }
+    });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<IntakeFormData>('sentinel_intake_draft_new', {
+        watch,
+        reset
     });
 
     const hardwareType = watch('hardwareType');
@@ -103,6 +110,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 projectId: data.projectId || '',
                 notes: data.notes || ''
             });
+            clearDraft();
             onSuccess();
         } catch {
             setError("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");

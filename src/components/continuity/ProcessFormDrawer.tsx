@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Controller } from 'react-hook-form';
 import { useZodForm } from '../../hooks/useZodForm';
 import { businessProcessSchema, BusinessProcessFormData } from '../../schemas/continuitySchema';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 import { Drawer } from '../ui/Drawer';
 import { aiService } from '../../services/aiService';
 import { Sparkles, Plus, Trash2, Server, Truck } from '../ui/Icons';
@@ -12,6 +13,14 @@ import { Asset, Supplier, Risk, UserProfile } from '../../types';
 
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+
+interface AIContinuitySuggestion {
+    rto: string;
+    rpo: string;
+    priority: 'Critique' | 'Élevée' | 'Moyenne' | 'Faible';
+    recoveryTasks: { title: string; owner: string; duration: string; description?: string }[];
+    reasoning: string;
+}
 
 const TEMPLATES = [
     { name: 'Systèmes d\'Information (IT)', description: 'Maintenance et support des infrastructures critiques.', rto: '4h', rpo: '1h', priority: 'Critique' as const },
@@ -57,6 +66,14 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
             supplierIds: initialData?.supplierIds || [],
             recoveryTasks: initialData?.recoveryTasks || []
         }
+    });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<BusinessProcessFormData>('sentinel_process_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: isOpen && !isEditing && !initialData
     });
 
     // Reset form when opening/initialData changes
@@ -106,13 +123,13 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
 
         setIsGenerating(true);
         try {
-            const suggestion = await aiService.suggestContinuityPlan(name, desc || name);
+            const suggestion = await aiService.suggestContinuityPlan(name, desc || name) as AIContinuitySuggestion;
 
             setValue('rto', suggestion.rto);
             setValue('rpo', suggestion.rpo);
             setValue('priority', suggestion.priority);
 
-            const newTasks = suggestion.recoveryTasks.map((t, i) => ({
+            const newTasks = suggestion.recoveryTasks.map((t: { title: string; owner: string; duration: string; description?: string }, i: number) => ({
                 id: crypto.randomUUID(),
                 title: t.title,
                 owner: t.owner,
@@ -152,7 +169,10 @@ export const ProcessFormDrawer: React.FC<ProcessFormDrawerProps> = ({
             subtitle={isEditing ? t('continuity.editProcess') : t('continuity.createProcess')}
             width="max-w-2xl"
         >
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
+            <form onSubmit={handleSubmit(async (data) => {
+                await onSubmit(data);
+                clearDraft();
+            })} className="flex flex-col h-full">
                 <div className="flex-1 space-y-6 pt-6 px-1 overflow-y-auto custom-scrollbar">
 
                     {/* Header - AI Assistant */}

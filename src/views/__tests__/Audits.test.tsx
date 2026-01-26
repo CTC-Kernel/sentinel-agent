@@ -8,6 +8,16 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('../../hooks/audits/useAudits');
 vi.mock('../../store');
 vi.mock('../../hooks/usePersistedState');
+vi.mock('../../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'user-1', organizationId: 'org-1', role: 'admin' },
+        firebaseUser: { uid: 'user-1', email: 'test@example.com', emailVerified: true },
+        loading: false,
+        error: null,
+        profileError: null,
+        claimsSynced: true,
+    })
+}));
 
 // Mock Components to isolate View logic
 vi.mock('../../components/audits/AuditDashboard', () => ({
@@ -76,7 +86,7 @@ describe('Audits View', () => {
         );
 
         expect(screen.getByTestId('audit-dashboard')).toBeInTheDocument();
-        expect(screen.getByText('audits.title_admin')).toBeInTheDocument();
+        expect(screen.getByText('audits.title')).toBeInTheDocument();
     });
 
     it('renders the list view when tab is switched', async () => {

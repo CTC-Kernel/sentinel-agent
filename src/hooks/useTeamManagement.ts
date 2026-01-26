@@ -1,5 +1,6 @@
+
 import { useState, useCallback, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, limit, serverTimestamp, getCountFromServer } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, limit, serverTimestamp, getCountFromServer, onSnapshot, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { UserProfile, Invitation, JoinRequest, CustomRole } from '../types';
@@ -14,283 +15,158 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { ImportService } from '../services/ImportService';
 import { useTranslation } from 'react-i18next';
 import { hasPermission } from '../utils/permissions';
+import { useAuth } from './useAuth';
 
-export const useTeamManagement = () => {
-    const { t } = useTranslation(); // Added initialization
-    const { user, addToast, demoMode } = useStore();
+export const useTeamManagement = (enabled = true) => {
+    const { t } = useTranslation();
+    const { user, claimsSynced } = useAuth();
+    const { addToast, demoMode } = useStore();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
 
-    const fetchUsers = useCallback(async () => {
-        if (!user?.organizationId) return;
-        setLoading(true);
-
-        if (demoMode) {
-            import('../services/mockDataService').then(({ MockDataService }) => {
-                const mockUsers = MockDataService.getCollection('users');
-                const mockInvites = MockDataService.getCollection('invitations');
-                const mockRequests = MockDataService.getCollection('join_requests');
-
-                // Simulate structure matching Promise.allSettled logic roughly or just set state
-                setUsers([...mockUsers, ...mockInvites] as unknown as UserProfile[]);
-                setJoinRequests(mockRequests as JoinRequest[]);
-                setLoading(false);
-            }).catch(_err => {
-                setLoading(false);
-            });
-            return;
-        }
-
-        try {
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId), limit(100))),
-                getDocs(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId), limit(50))),
-                getDocs(query(collection(db, 'join_requests'), where('organizationId', '==', user.organizationId), where('status', '==', 'pending'), limit(50)))
-            ]);
-
-            const activeUsers = results[0].status === 'fulfilled'
-                ? results[0].value.docs.map(d => ({ ...d.data(), uid: d.id, isPending: false } as UserProfile))
-                : [];
-
-            const pendingInvites = results[1].status === 'fulfilled'
-                ? results[1].value.docs.map(d => {
-                    const inv = d.data() as Invitation;
-                    return {
-                        uid: d.id, // Use invitation ID as temp UID
-                        email: inv.email,
-                        displayName: 'Invité (En attente)',
-                        role: inv.role,
-                        department: inv.department,
-                        organizationId: inv.organizationId,
-                        isPending: true,
-                        onboardingCompleted: false
-                    } as UserProfile;
-                })
-                : [];
-
-            const requests = results[2].status === 'fulfilled'
-                ? results[2].value.docs.map(d => ({ id: d.id, ...d.data() } as JoinRequest))
-                : [];
-
-            setUsers([...activeUsers, ...pendingInvites]);
-            setJoinRequests(requests);
-        } catch (err) {
-            ErrorLogger.handleErrorWithToast(err as Error, 'useTeamManagement.fetchUsers', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.organizationId, demoMode]);
-
-    const fetchRoles = useCallback(async () => {
-        if (!user?.organizationId) return;
-
-        if (demoMode) {
-            import('../services/mockDataService').then(({ MockDataService }) => {
-                const mock = MockDataService.getCollection('custom_roles');
-                setCustomRoles(mock as CustomRole[]);
-            }).catch(_err => {
-            });
-            return;
-        }
-
-        try {
-            const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
-            const snapshot = await getDocs(q);
-            setCustomRoles(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as CustomRole)));
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.fetchRoles');
-        }
-    }, [user?.organizationId, demoMode]);
-
     useEffect(() => {
-        fetchUsers();
-        fetchRoles();
-    }, [fetchUsers, fetchRoles]);
+        if (!user?.organizationId || !claimsSynced || !enabled) {
+            setLoading(false);
+            return;
+        }
+
+        if (demoMode) {
+            import('../services/mockDataService').then(({ MockDataService }) => {
+                setUsers([...MockDataService.getCollection('users'), ...MockDataService.getCollection('invitations')] as unknown as UserProfile[]);
+                setJoinRequests(MockDataService.getCollection('join_requests') as unknown as JoinRequest[]);
+                setCustomRoles(MockDataService.getCollection('custom_roles') as unknown as CustomRole[]);
+                setLoading(false);
+            });
+            return;
+        }
+
+        setLoading(true);
+        const orgId = user.organizationId;
+
+        // Subscriptions
+        const unsubUsers = onSnapshot(query(collection(db, 'users'), where('organizationId', '==', orgId), limit(100)), (snap) => {
+            const active = snap.docs.map(d => ({ ...d.data(), uid: d.id, isPending: false } as UserProfile));
+            setUsers(prev => {
+                const pending = prev.filter(u => u.isPending);
+                return [...active, ...pending];
+            });
+            setLoading(false);
+        });
+
+        const unsubInvites = onSnapshot(query(collection(db, 'invitations'), where('organizationId', '==', orgId), limit(50)), (snap) => {
+            const pending = snap.docs.map(d => {
+                const inv = d.data() as Invitation;
+                return {
+                    uid: d.id,
+                    email: inv.email,
+                    displayName: 'Invité (En attente)',
+                    role: inv.role,
+                    department: inv.department,
+                    organizationId: inv.organizationId,
+                    isPending: true,
+                    onboardingCompleted: false
+                } as UserProfile;
+            });
+            setUsers(prev => {
+                const active = prev.filter(u => !u.isPending);
+                return [...active, ...pending];
+            });
+        });
+
+        const unsubRequests = onSnapshot(query(collection(db, 'join_requests'), where('organizationId', '==', orgId), where('status', '==', 'pending'), limit(50)), (snap) => {
+            setJoinRequests(snap.docs.map(d => ({ id: d.id, ...d.data() } as JoinRequest)));
+        });
+
+        const unsubRoles = onSnapshot(query(collection(db, 'custom_roles'), where('organizationId', '==', orgId)), (snap) => {
+            setCustomRoles(snap.docs.map(d => ({ id: d.id, ...d.data() } as CustomRole)));
+        });
+
+        return () => {
+            unsubUsers();
+            unsubInvites();
+            unsubRequests();
+            unsubRoles();
+        };
+    }, [user?.organizationId, claimsSynced, enabled, demoMode]);
 
     const inviteUser = useCallback(async (data: UserFormData, silent = false) => {
         if (!user?.organizationId) return false;
-
         if (demoMode) {
-            addToast(t("team.invite.success"), "success");
-            setUsers(prev => [...prev, {
-                uid: `mock-invite-${Date.now()}`,
-                email: data.email,
-                role: data.role,
-                displayName: data.displayName,
-                department: data.department,
-                organizationId: user.organizationId,
-                isPending: true
-            } as UserProfile]);
+            if (!silent) addToast(t("team.invite.success"), "success");
             return true;
         }
 
         try {
-            // Check plan limits (Server-side)
             const [usersCount, invitesCount] = await Promise.all([
                 getCountFromServer(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
                 getCountFromServer(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId)))
             ]);
 
-            const totalUsers = usersCount.data().count + invitesCount.data().count;
-
-            const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', totalUsers);
-            if (!canAddUser) return 'LIMIT_REACHED';
+            const total = usersCount.data().count + invitesCount.data().count;
+            if (!(await SubscriptionService.checkLimit(user.organizationId, 'users', total))) return 'LIMIT_REACHED';
 
             await addDoc(collection(db, 'invitations'), sanitizeData({
-                ...data, // Invite logic...
+                ...data,
                 organizationId: user.organizationId,
                 organizationName: user.organizationName,
                 invitedBy: user.uid,
                 createdAt: serverTimestamp()
             }));
 
-            const inviteLink = `${window.location.origin}/#/login`;
-            const htmlContent = getInvitationTemplate(user?.displayName || 'Un administrateur', data.role, inviteLink);
-
             await sendEmail(user, {
                 to: data.email,
                 subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
                 type: 'INVITATION',
-                html: htmlContent
+                html: getInvitationTemplate(user.displayName || 'Admin', data.role, `${window.location.origin}/#/login`)
             });
 
-            await logAction(user, 'INVITE', 'User', `Invitation envoyée à: ${data.email}`, undefined, undefined, { role: data.role });
-
-            if (!silent) addToast("Invitation envoyée par email", "success");
-            fetchUsers();
+            await logAction(user, 'INVITE', 'User', `Invitation: ${data.email}`);
+            if (!silent) addToast("Invitation envoyée", "success");
             return true;
         } catch (error) {
-            if (!silent) {
-                ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.inviteUser', 'INVITE_FAILED');
-                addToast("Erreur invitation", "error");
-            } else {
-                ErrorLogger.error(error as Error, 'useTeamManagement.inviteUser (Silent)');
-            }
+            if (!silent) ErrorLogger.handleErrorWithToast(error as Error, 'team.invite');
             return false;
         }
-        return false;
-    }, [user, demoMode, addToast, t, fetchUsers]);
+    }, [user, demoMode, addToast, t]);
 
     const updateUser = async (uid: string, data: Partial<UserFormData>, isPending: boolean) => {
-        if (isPending) return false;
-
-        // SECURITY: Check authorization - only admin/rssi can modify users
-        if (!hasPermission(user, 'User', 'update')) {
-            ErrorLogger.warn('Unauthorized user update attempt', 'useTeamManagement.updateUser', {
-                metadata: { attemptedBy: user?.uid, targetUser: uid }
-            });
-            addToast("Vous n'avez pas les droits pour modifier cet utilisateur", "error");
-            return false;
-        }
-
-        // SECURITY: Verify target user belongs to same organization (IDOR protection)
-        const targetUser = users.find(u => u.uid === uid);
-        if (!targetUser || targetUser.organizationId !== user?.organizationId) {
-            ErrorLogger.warn('IDOR attempt: user modification across organizations', 'useTeamManagement.updateUser', {
-                metadata: { attemptedBy: user?.uid, targetUser: uid, targetOrg: targetUser?.organizationId, callerOrg: user?.organizationId }
-            });
-            addToast("Utilisateur non trouvé", "error");
-            return false;
-        }
-
+        if (isPending || !user || !hasPermission(user, 'User', 'update')) return false;
         try {
-            await updateDoc(doc(db, 'users', uid), sanitizeData({
-                role: data.role,
-                department: data.department,
-                displayName: data.displayName
-            }));
-            await logAction(user, 'UPDATE', 'User', `Modification utilisateur: ${uid}`);
-            setUsers(prev => prev.map(u => u.uid === uid ? { ...u, ...data } as UserProfile : u));
-            addToast("Utilisateur mis à jour", "success");
+            await updateDoc(doc(db, 'users', uid), sanitizeData({ ...data, updatedAt: serverTimestamp() }));
+            await logAction(user, 'UPDATE', 'User', `Modif utilisateur: ${uid}`);
+            addToast("Mis à jour", "success");
             return true;
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.updateUser', 'UPDATE_FAILED');
-            addToast("Erreur mise à jour", "error");
+            ErrorLogger.handleErrorWithToast(error as Error, 'team.update');
             return false;
         }
-    };
-
-    const checkDependencies = async (uid: string): Promise<string[]> => {
-        const dependencies: string[] = [];
-        const assetsSnap = await getDocs(query(collection(db, 'assets'), where('ownerId', '==', uid), limit(20)));
-        if (!assetsSnap.empty) dependencies.push(`${assetsSnap.size} actif(s)`);
-
-        const risksSnap = await getDocs(query(collection(db, 'risks'), where('ownerId', '==', uid), limit(20)));
-        if (!risksSnap.empty) dependencies.push(`${risksSnap.size} risque(s)`);
-
-        const docsSnap = await getDocs(query(collection(db, 'documents'), where('ownerId', '==', uid), limit(20)));
-        if (!docsSnap.empty) dependencies.push(`${docsSnap.size} document(s)`);
-
-        return dependencies;
     };
 
     const deleteUser = async (u: UserProfile) => {
-        // SECURITY: Check authorization - only admin/rssi can delete users
-        if (!hasPermission(user, 'User', 'delete')) {
-            ErrorLogger.warn('Unauthorized user deletion attempt', 'useTeamManagement.deleteUser', {
-                metadata: { attemptedBy: user?.uid, targetUser: u.uid }
-            });
-            addToast("Vous n'avez pas les droits pour supprimer cet utilisateur", "error");
-            return false;
-        }
-
-        // SECURITY: Verify target user belongs to same organization (IDOR protection)
-        if (u.organizationId !== user?.organizationId) {
-            ErrorLogger.warn('IDOR attempt: user deletion across organizations', 'useTeamManagement.deleteUser', {
-                metadata: { attemptedBy: user?.uid, targetUser: u.uid, targetOrg: u.organizationId, callerOrg: user?.organizationId }
-            });
-            addToast("Utilisateur non trouvé", "error");
-            return false;
-        }
-
-        // SECURITY: Prevent self-deletion through this endpoint
-        if (u.uid === user?.uid) {
-            addToast("Vous ne pouvez pas supprimer votre propre compte depuis cette interface", "error");
-            return false;
-        }
-
+        if (!user || !hasPermission(user, 'User', 'delete') || u.uid === user.uid) return false;
         try {
-            if (u.isPending) {
-                await deleteDoc(doc(db, 'invitations', u.uid));
-                addToast("Invitation annulée", "info");
-            } else {
-                await deleteDoc(doc(db, 'users', u.uid));
-                await logAction(user, 'DELETE', 'User', `Suppression utilisateur: ${u.email}`);
-                addToast("Utilisateur supprimé", "info");
-            }
-            setUsers(prev => prev.filter(usr => usr.uid !== u.uid));
+            if (u.isPending) await deleteDoc(doc(db, 'invitations', u.uid));
+            else await deleteDoc(doc(db, 'users', u.uid));
+            await logAction(user, 'DELETE', 'User', `Suppression: ${u.email}`);
+            addToast("Supprimé", "success");
             return true;
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.deleteUser', 'DELETE_FAILED');
-            addToast("Erreur suppression", "error");
+            ErrorLogger.handleErrorWithToast(error as Error, 'team.delete');
             return false;
         }
     };
 
     const approveRequest = async (req: JoinRequest) => {
         if (!user?.organizationId) return false;
-        // Check limits (Server-side)
-        const [usersCount, invitesCount] = await Promise.all([
-            getCountFromServer(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-            getCountFromServer(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId)))
-        ]);
-
-        const totalUsers = usersCount.data().count + invitesCount.data().count;
-
-        const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', totalUsers);
-        if (!canAddUser) return 'LIMIT_REACHED';
-
         try {
             const approveFn = httpsCallable(functions, 'approveJoinRequest');
             await approveFn({ requestId: req.id });
-            addToast(`Accès approuvé pour ${req.displayName}`, "success");
-            fetchUsers();
+            addToast(`Approuvé: ${req.displayName}`, "success");
             return true;
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e as Error, 'useTeamManagement.approveRequest');
-            addToast("Erreur lors de l'approbation", "error");
+            ErrorLogger.handleErrorWithToast(e as Error, 'team.approve');
             return false;
         }
     };
@@ -299,12 +175,10 @@ export const useTeamManagement = () => {
         try {
             const rejectFn = httpsCallable(functions, 'rejectJoinRequest');
             await rejectFn({ requestId: req.id });
-            addToast("Demande refusée", "info");
-            fetchUsers();
+            addToast("Refusé", "info");
             return true;
         } catch (e) {
-            ErrorLogger.error(e as Error, 'useTeamManagement.rejectRequest');
-            addToast("Erreur lors du refus", "error");
+            ErrorLogger.error(e as Error, 'team.reject');
             return false;
         }
     };
@@ -313,81 +187,58 @@ export const useTeamManagement = () => {
         if (!user) return;
         setLoading(true);
         try {
-            const usersToImport = ImportService.parseCSV(csvData);
-            if (usersToImport.length === 0) {
-                addToast("Fichier vide ou invalide", "error");
-                setLoading(false);
-                return;
-            }
+            const rows = ImportService.parseCSV(csvData);
+            if (rows.length === 0) return addToast("Fichier vide", "error");
 
-            let successCount = 0;
-            let failureCount = 0;
-            let limitReached = false;
-
-            const normalizeRole = (value?: string): UserFormData['role'] => {
-                const allowedRoles: UserFormData['role'][] = ['user', 'rssi', 'auditor', 'project_manager', 'direction', 'admin'];
-                if (!value) return 'user';
-                const lowerValue = value.trim().toLowerCase();
-                return (allowedRoles.find(role => role === lowerValue) ?? 'user') as UserFormData['role'];
-            };
-
-            for (const row of usersToImport) {
-                if (limitReached) break;
+            let done = 0;
+            for (const row of rows) {
                 const email = row.Email || row.email;
                 if (!email) continue;
-
-                // Map CSV fields to UserFormData
-                const userData: UserFormData = {
+                const result = await inviteUser({
                     email,
                     displayName: row.Nom || row.name || '',
-                    role: normalizeRole(row.Role || row.role || row['Rôle'] || row['rôle']),
-                    department: row.Departement || row.department || row['Département'] || row['département'] || ''
-                };
-
-                // Use inviteUser but suppress individual toasts (we need to refactor inviteUser or just accept toasts? Refactoring is better but complex. 
-                // Alternatively, recreate logic here for batching without toasts).
-                // Let's call inviteUser. It shows toasts. This might be spammy for large imports.
-                // Better to refactor inviteUser to accept a 'silent' flag.
-
-                // For now, I will duplicate logic slightly to avoid modifying inviteUser signature and breaking other calls, 
-                // OR I will modify inviteUser signature.
-                // Modifying inviteUser signature is cleaner. 
-                const result = await inviteUser(userData, true); // Pass silent=true
-                if (result === 'LIMIT_REACHED') {
-                    limitReached = true;
-                } else if (result) {
-                    successCount++;
-                } else {
-                    failureCount++;
-                }
+                    role: (row.Role || 'user').toLowerCase() as 'user' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'admin' | 'super_admin',
+                    department: row.Departement || ''
+                }, true);
+                if (result === 'LIMIT_REACHED') break;
+                if (result) done++;
             }
-
-            if (limitReached) {
-                addToast(`Limite du plan atteinte. ${successCount} utilisateurs importés.`, "info");
-            } else {
-                addToast(`Import terminé : ${successCount} succès, ${failureCount} échecs`, "success");
-            }
-            fetchUsers();
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.importUsers');
+            addToast(`${done} utilisateurs importés`, "success");
         } finally {
             setLoading(false);
         }
-    }, [user, addToast, fetchUsers, inviteUser]);
+    }, [user, addToast, inviteUser]);
 
-    return {
-        users,
-        joinRequests,
-        loading,
-        customRoles,
-        fetchUsers,
-        fetchRoles,
-        inviteUser,
-        importUsers,
-        updateUser,
-        deleteUser,
-        checkDependencies,
-        approveRequest,
-        rejectRequest
-    };
+    /**
+     * Check if user has dependencies (assigned assets, risks, documents, etc.)
+     * Returns array of dependency descriptions for UI
+     */
+    const checkDependencies = useCallback(async (userId: string): Promise<string[]> => {
+        if (!user?.organizationId || demoMode) return [];
+        const deps: string[] = [];
+        try {
+            const [assetsSnap, risksSnap, docsSnap] = await Promise.all([
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), where('ownerId', '==', userId), limit(5))),
+                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), where('ownerId', '==', userId), limit(5))),
+                getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId), where('ownerId', '==', userId), limit(5)))
+            ]);
+            if (!assetsSnap.empty) deps.push(t('team.dependencies.assets', { count: assetsSnap.size }));
+            if (!risksSnap.empty) deps.push(t('team.dependencies.risks', { count: risksSnap.size }));
+            if (!docsSnap.empty) deps.push(t('team.dependencies.documents', { count: docsSnap.size }));
+        } catch (err) {
+            ErrorLogger.error(err, 'useTeamManagement.checkDependencies');
+        }
+        return deps;
+    }, [user?.organizationId, demoMode, t]);
+
+    /**
+     * Force refresh custom roles - mainly for compatibility
+     * With onSnapshot, roles are already updated in realtime
+     */
+    const fetchRoles = useCallback(() => {
+        // With onSnapshot subscription, roles are already updated in realtime
+        // This function exists for API compatibility
+    }, []);
+
+    return { users, joinRequests, loading, customRoles, inviteUser, importUsers, updateUser, deleteUser, approveRequest, rejectRequest, checkDependencies, fetchRoles };
 };

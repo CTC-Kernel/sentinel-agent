@@ -8,6 +8,7 @@ import { Button } from '../../ui/button';
 import { UserProfile, Asset, RecoveryPlan } from '../../../types';
 import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { Clock, Save, Loader2, FileText, Shield, Plus, Trash2, AlertTriangle } from '../../ui/Icons';
+import { useFormPersistence } from '../../../hooks/utils/useFormPersistence';
 
 interface RecoveryPlanInspectorProps {
     isOpen: boolean;
@@ -28,7 +29,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
     users,
     assets
 }) => {
-    const { register, handleSubmit, control, setValue, reset, formState: { errors, isSubmitting } } = useZodForm<typeof recoveryPlanSchema>({
+    const { register, handleSubmit, control, setValue, reset, watch, formState: { errors, isSubmitting } } = useZodForm<typeof recoveryPlanSchema>({
         schema: recoveryPlanSchema,
         defaultValues: {
             title: '',
@@ -42,6 +43,14 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
             triggers: [],
             linkedAssetIds: []
         }
+    });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<RecoveryPlanFormData>('sentinel_recovery_plan_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: isOpen && !initialData
     });
 
     const { fields, append, remove } = useFieldArray({
@@ -82,6 +91,7 @@ export const RecoveryPlanInspector: React.FC<RecoveryPlanInspectorProps> = ({
 
     const handleFormSubmit = async (data: RecoveryPlanFormData) => {
         await onSubmit(data);
+        clearDraft();
         onClose();
     };
 

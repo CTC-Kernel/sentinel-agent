@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
@@ -26,6 +26,27 @@ export const useGlobalSearch = () => {
     // Refs for debouncing
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
+    // FIXED: Track mounted state to prevent state updates after unmount
+    const isMountedRef = useRef(true);
+
+    // FIXED: Cleanup on unmount to prevent memory leaks
+    useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+            // Cancel any pending debounced search
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+                debounceTimerRef.current = null;
+            }
+            // Abort any in-flight requests
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+                abortControllerRef.current = null;
+            }
+        };
+    }, []);
 
     /**
      * Debounced search function - waits for user to stop typing
@@ -48,6 +69,8 @@ export const useGlobalSearch = () => {
 
         // Debounce the search
         debounceTimerRef.current = setTimeout(async () => {
+            // FIXED: Check mounted before state update
+            if (!isMountedRef.current) return;
             setLoading(true);
 
             try {
@@ -205,7 +228,10 @@ export const useGlobalSearch = () => {
                 // Combine all results
                 const searchResults: SearchResult[] = results.flatMap(r => r.docs);
 
-                setResults(searchResults);
+                // FIXED: Only update state if still mounted
+                if (isMountedRef.current) {
+                    setResults(searchResults);
+                }
             } catch (error) {
                 // Don't log abort errors
                 if (error instanceof Error && error.name === 'AbortError') {
@@ -213,7 +239,10 @@ export const useGlobalSearch = () => {
                 }
                 ErrorLogger.handleErrorWithToast(error, 'useGlobalSearch.performSearch', 'FETCH_FAILED');
             } finally {
-                setLoading(false);
+                // FIXED: Only update state if still mounted
+                if (isMountedRef.current) {
+                    setLoading(false);
+                }
             }
         }, DEBOUNCE_DELAY);
     }, [user]);

@@ -804,12 +804,12 @@ export const Help: React.FC = () => {
                                         setMobileMenuOpen(false);
                                     }}
                                     className={`w-full flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group ${selectedCategory === category.id
-                                        ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400'
+                                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm'
                                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
                                         }`}
                                 >
                                     <div className={`p-2 rounded-lg transition-colors ${selectedCategory === category.id
-                                        ? 'bg-brand-500/20'
+                                        ? 'bg-brand-500 text-white shadow-sm'
                                         : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700'
                                         }`}>
                                         <category.icon className="w-4 h-4" />
@@ -904,7 +904,7 @@ export const Help: React.FC = () => {
                                                 <div className="flex-1">
                                                     <div className="flex items-center justify-between">
                                                         {/* Heading hierarchy: h2 for article title (follows h1 page title) */}
-                                                        <h2 className={`text-lg font-bold transition-colors ${selectedArticle === article.id ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'
+                                                        <h2 className={`text-lg font-bold transition-colors ${selectedArticle === article.id ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white'
                                                             }`}>
                                                             {article.title}
                                                         </h2>

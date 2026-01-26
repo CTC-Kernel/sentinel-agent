@@ -180,8 +180,8 @@ export const EbiosAnalyses: React.FC = () => {
           subtitle={t('ebios.description')}
           icon={
             <img
-              src="/images/gouvernance.png"
-              alt="EBIOS"
+              src="/images/referentiel.png"
+              alt="RÉFÉRENTIEL"
               className="w-full h-full object-contain"
             />
           }

@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom';
 import { useLocation, useSearchParams } from 'react-router-dom';
 
 import { useStore } from '../store';
+import { useAuth } from '../hooks/useAuth';
 import { Control, Framework } from '../types';
 
 // Interface étendue pour les contrôles avec propriétés optionnelles
@@ -27,6 +28,7 @@ import { ComplianceDashboard } from '../components/compliance/ComplianceDashboar
 import { ComplianceList } from '../components/compliance/ComplianceList';
 import { FrameworkMappingMatrix } from '../components/compliance/FrameworkMappingMatrix';
 import { SharedRequirementsView } from '../components/compliance/SharedRequirementsView';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText, AlertTriangle, Layers, Link, Archive } from '../components/ui/Icons';
 import { toast } from '@/lib/toast';
 import { SoAView } from '../components/compliance/SoAView';
@@ -43,9 +45,7 @@ import { useControlEffectiveness } from '../hooks/controls/useControlEffectivene
 import { ISO_SEED_CONTROLS } from '../data/complianceData';
 import { BarChart3, Award } from '../components/ui/Icons';
 import Homologation from './Homologation';
-// Form validation: useForm with required fields
-// Form validation: useForm with required fields
-
+// Initialisation du service d'onboarding
 import { OnboardingService } from '../services/onboardingService';
 import { EvidenceDossierService } from '../services/EvidenceDossierService';
 import { ComplianceStatsWidget } from '../components/compliance/ComplianceStatsWidget';
@@ -53,7 +53,8 @@ import { ComplianceStatsWidget } from '../components/compliance/ComplianceStatsW
 type ComplianceTab = 'overview' | 'controls' | 'mapping' | 'shared' | 'soa' | 'efficiency' | 'homologation';
 
 export const Compliance: React.FC = () => {
-    const { user, addToast, t, organization } = useStore();
+    const { user, addToast, t, organization, activeFramework, setActiveFramework } = useStore();
+    const { claimsSynced, loading: authLoading } = useAuth();
     const location = useLocation();
     const canEdit = canEditResource(user, 'Control');
 
@@ -87,19 +88,28 @@ export const Compliance: React.FC = () => {
         return allFrameworks.filter(f => enabled.includes(f.id as Framework));
     }, [organization?.enabledFrameworks, organization?.subscription?.planId]);
 
-    // UI State - default to first enabled framework
-    const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');
-    const [activeTab, setActiveTab] = useState<ComplianceTab>('overview');
+    // Tab state
+    const [activeTab, setActiveTab] = usePersistedState<ComplianceTab>('compliance-active-tab', 'overview');
 
-    // Ensure current framework is valid when enabled frameworks change
+    // Link to global store choice
+    // If no framework is active, try to pick the first enabled one
     useEffect(() => {
-        if (enabledComplianceFrameworks.length > 0) {
-            const isCurrentValid = enabledComplianceFrameworks.some(f => f.id === currentFramework);
-            if (!isCurrentValid) {
-                setCurrentFramework(enabledComplianceFrameworks[0].id as Framework);
-            }
+        if (!activeFramework && enabledComplianceFrameworks.length > 0) {
+            setActiveFramework(enabledComplianceFrameworks[0].id as Framework);
+        } else if (activeFramework && !enabledComplianceFrameworks.some(f => f.id === activeFramework)) {
+            // If currently selected framework is no longer enabled, fallback
+            setActiveFramework(enabledComplianceFrameworks.length > 0 ? enabledComplianceFrameworks[0].id as Framework : 'ISO27001');
         }
-    }, [enabledComplianceFrameworks, currentFramework]);
+    }, [enabledComplianceFrameworks, activeFramework, setActiveFramework]);
+
+    // Derived state for rendering to avoid null flashes
+    const currentFrameworkId = useMemo(() => {
+        if (activeFramework && enabledComplianceFrameworks.some(f => f.id === activeFramework)) {
+            return activeFramework as Framework;
+        }
+        return enabledComplianceFrameworks.length > 0 ? (enabledComplianceFrameworks[0].id as Framework) : 'ISO27001';
+    }, [activeFramework, enabledComplianceFrameworks]);
+
     const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [filter, setFilter] = useState('');
@@ -148,16 +158,9 @@ export const Compliance: React.FC = () => {
         usersList,
         suppliers,
         projects,
-        loading
-    } = useComplianceData(currentFramework, {
-        fetchRisks: activeTab === 'overview',
-        fetchAssets: activeTab === 'overview',
-        fetchDocuments: activeTab === 'overview',
-        fetchUsers: activeTab === 'overview',
-        fetchSuppliers: activeTab === 'overview',
-        fetchProjects: activeTab === 'overview'
-    });
-    const { folders } = useDocumentsData(user?.organizationId);
+        loading: dataLoading
+    } = useComplianceData(currentFrameworkId, claimsSynced);
+    const { folders } = useDocumentsData(user?.organizationId, claimsSynced);
     const complianceActions = useComplianceActions(user);
     const documentActions = useDocumentActions(usersList);
     const { seedControls } = useComplianceDataSeeder();
@@ -177,13 +180,13 @@ export const Compliance: React.FC = () => {
     // Filtering Logic
     const filteredControlsList = useMemo(() => {
         if (!controls) return [];
-        return currentFramework
-            ? controls.filter(c => c.framework === currentFramework)
+        return currentFrameworkId
+            ? controls.filter(c => c.framework === currentFrameworkId)
             : controls;
-    }, [controls, currentFramework]);
+    }, [controls, currentFrameworkId]);
 
     const filteredControls = useMemo(() => {
-        return filteredControlsList.filter((control: import('../types').Control) => {
+        return filteredControlsList.filter((control: Control) => {
             // Search
             const matchesSearch = filter === '' ||
                 control.code.toLowerCase().includes(filter.toLowerCase()) ||
@@ -198,6 +201,8 @@ export const Compliance: React.FC = () => {
             return matchesSearch && matchesStatus && matchesEvidence;
         });
     }, [filteredControlsList, filter, statusFilter, showMissingEvidence]);
+
+    const loading = authLoading || !claimsSynced || dataLoading;
 
     // Deep Link Effect
     useEffect(() => {
@@ -238,7 +243,7 @@ export const Compliance: React.FC = () => {
         if (tab && ['overview', 'controls', 'mapping', 'shared', 'soa', 'efficiency', 'homologation'].includes(tab)) {
             setActiveTab(tab as ComplianceTab);
         }
-    }, [searchParams]);
+    }, [searchParams, setActiveTab]);
 
     const handleTabChange = (id: string) => {
         setActiveTab(id as ComplianceTab);
@@ -246,7 +251,7 @@ export const Compliance: React.FC = () => {
             const next = new URLSearchParams(prev);
             next.set('tab', id);
             return next;
-        });
+        }, { replace: true });
     };
 
 
@@ -320,7 +325,7 @@ export const Compliance: React.FC = () => {
         }
     };
 
-    const selectedControl = filteredControls.find((c: import('../types').Control) => c.id === selectedControlId);
+    const selectedControl = filteredControls.find((c: Control) => c.id === selectedControlId);
 
     // Generate Evidence Dossier
     const handleGenerateEvidenceDossier = async () => {
@@ -335,7 +340,7 @@ export const Compliance: React.FC = () => {
                 filteredControls,
                 documents,
                 {
-                    framework: currentFramework,
+                    framework: currentFrameworkId,
                     organizationName: organization?.name,
                     generatedBy: user?.displayName || user?.email || undefined
                 }
@@ -351,7 +356,7 @@ export const Compliance: React.FC = () => {
     return (
         <>
             <MasterpieceBackground />
-            <SEO title={`${t('compliance.title')} ${currentFramework} - Sentinel GRC`} description={t('compliance.subtitle')} />
+            <SEO title={`${t('compliance.title')} ${currentFrameworkId || ''}- Sentinel GRC`} description={t('compliance.subtitle')} />
 
             <div className="relative z-10 p-4 md:p-6 flex flex-col gap-6 sm:gap-8 lg:gap-10 w-full max-w-full overflow-x-hidden pb-24">
                 <div className="max-w-[1920px] mx-auto flex flex-col gap-6 sm:gap-8 lg:gap-10">
@@ -362,8 +367,8 @@ export const Compliance: React.FC = () => {
                         subtitle={t('compliance.subtitle')}
                         icon={
                             <img
-                                src="/images/gouvernance.png"
-                                alt="GOUVERNANCE"
+                                src="/images/pilotage.png"
+                                alt="CONFORMITÉ"
                                 className="w-full h-full object-contain"
                             />
                         }
@@ -372,7 +377,7 @@ export const Compliance: React.FC = () => {
 
                     {/* Stats Widget */}
                     <div className="mt-6">
-                        <ComplianceStatsWidget controls={filteredControls} currentFramework={currentFramework} />
+                        <ComplianceStatsWidget controls={filteredControls} currentFramework={currentFrameworkId} />
                     </div>
 
                     {/* Framework Selector (Top Level) - filtered by enabled frameworks */}
@@ -381,8 +386,8 @@ export const Compliance: React.FC = () => {
                             id: f.id,
                             label: t(`frameworks.${f.id}`),
                         }))}
-                        activeTab={currentFramework}
-                        onTabChange={(id) => setCurrentFramework(id as Framework)}
+                        activeTab={currentFrameworkId}
+                        onTabChange={(id) => setActiveFramework(id as Framework)}
                     />
 
                     {/* Main Navigation Tabs (Feature Level) */}
@@ -407,8 +412,8 @@ export const Compliance: React.FC = () => {
                         <div className="animate-fade-in space-y-6">
                             <ComplianceDashboard
                                 controls={filteredControls}
-                                currentFramework={currentFramework}
-                                onSeedData={() => seedControls(currentFramework)}
+                                currentFramework={currentFrameworkId}
+                                onSeedData={() => seedControls(currentFrameworkId)}
                                 loading={loading}
                             />
                         </div>
@@ -485,7 +490,7 @@ export const Compliance: React.FC = () => {
                                 risks={risks}
                                 findings={[]}
                                 loading={loading}
-                                currentFramework={currentFramework}
+                                currentFramework={currentFrameworkId}
                                 selectedControlId={selectedControlId || undefined}
                                 onSelectControl={handleSelectControl}
                                 filter={filter}
@@ -518,9 +523,9 @@ export const Compliance: React.FC = () => {
                             <SoAView
                                 controls={filteredControls}
                                 risks={risks}
-                                framework={currentFramework}
+                                framework={currentFrameworkId}
                                 handlers={complianceActions}
-                                onSeed={() => seedControls(currentFramework)}
+                                onSeed={() => seedControls(currentFrameworkId)}
                             />
                         </div>
                     )}

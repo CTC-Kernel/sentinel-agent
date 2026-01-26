@@ -275,7 +275,7 @@ export const Projects: React.FC = () => {
             <SEO title={t('sidebar.projects')} description={t('projects.subtitle')} />
 
             <PageHeader
-                title={t('projects.dashboard')}
+                title={t('projects.title')}
                 subtitle={t('projects.subtitle')}
                 icon={
                     <img

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, Activity, ShieldCheck, Users, AlertTriangle, LayoutDashboard, Check, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Lightbulb, Sparkles, Target, Calendar, Download, Bot } from '../../ui/Icons';
+import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, ShieldCheck, Users, LayoutDashboard, Check, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Lightbulb, Sparkles, Target, Calendar, Download, Bot } from '../../ui/Icons';
 import { Rocket } from '../../ui/Icons';
 import { GlassCard } from '../../ui/GlassCard';
 import { ShinyText } from '../../ui/ShinyText';
@@ -314,11 +314,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                             />
                                         </div>
 
-                                        <img
-                                            src="/images/pilotage.png"
-                                            alt="PILOTAGE"
-                                            className="w-full h-full object-contain relative z-10 p-3 drop-shadow-[0_10px_30px_rgba(0,0,0,0.12)] group-hover/orb:drop-shadow-[0_15px_40px_rgba(var(--brand-500-rgb),0.2)] transition-all duration-700"
-                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center relative z-10 p-3">
+                                            <img
+                                                src="/images/pilotage.png"
+                                                alt="Pilotage"
+                                                className="w-full h-full object-contain filter drop-shadow-[0_10px_30px_rgba(var(--brand-500-rgb),0.3)] animate-pulse-subtle"
+                                            />
+                                        </div>
 
                                         {/* Premium Holographic Rings */}
                                         <div className="absolute inset-2 border-2 border-brand-500/20 rounded-[1.25rem] animate-spin-slow" />
@@ -607,9 +609,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                                 : 'bg-success-500/5 border-success-500/20 hover:bg-success-500/10 hover:border-success-500/40'
                                         }`}
                                 >
-                                    <div className={`p-3 rounded-xl shrink-0 transition-transform duration-500 group-hover/insight:scale-110
-                                        ${insight.type === 'danger' ? 'bg-destructive/15 text-destructive' : 'bg-success/15 text-success'}`}>
-                                        {insight.type === 'danger' ? <AlertTriangle className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
+                                    <div className={`p-2 rounded-xl shrink-0 transition-transform duration-500 group-hover/insight:scale-110
+                                        ${insight.type === 'danger' ? 'bg-destructive/10' : 'bg-success/10'}`}>
+                                        {insight.type === 'danger' ? (
+                                            <img src="/images/risques.png" alt="RISQUE" className="h-8 w-8 object-contain" />
+                                        ) : (
+                                            <ShieldCheck className="h-6 w-6 text-success" />
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-bold text-foreground truncate pr-2 tracking-tight mb-0.5">{insight.text}</p>
@@ -626,8 +632,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     transition={{ delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
                                     className="flex-1 flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-slate-50/60 dark:from-slate-800/60 dark:via-slate-900/40 dark:to-slate-950/60 border border-white/30 dark:border-slate-700/30 backdrop-blur-xl shadow-sm"
                                 >
-                                    <div className="w-11 h-11 rounded-xl bg-brand-500/10 flex items-center justify-center">
-                                        <Activity className="h-5 w-5 text-brand-500 animate-pulse" />
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/5 ring-1 ring-inset ring-brand-500/10 shadow-sm relative overflow-hidden group">
+                                        <div className="absolute inset-0 bg-brand-500/5 animate-pulse group-hover:bg-brand-500/10 transition-colors" />
+                                        <img
+                                            src="/images/tableau-de-bord.png"
+                                            alt="DASHBOARD"
+                                            className="w-8 h-8 object-contain relative z-10 filter drop-shadow-sm group-hover:scale-110 transition-transform duration-500"
+                                        />
                                     </div>
                                     <div>
                                         <p className="font-bold text-foreground tracking-tight leading-none mb-1">{t('dashboard.allSystemsOperational')}</p>

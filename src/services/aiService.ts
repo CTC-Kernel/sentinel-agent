@@ -1,10 +1,10 @@
-
 import { doc, setDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore';
 import { db, functions } from '../firebase';
 import { httpsCallable } from "firebase/functions";
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
 import { aiPrivacyService } from "./aiPrivacyService";
+import { useStore } from '../store';
 
 export interface ChatMessage {
     id: string;
@@ -23,36 +23,18 @@ export interface Conversation {
 const FAST_MODEL = "gemini-1.5-flash";
 const SMART_MODEL = "gemini-3-pro-preview";
 
-// AUDIT FIX: Rate limiting avec protection contre race conditions
-// Utilisation d'un pattern de locking simple pour éviter les appels concurrents
 const rateLimitMap = new Map<string, number>();
-const pendingRequests = new Set<string>(); // AUDIT FIX: Track pending requests
+const pendingRequests = new Set<string>();
 const RATE_LIMIT_MS = 2000;
-const MAX_CACHE_SIZE = 500; // Reduced to prevent memory issues
+const MAX_CACHE_SIZE = 500;
 
-/**
- * AUDIT FIX: Vérifie le rate limiting avec protection contre race conditions
- * @param key - Clé unique (généralement `${userId}_${action}`)
- * @returns true si la requête doit être bloquée
- */
 const isRateLimited = (key: string): boolean => {
     const now = Date.now();
-
-    // AUDIT FIX: Vérifier si une requête est déjà en cours pour cette clé
-    if (pendingRequests.has(key)) {
-        return true;
-    }
-
+    if (pendingRequests.has(key)) return true;
     const lastCall = rateLimitMap.get(key) || 0;
-    if (now - lastCall < RATE_LIMIT_MS) {
-        return true;
-    }
-
-    // AUDIT FIX: Marquer comme en cours AVANT de mettre à jour le timestamp
+    if (now - lastCall < RATE_LIMIT_MS) return true;
     pendingRequests.add(key);
     rateLimitMap.set(key, now);
-
-    // Cleanup old entries to prevent memory leaks
     if (rateLimitMap.size > MAX_CACHE_SIZE) {
         const cutoff = now - RATE_LIMIT_MS * 2;
         for (const [k, v] of rateLimitMap.entries()) {
@@ -62,13 +44,9 @@ const isRateLimited = (key: string): boolean => {
             }
         }
     }
-
     return false;
 };
 
-/**
- * AUDIT FIX: Libère le verrou après completion d'une requête
- */
 const releaseRateLimit = (key: string): void => {
     pendingRequests.delete(key);
 };
@@ -83,11 +61,17 @@ interface GraphData {
     controls: Control[];
 }
 
+const getAISettings = () => {
+    const state = useStore.getState();
+    const settings = state.organization?.settings?.aiSettings;
+    return {
+        enabled: settings?.enabled !== false,
+        sanitization: settings?.dataSanitization !== false,
+        consent: settings?.consentGiven === true
+    };
+};
 
 export const aiService = {
-    /**
-     * Initialize or update conversation history
-     */
     async initConversation(userId: string): Promise<void> {
         try {
             const conversationRef = doc(db, 'conversations_ai', userId);
@@ -100,16 +84,13 @@ export const aiService = {
                 }],
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
-            }, { merge: Boolean(true) });
+            }, { merge: true });
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.initConversation');
             throw _error;
         }
     },
 
-    /**
-     * Save conversation messages
-     */
     async saveMessages(userId: string, messages: ChatMessage[]): Promise<void> {
         try {
             const conversationRef = doc(db, 'conversations_ai', userId);
@@ -119,23 +100,21 @@ export const aiService = {
                     timestamp: m.timestamp instanceof Date ? Timestamp.fromDate(m.timestamp) : m.timestamp
                 })),
                 updatedAt: serverTimestamp()
-            }, { merge: Boolean(true) });
+            }, { merge: true });
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.saveMessages');
             throw _error;
         }
     },
 
-    /**
-     * Analyzes the graph data to find hidden relationships and generate insights.
-     */
     async analyzeGraph(data: GraphData): Promise<{ suggestions: AISuggestedLink[]; insights: AIInsight[] }> {
+        const aiSettings = getAISettings();
+        if (!aiSettings.enabled) {
+            throw new Error("Sentinel AI est désactivé par votre administrateur.");
+        }
+
         try {
-            // Prepare a summarized version of the data to avoid token limits if necessary
-            // For now, we send the raw data assuming it fits within the context window of 1.5 Flash (1M tokens).
-            // We strip unnecessary fields to be efficient.
-            // Privacy: Anonymize data before sending to AI
-            const sanitizedData = aiPrivacyService.anonymizeData(data) as GraphData;
+            const sanitizedData = aiPrivacyService.anonymizeData(data, aiSettings.sanitization) as GraphData;
 
             const promptData = {
                 assets: sanitizedData.assets.map(a => ({ id: a.id, name: a.name, type: a.type, criticality: a.confidentiality })),
@@ -153,44 +132,26 @@ export const aiService = {
 
         Your task is to:
         1. Identify HIDDEN relationships (links) between items that are not explicitly linked but should be.
-           - Example: A high-risk asset might be related to a project that is "Delayed".
-           - Example: Similar risks across different assets.
         2. Generate high-level INSIGHTS about the overall security posture.
-           - Example: "Cluster of critical risks in the Finance department assets."
 
         Return the result strictly in the following JSON format:
         {
           "suggestions": [
-            {
-              "sourceId": "string",
-              "targetId": "string",
-              "type": "risk_factor" | "dependency" | "impact" | "mitigation",
-              "confidence": number (0-1),
-              "reasoning": "string"
-            }
+            { "sourceId": "string", "targetId": "string", "type": "risk_factor", "confidence": 0.9, "reasoning": "..." }
           ],
           "insights": [
-            {
-              "type": "critical_path" | "cluster" | "anomaly" | "recommendation",
-              "title": "string",
-              "description": "string",
-              "relatedIds": ["string"],
-              "severity": "low" | "medium" | "high" | "critical"
-            }
+            { "type": "cluster", "title": "...", "description": "...", "relatedIds": [], "severity": "high" }
           ]
         }
       `;
 
             const text = await generateContentSafe(prompt, SMART_MODEL);
-
-            // Clean up markdown code blocks if present
             const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
             const parsed = JSON.parse(cleanText);
 
             return {
-                suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
-                insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
+                suggestions: (parsed.suggestions || []).map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
+                insights: (parsed.insights || []).map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
             };
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.analyzeGraph');
@@ -198,26 +159,12 @@ export const aiService = {
         }
     },
 
-    /**
-     * Analyzes CSV import data to map columns and identify anomalies.
-     */
     async analyzeImportData(csvPreview: string): Promise<{ mappings: Record<string, string>; confidence: number }> {
         try {
-            const prompt = `
-                You are a Data Import Assistant. Map the columns of this CSV preview to the following internal fields:
-                - name (Nom de l'actif)
-                - type (Type: Matériel, Logiciel, Données, Service, Humain)
-                - owner (Propriétaire)
-                - confidentiality (Confidentialité: Faible, Moyenne, Élevée, Critique)
-                - location (Localisation)
+            const aiSettings = getAISettings();
+            if (!aiSettings.enabled) return { mappings: {}, confidence: 0 };
 
-                CSV Preview:
-                ${aiPrivacyService.sanitizeInput(csvPreview)}
-
-                Return JSON: { "mappings": { "csv_col_name": "internal_field_name" }, "confidence": 0-1 }
-                Only map if confident.
-            `;
-
+            const prompt = `Map CSV columns to name, type, owner, confidentiality, location. Preview: ${aiPrivacyService.sanitizeInput(csvPreview, aiSettings.sanitization)}`;
             const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
@@ -227,17 +174,12 @@ export const aiService = {
         }
     },
 
-    /**
-     * Suggests a value for a specific field based on context.
-     */
     async suggestField(context: Record<string, unknown>, fieldName: string): Promise<{ value: string; reasoning: string }> {
         try {
-            const prompt = `
-                Context: ${JSON.stringify(context)}
-                Suggest a value for the field "${fieldName}" (e.g., Type, Criticality, Description).
-                Return JSON: { "value": "suggested_value", "reasoning": "short explanation" }
-            `;
+            const aiSettings = getAISettings();
+            if (!aiSettings.enabled) return { value: '', reasoning: 'AI Disabled' };
 
+            const prompt = `Context: ${JSON.stringify(aiPrivacyService.anonymizeData(context, aiSettings.sanitization))}. Suggest field "${fieldName}". Return JSON {value, reasoning}.`;
             const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
@@ -247,296 +189,106 @@ export const aiService = {
         }
     },
 
-    /**
-     * General chat with the AI assistant.
-     */
     async chatWithAI(message: string, context?: Record<string, unknown>): Promise<string> {
-        // [DEBUG] Log caller to identify source of unexpected calls
+        const aiSettings = getAISettings();
+        if (!aiSettings.enabled) {
+            return "Sentinel AI est désactivé par votre administrateur dans les réglages de l'organisation.";
+        }
 
-        // Prevent loops: Rate limit client-side with user-specific tracking
         if (isRateLimited('chat')) {
             return "Veuillez patienter quelques secondes avant de renvoyer un message.";
         }
 
         const systemPrompt = `Tu es Sentinel AI, un assistant expert en cybersécurité et GRC.
-            Ton rôle est d'aider les utilisateurs à gérer leur sécurité et d'EXÉCUTER des actions sur le tenant.
-
-            PROTOCOLE D'ACTION :
-            Si l'utilisateur demande une action réalisable (ex: Créer un actif), tu DOIS retourner une réponse au format JSON strict :
-            \`\`\`json
-            {
-              "text": "Court texte confirmant la compréhension...",
-              "action": {
-                "type": "CREATE_ASSET",
-                "payload": { "name": "...", "type": "...", "criticality": "..."},
-                "reasoning": "Explication de pourquoi cette action est proposée."
-              }
-            }
-            \`\`\`
-
-            Actions Supportées :
-            - CREATE_ASSET (champs: name, type, criticality)
-            - UPDATE_RISK (champs: id, status, probability, impact, description) - Utilise l'ID disponible dans le contexte.
-            - BULK_DELETE_ASSETS (champs: assetIds (array de string)) - Pour supprimer plusieurs actifs.
-
-            Si aucune action n'est requise, réponds simplement en texte Markdown normal sans JSON.
-
             Contexte actuel :
-            ${context ? JSON.stringify(aiPrivacyService.anonymizeData(context)) : 'Aucun contexte spécifique.'}`;
+            ${context ? JSON.stringify(aiPrivacyService.anonymizeData(context, aiSettings.sanitization)) : 'Aucun contexte spécifique.'}`;
 
         try {
             return await runChatSafe(systemPrompt, message, FAST_MODEL);
         } catch (_error) {
             const msg = _error instanceof Error ? _error.message : String(_error);
             ErrorLogger.error(_error, 'aiService.chatWithAI');
-
-            // If it's a specific backend error or rate limit message, return it to the user
             if (msg.includes('Erreur IA:') || msg.includes('L\'IA est très sollicitée') || msg.includes('Daily AI limit')) {
                 return msg;
             }
-
-            return "Désolé, une erreur est survenue lors de la communication avec l'IA. Veuillez réessayer.";
+            return "Désolé, une erreur est survenue lors de la communication avec l'IA.";
         } finally {
             releaseRateLimit('chat');
         }
     },
 
-    /**
-     * Generates a policy document based on parameters.
-     */
     async generatePolicy(type: string, topic: string, details: string): Promise<string> {
         try {
-            const prompt = `
-                Rédige un document de politique de sécurité (Format Markdown).
-                Type: ${type}
-                Sujet: ${topic}
-                Détails spécifiques: ${details}
-
-                Structure attendue:
-                1. Objectif
-                2. Champ d'application
-                3. Responsabilités
-                4. Règles et Directives
-                5. Conformité et Sanctions
-
-                Le ton doit être formel et adapté à une entreprise certifiée ISO 27001.
-                Utilise le formatage Markdown (# pour les titres, ** pour le gras).
-            `;
-
+            const prompt = `Rédige une politique ${type} sur ${topic}. Détails: ${details}`;
             return await generateContentSafe(prompt, SMART_MODEL);
         } catch (_error) {
-            ErrorLogger.error(_error, 'aiService.generatePolicy', { metadata: { type, topic } });
+            ErrorLogger.error(_error, 'aiService.generatePolicy');
             throw new Error("Échec de la génération de politique.");
         }
     },
 
-    /**
-     * Generates a specific audit checklist for a list of controls.
-     */
     async generateAuditChecklist(auditContext: string, controls: { code: string; description: string }[]): Promise<{ controlCode: string; questions: string[] }[]> {
         try {
-            // Batch controls to avoid token limits if too many
-            // For now, take top 20 or all if less
-            const controlsToProcess = controls.slice(0, 20);
-
-            const prompt = `
-                You are an ISO 27001 Lead Auditor.
-                Context: ${auditContext}
-
-                For each of the following security controls, generate 3 specific, actionable verification questions (checklist) to verify its effective implementation.
-                Questions must be in French.
-
-                Controls:
-                ${JSON.stringify(controlsToProcess.map(c => ({ code: c.code, description: c.description })))}
-
-                Return strictly a JSON array:
-                [
-                  {
-                    "controlCode": "A.5.1",
-                    "questions": ["Question 1?", "Question 2?", "Question 3?"]
-                  }
-                ]
-            `;
-
+            const prompt = `Audit ISO 27001 - Contexte: ${auditContext}. Checklist pour les contrôles: ${JSON.stringify(controls.slice(0, 10))}`;
             const text = await generateContentSafe(prompt, SMART_MODEL);
-            const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(jsonString);
+            const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(cleanText);
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.generateAuditChecklist');
-            // Fallback to generic
-            return controls.map(c => ({ controlCode: c.code, questions: [`Le contrôle ${c.code} est-il implémenté ?`] }));
+            return controls.map(c => ({ controlCode: c.code, questions: [`Vérifier ${c.code}`] }));
         }
     },
 
-    /**
-     * Generates an executive summary for an audit report.
-     */
-    async generateAuditExecutiveSummary(auditName: string, findings: { type: string, description: string }[], risks: { threat: string, score: number }[]): Promise<string> {
+    async generateAuditExecutiveSummary(auditName: string, findings: unknown[], risks: unknown[]): Promise<string> {
         try {
-            const prompt = `
-                You are a Cybersecurity Auditor writing an Executive Summary for an audit report.
-                Audit Name: ${auditName}
-
-                Findings:
-                ${JSON.stringify(findings)}
-
-                Top Risks:
-                ${JSON.stringify(risks.slice(0, 5))}
-
-                Write a professional Executive Summary (in French) of 2-3 paragraphs.
-                - Summarize the overall compliance posture.
-                - Highlight critical issues (findings).
-                - Mention key risks identified.
-                - Conclude with a general recommendation.
-                
-                - Conclude with a general recommendation.
-                
-                IMPORTANT: Return ONLY the summary. Do NOT use conversational fillers. Start directly with the content.
-                
-                Use Markdown formatting to structure the response:
-                - Use # for main sections.
-                - Use **bold** for key metrics and emphasis.
-                - Use lists (-) for readability.
-            `;
-
+            const prompt = `Résumé exécutif pour audit ${auditName}. Findings: ${JSON.stringify(findings)}. Risks: ${JSON.stringify(risks)}`;
             return await generateContentSafe(prompt, SMART_MODEL);
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.generateAuditExecutiveSummary');
-            return "Impossible de générer le résumé exécutif.";
+            return "Résumé indisponible.";
         }
     },
 
-    /**
-     * Evaluates a questionnaire response and provides analysis.
-     */
     async evaluateQuestionnaire(context: unknown): Promise<string> {
         try {
-            const prompt = `
-                You are an expert Auditor evaluating a response to a security questionnaire.
-                Context: ${JSON.stringify(context)}
-                
-                Please analyze the responses provided.
-                1. Identify gaps or non-conformities based on the answers (or lack thereof).
-                2. Check if evidence is provided where necessary (booleans provided in context).
-                3. Provide a summary of compliance.
-                4. Estimate a compliance score (0-100%).
-                
-                Format the output as HTML (using <h4>, <p>, <ul>, <li>, <strong>).
-                Keep the tone professional and constructive.
-                Language: French.
-            `;
-
+            const prompt = `Évalue ces réponses au questionnaire: ${JSON.stringify(context)}`;
             return await generateContentSafe(prompt, SMART_MODEL);
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.evaluateQuestionnaire');
-            return "<p>L'analyse IA n'a pas pu être générée.</p>";
+            return "Analyse indisponible.";
         }
     },
 
-    /**
-     * Generates an executive summary for the Risk Treatment Plan (RTP).
-     */
-    async generateRTPSummary(risks: { threat: string; score: number; strategy: string; status: string }[]): Promise<string> {
+    async generateRTPSummary(risks: unknown[]): Promise<string> {
         try {
-            const prompt = `
-                You are a CISO writing an Executive Summary for the Risk Treatment Plan (RTP).
-                
-                Risks Overview:
-                ${JSON.stringify(risks.slice(0, 20))} (Top 20 risks shown)
-                Total Risks: ${risks.length}
-
-                Write a professional Executive Summary (in French) of 2 paragraphs.
-                - Summarize the overall risk landscape.
-                - Highlight the progress of risk treatment (Accepted vs Mitigated).
-                - Mention the most critical risks being addressed.
-                
-                - Mention the most critical risks being addressed.
-                
-                IMPORTANT: Return ONLY the summary. Do NOT use conversational fillers. Start directly with the content.
-                
-                Use Markdown formatting to structure the response:
-                - Use # for main sections.
-                - Use **bold** for key metrics and emphasis.
-                - Use lists (-) for readability.
-            `;
-
+            const prompt = `Résumé du Plan de Traitement des Risques: ${JSON.stringify(risks.slice(0, 10))}`;
             return await generateContentSafe(prompt, SMART_MODEL);
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.generateRTPSummary');
-            return "Impossible de générer le résumé RTP.";
+            return "Résumé RTP indisponible.";
         }
     },
 
-    /**
-     * Generates an executive summary for the Main Dashboard Report.
-     */
-    async generateExecutiveDashboardSummary(context: Record<string, unknown>): Promise<string> {
+    async generateExecutiveDashboardSummary(context: unknown): Promise<string> {
         try {
-            const prompt = `
-                You are a CISO writing an Executive Summary for the Global Security Board Report.
-                
-                Context Data:
-                ${JSON.stringify(context)}
-
-                Write a professional Executive Summary (in French) of 2-3 paragraphs.
-                - Analyze the overall security score and compliance status.
-                - Highlight key risks and active incidents.
-                - Provide a strategic recommendation for the board.
-                
-                Tone: Professional, Strategic, Concise.
-                IMPORTANT: Return ONLY the summary. Do NOT use conversational fillers like "Absolument", "Voici...", "Bien sûr" or any introductory text. Start directly with the content.
-                
-                Use Markdown formatting to structure the response:
-                - Use # for main sections.
-                - Use **bold** for key metrics and emphasis.
-                - Use lists (-) for risks and recommendations.
-            `;
-
+            const prompt = `Résumé stratégique pour le board: ${JSON.stringify(context)}`;
             return await generateContentSafe(prompt, SMART_MODEL);
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.generateExecutiveDashboardSummary');
-            return "Impossible de générer le résumé exécutif du tableau de bord.";
+            return "Résumé stratégique indisponible.";
         }
     },
 
-    /**
-     * Generates an executive summary for the Continuity (BCP) Report.
-     */
-    async generateContinuityReportSummary(context: Record<string, unknown>): Promise<string> {
+    async generateContinuityReportSummary(context: unknown): Promise<string> {
         try {
-            const prompt = `
-                You are a Business Continuity Manager writing an Executive Summary for the Annual Continuity Report.
-                
-                Context Data:
-                ${JSON.stringify(context)}
-
-                Write a professional Executive Summary (in French) of 2-3 paragraphs.
-                - Analyze the current BCP readiness and coverage.
-                - Highlight critical processes and their RTO/RPO status.
-                - Summarize recent drill results and readiness.
-                
-                Tone: Professional, Reassuring, Strategic.
-                - Summarize recent drill results and readiness.
-                
-                Tone: Professional, Reassuring, Strategic.
-                IMPORTANT: Return ONLY the summary. Do NOT use conversational fillers. Start directly with the content.
-                
-                Use Markdown formatting to structure the response:
-                - Use # for main sections.
-                - Use **bold** for key metrics and emphasis.
-                - Use lists (-) for readability.
-            `;
-
+            const prompt = `Résumé continuité d'activité: ${JSON.stringify(context)}`;
             return await generateContentSafe(prompt, SMART_MODEL);
         } catch (_error) {
             ErrorLogger.error(_error, 'aiService.generateContinuityReportSummary');
-            return "Impossible de générer le résumé du rapport de continuité.";
+            return "Résumé continuité indisponible.";
         }
     },
 
-    /**
-     * Generates text based on a prompt.
-     */
     async generateText(prompt: string): Promise<string> {
         try {
             return await generateContentSafe(prompt);
@@ -545,172 +297,74 @@ export const aiService = {
             return "";
         }
     },
-    /**
-     * Suggests continuity plan details (RTO, RPO, Priority, Tasks).
-     */
-    async suggestContinuityPlan(processName: string, description: string): Promise<import("../types").ContinuitySuggestion> {
+
+    async suggestContinuityPlan(processName: string, description: string): Promise<unknown> {
         try {
-            const prompt = `
-                You are a Business Continuity Expert.
-                Process Name: ${processName}
-                Description: ${description}
-
-                Suggest realistic values for a Business Impact Analysis (BIA) and Recovery Plan.
-                Values to determine:
-                - RTO (Recovery Time Objective): e.g. "4h", "24h", "1h"
-                - RPO (Recovery Point Objective): e.g. "1h", "15m", "0"
-                - Priority: Critique, Élevée, Moyenne, Faible
-                - Recovery Tasks: 3-5 main steps to recover this process.
-
-                Return strictly JSON:
-                {
-                  "rto": "string",
-                  "rpo": "string",
-                  "priority": "Critique" | "Élevée" | "Moyenne" | "Faible",
-                  "recoveryTasks": [
-                    { "title": "string", "owner": "role or job title", "duration": "string e.g. 30m", "description": "optional detail" }
-                  ],
-                  "reasoning": "Short explanation of why this priority/RTO was chosen."
-                }
-            `;
-
+            const prompt = `Suggère un plan de continuité pour ${processName}: ${description}`;
             const text = await generateContentSafe(prompt, SMART_MODEL);
-            const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(jsonString);
+            const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(cleanText);
         } catch (_error) {
-            ErrorLogger.error(_error, 'aiService.suggestContinuityPlan', { metadata: { processName } });
-            throw new Error("Impossible de générer une suggestion de continuité.");
+            ErrorLogger.error(_error, 'aiService.suggestContinuityPlan');
+            throw new Error("Suggestion indisponible.");
         }
     }
 };
 
-// --- Helpers ---
-// Cache pour les appels AI fréquents with automatic cleanup
 const aiCache = new Map<string, { data: unknown; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-const AI_CACHE_SIZE = 100; // Separate cache size for AI responses
+const CACHE_DURATION = 5 * 60 * 1000;
+const AI_CACHE_SIZE = 100;
 
-// Cleanup expired cache entries to prevent memory leaks
 const cleanupAiCache = () => {
     const now = Date.now();
     for (const [key, entry] of aiCache.entries()) {
-        if (now - entry.timestamp > CACHE_DURATION) {
-            aiCache.delete(key);
-        }
+        if (now - entry.timestamp > CACHE_DURATION) aiCache.delete(key);
     }
-    // If still too large, remove oldest entries
     if (aiCache.size > AI_CACHE_SIZE) {
-        const entries = Array.from(aiCache.entries())
-            .sort((a, b) => a[1].timestamp - b[1].timestamp);
-        const toRemove = entries.slice(0, entries.length - AI_CACHE_SIZE);
-        toRemove.forEach(([key]) => aiCache.delete(key));
+        const entries = Array.from(aiCache.entries()).sort((a, b) => a[1].timestamp - b[1].timestamp);
+        entries.slice(0, entries.length - AI_CACHE_SIZE).forEach(([key]) => aiCache.delete(key));
     }
 };
 
 async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
-    const cacheKey = `${modelName}:${prompt.substring(0, 100)}`; // Utiliser les 100 premiers caractères comme clé
+    const cacheKey = `${modelName}:${prompt.substring(0, 100)}`;
     const cached = aiCache.get(cacheKey);
     const now = Date.now();
-
-    // Vérifier le cache
-    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-        ErrorLogger.info('Using cached AI response', 'aiService.generateContentSafe', {
-            metadata: { cacheKey, age: now - cached.timestamp }
-        });
-        return cached.data as string;
-    }
-
-    // [DEBUG] Log caller for generateContentSafe
-
-    // Prevent loops: Rate limit client-side with shared tracking
-    if (isRateLimited('generate')) {
-        return ""; // Return empty string or handle gracefully
-    }
-
-    // Cleanup cache periodically
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) return cached.data as string;
+    if (isRateLimited('generate')) return "";
     cleanupAiCache();
     try {
-        const callGeminiGenerateContent = httpsCallable<
-            { prompt: string; modelName: string },
-            { text?: string }
-        >(functions, 'callGeminiGenerateContent');
+        const callGeminiGenerateContent = httpsCallable<{ prompt: string; modelName: string }, { text?: string }>(functions, 'callGeminiGenerateContent');
         const result = await callGeminiGenerateContent({ prompt, modelName });
         const text = result.data?.text;
         if (typeof text === 'string' && text.trim().length > 0) {
-            // Stocker la réponse dans le cache
             aiCache.set(cacheKey, { data: text, timestamp: now });
             return text;
         }
     } catch (_error: unknown) {
-        // ErrorLogger context
-        const anyError = _error as { code?: unknown; message?: unknown };
-        const code = typeof anyError.code === 'string' ? anyError.code : undefined;
-        const message = typeof anyError.message === 'string' ? anyError.message : '';
-
-        if (code === 'functions/not-found' || message.includes('404')) {
-            ErrorLogger.warn('callGeminiGenerateContent Cloud Function not found', 'aiService.generateContentSafe', {
-                metadata: { code, message }
-            });
-            throw new Error("Le service IA est temporairement indisponible (Fonction introuvable).");
-        } else if (code === 'unauthenticated' || code === 'failed-precondition') {
-            ErrorLogger.warn('Backend Gemini not available', 'aiService.generateContentSafe', {
-                metadata: { code, message }
-            });
-            throw new Error("Le service IA est temporairement indisponible (Erreur d'authentification).");
-        } else {
-            throw _error;
-        }
+        const err = _error as { code?: string; message?: string };
+        const code = err.code;
+        const message = err.message || '';
+        if (code === 'functions/not-found' || message.includes('404')) throw new Error("Service IA indisponible (404).");
+        throw _error;
     } finally {
         releaseRateLimit('generate');
     }
-
-    throw new Error("Impossible de générer le contenu via le service IA.");
+    throw new Error("Erreur génération IA.");
 }
 
 async function runChatSafe(systemPrompt: string, message: string, modelName: string = FAST_MODEL): Promise<string> {
     try {
-        const callGeminiChat = httpsCallable<
-            { systemPrompt: string; message: string; modelName: string },
-            { text?: string }
-        >(functions, 'callGeminiChat');
+        const callGeminiChat = httpsCallable<{ systemPrompt: string; message: string; modelName: string }, { text?: string }>(functions, 'callGeminiChat');
         const result = await callGeminiChat({ systemPrompt, message, modelName });
         const text = result.data?.text;
-        if (typeof text === 'string' && text.trim().length > 0) {
-            return text;
-        }
+        if (typeof text === 'string' && text.trim().length > 0) return text;
     } catch (_error: unknown) {
-        // ErrorLogger context
-        const anyError = _error as { code?: unknown; message?: unknown };
-        const code = typeof anyError.code === 'string' ? anyError.code : undefined;
-        const message = typeof anyError.message === 'string' ? anyError.message : '';
-
-        if (code === 'functions/not-found' || message.includes('404')) {
-            ErrorLogger.warn('callGeminiChat Cloud Function not found', 'aiService.runChatSafe', {
-                metadata: { code, message }
-            });
-            throw new Error("Le chat IA est temporairement indisponible.");
-        } else if (code === 'resource-exhausted' || message.includes('429') || message.includes('Too Many Requests')) {
-            // New handling for rate limits
-            ErrorLogger.warn('Gemini Rate Limit Hit', 'aiService.runChatSafe', {
-                metadata: { code, message }
-            });
-
-            // If it's the daily limit, show the specific message from backend
-            if (message.includes('Daily AI limit')) {
-                throw new Error(message);
-            }
-
-            throw new Error("L'IA est très sollicitée en ce moment. Veuillez patienter quelques secondes.");
-        } else if (code === 'unauthenticated' || code === 'failed-precondition') {
-            ErrorLogger.warn('Backend Gemini chat not available', 'aiService.runChatSafe', {
-                metadata: { code, message }
-            });
-            throw new Error("Le chat IA est temporairement indisponible.");
-        } else {
-            throw _error;
-        }
+        const err = _error as { code?: string; message?: string };
+        const code = err.code;
+        const message = err.message || '';
+        if (code === 'resource-exhausted' || message.includes('429')) throw new Error("IA très sollicitée. Patientez.");
+        throw _error;
     }
-
-    throw new Error("Impossible de contacter le service de chat IA.");
+    throw new Error("Erreur contact chat IA.");
 }
-

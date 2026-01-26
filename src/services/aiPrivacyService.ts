@@ -9,10 +9,11 @@ export const aiPrivacyService = {
     /**
      * Sanitizes data by removing PII and sensitive fields.
      * @param data The data to sanitize
+     * @param enabled Whether sanitization is enabled
      * @returns Sanitized data safe for AI processing
      */
-    sanitizeInput: <T>(data: T): T => {
-        if (!data) return data;
+    sanitizeInput: <T>(data: T, enabled = true): T => {
+        if (!data || !enabled) return data;
         const json = JSON.stringify(data);
 
         // Basic PII Redaction Regex
@@ -27,10 +28,13 @@ export const aiPrivacyService = {
 
     /**
      * Traverses object and redacts specific sensitive keys
+     * @param data The data to anonymize
+     * @param enabled Whether anonymization is enabled
      */
-    anonymizeData: (data: unknown): unknown => {
+    anonymizeData: (data: unknown, enabled = true): unknown => {
+        if (!enabled) return data;
         if (Array.isArray(data)) {
-            return data.map(item => aiPrivacyService.anonymizeData(item));
+            return data.map(item => aiPrivacyService.anonymizeData(item, enabled));
         }
         if (typeof data === 'object' && data !== null) {
             const newData: Record<string, unknown> = {};
@@ -43,7 +47,7 @@ export const aiPrivacyService = {
                     // We might want to keep generic names but redact specific identifiers if possible
                     newData[key] = obj[key];
                 } else {
-                    newData[key] = aiPrivacyService.anonymizeData(obj[key]);
+                    newData[key] = aiPrivacyService.anonymizeData(obj[key], enabled);
                 }
             }
             return newData;

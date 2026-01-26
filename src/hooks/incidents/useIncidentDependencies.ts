@@ -13,7 +13,7 @@ interface UseIncidentDependenciesOptions {
     fetchProcesses?: boolean;
 }
 
-export const useIncidentDependencies = (options: UseIncidentDependenciesOptions = {}) => {
+export const useIncidentDependencies = (options: UseIncidentDependenciesOptions = {}, enabled = true) => {
     const { user, demoMode } = useStore();
     const {
         fetchAssets = false,
@@ -22,7 +22,7 @@ export const useIncidentDependencies = (options: UseIncidentDependenciesOptions 
         fetchProcesses = false
     } = options;
 
-    const shouldFetch = (flag: boolean) => flag && !!user?.organizationId && !demoMode;
+    const shouldFetch = (flag: boolean) => flag && !!user?.organizationId && !demoMode && enabled;
 
     // Mock Data State
     const [mockData, setMockData] = useState<{

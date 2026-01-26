@@ -27,6 +27,8 @@ interface IncidentFormProps {
     isLoading?: boolean;
 }
 
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
+
 export const IncidentForm: React.FC<IncidentFormProps> = ({
     onSubmit,
     onCancel,
@@ -38,7 +40,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     isLoading = false
 }) => {
     const { addToast } = useStore();
-    const { register, handleSubmit, setValue, control, getValues, formState: { errors } } = useZodForm<typeof incidentSchema>({
+    const { register, handleSubmit, setValue, control, getValues, watch, reset, formState: { errors } } = useZodForm<typeof incidentSchema>({
         schema: incidentSchema,
         mode: 'onChange',
         shouldUnregister: true,
@@ -51,6 +53,20 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
             ...initialData
         }
     });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<IncidentFormData>('sentinel_incident_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: !initialData || !('id' in initialData)
+    });
+
+    const handleFormSubmit: SubmitHandler<IncidentFormData> = async (data) => {
+        await onSubmit(data);
+        clearDraft();
+    };
+
 
     const scrollToFirstError = (fieldErrors: FieldErrors<IncidentFormData>) => {
         const firstErrorKey = Object.keys(fieldErrors)[0];
@@ -88,7 +104,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     }, [affectedAssetId, processes, setValue, getValues, addToast]);
 
     return (
-        <form id="incident-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+        <form id="incident-form" onSubmit={handleSubmit(handleFormSubmit, onInvalid)} className="space-y-6">
             <div className="space-y-6">
                 <FloatingLabelInput
                     label="Titre de l'incident"

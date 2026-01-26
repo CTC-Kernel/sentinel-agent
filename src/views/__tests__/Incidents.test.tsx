@@ -5,7 +5,17 @@ import { Incidents } from '../Incidents';
 import { MemoryRouter } from 'react-router-dom';
 
 // Mock Dependencies
-vi.mock('../../store');
+const mockStoreState = {
+    user: { role: 'admin', organizationId: 'org-1' },
+    t: (key: string) => key,
+    addToast: vi.fn(),
+    customRoles: [],
+};
+vi.mock('../../store', () => {
+    const useStoreMock = vi.fn(() => mockStoreState);
+    (useStoreMock as unknown as { getState: () => typeof mockStoreState }).getState = () => mockStoreState;
+    return { useStore: useStoreMock };
+});
 vi.mock('../../hooks/useAuth', () => ({
     useAuth: () => ({
         user: { uid: 'test-user', email: 'test@example.com' },
@@ -123,18 +133,12 @@ vi.mock('../../components/ui/Drawer', () => ({
     Drawer: ({ isOpen, children }: { isOpen: boolean, children: React.ReactNode }) => isOpen ? <div data-testid="drawer">{children}</div> : null
 }));
 
-// Mock Hooks
-import { useStore } from '../../store';
+// Note: useStore is mocked at the top of the file with mockStoreState
 
 describe('Incidents View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-
-        vi.mocked(useStore).mockReturnValue({
-            user: { role: 'admin', organizationId: 'org-1' },
-            t: (key: string) => key,
-            addToast: vi.fn(),
-        });
+        // Store mock is already configured at the top with mockStoreState
     });
 
     it('renders the incidents page with title', () => {

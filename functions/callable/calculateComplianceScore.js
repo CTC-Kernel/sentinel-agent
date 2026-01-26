@@ -317,6 +317,59 @@ async function calculateFrameworkScores(db, organizationId) {
   return results;
 }
 
+// FIXED: Rate limiting for expensive operations
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_CALLS = 5; // Max 5 calls per minute per organization
+
+/**
+ * Check rate limit for compliance score calculation
+ * Prevents DoS/billing abuse on this expensive operation
+ */
+async function checkComplianceScoreRateLimit(organizationId) {
+  const db = admin.firestore();
+  const rateLimitRef = db.collection('rate_limits').doc(`compliance_score_${organizationId}`);
+
+  try {
+    const doc = await rateLimitRef.get();
+    const now = Date.now();
+    const windowStart = now - RATE_LIMIT_WINDOW_MS;
+
+    if (!doc.exists) {
+      // First call - create entry
+      await rateLimitRef.set({ calls: 1, lastCall: now, windowStart: now });
+      return true;
+    }
+
+    const data = doc.data();
+
+    // Check if window expired
+    if (data.windowStart < windowStart) {
+      // Reset window
+      await rateLimitRef.set({ calls: 1, lastCall: now, windowStart: now });
+      return true;
+    }
+
+    // Check call count
+    if (data.calls >= RATE_LIMIT_MAX_CALLS) {
+      logger.warn(`Rate limit exceeded for compliance score calculation: org ${organizationId}`);
+      throw new HttpsError('resource-exhausted', 'Too many requests. Please try again in a minute.');
+    }
+
+    // Increment counter
+    await rateLimitRef.update({
+      calls: admin.firestore.FieldValue.increment(1),
+      lastCall: now
+    });
+
+    return true;
+  } catch (error) {
+    if (error.code === 'resource-exhausted') throw error;
+    // Fail-open for availability, but log the error
+    logger.warn('Rate limit check failed, allowing request:', error);
+    return true;
+  }
+}
+
 /**
  * Main Cloud Function: Calculate Compliance Score
  */
@@ -337,6 +390,9 @@ const calculateComplianceScore = onCall({
   if (organizationId.trim().length === 0) {
     throw new HttpsError('invalid-argument', 'organizationId cannot be empty');
   }
+
+  // FIXED: Check rate limit before expensive operation
+  await checkComplianceScoreRateLimit(organizationId);
 
   logger.info(`Calculating compliance score for organization: ${organizationId}`);
 

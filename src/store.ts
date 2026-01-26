@@ -32,6 +32,8 @@ export interface AppState {
   demoMode: boolean;
   toggleDemoMode: () => void;
 
+  activeFramework: string | null;
+  setActiveFramework: (framework: string | null) => void;
 }
 
 import i18n from './i18n';
@@ -107,4 +109,13 @@ export const useStore = create<AppState>((set) => ({
     return { demoMode: next };
   }),
 
+  activeFramework: safeGetItem('activeFramework'),
+  setActiveFramework: (activeFramework) => set(() => {
+    if (activeFramework) {
+      try { localStorage.setItem('activeFramework', activeFramework); } catch { /* ignore */ }
+    } else {
+      try { localStorage.removeItem('activeFramework'); } catch { /* ignore */ }
+    }
+    return { activeFramework };
+  }),
 }));

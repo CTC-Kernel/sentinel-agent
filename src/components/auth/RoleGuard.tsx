@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Role } from '../../utils/permissions';
 import { ContentBlockerError } from '../ui/ContentBlockerError';
@@ -18,6 +19,7 @@ interface RoleGuardProps {
  * belongs to the same organization as the resource being accessed.
  */
 export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles, resourceOrganizationId }) => {
+    const { t } = useTranslation();
     const { user } = useStore();
     const location = useLocation();
 
@@ -34,7 +36,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles, re
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center h-[60dvh]">
                 <ContentBlockerError />
-                <p className="mt-4 text-slate-500">Accès refusé: ressource appartenant à une autre organisation.</p>
+                <p className="mt-4 text-slate-500">{t('auth.accessDeniedOtherOrg')}</p>
             </div>
         );
     }
@@ -49,13 +51,10 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles, re
     }
 
     // Unauthorized access attempt
-    // We can show a friendly "Access Denied" page or redirect.
-    // Re-using ContentBlockerError style or a dedicated Unauthorized component.
     return (
         <div className="flex flex-col items-center justify-center p-12 text-center h-[60dvh]">
             <ContentBlockerError />
-            {/* Or a specific message */}
-            <p className="mt-4 text-slate-500">Vous n'avez pas les droits nécessaires pour accéder à cette page.</p>
+            <p className="mt-4 text-slate-500">{t('auth.insufficientPermissions')}</p>
         </div>
     );
 };

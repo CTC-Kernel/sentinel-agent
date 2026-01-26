@@ -8,8 +8,8 @@ import { Risk } from '../../types';
 import { MockDataService } from '../../services/mockDataService';
 import { RiskCalculator } from '../../utils/RiskCalculator';
 
-export const useRiskLogic = () => {
-    const { user } = useAuth();
+export const useRiskLogic = (enabled = true) => {
+    const { user, claimsSynced } = useAuth();
     const { demoMode } = useStore();
 
     // Mock Data State
@@ -44,7 +44,7 @@ export const useRiskLogic = () => {
     const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
         'risks',
         constraints,
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode && claimsSynced && enabled }
     );
 
     const risks = useMemo(() => {

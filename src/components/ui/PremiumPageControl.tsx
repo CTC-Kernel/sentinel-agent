@@ -112,8 +112,8 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                                         key={option.id}
                                         onClick={() => onViewChange(option.id)}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
-                                            ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                            ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white font-bold'
+                                            : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                             }`}
                                         title={option.label}
                                     >

@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { PageHeader } from '../components/ui/PageHeader';
 import {
     subscribeToSoftwareInventory,
     subscribeToCISBaselines,
@@ -441,34 +442,34 @@ export const SoftwareInventory: React.FC = () => {
                 className="flex flex-col gap-6 sm:gap-8"
             >
                 {/* Header */}
-                <motion.div
-                    variants={slideUpVariants}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground">
-                            Inventaire Logiciels
-                        </h1>
-                        <p className="text-muted-foreground text-sm mt-1">
-                            Gérez les logiciels de votre flotte et assurez la conformité CIS
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={loadStats}
-                            className="gap-2"
-                        >
-                            <RefreshCw className="h-4 w-4" />
-                            <span className="hidden sm:inline">Actualiser</span>
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-2">
-                            <Download className="h-4 w-4" />
-                            <span className="hidden sm:inline">Exporter</span>
-                        </Button>
-                    </div>
-                </motion.div>
+                <PageHeader
+                    title="Inventaire Logiciels"
+                    subtitle="Cartographie logicielle et conformité CIS Benchmarks"
+                    icon={
+                        <img
+                            src="/images/IA.png"
+                            alt="IA"
+                            className="w-full h-full object-contain"
+                        />
+                    }
+                    actions={
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={loadStats}
+                                className="gap-2"
+                            >
+                                <RefreshCw className="h-4 w-4" />
+                                <span className="hidden sm:inline">Actualiser</span>
+                            </Button>
+                            <Button variant="outline" size="sm" className="gap-2">
+                                <Download className="h-4 w-4" />
+                                <span className="hidden sm:inline">Exporter</span>
+                            </Button>
+                        </div>
+                    }
+                />
 
                 {/* Stats Summary */}
                 {stats && (
@@ -490,7 +491,7 @@ export const SoftwareInventory: React.FC = () => {
                         className={cn(
                             'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
                             activeTab === 'inventory'
-                                ? 'border-primary text-primary'
+                                ? 'border-primary text-slate-900 dark:text-white font-bold'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
                         )}
                     >
@@ -502,7 +503,7 @@ export const SoftwareInventory: React.FC = () => {
                         className={cn(
                             'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
                             activeTab === 'cis'
-                                ? 'border-primary text-primary'
+                                ? 'border-primary text-slate-900 dark:text-white font-bold'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
                         )}
                     >

@@ -267,8 +267,8 @@ export const Continuity: React.FC = () => {
                     subtitle={t('continuity.subtitle')}
                     icon={
                         <img
-                            src="/images/gouvernance.png"
-                            alt="GOUVERNANCE"
+                            src="/images/pilotage.png"
+                            alt="CONTINUITÉ"
                             className="w-full h-full object-contain"
                         />
                     }

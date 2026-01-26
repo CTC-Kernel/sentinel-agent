@@ -35,7 +35,7 @@ const PLAN_FRAMEWORK_LIMITS: Record<string, number> = {
 };
 
 export const FrameworkSettings: React.FC = () => {
-    const { user, addToast, t } = useStore();
+    const { user, addToast, t, activeFramework, setActiveFramework } = useStore();
     const { organization, updateOrganization } = useSettingsData();
     const [selectedFrameworks, setSelectedFrameworks] = useState<Framework[]>([]);
     const [saving, setSaving] = useState(false);
@@ -88,6 +88,17 @@ export const FrameworkSettings: React.FC = () => {
         setSaving(true);
         try {
             await updateOrganization({ enabledFrameworks: selectedFrameworks });
+
+            // Sync with global store: if current active framework is now disabled, clear it
+            if (activeFramework && !selectedFrameworks.includes(activeFramework as Framework)) {
+                setActiveFramework(null);
+            }
+
+            // If no framework is active but some are enabled, set the first one as active
+            if (!activeFramework && selectedFrameworks.length > 0) {
+                setActiveFramework(selectedFrameworks[0]);
+            }
+
             await logAction(user, 'UPDATE', 'Organization', `Frameworks activés: ${selectedFrameworks.join(', ') || 'Aucun'}`);
             addToast(t('settings.frameworksUpdated') || 'Frameworks mis à jour avec succès', 'success');
             setHasChanges(false);
@@ -96,7 +107,7 @@ export const FrameworkSettings: React.FC = () => {
         } finally {
             setSaving(false);
         }
-    }, [user, organization, selectedFrameworks, updateOrganization, addToast, t]);
+    }, [user, organization, selectedFrameworks, updateOrganization, addToast, t, activeFramework, setActiveFramework]);
 
     const handleReset = useCallback(() => {
         if (organization?.enabledFrameworks) {
@@ -138,7 +149,7 @@ export const FrameworkSettings: React.FC = () => {
                         </h2>
                         <p className="text-sm text-slate-500 dark:text-muted-foreground mt-1">
                             {t('settings.frameworksDescription') ||
-                             'Sélectionnez les référentiels que votre organisation doit respecter.'}
+                                'Sélectionnez les référentiels que votre organisation doit respecter.'}
                         </p>
                     </div>
                     <Badge

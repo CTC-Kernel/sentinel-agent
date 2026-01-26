@@ -5,13 +5,13 @@ import { Incident, UserProfile, BusinessProcess, Asset, Risk } from '../../types
 import { Siren, BookOpen, CalendarDays, BrainCircuit, Trash2 } from '../ui/Icons';
 import { IncidentForm } from './IncidentForm';
 import { IncidentFormData } from '../../schemas/incidentSchema';
+import { useStore } from '../../store';
 
 import { IncidentTimeline } from './IncidentTimeline';
 import { IncidentPlaybook } from './IncidentPlaybook';
 import { IncidentAIAssistant } from './IncidentAIAssistant';
 import { IncidentGeneralDetails } from './inspector/IncidentGeneralDetails';
 import { IncidentImpactDetails } from './inspector/IncidentImpactDetails';
-// Form validation: useForm with required fields
 
 interface IncidentInspectorProps {
     isOpen: boolean;
@@ -40,6 +40,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
     onDelete,
     isSubmitting = false
 }) => {
+    const { t } = useStore();
     const [activeTab, setActiveTab] = useState('details');
     const [isEditing, setIsEditing] = useState(false);
 
@@ -56,17 +57,31 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
     };
 
     const tabs = [
-        { id: 'details', label: 'Détails', icon: Siren },
-        { id: 'playbook', label: 'Playbook', icon: BookOpen },
-        { id: 'timeline', label: 'Timeline', icon: CalendarDays },
-        { id: 'ai', label: 'Analyse IA', icon: BrainCircuit },
+        { id: 'details', label: t('incidents.inspector.details'), icon: Siren },
+        { id: 'playbook', label: t('incidents.inspector.playbook'), icon: BookOpen },
+        { id: 'timeline', label: t('incidents.inspector.timeline'), icon: CalendarDays },
+        { id: 'ai', label: t('incidents.inspector.aiAnalysis'), icon: BrainCircuit },
     ];
+
+    // Helper function moved inside to access t()
+    const getTimeToResolveLabel = (incident: Incident) => {
+        if (!incident.dateResolved || !incident.dateReported) return null;
+        const start = new Date(incident.dateReported).getTime();
+        const end = new Date(incident.dateResolved).getTime();
+        const diff = end - start;
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+        if (days > 0) return `${days}${t('common.daysAbbreviation') || 'j'} ${hours}${t('common.hoursAbbreviation') || 'h'}`;
+        return `${hours}${t('common.hoursAbbreviation') || 'h'}`;
+    };
 
     return (
         <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
-            title={incident.title || 'Détails de l\'incident'}
+            title={incident.title || t('incidents.inspector.titleFallback')}
             subtitle={incident.category}
             icon={Siren}
             tabs={!isEditing ? tabs : []} // Hide tabs when editing
@@ -90,7 +105,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                                 onClick={() => setIsEditing(true)}
                                 className="bg-brand-600 hover:bg-brand-700 text-white"
                             >
-                                Modifier
+                                {t('common.edit')}
                             </Button>
                         </>
                     )}
@@ -130,7 +145,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                     )}
                     {activeTab === 'timeline' && (
                         <div className="glass-premium p-4 sm:p-6 rounded-4xl border border-white/60 dark:border-white/10 shadow-sm">
-                            <IncidentTimeline selectedIncident={incident} getTimeToResolve={getTimeToResolve} />
+                            <IncidentTimeline selectedIncident={incident} getTimeToResolve={getTimeToResolveLabel} />
                         </div>
                     )}
                     {activeTab === 'ai' && (
@@ -140,19 +155,5 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
             )}
         </InspectorLayout>
     );
-};
-
-// Helper function
-const getTimeToResolve = (incident: Incident) => {
-    if (!incident.dateResolved || !incident.dateReported) return null;
-    const start = new Date(incident.dateReported).getTime();
-    const end = new Date(incident.dateResolved).getTime();
-    const diff = end - start;
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-    if (days > 0) return `${days}j ${hours}h`;
-    return `${hours}h`;
 };
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../../store';
 import { db } from '../../firebase';
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { useAuth } from '../../hooks/useAuth';
 import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -64,6 +64,48 @@ export const useRiskActions = (onRefresh: () => void) => {
             }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.createRisk', 'CREATE_FAILED');
+            return false;
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const bulkCreateRisks = async (risksData: Partial<Risk>[]) => {
+        if (!user?.organizationId) return false;
+
+        setSubmitting(true);
+        const batch = writeBatch(db);
+        const risksCollection = collection(db, 'risks');
+
+        try {
+            risksData.forEach(riskItem => {
+                const newDocRef = doc(risksCollection);
+                const sanitized = sanitizeData({
+                    ...riskItem,
+                    organizationId: user.organizationId,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    owner: user.uid,
+                    history: [{
+                        date: new Date().toISOString(),
+                        user: user.displayName || user.email,
+                        action: 'Création initiale (Batch)',
+                        changes: 'Créé via modèle ou import groupé',
+                        previousScore: 0,
+                        newScore: (riskItem.probability || 0) * (riskItem.impact || 0),
+                        changedBy: user.uid
+                    }]
+                });
+                batch.set(newDocRef, sanitized);
+            });
+
+            await batch.commit();
+            logAction(user, 'BULK_CREATE_RISKS', 'Risk', `Création groupée de ${risksData.length} risques`);
+            toast.success(t('risks.templateSuccess', { count: risksData.length }));
+            onRefresh();
+            return true;
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useRiskActions.bulkCreateRisks', 'CREATE_FAILED');
             return false;
         } finally {
             setSubmitting(false);
@@ -460,6 +502,7 @@ export const useRiskActions = (onRefresh: () => void) => {
         deleteRisk,
         exportCSV,
         bulkDeleteRisks,
+        bulkCreateRisks,
         importRisks,
         checkDependencies,
         isGeneratingReport,

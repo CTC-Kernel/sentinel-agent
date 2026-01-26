@@ -14,9 +14,9 @@ import { ErrorLogger } from '../../services/errorLogger';
 // Import Mock Service only once
 // import { MockDataService } from '../../services/mockDataService'; // Dynamic import used
 
-export function useAssets() {
+export function useAssets(enabled = true) {
     const { demoMode, t } = useStore();
-    const { user } = useAuth();
+    const { user, claimsSynced } = useAuth();
     const { limits } = usePlanLimits();
     const [isSubmitting, setIsSubmitting] = useState(false);
     // Harden demoMode
@@ -60,14 +60,14 @@ export function useAssets() {
     const { data: firestoreAssets, loading: assetsLoading, refresh: refreshFirestoreAssets } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId && !isDemo, realtime: true }
+        { logError: true, enabled: !!user?.organizationId && !isDemo && claimsSynced && enabled, realtime: true }
     );
 
     // Fetch dependencies
     const { data: firestoreUsers, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId && !isDemo, realtime: true }
+        { logError: true, enabled: !!user?.organizationId && !isDemo && claimsSynced && enabled, realtime: true }
     );
 
     // Switch Data source
@@ -85,13 +85,13 @@ export function useAssets() {
     const { data: firestoreSuppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId && !isDemo, realtime: true }
+        { logError: true, enabled: !!user?.organizationId && !isDemo && claimsSynced && enabled, realtime: true }
     );
 
     const { data: firestoreProcesses, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId && !isDemo, realtime: true }
+        { logError: true, enabled: !!user?.organizationId && !isDemo && claimsSynced && enabled, realtime: true }
     );
 
     const suppliers = isDemo ? mockSuppliers : firestoreSuppliers;

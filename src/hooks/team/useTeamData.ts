@@ -4,25 +4,25 @@ import { useAuth } from '../useAuth';
 import { useCallback } from 'react';
 import { UserProfile, UserGroup, CustomRole } from '../../types';
 
-export const useTeamData = () => {
-  const { user } = useAuth();
+export const useTeamData = (enabled = true) => {
+  const { user, claimsSynced } = useAuth();
 
   const { data: groups, loading: loadingGroups, add: addGroupRaw, update: updateGroupRaw, remove: removeGroup } = useFirestoreCollection<UserGroup>(
     'user_groups',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { realtime: true, enabled: !!user?.organizationId }
+    { realtime: true, enabled: !!user?.organizationId && claimsSynced && enabled }
   );
 
   const { data: roles, loading: loadingRoles, add: addRoleRaw, update: updateRoleRaw, remove: removeRole } = useFirestoreCollection<CustomRole>(
     'roles',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { realtime: true, enabled: !!user?.organizationId }
+    { realtime: true, enabled: !!user?.organizationId && claimsSynced && enabled }
   );
 
   const { data: users, loading: loadingUsers, update: updateUser } = useFirestoreCollection<UserProfile>(
     'users',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { realtime: true, enabled: !!user?.organizationId }
+    { realtime: true, enabled: !!user?.organizationId && claimsSynced && enabled }
   );
 
   const addRole = useCallback(async (data: Partial<CustomRole>) => {

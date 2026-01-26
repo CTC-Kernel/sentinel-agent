@@ -173,7 +173,7 @@ export const Integrations: React.FC = () => {
                         onClick={() => setActiveTab('providers')}
                         className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'providers'
                             ? 'text-slate-900 dark:text-white'
-                            : 'text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300'
+                            : 'text-slate-500 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                             }`}
                     >
                         Connecteurs
@@ -183,7 +183,7 @@ export const Integrations: React.FC = () => {
                         onClick={() => setActiveTab('jobs')}
                         className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'jobs'
                             ? 'text-slate-900 dark:text-white'
-                            : 'text-slate-500 dark:text-muted-foreground hover:text-slate-700 dark:hover:text-slate-300'
+                            : 'text-slate-500 dark:text-muted-foreground hover:text-slate-900 dark:hover:text-white'
                             }`}
                     >
                         Tâches & Scans

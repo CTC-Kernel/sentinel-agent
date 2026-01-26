@@ -42,11 +42,13 @@ export const useContinuityData = (organizationId?: string) => {
                 setSuppliers(module.MockDataService.getCollection('suppliers') as unknown as Supplier[]);
                 setUsers(module.MockDataService.getCollection('users') as unknown as UserProfile[]);
                 setIncidents(module.MockDataService.getCollection('incidents') as unknown as Incident[]);
-                setIncidents(module.MockDataService.getCollection('incidents') as unknown as Incident[]);
                 setTlptCampaigns(module.MockDataService.getCollection('tlpt_campaigns') as unknown as TlptCampaign[]);
                 setLoading(false);
-            }).catch(_err => {
-                setLoading(false);
+            }).catch(err => {
+                if (mounted) {
+                    console.error('[useContinuityData] Failed to load mock data:', err);
+                    setLoading(false);
+                }
             });
             return () => { mounted = false; };
         }

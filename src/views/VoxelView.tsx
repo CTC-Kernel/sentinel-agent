@@ -23,15 +23,16 @@ import {
   HelpCircle,
   Network,
   Command,
-  Shield,
   Activity,
   Target,
   Info,
+  Shield,
 } from 'lucide-react';
 
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
 import { useVoxels } from '../hooks/useVoxels';
+import { useActiveFrameworks } from '../hooks/useFrameworks';
 import { aiService } from '../services/aiService';
 import { ErrorLogger } from '../services/errorLogger';
 import { hasPermission } from '../utils/permissions';
@@ -142,20 +143,20 @@ const ToolButton: React.FC<ToolButtonProps> = ({ icon, label, onClick, active, b
     onClick={onClick}
     disabled={disabled}
     className={`
-      relative transition-all duration-200
+      relative transition - all duration - 200
       ${compact ? 'p-1.5 rounded-lg' : 'p-2 rounded-xl'}
       ${active
         ? 'bg-white/15 text-white shadow-lg'
         : 'text-white/60 hover:text-white hover:bg-white/10'
       }
       ${disabled ? 'opacity-40 cursor-not-allowed' : ''}
-    `}
+`}
     title={label}
     aria-label={label}
   >
     {icon}
     {badge !== undefined && (
-      <span className={`absolute -top-0.5 -right-0.5 flex items-center justify-center rounded-full bg-brand-500 font-bold text-white ${compact ? 'min-w-[14px] h-[14px] text-[8px] px-0.5' : 'min-w-[16px] h-[16px] text-[9px] px-1'}`}>
+      <span className={`absolute - top - 0.5 - right - 0.5 flex items - center justify - center rounded - full bg - brand - 500 font - bold text - white ${compact ? 'min-w-[14px] h-[14px] text-[8px] px-0.5' : 'min-w-[16px] h-[16px] text-[9px] px-1'} `}>
         {badge}
       </span>
     )}
@@ -249,9 +250,18 @@ const StatusBar: React.FC<StatusBarProps> = ({ totalNodes, activeLayers, selecte
 
 export const VoxelView: React.FC = () => {
   const { user } = useAuth();
-  const { addToast } = useStore();
+  const { addToast, activeFramework, setActiveFramework } = useStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Frameworks
+  const { data: activeFrameworks } = useActiveFrameworks({ realtime: true });
+  // Ensure activeFramework is set if not already, using the first available framework
+  useEffect(() => {
+    if (!activeFramework && activeFrameworks && activeFrameworks.length > 0) {
+      setActiveFramework(activeFrameworks[0].frameworkId); // Changed af.id to af.frameworkId
+    }
+  }, [activeFramework, activeFrameworks, setActiveFramework]);
 
   // Data
   const { loading, assets, risks, projects, audits, incidents, suppliers, controls, refresh } = useVoxels();
@@ -356,8 +366,8 @@ export const VoxelView: React.FC = () => {
         else if ('title' in item) label = item.title;
         else if ('threat' in item) label = item.threat;
         let meta = '';
-        if (option.id === 'risk') meta = `Score ${(item as Risk).score}`;
-        else if (option.id === 'project') meta = `${(item as Project).progress || 0}%`;
+        if (option.id === 'risk') meta = `Score ${(item as Risk).score} `;
+        else if (option.id === 'project') meta = `${(item as Project).progress || 0}% `;
         else if (option.id === 'incident') meta = safeRender((item as Incident).severity);
         return { id: item.id, label: safeRender(label), meta };
       }).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())),
@@ -459,7 +469,7 @@ export const VoxelView: React.FC = () => {
     voxelNodesForPanel.forEach(node => {
       node.connections.forEach(targetId => {
         if (nodesMap.has(targetId)) {
-          edges.push({ id: `edge-${edgeId++}`, source: node.id, target: targetId, type: 'dependency', weight: 1 });
+          edges.push({ id: `edge - ${edgeId++} `, source: node.id, target: targetId, type: 'dependency', weight: 1 });
         }
       });
     });
@@ -566,8 +576,8 @@ export const VoxelView: React.FC = () => {
   const handleDetailPanelNavigate = useCallback((node: VoxelNode) => {
     const route = DETAIL_ROUTES[node.type];
     if (route && isValidRoute(route)) {
-      addToast(`Navigation vers ${node.label}`, 'info');
-      navigate(`${route}?id=${node.id}`, { state: { fromVoxel: true, nodeId: node.id } });
+      addToast(`Navigation vers ${node.label} `, 'info');
+      navigate(`${route}?id = ${node.id} `, { state: { fromVoxel: true, nodeId: node.id } });
     }
   }, [addToast, navigate]);
 
@@ -605,7 +615,7 @@ export const VoxelView: React.FC = () => {
       const canvas = containerRef.current.querySelector('canvas');
       if (canvas) {
         const link = document.createElement('a');
-        link.download = `ctc-engine-${new Date().toISOString().split('T')[0]}.png`;
+        link.download = `ctc - engine - ${new Date().toISOString().split('T')[0]}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
         addToast("Capture sauvegardée", "success");
@@ -751,8 +761,12 @@ export const VoxelView: React.FC = () => {
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-violet-600 shadow-lg shadow-brand-500/30">
-                <Shield className="w-4 h-4 text-white" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-brand-500/5 ring-1 ring-white/10 shadow-lg relative overflow-hidden group">
+                <img
+                  src="/images/tableau-de-bord.png"
+                  alt="VOXEL"
+                  className="w-6 h-6 object-contain relative z-10 transition-transform duration-500 group-hover:scale-110"
+                />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-sm font-bold text-white tracking-tight">CTC Engine</h1>
@@ -804,14 +818,32 @@ export const VoxelView: React.FC = () => {
               </kbd>
             </button>
 
+            {/* Framework Selector */}
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/5">
+              <Shield className="w-3.5 h-3.5 text-brand-400" />
+              <select
+                value={activeFramework || ''}
+                onChange={(e) => setActiveFramework(e.target.value || null)}
+                className="bg-transparent text-[11px] font-medium text-white outline-none cursor-pointer border-none focus:ring-0 px-1"
+                aria-label="Sélectionner un framework"
+              >
+                <option value="" className="bg-slate-900">Tous les frameworks</option>
+                {activeFrameworks?.map(af => (
+                  <option key={af.frameworkId} value={af.frameworkCode} className="bg-slate-900">
+                    {af.frameworkCode}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* AI Analysis */}
             <button
               onClick={handleAIAnalysis}
               disabled={analyzing}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 ${analyzing
-                ? 'bg-brand-500/20 text-brand-300 cursor-wait'
-                : 'bg-gradient-to-r from-brand-500 to-violet-600 text-white hover:shadow-lg hover:shadow-brand-500/30'
-                }`}
+              className={`flex items - center gap - 1.5 px - 2.5 py - 1.5 rounded - lg font - medium text - xs transition - all duration - 200 ${analyzing
+                  ? 'bg-brand-500/20 text-brand-300 cursor-wait'
+                  : 'bg-gradient-to-r from-brand-500 to-violet-600 text-white hover:shadow-lg hover:shadow-brand-500/30'
+                } `}
             >
               {analyzing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
               <span className="hidden sm:inline">{analyzing ? 'Analyse...' : 'IA'}</span>
@@ -888,11 +920,11 @@ export const VoxelView: React.FC = () => {
                     <button
                       key={layer.id}
                       onClick={() => handleLayerToggle(layer.id)}
-                      className={`w-full flex items-center justify-between px-2 py-1 rounded-lg text-[11px] transition ${isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
-                        }`}
+                      className={`w - full flex items - center justify - between px - 2 py - 1 rounded - lg text - [11px] transition ${isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                        } `}
                     >
                       <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${layer.bgColor}`} />
+                        <span className={`w - 2 h - 2 rounded - full ${layer.bgColor} `} />
                         <span>{layer.label}</span>
                       </div>
                       <span className="text-[9px] text-white/40">{count}</span>
@@ -960,7 +992,7 @@ export const VoxelView: React.FC = () => {
               <div className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5">
                 {LAYER_CONFIG.map(layer => (
                   <div key={layer.id} className="flex items-center gap-1 py-0.5">
-                    <span className={`w-2 h-2 rounded-full ${layer.bgColor}`} />
+                    <span className={`w - 2 h - 2 rounded - full ${layer.bgColor} `} />
                     <span className="text-[10px] text-white/80 truncate">{layer.label}</span>
                   </div>
                 ))}
@@ -1081,10 +1113,10 @@ export const VoxelView: React.FC = () => {
                           <button
                             key={node.id}
                             onClick={() => handleCommandSelect(node)}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 ${index === 0 ? 'bg-brand-500/20 border border-brand-500/30' : 'hover:bg-white/5'
-                              }`}
+                            className={`w - full flex items - center gap - 3 px - 3 py - 2.5 rounded - xl text - left transition - all duration - 150 ${index === 0 ? 'bg-brand-500/20 border border-brand-500/30' : 'hover:bg-white/5'
+                              } `}
                           >
-                            <span className={`w-3 h-3 rounded-full ${layer?.bgColor || 'bg-slate-500'}`} />
+                            <span className={`w - 3 h - 3 rounded - full ${layer?.bgColor || 'bg-slate-500'} `} />
                             <div className="flex-1 min-w-0">
                               <span className="text-sm text-white truncate block">{node.label}</span>
                               <span className="text-xs text-white/40 capitalize">{layer?.label || node.type}</span>

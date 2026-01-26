@@ -161,8 +161,8 @@ const Homologation: React.FC<HomologationProps> = ({ hideHeader = false }) => {
           subtitle={t('homologation.subtitle', 'Gérez vos dossiers d\'homologation RGS')}
           icon={
             <img
-              src="/images/gouvernance.png"
-              alt="Homologation"
+              src="/images/operations.png"
+              alt="OPÉRATIONS"
               className="w-full h-full object-contain"
             />
           }

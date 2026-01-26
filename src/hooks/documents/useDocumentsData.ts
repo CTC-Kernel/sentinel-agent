@@ -3,9 +3,11 @@ import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { Document, UserProfile, DocumentFolder } from '../../types';
 import { useStore } from '../../store';
+import { useAuth } from '../useAuth';
 import { MockDataService } from '../../services/mockDataService';
 
-export const useDocumentsData = (organizationId?: string) => {
+export const useDocumentsData = (organizationId?: string, enabled = true) => {
+    const { claimsSynced } = useAuth();
     const { demoMode: storeDemoMode } = useStore();
     // Prioritize localStorage and window global for reliability in tests/demo
     const demoMode = storeDemoMode ||
@@ -30,19 +32,19 @@ export const useDocumentsData = (organizationId?: string) => {
     const { data: rawDocuments, loading: loadingDocuments } = useFirestoreCollection<Document>(
         'documents',
         constraints,
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode && claimsSynced && enabled }
     );
 
     const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
         'users',
         constraints,
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode && claimsSynced && enabled }
     );
 
     const { data: rawFolders, loading: loadingFolders } = useFirestoreCollection<DocumentFolder>(
         'document_folders',
         constraints,
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode && claimsSynced && enabled }
     );
 
     // Load Mock Data Effect

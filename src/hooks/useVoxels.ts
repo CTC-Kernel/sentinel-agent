@@ -1,6 +1,6 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control } from '../types';
 import { useStore } from '../store';
@@ -37,7 +37,8 @@ const convertTimestamps = (obj: unknown): unknown => {
 
 export const useVoxels = () => {
     const { user } = useStore();
-    const [loading, setLoading] = useState(true);
+    // Initialize loading based on whether we have organizationId
+    const [loading, setLoading] = useState(() => Boolean(user?.organizationId));
     const [data, setData] = useState<{
         assets: Asset[];
         risks: Risk[];
@@ -56,77 +57,38 @@ export const useVoxels = () => {
         controls: []
     });
 
-    const fetchData = useCallback(async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        const orgId = user.organizationId;
-
-        // Resilient fetch helper
-        const fetchCollection = async <T>(collectionName: string): Promise<T[]> => {
-            try {
-                const q = query(collection(db, collectionName), where('organizationId', '==', orgId));
-                const snap = await getDocs(q);
-                return snap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as T[];
-            } catch (error) {
-                // Log silently to avoid spamming user, but ensure we return empty array
-                ErrorLogger.warn(`Failed to fetch ${collectionName}`, `useVoxels.fetchCollection.${collectionName}`, { error });
-                return [];
-            }
-        };
-
-        try {
-            const [
-                assets,
-                risks,
-                projects,
-                audits,
-                incidents,
-                suppliers,
-                controls
-            ] = await Promise.all([
-                fetchCollection<Asset>('assets'),
-                fetchCollection<Risk>('risks'),
-                fetchCollection<Project>('projects'),
-                fetchCollection<Audit>('audits'),
-                fetchCollection<Incident>('incidents'),
-                fetchCollection<Supplier>('suppliers'),
-                fetchCollection<Control>('controls')
-            ]);
-
-            setData({
-                assets,
-                risks,
-                projects,
-                audits,
-                incidents,
-                suppliers,
-                controls
-            });
-
-        } catch (error) {
-            // This catch block might not be reached due to internal catches, 
-            // but good for unexpected sync errors
-            ErrorLogger.handleErrorWithToast(error, 'useVoxels.fetchData', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.organizationId]);
-
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        if (!user?.organizationId) return;
 
-    const refresh = useCallback(() => {
-        fetchData();
-    }, [fetchData]);
+        const orgId = user.organizationId;
+        const collections = ['assets', 'risks', 'projects', 'audits', 'incidents', 'suppliers', 'controls'];
+        const unsubscribes: (() => void)[] = [];
+        const loadedStatus: Record<string, boolean> = {};
+
+        collections.forEach(colName => {
+            const q = query(collection(db, colName), where('organizationId', '==', orgId));
+            const unsub = onSnapshot(q, (snap) => {
+                const colData = snap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() })) as (Asset | Risk | Project | Audit | Incident | Supplier | Control)[];
+                setData(prev => ({ ...prev, [colName]: colData }));
+
+                loadedStatus[colName] = true;
+                if (Object.keys(loadedStatus).length === collections.length) {
+                    setLoading(false);
+                }
+            }, (err) => {
+                ErrorLogger.error(err, `useVoxels.listener.${colName}`);
+                loadedStatus[colName] = true; // Still mark as loaded to unblock loading state
+                if (Object.keys(loadedStatus).length === collections.length) setLoading(false);
+            });
+            unsubscribes.push(unsub);
+        });
+
+        return () => unsubscribes.forEach(unsub => unsub());
+    }, [user?.organizationId]);
 
     return {
         loading,
         ...data,
-        refresh
+        refresh: () => { } // No-op for compatibility
     };
 };

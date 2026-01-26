@@ -13,6 +13,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { toast } from '@/lib/toast';
+import { useFormPersistence } from '../../hooks/utils/useFormPersistence';
 
 interface DocumentFormProps {
     onSubmit: (data: DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean }) => Promise<void>;
@@ -48,7 +49,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     const [uploadedFileHash, setUploadedFileHash] = useState<string>(initialData?.hash || '');
     const [uploadedFileSecure, setUploadedFileSecure] = useState<boolean>(initialData?.isSecure || false);
 
-    const { register, handleSubmit, control, setValue, formState: { errors } } = useZodForm<typeof documentSchema>({
+    const { register, handleSubmit, control, setValue, watch, reset, formState: { errors } } = useZodForm<typeof documentSchema>({
         schema: documentSchema,
         mode: 'onChange',
         shouldUnregister: true,
@@ -74,6 +75,14 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             externalUrl: initialData?.externalUrl || '',
             folderId: initialData?.folderId || ''
         }
+    });
+
+    // Persistence Hook
+    const { clearDraft } = useFormPersistence<DocumentFormData>('sentinel_document_draft_new', {
+        watch,
+        reset
+    }, {
+        enabled: !initialData
     });
 
     const onInvalid = (errors: FieldErrors<DocumentFormData>) => {
@@ -137,6 +146,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             fileHash: uploadedFileHash,
             isSecure: uploadedFileSecure
         });
+        clearDraft();
     };
 
     return (

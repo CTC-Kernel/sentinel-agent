@@ -17,8 +17,8 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { AgentService } from '../../services/AgentService';
 import { SentinelAgent } from '../../types/agent';
 
-export const useAssetLogic = () => {
-    const { user } = useAuth();
+export const useAssetLogic = (enabled = true) => {
+    const { user, claimsSynced } = useAuth();
     const { demoMode, t } = useStore();
     const { limits } = usePlanLimits();
 
@@ -55,7 +55,7 @@ export const useAssetLogic = () => {
     const { data: rawAssets, loading: assetsLoading, refresh: refreshFirestoreAssets } = useFirestoreCollection<Asset>(
         'assets',
         constraints,
-        { logError: true, realtime: true, enabled: !!organizationId && !demoMode }
+        { logError: true, realtime: true, enabled: !!organizationId && !demoMode && claimsSynced && enabled }
     );
 
     // Fetch Agents for Real-time Discovery

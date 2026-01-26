@@ -239,8 +239,15 @@ export async function deleteReport(
             try {
                 const fileRef = ref(storage, report.fileUrl);
                 await deleteObject(fileRef);
-            } catch {
-                // File may not exist, continue
+            } catch (storageError) {
+                // File may not exist, continue but log for debugging
+                ErrorLogger.warn('Failed to delete report file from storage', 'AgentReportService.deleteReport', {
+                    component: 'AgentReportService',
+                    action: 'deleteReportFile',
+                    reportId,
+                    fileUrl: report.fileUrl,
+                    error: storageError instanceof Error ? storageError.message : 'Unknown error',
+                });
             }
         }
 

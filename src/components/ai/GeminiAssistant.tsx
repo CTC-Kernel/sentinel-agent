@@ -26,11 +26,13 @@ export const GeminiAssistant: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const { user } = useStore();
+    const { user, organization } = useStore();
     const navigate = useNavigate();
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const { hasFeature } = usePlanLimits();
-    const aiEnabled = hasFeature('aiAssistant');
+    const planAiEnabled = hasFeature('aiAssistant');
+    const orgAiEnabled = organization?.settings?.aiSettings?.enabled !== false;
+    const aiEnabled = planAiEnabled && orgAiEnabled;
 
     // Use AI conversation hook
     const { messages, conversationRef, addMessage } = useAIConversation(user?.uid, aiEnabled);
@@ -162,9 +164,9 @@ export const GeminiAssistant: React.FC = () => {
         return (
             <button
                 type="button"
-                onClick={() => navigate('/pricing')}
+                onClick={() => planAiEnabled ? navigate('/settings') : navigate('/pricing')}
                 className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-4 bg-gradient-to-br from-slate-200 to-slate-100 text-slate-700 rounded-full shadow-2xl hover:shadow-slate-400/40 transition-all duration-300 z-50 group border border-white/40"
-                aria-label="Assistant IA réservé"
+                aria-label={planAiEnabled ? "Assistant IA désactivé par l'administrateur" : "Assistant IA réservé"}
             >
                 <span className="relative flex items-center gap-2 font-bold text-sm">
                     <Sparkles className="h-5 w-5 text-slate-500" />
@@ -172,7 +174,9 @@ export const GeminiAssistant: React.FC = () => {
                     <Lock className="h-4 w-4 text-slate-500" />
                 </span>
                 <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg hidden md:block">
-                    Disponible à partir du plan Professional
+                    {!planAiEnabled
+                        ? "Disponible à partir du plan Professional"
+                        : "Désactivé par votre administrateur"}
                 </span>
             </button>
         );
