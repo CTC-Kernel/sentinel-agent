@@ -2,7 +2,12 @@ import React from 'react';
 import { SecurityBadge, SecurityFeature } from './SecurityBadge';
 import { motion } from 'framer-motion';
 
-interface PageHeaderProps {
+interface Breadcrumb {
+  label: string;
+  path?: string;
+}
+
+export interface PageHeaderProps {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
@@ -11,6 +16,8 @@ interface PageHeaderProps {
   className?: string;
   /** Compact mode for nested pages */
   compact?: boolean;
+  /** Breadcrumbs for navigation (optional, rendered externally) */
+  breadcrumbs?: Breadcrumb[];
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
@@ -20,7 +27,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   icon,
   trustType,
   className = '',
-  compact = false
+  compact = false,
+  breadcrumbs: _breadcrumbs,
 }) => {
 
   return (

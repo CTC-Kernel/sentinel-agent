@@ -5,7 +5,38 @@ import { cn } from "@/lib/utils"
 
 const DropdownMenu = Menu
 
-const DropdownMenuTrigger = Menu.Button
+const DropdownMenuTrigger = React.forwardRef<
+    HTMLButtonElement,
+    React.ComponentPropsWithoutRef<typeof Menu.Button> & { asChild?: boolean; className?: string }
+>(({ className, asChild, children, ...props }, ref) => {
+    // Note: HeadlessUI doesn't support asChild natively
+    // If asChild is true and children is a single element, we try to pass through
+    if (asChild && React.isValidElement(children)) {
+        const childElement = children as React.ReactElement<{ className?: string }>;
+        return (
+            <Menu.Button
+                as={React.Fragment}
+                ref={ref}
+                {...props}
+            >
+                {React.cloneElement(childElement, {
+                    className: cn(childElement.props?.className, className),
+                })}
+            </Menu.Button>
+        )
+    }
+
+    return (
+        <Menu.Button
+            ref={ref}
+            className={className}
+            {...props}
+        >
+            {children}
+        </Menu.Button>
+    )
+})
+DropdownMenuTrigger.displayName = "DropdownMenuTrigger"
 
 const DropdownMenuContent = React.forwardRef<
     HTMLDivElement,

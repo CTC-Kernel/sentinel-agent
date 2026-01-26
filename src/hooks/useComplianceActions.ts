@@ -67,7 +67,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
             await updateDoc(ref, sanitizedUpdates);
 
             if (user) {
-                const changes = oldData ? getDiff(updates as Record<string, unknown>, oldData as Record<string, unknown>) : [];
+                const changes = oldData ? getDiff(updates as unknown as Record<string, unknown>, oldData as unknown as Record<string, unknown>) : [];
                 logAction(
                     user,
                     'UPDATE_CONTROL',

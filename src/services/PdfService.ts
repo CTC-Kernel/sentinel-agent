@@ -10,9 +10,11 @@ interface GStateOptions {
     opacity?: number;
 }
 
-interface jsPDFWithGState extends jsPDF {
+// Extended jsPDF type with GState constructor for transparency effects
+// Uses separate type to avoid interface extension conflicts
+type jsPDFWithGState = jsPDF & {
     GState?: new (options: GStateOptions) => object;
-}
+};
 
 export interface ReportOptions {
     title: string;

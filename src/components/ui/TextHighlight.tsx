@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import DOMPurify from 'dompurify';
+import DOMPurify, { Config } from 'dompurify';
 
 interface TextHighlightProps {
     text: string;
@@ -10,7 +10,7 @@ interface TextHighlightProps {
 }
 
 // DOMPurify configuration for safe HTML rendering
-const DOMPURIFY_CONFIG: DOMPurify.Config = {
+const DOMPURIFY_CONFIG: Config = {
     ALLOWED_TAGS: ['mark', 'span', 'b', 'i', 'em', 'strong', 'br', 'p'],
     ALLOWED_ATTR: ['class'],
     KEEP_CONTENT: true,
@@ -27,8 +27,8 @@ export const TextHighlight: React.FC<TextHighlightProps> = ({
     const sanitizedContent = useMemo(() => {
         if (!isHtml) return null;
 
-        // First sanitize the input HTML
-        const sanitizedText = DOMPurify.sanitize(text, DOMPURIFY_CONFIG);
+        // First sanitize the input HTML - RETURN_TRUSTED_TYPE: false ensures string return
+        const sanitizedText = DOMPurify.sanitize(text, { ...DOMPURIFY_CONFIG, RETURN_TRUSTED_TYPE: false }) as string;
 
         if (!query || !query.trim()) {
             return sanitizedText;
@@ -44,7 +44,7 @@ export const TextHighlight: React.FC<TextHighlightProps> = ({
         );
 
         // Re-sanitize after adding marks (defense in depth)
-        return DOMPurify.sanitize(highlighted, DOMPURIFY_CONFIG);
+        return DOMPurify.sanitize(highlighted, { ...DOMPURIFY_CONFIG, RETURN_TRUSTED_TYPE: false }) as string;
     }, [text, query, isHtml, highlightClassName]);
 
     if (!query || !query.trim()) {

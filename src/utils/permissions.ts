@@ -33,7 +33,11 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Partner: ['manage'],
         BcpDrill: ['manage'],
         TlptCampaign: ['manage'],
-        RecoveryPlan: ['manage']
+        RecoveryPlan: ['manage'],
+        // Agent Management (Sprint 10)
+        Agent: ['manage'],
+        AgentPolicy: ['manage'],
+        AgentReport: ['manage']
     },
     auditor: {
         Audit: ['read', 'create', 'update'],
@@ -52,7 +56,11 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         AuditTrail: ['read'],
         BcpDrill: ['read'],
         TlptCampaign: ['read'],
-        RecoveryPlan: ['read']
+        RecoveryPlan: ['read'],
+        // Agent Management (Sprint 10) - Read-only for auditors
+        Agent: ['read'],
+        AgentPolicy: ['read'],
+        AgentReport: ['read', 'create'] // Auditors can generate reports
     },
     project_manager: {
         Project: ['manage'], // 'manage' includes 'delete'
@@ -69,7 +77,11 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Audit: ['read'],
         BcpDrill: ['read'],
         TlptCampaign: ['read'],
-        RecoveryPlan: ['read']
+        RecoveryPlan: ['read'],
+        // Agent Management (Sprint 10) - Read-only
+        Agent: ['read'],
+        AgentPolicy: ['read'],
+        AgentReport: ['read']
     },
     direction: {
         Project: ['read'],
@@ -89,7 +101,11 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Integration: ['read'],
         BcpDrill: ['read'],
         TlptCampaign: ['read'],
-        RecoveryPlan: ['read']
+        RecoveryPlan: ['read'],
+        // Agent Management (Sprint 10) - Read-only + reports
+        Agent: ['read'],
+        AgentPolicy: ['read'],
+        AgentReport: ['read', 'create'] // Direction can request reports
     },
     user: {
         Document: ['read', 'update_own'], // Can often read policy docs
@@ -106,7 +122,11 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         SupplierIncident: ['read'],
         BcpDrill: ['read'],
         TlptCampaign: ['read'],
-        RecoveryPlan: ['read']
+        RecoveryPlan: ['read'],
+        // Agent Management (Sprint 10) - No access
+        Agent: [],
+        AgentPolicy: [],
+        AgentReport: []
     }
 };
 

@@ -17,11 +17,8 @@ interface RiskDashboardProps {
 }
 
 // Premium activeShape renderer for interactive pie
-const renderActiveShape = (props: {
-    cx: number; cy: number; innerRadius: number; outerRadius: number;
-    startAngle: number; endAngle: number; fill: string;
-    payload: { name: string; value: number }; percent: number;
-}) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
     return (
         <g>
@@ -88,17 +85,6 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
         { name: 'Moyen', value: metrics.medium, color: SEVERITY_COLORS.medium },
         { name: 'Faible', value: metrics.low, color: SEVERITY_COLORS.low }
     ].filter(d => d.value > 0), [metrics]);
-
-    // Strategy distribution (kept for future use)
-    const _strategyData = useMemo(() => {
-        const strategies = risks.reduce((acc, r) => {
-            const strat = r.strategy || 'Non défini';
-            acc[strat] = (acc[strat] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-
-        return Object.entries(strategies).map(([name, value]) => ({ name, value }));
-    }, [risks]);
 
     // Risk evolution trend based on actual metrics
     const evolutionData = useMemo(() => {
@@ -326,7 +312,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
                                     onMouseEnter={(_, index) => setActivePieIndex(index)}
                                     onMouseLeave={() => setActivePieIndex(null)}
                                 >
-                                    {distributionData.map((entry, index) => (
+                                    {distributionData.map((_, index) => (
                                         <Cell
                                             key={`cell-${index}`}
                                             fill={`url(#riskPieGrad${index})`}

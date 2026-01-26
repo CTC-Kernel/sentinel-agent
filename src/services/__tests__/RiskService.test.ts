@@ -178,12 +178,12 @@ describe('RiskService', () => {
 
     describe('createRisk', () => {
         it('should create risk successfully for admin user', async () => {
-            const riskData = {
+            const riskData: Partial<Risk> = {
                 threat: 'New Risk',
-                probability: 3,
-                impact: 4,
-                residualProbability: 2,
-                residualImpact: 2,
+                probability: 3 as const,
+                impact: 4 as const,
+                residualProbability: 2 as const,
+                residualImpact: 2 as const,
             };
 
             const result = await RiskService.createRisk(mockAdminUser, riskData);
@@ -258,9 +258,9 @@ describe('RiskService', () => {
 
     describe('updateRisk', () => {
         it('should update risk successfully', async () => {
-            const updateData = {
-                status: 'En cours',
-                probability: 2,
+            const updateData: Partial<Risk> = {
+                status: 'En cours' as const,
+                probability: 2 as const,
             };
 
             const result = await RiskService.updateRisk(mockAdminUser, 'risk-1', updateData, mockRisk);
@@ -349,7 +349,9 @@ describe('RiskService', () => {
         it('should return dependencies from DependencyService', async () => {
             vi.mocked(DependencyService.checkRiskDependencies).mockResolvedValueOnce({
                 hasDependencies: true,
-                dependencies: [{ type: 'Control', id: 'ctrl-1', name: 'CTRL-001' }],
+                dependencies: [{ type: 'Contrôle', id: 'ctrl-1', name: 'CTRL-001', collectionName: 'controls' }],
+                canDelete: false,
+                blockingReasons: ['Ce risque est lié à des contrôles'],
             });
 
             const result = await RiskService.checkDependencies(mockAdminUser, 'risk-1');

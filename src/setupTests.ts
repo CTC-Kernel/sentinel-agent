@@ -1,8 +1,47 @@
 import '@testing-library/jest-dom';
 
 import React from 'react';
-import { vi, afterEach } from 'vitest';
+import { vi, afterEach, beforeAll } from 'vitest';
 import { cleanup } from '@testing-library/react';
+
+// Suppress noisy warnings in tests
+const originalWarn = console.warn;
+const originalError = console.error;
+beforeAll(() => {
+    // Suppress React Router v7 deprecation warnings
+    console.warn = (...args: unknown[]) => {
+        const message = args[0];
+        if (typeof message === 'string') {
+            // Suppress React Router v7 warnings
+            if (message.includes('React Router Future Flag Warning')) {
+                return;
+            }
+            // Suppress Recharts dimension warnings in tests (container has 0 dimensions in JSDOM)
+            if (message.includes('width(0) and height(0)')) {
+                return;
+            }
+        }
+        originalWarn.apply(console, args);
+    };
+
+    // Suppress Three.js/R3F element casing warnings in tests
+    console.error = (...args: unknown[]) => {
+        const message = args[0];
+        if (typeof message === 'string') {
+            // Suppress lowercase element casing warnings from Three.js
+            if (message.includes('is using incorrect casing') ||
+                message.includes('is unrecognized in this browser')) {
+                return;
+            }
+            // Suppress React DOM property warnings for Three.js elements
+            if (message.includes('React does not recognize') &&
+                (message.includes('castShadow') || message.includes('receiveShadow'))) {
+                return;
+            }
+        }
+        originalError.apply(console, args);
+    };
+});
 
 // Global mocks if needed
 global.React = React;

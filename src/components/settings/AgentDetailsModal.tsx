@@ -23,11 +23,11 @@ import {
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { SentinelAgent, AgentDetails, AgentConfig, AgentStatus } from '../../types/agent';
+import { SentinelAgent, AgentDetails, AgentConfig, AgentStatus, AgentMetricPoint } from '../../types/agent';
 import { AgentService } from '../../services/AgentService';
 import { useStore } from '../../store';
 import { SENTINEL_PALETTE } from '../../theme/chartTheme';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 interface AgentDetailsModalProps {
     isOpen: boolean;
@@ -38,11 +38,89 @@ interface AgentDetailsModalProps {
     onAgentDeleted?: () => void;
 }
 
-const STAT_ITEMS = [
-    { label: 'CPU', key: 'cpuPercent', unit: '%', icon: Cpu, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'RAM', key: 'memoryBytes', unit: 'MB', icon: HardDrive, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { label: 'Score', key: 'complianceScore', unit: '%', icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-];
+// Apple-style radial gauge component
+const RadialGauge: React.FC<{
+    value: number;
+    max?: number;
+    label: string;
+    color: string;
+    bgColor: string;
+    icon: React.ComponentType<{ className?: string }>;
+    unit?: string;
+    subtitle?: string;
+}> = ({ value, max = 100, label, color, bgColor, icon: Icon, unit = '%', subtitle }) => {
+    const percentage = Math.min((value / max) * 100, 100);
+    const circumference = 2 * Math.PI * 42; // radius = 42
+    const offset = circumference - (percentage / 100) * circumference;
+
+    return (
+        <div className="relative flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:shadow-lg transition-shadow">
+            <div className="relative w-28 h-28">
+                {/* Background circle */}
+                <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                        cx="56"
+                        cy="56"
+                        r="42"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        fill="none"
+                        className="text-slate-200 dark:text-white/10"
+                    />
+                    <circle
+                        cx="56"
+                        cy="56"
+                        r="42"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={offset}
+                        className={color}
+                        style={{ transition: 'stroke-dashoffset 0.5s ease-out' }}
+                    />
+                </svg>
+                {/* Center content */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl font-black text-slate-900 dark:text-white">
+                        {Math.round(value)}
+                    </span>
+                    <span className="text-xs text-slate-500">{unit}</span>
+                </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+                <div className={cn("p-1.5 rounded-lg", bgColor, color)}>
+                    <Icon className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label}</span>
+            </div>
+            {subtitle && (
+                <span className="text-xs text-slate-500 mt-1">{subtitle}</span>
+            )}
+        </div>
+    );
+};
+
+// Format bytes to human-readable
+const formatBytes = (bytes: number, decimals = 1): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`;
+};
+
+// Format uptime
+const formatUptime = (seconds?: number): string => {
+    if (!seconds) return 'N/A';
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    if (days > 0) return `${days}j ${hours}h`;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
+};
 
 export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
     isOpen,
@@ -55,6 +133,7 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
     const { user } = useStore();
     const [activeTab, setActiveTab] = useState<'overview' | 'compliance' | 'config' | 'logs'>('overview');
     const [agentDetails, setAgentDetails] = useState<AgentDetails | null>(null);
+    const [metricsHistory, setMetricsHistory] = useState<AgentMetricPoint[]>([]);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [configForm, setConfigForm] = useState<Partial<AgentConfig>>({});
@@ -63,8 +142,12 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
         if (!agentId || !user?.organizationId) return;
         setLoading(true);
         try {
-            const details = await AgentService.getAgentDetails(user.organizationId, agentId);
+            const [details, metricsData] = await Promise.all([
+                AgentService.getAgentDetails(user.organizationId, agentId),
+                AgentService.getAgentMetricsHistory(user.organizationId, agentId, 6).catch(() => ({ metrics: [] }))
+            ]);
             setAgentDetails(details);
+            setMetricsHistory(metricsData.metrics || []);
             if (details.config) {
                 setConfigForm(details.config);
             }
@@ -135,9 +218,6 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                 return <Badge className="bg-red-500/10 text-red-600 border-red-500/20"><XCircle className="w-3 h-3 mr-1" /> Erreur</Badge>;
         }
     };
-
-    // Helper to format memory from bytes
-    const formatMemory = (bytes?: number) => bytes ? Math.round(bytes / 1024 / 1024) : 0;
 
     return (
         <Modal
@@ -210,26 +290,92 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                     exit={{ opacity: 0, y: -10 }}
                                     className="space-y-6"
                                 >
-                                    {/* Stats Grid */}
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {STAT_ITEMS.map((item, i) => {
-                                            // @ts-expect-error - key access on AgentDetails
-                                            const val = item.key === 'memoryBytes' ? formatMemory(agentDetails[item.key]) : (agentDetails[item.key] || 0);
-                                            return (
-                                                <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-xs font-bold text-slate-500 uppercase">{item.label}</span>
-                                                        <div className={cn("p-1.5 rounded-lg", item.bg, item.color)}>
-                                                            <item.icon className="w-4 h-4" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-2xl font-black text-slate-900 dark:text-white">
-                                                        {val} <span className="text-xs font-normal text-slate-500">{item.unit}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                                    {/* Apple-style Metrics Gauges */}
+                                    <div className="grid grid-cols-4 gap-4">
+                                        <RadialGauge
+                                            value={agentDetails.cpuPercent || 0}
+                                            label="CPU"
+                                            color="text-blue-500"
+                                            bgColor="bg-blue-500/10"
+                                            icon={Cpu}
+                                            subtitle="Utilisation"
+                                        />
+                                        <RadialGauge
+                                            value={agentDetails.memoryPercent || (agentDetails.memoryBytes ? Math.round(agentDetails.memoryBytes / 1024 / 1024 / 1024 * 10) : 0)}
+                                            label="RAM"
+                                            color="text-purple-500"
+                                            bgColor="bg-purple-500/10"
+                                            icon={HardDrive}
+                                            subtitle={agentDetails.memoryBytes ? formatBytes(agentDetails.memoryBytes) : undefined}
+                                        />
+                                        <RadialGauge
+                                            value={agentDetails.diskPercent || 0}
+                                            label="Disque"
+                                            color="text-amber-500"
+                                            bgColor="bg-amber-500/10"
+                                            icon={Server}
+                                            subtitle={agentDetails.diskUsedBytes ? formatBytes(agentDetails.diskUsedBytes) : undefined}
+                                        />
+                                        <RadialGauge
+                                            value={agentDetails.complianceScore ?? 0}
+                                            label="Conformité"
+                                            color="text-emerald-500"
+                                            bgColor="bg-emerald-500/10"
+                                            icon={ShieldCheck}
+                                        />
                                     </div>
+
+                                    {/* Metrics Trend Chart */}
+                                    {metricsHistory.length > 0 && (
+                                        <div className="p-5 rounded-2xl border border-slate-200 dark:border-white/10">
+                                            <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+                                                <Activity className="w-4 h-4 text-brand-500" />
+                                                Tendance des métriques (6h)
+                                            </h3>
+                                            <div className="h-[180px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <AreaChart data={metricsHistory.map((m) => ({
+                                                        time: new Date(m.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                        cpu: m.cpuPercent,
+                                                        ram: m.memoryPercent || 0,
+                                                    }))}>
+                                                        <defs>
+                                                            <linearGradient id="cpuGradient" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                                            </linearGradient>
+                                                            <linearGradient id="ramGradient" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                                                                <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <XAxis dataKey="time" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                                                        <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={30} />
+                                                        <Tooltip
+                                                            contentStyle={{
+                                                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                fontSize: '12px'
+                                                            }}
+                                                        />
+                                                        <Area type="monotone" dataKey="cpu" stroke="#3b82f6" fill="url(#cpuGradient)" strokeWidth={2} name="CPU %" />
+                                                        <Area type="monotone" dataKey="ram" stroke="#a855f7" fill="url(#ramGradient)" strokeWidth={2} name="RAM %" />
+                                                    </AreaChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                            <div className="flex gap-4 mt-2 justify-center">
+                                                <div className="flex items-center gap-2 text-xs">
+                                                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                                                    <span className="text-slate-500">CPU</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs">
+                                                    <div className="w-3 h-3 rounded-full bg-purple-500" />
+                                                    <span className="text-slate-500">RAM</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Info Cards */}
                                     <div className="grid grid-cols-2 gap-6">
@@ -267,6 +413,10 @@ export const AgentDetailsModal: React.FC<AgentDetailsModalProps> = ({
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
                                                     <span className="text-slate-500">Status</span>
                                                     <span>{getStatusBadge(agentDetails.status)}</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
+                                                    <span className="text-slate-500">Uptime</span>
+                                                    <span className="font-medium">{formatUptime(agentDetails.uptimeSeconds)}</span>
                                                 </div>
                                                 <div className="flex justify-between py-2 border-b border-slate-50 dark:border-white/5">
                                                     <span className="text-slate-500">Dernier Heartbeat</span>

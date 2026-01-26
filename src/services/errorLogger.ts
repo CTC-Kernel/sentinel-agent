@@ -13,6 +13,8 @@ interface ErrorContext {
   organizationId?: string;
   metadata?: Record<string, unknown>;
   error?: unknown;
+  // Allow additional context properties
+  [key: string]: unknown;
 }
 
 class ErrorLoggerService {

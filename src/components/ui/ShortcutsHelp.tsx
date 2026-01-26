@@ -39,9 +39,6 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onClose })
         }
     ];
 
-    // Flatten for backwards compatibility (kept for potential future use)
-    const _shortcuts = shortcutGroups.flatMap(g => g.shortcuts);
-
     return createPortal(
         <div className="fixed inset-0 z-max flex items-center justify-center p-4">
             <div

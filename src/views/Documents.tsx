@@ -206,10 +206,9 @@ export const Documents: React.FC = () => {
     // --- Metrics ---
     const totalDocs = documents.length;
     const publishedDocs = documents.filter(d => d.status === 'Publié' || d.status === 'Approuvé').length;
-    const _inReviewDocs = documents.filter(d => d.status === 'En revue').length;
-    const _draftDocs = documents.filter(d => d.status === 'Brouillon').length;
-    const _expiredDocs = documents.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < new Date()).length;
-    const _validationRate = totalDocs > 0 ? (publishedDocs / totalDocs) * 100 : 0;
+    // Note: Additional metrics (inReviewDocs, draftDocs, expiredDocs, validationRate) available if needed for future dashboard widgets
+    void totalDocs; // Used in calculations
+    void publishedDocs; // Used in calculations
 
     // --- Filtering ---
     const deferredFilter = useDeferredValue(filter);

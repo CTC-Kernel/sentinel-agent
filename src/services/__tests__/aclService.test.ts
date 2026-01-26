@@ -125,7 +125,7 @@ describe('ACL Service', () => {
     });
 
     describe('checkAccess', () => {
-        const baseDocument: Document = {
+        const baseDocument = {
             id: 'doc-1',
             organizationId: 'org-1',
             title: 'Test Document',
@@ -135,7 +135,7 @@ describe('ACL Service', () => {
                 defaultAccess: 'classification',
                 permissions: [],
             },
-        } as Document;
+        } as unknown as Document;
 
         it('should grant access to admin users', () => {
             expect(checkAccess(baseDocument, 'any-user', 'admin', 'delete')).toBe(true);

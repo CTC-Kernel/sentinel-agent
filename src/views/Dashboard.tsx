@@ -142,8 +142,8 @@ export const DashboardWithQuickActions: React.FC = () => {
 
         // Ajouter les projets avec deadline
         myProjects?.forEach(project => {
-            if (project.endDate && project.status !== 'Terminé') {
-                const projectDate = new Date(project.endDate);
+            if (project.dueDate && project.status !== 'Terminé') {
+                const projectDate = new Date(project.dueDate);
                 if (projectDate >= now) {
                     deadlines.push({
                         title: project.name,

@@ -21,7 +21,8 @@ import {
     ComposedChart,
     Line
 } from 'recharts';
-import { Incident, Criticality, SentinelAgent } from '../../../types';
+import { Incident, Criticality } from '../../../types';
+import type { SentinelAgent } from '../../../types/agent';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { EmptyChartState } from '../../ui/EmptyChartState';
 import {
@@ -252,16 +253,8 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
     };
 
     // Custom active shape for pie
-    const renderActiveShape = (props: {
-        cx: number;
-        cy: number;
-        innerRadius: number;
-        outerRadius: number;
-        startAngle: number;
-        endAngle: number;
-        fill: string;
-        payload: { name: string; value: number };
-    }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const renderActiveShape = (props: any) => {
         const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
         return (
             <g>
@@ -516,7 +509,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                             onMouseEnter={(_, index) => setActiveIndex(index)}
                                             onMouseLeave={() => setActiveIndex(null)}
                                         >
-                                            {severityData.map((entry, index) => (
+                                            {severityData.map((_, index) => (
                                                 <Cell
                                                     key={`sev-${index}`}
                                                     fill={`url(#severityGradient-${index})`}
@@ -635,7 +628,7 @@ export const IncidentOverview: React.FC<IncidentOverviewProps> = ({ incidents, a
                                     <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fill: CHART_AXIS_COLORS.tick, fontSize: 11 }} width={70} />
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} />
                                     <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={20}>
-                                        {statusData.map((entry, index) => (
+                                        {statusData.map((_, index) => (
                                             <Cell
                                                 key={`status-${index}`}
                                                 fill={`url(#statusGradient-${index})`}

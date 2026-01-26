@@ -6,7 +6,7 @@ export enum Criticality {
     CRITICAL = 'Critique'
 }
 
-export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'Control' | 'Incident' | 'Supplier' | 'BusinessProcess' | 'Vulnerability' | 'Threat' | 'SystemLog' | 'ProcessingActivity' | 'SupplierAssessment' | 'SupplierIncident' | 'User' | 'Settings' | 'CTCEngine' | 'AuditTrail' | 'Organization' | 'Backup' | 'Integration' | 'Partner' | 'BcpDrill' | 'TlptCampaign' | 'RecoveryPlan';
+export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'Control' | 'Incident' | 'Supplier' | 'BusinessProcess' | 'Vulnerability' | 'Threat' | 'SystemLog' | 'ProcessingActivity' | 'SupplierAssessment' | 'SupplierIncident' | 'User' | 'Settings' | 'CTCEngine' | 'AuditTrail' | 'Organization' | 'Backup' | 'Integration' | 'Partner' | 'BcpDrill' | 'TlptCampaign' | 'RecoveryPlan' | 'Agent' | 'AgentPolicy' | 'AgentReport';
 export type ActionType = 'read' | 'create' | 'update' | 'delete' | 'manage';
 
 export interface HealthIssue {

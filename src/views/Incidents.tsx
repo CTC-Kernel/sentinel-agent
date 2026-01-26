@@ -8,7 +8,6 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useIncidentData } from '../hooks/incidents/useIncidentData';
 import { useIncidentActions } from '../hooks/incidents/useIncidentActions';
 import { useIncidentDependencies } from '../hooks/incidents/useIncidentDependencies';
-import { useIncidentStats } from '../hooks/incidents/useIncidentStats';
 import { useIncidentExport } from '../hooks/incidents/useIncidentExport';
 
 import { PageHeader } from '../components/ui/PageHeader';
@@ -307,8 +306,7 @@ export const Incidents: React.FC = () => {
 
     const canEdit = canEditResource(user, 'Incident');
     const canCreate = hasPermission(user, 'Incident', 'create');
-
-    const _incidentStats = useIncidentStats(incidents);
+    // Note: incidentStats available via useIncidentStats hook if needed for dashboard
 
     const breadcrumbs = useMemo(() => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); } }];

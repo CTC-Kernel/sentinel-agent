@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
   LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
-  Scale, Shield, Printer, LucideIcon, RefreshCcw, X,
+  Scale, Shield, Printer, LucideIcon, RefreshCcw, X, Bot, Package, FileCode,
 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
@@ -95,6 +95,9 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       items: [
         { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren, resource: 'Incident' },
         { key: 'vulnerabilities', name: 'Vulnérabilités', to: '/vulnerabilities', icon: Bug, resource: 'Asset' },
+        { key: 'agents', name: 'Agents', to: '/agents', icon: Bot, resource: 'Agent' },
+        { key: 'agent-policies', name: 'Politiques Agents', to: '/agent-policies', icon: FileCode, resource: 'AgentPolicy', action: 'manage' },
+        { key: 'software-inventory', name: 'Inventaire Logiciels', to: '/software-inventory', icon: Package, resource: 'Asset' },
         { key: 'threat-intelligence', name: 'Threat Intel', to: '/threat-intelligence', icon: Globe }, // Open feature
         { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Box, resource: 'CTCEngine' },
       ]

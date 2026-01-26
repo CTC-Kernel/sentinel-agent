@@ -90,6 +90,8 @@ export interface Vulnerability {
     relatedTlptCampaignName?: string;
     attachments?: EvidenceAttachment[];
     updatedAt?: string;
+    /** Whether a known exploit is available for this vulnerability */
+    exploitAvailable?: boolean;
 }
 
 export interface EvidenceAttachment {

@@ -4,7 +4,7 @@ import { Control } from '../../../types';
 import { PieChart as PieChartIcon, BarChart3 as BarChartIcon, Target } from '../../ui/Icons';
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, RadialBarChart, RadialBar
+    RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, RadialBarChart, RadialBar, Sector
 } from 'recharts';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { slideUpVariants } from '../../ui/animationVariants';
@@ -15,13 +15,11 @@ interface ComplianceChartsProps {
     currentFramework: string;
 }
 
-// Premium activeShape for interactive pie
-const renderActiveShape = (props: {
-    cx: number; cy: number; innerRadius: number; outerRadius: number;
-    startAngle: number; endAngle: number; fill: string;
-    payload: { name: string; value: number }; percent: number;
-}) => {
+// Fixed activeShape for interactive pie using Sector instead of nested Pie
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
+
     return (
         <g>
             <defs>
@@ -33,28 +31,31 @@ const renderActiveShape = (props: {
                     </feMerge>
                 </filter>
             </defs>
-            <Pie
-                cx={cx}
-                cy={cy}
-                innerRadius={innerRadius - 6}
-                outerRadius={outerRadius + 10}
-                startAngle={startAngle}
-                endAngle={endAngle}
-                fill={fill}
-                stroke="none"
-                style={{ filter: 'url(#compliancePieGlow)' }}
-                data={[{ value: 1 }]}
-                dataKey="value"
-                isAnimationActive={false}
-            >
-                <Cell fill={fill} />
-            </Pie>
             <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground font-black text-base">
                 {payload.name}
             </text>
             <text x={cx} y={cy + 12} textAnchor="middle" className="fill-muted-foreground text-sm font-mono">
                 {payload.value} ({(percent * 100).toFixed(0)}%)
             </text>
+            <Sector
+                cx={cx}
+                cy={cy}
+                innerRadius={innerRadius}
+                outerRadius={outerRadius + 6}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                fill={fill}
+                style={{ filter: 'url(#compliancePieGlow)' }}
+            />
+            <Sector
+                cx={cx}
+                cy={cy}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                innerRadius={innerRadius}
+                outerRadius={outerRadius}
+                fill={fill}
+            />
         </g>
     );
 };

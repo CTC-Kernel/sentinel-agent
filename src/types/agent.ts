@@ -42,6 +42,13 @@ export interface AgentDetails extends SentinelAgent {
         not_applicable: number;
     };
     pendingCommandsCount: number;
+    // Extended metrics from heartbeat
+    memoryPercent?: number;
+    memoryTotalBytes?: number;
+    diskPercent?: number;
+    diskUsedBytes?: number;
+    diskTotalBytes?: number;
+    uptimeSeconds?: number;
 }
 
 export interface AgentEnrollmentToken {
@@ -75,4 +82,62 @@ export interface AgentResultsSummary {
     results: AgentResult[];
     hasMore: boolean;
     lastId: string | null;
+}
+
+export interface AgentMetricPoint {
+    timestamp: string;
+    cpuPercent: number;
+    memoryPercent: number;
+    memoryBytes: number;
+    diskPercent?: number;
+}
+
+export interface AgentMetricsHistory {
+    agentId: string;
+    metrics: AgentMetricPoint[];
+    lastUpdated: string;
+}
+
+// Live View Types (Sprint 2)
+
+export interface AgentProcess {
+    pid: number;
+    name: string;
+    cpuPercent: number;
+    memoryBytes: number;
+    memoryPercent: number;
+    user?: string;
+    status: 'running' | 'sleeping' | 'stopped' | 'zombie';
+    startTime?: string;
+    commandLine?: string;
+}
+
+export interface AgentConnection {
+    id: string;
+    protocol: 'tcp' | 'udp' | 'tcp6' | 'udp6';
+    localAddress: string;
+    localPort: number;
+    remoteAddress: string;
+    remotePort: number;
+    state: 'ESTABLISHED' | 'LISTEN' | 'TIME_WAIT' | 'CLOSE_WAIT' | 'SYN_SENT' | 'SYN_RECV' | 'FIN_WAIT1' | 'FIN_WAIT2' | 'CLOSING' | 'LAST_ACK' | 'CLOSED';
+    pid?: number;
+    processName?: string;
+}
+
+export interface AgentRealtimeMetrics {
+    cpuPercent: number;
+    memoryPercent: number;
+    memoryBytes: number;
+    diskPercent: number;
+    networkInBytes: number;
+    networkOutBytes: number;
+    timestamp: string;
+}
+
+export interface AgentRealtimeData {
+    agentId: string;
+    metrics: AgentRealtimeMetrics;
+    processes: AgentProcess[];
+    connections: AgentConnection[];
+    lastUpdate: string;
 }

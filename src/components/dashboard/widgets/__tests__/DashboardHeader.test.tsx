@@ -13,8 +13,10 @@ vi.mock('framer-motion', () => {
         return ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => {
             // Filter out framer-motion specific props
             const { initial: _initial, animate: _animate, exit: _exit, transition: _transition, whileHover: _whileHover, whileTap: _whileTap, variants: _variants, ...htmlProps } = props;
-            const Element = element as keyof JSX.IntrinsicElements;
-            return <Element {...htmlProps}>{children}</Element>;
+            // Use createElement to avoid JSX type issues with custom elements
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const React = require('react');
+            return React.createElement(element, htmlProps, children);
         };
     };
 

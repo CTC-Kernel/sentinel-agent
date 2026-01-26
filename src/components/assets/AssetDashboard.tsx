@@ -17,11 +17,8 @@ interface AssetDashboardProps {
 }
 
 // Premium activeShape for interactive pie
-const renderActiveShape = (props: {
-    cx: number; cy: number; innerRadius: number; outerRadius: number;
-    startAngle: number; endAngle: number; fill: string;
-    payload: { name: string; value: number }; percent: number;
-}) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
     return (
         <g>

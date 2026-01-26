@@ -15,7 +15,8 @@ import {
     AgentDetails,
     AgentResult,
     AgentConfig,
-    AgentStatus
+    AgentStatus,
+    AgentMetricsHistory
 } from '../types/agent';
 
 // Offline threshold: 3 missed heartbeats (3 minutes with 60s interval)
@@ -347,10 +348,38 @@ export async function getAgentResults(
     }
 }
 
+/**
+ * Get agent metrics history for charts
+ */
+export async function getAgentMetricsHistory(
+    organizationId: string,
+    agentId: string,
+    hours: number = 24
+): Promise<AgentMetricsHistory> {
+    try {
+        const getMetricsFn = httpsCallable<
+            { organizationId: string; agentId: string; hours: number },
+            AgentMetricsHistory
+        >(functions, 'getAgentMetricsHistory');
+
+        const result = await getMetricsFn({ organizationId, agentId, hours });
+        return result.data;
+    } catch (error) {
+        ErrorLogger.error(error, 'AgentService.getAgentMetricsHistory', {
+            component: 'AgentService',
+            action: 'getAgentMetricsHistory',
+            organizationId,
+            metadata: { agentId, hours }
+        });
+        throw error;
+    }
+}
+
 export const AgentService = {
     subscribeToAgents,
     subscribeToTokens,
     getAgentDetails,
+    getAgentMetricsHistory,
     deleteAgent,
     generateEnrollmentToken,
     revokeEnrollmentToken,

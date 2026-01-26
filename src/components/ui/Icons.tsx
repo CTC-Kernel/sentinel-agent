@@ -82,6 +82,7 @@ import {
   Folder,
   FolderOpen,
   FolderKanban,
+  FolderPlus,
   Archive,
   Printer,
   QrCode,
@@ -187,9 +188,12 @@ import {
   Network,
   HardDrive,
   Cpu,
+  MemoryStick,
   Monitor,
+  Bot,
   MonitorPlay,
   Laptop,
+  Apple,
   Smartphone,
   Disc,
   Cloud,
@@ -246,7 +250,6 @@ import {
   Circle,
 
   // AI & Intelligence
-  Bot,
   BrainCircuit,
   Brain,
 
@@ -260,6 +263,7 @@ import {
 
   // Book & Learning
   BookOpen,
+  GraduationCap,
 
   // Social
   Twitter,
@@ -364,6 +368,7 @@ export {
   Folder,
   FolderOpen,
   FolderKanban,
+  FolderPlus,
   Archive,
   Printer,
   QrCode,
@@ -469,9 +474,12 @@ export {
   Network,
   HardDrive,
   Cpu,
+  MemoryStick,
   Monitor,
+  Bot,
   MonitorPlay,
   Laptop,
+  Apple,
   Smartphone,
   Disc,
   Cloud,
@@ -529,7 +537,6 @@ export {
   Circle,
 
   // AI & Intelligence
-  Bot,
   BrainCircuit,
   Brain,
 
@@ -543,6 +550,7 @@ export {
 
   // Book & Learning
   BookOpen,
+  GraduationCap,
 
   // Social
   Twitter,

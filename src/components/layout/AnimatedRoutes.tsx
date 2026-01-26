@@ -43,6 +43,15 @@ const Vulnerabilities = React.lazy(() => import('../../views/Vulnerabilities').t
 const ThreatIntelligence = React.lazy(() => import('../../views/ThreatIntelligence').then(module => ({ default: module.ThreatIntelligence })));
 const Reports = React.lazy(() => import('../../views/Reports').then(module => ({ default: module.Reports })));
 
+// Agent Fleet Management (Sprint 1)
+const Agents = React.lazy(() => import('../../views/Agents'));
+
+// Agent Groups & Policies (Sprint 9)
+const AgentPolicies = React.lazy(() => import('../../views/AgentPolicies'));
+
+// Software Inventory & CIS Benchmarks (Sprint 6)
+const SoftwareInventory = React.lazy(() => import('../../views/SoftwareInventory'));
+
 // EBIOS RM Module (detail page only - list view is now in Risks)
 const EbiosAnalysisDetail = React.lazy(() => import('../../views/EbiosAnalysisDetail').then(module => ({ default: module.EbiosAnalysisDetail })));
 
@@ -81,6 +90,9 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/assets" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Assets /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/risks" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Risks /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/vulnerabilities" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Vulnerabilities /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/agents" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Agents /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/agent-policies" element={<RoleGuardComponent allowedRoles={['admin', 'rssi']}><AnimatedPage><AgentPolicies /></AnimatedPage></RoleGuardComponent>} />
+                <Route path="/software-inventory" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><SoftwareInventory /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/threat-library" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatRegistry /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/threat-intelligence" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><ThreatIntelligence /></AnimatedPage></RoleGuardComponent>} />
                 <Route path="/reports" element={<RoleGuardComponent allowedRoles={allRoles}><AnimatedPage><Reports /></AnimatedPage></RoleGuardComponent>} />
